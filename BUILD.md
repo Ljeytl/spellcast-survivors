@@ -8,38 +8,31 @@
 ### Method 1: Using Godot Editor
 1. Open the project in Godot Editor
 2. Go to **Project → Export**
-3. Select the desired platform preset
+3. Select either "Windows Desktop" or "macOS" preset
 4. Click **Export Project**
-5. Choose destination in `builds/` folder
+5. Save as `SpellCast Survivors.exe` (Windows) or `SpellCast Survivors.dmg` (macOS)
 
 ### Method 2: Command Line Export
 ```bash
 # Export Windows build
-godot --headless --export-release "Windows Desktop" builds/windows/SpellCast-Survivors.exe
+godot --headless --export-release "Windows Desktop" "SpellCast Survivors.exe"
 
 # Export macOS build  
-godot --headless --export-release "macOS" builds/macos/SpellCast-Survivors.app
-
-# Export Web build
-godot --headless --export-release "Web" builds/web/index.html
+godot --headless --export-release "macOS" "SpellCast Survivors.dmg"
 ```
 
 ## Platform-Specific Notes
 
-### Windows
-- Creates a single `.exe` file
+### Windows (.exe)
+- Creates a single executable file
 - May require Visual C++ Redistributable on target machines
+- Compatible with Windows 10/11
 
-### macOS
-- Creates an `.app` bundle
-- May require code signing for distribution
-
-### Web
-- Creates HTML5 files playable in browsers
-- Requires a web server to run locally (can't open `index.html` directly)
-- To test locally: `python -m http.server 8000` in the builds/web directory
+### macOS (.dmg)
+- Creates a disk image containing the .app bundle
+- Universal binary (supports Intel and Apple Silicon)
+- Compatible with macOS 10.12+
+- May show security warnings on first run (right-click → Open to bypass)
 
 ## Distribution
-- Windows: Distribute the entire `builds/windows/` folder
-- macOS: Distribute the `.app` bundle
-- Web: Upload `builds/web/` contents to a web server
+Ready-to-run executable files that can be shared directly with users.
