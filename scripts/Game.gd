@@ -283,11 +283,11 @@ func update_difficulty_tooltip_content():
 	
 	var content = "[center][b]Difficulty Scaling[/b][/center]\n\n"
 	content += "[color=red]• Enemy Health: %.2fx[/color]\n" % health_mult
-	content += "  [color=gray](+15% every 30s | Next: %ds)[/color]\n\n" % (next_health_time - game_time)
+	content += "  [color=gray](+15% every 30s | Next: %ds)[/color]\n\n" % int(next_health_time - game_time)
 	content += "[color=yellow]• Enemy Speed: %.2fx[/color]\n" % speed_mult
-	content += "  [color=gray](+2% every 2min | Next: %ds)[/color]\n\n" % (next_speed_time - game_time)
+	content += "  [color=gray](+2% every 2min | Next: %ds)[/color]\n\n" % int(next_speed_time - game_time)
 	content += "[color=green]• Spawn Rate: %.2fx[/color]\n" % spawn_mult
-	content += "  [color=gray](+5% every 45s | Next: %ds)[/color]" % (next_spawn_time - game_time)
+	content += "  [color=gray](+5% every 45s | Next: %ds)[/color]" % int(next_spawn_time - game_time)
 	
 	difficulty_tooltip_label.text = content
 
@@ -328,12 +328,21 @@ func setup_ui():
 		
 		# Allow the health bar to have child nodes for overheal display
 		health_bar.clip_contents = false
+		
+		# Initialize health bar color to green (full health)
+		update_health_bar_color(100.0)
 	
 	# Find and set up health label
 	health_label = get_node_or_null("UI/HUD/StatsPanel/HealthLabel")
 	if not health_label and health_bar:
 		# Try to find it as a child of the health bar
 		health_label = health_bar.get_node_or_null("HealthLabel")
+	
+	# Initialize health label text with actual player values
+	if health_label and player:
+		var current_health = player.current_health if "current_health" in player else 100
+		var max_health = player.max_health if "max_health" in player else 100
+		health_label.text = "{0}/{1}".format([int(current_health), int(max_health)])
 	
 	# Set up XP bar to show values from 0-100%
 	if xp_bar:
@@ -366,6 +375,12 @@ func setup_player():
 		player.player_died.connect(_on_player_died)
 		player.level_up.connect(_on_player_level_up)
 		player.player_damaged.connect(_on_player_damaged)
+		
+		# Initialize UI with current player values
+		if "current_health" in player and "max_health" in player:
+			_on_player_health_changed(player.current_health, player.max_health, 0.0)
+		if "current_xp" in player and "xp_needed" in player:
+			_on_player_xp_changed(player.current_xp, player.xp_needed)
 	
 	# Connect spell manager signals
 	if spell_manager:
@@ -425,9 +440,9 @@ func _on_player_health_changed(new_health: float, max_health: float, overheal_am
 		if overheal_amount > 0:
 			# Show overheal with remaining time
 			var time_remaining = player.get_overheal_time_remaining() if player and player.has_method("get_overheal_time_remaining") else 0.0
-			health_label.text = "%d/%d (+%d) [%ds]" % [int(new_health), int(max_health), int(overheal_amount), int(time_remaining)]
+			health_label.text = "{0}/{1} (+{2}) [{3}s]".format([int(new_health), int(max_health), int(overheal_amount), int(time_remaining)])
 		else:
-			health_label.text = "%d/%d" % [int(new_health), int(max_health)]
+			health_label.text = "{0}/{1}".format([int(new_health), int(max_health)])
 
 func animate_progress_bar(progress_bar: ProgressBar, value: float, duration: float):
 	var tween = create_tween()
@@ -507,7 +522,7 @@ func _on_player_xp_changed(current_xp: float, xp_needed: float):
 	
 	# Update XP text label
 	if xp_label:
-		xp_label.text = "%d/%d" % [int(current_xp), int(xp_needed)]
+		xp_label.text = "{0}/{1}".format([int(current_xp), int(xp_needed)])
 
 func update_xp_bar_effects(xp_percent: float):
 	var xp_bar_fill = get_or_create_progress_bar_style(xp_bar)
@@ -879,7 +894,7 @@ func _on_typing_ended():
 
 func _on_spell_locked_error(spell_name: String, required_level: int, current_level: int):
 	# Show error message when player tries to use locked spell
-	var error_msg = "🔒 %s requires level %d!\n(You're level %d)" % [spell_name.capitalize(), required_level, current_level]
+	var error_msg = "🔒 {0} requires level {1}!\n(You're level {2})".format([spell_name.capitalize(), required_level, current_level])
 	
 	# Try to find typing label if it's null
 	if not typing_label:
@@ -1065,7 +1080,7 @@ func increase_difficulty_level():
 	var speed_mult = 1.0 + 0.02 * floor(game_time / 120.0)
 	var damage_mult = 1.0  # No damage scaling
 	
-	print("Difficulty increased! Time: %ds | Health: %.1fx | Speed: %.2fx | Damage: %.1fx" % [int(game_time), health_mult, speed_mult, damage_mult])
+	print("Difficulty increased! Time: {0}s | Health: {1:.1f}x | Speed: {2:.2f}x | Damage: {3:.1f}x".format([int(game_time), health_mult, speed_mult, damage_mult]))
 
 # Toggle invincibility (cheat command)
 func toggle_invincibility():
@@ -1088,4 +1103,4 @@ func toggle_invincibility():
 		player.set("is_invincible", not current_invincible)
 		
 		var status = "ON" if not current_invincible else "OFF"
-		print("DEBUG: Invincibility toggled %s" % status)
+		print("DEBUG: Invincibility toggled {0}".format([status]))

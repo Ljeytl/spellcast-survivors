@@ -326,11 +326,11 @@ func _ready():
 		damage = base_damage * damage_mult
 		xp_value = xp_value * xp_mult
 		
-		print("DEBUG: %s enemy spawned (Elite: %s) - Health: %d, Speed: %d, Damage: %d" % [
+		print("DEBUG: {0} enemy spawned (Elite: {1}) - Health: {2}, Speed: {3}, Damage: {4}".format([
 			EnemyType.keys()[enemy_type], 
 			EliteType.keys()[elite_type] if is_elite else "None",
 			int(max_health), int(speed), int(damage)
-		])
+		]))
 	else:
 		# Fallback if EnemyManager not found - use base stats
 		max_health = base_health

@@ -211,7 +211,7 @@ func heal(amount: float):
 func toggle_invincibility():
 	is_invincible = not is_invincible
 	var status = "ON" if is_invincible else "OFF"
-	print("DEBUG: Player invincibility toggled %s" % status)
+	print("DEBUG: Player invincibility toggled {0}".format([status]))
 	
 	# Visual feedback - make player flash when invincible
 	if is_invincible:

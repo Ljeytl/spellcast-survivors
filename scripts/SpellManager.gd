@@ -119,7 +119,7 @@ func queue_spell(slot: int):
 		
 		# Check if player has reached required level
 		if player and player.level < unlock_level:
-			var error_msg = "🔒 %s requires level %d! (You're level %d)" % [spell_name.capitalize(), unlock_level, player.level]
+			var error_msg = "🔒 {0} requires level {1}! (You're level {2})".format([spell_name.capitalize(), unlock_level, player.level])
 			print(error_msg)
 			spell_locked_error.emit(spell_name, unlock_level, player.level)
 			return

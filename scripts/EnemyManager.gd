@@ -63,7 +63,7 @@ func _on_difficulty_timer_timeout():
 	if game_time >= 120:  # After 2 minutes
 		max_enemies = min(180, max_enemies + 8)  # More substantial increases
 	
-	print("Spawn rate increased! New interval: %.2fs | Max enemies: %d" % [current_spawn_interval, max_enemies])
+	print("Spawn rate increased! New interval: {0:.2f}s | Max enemies: {1}".format([current_spawn_interval, max_enemies]))
 
 func update_difficulty():
 	# This will be used for real-time difficulty scaling
@@ -127,7 +127,7 @@ func spawn_enemy():
 	var type_name = ["Chaser", "Swarm", "Tank", "Shooter"][enemy_type]
 	var elite_name = ["", "Armored", "Regenerator", "Splitter", "Frost", "Explosive"][elite_type]
 	var tier = "T1" if game_time < 480 else ("T2" if game_time < 960 else "T3")
-	print("Enemy spawned: %s %s %s | Time: %ds | Total: %d | Alive: %d" % [elite_name, tier, type_name, int(game_time), enemies_spawned, enemies_alive])
+	print("Enemy spawned: {0} {1} {2} | Time: {3}s | Total: {4} | Alive: {5}".format([elite_name, tier, type_name, int(game_time), enemies_spawned, enemies_alive]))
 
 func get_health_multiplier() -> float:
 	# Health scales every 30 seconds - primary difficulty scaling
@@ -188,7 +188,7 @@ func is_at_enemy_limit() -> bool:
 # Add time to game_time (for difficulty cheat command)
 func add_game_time(additional_time: float):
 	game_time += additional_time
-	print("EnemyManager: Added %ds to game time. New time: %ds" % [int(additional_time), int(game_time)])
+	print("EnemyManager: Added {0}s to game time. New time: {1}s".format([int(additional_time), int(game_time)]))
 
 # Determine enemy type based on game progression
 func determine_enemy_type() -> int:

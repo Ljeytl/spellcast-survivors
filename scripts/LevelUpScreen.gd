@@ -262,6 +262,10 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 	var title_line = icon + " " + name
 	button.text = title_line + "\n" + description
 	
+	# Increase font size for better readability
+	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_color_override("font_color", Color.WHITE)
+	
 	# Add subtle color coding based on upgrade type
 	var effect_type = upgrade.get("effect", {}).get("type", "")
 	match effect_type:
@@ -389,35 +393,35 @@ func get_detailed_spell_upgrade_description(spell_name: String, current_level: i
 	
 	match spell_name:
 		"mana_bolt":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 3 == 1 and next_level > 1:
 				base_description += ", +1 missile"
 		"bolt":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 3 == 1 and next_level > 1:
 				base_description += ", +1 projectile"
 		"life":
-			base_description = "Level %d→%d: +15%% healing/sec" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% healing/sec".format([current_level, next_level])
 			if current_level < 3:
 				base_description += ", longer duration"
 		"ice blast":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 2 == 1 and next_level > 1:
 				base_description += ", +20% area"
 		"earth shield":
-			base_description = "Level %d→%d: +15%% overheal amount" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% overheal amount".format([current_level, next_level])
 			if current_level < 4:
 				base_description += ", longer duration"
 		"lightning arc":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 2 == 1 and next_level > 1:
 				base_description += ", +1 chain target"
 		"meteor shower":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 2 == 1 and next_level > 1:
 				base_description += ", +1 meteor"
 		_:
-			base_description = "Level %d→%d: +15%% effectiveness" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% effectiveness".format([current_level, next_level])
 	
 	return base_description
 

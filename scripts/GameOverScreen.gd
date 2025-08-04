@@ -81,17 +81,17 @@ func display_stats(stats: Dictionary):
 		print("ERROR: survival_time_label is null")
 	
 	if level_label:
-		level_label.text = "Level Reached: %d" % stats.get("level", 1)
+		level_label.text = "Level Reached: {0}".format([stats.get("level", 1)])
 	else:
 		print("ERROR: level_label is null")
 		
 	if enemies_killed_label:
-		enemies_killed_label.text = "Enemies Killed: %d" % stats.get("enemies_killed", 0)
+		enemies_killed_label.text = "Enemies Killed: {0}".format([stats.get("enemies_killed", 0)])
 	else:
 		print("ERROR: enemies_killed_label is null")
 		
 	if spells_cast_label:
-		spells_cast_label.text = "Spells Cast: %d" % stats.get("spells_cast", 0)
+		spells_cast_label.text = "Spells Cast: {0}".format([stats.get("spells_cast", 0)])
 	else:
 		print("ERROR: spells_cast_label is null")
 
