@@ -1,0 +1,39 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# System/Editor files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build/Export directories (keep structure, ignore built files)
+builds/*
+!builds/.gitkeep
+exports/
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Development tools (not needed for submission)
+create_placeholder_audio.py
+read_log.py
+
+# Large asset packages (not needed for interview submission)
+Dungeon Crawl Stone Soup Full.zip
+Dungeon Crawl Stone Soup Full/
+
+# Logs
+*.log

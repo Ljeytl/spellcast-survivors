@@ -1,0 +1,127 @@
+[gd_scene load_steps=3 format=3 uid="uid://cfxs5vn2o0h8w"]
+
+[ext_resource type="Script" path="res://scripts/Options.gd" id="1_h8qhg"]
+[ext_resource type="Theme" uid="uid://c5k8pqw4dqh3k" path="res://themes/medieval_theme.tres" id="2_theme"]
+
+[node name="Options" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_theme")
+script = ExtResource("1_h8qhg")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.08, 0.05, 1)
+
+[node name="GradientOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.15, 0.12, 0.08, 0.2)
+
+[node name="OptionsPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -250.0
+offset_right = 200.0
+offset_bottom = 250.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="OptionsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
+
+[node name="Title" type="Label" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "OPTIONS"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
+
+[node name="AudioLabel" type="Label" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "AUDIO"
+
+[node name="MasterVolumeContainer" type="HBoxContainer" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="MasterLabel" type="Label" parent="OptionsPanel/VBoxContainer/MasterVolumeContainer"]
+layout_mode = 2
+text = "Master Volume:"
+
+[node name="MasterSlider" type="HSlider" parent="OptionsPanel/VBoxContainer/MasterVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+value = 80.0
+
+[node name="SFXContainer" type="HBoxContainer" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="SFXLabel" type="Label" parent="OptionsPanel/VBoxContainer/SFXContainer"]
+layout_mode = 2
+text = "SFX Volume:"
+
+[node name="SFXSlider" type="HSlider" parent="OptionsPanel/VBoxContainer/SFXContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+value = 80.0
+
+[node name="MusicContainer" type="HBoxContainer" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="MusicLabel" type="Label" parent="OptionsPanel/VBoxContainer/MusicContainer"]
+layout_mode = 2
+text = "Music Volume:"
+
+[node name="MusicSlider" type="HSlider" parent="OptionsPanel/VBoxContainer/MusicContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+value = 70.0
+
+[node name="GraphicsLabel" type="Label" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "GRAPHICS"
+
+[node name="FullscreenCheckBox" type="CheckBox" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Fullscreen"
+
+[node name="VSyncCheckBox" type="CheckBox" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "VSync"
+button_pressed = true
+
+[node name="Spacer" type="Control" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="BackButton" type="Button" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+text = "BACK"
+
+[connection signal="pressed" from="OptionsPanel/VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="value_changed" from="OptionsPanel/VBoxContainer/MasterVolumeContainer/MasterSlider" to="." method="_on_master_slider_value_changed"]
+[connection signal="value_changed" from="OptionsPanel/VBoxContainer/SFXContainer/SFXSlider" to="." method="_on_sfx_slider_value_changed"]
+[connection signal="value_changed" from="OptionsPanel/VBoxContainer/MusicContainer/MusicSlider" to="." method="_on_music_slider_value_changed"]
+[connection signal="toggled" from="OptionsPanel/VBoxContainer/FullscreenCheckBox" to="." method="_on_fullscreen_check_box_toggled"]
+[connection signal="toggled" from="OptionsPanel/VBoxContainer/VSyncCheckBox" to="." method="_on_v_sync_check_box_toggled"]

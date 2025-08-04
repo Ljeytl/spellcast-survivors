@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://c78aegi6gt7ld"]
+
+[ext_resource type="Script" uid="uid://cfrd5iwrxgkm" path="res://scripts/XPOrb.gd" id="1_8xm3k"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1vr8o"]
+radius = 8.0
+
+[node name="XPOrb" type="Area2D" groups=["xp_orbs"]]
+collision_layer = 8
+script = ExtResource("1_8xm3k")
+
+[node name="Visual" type="ColorRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0.8, 0.2, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1vr8o")
+
+[node name="CollectionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollectionShape" type="CollisionShape2D" parent="CollectionArea"]
+scale = Vector2(3, 3)
+shape = SubResource("CircleShape2D_1vr8o")
+
+[connection signal="area_entered" from="CollectionArea" to="." method="_on_collection_area_area_entered"]
+[connection signal="body_entered" from="CollectionArea" to="." method="_on_collection_area_body_entered"]

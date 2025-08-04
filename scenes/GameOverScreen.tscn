@@ -1,0 +1,143 @@
+[gd_scene load_steps=4 format=3 uid="uid://bk6xh2qyp4qck"]
+
+[ext_resource type="Script" path="res://scripts/GameOverScreen.gd" id="1_2k4xh"]
+[ext_resource type="Theme" uid="uid://c5k8pqw4dqh3k" path="res://themes/medieval_theme.tres" id="2_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.2, 0.15, 0.1, 0.95)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.6, 0.5, 0.3, 1.0)
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_right = 0
+corner_radius_bottom_left = 0
+
+[node name="GameOverScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_theme")
+script = ExtResource("1_2k4xh")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.8)
+
+[node name="Panel" type="Panel" parent="Background"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -250.0
+offset_right = 300.0
+offset_bottom = 250.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Background/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
+
+[node name="TitleLabel" type="Label" parent="Background/Panel/VBoxContainer"]
+layout_mode = 2
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0.8, 0.3, 0.3, 1)
+
+[node name="HSeparator" type="HSeparator" parent="Background/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatsContainer" type="VBoxContainer" parent="Background/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SurvivalTimeContainer" type="HBoxContainer" parent="Background/Panel/VBoxContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="SurvivalTimeIcon" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/SurvivalTimeContainer"]
+layout_mode = 2
+text = "⏱️"
+horizontal_alignment = 1
+
+[node name="SurvivalTimeLabel" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/SurvivalTimeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Survival Time: 0:00"
+horizontal_alignment = 1
+
+[node name="LevelContainer" type="HBoxContainer" parent="Background/Panel/VBoxContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="LevelIcon" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/LevelContainer"]
+layout_mode = 2
+text = "🏆"
+horizontal_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/LevelContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Level Reached: 1"
+horizontal_alignment = 1
+
+[node name="EnemiesKilledContainer" type="HBoxContainer" parent="Background/Panel/VBoxContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="EnemiesKilledIcon" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/EnemiesKilledContainer"]
+layout_mode = 2
+text = "⚔️"
+horizontal_alignment = 1
+
+[node name="EnemiesKilledLabel" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/EnemiesKilledContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Enemies Killed: 0"
+horizontal_alignment = 1
+
+[node name="SpellsCastContainer" type="HBoxContainer" parent="Background/Panel/VBoxContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="SpellsCastIcon" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/SpellsCastContainer"]
+layout_mode = 2
+text = "✨"
+horizontal_alignment = 1
+
+[node name="SpellsCastLabel" type="Label" parent="Background/Panel/VBoxContainer/StatsContainer/SpellsCastContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Spells Cast: 0"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="Background/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ButtonContainer" type="HBoxContainer" parent="Background/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="PlayAgainButton" type="Button" parent="Background/Panel/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 50)
+text = "PLAY AGAIN"
+
+[node name="MainMenuButton" type="Button" parent="Background/Panel/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 50)
+text = "MAIN MENU"
