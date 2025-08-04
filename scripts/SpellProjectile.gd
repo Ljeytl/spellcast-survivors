@@ -163,27 +163,44 @@ func update_visual():
 			sprite.visible = false
 
 func _on_area_entered(area):
-	# Hit an enemy hurtbox
-	if area.name == "HurtBox" and area.get_parent().is_in_group("enemies"):
-		var enemy = area.get_parent()
-		if enemy.has_method("take_damage"):
-			enemy.take_damage(damage)
-			
-			# Create particle effect on impact
-			var scene_tree = get_tree()
-			if scene_tree:
-				var game_node = scene_tree.get_first_node_in_group("game")
-				if game_node and game_node.has_method("create_spell_impact_effect"):
-					game_node.create_spell_impact_effect(global_position)
-			
-			# Create damage number
-			var parent = get_parent()
-			if parent and parent.has_method("show_damage_number"):
-				parent.show_damage_number(enemy.global_position, damage)
-			
-			# Remove projectile after hit (unless it's a piercing type)
-			if projectile_type != "lightning_arc":
+	# Handle different projectile types
+	if is_in_group("enemy_projectiles"):
+		# Enemy projectile hitting player 
+		if area.name == "HurtBox" and area.get_parent().is_in_group("player"):
+			var player = area.get_parent()
+			if player.has_method("take_damage"):
+				player.take_damage(damage)
+				
+				# Create impact effect
+				var scene_tree = get_tree()
+				if scene_tree:
+					var game_node = scene_tree.get_first_node_in_group("game")
+					if game_node and game_node.has_method("create_spell_impact_effect"):
+						game_node.create_spell_impact_effect(global_position)
+				
 				despawn()
+	else:
+		# Player projectile hitting enemy (existing code)
+		if area.name == "HurtBox" and area.get_parent().is_in_group("enemies"):
+			var enemy = area.get_parent()
+			if enemy.has_method("take_damage"):
+				enemy.take_damage(damage)
+				
+				# Create particle effect on impact
+				var scene_tree = get_tree()
+				if scene_tree:
+					var game_node = scene_tree.get_first_node_in_group("game")
+					if game_node and game_node.has_method("create_spell_impact_effect"):
+						game_node.create_spell_impact_effect(global_position)
+				
+				# Create damage number
+				var parent = get_parent()
+				if parent and parent.has_method("show_damage_number"):
+					parent.show_damage_number(enemy.global_position, damage)
+				
+				# Remove projectile after hit (unless it's a piercing type)
+				if projectile_type != "lightning_arc":
+					despawn()
 
 # Custom drawing for special effects like lightning
 func _draw():

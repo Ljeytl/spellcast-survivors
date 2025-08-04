@@ -1,0 +1,618 @@
+{
+  "character_classes": {
+    "mage": {
+      "name": "Arcane Scholar",
+      "description": "Master of arcane arts with powerful ranged attacks",
+      "starting_autocast": "mana_bolt",
+      "unlock_autocasts": ["auto_heal", "mana_shield", "arcane_orb"],
+      "unlock_levels": [5, 10, 15],
+      "art": {
+        "sprite": "wizard_placeholder",
+        "portrait": "wizard_portrait",
+        "description": "Robed figure with glowing staff and arcane symbols",
+        "color_theme": ["deep_blue", "silver", "arcane_purple"]
+      },
+      "stats": {
+        "health": 80,
+        "speed": 100,
+        "spell_damage": 1.1,
+        "cast_speed": 1.0
+      }
+    },
+    "warrior": {
+      "name": "Iron Vanguard",
+      "description": "Melee fighter with high durability and close combat prowess",
+      "starting_autocast": "auto_slash",
+      "unlock_autocasts": ["auto_block", "berserker_rage", "ground_pound"],
+      "unlock_levels": [5, 10, 15],
+      "art": {
+        "sprite": "centaur_placeholder",
+        "portrait": "centaur_portrait", 
+        "description": "Mighty centaur warrior with battle-worn armor and great sword",
+        "color_theme": ["bronze", "steel_gray", "earth_brown"]
+      },
+      "stats": {
+        "health": 120,
+        "speed": 90,
+        "spell_damage": 0.9,
+        "cast_speed": 0.95
+      }
+    },
+    "rogue": {
+      "name": "Shadow Dancer",
+      "description": "Swift and agile with fast attacks and mobility",
+      "starting_autocast": "dart_throw",
+      "unlock_autocasts": ["poison_dart", "smoke_bomb", "backstab"],
+      "unlock_levels": [5, 10, 15],
+      "art": {
+        "sprite": "drow_placeholder",
+        "portrait": "drow_portrait",
+        "description": "Lithe dark elf with twin daggers and shadowy cloak",
+        "color_theme": ["shadow_black", "poison_green", "silver"]
+      },
+      "stats": {
+        "health": 70,
+        "speed": 130,
+        "spell_damage": 0.95,
+        "cast_speed": 1.15
+      }
+    },
+    "paladin": {
+      "name": "Divine Guardian",
+      "description": "Holy warrior with defensive abilities and healing powers",
+      "starting_autocast": "auto_heal",
+      "unlock_autocasts": ["holy_aura", "divine_shield", "smite"],
+      "unlock_levels": [5, 10, 15],
+      "art": {
+        "sprite": "aasimar_placeholder",
+        "portrait": "aasimar_portrait",
+        "description": "Celestial-touched humanoid with golden armor and radiant wings",
+        "color_theme": ["holy_gold", "pure_white", "celestial_blue"]
+      },
+      "stats": {
+        "health": 110,
+        "speed": 85,
+        "spell_damage": 1.0,
+        "cast_speed": 0.9
+      }
+    },
+    "monk": {
+      "name": "Chi Master",
+      "description": "Balanced fighter combining martial arts with inner energy",
+      "starting_autocast": "chi_pulse",
+      "unlock_autocasts": ["meditation", "windwalk", "inner_fire"],
+      "unlock_levels": [5, 10, 15],
+      "art": {
+        "sprite": "tiefling_placeholder",
+        "portrait": "tiefling_portrait",
+        "description": "Horned humanoid with flowing robes and energy-wreathed fists",
+        "color_theme": ["mystic_orange", "deep_red", "energy_yellow"]
+      },
+      "stats": {
+        "health": 90,
+        "speed": 110,
+        "spell_damage": 1.0,
+        "cast_speed": 1.05
+      }
+    },
+    "necromancer": {
+      "name": "Death Whisperer",
+      "description": "Dark mage wielding death magic and life-draining powers",
+      "starting_autocast": "life_drain",
+      "unlock_autocasts": ["bone_armor", "soul_harvest", "death_nova"],
+      "unlock_levels": [5, 10, 15],
+      "art": {
+        "sprite": "lich_placeholder",
+        "portrait": "lich_portrait",
+        "description": "Skeletal mage with tattered robes and glowing skull crown",
+        "color_theme": ["bone_white", "death_purple", "shadow_black"]
+      },
+      "stats": {
+        "health": 75,
+        "speed": 95,
+        "spell_damage": 1.05,
+        "cast_speed": 1.0
+      }
+    }
+  },
+  "autocast_spells": {
+    "mana_bolt": {
+      "name": "Mana Bolt",
+      "description": "Basic magical projectile that homes toward enemies",
+      "damage": 15,
+      "cooldown": 1.5,
+      "type": "projectile",
+      "properties": {
+        "speed": 450,
+        "homing_strength": 6.0,
+        "color": "cyan"
+      },
+      "scaling": {
+        "damage_per_level": 2.25,
+        "cooldown_reduction_per_level": 0.05
+      }
+    },
+    "auto_slash": {
+      "name": "Auto Slash",
+      "description": "Melee arc attack when enemies get close",
+      "damage": 12,
+      "cooldown": 2.0,
+      "type": "melee_arc",
+      "properties": {
+        "range": 100,
+        "arc_degrees": 60,
+        "trigger_range": 90,
+        "knockback": 30
+      },
+      "scaling": {
+        "damage_per_level": 1.8,
+        "range_per_level": 5,
+        "cooldown_reduction_per_level": 0.08
+      }
+    },
+    "dart_throw": {
+      "name": "Dart Throw",
+      "description": "Fast, weak projectile with piercing capability",
+      "damage": 8,
+      "cooldown": 0.8,
+      "type": "projectile",
+      "properties": {
+        "speed": 800,
+        "pierce_count": 1,
+        "color": "gray",
+        "size_scale": 0.7
+      },
+      "scaling": {
+        "damage_per_level": 1.2,
+        "pierce_count_per_3_levels": 1,
+        "cooldown_reduction_per_level": 0.03
+      }
+    },
+    "auto_heal": {
+      "name": "Auto Heal",
+      "description": "Automatic healing when health drops low",
+      "heal_amount": 9,
+      "cooldown": 12.0,
+      "type": "conditional_heal",
+      "properties": {
+        "duration": 3,
+        "trigger_hp_percent": 0.6,
+        "heal_per_second": 3,
+        "visual_effect": "green_glow"
+      },
+      "scaling": {
+        "heal_per_level": 1.35,
+        "cooldown_reduction_per_level": 0.4,
+        "trigger_hp_increase_per_level": 0.02
+      }
+    },
+    "chi_pulse": {
+      "name": "Chi Pulse",
+      "description": "Energy wave that damages all nearby enemies",
+      "damage": 10,
+      "cooldown": 3.0,
+      "type": "aoe_pulse",
+      "properties": {
+        "radius": 120,
+        "visual_effect": "energy_ripple",
+        "color": "yellow"
+      },
+      "scaling": {
+        "damage_per_level": 1.5,
+        "radius_per_level": 8,
+        "cooldown_reduction_per_level": 0.12
+      }
+    },
+    "life_drain": {
+      "name": "Life Drain",
+      "description": "Vampiric projectile that heals based on damage dealt",
+      "damage": 10,
+      "cooldown": 2.2,
+      "type": "vampiric_projectile",
+      "properties": {
+        "lifesteal_percent": 0.3,
+        "speed": 400,
+        "color": "dark_red",
+        "drain_visual": true
+      },
+      "scaling": {
+        "damage_per_level": 1.5,
+        "lifesteal_per_level": 0.02,
+        "cooldown_reduction_per_level": 0.08
+      }
+    },
+    "auto_block": {
+      "name": "Auto Block",
+      "description": "Passive chance to block incoming damage",
+      "damage": 0,
+      "cooldown": 0.0,
+      "type": "passive_defense",
+      "properties": {
+        "block_chance": 0.15,
+        "block_amount": 0.5,
+        "visual_effect": "shield_flash"
+      },
+      "scaling": {
+        "block_chance_per_level": 0.02,
+        "block_amount_per_level": 0.03
+      }
+    },
+    "poison_dart": {
+      "name": "Poison Dart",
+      "description": "Projectile that applies damage over time",
+      "damage": 6,
+      "cooldown": 1.0,
+      "type": "dot_projectile",
+      "properties": {
+        "dot_damage": 3,
+        "dot_duration": 4,
+        "speed": 600,
+        "color": "green"
+      },
+      "scaling": {
+        "damage_per_level": 0.9,
+        "dot_damage_per_level": 0.45,
+        "dot_duration_per_level": 0.2
+      }
+    },
+    "holy_aura": {
+      "name": "Holy Aura",
+      "description": "Passive healing aura around the player",
+      "damage": 0,
+      "cooldown": 0.0,
+      "type": "passive_regen",
+      "properties": {
+        "heal_per_second": 2,
+        "radius": 150,
+        "visual_effect": "golden_glow"
+      },
+      "scaling": {
+        "heal_per_level": 0.3,
+        "radius_per_level": 10
+      }
+    },
+    "meditation": {
+      "name": "Meditation",
+      "description": "Passive ability that reduces spell cooldowns",
+      "damage": 0,
+      "cooldown": 0.0,
+      "type": "passive_utility",
+      "properties": {
+        "cooldown_reduction": 0.1,
+        "cast_speed_bonus": 0.05,
+        "visual_effect": "blue_aura"
+      },
+      "scaling": {
+        "cooldown_reduction_per_level": 0.01,
+        "cast_speed_per_level": 0.005
+      }
+    },
+    "bone_armor": {
+      "name": "Bone Armor",
+      "description": "Passive damage reduction and health bonus",
+      "damage": 0,
+      "cooldown": 0.0,
+      "type": "passive_defense",
+      "properties": {
+        "damage_reduction": 0.1,
+        "health_bonus": 15,
+        "visual_effect": "bone_shell"
+      },
+      "scaling": {
+        "damage_reduction_per_level": 0.01,
+        "health_bonus_per_level": 3
+      }
+    },
+    "mana_shield": {
+      "name": "Mana Shield",
+      "description": "Absorbs damage and converts to mana cost",
+      "damage": 0,
+      "cooldown": 8.0,
+      "type": "defensive_utility",
+      "properties": {
+        "shield_amount": 25,
+        "duration": 6,
+        "mana_efficiency": 0.8
+      },
+      "scaling": {
+        "shield_per_level": 5,
+        "duration_per_level": 0.3,
+        "cooldown_reduction_per_level": 0.3
+      }
+    },
+    "arcane_orb": {
+      "name": "Arcane Orb",
+      "description": "Slow-moving orb that deals high damage",
+      "damage": 18,
+      "cooldown": 2.5,
+      "type": "heavy_projectile",
+      "properties": {
+        "speed": 250,
+        "pierce_count": 3,
+        "size_scale": 1.3,
+        "color": "purple"
+      },
+      "scaling": {
+        "damage_per_level": 2.7,
+        "pierce_count_per_2_levels": 1,
+        "cooldown_reduction_per_level": 0.1
+      }
+    },
+    "berserker_rage": {
+      "name": "Berserker Rage",
+      "description": "Activates when health is low, increasing damage",
+      "damage": 0,
+      "cooldown": 15.0,
+      "type": "conditional_buff",
+      "properties": {
+        "trigger_hp_percent": 0.3,
+        "damage_bonus": 0.5,
+        "duration": 8,
+        "visual_effect": "red_glow"
+      },
+      "scaling": {
+        "damage_bonus_per_level": 0.05,
+        "duration_per_level": 0.4,
+        "cooldown_reduction_per_level": 0.5
+      }
+    },
+    "ground_pound": {
+      "name": "Ground Pound",
+      "description": "Powerful AOE attack with knockback",
+      "damage": 20,
+      "cooldown": 4.0,
+      "type": "ground_slam",
+      "properties": {
+        "radius": 150,
+        "knockback": 200,
+        "stun_duration": 1.0
+      },
+      "scaling": {
+        "damage_per_level": 3.0,
+        "radius_per_level": 10,
+        "cooldown_reduction_per_level": 0.15
+      }
+    },
+    "smoke_bomb": {
+      "name": "Smoke Bomb",
+      "description": "Creates concealing smoke and increases movement",
+      "damage": 0,
+      "cooldown": 10.0,
+      "type": "utility_aoe",
+      "properties": {
+        "radius": 200,
+        "duration": 5,
+        "speed_bonus": 0.3,
+        "concealment": true
+      },
+      "scaling": {
+        "radius_per_level": 15,
+        "duration_per_level": 0.3,
+        "speed_bonus_per_level": 0.02
+      }
+    },
+    "backstab": {
+      "name": "Backstab",
+      "description": "High damage attack from behind enemies",
+      "damage": 25,
+      "cooldown": 3.5,
+      "type": "conditional_melee",
+      "properties": {
+        "range": 80,
+        "backstab_multiplier": 2.0,
+        "crit_chance": 0.3
+      },
+      "scaling": {
+        "damage_per_level": 3.75,
+        "backstab_multiplier_per_level": 0.1,
+        "cooldown_reduction_per_level": 0.12
+      }
+    },
+    "divine_shield": {
+      "name": "Divine Shield",
+      "description": "Temporary immunity to damage",
+      "damage": 0,
+      "cooldown": 20.0,
+      "type": "immunity_buff",
+      "properties": {
+        "duration": 2.5,
+        "visual_effect": "golden_barrier"
+      },
+      "scaling": {
+        "duration_per_level": 0.2,
+        "cooldown_reduction_per_level": 0.8
+      }
+    },
+    "smite": {
+      "name": "Smite",
+      "description": "Holy damage bolt from above",
+      "damage": 22,
+      "cooldown": 2.8,
+      "type": "divine_projectile",
+      "properties": {
+        "delay": 0.5,
+        "radius": 80,
+        "color": "holy_white",
+        "undead_bonus": 1.5
+      },
+      "scaling": {
+        "damage_per_level": 3.3,
+        "radius_per_level": 5,
+        "cooldown_reduction_per_level": 0.1
+      }
+    },
+    "windwalk": {
+      "name": "Windwalk",
+      "description": "Brief phase through enemies with speed boost",
+      "damage": 0,
+      "cooldown": 8.0,
+      "type": "mobility_buff",
+      "properties": {
+        "duration": 2.0,
+        "speed_multiplier": 1.8,
+        "phase_through": true
+      },
+      "scaling": {
+        "duration_per_level": 0.15,
+        "speed_multiplier_per_level": 0.05,
+        "cooldown_reduction_per_level": 0.25
+      }
+    },
+    "inner_fire": {
+      "name": "Inner Fire",
+      "description": "Burning aura that damages nearby enemies",
+      "damage": 8,
+      "cooldown": 0.0,
+      "type": "passive_aura",
+      "properties": {
+        "radius": 100,
+        "tick_rate": 1.0,
+        "visual_effect": "flame_aura"
+      },
+      "scaling": {
+        "damage_per_level": 1.2,
+        "radius_per_level": 8,
+        "tick_rate_improvement_per_level": 0.05
+      }
+    },
+    "soul_harvest": {
+      "name": "Soul Harvest",
+      "description": "Gains power from nearby enemy deaths",
+      "damage": 0,
+      "cooldown": 0.0,
+      "type": "passive_trigger",
+      "properties": {
+        "harvest_radius": 200,
+        "damage_bonus_per_soul": 0.05,
+        "max_souls": 10,
+        "soul_duration": 30
+      },
+      "scaling": {
+        "harvest_radius_per_level": 15,
+        "damage_bonus_per_level": 0.005,
+        "max_souls_per_2_levels": 2
+      }
+    },
+    "death_nova": {
+      "name": "Death Nova",
+      "description": "Explodes on taking high damage",
+      "damage": 15,
+      "cooldown": 12.0,
+      "type": "reactive_explosion",
+      "properties": {
+        "trigger_damage_threshold": 20,
+        "radius": 180,
+        "lifesteal_percent": 0.4
+      },
+      "scaling": {
+        "damage_per_level": 2.25,
+        "radius_per_level": 12,
+        "cooldown_reduction_per_level": 0.4
+      }
+    }
+  },
+  "progression_system": {
+    "terminology": {
+      "run_level": "Player level during a single run (1-30+, resets each run)",
+      "mana": "Run-based experience currency that levels you up during the run",
+      "soul_essence": "Character-specific currency earned each run for individual character progression",
+      "void_crystals": "Rare global currency for account-wide unlocks and powerful upgrades",
+      "character_rank": "Permanent progression level for each character class"
+    },
+    "run_progression": {
+      "typed_spell_unlocks": {
+        "description": "Spells unlock during run based on run_level",
+        "unlock_levels": [1, 3, 5, 7, 10, 15]
+      },
+      "autocast_upgrades": {
+        "description": "Autocast spells get stronger during run",
+        "upgrade_levels": [5, 10, 15, 20, 25],
+        "max_autocast_level": 8
+      }
+    },
+    "meta_progression": {
+      "soul_essence_rewards": {
+        "description": "Character-specific currency earned per run with that character",
+        "base_per_run": 10,
+        "per_minute_survived": 2,
+        "per_enemy_killed": 0.5,
+        "per_run_level": 3,
+        "boss_kill_bonus": 25,
+        "character_specific": true,
+        "note": "Only goes to the character you played that run"
+      },
+      "void_crystal_rewards": {
+        "description": "Guaranteed rewards for skilled/knowledgeable play - no RNG",
+        "sources": {
+          "time_milestones": {
+            "survive_10_minutes": 2,
+            "survive_15_minutes": 4, 
+            "survive_20_minutes": 6,
+            "survive_30_minutes": 10,
+            "survive_45_minutes": 15,
+            "survive_60_minutes": 25
+          },
+          "level_milestones": {
+            "reach_level_15": 3,
+            "reach_level_20": 5,
+            "reach_level_25": 8,
+            "reach_level_30": 12,
+            "reach_level_35": 20
+          },
+          "kill_count_milestones": {
+            "kill_500_enemies": 3,
+            "kill_1000_enemies": 6,
+            "kill_2500_enemies": 10,
+            "kill_5000_enemies": 15
+          },
+          "secret_locations": {
+            "hidden_shrine_north": 5,
+            "ancient_altar_east": 5,
+            "void_portal_center": 8,
+            "crystal_cave_south": 5,
+            "forgotten_tower_west": 8
+          },
+          "boss_defeats": {
+            "first_boss_kill": 10,
+            "second_boss_kill": 15,
+            "final_boss_kill": 25,
+            "perfect_boss_fight": 5
+          },
+          "skill_challenges": {
+            "perfect_spell_streak_20": 3,
+            "perfect_spell_streak_50": 8,
+            "no_damage_5_minutes": 6,
+            "cast_100_spells_in_run": 4
+          }
+        },
+        "philosophy": "Reward knowledge, skill, and exploration - never RNG"
+      },
+      "character_unlocks": {
+        "mage": {"cost": 0, "currency": "none", "description": "Starting character"},
+        "warrior": {"cost": 5, "currency": "void_crystals", "description": "Unlocked with 5 Void Crystals"},
+        "rogue": {"cost": 8, "currency": "void_crystals", "description": "Unlocked with 8 Void Crystals"},  
+        "paladin": {"cost": 12, "currency": "void_crystals", "description": "Unlocked with 12 Void Crystals"},
+        "monk": {"cost": 15, "currency": "void_crystals", "description": "Unlocked with 15 Void Crystals"},
+        "necromancer": {"cost": 20, "currency": "void_crystals", "description": "Unlocked with 20 Void Crystals"}
+      },
+      "soul_essence_upgrades": {
+        "description": "Character-specific upgrades bought with Soul Essence for that character",
+        "note": "Specific upgrade costs and effects to be determined later"
+      },
+      "void_crystal_upgrades": {
+        "description": "Global account-wide upgrades bought with rare Void Crystals", 
+        "note": "Specific upgrade costs and effects to be determined later"
+      }
+    },
+    "power_scaling": {
+      "description": "How autocast compares to typed spells",
+      "autocast_vs_typed_damage": 0.65,
+      "autocast_vs_typed_utility": 0.55, 
+      "autocast_vs_typed_cooldown": 2.5,
+      "run_scaling": {
+        "autocast_per_run_level": 0.12,
+        "typed_spell_per_run_level": 0.15
+      }
+    }
+  }
+}

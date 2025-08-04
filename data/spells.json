@@ -1,0 +1,231 @@
+{
+  "spells": {
+    "mana_bolt": {
+      "id": "mana_bolt",
+      "name": "Mana Bolt",
+      "type": "auto_attack",
+      "damage": 15,
+      "cooldown": 1.5,
+      "projectile_count": 1,
+      "speed": 450,
+      "homing_strength": 6.0,
+      "color": [0, 1, 1, 1],
+      "unlock_condition": {"type": "default"},
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "projectile_count_levels": [3, 6, 10],
+        "max_level": 10,
+        "infinite_scaling": {
+          "damage_bonus": 0.03,
+          "speed_bonus": 0.02
+        }
+      }
+    },
+    "bolt": {
+      "id": "bolt",
+      "name": "Lightning Bolt",
+      "slot": 1,
+      "chars": 4,
+      "type": "projectile",
+      "damage": 20,
+      "speed": 600,
+      "color": [1, 1, 0, 1],
+      "unlock_condition": {"type": "default"},
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "projectile_count_levels": [3, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.03,
+          "speed_bonus": 0.02
+        }
+      }
+    },
+    "life": {
+      "id": "life",
+      "name": "Regeneration",
+      "slot": 2,
+      "chars": 4,
+      "type": "heal_over_time",
+      "heal_amount": 8,
+      "duration": 5,
+      "color": [0, 1, 0, 1],
+      "unlock_condition": {"type": "default"},
+      "upgrades": {
+        "heal_per_level": 0.15,
+        "duration_levels": [2, 4],
+        "max_level": 8,
+        "infinite_scaling": {
+          "heal_bonus": 0.04,
+          "duration_bonus": 0.02
+        }
+      }
+    },
+    "ice_blast": {
+      "id": "ice_blast",
+      "name": "Ice Blast",
+      "slot": 3,
+      "chars": 9,
+      "type": "aoe",
+      "damage": 18,
+      "radius": 400,
+      "slow_effect": 0.5,
+      "slow_duration": 3.0,
+      "color": [0.5, 0.8, 1, 1],
+      "unlock_condition": {"type": "level", "value": 5},
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "radius_levels": [2, 4, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.025,
+          "radius_bonus": 0.02
+        }
+      }
+    },
+    "earth_shield": {
+      "id": "earth_shield",
+      "name": "Earth Shield",
+      "slot": 4,
+      "chars": 12,
+      "type": "shield",
+      "shield_hp": 60,
+      "duration": 8,
+      "color": [0.8, 0.6, 0.3, 1],
+      "unlock_condition": {"type": "level", "value": 7},
+      "upgrades": {
+        "shield_per_level": 0.15,
+        "duration_levels": [2, 4],
+        "max_level": 8,
+        "infinite_scaling": {
+          "shield_bonus": 0.04,
+          "duration_bonus": 0.03
+        }
+      }
+    },
+    "lightning_arc": {
+      "id": "lightning_arc",
+      "name": "Lightning Arc",
+      "slot": 5,
+      "chars": 13,
+      "type": "chain",
+      "damage": 30,
+      "chain_count": 3,
+      "chain_range": 200,
+      "chain_damage_reduction": 0.8,
+      "color": [1, 1, 0.5, 1],
+      "unlock_condition": {"type": "level", "value": 10},
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "chain_count_levels": [2, 4, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.03,
+          "range_bonus": 0.02
+        }
+      }
+    },
+    "meteor_shower": {
+      "id": "meteor_shower",
+      "name": "Meteor Shower",
+      "slot": 6,
+      "chars": 13,
+      "type": "multi_aoe",
+      "damage": 35,
+      "meteor_count": 3,
+      "delay_interval": 0.3,
+      "radius": 180,
+      "color": [1, 0.3, 0, 1],
+      "unlock_condition": {"type": "level", "value": 15},
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "meteor_count_levels": [2, 4, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.025,
+          "radius_bonus": 0.015
+        }
+      }
+    },
+    "fire_storm": {
+      "id": "fire_storm",
+      "name": "Fire Storm",
+      "slot": 7,
+      "chars": 10,
+      "type": "channeled_aoe",
+      "damage": 15,
+      "duration": 4,
+      "radius": 350,
+      "tick_rate": 0.2,
+      "color": [1, 0.5, 0, 1],
+      "unlock_condition": {"type": "persistent_xp", "value": 500},
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "duration_levels": [2, 4],
+        "radius_levels": [3, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.02,
+          "duration_bonus": 0.03,
+          "radius_bonus": 0.025
+        }
+      }
+    },
+    "time_warp": {
+      "id": "time_warp",
+      "name": "Time Warp",
+      "slot": 8,
+      "chars": 9,
+      "type": "utility",
+      "effect": "slow_time",
+      "time_scale": 0.3,
+      "duration": 5,
+      "color": [0.7, 0.3, 1, 1],
+      "unlock_condition": {"type": "achievement", "value": "survive_30_minutes"},
+      "upgrades": {
+        "duration_levels": [2, 4, 6],
+        "max_level": 6,
+        "infinite_scaling": {
+          "duration_bonus": 0.04
+        }
+      }
+    },
+    "chain_heal": {
+      "id": "chain_heal",
+      "name": "Chain Heal",
+      "slot": 9,
+      "chars": 10,
+      "type": "chain_heal",
+      "heal_amount": 40,
+      "chain_count": 2,
+      "chain_reduction": 0.7,
+      "color": [0.3, 1, 0.3, 1],
+      "unlock_condition": {"type": "character", "value": "healer"},
+      "upgrades": {
+        "heal_per_level": 0.15,
+        "chain_count_levels": [3, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "heal_bonus": 0.035
+        }
+      }
+    }
+  },
+  "spell_categories": {
+    "offensive": ["bolt", "ice_blast", "lightning_arc", "meteor_shower", "fire_storm"],
+    "defensive": ["earth_shield", "chain_heal"],
+    "utility": ["time_warp"],
+    "healing": ["life", "chain_heal"],
+    "auto_attack": ["mana_bolt"]
+  },
+  "unlock_conditions": {
+    "level": "Player must reach specified level",
+    "persistent_xp": "Player must have accumulated specified persistent XP",
+    "achievement": "Player must have earned specified achievement", 
+    "character": "Player must have unlocked specified character",
+    "spell_mastery": "Player must have mastered specified spell",
+    "survive_time": "Player must survive specified time in a single run",
+    "enemies_killed": "Player must kill specified number of enemies",
+    "default": "Always available"
+  }
+}

@@ -28,14 +28,39 @@ var is_typing: bool = false
 var target_spell: String = ""
 var last_spell_cast_time: float = 0.0
 
+# Freeform casting system
+var freeform_mode: bool = false
+
 # Spell definitions with their names and character counts
 var spells = {
 	1: {"name": "bolt", "chars": 4, "damage": 20, "level": 1, "type": "projectile", "unlock_level": 1},
 	2: {"name": "life", "chars": 4, "damage": 0, "level": 1, "type": "heal", "heal_amount": 8, "duration": 5, "unlock_level": 3},
-	3: {"name": "ice blast", "chars": 9, "damage": 25, "level": 1, "type": "aoe", "radius": 400, "unlock_level": 5},
+	3: {"name": "ice blast", "chars": 9, "damage": 18, "level": 1, "type": "aoe", "radius": 400, "unlock_level": 5},
 	4: {"name": "earth shield", "chars": 12, "damage": 0, "level": 1, "type": "shield", "shield_hp": 60, "unlock_level": 7},
 	5: {"name": "lightning arc", "chars": 13, "damage": 30, "level": 1, "type": "chain", "chain_count": 3, "unlock_level": 10},
 	6: {"name": "meteor shower", "chars": 13, "damage": 35, "level": 1, "type": "multi_aoe", "meteor_count": 3, "unlock_level": 15}
+}
+
+# Expanded spell library for freeform mode
+var freeform_spells = {
+	# Current basic spells (from existing system)
+	"bolt": {"chars": 4, "damage": 20, "level": 1, "type": "projectile"},
+	"life": {"chars": 4, "damage": 0, "level": 1, "type": "heal", "heal_amount": 8, "duration": 5},
+	"ice blast": {"chars": 9, "damage": 18, "level": 1, "type": "aoe", "radius": 400},
+	"earth shield": {"chars": 12, "damage": 0, "level": 1, "type": "shield", "shield_hp": 60},
+	"lightning arc": {"chars": 13, "damage": 30, "level": 1, "type": "chain", "chain_count": 3},
+	"meteor shower": {"chars": 13, "damage": 35, "level": 1, "type": "multi_aoe", "meteor_count": 3},
+	"magic missile": {"chars": 13, "damage": 15, "level": 1, "type": "projectile"}, # Basic auto-attack spell
+	
+	# New test spells for expanded gameplay
+	"fireball": {"chars": 8, "damage": 25, "level": 1, "type": "projectile"},
+	"heal": {"chars": 4, "damage": 0, "level": 1, "type": "instant_heal", "heal_amount": 25},
+	"lightning": {"chars": 9, "damage": 35, "level": 1, "type": "projectile"},
+	"explosion": {"chars": 9, "damage": 40, "level": 1, "type": "aoe", "radius": 350},
+	"barrier": {"chars": 7, "damage": 0, "level": 1, "type": "shield", "shield_hp": 40},
+	"teleport": {"chars": 8, "damage": 0, "level": 1, "type": "utility"},
+	"slow": {"chars": 4, "damage": 0, "level": 1, "type": "debuff"},
+	"haste": {"chars": 5, "damage": 0, "level": 1, "type": "buff"}
 }
 
 # Mana bolt is the auto-attack spell
@@ -82,7 +107,12 @@ func _input(event):
 		handle_key_input(event)
 
 func handle_key_input(event: InputEventKey):
-	# Handle number keys - immediately start typing mode
+	# Handle freeform mode input
+	if freeform_mode:
+		handle_freeform_input(event)
+		return
+	
+	# Handle normal slot-based input
 	var key_code = event.keycode
 	
 	# Check for 'Y' key to unlock all spells
@@ -119,7 +149,7 @@ func queue_spell(slot: int):
 		
 		# Check if player has reached required level
 		if player and player.level < unlock_level:
-			var error_msg = "🔒 %s requires level %d! (You're level %d)" % [spell_name.capitalize(), unlock_level, player.level]
+			var error_msg = "🔒 {0} requires level {1}! (You're level {2})".format([spell_name.capitalize(), unlock_level, player.level])
 			print(error_msg)
 			spell_locked_error.emit(spell_name, unlock_level, player.level)
 			return
@@ -147,7 +177,6 @@ func start_typing():
 	adjusted_time_scale = clamp(adjusted_time_scale, TIME_SCALE_DURING_TYPING, 0.8)
 	
 	Engine.time_scale = adjusted_time_scale
-	print("DEBUG: Cast speed multiplier: ", cast_speed_bonus, " | Adjusted time scale: ", adjusted_time_scale)
 	
 	typing_started.emit()
 	update_typing_display()
@@ -938,6 +967,26 @@ func get_available_spells() -> Array:
 	
 	return available
 
+# Get list of unlocked spell names (efficient version for LevelUpScreen)
+func get_unlocked_spell_names() -> Array:
+	# Check if we have a CharacterManager for persistent unlocks
+	var character_manager = get_node_or_null("/root/CharacterManager")
+	if character_manager and character_manager.has_method("get_unlocked_spells"):
+		return character_manager.get_unlocked_spells()
+	
+	# Fallback to level-based unlocks if no CharacterManager
+	var unlocked = ["mana_bolt"]  # mana_bolt is always available
+	if not player:
+		return unlocked
+	
+	for slot in spells:
+		var spell_info = spells[slot]
+		var unlock_level = spell_info.get("unlock_level", 1)
+		if player.level >= unlock_level:
+			unlocked.append(spell_info["name"])
+	
+	return unlocked
+
 # Check if a specific spell is unlocked
 func is_spell_unlocked(slot: int) -> bool:
 	if not player or slot not in spells:
@@ -948,7 +997,6 @@ func is_spell_unlocked(slot: int) -> bool:
 
 # Unlock all spells (cheat command)
 func unlock_all_spells():
-	print("DEBUG: Unlocking all spells!")
 	
 	# Set all spell unlock levels to 1 (already unlocked)
 	for slot in spells:
@@ -960,3 +1008,332 @@ func unlock_all_spells():
 	
 	# Print confirmation message
 	print("All spells unlocked! You can now use all 6 spells regardless of level.")
+
+# ========== FREEFORM CASTING SYSTEM ==========
+
+func toggle_freeform_mode(action: String):
+	match action:
+		"on":
+			freeform_mode = true
+		"off":
+			freeform_mode = false
+		"toggle", _:
+			freeform_mode = not freeform_mode
+	
+	# Clear any current typing state when switching modes
+	if is_typing:
+		cancel_typing()
+	
+
+func handle_freeform_input(event: InputEventKey):
+	var key_code = event.keycode
+	
+	# Special keys that work in both modes
+	if key_code == KEY_Y:
+		unlock_all_spells()
+		return
+	
+	# Start typing on any alphabetic key
+	if not is_typing:
+		# Check if it's a letter key
+		if (key_code >= KEY_A and key_code <= KEY_Z) or key_code == KEY_SPACE:
+			# Check spell cast cooldown to prevent rapid casting
+			var current_time = Time.get_ticks_msec() / 1000.0
+			if current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
+				return
+			
+			start_freeform_typing()
+			# Process this first character
+			handle_freeform_typing_input(event)
+		return
+	
+	# Handle typing input
+	if is_typing:
+		handle_freeform_typing_input(event)
+
+func start_freeform_typing():
+	if is_typing:
+		return
+	
+	is_typing = true
+	current_typing_text = ""
+	target_spell = ""  # No target in freeform mode, we'll match dynamically
+	
+	# Apply cast speed - higher cast speed = less time dilation (faster typing)
+	var cast_speed_bonus = player.cast_speed_multiplier if player else 1.0
+	var adjusted_time_scale = TIME_SCALE_DURING_TYPING + (cast_speed_bonus - 1.0) * 0.5
+	# Clamp between 0.2 (normal) and 0.8 (very fast)
+	adjusted_time_scale = clamp(adjusted_time_scale, TIME_SCALE_DURING_TYPING, 0.8)
+	
+	Engine.time_scale = adjusted_time_scale
+	
+	typing_started.emit()
+	update_freeform_typing_display()
+
+func handle_freeform_typing_input(event: InputEventKey):
+	if not is_typing:
+		return
+	
+	if event.keycode == KEY_BACKSPACE:
+		if current_typing_text.length() > 0:
+			current_typing_text = current_typing_text.substr(0, current_typing_text.length() - 1)
+			update_freeform_typing_display()
+			# Play backspace sound
+			if AudioManager:
+				AudioManager.play_sound(AudioManager.SoundType.TYPING_BACKSPACE)
+	elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+		attempt_freeform_cast()
+	elif event.keycode == KEY_ESCAPE:
+		cancel_typing()
+		# Play error sound for cancellation
+		if AudioManager:
+			AudioManager.on_typing_error()
+	else:
+		# Add character to typing text
+		var char = char(event.unicode)
+		if char.length() > 0 and (char.is_valid_identifier() or char == " "):
+			current_typing_text += char.to_lower()
+			update_freeform_typing_display()
+			
+			# Play typing sound for each character
+			if AudioManager:
+				AudioManager.play_typing_sound(char)
+			
+			# Check if we have a perfect match with any spell
+			if current_typing_text in freeform_spells:
+				attempt_freeform_cast()
+
+func attempt_freeform_cast():
+	var spell_name = current_typing_text.strip_edges()
+	
+	if spell_name in freeform_spells:
+		cast_freeform_spell(spell_name)
+		# Play successful cast completion sound
+		if AudioManager:
+			AudioManager.on_typing_complete()
+	else:
+		print("Unknown spell: ", spell_name)
+		print("Available spells: ", freeform_spells.keys())
+		cancel_typing()
+		# Play error sound for unknown spell
+		if AudioManager:
+			AudioManager.on_typing_error()
+
+func cast_freeform_spell(spell_name: String):
+	if not spell_name in freeform_spells:
+		return
+	
+	var spell_data = freeform_spells[spell_name]
+	
+	# Update last cast time
+	last_spell_cast_time = Time.get_ticks_msec() / 1000.0
+	
+	# Play spell casting sound
+	if AudioManager:
+		AudioManager.play_spell_sound(spell_name)
+	
+	spell_cast.emit(spell_name)
+	
+	# Notify game manager about spell cast
+	if game_manager and game_manager.has_method("increment_spells_cast"):
+		game_manager.increment_spells_cast()
+	
+	# Cast the appropriate spell type
+	cast_freeform_spell_by_type(spell_name, spell_data)
+	
+	end_typing()
+
+func cast_freeform_spell_by_type(spell_name: String, spell_data: Dictionary):
+	if not player or not is_instance_valid(player):
+		return
+	
+	var spell_type = spell_data["type"]
+	var damage = calculate_freeform_spell_damage(spell_data)
+	
+	
+	match spell_type:
+		"projectile":
+			cast_freeform_projectile_spell(spell_name, spell_data, damage)
+		"heal":
+			cast_freeform_heal_spell(spell_name, spell_data)
+		"instant_heal":
+			cast_freeform_instant_heal_spell(spell_name, spell_data)
+		"aoe":
+			cast_freeform_aoe_spell(spell_name, spell_data, damage)
+		"shield":
+			cast_freeform_shield_spell(spell_name, spell_data)
+		"chain":
+			cast_freeform_chain_spell(spell_name, spell_data, damage)
+		"multi_aoe":
+			cast_freeform_multi_aoe_spell(spell_name, spell_data, damage)
+		"utility":
+			cast_freeform_utility_spell(spell_name, spell_data)
+		"debuff":
+			cast_freeform_debuff_spell(spell_name, spell_data)
+		"buff":
+			cast_freeform_buff_spell(spell_name, spell_data)
+		_:
+			print("Unknown freeform spell type: ", spell_type)
+
+func calculate_freeform_spell_damage(spell_data: Dictionary) -> float:
+	var base_damage = spell_data.get("damage", 0)
+	var spell_level = spell_data.get("level", 1)
+	var level_multiplier = 1.0 + 0.15 * (spell_level - 1)
+	var damage = base_damage * level_multiplier
+	
+	if player:
+		damage *= player.spell_damage_multiplier
+	
+	return damage
+
+func update_freeform_typing_display():
+	if game_manager and game_manager.has_method("update_typing_display"):
+		var display_text = ""
+		if is_typing:
+			var potential_matches = []
+			for spell in freeform_spells:
+				if spell.begins_with(current_typing_text) and current_typing_text.length() > 0:
+					potential_matches.append(spell)
+			
+			display_text = "Freeform Casting\nTyped: " + current_typing_text
+			if potential_matches.size() > 0:
+				display_text += "\nMatches: " + ", ".join(potential_matches.slice(0, 3))
+				if potential_matches.size() > 3:
+					display_text += "..."
+		game_manager.update_typing_display(display_text)
+
+# Freeform spell implementations (basic versions for testing)
+func cast_freeform_projectile_spell(spell_name: String, spell_data: Dictionary, damage: float):
+	var closest_enemy = get_closest_enemy()
+	if not closest_enemy:
+		return
+	
+	var projectile = spell_projectile_scene.instantiate()
+	if not projectile:
+		return
+	
+	# Determine color based on spell name
+	var color = Color.CYAN
+	match spell_name:
+		"bolt", "lightning":
+			color = Color.YELLOW
+		"fireball":
+			color = Color.ORANGE_RED
+		"magic missile":
+			color = Color.CYAN
+	
+	projectile.setup_homing(player.global_position, closest_enemy, damage, color, spell_name)
+	get_parent().add_child(projectile)
+
+func cast_freeform_heal_spell(spell_name: String, spell_data: Dictionary):
+	# Heal over time (like existing life spell)
+	var heal_amount = spell_data.get("heal_amount", 8)
+	var duration = spell_data.get("duration", 5)
+	
+	var healing_effect = {
+		"heal_per_second": heal_amount,
+		"remaining_time": duration
+	}
+	active_healing_effects.append(healing_effect)
+	
+	var scene_tree = get_tree()
+	if scene_tree:
+		var game_node = scene_tree.get_first_node_in_group("game")
+		if game_node and game_node.particle_manager:
+			game_node.particle_manager.create_persistent_life_circle(player, duration)
+
+func cast_freeform_instant_heal_spell(spell_name: String, spell_data: Dictionary):
+	# Instant healing
+	var heal_amount = spell_data.get("heal_amount", 25)
+	if player:
+		player.heal(heal_amount)
+		print("Instant heal: +", heal_amount, " health")
+
+func cast_freeform_aoe_spell(spell_name: String, spell_data: Dictionary, damage: float):
+	# Area of effect spell centered on player
+	var radius = spell_data.get("radius", 350)
+	var color = Color.LIGHT_BLUE if spell_name == "ice blast" else Color.RED
+	
+	create_aoe_explosion(player.global_position, radius, damage, color, spell_name)
+
+func cast_freeform_shield_spell(spell_name: String, spell_data: Dictionary):
+	# Shield/barrier spell
+	var shield_hp = spell_data.get("shield_hp", 40)
+	
+	if player and player.has_method("add_overheal"):
+		player.add_overheal(shield_hp)
+	
+	var visual_duration = 8.0
+	var scene_tree = get_tree()
+	if scene_tree:
+		var game_node = scene_tree.get_first_node_in_group("game")
+		if game_node and game_node.particle_manager:
+			game_node.particle_manager.create_persistent_shield_circle(player, visual_duration)
+
+func cast_freeform_chain_spell(spell_name: String, spell_data: Dictionary, damage: float):
+	# Chain lightning spell
+	var chain_count = spell_data.get("chain_count", 3)
+	
+	var closest_enemy = get_closest_enemy()
+	if not closest_enemy:
+		return
+	
+	create_lightning_arc_visual(player.global_position, closest_enemy.global_position, closest_enemy)
+	chain_lightning(closest_enemy, damage, chain_count, [])
+
+func cast_freeform_multi_aoe_spell(spell_name: String, spell_data: Dictionary, damage: float):
+	# Multiple AoE attacks (meteor shower style)
+	var meteor_count = spell_data.get("meteor_count", 3)
+	
+	for i in meteor_count:
+		var delay = i * 0.3
+		var target_pos: Vector2
+		
+		var enemies = get_tree().get_nodes_in_group("enemies")
+		if enemies.size() > 0:
+			var random_enemy = enemies[randi() % enemies.size()]
+			target_pos = random_enemy.global_position + Vector2(randf_range(-150, 150), randf_range(-150, 150))
+		else:
+			target_pos = player.global_position + Vector2(randf_range(-200, 200), randf_range(-200, 200))
+		
+		var tree = get_tree()
+		if tree:
+			create_meteor_warning(target_pos, delay)
+			tree.create_timer(delay).timeout.connect(func(): create_meteor_strike(target_pos, damage * 0.8))
+
+func cast_freeform_utility_spell(spell_name: String, spell_data: Dictionary):
+	match spell_name:
+		"teleport":
+			# Teleport player to mouse position
+			var mouse_pos = get_global_mouse_position()
+			if player:
+				player.global_position = mouse_pos
+				print("Teleported to: ", mouse_pos)
+
+func cast_freeform_debuff_spell(spell_name: String, spell_data: Dictionary):
+	match spell_name:
+		"slow":
+			# Slow all enemies
+			var enemies = get_tree().get_nodes_in_group("enemies")
+			for enemy in enemies:
+				if enemy.has_method("apply_slow"):
+					enemy.apply_slow(0.5, 5.0)  # 50% slow for 5 seconds
+			print("Slowed all enemies")
+
+func cast_freeform_buff_spell(spell_name: String, spell_data: Dictionary):
+	match spell_name:
+		"haste":
+			# Temporary speed boost for player
+			if player:
+				var original_speed = player.movement_speed_multiplier
+				player.movement_speed_multiplier *= 1.5
+				print("Haste activated: +50% movement speed for 10 seconds")
+				# Restore speed after duration
+				var tree = get_tree()
+				if tree:
+					tree.create_timer(10.0).timeout.connect(
+						func(): 
+							if player:
+								player.movement_speed_multiplier = original_speed
+								print("Haste effect ended")
+					)

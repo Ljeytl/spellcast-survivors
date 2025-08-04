@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqk7x5y0vbq8n"]
+
+[ext_resource type="Script" path="res://scripts/Console.gd" id="1_console"]
+
+[node name="Console" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1_console")
+
+[node name="ConsolePanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -350.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 0
+modulate = Color(0.1, 0.1, 0.1, 0.95)
+
+[node name="VBox" type="VBox" parent="ConsolePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OutputLabel" type="RichTextLabel" parent="ConsolePanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+bbcode_enabled = true
+scroll_following = true
+selection_enabled = true
+
+[node name="SuggestionsList" type="ItemList" parent="ConsolePanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+size_flags_vertical = 0
+max_columns = 5
+
+[node name="InputField" type="LineEdit" parent="ConsolePanel/VBox"]
+layout_mode = 2
+placeholder_text = "Enter console command..."

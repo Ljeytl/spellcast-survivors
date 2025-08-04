@@ -13,8 +13,6 @@ signal return_to_menu
 @onready var panel: Panel = $Background/Panel
 
 func _ready():
-	print("DEBUG: GameOverScreen _ready() called")
-	
 	# Allow processing when game is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -44,29 +42,21 @@ func _ready():
 		panel.scale = Vector2(0.8, 0.8)
 	else:
 		print("ERROR: panel is null")
-		
-	print("DEBUG: GameOverScreen _ready() completed")
 
 func show_game_over(stats: Dictionary):
-	print("DEBUG: GameOverScreen.show_game_over() called with stats: ", stats)
-	
 	# Ensure _ready() has been called before proceeding
 	if not is_inside_tree():
-		print("DEBUG: GameOverScreen not in tree, deferring")
 		call_deferred("show_game_over", stats)
 		return
 	
 	# Additional safety check: wait for next frame if @onready vars aren't ready
 	if not title_label or not survival_time_label or not panel:
-		print("DEBUG: GameOverScreen UI nodes not ready, deferring")
 		call_deferred("show_game_over", stats)
 		return
 	
-	print("DEBUG: GameOverScreen setting visible=true and displaying stats")
 	visible = true
 	display_stats(stats)
 	animate_in()
-	print("DEBUG: GameOverScreen animation started")
 
 func display_stats(stats: Dictionary):
 	# Format survival time
@@ -81,17 +71,17 @@ func display_stats(stats: Dictionary):
 		print("ERROR: survival_time_label is null")
 	
 	if level_label:
-		level_label.text = "Level Reached: %d" % stats.get("level", 1)
+		level_label.text = "Level Reached: {0}".format([stats.get("level", 1)])
 	else:
 		print("ERROR: level_label is null")
 		
 	if enemies_killed_label:
-		enemies_killed_label.text = "Enemies Killed: %d" % stats.get("enemies_killed", 0)
+		enemies_killed_label.text = "Enemies Killed: {0}".format([stats.get("enemies_killed", 0)])
 	else:
 		print("ERROR: enemies_killed_label is null")
 		
 	if spells_cast_label:
-		spells_cast_label.text = "Spells Cast: %d" % stats.get("spells_cast", 0)
+		spells_cast_label.text = "Spells Cast: {0}".format([stats.get("spells_cast", 0)])
 	else:
 		print("ERROR: spells_cast_label is null")
 
@@ -113,10 +103,8 @@ func animate_in():
 	animate_title()
 
 func _on_play_again_pressed():
-	print("DEBUG: Play Again button pressed")
 	if is_instance_valid(AudioManager):
 		AudioManager.on_button_click()
-	print("DEBUG: Emitting restart_game signal")
 	restart_game.emit()
 
 func _on_main_menu_pressed():

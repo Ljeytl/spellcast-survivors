@@ -225,3 +225,28 @@ anchor_bottom = 1.0
 anchor_right = 0.7
 grow_vertical = 2
 color = Color(0.2, 1, 0.4, 0.8)
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="RerollActionsContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="RerollButton" type="Button" parent="Panel/VBoxContainer/RerollActionsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🎲 Reroll (5)"
+tooltip_text = "Reroll all non-locked upgrades"
+
+[node name="BanishButton" type="Button" parent="Panel/VBoxContainer/RerollActionsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🚫 Banish (5)"
+tooltip_text = "Right-click upgrade to banish it forever"
+
+[node name="LockButton" type="Button" parent="Panel/VBoxContainer/RerollActionsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🔒 Lock (5)"
+tooltip_text = "Right-click upgrade to lock it for rerolls"

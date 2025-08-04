@@ -10,10 +10,8 @@ func _ready():
 
 # Start a new game - loads the main game scene
 func _on_play_button_pressed():
-	print("DEBUG: MainMenu Play button pressed")
 	if is_instance_valid(AudioManager):
 		AudioManager.on_button_click()  # Play button click sound
-	print("DEBUG: MainMenu calling SceneManager.goto_scene")
 	SceneManager.goto_scene("res://scenes/Game.tscn")  # Load game scene
 
 # Open the options/settings screen

@@ -384,6 +384,9 @@ func create_mana_bolt_effect(pos: Vector2):
 		particle.global_position = pos
 		particle.restart()
 		auto_cleanup_particle(particle, 0.6)
+	
+	# Add subtle expanding circle for mana bolt (smaller, faster)
+	create_expanding_circle(pos, 80.0, Color.CYAN, 0.3, true)
 
 func create_bolt_effect(pos: Vector2):
 	var particle = get_pooled_particle("bolt")
@@ -391,6 +394,11 @@ func create_bolt_effect(pos: Vector2):
 		particle.global_position = pos
 		particle.restart()
 		auto_cleanup_particle(particle, 0.8)
+	
+	# Add electric expanding circle for bolt spell
+	create_expanding_circle(pos, 120.0, Color.YELLOW, 0.4, true)
+	# Add inner electric burst
+	create_expanding_circle(pos, 60.0, Color.WHITE, 0.2, true)
 
 func create_life_effect(pos: Vector2):
 	var particle = get_pooled_particle("life")
@@ -398,6 +406,12 @@ func create_life_effect(pos: Vector2):
 		particle.global_position = pos
 		particle.restart()
 		auto_cleanup_particle(particle, 1.2)
+	
+	# Add soothing healing circle
+	create_expanding_circle(pos, 100.0, Color.LIME_GREEN, 0.6, true)
+	# Play healing sound effect
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.SPELL_HEAL)
 
 func create_ice_blast_effect(pos: Vector2):
 	# Create particle effect
@@ -409,12 +423,18 @@ func create_ice_blast_effect(pos: Vector2):
 		particle.restart()
 		auto_cleanup_particle(particle, 1.5)  # Increased to match longer lifetime
 	
-	# Create multiple expanding circle effects for ice blast
+	# Create multiple expanding circle effects for ice blast - MEATY!
 	create_expanding_circle(pos, 400.0, Color.CYAN, 0.8, true)
 	# Add a faster, smaller inner circle
 	create_expanding_circle(pos, 300.0, Color.LIGHT_BLUE, 0.6, true)
 	# Add a slow outer circle for lingering effect
 	create_expanding_circle(pos, 450.0, Color.WHITE, 1.2, true)
+	# Add extra inner frost burst for more meat
+	create_expanding_circle(pos, 150.0, Color.LIGHT_BLUE, 0.3, true)
+	
+	# Play chunky ice blast sound
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.SPELL_ICE_BLAST)
 
 func create_earthshield_effect(pos: Vector2):
 	var particle = get_pooled_particle("earthshield")
@@ -429,6 +449,14 @@ func create_lightning_arc_effect(pos: Vector2):
 		particle.global_position = pos
 		particle.restart()
 		auto_cleanup_particle(particle, 1.0)
+	
+	# Lightning gets INSTANT electric burst circles - very fast and aggressive!
+	create_expanding_circle(pos, 150.0, Color.PURPLE, 0.15, true)  # Super fast
+	create_expanding_circle(pos, 200.0, Color.WHITE, 0.25, true)   # Quick flash
+	
+	# Play electric zap sound
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.SPELL_LIGHTNING)
 
 func create_meteor_shower_effect(pos: Vector2):
 	var particle = get_pooled_particle("meteor_shower")

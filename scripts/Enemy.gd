@@ -326,11 +326,6 @@ func _ready():
 		damage = base_damage * damage_mult
 		xp_value = xp_value * xp_mult
 		
-		print("DEBUG: %s enemy spawned (Elite: %s) - Health: %d, Speed: %d, Damage: %d" % [
-			EnemyType.keys()[enemy_type], 
-			EliteType.keys()[elite_type] if is_elite else "None",
-			int(max_health), int(speed), int(damage)
-		])
 	else:
 		# Fallback if EnemyManager not found - use base stats
 		max_health = base_health
@@ -707,3 +702,44 @@ func apply_elite_visual_effects():
 		_:
 			# Very subtle brightness increase
 			visual.modulate = Color(1.02, 1.02, 1.02, 1.0)
+
+# Method to set monster stats from mathematical system
+func set_monster_stats(stats: Dictionary):
+	if stats.has("health"):
+		base_health = stats.health
+		max_health = stats.health
+		current_health = stats.health
+	
+	if stats.has("speed"):
+		speed = stats.speed
+		base_speed = stats.speed
+	
+	if stats.has("damage"):
+		base_damage = stats.damage
+		damage = stats.damage
+	
+	if stats.has("xp"):
+		xp_value = stats.xp
+	
+	# Handle archetype-specific properties
+	if stats.has("group_size"):
+		# For swarmer types - could spawn multiple
+		pass
+		
+	if stats.has("attack_range"):
+		# For shooter types
+		if has_property("attack_range"):
+			set("attack_range", stats.attack_range)
+	
+	if stats.has("projectile_speed"):
+		# For shooter types  
+		if has_property("projectile_speed"):
+			set("projectile_speed", stats.projectile_speed)
+
+# Method to check if property exists (helper for dynamic property setting)
+func has_property(property_name: String) -> bool:
+	var property_list = get_property_list()
+	for property in property_list:
+		if property.name == property_name:
+			return true
+	return false

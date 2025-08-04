@@ -26,6 +26,10 @@ var current_state: GameState = GameState.PLAYING
 # Total time spent in this game session (used for survival scoring)
 var game_time: float = 0.0
 
+# Developer console system
+var console_scene = preload("res://scenes/Console.tscn")
+var console_instance: Control = null
+
 # Preloaded script for damage number system
 var damage_manager_scene = preload("res://scripts/DamageManager.gd")
 
@@ -69,7 +73,6 @@ var spells_cast: int = 0     # Total spells successfully cast this session
 
 # Called when the scene is first loaded and ready to run
 func _ready():
-	print("DEBUG: Game _ready() called - initializing game scene")
 	
 	# Add to game group for other nodes to find this main game controller
 	add_to_group("game")
@@ -82,8 +85,19 @@ func _ready():
 	setup_all_systems()
 	# Configure the spell slot UI with icons and labels
 	setup_spell_slots()
+	# Initialize developer console
+	setup_console()
 	
-	print("DEBUG: Game _ready() completed successfully")
+
+# Handle input events
+func _input(event):
+	if event is InputEventKey and event.pressed:
+		# General input handling only - no more hotkey cheats!
+		# All cheats are now hidden in the console (press ~ to access)
+		match event.keycode:
+			KEY_ESCAPE:
+				if current_state == GameState.PLAYING:
+					toggle_pause()
 
 # Master setup function that initializes all game systems
 # Order matters here - some systems depend on others being ready first
@@ -283,11 +297,11 @@ func update_difficulty_tooltip_content():
 	
 	var content = "[center][b]Difficulty Scaling[/b][/center]\n\n"
 	content += "[color=red]• Enemy Health: %.2fx[/color]\n" % health_mult
-	content += "  [color=gray](+15% every 30s | Next: %ds)[/color]\n\n" % (next_health_time - game_time)
+	content += "  [color=gray](+15% every 30s | Next: %ds)[/color]\n\n" % int(next_health_time - game_time)
 	content += "[color=yellow]• Enemy Speed: %.2fx[/color]\n" % speed_mult
-	content += "  [color=gray](+2% every 2min | Next: %ds)[/color]\n\n" % (next_speed_time - game_time)
+	content += "  [color=gray](+2% every 2min | Next: %ds)[/color]\n\n" % int(next_speed_time - game_time)
 	content += "[color=green]• Spawn Rate: %.2fx[/color]\n" % spawn_mult
-	content += "  [color=gray](+5% every 45s | Next: %ds)[/color]" % (next_spawn_time - game_time)
+	content += "  [color=gray](+5% every 45s | Next: %ds)[/color]" % int(next_spawn_time - game_time)
 	
 	difficulty_tooltip_label.text = content
 
@@ -328,12 +342,21 @@ func setup_ui():
 		
 		# Allow the health bar to have child nodes for overheal display
 		health_bar.clip_contents = false
+		
+		# Initialize health bar color to green (full health)
+		update_health_bar_color(100.0)
 	
 	# Find and set up health label
 	health_label = get_node_or_null("UI/HUD/StatsPanel/HealthLabel")
 	if not health_label and health_bar:
 		# Try to find it as a child of the health bar
 		health_label = health_bar.get_node_or_null("HealthLabel")
+	
+	# Initialize health label text with actual player values
+	if health_label and player:
+		var current_health = player.current_health if "current_health" in player else 100
+		var max_health = player.max_health if "max_health" in player else 100
+		health_label.text = "{0}/{1}".format([int(current_health), int(max_health)])
 	
 	# Set up XP bar to show values from 0-100%
 	if xp_bar:
@@ -366,6 +389,12 @@ func setup_player():
 		player.player_died.connect(_on_player_died)
 		player.level_up.connect(_on_player_level_up)
 		player.player_damaged.connect(_on_player_damaged)
+		
+		# Initialize UI with current player values
+		if "current_health" in player and "max_health" in player:
+			_on_player_health_changed(player.current_health, player.max_health, 0.0)
+		if "current_xp" in player and "xp_needed" in player:
+			_on_player_xp_changed(player.current_xp, player.xp_needed)
 	
 	# Connect spell manager signals
 	if spell_manager:
@@ -425,9 +454,9 @@ func _on_player_health_changed(new_health: float, max_health: float, overheal_am
 		if overheal_amount > 0:
 			# Show overheal with remaining time
 			var time_remaining = player.get_overheal_time_remaining() if player and player.has_method("get_overheal_time_remaining") else 0.0
-			health_label.text = "%d/%d (+%d) [%ds]" % [int(new_health), int(max_health), int(overheal_amount), int(time_remaining)]
+			health_label.text = "{0}/{1} (+{2}) [{3}s]".format([int(new_health), int(max_health), int(overheal_amount), int(time_remaining)])
 		else:
-			health_label.text = "%d/%d" % [int(new_health), int(max_health)]
+			health_label.text = "{0}/{1}".format([int(new_health), int(max_health)])
 
 func animate_progress_bar(progress_bar: ProgressBar, value: float, duration: float):
 	var tween = create_tween()
@@ -507,7 +536,7 @@ func _on_player_xp_changed(current_xp: float, xp_needed: float):
 	
 	# Update XP text label
 	if xp_label:
-		xp_label.text = "%d/%d" % [int(current_xp), int(xp_needed)]
+		xp_label.text = "{0}/{1}".format([int(current_xp), int(xp_needed)])
 
 func update_xp_bar_effects(xp_percent: float):
 	var xp_bar_fill = get_or_create_progress_bar_style(xp_bar)
@@ -524,7 +553,6 @@ func create_xp_glow_effect(style: StyleBoxFlat):
 	glow_tween.tween_property(style, "bg_color", Color.ORANGE, GLOW_ANIMATION_DURATION)
 
 func _on_player_died():
-	print("DEBUG: _on_player_died() called - changing to GAME_OVER state")
 	change_state(GameState.GAME_OVER)
 	show_game_over_screen()
 
@@ -533,36 +561,28 @@ func _on_upgrade_selected_stub(upgrade_data: Dictionary):
 	pass
 
 func change_state(new_state: GameState):
-	print("DEBUG: change_state called: ", current_state, " -> ", new_state)
 	current_state = new_state
 	
 	match current_state:
 		GameState.PLAYING:
-			print("DEBUG: Setting game to PLAYING state")
 			get_tree().paused = false
 			if pause_overlay:
 				pause_overlay.visible = false
 		GameState.PAUSED:
-			print("DEBUG: Setting game to PAUSED state")
 			get_tree().paused = true
 			if pause_overlay:
 				pause_overlay.visible = true
 		GameState.GAME_OVER:
-			print("DEBUG: Setting game to GAME_OVER state")
 			get_tree().paused = true
 		GameState.LEVEL_UP:
-			print("DEBUG: Setting game to LEVEL_UP state")
 			get_tree().paused = true
 			if level_up_screen:
 				level_up_screen.visible = true
 
 func toggle_pause():
-	print("DEBUG: toggle_pause called, current_state: ", current_state)
 	if current_state == GameState.PLAYING:
-		print("DEBUG: Changing to PAUSED")
 		change_state(GameState.PAUSED)
 	elif current_state == GameState.PAUSED:
-		print("DEBUG: Changing to PLAYING")
 		change_state(GameState.PLAYING)
 
 func update_typing_display(text: String):
@@ -638,37 +658,33 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 	change_state(GameState.PLAYING)
 
 func show_game_over_screen():
-	print("DEBUG: show_game_over_screen() called")
-	print("DEBUG: game_over_screen valid: ", game_over_screen != null and is_instance_valid(game_over_screen))
+	
+	# Process game end for character progression
+	if CharacterManager:
+		var player_level = player.level if player else 1
+		CharacterManager.process_game_end(game_time, player_level, enemies_killed, spells_cast)
 	
 	if game_over_screen and is_instance_valid(game_over_screen):
-		print("DEBUG: game_over_screen is valid")
 		# Ensure the game over screen is properly initialized
 		if not game_over_screen.is_inside_tree():
 			print("ERROR: game_over_screen is not in scene tree yet")
 			call_deferred("show_game_over_screen")
 			return
-		
-		print("DEBUG: game_over_screen is in scene tree, showing with stats")
 		var stats = {
 			"survival_time": game_time,
 			"level": player.level if player else 1,
 			"enemies_killed": enemies_killed,
 			"spells_cast": spells_cast
 		}
-		print("DEBUG: Stats to show: ", stats)
 		game_over_screen.show_game_over(stats)
-		print("DEBUG: game_over_screen.show_game_over() called")
 	else:
 		print("ERROR: game_over_screen is null or invalid")
 
 func _on_restart_game():
-	print("DEBUG: Restarting game...")
 	# Use SceneManager's restart function which handles pause state
 	SceneManager.restart_current_scene()
 
 func _on_return_to_menu():
-	print("DEBUG: Returning to main menu...")
 	# Simple return - let SceneManager handle everything
 	SceneManager.goto_scene("res://scenes/MainMenu.tscn")
 
@@ -748,6 +764,12 @@ func is_time_dilated() -> bool:
 	if time_dilation_effect:
 		return time_dilation_effect.is_active()
 	return false
+
+func setup_console():
+	# Create developer console (hidden cheat system)
+	console_instance = console_scene.instantiate()
+	add_child(console_instance)
+	print("Console system loaded - press ~ to access hidden commands")
 
 func setup_object_pool():
 	# Create and setup the object pooling system
@@ -879,7 +901,7 @@ func _on_typing_ended():
 
 func _on_spell_locked_error(spell_name: String, required_level: int, current_level: int):
 	# Show error message when player tries to use locked spell
-	var error_msg = "🔒 %s requires level %d!\n(You're level %d)" % [spell_name.capitalize(), required_level, current_level]
+	var error_msg = "🔒 {0} requires level {1}!\n(You're level {2})".format([spell_name.capitalize(), required_level, current_level])
 	
 	# Try to find typing label if it's null
 	if not typing_label:
@@ -1009,11 +1031,9 @@ func play_item_pickup_sound():
 
 # Pause menu button handlers
 func _on_pause_resume_pressed():
-	print("DEBUG: Resume button pressed")
 	toggle_pause()  # Resume the game
 
 func _on_pause_options_pressed():
-	print("DEBUG: Options button pressed")
 	# Open the options screen while keeping the game paused
 	var options_scene = preload("res://scenes/Options.tscn")
 	var options_instance = options_scene.instantiate()
@@ -1029,12 +1049,10 @@ func _on_pause_options_pressed():
 	options_instance.options_closed.connect(_on_options_closed)
 
 func _on_pause_restart_pressed():
-	print("DEBUG: Restart button pressed")
 	# Restart the current game
 	_on_restart_game()
 
 func _on_pause_main_menu_pressed():
-	print("DEBUG: Main menu button pressed")
 	# Return to main menu
 	_on_return_to_menu()
 
@@ -1045,7 +1063,6 @@ func _on_options_closed():
 
 # Increase difficulty level (cheat command)
 func increase_difficulty_level():
-	print("DEBUG: Increasing difficulty level!")
 	
 	# Add 60 seconds to game time (equivalent to 1 difficulty level)
 	# This affects multiple scaling systems:
@@ -1055,17 +1072,70 @@ func increase_difficulty_level():
 	var difficulty_jump = 60.0
 	game_time += difficulty_jump
 	
-	# Also add the same time to enemy manager if it exists
-	var enemy_manager = get_node_or_null("EnemyManager")
-	if enemy_manager and enemy_manager.has_method("add_game_time"):
-		enemy_manager.add_game_time(difficulty_jump)
+	# Also add the same time to monster manager if it exists
+	var monster_manager = get_node_or_null("MonsterManager")
+	if monster_manager and monster_manager.has_method("add_game_time"):
+		monster_manager.add_game_time(difficulty_jump)
+	
+	# Fallback to old EnemyManager for compatibility (now disabled)
+	# var enemy_manager = get_node_or_null("EnemyManager")
+	# if enemy_manager and enemy_manager.has_method("add_game_time"):
+	#	enemy_manager.add_game_time(difficulty_jump)
 	
 	# Calculate current difficulty multipliers for display
 	var health_mult = 1.0 + 0.15 * floor(game_time / 30.0)
 	var speed_mult = 1.0 + 0.02 * floor(game_time / 120.0)
 	var damage_mult = 1.0  # No damage scaling
 	
-	print("Difficulty increased! Time: %ds | Health: %.1fx | Speed: %.2fx | Damage: %.1fx" % [int(game_time), health_mult, speed_mult, damage_mult])
+	print("Difficulty increased! Time: {0}s | Health: {1:.1f}x | Speed: {2:.2f}x | Damage: {3:.1f}x".format([int(game_time), health_mult, speed_mult, damage_mult]))
+
+# Developer cheat functions (only available in dev mode)
+func unlock_all_spells():
+	if spell_manager and spell_manager.has_method("unlock_all_spells"):
+		spell_manager.unlock_all_spells()
+		print("All spells unlocked!")
+
+func trigger_level_up():
+	if current_state == GameState.PLAYING:
+		change_state(GameState.LEVEL_UP)
+		if level_up_screen and player:
+			var player_stats = {
+				"health": player.current_health,
+				"max_health": player.max_health,
+				"damage": player.damage,
+				"speed": player.speed
+			}
+			level_up_screen.show_level_up(player.level, player_stats)
+		print("Level up triggered!")
+
+func heal_player_full():
+	if player and player.has_method("heal_to_full"):
+		player.heal_to_full()
+		print("Player healed to full!")
+	elif player and player.has_property("current_health") and player.has_property("max_health"):
+		player.current_health = player.max_health
+		print("Player healed to full!")
+
+func kill_all_enemies_cheat():
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var count = enemies.size()
+	for enemy in enemies:
+		if enemy and is_instance_valid(enemy):
+			enemy.queue_free()
+	print("Killed ", count, " enemies")
+
+func add_game_time(time_seconds: float):
+	game_time += time_seconds
+	
+	# Also update monster/enemy managers
+	var monster_manager = get_node_or_null("MonsterManager")
+	if monster_manager and monster_manager.has_method("add_game_time"):
+		monster_manager.add_game_time(time_seconds)
+	
+	# Old EnemyManager is now disabled - MonsterManager handles this above
+	# var enemy_manager = get_node_or_null("EnemyManager")
+	# if enemy_manager and enemy_manager.has_method("add_game_time"):
+	#	enemy_manager.add_game_time(time_seconds)
 
 # Toggle invincibility (cheat command)
 func toggle_invincibility():
@@ -1088,4 +1158,4 @@ func toggle_invincibility():
 		player.set("is_invincible", not current_invincible)
 		
 		var status = "ON" if not current_invincible else "OFF"
-		print("DEBUG: Invincibility toggled %s" % status)
+		# Invincibility toggled silently

@@ -1,0 +1,306 @@
+{
+  "level_rewards": {
+    "generic_upgrades": {
+      "spell_damage": {
+        "name": "Spell Power",
+        "description": "+10% Spell Damage", 
+        "icon": "⚡",
+        "effect": {"type": "spell_damage", "value": 0.10},
+        "weight": 100
+      },
+      "cast_speed": {
+        "name": "Quick Cast",
+        "description": "+10% Cast Speed",
+        "icon": "⏱️", 
+        "effect": {"type": "cast_speed", "value": 0.10},
+        "weight": 100
+      },
+      "movement_speed": {
+        "name": "Swift Step",
+        "description": "+8% Movement Speed",
+        "icon": "💨",
+        "effect": {"type": "movement_speed", "value": 0.08},
+        "weight": 80
+      },
+      "max_health": {
+        "name": "Vitality", 
+        "description": "+15 Max Health",
+        "icon": "❤️",
+        "effect": {"type": "max_health", "value": 15},
+        "weight": 70
+      },
+      "xp_range": {
+        "name": "Experience Magnet",
+        "description": "+20% XP Collection Range",
+        "icon": "🧲",
+        "effect": {"type": "xp_range", "value": 0.20},
+        "weight": 60
+      },
+      "projectile_speed": {
+        "name": "Velocity",
+        "description": "+15% Projectile Speed",
+        "icon": "🏃",
+        "effect": {"type": "projectile_speed", "value": 0.15},
+        "weight": 50
+      },
+      "area_size": {
+        "name": "Amplify", 
+        "description": "+12% Area of Effect",
+        "icon": "📈",
+        "effect": {"type": "area_size", "value": 0.12},
+        "weight": 60
+      },
+      "cooldown_reduction": {
+        "name": "Efficiency",
+        "description": "+8% Cooldown Reduction", 
+        "icon": "⚙️",
+        "effect": {"type": "cooldown_reduction", "value": 0.08},
+        "weight": 40
+      },
+      "critical_chance": {
+        "name": "Precision",
+        "description": "+5% Critical Hit Chance",
+        "icon": "🎯",
+        "effect": {"type": "critical_chance", "value": 0.05},
+        "weight": 30
+      },
+      "armor": {
+        "name": "Fortify",
+        "description": "+3 Damage Reduction",
+        "icon": "🛡️",
+        "effect": {"type": "armor", "value": 3},
+        "weight": 50
+      }
+    },
+    "guaranteed_unlocks": {
+      "3": [{"type": "spell_unlock", "spell": "life"}],
+      "5": [{"type": "spell_unlock", "spell": "ice_blast"}],
+      "7": [{"type": "spell_unlock", "spell": "earth_shield"}],
+      "10": [{"type": "spell_unlock", "spell": "lightning_arc"}],
+      "15": [{"type": "spell_unlock", "spell": "meteor_shower"}],
+      "20": [{"type": "upgrade_unlock", "upgrade": "spell_evolution"}],
+      "25": [{"type": "spell_unlock", "spell": "fire_storm"}],
+      "30": [{"type": "upgrade_unlock", "upgrade": "dual_casting"}],
+      "35": [{"type": "spell_unlock", "spell": "time_warp"}],
+      "40": [{"type": "upgrade_unlock", "upgrade": "spell_mastery"}],
+      "50": [{"type": "spell_unlock", "spell": "apocalypse"}]
+    },
+    "level_scaling": {
+      "xp_formula": "100 + (level * 25) + (level^2 * 2)",
+      "enemy_scaling": {
+        "health_per_minute": 0.1,
+        "damage_per_minute": 0.08,
+        "speed_per_2minutes": 0.02
+      }
+    }
+  },
+  "persistent_rewards": {
+    "100": {
+      "type": "upgrade_resource",
+      "resource": "rerolls",
+      "amount": 1,
+      "description": "+1 Reroll per level up"
+    },
+    "250": {
+      "type": "upgrade_resource", 
+      "resource": "bans",
+      "amount": 1,
+      "description": "+1 Ban per level up"
+    },
+    "500": {
+      "type": "character_unlock",
+      "character": "battlemage", 
+      "description": "Unlock Battle Mage character"
+    },
+    "750": {
+      "type": "upgrade_resource",
+      "resource": "locks", 
+      "amount": 1,
+      "description": "+1 Lock per level up"
+    },
+    "1000": {
+      "type": "character_unlock",
+      "character": "healer",
+      "description": "Unlock Healer character"
+    },
+    "1500": {
+      "type": "special_resource",
+      "resource": "revives",
+      "amount": 1,
+      "description": "Gain 1 Revive token"
+    },
+    "2000": {
+      "type": "character_unlock", 
+      "character": "archmage",
+      "description": "Unlock Archmage character"
+    },
+    "3000": {
+      "type": "character_unlock",
+      "character": "necromancer", 
+      "description": "Unlock Necromancer character"
+    },
+    "4000": {
+      "type": "upgrade_resource",
+      "resource": "rerolls",
+      "amount": 2,
+      "description": "+2 additional Rerolls per level up"
+    },
+    "5000": {
+      "type": "character_unlock",
+      "character": "elementalist",
+      "description": "Unlock Elementalist character" 
+    },
+    "7500": {
+      "type": "character_unlock",
+      "character": "time_mage",
+      "description": "Unlock Time Mage character"
+    },
+    "10000": {
+      "type": "character_unlock", 
+      "character": "summoner",
+      "description": "Unlock Summoner character"
+    },
+    "15000": {
+      "type": "game_modifier",
+      "modifier": "extended_runs",
+      "description": "Unlock extended survival mode (60+ minutes)"
+    },
+    "25000": {
+      "type": "game_modifier",
+      "modifier": "hardcore_mode", 
+      "description": "Unlock hardcore mode (no revives, higher rewards)"
+    }
+  },
+  "achievements": {
+    "first_steps": {
+      "name": "First Steps",
+      "description": "Complete your first run",
+      "condition": {"type": "games_completed", "value": 1},
+      "reward": {"type": "persistent_xp", "value": 50}
+    },
+    "survivor": {
+      "name": "Survivor", 
+      "description": "Survive 10 minutes",
+      "condition": {"type": "survive_time", "value": 600},
+      "reward": {"type": "spell_unlock", "spell": "time_warp"}
+    },
+    "veteran": {
+      "name": "Veteran",
+      "description": "Survive 20 minutes", 
+      "condition": {"type": "survive_time", "value": 1200},
+      "reward": {"type": "persistent_xp", "value": 200}
+    },
+    "legend": {
+      "name": "Legend",
+      "description": "Survive 30 minutes",
+      "condition": {"type": "survive_time", "value": 1800}, 
+      "reward": {"type": "character_unlock", "character": "time_mage"}
+    },
+    "spell_slinger": {
+      "name": "Spell Slinger",
+      "description": "Cast 1000 spells",
+      "condition": {"type": "spells_cast", "value": 1000},
+      "reward": {"type": "upgrade_resource", "resource": "rerolls", "value": 3}
+    },
+    "mass_destruction": {
+      "name": "Mass Destruction", 
+      "description": "Kill 10000 enemies",
+      "condition": {"type": "enemies_killed", "value": 10000},
+      "reward": {"type": "persistent_xp", "value": 500}
+    },
+    "spell_master": {
+      "name": "Spell Master",
+      "description": "Max level any spell",
+      "condition": {"type": "spell_maxed", "value": 1},
+      "reward": {"type": "upgrade_unlock", "upgrade": "spell_evolution"}
+    },
+    "collector": {
+      "name": "Collector",
+      "description": "Unlock all basic spells",
+      "condition": {"type": "spells_unlocked", "value": 6}, 
+      "reward": {"type": "character_unlock", "character": "archmage"}
+    },
+    "character_master": {
+      "name": "Character Master",
+      "description": "Unlock all characters",
+      "condition": {"type": "characters_unlocked", "value": 8},
+      "reward": {"type": "persistent_xp", "value": 1000}
+    },
+    "perfectionist": {
+      "name": "Perfectionist", 
+      "description": "Complete a run without taking damage",
+      "condition": {"type": "no_damage_run", "value": 1},
+      "reward": {"type": "special_resource", "resource": "perfect_gems", "value": 1}
+    },
+    "speed_runner": {
+      "name": "Speed Runner",
+      "description": "Reach level 30 in under 15 minutes",
+      "condition": {"type": "level_time_limit", "level": 30, "time": 900},
+      "reward": {"type": "game_modifier", "modifier": "speed_mode"}
+    },
+    "elements_master": {
+      "name": "Elements Master", 
+      "description": "Master all elemental spell types",
+      "condition": {"type": "elements_mastered", "value": 4},
+      "reward": {"type": "character_unlock", "character": "elementalist"}
+    }
+  },
+  "upgrade_resources": {
+    "rerolls": {
+      "name": "Rerolls",
+      "description": "Refresh level up options",
+      "base_amount": 5,
+      "icon": "🎲"
+    },
+    "bans": {
+      "name": "Bans",
+      "description": "Remove unwanted upgrades permanently",
+      "base_amount": 5, 
+      "icon": "🚫"
+    },
+    "locks": {
+      "name": "Locks",
+      "description": "Keep specific upgrades during rerolls",
+      "base_amount": 5,
+      "icon": "🔒"
+    },
+    "revives": {
+      "name": "Revives",
+      "description": "Continue after death",
+      "base_amount": 0,
+      "icon": "💖"
+    },
+    "perfect_gems": {
+      "name": "Perfect Gems", 
+      "description": "Rare currency for ultimate upgrades",
+      "base_amount": 0,
+      "icon": "💎"
+    }
+  },
+  "game_modifiers": {
+    "extended_runs": {
+      "name": "Extended Survival",
+      "description": "Survival mode continues past 30 minutes with escalating difficulty"
+    },
+    "hardcore_mode": {
+      "name": "Hardcore Mode",
+      "description": "No revives, but 2x XP and exclusive rewards"
+    },
+    "speed_mode": {
+      "name": "Speed Mode", 
+      "description": "Everything moves 50% faster, shorter more intense runs"
+    },
+    "spell_evolution": {
+      "name": "Spell Evolution",
+      "description": "Max level spells can evolve into ultimate forms"
+    },
+    "dual_casting": {
+      "name": "Dual Casting",
+      "description": "Can queue and cast two spells simultaneously"
+    },
+    "spell_mastery": {
+      "name": "Spell Mastery",
+      "description": "Each spell type provides unique mastery bonuses"
+    }
+  }
+}

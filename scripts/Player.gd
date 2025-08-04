@@ -8,7 +8,7 @@ const BASE_MAX_HEALTH = 100.0         # Starting maximum health points
 const BASE_XP_REQUIREMENT = 100.0     # XP needed to reach level 2
 const XP_LEVEL_INCREMENT = 25.0       # Additional XP needed per level (level 3 needs 125, level 4 needs 150, etc.)
 const DAMAGE_FLASH_DURATION = 0.1     # How long the red damage flash lasts
-const DEBUG_XP_AMOUNT = 50.0          # XP gained when pressing X in debug mode
+const DEBUG_XP_AMOUNT = 50.0          # XP for debug mode
 
 # Core player stats - these change during gameplay
 var health: float = BASE_MAX_HEALTH          # Current health points
@@ -39,8 +39,8 @@ var flash_timer: float = 0.0               # Countdown timer for damage flash
 var flash_duration: float = DAMAGE_FLASH_DURATION  # How long damage flash lasts
 @onready var sprite: Sprite2D = $Sprite2D  # Player sprite for visual effects
 
-# Debug mode helpers - only work in debug builds
-var debug_x_pressed: bool = false  # Prevents X key spam in debug mode
+# Debug mode helpers
+var debug_x_pressed: bool = false
 
 # Invincibility cheat system
 var is_invincible: bool = false     # When true, player takes no damage
@@ -50,8 +50,6 @@ func _ready():
 	# Register with player group so other systems can find us
 	add_to_group("player")
 	
-	# Debug: Confirm HitBox signal connection
-	print("DEBUG: Player _ready() - HitBox collision detection initialized")
 	
 	# Send initial UI updates with starting values
 	health_changed.emit(health, max_health, overheal)
@@ -59,7 +57,7 @@ func _ready():
 
 # Called when the player node is about to be removed from the scene
 func _exit_tree():
-	print("DEBUG: Player _exit_tree() - cleaning up")
+	# Clean up player resources
 	# Clear the touching enemies array to prevent stale references
 	touching_enemies.clear()
 	damage_timer = 0.0
@@ -86,7 +84,7 @@ func _physics_process(delta):
 			if sprite:
 				sprite.modulate = Color.WHITE
 	
-	# Debug feature: press X to gain XP instantly (only in debug builds)
+	# Debug feature: press X to gain XP
 	if OS.is_debug_build():
 		if Input.is_physical_key_pressed(KEY_X) and not debug_x_pressed:
 			debug_x_pressed = true  # Prevent key repeat spam
@@ -128,7 +126,6 @@ func handle_movement():
 func take_damage(damage: float):
 	# Check invincibility first
 	if is_invincible:
-		print("DEBUG: Damage blocked by invincibility: ", damage)
 		return
 	
 	# Apply damage to overheal first, then health
@@ -143,10 +140,8 @@ func take_damage(damage: float):
 	
 	# Play damage sound effect
 	if is_instance_valid(AudioManager):
-		print("DEBUG: Playing damage sound")
 		AudioManager.on_damage_taken()
 	else:
-		print("DEBUG: AudioManager not available for damage sound")
 	
 	# Update the health bar UI
 	health_changed.emit(health, max_health, overheal)
@@ -157,7 +152,6 @@ func take_damage(damage: float):
 	
 	# Check if player has died
 	if health <= 0:
-		print("DEBUG: Player health reached 0, emitting player_died signal")
 		player_died.emit()  # Trigger game over screen
 
 # Make the player sprite flash red briefly when taking damage
@@ -211,7 +205,6 @@ func heal(amount: float):
 func toggle_invincibility():
 	is_invincible = not is_invincible
 	var status = "ON" if is_invincible else "OFF"
-	print("DEBUG: Player invincibility toggled %s" % status)
 	
 	# Visual feedback - make player flash when invincible
 	if is_invincible:
@@ -279,7 +272,6 @@ func process_enemy_contact_damage(delta: float):
 					var damage = enemy.base_damage if enemy.get("base_damage") else 20.0
 					total_damage += damage
 				
-				print("DEBUG: Taking ", total_damage, " damage from ", touching_enemies.size(), " touching enemies")
 				take_damage(total_damage)
 				damage_timer = DAMAGE_INTERVAL  # Reset timer
 
@@ -321,14 +313,10 @@ const MAX_ENEMY_SLOWDOWN: float = 0.3  # Minimum speed is 30% when surrounded
 
 # Collision detection - called when enemy enters player's HitBox
 func _on_hit_box_body_entered(body):
-	print("DEBUG: HitBox collision ENTERED with: ", body.name, " | Is enemy: ", body.is_in_group("enemies"))
 	if body.is_in_group("enemies") and body not in touching_enemies:
 		touching_enemies.append(body)
-		print("DEBUG: Enemy added to touching list. Total touching: ", touching_enemies.size())
 
 # Collision detection - called when enemy leaves player's HitBox
 func _on_hit_box_body_exited(body):
-	print("DEBUG: HitBox collision EXITED with: ", body.name, " | Is enemy: ", body.is_in_group("enemies"))
 	if body.is_in_group("enemies") and body in touching_enemies:
 		touching_enemies.erase(body)
-		print("DEBUG: Enemy removed from touching list. Total touching: ", touching_enemies.size())

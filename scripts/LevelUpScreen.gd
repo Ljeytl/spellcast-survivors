@@ -5,91 +5,32 @@ signal upgrade_selected(upgrade_data: Dictionary)
 var available_upgrades: Array = []
 var upgrade_buttons: Array = []
 
-# Generic upgrades - balanced values per design document
-var generic_upgrades = {
-	"spell_damage": {
-		"name": "Spell Power",
-		"description": "+10% Spell Damage",
-		"icon": "⚡",
-		"effect": {"type": "spell_damage", "value": 0.10}
-	},
-	"cast_speed": {
-		"name": "Quick Cast",
-		"description": "+10% Cast Speed",
-		"icon": "⏱️",
-		"effect": {"type": "cast_speed", "value": 0.10}
-	},
-	"movement_speed": {
-		"name": "Swift Step", 
-		"description": "+8% Movement Speed",
-		"icon": "💨",
-		"effect": {"type": "movement_speed", "value": 0.08}
-	},
-	"max_health": {
-		"name": "Vitality",
-		"description": "+15 Max Health",
-		"icon": "❤️",
-		"effect": {"type": "max_health", "value": 15}
-	},
-	"xp_range": {
-		"name": "Experience Magnet",
-		"description": "+20% XP Collection Range",
-		"icon": "🧲",
-		"effect": {"type": "xp_range", "value": 0.20}
-	}
-}
+# Reroll system resources
+var rerolls_remaining: int = 5
+var banishes_remaining: int = 5  
+var locks_remaining: int = 5
 
-# Spell-specific upgrades with detailed descriptions
-var spell_upgrades = {
-	"mana_bolt": {
-		"name": "Mana Bolt+",
-		"description": "+15% damage, faster firing",
-		"icon": "🔵",
-		"effect": {"type": "spell_upgrade", "spell": "mana_bolt"}
-	},
-	"bolt": {
-		"name": "Bolt+", 
-		"description": "+15% damage, +1 projectile every 3 levels",
-		"icon": "⚡",
-		"effect": {"type": "spell_upgrade", "spell": "bolt"}
-	},
-	"life": {
-		"name": "Life+",
-		"description": "+15% healing, longer duration",
-		"icon": "💚",
-		"effect": {"type": "spell_upgrade", "spell": "life"}
-	},
-	"ice blast": {
-		"name": "Ice Blast+",
-		"description": "+15% damage, +20% area every 2 levels",
-		"icon": "❄️", 
-		"effect": {"type": "spell_upgrade", "spell": "ice blast"}
-	},
-	"earth shield": {
-		"name": "Earth Shield+",
-		"description": "+15% overheal amount, longer duration",
-		"icon": "🛡️",
-		"effect": {"type": "spell_upgrade", "spell": "earth shield"}
-	},
-	"lightning arc": {
-		"name": "Lightning Arc+",
-		"description": "+15% damage, +1 target every 2 levels",
-		"icon": "⚡",
-		"effect": {"type": "spell_upgrade", "spell": "lightning arc"}
-	},
-	"meteor shower": {
-		"name": "Meteor Shower+",
-		"description": "+15% damage, +1 meteor every 2 levels",
-		"icon": "☄️",
-		"effect": {"type": "spell_upgrade", "spell": "meteor shower"}
-	}
-}
+# Upgrade state management
+var locked_upgrades: Array = []  # Indices of locked upgrades
+var banished_upgrades: Array = []  # Upgrade keys that are banished
+var current_upgrade_pool: Array = []  # Current available upgrades before filtering
+
+# Data-driven upgrades loaded from DataManager
+var generic_upgrades = {}
+
+# Spell upgrades loaded from DataManager
+var spell_upgrades = {}
 
 @onready var title_label: Label = $Panel/VBoxContainer/TitleContainer/TitleLabel
 @onready var level_label: Label = $Panel/VBoxContainer/TitleContainer/LevelLabel
 @onready var upgrade_container: VBoxContainer = $Panel/VBoxContainer/UpgradeContainer
 @onready var fade_overlay: ColorRect = $FadeOverlay
 @onready var panel: Panel = $Panel
+
+# Reroll system UI elements
+@onready var reroll_button: Button = $Panel/VBoxContainer/RerollActionsContainer/RerollButton
+@onready var banish_button: Button = $Panel/VBoxContainer/RerollActionsContainer/BanishButton  
+@onready var lock_button: Button = $Panel/VBoxContainer/RerollActionsContainer/LockButton
 
 # Upgrade card components
 var upgrade_cards: Array = []
@@ -106,6 +47,9 @@ func _ready():
 	
 	# Allow this screen to process even when the game is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Load upgrades from DataManager
+	load_upgrades_from_data()
 	
 	# Get references to upgrade cards and progress bars
 	upgrade_buttons = []
@@ -147,6 +91,9 @@ func _ready():
 	else:
 		print("ERROR: upgrade_container is null in _ready()")
 	
+	# Connect reroll system buttons
+	setup_reroll_system()
+	
 	# Setup tooltip components
 	tooltip_panel = panel.get_node_or_null("TooltipPanel")
 	tooltip_label = tooltip_panel.get_node_or_null("TooltipLabel") if tooltip_panel else null
@@ -165,46 +112,37 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 	var options = []
 	var all_upgrades = []
 	
-	# Spell unlock levels (matching SpellManager exactly)
-	var spell_unlock_levels = {
-		"bolt": 1,
-		"life": 3,
-		"ice blast": 5,
-		"earth shield": 7,
-		"lightning arc": 10,
-		"meteor shower": 15
-	}
+	# Get list of currently unlocked spells from SpellManager
+	var unlocked_spells = get_unlocked_spells()
 	
 	# Add generic upgrades with current stat values
 	for key in generic_upgrades:
 		var upgrade = generic_upgrades[key].duplicate(true)
 		# Update descriptions with current values
-		match key:
+		var effect = upgrade.get("effect", {})
+		match effect.get("type", ""):
 			"spell_damage":
 				var current_bonus = (player_stats.get("spell_damage_multiplier", 1.0) - 1.0) * 100
-				upgrade["description"] = "+10% Spell Damage (Currently: +" + str(int(current_bonus)) + "%)"
+				upgrade["description"] = upgrade["description"] + " (Currently: +" + str(int(current_bonus)) + "%)"
 			"cast_speed":
 				var current_bonus = (player_stats.get("cast_speed_multiplier", 1.0) - 1.0) * 100
-				upgrade["description"] = "+10% Cast Speed (Currently: +" + str(int(current_bonus)) + "%)"
+				upgrade["description"] = upgrade["description"] + " (Currently: +" + str(int(current_bonus)) + "%)"
 			"movement_speed":
 				var current_bonus = (player_stats.get("movement_speed_multiplier", 1.0) - 1.0) * 100
-				upgrade["description"] = "+8% Movement Speed (Currently: +" + str(int(current_bonus)) + "%)"
+				upgrade["description"] = upgrade["description"] + " (Currently: +" + str(int(current_bonus)) + "%)"
 			"max_health":
 				var current_health = player_stats.get("max_health", 100)
-				upgrade["description"] = "+15 Max Health (Currently: " + str(int(current_health)) + ")"
+				upgrade["description"] = upgrade["description"] + " (Currently: " + str(int(current_health)) + ")"
 			"xp_range":
 				var current_bonus = (player_stats.get("xp_range_multiplier", 1.0) - 1.0) * 100
-				upgrade["description"] = "+20% XP Range (Currently: +" + str(int(current_bonus)) + "%)"
+				upgrade["description"] = upgrade["description"] + " (Currently: +" + str(int(current_bonus)) + "%)"
 		all_upgrades.append(upgrade)
 	
-	# Add spell upgrades only for unlocked spells with dynamic descriptions
-	for key in spell_upgrades:
-		var spell_name = spell_upgrades[key].get("effect", {}).get("spell", key)
-		var required_level = spell_unlock_levels.get(spell_name, 1)
-		
-		# Always allow mana_bolt (auto-attack) regardless of level
-		if spell_name == "mana_bolt" or player_level >= required_level:
-			var upgrade = spell_upgrades[key].duplicate(true)
+	# Add spell upgrades only for currently unlocked spells
+	for spell_name in unlocked_spells:
+		# Find the corresponding upgrade in our spell_upgrades dictionary
+		if spell_name in spell_upgrades:
+			var upgrade = spell_upgrades[spell_name].duplicate(true)
 			# Get current spell level from SpellManager to show specific upgrade benefits
 			var current_spell_level = get_current_spell_level(spell_name)
 			upgrade["description"] = get_detailed_spell_upgrade_description(spell_name, current_spell_level)
@@ -261,6 +199,10 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 	# Format the button text with better spacing
 	var title_line = icon + " " + name
 	button.text = title_line + "\n" + description
+	
+	# Increase font size for better readability
+	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_color_override("font_color", Color.WHITE)
 	
 	# Add subtle color coding based on upgrade type
 	var effect_type = upgrade.get("effect", {}).get("type", "")
@@ -349,6 +291,33 @@ func _on_upgrade_button_mouse_exited(button: Button, panel_container: Panel):
 	# Hide tooltip
 	hide_tooltip()
 
+# Get list of currently unlocked spells from SpellManager
+func get_unlocked_spells() -> Array:
+	var scene_tree = get_tree()
+	if not scene_tree:
+		return ["mana_bolt"]  # Fallback to just mana bolt
+	
+	var spell_manager = scene_tree.get_first_node_in_group("game")
+	if spell_manager:
+		spell_manager = spell_manager.get_node_or_null("SpellManager")
+	
+	if not spell_manager:
+		return ["mana_bolt"]  # Fallback to just mana bolt
+	
+	# Get available spells from SpellManager
+	if spell_manager.has_method("get_unlocked_spell_names"):
+		return spell_manager.get_unlocked_spell_names()
+	
+	# Fallback: check each spell individually using existing method
+	var unlocked = ["mana_bolt"]  # mana_bolt is always available
+	var spell_names = ["bolt", "life", "ice blast", "earth shield", "lightning arc", "meteor shower"]
+	
+	for i in range(spell_names.size()):
+		if spell_manager.has_method("is_spell_unlocked") and spell_manager.is_spell_unlocked(i + 1):
+			unlocked.append(spell_names[i])
+	
+	return unlocked
+
 # Helper function to get current spell level from SpellManager
 func get_current_spell_level(spell_name: String) -> int:
 	var scene_tree = get_tree()
@@ -389,35 +358,35 @@ func get_detailed_spell_upgrade_description(spell_name: String, current_level: i
 	
 	match spell_name:
 		"mana_bolt":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 3 == 1 and next_level > 1:
 				base_description += ", +1 missile"
 		"bolt":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 3 == 1 and next_level > 1:
 				base_description += ", +1 projectile"
 		"life":
-			base_description = "Level %d→%d: +15%% healing/sec" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% healing/sec".format([current_level, next_level])
 			if current_level < 3:
 				base_description += ", longer duration"
 		"ice blast":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 2 == 1 and next_level > 1:
 				base_description += ", +20% area"
 		"earth shield":
-			base_description = "Level %d→%d: +15%% overheal amount" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% overheal amount".format([current_level, next_level])
 			if current_level < 4:
 				base_description += ", longer duration"
 		"lightning arc":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 2 == 1 and next_level > 1:
 				base_description += ", +1 chain target"
 		"meteor shower":
-			base_description = "Level %d→%d: +15%% damage" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
 			if next_level % 2 == 1 and next_level > 1:
 				base_description += ", +1 meteor"
 		_:
-			base_description = "Level %d→%d: +15%% effectiveness" % [current_level, next_level]
+			base_description = "Level {0}→{1}: +15% effectiveness".format([current_level, next_level])
 	
 	return base_description
 
@@ -569,3 +538,218 @@ func generate_tooltip_text(upgrade: Dictionary, effect: Dictionary) -> String:
 			text += "• Stacks with other upgrades"
 	
 	return text
+
+# ========== REROLL SYSTEM ==========
+
+func setup_reroll_system():
+	# Connect button signals
+	if reroll_button:
+		reroll_button.pressed.connect(_on_reroll_pressed)
+		reroll_button.disabled = (rerolls_remaining <= 0)
+	if banish_button:
+		banish_button.pressed.connect(_on_banish_mode_toggled)
+		banish_button.disabled = (banishes_remaining <= 0)
+	if lock_button:
+		lock_button.pressed.connect(_on_lock_mode_toggled)
+		lock_button.disabled = (locks_remaining <= 0)
+	
+	# Setup right-click detection on upgrade cards
+	setup_upgrade_right_click()
+	
+	# Update button texts
+	update_reroll_button_texts()
+
+func setup_upgrade_right_click():
+	# Add right-click detection to each upgrade card
+	for i in range(upgrade_buttons.size()):
+		var button = upgrade_buttons[i]
+		if button:
+			# Connect gui_input for right-click detection
+			button.gui_input.connect(_on_upgrade_right_click.bind(i))
+
+func _on_upgrade_right_click(index: int, event: InputEvent):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		handle_upgrade_right_click(index)
+
+func handle_upgrade_right_click(index: int):
+	# Check if we're in banish mode or lock mode based on which has resources
+	if banishes_remaining > 0 and locks_remaining > 0:
+		# Show context menu to choose
+		show_upgrade_context_menu(index)
+	elif banishes_remaining > 0:
+		banish_upgrade(index)
+	elif locks_remaining > 0:
+		lock_upgrade(index)
+
+func show_upgrade_context_menu(index: int):
+	# For now, default to lock action (could enhance with popup menu later)
+	lock_upgrade(index)
+
+func _on_reroll_pressed():
+	if rerolls_remaining <= 0:
+		return
+		
+	rerolls_remaining -= 1
+	
+	# Regenerate upgrades, keeping locked ones
+	reroll_upgrades()
+	
+	# Update UI
+	update_reroll_button_texts()
+	update_upgrade_displays()
+
+func _on_banish_mode_toggled():
+	# Toggle visual indicator that we're in banish mode
+	banish_button.modulate = Color.RED if banish_button.modulate == Color.WHITE else Color.WHITE
+
+func _on_lock_mode_toggled():
+	# Toggle visual indicator that we're in lock mode  
+	lock_button.modulate = Color.YELLOW if lock_button.modulate == Color.WHITE else Color.WHITE
+
+func reroll_upgrades():
+	# Generate new upgrades while preserving locked ones
+	var new_upgrades = []
+	
+	for i in range(available_upgrades.size()):
+		if i in locked_upgrades:
+			# Keep the locked upgrade
+			new_upgrades.append(available_upgrades[i])
+		else:
+			# Generate a new upgrade
+			var new_upgrade = generate_single_upgrade()
+			new_upgrades.append(new_upgrade)
+	
+	available_upgrades = new_upgrades
+
+func banish_upgrade(index: int):
+	if banishes_remaining <= 0 or index >= available_upgrades.size():
+		return
+		
+	banishes_remaining -= 1
+	
+	# Add upgrade to banished list
+	var upgrade_key = get_upgrade_key(available_upgrades[index])
+	if upgrade_key and upgrade_key not in banished_upgrades:
+		banished_upgrades.append(upgrade_key)
+	
+	# Generate replacement upgrade
+	available_upgrades[index] = generate_single_upgrade()
+	
+	# Update UI
+	update_reroll_button_texts()
+	update_upgrade_displays()
+	
+	print("Banished upgrade: ", upgrade_key)
+
+func lock_upgrade(index: int):
+	if locks_remaining <= 0 or index >= available_upgrades.size():
+		return
+		
+	if index in locked_upgrades:
+		# Unlock the upgrade
+		locked_upgrades.erase(index)
+		locks_remaining += 1  # Refund lock
+	else:
+		# Lock the upgrade
+		locks_remaining -= 1
+		locked_upgrades.append(index)
+	
+	# Update UI
+	update_reroll_button_texts()
+	update_upgrade_visual_state(index)
+	
+	print("Toggled lock on upgrade ", index, ". Locked upgrades: ", locked_upgrades)
+
+func generate_single_upgrade() -> Dictionary:
+	# Generate a single upgrade that isn't banished
+	var attempts = 0
+	var max_attempts = 50
+	
+	while attempts < max_attempts:
+		var upgrade = generate_random_upgrade()
+		var upgrade_key = get_upgrade_key(upgrade)
+		
+		if upgrade_key not in banished_upgrades:
+			return upgrade
+			
+		attempts += 1
+	
+	# Fallback - return any upgrade if we can't find a non-banished one
+	return generate_random_upgrade()
+
+func generate_random_upgrade() -> Dictionary:
+	# Use existing upgrade generation logic
+	var all_upgrades = []
+	
+	# Add generic upgrades
+	for key in generic_upgrades.keys():
+		all_upgrades.append({"type": "generic", "key": key, "data": generic_upgrades[key]})
+	
+	# Add spell upgrades  
+	for key in spell_upgrades.keys():
+		all_upgrades.append({"type": "spell", "key": key, "data": spell_upgrades[key]})
+	
+	# Select random upgrade
+	return all_upgrades[randi() % all_upgrades.size()]
+
+func get_upgrade_key(upgrade: Dictionary) -> String:
+	# Extract a unique key for the upgrade
+	if upgrade.has("key"):
+		return upgrade.key
+	elif upgrade.has("data") and upgrade.data.has("name"):
+		return upgrade.data.name
+	else:
+		return ""
+
+func update_reroll_button_texts():
+	# Update button texts with remaining counts
+	if reroll_button:
+		reroll_button.text = "🎲 Reroll (" + str(rerolls_remaining) + ")"
+		reroll_button.disabled = (rerolls_remaining <= 0)
+		
+	if banish_button:
+		banish_button.text = "🚫 Banish (" + str(banishes_remaining) + ")"
+		banish_button.disabled = (banishes_remaining <= 0)
+		
+	if lock_button:
+		lock_button.text = "🔒 Lock (" + str(locks_remaining) + ")"
+		lock_button.disabled = (locks_remaining <= 0)
+
+func update_upgrade_visual_state(index: int):
+	# Update visual state of upgrade to show if it's locked
+	if index < upgrade_cards.size() and upgrade_cards[index]:
+		var card = upgrade_cards[index]
+		
+		if index in locked_upgrades:
+			# Show locked state
+			card.modulate = Color.YELLOW
+			# Could add lock icon overlay here
+		else:
+			# Show normal state
+			card.modulate = Color.WHITE
+
+func update_upgrade_displays():
+	# Refresh the upgrade display with new data
+	for i in range(min(available_upgrades.size(), upgrade_buttons.size())):
+		if upgrade_buttons[i]:
+			var upgrade = available_upgrades[i]
+			var display_data = upgrade.get("data", {})
+			
+			# Update button text
+			var title = display_data.get("name", "Unknown")
+			var description = display_data.get("description", "")
+			var icon = display_data.get("icon", "⚡")
+			
+			upgrade_buttons[i].text = icon + " " + title + "\n" + description
+			
+			# Update visual state
+			update_upgrade_visual_state(i)
+
+# Reset reroll resources (called when starting new game or leveling up)
+func reset_reroll_resources():
+	rerolls_remaining = 5
+	banishes_remaining = 5
+	locks_remaining = 5
+	locked_upgrades.clear()
+	# Don't clear banished_upgrades - they stay banished for the whole run
+	update_reroll_button_texts()

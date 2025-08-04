@@ -15,16 +15,7 @@ var texture_weights: Array[float] = []
 var draw_distance: float = 800.0  # How far to draw tiles
 var tile_cache: Dictionary = {}
 
-# Debug logging
-var log_file: FileAccess
-var debug_log_path: String = "user://background_debug.log"
-
 func _ready():
-	# Setup debug logging
-	setup_debug_log()
-	
-	debug_log("🎮 Background system starting...")
-	
 	# Delay camera search to ensure Game.gd has finished setup
 	call_deferred("find_camera")
 	
@@ -36,12 +27,6 @@ func find_camera():
 		var game_node = get_tree().get_first_node_in_group("game")
 		if game_node:
 			camera = game_node.get_node_or_null("Camera2D")
-	
-	debug_log("📷 Camera found: " + str(camera != null))
-	if camera:
-		debug_log("✅ Camera located successfully!")
-	else:
-		debug_log("❌ Camera not found - will retry")
 	
 	# Load floor textures
 	load_floor_textures()
@@ -55,57 +40,20 @@ func load_floor_textures():
 		{"path": "res://sprites/environment/marble_floor_1.png", "weight": 25.0}
 	]
 	
-	debug_log("🎨 Loading floor textures...")
-	
 	for tex_data in textures:
 		var texture = load(tex_data.path)
 		if texture:
 			floor_textures.append(texture)
 			texture_weights.append(tex_data.weight)
-			debug_log("✅ Loaded texture: " + tex_data.path)
-		else:
-			debug_log("❌ Failed to load texture: " + tex_data.path)
-	
-	debug_log("🎨 Total loaded floor textures: " + str(floor_textures.size()))
 	
 	# Fallback: if no textures loaded, create a simple colored texture
 	if floor_textures.is_empty():
-		debug_log("⚠️ No textures loaded! Creating fallback...")
 		create_fallback_textures()
 
-func setup_debug_log():
-	"""Setup debug logging to file"""
-	# Print to console immediately to test if Background script is running
-	print("🔧 Background script starting...")
-	
-	log_file = FileAccess.open(debug_log_path, FileAccess.WRITE)
-	if log_file:
-		var start_msg = "🔧 Debug log started - " + Time.get_datetime_string_from_system()
-		print(start_msg)
-		log_file.store_line(start_msg)
-		log_file.store_line("📁 Log file: " + debug_log_path)
-		log_file.flush()
-		print("✅ Debug log file created successfully")
-	else:
-		print("❌ Failed to create debug log file at: " + debug_log_path)
 
-func debug_log(message: String):
-	"""Log message to both console and file"""
-	var timestamp = Time.get_datetime_string_from_system()
-	var log_message = "[" + timestamp + "] " + message
-	
-	# Print to console
-	print(log_message)
-	
-	# Write to file
-	if log_file:
-		log_file.store_line(log_message)
-		log_file.flush()
 
 func create_fallback_textures():
 	"""Create simple colored textures as fallback if image loading fails"""
-	debug_log("🎨 Creating fallback textures...")
-	
 	var image = Image.create(512, 512, false, Image.FORMAT_RGB8)
 	
 	# Create consistent stone-themed floor textures
@@ -121,8 +69,6 @@ func create_fallback_textures():
 		texture.set_image(image)
 		floor_textures.append(texture)
 		texture_weights.append(33.3)
-	
-	debug_log("✅ Created " + str(floor_textures.size()) + " fallback textures")
 
 func _draw():
 	if not camera:
@@ -133,14 +79,10 @@ func _draw():
 			if game_node:
 				camera = game_node.get_node_or_null("Camera2D")
 		
-		# Only log occasionally to avoid spam
-		if randi() % 60 == 0:  # Log every ~60 frames at 60fps = once per second
-			debug_log("⚠️ _draw() called but no camera found!")
 		return
 	
 	# If no textures, show a simple background
 	if floor_textures.is_empty():
-		debug_log("⚠️ _draw() called but no floor textures available!")
 		var screen_size = get_viewport().get_visible_rect().size
 		var camera_pos = camera.global_position
 		var half_screen = screen_size * 0.5

@@ -1,9 +1,10 @@
-[gd_scene load_steps=15 format=3 uid="uid://c4qktx05mkq1i"]
+[gd_scene load_steps=19 format=3 uid="uid://c4qktx05mkq1i"]
 
 [ext_resource type="Script" uid="uid://clbs6713ks20m" path="res://scripts/Game.gd" id="1_2v3xy"]
 [ext_resource type="Script" uid="uid://cdc4jpr00h1xb" path="res://scripts/Player.gd" id="2_p4k8z"]
 [ext_resource type="Script" uid="uid://dhgi4dxtpvsqw" path="res://scripts/SpellManager.gd" id="3_q6m9a"]
 [ext_resource type="Texture2D" uid="uid://4fayulb770q1" path="res://sprites/player/human_male.png" id="4_aug50"]
+[ext_resource type="Script" uid="uid://bw4xq5hglhwly" path="res://scripts/MonsterManager.gd" id="4_monster"]
 [ext_resource type="Script" uid="uid://bata6eg8uwl2b" path="res://scripts/EnemyManager.gd" id="4_r7n0b"]
 [ext_resource type="Script" uid="uid://dbe2jepdb3pqa" path="res://scripts/Background.gd" id="5_bg1n2"]
 [ext_resource type="Texture2D" uid="uid://dghblywuetnsq" path="res://sprites/effects/magic_bolt_1.png" id="6_spell1"]
@@ -20,29 +21,21 @@ size = Vector2(64, 64)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hitbox"]
 size = Vector2(80, 80)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill_xp"]
+bg_color = Color(0.6, 0.6, 0.2, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.8, 0.3, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_spell_slot"]
 bg_color = Color(0.25, 0.2, 0.15, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.5, 0.4, 0.3, 1.0)
-corner_radius_top_left = 0
-corner_radius_top_right = 0
-corner_radius_bottom_right = 0
-corner_radius_bottom_left = 0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill_xp"]
-bg_color = Color(0.6, 0.6, 0.2, 1.0)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.8, 0.8, 0.3, 1.0)
-corner_radius_top_left = 0
-corner_radius_top_right = 0
-corner_radius_bottom_right = 0
-corner_radius_bottom_left = 0
+border_color = Color(0.5, 0.4, 0.3, 1)
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_2v3xy")
@@ -51,19 +44,17 @@ script = ExtResource("1_2v3xy")
 script = ExtResource("5_bg1n2")
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["player"]]
-collision_layer = 1
 collision_mask = 0
 script = ExtResource("2_p4k8z")
 
 [node name="Sprite2D" type="Sprite2D" parent="Player"]
-texture = ExtResource("4_aug50")
 scale = Vector2(2, 2)
+texture = ExtResource("4_aug50")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 shape = SubResource("RectangleShape2D_1v8p3")
 
 [node name="HitBox" type="Area2D" parent="Player"]
-collision_layer = 1
 collision_mask = 2
 
 [node name="HitBoxShape" type="CollisionShape2D" parent="Player/HitBox"]
@@ -75,8 +66,12 @@ debug_color = Color(1, 0, 0, 0.3)
 [node name="SpellManager" type="Node" parent="."]
 script = ExtResource("3_q6m9a")
 
-[node name="EnemyManager" type="Node2D" parent="."]
+[node name="EnemyManager_OLD" type="Node2D" parent="."]
+process_mode = 4
 script = ExtResource("4_r7n0b")
+
+[node name="MonsterManager" type="Node2D" parent="."]
+script = ExtResource("4_monster")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -100,45 +95,53 @@ offset_bottom = -15.0
 
 [node name="HealthBar" type="ProgressBar" parent="UI/HUD/StatsPanel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 15.0
 offset_top = 30.0
 offset_right = -15.0
 offset_bottom = 50.0
+grow_horizontal = 2
 value = 100.0
 show_percentage = false
 
 [node name="HealthLabel" type="Label" parent="UI/HUD/StatsPanel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 15.0
 offset_top = 8.0
 offset_right = -15.0
 offset_bottom = 30.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 14
 text = "Health"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="XPBar" type="ProgressBar" parent="UI/HUD/StatsPanel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 15.0
 offset_top = 75.0
 offset_right = -15.0
 offset_bottom = 95.0
-show_percentage = false
+grow_horizontal = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill_xp")
+show_percentage = false
 
 [node name="XPLabel" type="Label" parent="UI/HUD/StatsPanel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 15.0
 offset_top = 53.0
 offset_right = -15.0
 offset_bottom = 75.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 14
 text = "Experience"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="TimerPanel" type="Panel" parent="UI/HUD"]
 layout_mode = 0
@@ -148,6 +151,39 @@ offset_left = -120.0
 offset_top = 15.0
 offset_right = 120.0
 offset_bottom = 65.0
+
+[node name="TimerLabel" type="Label" parent="UI/HUD/TimerPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 5.0
+offset_right = -10.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "00:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DifficultyLabel" type="Label" parent="UI/HUD/TimerPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 25.0
+offset_right = -10.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "Difficulty: 1.0x"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="DifficultyTooltip" type="Panel" parent="UI/HUD"]
 visible = false
@@ -168,41 +204,14 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
 bbcode_enabled = true
 text = "[center][b]Difficulty Scaling[/b][/center]
 • Enemy Health: 1.5x
 • Enemy Speed: 1.1x  
 • Spawn Rate: 1.2x"
 fit_content = true
-
-[node name="TimerLabel" type="Label" parent="UI/HUD/TimerPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 5.0
-offset_right = -10.0
-offset_bottom = -25.0
-text = "00:00"
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 24
-
-[node name="DifficultyLabel" type="Label" parent="UI/HUD/TimerPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 25.0
-offset_right = -10.0
-offset_bottom = -5.0
-text = "Difficulty: 1.0x"
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.9, 0.9, 0.6, 1)
 
 [node name="SpellSlotsPanel" type="Panel" parent="UI/HUD"]
 layout_mode = 0
@@ -224,11 +233,13 @@ offset_left = 10.0
 offset_top = 10.0
 offset_right = -10.0
 offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Slot1" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
+custom_minimum_size = Vector2(60, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(60, 70)
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
 
 [node name="VBox" type="VBoxContainer" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot1"]
@@ -240,19 +251,21 @@ offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Icon" type="TextureRect" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot1/VBox"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("6_spell1")
-custom_minimum_size = Vector2(40, 40)
 expand_mode = 1
 stretch_mode = 4
 
 [node name="KeyLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot1/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "1"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="LevelLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot1"]
 layout_mode = 1
@@ -265,16 +278,18 @@ offset_left = -20.0
 offset_top = -15.0
 offset_right = -2.0
 offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 10
 text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(1, 1, 0.6, 1)
 
 [node name="Slot2" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
+custom_minimum_size = Vector2(60, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(60, 70)
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
 
 [node name="VBox" type="VBoxContainer" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot2"]
@@ -286,19 +301,21 @@ offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Icon" type="TextureRect" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot2/VBox"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("7_spell2")
-custom_minimum_size = Vector2(40, 40)
 expand_mode = 1
 stretch_mode = 4
 
 [node name="KeyLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot2/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "2"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="LevelLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot2"]
 layout_mode = 1
@@ -311,16 +328,18 @@ offset_left = -20.0
 offset_top = -15.0
 offset_right = -2.0
 offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 10
 text = "3"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(1, 1, 0.6, 1)
 
 [node name="Slot3" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
+custom_minimum_size = Vector2(60, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(60, 70)
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
 
 [node name="VBox" type="VBoxContainer" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot3"]
@@ -332,19 +351,21 @@ offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Icon" type="TextureRect" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot3/VBox"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("8_spell3")
-custom_minimum_size = Vector2(40, 40)
 expand_mode = 1
 stretch_mode = 4
 
 [node name="KeyLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot3/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "3"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="LevelLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot3"]
 layout_mode = 1
@@ -357,16 +378,18 @@ offset_left = -20.0
 offset_top = -15.0
 offset_right = -2.0
 offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 10
 text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(1, 1, 0.6, 1)
 
 [node name="Slot4" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
+custom_minimum_size = Vector2(60, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(60, 70)
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
 
 [node name="VBox" type="VBoxContainer" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot4"]
@@ -378,19 +401,21 @@ offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Icon" type="TextureRect" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot4/VBox"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("9_spell4")
-custom_minimum_size = Vector2(40, 40)
 expand_mode = 1
 stretch_mode = 4
 
 [node name="KeyLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot4/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "4"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="LevelLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot4"]
 layout_mode = 1
@@ -403,16 +428,18 @@ offset_left = -20.0
 offset_top = -15.0
 offset_right = -2.0
 offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 10
 text = "7"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(1, 1, 0.6, 1)
 
 [node name="Slot5" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
+custom_minimum_size = Vector2(60, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(60, 70)
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
 
 [node name="VBox" type="VBoxContainer" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot5"]
@@ -424,19 +451,21 @@ offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Icon" type="TextureRect" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot5/VBox"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("10_spell5")
-custom_minimum_size = Vector2(40, 40)
 expand_mode = 1
 stretch_mode = 4
 
 [node name="KeyLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot5/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "5"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="LevelLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot5"]
 layout_mode = 1
@@ -449,16 +478,18 @@ offset_left = -20.0
 offset_top = -15.0
 offset_right = -2.0
 offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 10
 text = "10"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(1, 1, 0.6, 1)
 
 [node name="Slot6" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
+custom_minimum_size = Vector2(60, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(60, 70)
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
 
 [node name="VBox" type="VBoxContainer" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot6"]
@@ -470,19 +501,21 @@ offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Icon" type="TextureRect" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot6/VBox"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("11_spell6")
-custom_minimum_size = Vector2(40, 40)
 expand_mode = 1
 stretch_mode = 4
 
 [node name="KeyLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot6/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "6"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
 
 [node name="LevelLabel" type="Label" parent="UI/HUD/SpellSlotsPanel/SpellSlots/Slot6"]
 layout_mode = 1
@@ -495,13 +528,16 @@ offset_left = -20.0
 offset_top = -15.0
 offset_right = -2.0
 offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 10
 text = "15"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(1, 1, 0.6, 1)
 
 [node name="TypingPanel" type="Panel" parent="UI/HUD"]
+visible = false
 layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
@@ -511,7 +547,6 @@ offset_left = -250.0
 offset_top = -60.0
 offset_right = 250.0
 offset_bottom = 60.0
-visible = false
 
 [node name="TypingArea" type="VBoxContainer" parent="UI/HUD/TypingPanel"]
 layout_mode = 1
@@ -522,13 +557,15 @@ offset_left = 20.0
 offset_top = 20.0
 offset_right = -20.0
 offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="TypingLabel" type="Label" parent="UI/HUD/TypingPanel/TypingArea"]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(1, 1, 1, 1)
 
 [node name="PauseOverlay" type="ColorRect" parent="UI"]
 process_mode = 2
@@ -551,6 +588,8 @@ offset_left = -200.0
 offset_top = -150.0
 offset_right = 200.0
 offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/PauseOverlay/PauseMenu"]
 layout_mode = 1
@@ -561,42 +600,43 @@ offset_left = 30.0
 offset_top = 30.0
 offset_right = -30.0
 offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Title" type="Label" parent="UI/PauseOverlay/PauseMenu/VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 24
 text = "GAME PAUSED"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
 
 [node name="Spacer1" type="Control" parent="UI/PauseOverlay/PauseMenu/VBoxContainer"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
 
 [node name="ResumeButton" type="Button" parent="UI/PauseOverlay/PauseMenu/VBoxContainer"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
 text = "RESUME"
 
 [node name="OptionsButton" type="Button" parent="UI/PauseOverlay/PauseMenu/VBoxContainer"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
 text = "OPTIONS"
 
 [node name="RestartButton" type="Button" parent="UI/PauseOverlay/PauseMenu/VBoxContainer"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
 text = "RESTART"
 
 [node name="MainMenuButton" type="Button" parent="UI/PauseOverlay/PauseMenu/VBoxContainer"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
 text = "MAIN MENU"
 
+[connection signal="body_entered" from="Player/HitBox" to="Player" method="_on_hit_box_body_entered"]
+[connection signal="body_exited" from="Player/HitBox" to="Player" method="_on_hit_box_body_exited"]
 [connection signal="pressed" from="UI/PauseOverlay/PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_pause_resume_pressed"]
 [connection signal="pressed" from="UI/PauseOverlay/PauseMenu/VBoxContainer/OptionsButton" to="." method="_on_pause_options_pressed"]
 [connection signal="pressed" from="UI/PauseOverlay/PauseMenu/VBoxContainer/RestartButton" to="." method="_on_pause_restart_pressed"]
 [connection signal="pressed" from="UI/PauseOverlay/PauseMenu/VBoxContainer/MainMenuButton" to="." method="_on_pause_main_menu_pressed"]
-
-[connection signal="body_entered" from="Player/HitBox" to="Player" method="_on_hit_box_body_entered"]
-[connection signal="body_exited" from="Player/HitBox" to="Player" method="_on_hit_box_body_exited"]
