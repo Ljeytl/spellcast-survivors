@@ -201,15 +201,10 @@ func load_audio_resources():
 
 func setup_music_player():
 	"""Setup dedicated music player"""
-	print("DEBUG: Creating music player...")
 	current_music_player = AudioStreamPlayer.new()
 	current_music_player.bus = SFX_BUS  # Use working SFX bus
 	current_music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(current_music_player)
-	print("DEBUG: Music player created and added to scene. Bus: ", current_music_player.bus)
-	
-	# Quick test - try playing a known working SFX through the music player
-	test_music_player_with_sfx()
 
 # PUBLIC API FUNCTIONS
 
