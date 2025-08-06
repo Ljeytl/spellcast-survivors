@@ -84,3 +84,7 @@ This is a fresh Godot project with only the project configuration and design doc
 ## Learning Objectives
 
 - Guide User through Godot so that you can code the project
+
+## Memories
+
+- dont give claude credit man

@@ -206,6 +206,11 @@ func create_enemy_death_effect(pos: Vector2):
 		particle.restart()
 		# Auto-cleanup after lifetime + buffer
 		auto_cleanup_particle(particle, 1.2)
+	
+	# Add satisfying death burst circle
+	create_expanding_circle(pos, 80.0, Color.RED, 0.4, true)
+	# Add smaller inner explosion
+	create_expanding_circle(pos, 50.0, Color.ORANGE, 0.25, true)
 
 func create_xp_collect_effect(pos: Vector2):
 	# Create XP collection sparkle effect at position
@@ -215,6 +220,9 @@ func create_xp_collect_effect(pos: Vector2):
 		particle.restart()
 		# Auto-cleanup after lifetime + buffer
 		auto_cleanup_particle(particle, 0.8)
+	
+	# Add subtle golden ripple for XP collection
+	create_expanding_circle(pos, 60.0, Color.GOLD, 0.3, true)
 
 func create_spell_impact_effect(pos: Vector2):
 	# Create spell impact effect at position
@@ -465,12 +473,18 @@ func create_meteor_shower_effect(pos: Vector2):
 		particle.restart()
 		auto_cleanup_particle(particle, 1.2)
 	
-	# Create expanding circle effects for meteor impact
+	# Create MASSIVE expanding circle effects for meteor impact - the meatiest!
 	create_expanding_circle(pos, 180.0, Color.ORANGE_RED, 0.6, true)
 	# Add inner fire circle
 	create_expanding_circle(pos, 120.0, Color.RED, 0.4, true)
 	# Add outer blast wave
 	create_expanding_circle(pos, 220.0, Color.YELLOW, 0.8, true)
+	# Add extra shockwave for maximum meat
+	create_expanding_circle(pos, 280.0, Color.ORANGE, 1.0, true)
+	
+	# Play CHUNKY meteor impact sound
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.SPELL_METEOR)
 
 # Create persistent spell circles that follow the player
 func create_persistent_life_circle(target: Node2D, duration: float):
