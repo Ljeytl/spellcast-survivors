@@ -325,7 +325,6 @@ func _ready():
 		speed = base_speed * speed_mult
 		damage = base_damage * damage_mult
 		xp_value = xp_value * xp_mult
-		
 	else:
 		# Fallback if EnemyManager not found - use base stats
 		max_health = base_health
@@ -678,30 +677,38 @@ func load_enemy_sprite(sprite_path: String):
 
 # Apply visual effects for elite enemies (subtle since they have unique sprites)
 func apply_elite_visual_effects():
-	var visual = $Sprite2D  # Changed from $Visual to $Sprite2D
+	var visual = $Sprite2D
 	if not visual:
 		return
 	
-	# Since elites now have unique sprites, we use subtle color overlays
+	# MAKE ELITES GLOW AND STAND OUT!
 	match elite_type:
 		EliteType.ARMORED:
-			# Subtle metallic shimmer
-			visual.modulate = Color(1.05, 1.05, 1.1, 1.0)
+			# BRIGHT metallic silver glow
+			visual.modulate = Color(1.3, 1.3, 1.4, 1.0)
+			create_elite_outline(Color.SILVER, 8.0)
 		EliteType.REGENERATOR:
-			# Subtle green tint
-			visual.modulate = Color(0.95, 1.05, 0.95, 1.0)
+			# BRIGHT green regeneration glow
+			visual.modulate = Color(0.8, 1.4, 0.8, 1.0)  
+			create_elite_outline(Color.LIME_GREEN, 6.0)
+			create_pulsing_effect(Color.GREEN)
 		EliteType.SPLITTER:
-			# Subtle purple tint
-			visual.modulate = Color(1.02, 0.98, 1.02, 1.0)
+			# BRIGHT purple chaotic energy
+			visual.modulate = Color(1.3, 0.9, 1.3, 1.0)
+			create_elite_outline(Color.MAGENTA, 7.0)
 		EliteType.FROST:
-			# Subtle blue tint
-			visual.modulate = Color(0.98, 1.0, 1.05, 1.0)
+			# BRIGHT icy blue glow
+			visual.modulate = Color(0.9, 1.1, 1.4, 1.0)
+			create_elite_outline(Color.CYAN, 6.0)
 		EliteType.EXPLOSIVE:
-			# Subtle orange tint
-			visual.modulate = Color(1.05, 1.02, 0.95, 1.0)
+			# BRIGHT fiery orange glow with flickering
+			visual.modulate = Color(1.4, 1.2, 0.8, 1.0)
+			create_elite_outline(Color.ORANGE_RED, 8.0)
+			create_flickering_effect(Color.RED)
 		_:
-			# Very subtle brightness increase
-			visual.modulate = Color(1.02, 1.02, 1.02, 1.0)
+			# Bright golden glow for unspecified elites
+			visual.modulate = Color(1.2, 1.2, 1.0, 1.0)
+			create_elite_outline(Color.GOLD, 5.0)
 
 # Method to set monster stats from mathematical system
 func set_monster_stats(stats: Dictionary):
@@ -743,3 +750,65 @@ func has_property(property_name: String) -> bool:
 		if property.name == property_name:
 			return true
 	return false
+
+# Create GLOWING outline effect for elite enemies
+func create_elite_outline(color: Color, thickness: float):
+	# Create a Line2D node for the outline
+	var outline = Line2D.new()
+	outline.name = "EliteOutline"
+	outline.z_index = -1  # Behind the sprite
+	outline.width = thickness
+	outline.default_color = color
+	outline.antialiased = true
+	
+	# Create circle points around the enemy
+	var radius = 35.0  # Adjust based on enemy size
+	var points = []
+	for i in range(32):  # 32 points for smooth circle
+		var angle = (2 * PI * i) / 32
+		var point = Vector2(cos(angle), sin(angle)) * radius
+		points.append(point)
+	points.append(points[0])  # Close the circle
+	
+	outline.points = PackedVector2Array(points)
+	add_child(outline)
+	
+	# Make it pulse
+	var tween = create_tween()
+	tween.set_loops()
+	tween.tween_property(outline, "modulate", Color(color.r, color.g, color.b, 0.7), 0.8)
+	tween.tween_property(outline, "modulate", Color(color.r, color.g, color.b, 1.0), 0.8)
+
+# Create pulsing regeneration effect
+func create_pulsing_effect(color: Color):
+	var tween = create_tween()
+	tween.set_loops()
+	var sprite = $Sprite2D
+	if sprite:
+		tween.tween_property(sprite, "modulate", Color(0.8, 1.4, 0.8, 1.0), 1.0)
+		tween.tween_property(sprite, "modulate", Color(1.0, 1.2, 1.0, 1.0), 1.0)
+
+# Create flickering explosive effect  
+func create_flickering_effect(color: Color):
+	var sprite = $Sprite2D
+	if sprite:
+		var flicker_timer = Timer.new()
+		flicker_timer.wait_time = randf_range(0.1, 0.3)
+		flicker_timer.timeout.connect(_flicker_explosive)
+		add_child(flicker_timer)
+		flicker_timer.start()
+
+# Flicker effect callback for explosive enemies
+func _flicker_explosive():
+	var sprite = $Sprite2D
+	if sprite:
+		var intensity = randf_range(1.2, 1.6)
+		sprite.modulate = Color(intensity, intensity * 0.8, 0.7, 1.0)
+		
+		# Reset after brief flash
+		var reset_timer = Timer.new()
+		reset_timer.wait_time = 0.05
+		reset_timer.one_shot = true
+		reset_timer.timeout.connect(func(): sprite.modulate = Color(1.4, 1.2, 0.8, 1.0))
+		add_child(reset_timer)
+		reset_timer.start()

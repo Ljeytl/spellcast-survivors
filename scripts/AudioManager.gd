@@ -104,11 +104,15 @@ func _ready():
 
 func setup_audio_buses():
 	"""Configure the audio bus system"""
+	print("DEBUG: Setting up audio buses...")
+	
 	# Ensure all required buses exist
 	var master_idx = AudioServer.get_bus_index(MASTER_BUS)
 	if master_idx == -1:
 		print("WARNING: Master bus not found")
 		return
+	else:
+		print("DEBUG: Master bus found at index: ", master_idx)
 	
 	# Check if SFX bus exists, create if needed
 	var sfx_idx = AudioServer.get_bus_index(SFX_BUS)
@@ -132,6 +136,8 @@ func setup_audio_buses():
 	set_master_volume(master_volume)
 	set_sfx_volume(sfx_volume)
 	set_music_volume(music_volume)
+	
+	print("DEBUG: Audio buses setup complete")
 
 func initialize_audio_pools():
 	"""Create audio player pools for each sound type"""
@@ -195,10 +201,15 @@ func load_audio_resources():
 
 func setup_music_player():
 	"""Setup dedicated music player"""
+	print("DEBUG: Creating music player...")
 	current_music_player = AudioStreamPlayer.new()
 	current_music_player.bus = SFX_BUS  # Use working SFX bus
 	current_music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(current_music_player)
+	print("DEBUG: Music player created and added to scene. Bus: ", current_music_player.bus)
+	
+	# Quick test - try playing a known working SFX through the music player
+	test_music_player_with_sfx()
 
 # PUBLIC API FUNCTIONS
 
@@ -389,6 +400,8 @@ func get_bus_for_sound_type(sound_type: SoundType) -> String:
 
 func load_audio_file(file_path: String) -> AudioStream:
 	"""Load an audio file, with fallback to procedural generation"""
+	print("DEBUG: Attempting to load audio file: ", file_path)
+	
 	# Try to load the actual file first
 	if ResourceLoader.exists(file_path):
 		var stream = load(file_path)
@@ -461,7 +474,6 @@ func on_chest_open():
 	play_sound(SoundType.CHEST_OPEN)
 
 # DEBUG FUNCTIONS
-
 
 func get_audio_debug_info() -> Dictionary:
 	"""Get debug information about audio system state"""

@@ -1089,54 +1089,6 @@ func increase_difficulty_level():
 	
 	print("Difficulty increased! Time: {0}s | Health: {1:.1f}x | Speed: {2:.2f}x | Damage: {3:.1f}x".format([int(game_time), health_mult, speed_mult, damage_mult]))
 
-# Developer cheat functions (only available in dev mode)
-func unlock_all_spells():
-	if spell_manager and spell_manager.has_method("unlock_all_spells"):
-		spell_manager.unlock_all_spells()
-		print("All spells unlocked!")
-
-func trigger_level_up():
-	if current_state == GameState.PLAYING:
-		change_state(GameState.LEVEL_UP)
-		if level_up_screen and player:
-			var player_stats = {
-				"health": player.current_health,
-				"max_health": player.max_health,
-				"damage": player.damage,
-				"speed": player.speed
-			}
-			level_up_screen.show_level_up(player.level, player_stats)
-		print("Level up triggered!")
-
-func heal_player_full():
-	if player and player.has_method("heal_to_full"):
-		player.heal_to_full()
-		print("Player healed to full!")
-	elif player and player.has_property("current_health") and player.has_property("max_health"):
-		player.current_health = player.max_health
-		print("Player healed to full!")
-
-func kill_all_enemies_cheat():
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var count = enemies.size()
-	for enemy in enemies:
-		if enemy and is_instance_valid(enemy):
-			enemy.queue_free()
-	print("Killed ", count, " enemies")
-
-func add_game_time(time_seconds: float):
-	game_time += time_seconds
-	
-	# Also update monster/enemy managers
-	var monster_manager = get_node_or_null("MonsterManager")
-	if monster_manager and monster_manager.has_method("add_game_time"):
-		monster_manager.add_game_time(time_seconds)
-	
-	# Old EnemyManager is now disabled - MonsterManager handles this above
-	# var enemy_manager = get_node_or_null("EnemyManager")
-	# if enemy_manager and enemy_manager.has_method("add_game_time"):
-	#	enemy_manager.add_game_time(time_seconds)
-
 # Toggle invincibility (cheat command)
 func toggle_invincibility():
 	if not player:
