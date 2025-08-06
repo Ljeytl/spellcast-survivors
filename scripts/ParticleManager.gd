@@ -940,3 +940,32 @@ func create_powerful_spell_effect(pos: Vector2, spell_name: String):
 			create_spell_cast_effect(pos)
 		_:
 			create_spell_impact_effect(pos)
+
+# Special event effects with MEGA MEATY circles!
+func create_level_up_effect(pos: Vector2):
+	# HUGE celebration circles for level up - THE MEATIEST!
+	create_expanding_circle(pos, 200.0, Color.GOLD, 1.0, true)
+	create_expanding_circle(pos, 150.0, Color.YELLOW, 0.7, true)  
+	create_expanding_circle(pos, 100.0, Color.WHITE, 0.5, true)
+	# Add burst particle effect
+	var particle = get_pooled_particle("spell_cast")
+	if particle:
+		particle.global_position = pos
+		particle.restart()
+		auto_cleanup_particle(particle, 1.5)
+	# Play triumphant sound
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.LEVEL_UP)
+
+func create_spell_unlock_effect(pos: Vector2):
+	# Special unlock effect with expanding star pattern
+	create_expanding_circle(pos, 120.0, Color.PURPLE, 0.8, true)
+	create_expanding_circle(pos, 90.0, Color.MAGENTA, 0.6, true)
+	create_expanding_circle(pos, 60.0, Color.WHITE, 0.4, true)
+	
+func create_boss_death_effect(pos: Vector2):
+	# MASSIVE explosion for boss deaths - MAXIMUM MEAT!
+	create_expanding_circle(pos, 350.0, Color.RED, 1.5, true)
+	create_expanding_circle(pos, 300.0, Color.ORANGE, 1.2, true)
+	create_expanding_circle(pos, 250.0, Color.YELLOW, 1.0, true)
+	create_expanding_circle(pos, 200.0, Color.WHITE, 0.8, true)

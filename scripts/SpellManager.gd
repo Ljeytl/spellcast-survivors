@@ -31,23 +31,11 @@ var last_spell_cast_time: float = 0.0
 # Freeform casting system
 var freeform_mode: bool = false
 
-# Spell definitions with their names and character counts
-var spells = {
-	1: {"name": "bolt", "chars": 4, "damage": 20, "level": 1, "type": "projectile", "unlock_level": 1},
-	2: {"name": "life", "chars": 4, "damage": 0, "level": 1, "type": "heal", "heal_amount": 8, "duration": 5, "unlock_level": 3},
-	3: {"name": "ice blast", "chars": 9, "damage": 18, "level": 1, "type": "aoe", "radius": 400, "unlock_level": 5},
-	4: {"name": "earth shield", "chars": 12, "damage": 0, "level": 1, "type": "shield", "shield_hp": 60, "unlock_level": 7},
-	5: {"name": "lightning arc", "chars": 13, "damage": 30, "level": 1, "type": "chain", "chain_count": 3, "unlock_level": 10},
-	6: {"name": "meteor shower", "chars": 13, "damage": 35, "level": 1, "type": "multi_aoe", "meteor_count": 3, "unlock_level": 15}
-}
+# Data-driven spell definitions loaded from DataManager
+var spells = {}
 
-# Expanded spell library for freeform mode
-var freeform_spells = {
-	# Current basic spells (from existing system)
-	"bolt": {"chars": 4, "damage": 20, "level": 1, "type": "projectile"},
-	"life": {"chars": 4, "damage": 0, "level": 1, "type": "heal", "heal_amount": 8, "duration": 5},
-	"ice blast": {"chars": 9, "damage": 18, "level": 1, "type": "aoe", "radius": 400},
-	"earth shield": {"chars": 12, "damage": 0, "level": 1, "type": "shield", "shield_hp": 60},
+# Freeform spell library loaded from DataManager
+var freeform_spells = {}
 	"lightning arc": {"chars": 13, "damage": 30, "level": 1, "type": "chain", "chain_count": 3},
 	"meteor shower": {"chars": 13, "damage": 35, "level": 1, "type": "multi_aoe", "meteor_count": 3},
 	"magic missile": {"chars": 13, "damage": 15, "level": 1, "type": "projectile"}, # Basic auto-attack spell
@@ -86,6 +74,9 @@ signal healing_applied(amount: float)
 func _ready():
 	# Clear any existing queue
 	spell_queue.clear()
+	
+	# Load spell data from DataManager
+	load_spells_from_data()
 	
 	# Find player sprite for transparency effect
 	if player:
