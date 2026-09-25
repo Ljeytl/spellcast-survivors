@@ -20,6 +20,8 @@ config/icon="res://icon.svg"
 SceneManager="*res://scripts/SceneManager.gd"
 AudioManager="*res://scripts/AudioManager.gd"
 CharacterManager="*res://scripts/CharacterManager.gd"
+DataManager="*res://scripts/DataManager.gd"
+AnimationManager="*res://scripts/AnimationManager.gd"
 
 [display]
 

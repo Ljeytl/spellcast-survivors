@@ -139,7 +139,24 @@
         "basic": {
           "name": "Goblin",
           "sprite": "goblin.png",
-          "color": [0.2, 0.8, 0.2, 1]
+          "color": [0.2, 0.8, 0.2, 1],
+          "animations": {
+            "idle": {"frames": ["goblin_idle_01.png", "goblin_idle_02.png", "goblin_idle_03.png"], "fps": 6, "loop": true},
+            "walking": {"frames": ["goblin_walk_01.png", "goblin_walk_02.png", "goblin_walk_03.png", "goblin_walk_04.png"], "fps": 10, "loop": true},
+            "attacking": {"frames": ["goblin_attack_01.png", "goblin_attack_02.png", "goblin_attack_03.png"], "fps": 15, "loop": false},
+            "death": {"frames": ["goblin_death_01.png", "goblin_death_02.png", "goblin_death_03.png"], "fps": 12, "loop": false},
+            "hit": {"frames": ["goblin_hit_01.png"], "fps": 1, "loop": false}
+          },
+          "effects": {
+            "spawn": {"frames": ["spawn_effect_01.png", "spawn_effect_02.png"], "fps": 20, "loop": false},
+            "death_explosion": {"frames": ["death_particles_01.png", "death_particles_02.png", "death_particles_03.png"], "fps": 24, "loop": false}
+          },
+          "sounds": {
+            "spawn": "goblin_spawn.ogg",
+            "attack": "goblin_attack.ogg", 
+            "death": "goblin_death.ogg",
+            "hit": "goblin_hit.ogg"
+          }
         },
         "heavy": {
           "name": "Orc Warrior", 
@@ -394,6 +411,11 @@
       }
     }
   },
+  "enemies": {
+    "goblin": {
+      "id": "goblin", "name": "Goblin", "type": "basic", "tier": 1,
+      "health": 15, "speed": 80, "damage": 8, "xp_reward": 5, "unlock_time": 0
+    },
     "orc": {
       "id": "orc", 
       "name": "Orc",

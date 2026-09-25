@@ -11,6 +11,19 @@
       "homing_strength": 6.0,
       "color": [0, 1, 1, 1],
       "unlock_condition": {"type": "default"},
+      "visual": {
+        "category": "auto_attack",
+        "projectile_animation": {
+          "idle": {"frames": ["mana_bolt_01.png", "mana_bolt_02.png", "mana_bolt_03.png"], "fps": 12, "loop": true},
+          "impact": {"frames": ["mana_impact_01.png", "mana_impact_02.png"], "fps": 24, "loop": false}
+        },
+        "trail_particles": "mana_trail",
+        "cast_flash": {"frames": ["mana_cast_flash.png"], "fps": 30, "loop": false},
+        "sounds": {
+          "cast": "mana_cast.ogg",
+          "impact": "mana_impact.ogg"
+        }
+      },
       "upgrades": {
         "damage_per_level": 0.15,
         "projectile_count_levels": [3, 6, 10],
@@ -27,10 +40,23 @@
       "slot": 1,
       "chars": 4,
       "type": "projectile",
-      "damage": 20,
+      "damage": 40,
       "speed": 600,
       "color": [1, 1, 0, 1],
       "unlock_condition": {"type": "default"},
+      "visual": {
+        "category": "projectile",
+        "projectile_animation": {
+          "idle": {"frames": ["lightning_bolt_01.png", "lightning_bolt_02.png", "lightning_bolt_03.png"], "fps": 15, "loop": true},
+          "impact": {"frames": ["lightning_impact_01.png", "lightning_impact_02.png", "lightning_impact_03.png"], "fps": 30, "loop": false}
+        },
+        "trail_particles": "lightning_sparks",
+        "cast_flash": {"frames": ["lightning_cast_01.png", "lightning_cast_02.png"], "fps": 25, "loop": false},
+        "sounds": {
+          "cast": "lightning_cast.ogg",
+          "impact": "lightning_impact.ogg"
+        }
+      },
       "upgrades": {
         "damage_per_level": 0.15,
         "projectile_count_levels": [3, 6],
@@ -51,6 +77,25 @@
       "duration": 5,
       "color": [0, 1, 0, 1],
       "unlock_condition": {"type": "default"},
+      "visual": {
+        "category": "heal_over_time",
+        "aura_animation": {
+          "frames": ["heal_aura_01.png", "heal_aura_02.png", "heal_aura_03.png", "heal_aura_04.png"], 
+          "fps": 8, 
+          "loop": true
+        },
+        "heal_tick_effect": {
+          "frames": ["heal_pulse_01.png", "heal_pulse_02.png"], 
+          "fps": 12, 
+          "loop": false
+        },
+        "heal_particles": "heal_sparkles",
+        "cast_flash": {"frames": ["heal_cast_01.png"], "fps": 18, "loop": false},
+        "sounds": {
+          "cast": "heal_cast.ogg",
+          "tick": "heal_tick.ogg"
+        }
+      },
       "upgrades": {
         "heal_per_level": 0.15,
         "duration_levels": [2, 4],
@@ -69,10 +114,36 @@
       "type": "aoe",
       "damage": 18,
       "radius": 400,
-      "slow_effect": 0.5,
-      "slow_duration": 3.0,
+      "knockback": 400,
+      "slow_effect": 0.3,
+      "slow_duration": 2.0,
       "color": [0.5, 0.8, 1, 1],
       "unlock_condition": {"type": "level", "value": 5},
+      "visual": {
+        "category": "aoe",
+        "explosion_animation": {
+          "frames": ["ice_explosion_01.png", "ice_explosion_02.png", "ice_explosion_03.png", "ice_explosion_04.png"], 
+          "fps": 24, 
+          "loop": false
+        },
+        "ground_lingering_effect": {
+          "frames": ["ice_ground_01.png", "ice_ground_02.png"], 
+          "fps": 6, 
+          "loop": true,
+          "duration": 3.0
+        },
+        "warning_indicator": {
+          "frames": ["ice_warning_01.png"], 
+          "fps": 4, 
+          "loop": true,
+          "duration": 0.5
+        },
+        "cast_flash": {"frames": ["ice_cast_01.png"], "fps": 20, "loop": false},
+        "sounds": {
+          "cast": "ice_cast.ogg",
+          "explosion": "ice_explosion.ogg"
+        }
+      },
       "upgrades": {
         "damage_per_level": 0.15,
         "radius_levels": [2, 4, 6],
@@ -93,6 +164,31 @@
       "duration": 8,
       "color": [0.8, 0.6, 0.3, 1],
       "unlock_condition": {"type": "level", "value": 7},
+      "visual": {
+        "category": "shield",
+        "shield_form_animation": {
+          "frames": ["earth_shield_form_01.png", "earth_shield_form_02.png", "earth_shield_form_03.png"], 
+          "fps": 18, 
+          "loop": false
+        },
+        "shield_break_animation": {
+          "frames": ["earth_shield_break_01.png", "earth_shield_break_02.png", "earth_shield_break_03.png", "earth_shield_break_04.png"], 
+          "fps": 24, 
+          "loop": false
+        },
+        "shield_pulse": {
+          "frames": ["earth_shield_pulse_01.png", "earth_shield_pulse_02.png"], 
+          "fps": 4, 
+          "loop": true
+        },
+        "absorption_particles": "earth_debris",
+        "cast_flash": {"frames": ["earth_cast_01.png"], "fps": 20, "loop": false},
+        "sounds": {
+          "cast": "earth_shield_cast.ogg",
+          "absorb": "earth_shield_absorb.ogg",
+          "break": "earth_shield_break.ogg"
+        }
+      },
       "upgrades": {
         "shield_per_level": 0.15,
         "duration_levels": [2, 4],
@@ -109,12 +205,37 @@
       "slot": 5,
       "chars": 13,
       "type": "chain",
-      "damage": 30,
-      "chain_count": 3,
+      "damage": 80,
+      "chain_count": 2,
       "chain_range": 200,
       "chain_damage_reduction": 0.8,
       "color": [1, 1, 0.5, 1],
       "unlock_condition": {"type": "level", "value": 10},
+      "visual": {
+        "category": "chain",
+        "projectile_animation": {
+          "idle": {"frames": ["lightning_arc_01.png", "lightning_arc_02.png", "lightning_arc_03.png"], "fps": 20, "loop": true},
+          "impact": {"frames": ["lightning_arc_impact_01.png", "lightning_arc_impact_02.png"], "fps": 30, "loop": false}
+        },
+        "chain_effect": {
+          "frames": ["chain_lightning_01.png", "chain_lightning_02.png", "chain_lightning_03.png"], 
+          "fps": 25, 
+          "loop": false
+        },
+        "target_indicators": {
+          "frames": ["chain_target_01.png", "chain_target_02.png"], 
+          "fps": 8, 
+          "loop": true,
+          "duration": 0.3
+        },
+        "chain_particles": "electric_arcs",
+        "cast_flash": {"frames": ["lightning_arc_cast_01.png"], "fps": 25, "loop": false},
+        "sounds": {
+          "cast": "lightning_arc_cast.ogg",
+          "chain": "lightning_arc_chain.ogg",
+          "impact": "lightning_arc_impact.ogg"
+        }
+      },
       "upgrades": {
         "damage_per_level": 0.15,
         "chain_count_levels": [2, 4, 6],
@@ -131,12 +252,36 @@
       "slot": 6,
       "chars": 13,
       "type": "multi_aoe",
-      "damage": 35,
-      "meteor_count": 3,
+      "damage": 25,
+      "meteor_count": 4,
       "delay_interval": 0.3,
-      "radius": 180,
+      "radius": 220,
       "color": [1, 0.3, 0, 1],
       "unlock_condition": {"type": "level", "value": 15},
+      "visual": {
+        "category": "multi_aoe",
+        "projectile_animation": {
+          "idle": {"frames": ["meteor_01.png", "meteor_02.png", "meteor_03.png"], "fps": 20, "loop": true},
+          "trail": {"frames": ["meteor_trail_01.png", "meteor_trail_02.png"], "fps": 30, "loop": true}
+        },
+        "explosion_animation": {
+          "frames": ["meteor_explosion_01.png", "meteor_explosion_02.png", "meteor_explosion_03.png", "meteor_explosion_04.png"], 
+          "fps": 30, 
+          "loop": false
+        },
+        "warning_animation": {
+          "frames": ["meteor_warning_01.png", "meteor_warning_02.png"], 
+          "fps": 4, 
+          "loop": true,
+          "duration": 1.0
+        },
+        "cast_flash": {"frames": ["meteor_cast_01.png"], "fps": 15, "loop": false},
+        "sounds": {
+          "cast": "meteor_cast.ogg",
+          "incoming": "meteor_incoming.ogg",
+          "impact": "meteor_impact.ogg"
+        }
+      },
       "upgrades": {
         "damage_per_level": 0.15,
         "meteor_count_levels": [2, 4, 6],
@@ -159,6 +304,31 @@
       "tick_rate": 0.2,
       "color": [1, 0.5, 0, 1],
       "unlock_condition": {"type": "persistent_xp", "value": 500},
+      "visual": {
+        "category": "channeled_aoe",
+        "area_animation": {
+          "frames": ["fire_storm_01.png", "fire_storm_02.png", "fire_storm_03.png", "fire_storm_04.png"], 
+          "fps": 12, 
+          "loop": true
+        },
+        "channel_effect": {
+          "frames": ["fire_channel_01.png", "fire_channel_02.png", "fire_channel_03.png"], 
+          "fps": 15, 
+          "loop": true
+        },
+        "ground_burn": {
+          "frames": ["fire_ground_01.png", "fire_ground_02.png"], 
+          "fps": 8, 
+          "loop": true
+        },
+        "continuous_particles": "fire_embers",
+        "cast_flash": {"frames": ["fire_cast_01.png"], "fps": 20, "loop": false},
+        "sounds": {
+          "cast": "fire_storm_cast.ogg",
+          "channel": "fire_storm_loop.ogg",
+          "end": "fire_storm_end.ogg"
+        }
+      },
       "upgrades": {
         "damage_per_level": 0.15,
         "duration_levels": [2, 4],
@@ -182,6 +352,31 @@
       "duration": 5,
       "color": [0.7, 0.3, 1, 1],
       "unlock_condition": {"type": "achievement", "value": "survive_30_minutes"},
+      "visual": {
+        "category": "utility",
+        "activation_effect": {
+          "frames": ["time_activation_01.png", "time_activation_02.png", "time_activation_03.png"], 
+          "fps": 20, 
+          "loop": false
+        },
+        "duration_indicator": {
+          "frames": ["time_indicator_01.png", "time_indicator_02.png"], 
+          "fps": 6, 
+          "loop": true
+        },
+        "screen_filter": {
+          "effect": "time_distortion",
+          "intensity": 0.3,
+          "color_tint": [0.7, 0.3, 1, 0.2]
+        },
+        "time_particles": "chronoton_field",
+        "cast_flash": {"frames": ["time_cast_01.png"], "fps": 25, "loop": false},
+        "sounds": {
+          "cast": "time_warp_cast.ogg",
+          "active": "time_warp_loop.ogg",
+          "end": "time_warp_end.ogg"
+        }
+      },
       "upgrades": {
         "duration_levels": [2, 4, 6],
         "max_level": 6,
@@ -201,6 +396,32 @@
       "chain_reduction": 0.7,
       "color": [0.3, 1, 0.3, 1],
       "unlock_condition": {"type": "character", "value": "healer"},
+      "visual": {
+        "category": "chain_heal",
+        "chain_animation": {
+          "frames": ["heal_chain_01.png", "heal_chain_02.png", "heal_chain_03.png"], 
+          "fps": 18, 
+          "loop": false
+        },
+        "heal_effect": {
+          "frames": ["chain_heal_pulse_01.png", "chain_heal_pulse_02.png"], 
+          "fps": 15, 
+          "loop": false
+        },
+        "target_glow": {
+          "frames": ["heal_target_01.png", "heal_target_02.png"], 
+          "fps": 10, 
+          "loop": true,
+          "duration": 1.5
+        },
+        "chain_particles": "heal_chain_sparkles",
+        "cast_flash": {"frames": ["chain_heal_cast_01.png"], "fps": 22, "loop": false},
+        "sounds": {
+          "cast": "chain_heal_cast.ogg",
+          "chain": "heal_chain.ogg",
+          "heal": "heal_received.ogg"
+        }
+      },
       "upgrades": {
         "heal_per_level": 0.15,
         "chain_count_levels": [3, 6],
@@ -209,14 +430,332 @@
           "heal_bonus": 0.035
         }
       }
+    },
+    "frost_nova": {
+      "id": "frost_nova",
+      "name": "Frost Nova",
+      "slot": 10,
+      "chars": 10,
+      "type": "aoe",
+      "damage": 25,
+      "radius": 300,
+      "freeze_duration": 2.0,
+      "color": [0.6, 0.9, 1, 1],
+      "unlock_condition": {"type": "spell_mastery", "value": "ice_blast"},
+      "visual": {
+        "category": "aoe",
+        "explosion_animation": {
+          "frames": ["frost_nova_01.png", "frost_nova_02.png", "frost_nova_03.png", "frost_nova_04.png", "frost_nova_05.png"], 
+          "fps": 30, 
+          "loop": false
+        },
+        "ground_lingering_effect": {
+          "frames": ["frost_field_01.png", "frost_field_02.png"], 
+          "fps": 4, 
+          "loop": true,
+          "duration": 2.0
+        },
+        "cast_flash": {"frames": ["frost_cast_01.png"], "fps": 25, "loop": false},
+        "sounds": {
+          "cast": "frost_nova_cast.ogg",
+          "explosion": "frost_nova_explosion.ogg",
+          "freeze": "freeze_effect.ogg"
+        }
+      },
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "radius_levels": [2, 5, 8],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.025,
+          "radius_bonus": 0.02
+        }
+      }
+    },
+    "arcane_missiles": {
+      "id": "arcane_missiles",
+      "name": "Arcane Missiles",
+      "slot": 11,
+      "chars": 15,
+      "type": "multi_projectile",
+      "damage": 18,
+      "projectile_count": 5,
+      "spread_angle": 30,
+      "speed": 400,
+      "color": [0.8, 0.4, 1, 1],
+      "unlock_condition": {"type": "persistent_xp", "value": 1000},
+      "visual": {
+        "category": "projectile",
+        "projectile_animation": {
+          "idle": {"frames": ["arcane_missile_01.png", "arcane_missile_02.png", "arcane_missile_03.png"], "fps": 15, "loop": true},
+          "impact": {"frames": ["arcane_impact_01.png", "arcane_impact_02.png", "arcane_impact_03.png"], "fps": 24, "loop": false}
+        },
+        "trail_particles": "arcane_sparkles",
+        "cast_flash": {"frames": ["arcane_cast_01.png", "arcane_cast_02.png"], "fps": 20, "loop": false},
+        "sounds": {
+          "cast": "arcane_missiles_cast.ogg",
+          "impact": "arcane_impact.ogg"
+        }
+      },
+      "upgrades": {
+        "damage_per_level": 0.15,
+        "projectile_count_levels": [3, 6, 10],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.03,
+          "speed_bonus": 0.02
+        }
+      }
+    },
+    "divine_aura": {
+      "id": "divine_aura",
+      "name": "Divine Aura",
+      "slot": 12,
+      "chars": 11,
+      "type": "persistent_aura",
+      "heal_per_second": 5,
+      "damage_reduction": 0.2,
+      "duration": 15,
+      "radius": 200,
+      "color": [1, 0.9, 0.6, 1],
+      "unlock_condition": {"type": "character", "value": "healer"},
+      "visual": {
+        "category": "heal_over_time",
+        "aura_animation": {
+          "frames": ["divine_aura_01.png", "divine_aura_02.png", "divine_aura_03.png", "divine_aura_04.png"], 
+          "fps": 6, 
+          "loop": true
+        },
+        "heal_tick_effect": {
+          "frames": ["divine_heal_pulse_01.png", "divine_heal_pulse_02.png"], 
+          "fps": 10, 
+          "loop": false
+        },
+        "heal_particles": "divine_sparkles",
+        "aura_glow": {
+          "frames": ["divine_glow_01.png", "divine_glow_02.png"], 
+          "fps": 4, 
+          "loop": true
+        },
+        "cast_flash": {"frames": ["divine_cast_01.png"], "fps": 15, "loop": false},
+        "sounds": {
+          "cast": "divine_aura_cast.ogg",
+          "loop": "divine_aura_loop.ogg",
+          "heal": "divine_heal.ogg"
+        }
+      },
+      "upgrades": {
+        "heal_per_level": 0.15,
+        "duration_levels": [3, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "heal_bonus": 0.04,
+          "duration_bonus": 0.02
+        }
+      }
+    },
+    "skeleton_warrior": {
+      "id": "skeleton_warrior",
+      "name": "Skeleton Warrior",
+      "slot": 13,
+      "chars": 16,
+      "type": "summon",
+      "summon_count": 1,
+      "summon_duration": 30,
+      "summon_health": 80,
+      "summon_damage": 15,
+      "summon_speed": 90,
+      "color": [0.9, 0.9, 0.8, 1],
+      "unlock_condition": {"type": "character", "value": "necromancer"},
+      "visual": {
+        "category": "summon",
+        "summon_animation": {
+          "frames": ["summon_circle_01.png", "summon_circle_02.png", "summon_circle_03.png", "summon_circle_04.png"], 
+          "fps": 15, 
+          "loop": false,
+          "duration": 2.0
+        },
+        "spawn_effect": {
+          "frames": ["skeleton_spawn_01.png", "skeleton_spawn_02.png", "skeleton_spawn_03.png"], 
+          "fps": 20, 
+          "loop": false
+        },
+        "creature_animations": {
+          "idle": {"frames": ["skeleton_idle_01.png", "skeleton_idle_02.png", "skeleton_idle_03.png"], "fps": 6, "loop": true},
+          "walking": {"frames": ["skeleton_walk_01.png", "skeleton_walk_02.png", "skeleton_walk_03.png", "skeleton_walk_04.png"], "fps": 10, "loop": true},
+          "attacking": {"frames": ["skeleton_attack_01.png", "skeleton_attack_02.png", "skeleton_attack_03.png"], "fps": 15, "loop": false},
+          "death": {"frames": ["skeleton_death_01.png", "skeleton_death_02.png", "skeleton_death_03.png"], "fps": 12, "loop": false}
+        },
+        "summon_circle_buildup": {
+          "frames": ["necro_circle_01.png", "necro_circle_02.png", "necro_circle_03.png"], 
+          "fps": 8, 
+          "loop": true,
+          "duration": 1.5
+        },
+        "summon_particles": "bone_dust",
+        "cast_flash": {"frames": ["necro_cast_01.png"], "fps": 20, "loop": false},
+        "sounds": {
+          "cast": "skeleton_summon_cast.ogg",
+          "spawn": "skeleton_spawn.ogg",
+          "creature_attack": "skeleton_attack.ogg",
+          "creature_death": "skeleton_death.ogg"
+        }
+      },
+      "upgrades": {
+        "summon_count_levels": [2, 4, 6],
+        "duration_levels": [2, 4],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.04,
+          "health_bonus": 0.05
+        }
+      }
+    },
+    "arcane_turret": {
+      "id": "arcane_turret",
+      "name": "Arcane Turret",
+      "slot": 14,
+      "chars": 13,
+      "type": "summon_projectile",
+      "summon_count": 1,
+      "summon_duration": 20,
+      "summon_health": 40,
+      "projectile_damage": 25,
+      "fire_rate": 2.0,
+      "projectile_range": 400,
+      "color": [0.6, 0.4, 1, 1],
+      "unlock_condition": {"type": "spell_mastery", "value": "arcane_missiles"},
+      "visual": {
+        "category": "summon_projectile",
+        "summon_animation": {
+          "frames": ["turret_summon_01.png", "turret_summon_02.png", "turret_summon_03.png"], 
+          "fps": 18, 
+          "loop": false
+        },
+        "spawn_effect": {
+          "frames": ["turret_spawn_01.png", "turret_spawn_02.png"], 
+          "fps": 25, 
+          "loop": false
+        },
+        "creature_animations": {
+          "idle": {"frames": ["turret_idle_01.png", "turret_idle_02.png"], "fps": 4, "loop": true},
+          "targeting": {"frames": ["turret_aim_01.png", "turret_aim_02.png"], "fps": 8, "loop": true},
+          "shooting": {"frames": ["turret_shoot_01.png", "turret_shoot_02.png", "turret_shoot_03.png"], "fps": 20, "loop": false},
+          "death": {"frames": ["turret_death_01.png", "turret_death_02.png", "turret_death_03.png"], "fps": 15, "loop": false}
+        },
+        "creature_cast_animation": {
+          "frames": ["turret_charge_01.png", "turret_charge_02.png"], 
+          "fps": 12, 
+          "loop": false
+        },
+        "projectile_spawn": {
+          "frames": ["arcane_projectile_spawn_01.png"], 
+          "fps": 30, 
+          "loop": false
+        },
+        "projectile_animation": {
+          "idle": {"frames": ["arcane_projectile_01.png", "arcane_projectile_02.png"], "fps": 15, "loop": true},
+          "impact": {"frames": ["arcane_projectile_impact_01.png", "arcane_projectile_impact_02.png"], "fps": 24, "loop": false}
+        },
+        "creature_aim_indicator": {
+          "frames": ["turret_targeting_01.png"], 
+          "fps": 6, 
+          "loop": true
+        },
+        "cast_flash": {"frames": ["turret_cast_01.png"], "fps": 22, "loop": false},
+        "sounds": {
+          "cast": "turret_summon.ogg",
+          "spawn": "turret_deploy.ogg",
+          "creature_shoot": "turret_fire.ogg",
+          "projectile_impact": "arcane_hit.ogg"
+        }
+      },
+      "upgrades": {
+        "summon_count_levels": [2, 4],
+        "fire_rate_levels": [3, 6],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.035,
+          "fire_rate_bonus": 0.02
+        }
+      }
+    },
+    "flame_elemental": {
+      "id": "flame_elemental",
+      "name": "Flame Elemental",
+      "slot": 15,
+      "chars": 15,
+      "type": "summon",
+      "summon_count": 1,
+      "summon_duration": 25,
+      "summon_health": 120,
+      "summon_damage": 20,
+      "summon_speed": 75,
+      "aura_damage": 8,
+      "aura_radius": 100,
+      "color": [1, 0.4, 0, 1],
+      "unlock_condition": {"type": "spell_mastery", "value": "fire_storm"},
+      "visual": {
+        "category": "summon",
+        "summon_animation": {
+          "frames": ["flame_summon_01.png", "flame_summon_02.png", "flame_summon_03.png", "flame_summon_04.png", "flame_summon_05.png"], 
+          "fps": 20, 
+          "loop": false,
+          "duration": 2.5
+        },
+        "spawn_effect": {
+          "frames": ["flame_spawn_01.png", "flame_spawn_02.png", "flame_spawn_03.png", "flame_spawn_04.png"], 
+          "fps": 25, 
+          "loop": false
+        },
+        "creature_animations": {
+          "idle": {"frames": ["elemental_idle_01.png", "elemental_idle_02.png", "elemental_idle_03.png", "elemental_idle_04.png"], "fps": 8, "loop": true},
+          "walking": {"frames": ["elemental_walk_01.png", "elemental_walk_02.png", "elemental_walk_03.png", "elemental_walk_04.png"], "fps": 12, "loop": true},
+          "attacking": {"frames": ["elemental_attack_01.png", "elemental_attack_02.png", "elemental_attack_03.png"], "fps": 18, "loop": false},
+          "aura_pulse": {"frames": ["elemental_aura_01.png", "elemental_aura_02.png", "elemental_aura_03.png"], "fps": 6, "loop": true},
+          "death": {"frames": ["elemental_death_01.png", "elemental_death_02.png", "elemental_death_03.png", "elemental_death_04.png"], "fps": 15, "loop": false}
+        },
+        "summon_circle_buildup": {
+          "frames": ["fire_circle_01.png", "fire_circle_02.png", "fire_circle_03.png", "fire_circle_04.png"], 
+          "fps": 12, 
+          "loop": true,
+          "duration": 2.0
+        },
+        "summon_particles": "flame_essence",
+        "creature_despawn": {
+          "frames": ["elemental_despawn_01.png", "elemental_despawn_02.png", "elemental_despawn_03.png"], 
+          "fps": 20, 
+          "loop": false
+        },
+        "cast_flash": {"frames": ["flame_cast_01.png"], "fps": 25, "loop": false},
+        "sounds": {
+          "cast": "flame_elemental_cast.ogg",
+          "spawn": "elemental_spawn.ogg",
+          "creature_attack": "elemental_attack.ogg",
+          "aura_tick": "fire_aura_damage.ogg",
+          "creature_death": "elemental_death.ogg"
+        }
+      },
+      "upgrades": {
+        "summon_count_levels": [2, 4],
+        "duration_levels": [3, 6],
+        "aura_radius_levels": [2, 5],
+        "max_level": 8,
+        "infinite_scaling": {
+          "damage_bonus": 0.04,
+          "aura_damage_bonus": 0.03,
+          "health_bonus": 0.05
+        }
+      }
     }
   },
   "spell_categories": {
-    "offensive": ["bolt", "ice_blast", "lightning_arc", "meteor_shower", "fire_storm"],
-    "defensive": ["earth_shield", "chain_heal"],
+    "offensive": ["bolt", "ice_blast", "lightning_arc", "meteor_shower", "fire_storm", "frost_nova", "arcane_missiles"],
+    "defensive": ["earth_shield", "chain_heal", "divine_aura"],
     "utility": ["time_warp"],
-    "healing": ["life", "chain_heal"],
-    "auto_attack": ["mana_bolt"]
+    "healing": ["life", "chain_heal", "divine_aura"],
+    "auto_attack": ["mana_bolt"],
+    "summons": ["skeleton_warrior", "arcane_turret", "flame_elemental"]
   },
   "unlock_conditions": {
     "level": "Player must reach specified level",

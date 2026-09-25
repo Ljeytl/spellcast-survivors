@@ -5,8 +5,8 @@ extends CharacterBody2D
 # Core gameplay constants that define player capabilities
 const BASE_SPEED = 300.0              # Base movement speed in pixels per second
 const BASE_MAX_HEALTH = 100.0         # Starting maximum health points
-const BASE_XP_REQUIREMENT = 100.0     # XP needed to reach level 2
-const XP_LEVEL_INCREMENT = 25.0       # Additional XP needed per level (level 3 needs 125, level 4 needs 150, etc.)
+const BASE_XP_REQUIREMENT = 25.0
+const XP_LEVEL_INCREMENT = 15.0
 const DAMAGE_FLASH_DURATION = 0.1     # How long the red damage flash lasts
 const DEBUG_XP_AMOUNT = 50.0          # XP for debug mode
 
@@ -84,14 +84,6 @@ func _physics_process(delta):
 			if sprite:
 				sprite.modulate = Color.WHITE
 	
-	# Debug feature: press X to gain XP
-	if OS.is_debug_build():
-		if Input.is_physical_key_pressed(KEY_X) and not debug_x_pressed:
-			debug_x_pressed = true  # Prevent key repeat spam
-			add_xp(DEBUG_XP_AMOUNT)
-		elif not Input.is_physical_key_pressed(KEY_X):
-			debug_x_pressed = false  # Allow X key to be pressed again
-
 # Process WASD movement input and set player velocity
 func handle_movement():
 	var input_dir = Vector2.ZERO
@@ -141,7 +133,6 @@ func take_damage(damage: float):
 	# Play damage sound effect
 	if is_instance_valid(AudioManager):
 		AudioManager.on_damage_taken()
-	else:
 	
 	# Update the health bar UI
 	health_changed.emit(health, max_health, overheal)
@@ -177,8 +168,7 @@ func do_level_up():
 	# Subtract XP cost for this level and advance to next level
 	xp -= xp_to_next_level
 	level += 1
-	# Calculate XP needed for next level (increases by 25 each level)
-	xp_to_next_level = BASE_XP_REQUIREMENT + (level * XP_LEVEL_INCREMENT)
+	xp_to_next_level = BASE_XP_REQUIREMENT + ((level - 1) * XP_LEVEL_INCREMENT)
 	
 	# Play level up sound effect
 	if is_instance_valid(AudioManager):

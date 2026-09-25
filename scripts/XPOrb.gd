@@ -1,5 +1,7 @@
 extends Area2D
 
+var collected: bool = false
+
 var xp_value: float = 10.0
 var collection_distance: float = 100.0
 var move_speed: float = 200.0
@@ -53,6 +55,9 @@ func _on_collection_area_area_entered(area):
 		collect_xp()
 
 func collect_xp():
+	if collected:
+		return
+	collected = true
 	# Give XP to player
 	if player and player.has_method("add_xp"):
 		player.add_xp(xp_value)

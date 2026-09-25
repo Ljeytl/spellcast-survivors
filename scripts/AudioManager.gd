@@ -31,7 +31,9 @@ enum SoundType {
 	SPELL_ICE_BLAST,
 	SPELL_EARTHSHIELD,
 	SPELL_LIGHTNING_ARC,
+	SPELL_LIGHTNING,
 	SPELL_METEOR_SHOWER,
+	SPELL_METEOR,
 	SPELL_MANA_BOLT,
 	
 	# Spell impact sounds
@@ -55,6 +57,7 @@ enum SoundType {
 	DAMAGE_TAKEN,
 	CHEST_OPEN,
 	PICKUP_ITEM,
+	ELITE_SPAWN,
 	
 	# Typing sounds
 	TYPING_KEYSTROKE,
@@ -164,7 +167,9 @@ func load_audio_resources():
 	audio_resources[SoundType.SPELL_ICE_BLAST] = [SFX_PATH + "spell_ice_blast_1.wav", SFX_PATH + "spell_ice_blast_2.wav"]
 	audio_resources[SoundType.SPELL_EARTHSHIELD] = [SFX_PATH + "spell_earthshield_1.wav", SFX_PATH + "spell_earthshield_2.wav"]
 	audio_resources[SoundType.SPELL_LIGHTNING_ARC] = [SFX_PATH + "spell_lightning_arc_1.wav", SFX_PATH + "spell_lightning_arc_2.wav"]
+	audio_resources[SoundType.SPELL_LIGHTNING] = [SFX_PATH + "spell_lightning_arc_1.wav", SFX_PATH + "spell_lightning_arc_2.wav"]
 	audio_resources[SoundType.SPELL_METEOR_SHOWER] = [SFX_PATH + "spell_meteor_shower_1.wav", SFX_PATH + "spell_meteor_shower_2.wav"]
+	audio_resources[SoundType.SPELL_METEOR] = [SFX_PATH + "spell_meteor_shower_1.wav", SFX_PATH + "spell_meteor_shower_2.wav"]
 	audio_resources[SoundType.SPELL_MANA_BOLT] = [SFX_PATH + "spell_mana_bolt_1.wav", SFX_PATH + "spell_mana_bolt_2.wav"]
 	
 	# Spell impact and charging sounds (reuse existing sounds with different processing)
@@ -188,6 +193,7 @@ func load_audio_resources():
 	audio_resources[SoundType.DAMAGE_TAKEN] = [SFX_PATH + "damage_taken_1.wav", SFX_PATH + "damage_taken_2.wav"]
 	audio_resources[SoundType.CHEST_OPEN] = [SFX_PATH + "chest_open.wav"]
 	audio_resources[SoundType.PICKUP_ITEM] = [SFX_PATH + "pickup_item.wav"]
+	audio_resources[SoundType.ELITE_SPAWN] = [SFX_PATH + "enemy_death_1.wav"]  # Reuse enemy death sound for elite spawn
 	
 	# Typing sounds
 	audio_resources[SoundType.TYPING_KEYSTROKE] = [SFX_PATH + "typing_keystroke_1.wav", SFX_PATH + "typing_keystroke_2.wav", SFX_PATH + "typing_keystroke_3.wav"]

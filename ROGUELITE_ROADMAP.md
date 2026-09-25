@@ -1,5 +1,9 @@
 # SpellCast Survivors: Roguelite Transformation Roadmap
 
+## Current gameplay priority — September 2026
+
+Complete and verify the forgiving opening and regeneration first, preserving each earned level-up choice. Then offer new spells, upgrades, and passives as level-up choices, followed by a first set of distinct spell combinations. Art direction follows the working progression loop. The September balance patch has passed focused checks only on the isolated local-work candidate; resolve the committed baseline parse errors and revalidate an integrated revision before calling it release-ready.
+
 ## Project Vision
 Transform SpellCast Survivors from a simple vampire survivors clone into a comprehensive roguelite experience with persistent progression, character classes, exploration, and deep customization while maintaining the unique typing-based spell casting mechanic.
 

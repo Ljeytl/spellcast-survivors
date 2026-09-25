@@ -47,10 +47,10 @@ func get_object(type_name: String) -> Node:
 	
 	if obj:
 		pool["in_use"].append(obj)
-		# Connect to return signal if object supports it
-		if obj.has_signal("pool_return_requested") and not obj.pool_return_requested.is_connected(_on_object_return_requested):
-			obj.pool_return_requested.connect(_on_object_return_requested.bind(obj, type_name))
-	
+		var return_callback = _on_object_return_requested.bind(obj, type_name)
+		if obj.has_signal("pool_return_requested") and not obj.pool_return_requested.is_connected(return_callback):
+			obj.pool_return_requested.connect(return_callback, CONNECT_DEFERRED)
+
 	return obj
 
 func return_object(obj: Node, type_name: String):
@@ -124,3 +124,9 @@ func get_all_pool_stats() -> Dictionary:
 	for type_name in pools.keys():
 		stats[type_name] = get_pool_stats(type_name)
 	return stats
+
+func _exit_tree():
+	for pool in pools.values():
+		for object in pool["available"]:
+			if is_instance_valid(object):
+				object.free()

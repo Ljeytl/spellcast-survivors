@@ -9,6 +9,7 @@ var spells_data: Dictionary = {}
 var characters_data: Dictionary = {}
 var enemies_data: Dictionary = {}
 var progression_data: Dictionary = {}
+var animation_config: Dictionary = {}
 
 var is_loaded: bool = false
 
@@ -23,6 +24,7 @@ func load_all_data():
 	characters_data = load_json_file("res://data/characters.json")
 	enemies_data = load_json_file("res://data/enemies.json")
 	progression_data = load_json_file("res://data/progression.json")
+	animation_config = load_json_file("res://data/animation_config.json")
 	
 	# Validate data integrity
 	if validate_data():
@@ -333,3 +335,70 @@ func get_data_stats() -> Dictionary:
 		"achievements": progression_data.achievements.keys().size(),
 		"persistent_rewards": progression_data.persistent_rewards.keys().size()
 	}
+
+# ========== ANIMATION SYSTEM ==========
+
+func get_animation_config() -> Dictionary:
+	return animation_config
+
+func get_spell_visual_data(spell_id: String) -> Dictionary:
+	var spell_data = get_spell_data(spell_id)
+	return spell_data.get("visual", {})
+
+func get_character_visual_data(character_id: String) -> Dictionary:
+	var character_data = get_character_data(character_id)
+	return character_data.get("visual", {})
+
+func get_enemy_visual_data(zone_id: String, enemy_class: String) -> Dictionary:
+	var zone_data = enemies_data.zones.get(zone_id, {})
+	var enemy_data = zone_data.get("enemies", {}).get(enemy_class, {})
+	return enemy_data.get("animations", {})
+
+func get_particle_system_data(particle_id: String) -> Dictionary:
+	var particles = animation_config.get("particle_systems", {})
+	for category in particles:
+		if particle_id in particles[category]:
+			return particles[category][particle_id]
+	return {}
+
+func get_animation_blending_data(entity_type: String) -> Dictionary:
+	var blending = animation_config.get("animation_blending", {})
+	return blending.get(entity_type, {})
+
+func get_ui_animation_data(ui_element: String) -> Dictionary:
+	var ui_anims = animation_config.get("ui_animations", {})
+	return ui_anims.get(ui_element, {})
+
+func get_performance_settings(quality_level: String = "medium") -> Dictionary:
+	var performance = animation_config.get("performance_settings", {})
+	var quality_levels = performance.get("quality_levels", {})
+	return quality_levels.get(quality_level, quality_levels.get("medium", {}))
+
+func create_animation_resource(animation_data: Dictionary) -> AnimationPlayer:
+	# Helper function to create Godot AnimationPlayer from JSON data
+	var animation_player = AnimationPlayer.new()
+	
+	for anim_name in animation_data:
+		var anim_info = animation_data[anim_name]
+		var animation = Animation.new()
+		animation.length = anim_info.get("frames", []).size() / float(anim_info.get("fps", 12))
+		animation.loop_mode = Animation.LOOP_LINEAR if anim_info.get("loop", false) else Animation.LOOP_NONE
+		
+		# Add property tracks for sprite frame changes
+		var track_index = animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(track_index, ".:frame")
+		
+		# Add keyframes for each frame
+		var frames = anim_info.get("frames", [])
+		var fps = anim_info.get("fps", 12)
+		for i in range(frames.size()):
+			var time = i / float(fps)
+			animation.track_insert_key(track_index, time, i)
+		
+		animation_player.add_animation(anim_name, animation)
+	
+	return animation_player
+
+func get_asset_path(category: String) -> String:
+	var asset_paths = animation_config.get("animation_system", {}).get("asset_paths", {})
+	return asset_paths.get(category, "res://assets/")

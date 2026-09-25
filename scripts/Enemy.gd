@@ -248,6 +248,7 @@ var damage: float         # Damage dealt to player (uses base_damage)
 
 # Node references set up during initialization
 var player: CharacterBody2D    # The player character to chase
+var dying: bool = false
 var health_bar_fill: ColorRect # Visual health bar above enemy
 
 # Experience points dropped when enemy dies (scaled by difficulty)
@@ -418,6 +419,8 @@ func handle_shooter_behavior(delta: float):
 
 # Called when enemy takes damage from spells or other sources
 func take_damage(damage_amount: float):
+	if dying:
+		return
 	# Apply armor reduction for armored elites
 	var final_damage = damage_amount
 	if is_elite and elite_type == EliteType.ARMORED:
@@ -449,15 +452,18 @@ func update_health_bar():
 
 # Flash the enemy red when taking damage for visual feedback
 func flash_damage():
-	var visual = $Visual
+	var visual = $Sprite2D
 	if visual:
-		# Quick red flash animation
-		var tween = create_tween()
-		tween.tween_property(visual, "color", Color.WHITE, 0.1)
-		tween.tween_property(visual, "color", Color(0.8, 0.2, 0.2, 1), 0.1)
+		visual.modulate = Color(1.5, 0.5, 0.5)
+		create_tween().tween_property(visual, "modulate", Color.WHITE, 0.15)
 
-# Called when enemy health reaches 0 - handles death sequence
 func die():
+	if dying:
+		return
+	dying = true
+	finish_death.call_deferred()
+
+func finish_death():
 	# Handle elite death effects first
 	handle_elite_death_effects()
 	
@@ -486,7 +492,7 @@ func drop_xp_orb():
 	var xp_orb = xp_orb_scene.instantiate()
 	xp_orb.global_position = global_position
 	xp_orb.xp_value = xp_value  # Scaled based on difficulty
-	get_parent().add_child(xp_orb)
+	get_parent().add_child.call_deferred(xp_orb)
 
 # Collision handler for enemy's HurtBox area
 func _on_hurt_box_area_entered(area):
@@ -499,11 +505,57 @@ func _on_hurt_box_area_entered(area):
 
 # Status effect functions
 func apply_knockback(direction: Vector2, strength: float):
-	knockback_velocity += direction * strength
+	# Calculate knockback resistance based on enemy characteristics
+	var resistance = calculate_knockback_resistance()
+	var final_strength = strength * (1.0 - resistance)
+	knockback_velocity += direction * final_strength
+
+func calculate_knockback_resistance() -> float:
+	var resistance = 0.0
+	
+	# Base resistance by enemy type
+	match enemy_type:
+		EnemyType.SWARM:
+			resistance += 0.0  # Small, light enemies - no resistance
+		EnemyType.CHASER:
+			resistance += 0.1  # Normal enemies - slight resistance
+		EnemyType.SHOOTER:
+			resistance += 0.15  # Ranged enemies - moderate resistance
+		EnemyType.TANK:
+			resistance += 0.4  # Tanks are heavy - high resistance
+	
+	# Size-based resistance (bigger = heavier = more resistance)
+	var size_factor = scale.x  # Use current scale as size indicator
+	resistance += (size_factor - 1.0) * 0.2  # Each 0.1 scale adds 2% resistance
+	
+	# Elite bonus resistance
+	if is_elite:
+		resistance += 0.2  # Elites resist knockback more
+		
+		# Special elite type bonuses
+		match elite_type:
+			EliteType.ARMORED:
+				resistance += 0.15  # Heavy armor
+			EliteType.FROST:
+				resistance += 0.1   # Ice makes them heavier
+	
+	# Health tier resistance (higher tier = more resistance)
+	if max_health > 150:  # Tier 3 threshold
+		resistance += 0.15
+	elif max_health > 75:  # Tier 2 threshold  
+		resistance += 0.1
+	
+	# Cap resistance at 70% (always allow some knockback)
+	return min(0.7, resistance)
 
 func apply_slow(slow_amount: float, duration: float):
 	slow_multiplier = slow_amount
 	slow_timer = duration
+	
+	# Apply blue frozen visual effect
+	var sprite = $Sprite2D
+	if sprite:
+		sprite.modulate = Color(0.6, 0.8, 1.2, 1.0)  # Blue tint
 
 func process_status_effects(delta: float):
 	# Handle slow effect timer
@@ -511,6 +563,13 @@ func process_status_effects(delta: float):
 		slow_timer -= delta
 		if slow_timer <= 0:
 			slow_multiplier = 1.0  # Return to normal speed
+			# Remove blue frozen visual effect
+			var sprite = $Sprite2D
+			if sprite:
+				if is_elite:
+					apply_elite_visual_effects()  # Restore elite appearance
+				else:
+					sprite.modulate = Color.WHITE  # Return to normal color
 
 # Apply elite modifications to stats
 func apply_elite_modifications():

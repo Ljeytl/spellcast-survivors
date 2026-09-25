@@ -35,7 +35,7 @@ var freeform_mode: bool = false
 var spells = {}
 
 # Freeform spell library loaded from DataManager
-var freeform_spells = {}
+var freeform_spells = {
 	"lightning arc": {"chars": 13, "damage": 30, "level": 1, "type": "chain", "chain_count": 3},
 	"meteor shower": {"chars": 13, "damage": 35, "level": 1, "type": "multi_aoe", "meteor_count": 3},
 	"magic missile": {"chars": 13, "damage": 15, "level": 1, "type": "projectile"}, # Basic auto-attack spell
@@ -85,6 +85,98 @@ func _ready():
 	# Connect to typing signals for player transparency
 	typing_started.connect(_on_typing_started)
 	typing_ended.connect(_on_typing_ended)
+
+# Load spells from DataManager
+func load_spells_from_data():
+	if not DataManager:
+		print("Warning: DataManager not available, using fallback spells")
+		load_fallback_spells()
+		return
+	
+	# Load spell data and convert to slot-based format
+	var spell_data = DataManager.get_all_spells()
+	var slot = 1
+	
+	# Define specific spells for slots 1-6 with custom typing names
+	var slot_spell_config = [
+		{"id": "bolt", "display_name": "bolt"},
+		{"id": "life", "display_name": "regeneration"},
+		{"id": "ice_blast", "display_name": "ice blast"},
+		{"id": "earth_shield", "display_name": "earth shield"},
+		{"id": "lightning_arc", "display_name": "lightning arc"},
+		{"id": "meteor_shower", "display_name": "meteor shower"}
+	]
+	
+	# Assign specific spells to slots 1-6
+	for i in range(slot_spell_config.size()):
+		var config = slot_spell_config[i]
+		var spell_id = config["id"]
+		if spell_id in spell_data:
+			var spell = spell_data[spell_id]
+			var spell_slot = i + 1
+			var display_name = config["display_name"]
+			spells[spell_slot] = {
+				"id": spell_id,
+				"name": spell.get("name", spell_id),
+				"display_name": display_name,
+				"chars": display_name.length(),
+				"damage": spell.get("damage", 20),
+				"level": 1,
+				"type": spell.get("type", "projectile"),
+				"unlock_level": get_spell_unlock_level(spell)
+			}
+			# Copy additional properties
+			for key in spell:
+				if key not in ["name", "chars", "damage", "type"]:
+					spells[spell_slot][key] = spell[key]
+	
+	# Load ALL spells into freeform system
+	for spell_id in spell_data:
+		var spell = spell_data[spell_id]
+		freeform_spells[spell_id] = {
+			"chars": spell.get("chars", 4),
+			"damage": spell.get("damage", 20),
+			"level": 1,
+			"type": spell.get("type", "projectile")
+		}
+		# Copy additional properties for freeform
+		for key in spell:
+			if key not in ["name", "chars", "damage", "type"]:
+				freeform_spells[spell_id][key] = spell[key]
+	
+	print("SpellManager: Loaded ", spells.size(), " slot spells and ", freeform_spells.size(), " freeform spells")
+
+func load_fallback_spells():
+	# Perfectly balanced spell definitions for tactical gameplay
+	spells = {
+		# BOLT - Your Bread & Butter (4 chars = quick & reliable)
+		1: {"id": "bolt", "name": "Lightning Bolt", "display_name": "bolt", "chars": 4, "damage": 30, "level": 1, "type": "projectile", "unlock_level": 1, "speed": 600},
+		
+		# REGENERATION - Survival Insurance (12 chars = fair cost for safety)
+		2: {"id": "life", "name": "Regeneration", "display_name": "regeneration", "chars": 12, "damage": 0, "level": 1, "type": "heal", "unlock_level": 1, "heal_amount": 6, "duration": 6.0, "tick_rate": 1.0},
+		
+		# ICE BLAST - Safety Zone Creator (9 chars = utility over damage)
+		3: {"id": "ice_blast", "name": "Ice Blast", "display_name": "ice blast", "chars": 9, "damage": 8, "level": 1, "type": "aoe", "unlock_level": 2, "radius": 450, "knockback": 350, "slow_duration": 3.5, "slow_strength": 0.7},
+		
+		# EARTH SHIELD - Get Out of Jail Free (12 chars = panic button)
+		4: {"id": "earth_shield", "name": "Earth Shield", "display_name": "earth shield", "chars": 12, "damage": 0, "level": 1, "type": "shield", "unlock_level": 3, "shield_hp": 80, "duration": 10.0},
+		
+		# LIGHTNING ARC - Elite Killer (13 chars = focused devastation)
+		5: {"id": "lightning_arc", "name": "Lightning Arc", "display_name": "lightning arc", "chars": 13, "damage": 45, "level": 1, "type": "chain", "unlock_level": 4, "chain_count": 4, "chain_range": 250, "chain_damage_reduction": 0.75},
+		
+		# METEOR SHOWER - Crowd Clearer (13 chars = nuclear option)
+		6: {"id": "meteor_shower", "name": "Meteor Shower", "display_name": "meteor shower", "chars": 13, "damage": 50, "level": 1, "type": "multi_aoe", "unlock_level": 5, "meteor_count": 4, "radius": 200, "delay_interval": 0.25}
+	}
+
+func get_spell_unlock_level(spell_data: Dictionary) -> int:
+	var unlock_condition = spell_data.get("unlock_condition", {})
+	match unlock_condition.get("type", "default"):
+		"level":
+			return unlock_condition.get("value", 1)
+		"default":
+			return 1
+		_:
+			return 1  # Default fallback
 
 func _process(delta):
 	# Handle auto-attack mana bolt
@@ -136,6 +228,7 @@ func queue_spell(slot: int):
 	if slot in spells:
 		var spell_info = spells[slot]
 		var spell_name = spell_info["name"]
+		var spell_display_name = spell_info.get("display_name", spell_name.to_lower())
 		var unlock_level = spell_info.get("unlock_level", 1)
 		
 		# Check if player has reached required level
@@ -145,7 +238,7 @@ func queue_spell(slot: int):
 			spell_locked_error.emit(spell_name, unlock_level, player.level)
 			return
 		
-		spell_queue.append({"slot": slot, "name": spell_name})
+		spell_queue.append({"slot": slot, "name": spell_name, "display_name": spell_display_name})
 		spell_queued.emit(spell_name, slot)
 
 func start_typing():
@@ -158,7 +251,7 @@ func start_typing():
 	
 	is_typing = true
 	current_typing_text = ""
-	target_spell = spell_queue[0]["name"]
+	target_spell = spell_queue[0].get("display_name", spell_queue[0]["name"].to_lower())
 	
 	# Apply cast speed - higher cast speed = less time dilation (faster typing)
 	# cast_speed_multiplier 1.0 = normal, 1.1 = 10% faster casting
@@ -311,10 +404,8 @@ func fire_mana_bolt():
 	if AudioManager:
 		AudioManager.play_spell_sound("mana_bolt")
 	
-	# Create mana bolt particle effect
-	var game_node = scene_tree.get_first_node_in_group("game")
-	if game_node and game_node.particle_manager:
-		game_node.particle_manager.create_mana_bolt_effect(player.global_position)
+	# Create mana bolt visual effect (simple flash)
+	create_simple_spell_flash(player.global_position, Color.CYAN)
 	
 	# Fire multiple mana bolts with slight timing offset
 	for i in range(projectile_count):
@@ -381,7 +472,7 @@ func cast_spell_by_type(slot: int):
 	match spell_type:
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
-		"heal":
+		"heal", "heal_over_time":
 			cast_life_spell(slot)
 		"aoe":
 			cast_ice_blast_spell(slot)
@@ -407,12 +498,8 @@ func cast_bolt_spell(slot: int):
 	if not closest_enemy or not is_instance_valid(closest_enemy):
 		return
 	
-	# Create bolt spell particle effect
-	var scene_tree = get_tree()
-	if scene_tree:
-		var game_node = scene_tree.get_first_node_in_group("game")
-		if game_node and game_node.particle_manager:
-			game_node.particle_manager.create_bolt_effect(player.global_position)
+	# Create bolt visual effect (lightning flash)
+	create_simple_spell_flash(player.global_position, Color.YELLOW)
 	
 	# Create projectile
 	if not spell_projectile_scene:
@@ -459,12 +546,13 @@ func cast_enhanced_bolt_spell(slot: int):
 	# Get enemies for targeting (but allow spread even if no specific targets)
 	var enemies = get_multiple_enemies(projectile_count * 2)  # Get more enemies than bolts for variety
 	
-	# Create bolt spell particle effect
+	# Create bolt visual effect (lightning flash)
+	create_simple_spell_flash(player.global_position, Color.YELLOW)
+	
+	# Get scene tree for timer functionality
 	var scene_tree = get_tree()
-	if scene_tree:
-		var game_node = scene_tree.get_first_node_in_group("game")
-		if game_node and game_node.particle_manager:
-			game_node.particle_manager.create_bolt_effect(player.global_position)
+	if not scene_tree:
+		return
 	
 	# Calculate base direction (toward closest enemy or player facing direction)
 	var base_direction = Vector2.RIGHT  # Default direction
@@ -594,20 +682,21 @@ func cast_life_spell(slot: int):
 	}
 	active_healing_effects.append(healing_effect)
 	
-	# Create persistent healing circle that follows player
-	var scene_tree = get_tree()
-	if scene_tree:
-		var game_node = scene_tree.get_first_node_in_group("game")
-		if game_node and game_node.particle_manager:
-			game_node.particle_manager.create_persistent_life_circle(player, duration)
+	# Create healing visual effect
+	create_healing_effect()
 
 func cast_ice_blast_spell(slot: int):
+	print("🧊 cast_ice_blast_spell called!")
 	var spell_info = spells[slot]
 	var damage = calculate_spell_damage(spell_info)
-	var radius = spell_info["radius"] + (spell_info["level"] - 1) * 25  # Radius grows with level
+	var radius = spell_info.get("radius", 400) + (spell_info["level"] - 1) * 25  # Radius grows with level
+	var knockback = spell_info.get("knockback", 400) + (spell_info["level"] - 1) * 50  # Knockback grows with level
+	var slow_duration = spell_info.get("slow_duration", 2.0)
+	var slow_strength = spell_info.get("slow_effect", 0.3)
 	
-	# Create player-centered ice explosion with knockback
-	create_ice_explosion(player.global_position, radius, damage)
+	print("🧊 Ice blast: radius=", radius, " damage=", damage, " player_pos=", player.global_position)
+	# Create player-centered ice explosion with proper radius visualization
+	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength)
 
 func cast_earthshield_spell(slot: int):
 	var spell_info = spells[slot]
@@ -618,14 +707,8 @@ func cast_earthshield_spell(slot: int):
 	if player and player.has_method("add_overheal"):
 		player.add_overheal(overheal_amount)
 	
-	# Create persistent shield circle that follows player
-	# Duration based on how much overheal was provided (more overheal = longer visual)
-	var visual_duration = 8.0 + (spell_info["level"] - 1) * 2.0  # 8-22 seconds based on level
-	var scene_tree = get_tree()
-	if scene_tree:
-		var game_node = scene_tree.get_first_node_in_group("game")
-		if game_node and game_node.particle_manager:
-			game_node.particle_manager.create_persistent_shield_circle(player, visual_duration)
+	# Create shield visual effect
+	create_shield_effect()
 
 func cast_lightning_arc_spell(slot: int):
 	var spell_info = spells[slot]
@@ -666,7 +749,7 @@ func cast_meteor_shower_spell(slot: int):
 		var tree = get_tree()
 		if tree:
 			# Show warning indicator first
-			create_meteor_warning(target_pos, delay)
+			create_meteor_warning(target_pos, delay, 180.0)
 			tree.create_timer(delay).timeout.connect(func(): create_meteor_strike(target_pos, damage * 0.8))
 
 # Helper functions
@@ -705,62 +788,46 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 func process_healing_effects(delta):
 	for i in range(active_healing_effects.size() - 1, -1, -1):
 		var effect = active_healing_effects[i]
-		effect["remaining_time"] -= delta
-		
-		# Apply healing
+		var elapsed = min(delta, max(0.0, effect["remaining_time"]))
+		effect["remaining_time"] -= elapsed
 		if player:
-			player.heal(effect["heal_per_second"] * delta)
-			healing_applied.emit(effect["heal_per_second"] * delta)
-		
-		# Remove expired effects
+			var previous_health = player.health
+			player.heal(effect["heal_per_second"] * elapsed)
+			healing_applied.emit(player.health - previous_health)
 		if effect["remaining_time"] <= 0:
 			active_healing_effects.remove_at(i)
 
 # Visual effect functions
+func create_simple_spell_flash(pos: Vector2, color: Color):
+	# Create a simple visual flash effect without circles
+	var flash = spell_projectile_scene.instantiate()
+	if flash:
+		flash.setup_effect(pos, color, "flash", 0.3)
+		flash.scale = Vector2(0.5, 0.5)  # Make it smaller than AoE effects
+		get_parent().add_child(flash)
+
 func create_healing_effect():
-	# Create life spell particle effect
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var game_node = scene_tree.get_first_node_in_group("game")
-	if game_node and game_node.particle_manager:
-		game_node.particle_manager.create_life_effect(player.global_position)
-	
+	# Create healing effect around player
 	var effect = spell_projectile_scene.instantiate()
-	effect.setup_effect(player.global_position, Color.GREEN, "heal", 1.0)
+	effect.setup_effect(player.global_position, Color.GREEN, "heal", 2.0)
 	get_parent().add_child(effect)
 
 func create_shield_effect():
-	# Create earthshield particle effect
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var game_node = scene_tree.get_first_node_in_group("game")
-	if game_node and game_node.particle_manager:
-		game_node.particle_manager.create_earthshield_effect(player.global_position)
-	
+	# Create shield effect around player
 	var effect = spell_projectile_scene.instantiate()
-	effect.setup_effect(player.global_position, Color.ORANGE, "shield", 2.0)
+	effect.setup_effect(player.global_position, Color.ORANGE, "shield", 3.0)
 	get_parent().add_child(effect)
 
 func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String):
-	# Create spell-specific particle effect
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var game_node = scene_tree.get_first_node_in_group("game")
-	if game_node and game_node.particle_manager:
-		if effect_type == "ice":
-			game_node.particle_manager.create_ice_blast_effect(pos)
-		else:
-			game_node.particle_manager.create_spell_impact_effect(pos)
-	
-	# Create visual effect
+	# Create satisfying area effect explosion
 	var effect = spell_projectile_scene.instantiate()
 	effect.setup_aoe_effect(pos, radius, color, effect_type)
 	get_parent().add_child(effect)
 	
 	# Deal damage to enemies in range
+	var scene_tree = get_tree()
+	if not scene_tree:
+		return
 	var enemies = scene_tree.get_nodes_in_group("enemies")
 	for enemy in enemies:
 		var distance = pos.distance_to(enemy.global_position)
@@ -771,38 +838,31 @@ func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Col
 				enemy.apply_slow(0.5, 3.0)  # 50% slow for 3 seconds
 
 func create_meteor_strike(pos: Vector2, damage: float):
-	# Create meteor shower particle effect
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var game_node = scene_tree.get_first_node_in_group("game")
-	if game_node and game_node.particle_manager:
-		game_node.particle_manager.create_meteor_shower_effect(pos)
-	
-	# Larger radius and higher damage for meteors
+	# Larger radius and higher damage for meteors with big explosion
 	create_aoe_explosion(pos, 180, damage, Color.RED, "meteor")
 
-func create_meteor_warning(pos: Vector2, delay: float):
-	# Create a warning indicator at the target position
+func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
+	# Create a warning indicator at the target position showing the impact radius
 	var warning = spell_projectile_scene.instantiate()
-	warning.setup_effect(pos, Color.ORANGE_RED, "warning", delay)
+	warning.setup_aoe_effect(pos, radius, Color.ORANGE_RED, "warning")
+	warning.lifetime = delay
 	get_parent().add_child(warning)
 
-func create_ice_explosion(pos: Vector2, radius: float, damage: float):
-	# Create ice blast particle effect
+func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6):
+	# Create expanding ice blast visual effect - this should be a big satisfying explosion
+	print("🧊 Creating ice explosion at ", pos, " with radius ", radius)
+	var effect = spell_projectile_scene.instantiate()
+	if not effect:
+		print("❌ Failed to instantiate spell projectile for ice explosion")
+		return
+	effect.setup_aoe_effect(pos, radius, Color.LIGHT_BLUE, "ice")
+	get_parent().add_child(effect)
+	print("✅ Ice explosion effect created and added to scene")
+	
+	# Deal damage and apply enhanced knockback to enemies in range
 	var scene_tree = get_tree()
 	if not scene_tree:
 		return
-	var game_node = scene_tree.get_first_node_in_group("game")
-	if game_node and game_node.particle_manager:
-		game_node.particle_manager.create_ice_blast_effect(pos)
-	
-	# Create expanding visual effect
-	var effect = spell_projectile_scene.instantiate()
-	effect.setup_aoe_effect(pos, radius, Color.LIGHT_BLUE, "ice")
-	get_parent().add_child(effect)
-	
-	# Deal damage and apply knockback to enemies in range
 	var enemies = scene_tree.get_nodes_in_group("enemies")
 	for enemy in enemies:
 		var distance = pos.distance_to(enemy.global_position)
@@ -810,15 +870,16 @@ func create_ice_explosion(pos: Vector2, radius: float, damage: float):
 			# Deal damage
 			enemy.take_damage(damage)
 			
-			# Apply knockback - push enemies away from center
+			# Apply stronger knockback - push enemies away from center
 			if enemy.has_method("apply_knockback"):
 				var knockback_direction = (enemy.global_position - pos).normalized()
-				var knockback_strength = 500.0 * (1.0 - distance / radius)  # Stronger closer to center
+				var distance_factor = 1.0 - (distance / radius)  # Closer = stronger knockback
+				var knockback_strength = knockback_base * (1.2 + distance_factor * 0.8)  # 1.2x to 2.0x base knockback
 				enemy.apply_knockback(knockback_direction, knockback_strength)
 			
-			# Apply slow effect
+			# Apply stronger slow effect
 			if enemy.has_method("apply_slow"):
-				enemy.apply_slow(SLOW_EFFECT_STRENGTH, SLOW_EFFECT_DURATION)
+				enemy.apply_slow(slow_strength, slow_duration)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
 	if not target or not is_instance_valid(target) or remaining_chains <= 0:
@@ -871,31 +932,10 @@ func create_lightning_arc_visual(from_pos: Vector2, to_pos: Vector2, target_enem
 		print("Warning: Invalid lightning arc positions - from:", from_pos, " to:", to_pos)
 		return
 	
-	# Create persistent lightning arc from specified source to target
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var game_node = scene_tree.get_first_node_in_group("game")
-	if game_node and game_node.particle_manager:
-		# Create single particle effect at the start position only (reduce visual clutter)
-		game_node.particle_manager.create_lightning_arc_effect(from_pos)
-		
-		# Use from_target if provided, otherwise default to player for initial cast
-		var source_node = from_target if from_target else player
-		
-		# Validate source node before creating arc
-		if not source_node or not is_instance_valid(source_node):
-			print("Warning: Invalid source node for lightning arc, using position fallback")
-			# Create a temporary node at the from_pos as fallback
-			var temp_node = Node2D.new()
-			temp_node.global_position = from_pos
-			game_node.add_child(temp_node)
-			game_node.particle_manager.create_persistent_lightning_arc(temp_node, to_pos, 0.5, target_enemy)
-			# Clean up temp node after lightning duration
-			scene_tree.create_timer(0.6).timeout.connect(func(): temp_node.queue_free())
-		else:
-			# Create persistent lightning arc that lasts 0.5 seconds (shorter for less overlap)
-			game_node.particle_manager.create_persistent_lightning_arc(source_node, to_pos, 0.5, target_enemy)
+	# Create lightning arc visual effect
+	var lightning = spell_projectile_scene.instantiate()
+	lightning.setup_lightning_arc(from_pos, to_pos, Color.YELLOW)
+	get_parent().add_child(lightning)
 
 # Player transparency effects
 func _on_typing_started():
@@ -1145,7 +1185,7 @@ func cast_freeform_spell_by_type(spell_name: String, spell_data: Dictionary):
 	match spell_type:
 		"projectile":
 			cast_freeform_projectile_spell(spell_name, spell_data, damage)
-		"heal":
+		"heal", "heal_over_time":
 			cast_freeform_heal_spell(spell_name, spell_data)
 		"instant_heal":
 			cast_freeform_instant_heal_spell(spell_name, spell_data)
@@ -1227,11 +1267,8 @@ func cast_freeform_heal_spell(spell_name: String, spell_data: Dictionary):
 	}
 	active_healing_effects.append(healing_effect)
 	
-	var scene_tree = get_tree()
-	if scene_tree:
-		var game_node = scene_tree.get_first_node_in_group("game")
-		if game_node and game_node.particle_manager:
-			game_node.particle_manager.create_persistent_life_circle(player, duration)
+	# Create healing visual effect
+	create_healing_effect()
 
 func cast_freeform_instant_heal_spell(spell_name: String, spell_data: Dictionary):
 	# Instant healing
@@ -1254,12 +1291,8 @@ func cast_freeform_shield_spell(spell_name: String, spell_data: Dictionary):
 	if player and player.has_method("add_overheal"):
 		player.add_overheal(shield_hp)
 	
-	var visual_duration = 8.0
-	var scene_tree = get_tree()
-	if scene_tree:
-		var game_node = scene_tree.get_first_node_in_group("game")
-		if game_node and game_node.particle_manager:
-			game_node.particle_manager.create_persistent_shield_circle(player, visual_duration)
+	# Create shield visual effect
+	create_shield_effect()
 
 func cast_freeform_chain_spell(spell_name: String, spell_data: Dictionary, damage: float):
 	# Chain lightning spell
@@ -1289,14 +1322,14 @@ func cast_freeform_multi_aoe_spell(spell_name: String, spell_data: Dictionary, d
 		
 		var tree = get_tree()
 		if tree:
-			create_meteor_warning(target_pos, delay)
+			create_meteor_warning(target_pos, delay, 180.0)
 			tree.create_timer(delay).timeout.connect(func(): create_meteor_strike(target_pos, damage * 0.8))
 
 func cast_freeform_utility_spell(spell_name: String, spell_data: Dictionary):
 	match spell_name:
 		"teleport":
 			# Teleport player to mouse position
-			var mouse_pos = get_global_mouse_position()
+			var mouse_pos = get_viewport().get_global_mouse_position()
 			if player:
 				player.global_position = mouse_pos
 				print("Teleported to: ", mouse_pos)
