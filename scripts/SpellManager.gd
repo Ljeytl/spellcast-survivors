@@ -381,7 +381,7 @@ func cast_spell_by_type(slot: int):
 	match spell_type:
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
-		"heal":
+		"heal", "heal_over_time":
 			cast_life_spell(slot)
 		"aoe":
 			cast_ice_blast_spell(slot)
@@ -705,18 +705,15 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 func process_healing_effects(delta):
 	for i in range(active_healing_effects.size() - 1, -1, -1):
 		var effect = active_healing_effects[i]
-		effect["remaining_time"] -= delta
-		
-		# Apply healing
+		var elapsed = min(delta, max(0.0, effect["remaining_time"]))
+		effect["remaining_time"] -= elapsed
 		if player:
-			player.heal(effect["heal_per_second"] * delta)
-			healing_applied.emit(effect["heal_per_second"] * delta)
-		
-		# Remove expired effects
+			var previous_health = player.health
+			player.heal(effect["heal_per_second"] * elapsed)
+			healing_applied.emit(player.health - previous_health)
 		if effect["remaining_time"] <= 0:
 			active_healing_effects.remove_at(i)
 
-# Visual effect functions
 func create_healing_effect():
 	# Create life spell particle effect
 	var scene_tree = get_tree()
@@ -1145,7 +1142,7 @@ func cast_freeform_spell_by_type(spell_name: String, spell_data: Dictionary):
 	match spell_type:
 		"projectile":
 			cast_freeform_projectile_spell(spell_name, spell_data, damage)
-		"heal":
+		"heal", "heal_over_time":
 			cast_freeform_heal_spell(spell_name, spell_data)
 		"instant_heal":
 			cast_freeform_instant_heal_spell(spell_name, spell_data)

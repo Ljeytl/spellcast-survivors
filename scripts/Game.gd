@@ -25,6 +25,7 @@ const ICON_SIZE = Vector2(32, 32)          # Standard size for spell slot icons
 var current_state: GameState = GameState.PLAYING
 # Total time spent in this game session (used for survival scoring)
 var game_time: float = 0.0
+var pending_level_ups: Array[int] = []
 
 # Developer console system
 var console_scene = preload("res://scenes/Console.tscn")
@@ -229,29 +230,13 @@ func update_timer_display():
 func update_difficulty_display():
 	if not difficulty_label:
 		return
-	
-	# Calculate current difficulty multipliers (same as in game logic)
-	var health_mult = 1.0 + 0.15 * floor(game_time / 30.0)  # Every 30 seconds
-	var speed_mult = 1.0 + 0.02 * floor(game_time / 120.0)  # Every 2 minutes
-	var spawn_mult = 1.0 + 0.05 * floor(game_time / 45.0)   # Every 45 seconds
-	
-	# Calculate overall difficulty as average of multipliers
-	var avg_difficulty = (health_mult + speed_mult + spawn_mult) / 3.0
-	
-	# Format difficulty display
-	difficulty_label.text = "Difficulty: %.1fx" % avg_difficulty
-	
-	# Color code based on difficulty level
-	if avg_difficulty >= 3.0:  # Very high difficulty = red
-		difficulty_label.modulate = Color(1.0, 0.4, 0.4, 1.0)
-	elif avg_difficulty >= 2.0:  # High difficulty = orange
-		difficulty_label.modulate = Color(1.0, 0.7, 0.4, 1.0)
-	elif avg_difficulty >= 1.5:  # Medium difficulty = yellow
-		difficulty_label.modulate = Color(1.0, 1.0, 0.6, 1.0)
-	else:  # Low difficulty = light green
-		difficulty_label.modulate = Color(0.8, 1.0, 0.8, 1.0)
+	var manager = get_node_or_null("MonsterManager")
+	if not manager:
+		return
+	var tier = manager.get_current_difficulty_level()
+	difficulty_label.text = "Opening • Tier 1" if manager.game_time < 180.0 else "Difficulty: Tier %d" % tier
+	difficulty_label.modulate = Color(0.8, 1.0, 0.8) if tier < 3 else Color(1.0, 0.85, 0.5)
 
-# Set up the difficulty tooltip system
 func setup_difficulty_tooltip():
 	if difficulty_tooltip:
 		difficulty_tooltip_label = difficulty_tooltip.get_node_or_null("TooltipLabel")
@@ -284,28 +269,17 @@ func _on_timer_panel_mouse_exited():
 func update_difficulty_tooltip_content():
 	if not difficulty_tooltip_label:
 		return
-	
-	# Calculate current difficulty multipliers
-	var health_mult = 1.0 + 0.15 * floor(game_time / 30.0)
-	var speed_mult = 1.0 + 0.02 * floor(game_time / 120.0)
-	var spawn_mult = 1.0 + 0.05 * floor(game_time / 45.0)
-	
-	# Calculate next threshold times
-	var next_health_time = (floor(game_time / 30.0) + 1) * 30.0
-	var next_speed_time = (floor(game_time / 120.0) + 1) * 120.0
-	var next_spawn_time = (floor(game_time / 45.0) + 1) * 45.0
-	
-	var content = "[center][b]Difficulty Scaling[/b][/center]\n\n"
-	content += "[color=red]• Enemy Health: %.2fx[/color]\n" % health_mult
-	content += "  [color=gray](+15% every 30s | Next: %ds)[/color]\n\n" % int(next_health_time - game_time)
-	content += "[color=yellow]• Enemy Speed: %.2fx[/color]\n" % speed_mult
-	content += "  [color=gray](+2% every 2min | Next: %ds)[/color]\n\n" % int(next_speed_time - game_time)
-	content += "[color=green]• Spawn Rate: %.2fx[/color]\n" % spawn_mult
-	content += "  [color=gray](+5% every 45s | Next: %ds)[/color]" % int(next_spawn_time - game_time)
-	
+	var manager = get_node_or_null("MonsterManager")
+	if not manager:
+		return
+	var content = "[center][b]Difficulty[/b][/center]\n\n"
+	content += "Monster tier: %d\n" % manager.get_current_difficulty_level()
+	content += "Spawn interval: %.2fs\n\n" % manager.calculate_spawn_interval()
+	content += "The first three minutes give you time to build.\n"
+	content += "New tiers arrive every two minutes after that.\n"
+	content += "Health and spawn pressure increase gradually."
 	difficulty_tooltip_label.text = content
 
-# Called every frame to update game time and handle input
 func _process(delta):
 	# Only advance game time while actively playing (not paused/level up/game over)
 	if current_state == GameState.PLAYING:
@@ -324,14 +298,6 @@ func handle_input():
 	if Input.is_action_just_pressed("ui_cancel"):  # ESC key
 		toggle_pause()
 	
-	# Check for difficulty increase command (U key)
-	if Input.is_action_just_pressed("ui_up") or Input.is_key_pressed(KEY_U):
-		increase_difficulty_level()
-	
-	# Check for invincibility toggle (P key)
-	if Input.is_key_pressed(KEY_P):
-		toggle_invincibility()
-
 # Initialize the main UI elements (health bar, XP bar, typing display)
 func setup_ui():
 	# Set up health bar to show values from 0-100%
@@ -354,7 +320,7 @@ func setup_ui():
 	
 	# Initialize health label text with actual player values
 	if health_label and player:
-		var current_health = player.current_health if "current_health" in player else 100
+		var current_health = player.health if "health" in player else 100
 		var max_health = player.max_health if "max_health" in player else 100
 		health_label.text = "{0}/{1}".format([int(current_health), int(max_health)])
 	
@@ -391,10 +357,10 @@ func setup_player():
 		player.player_damaged.connect(_on_player_damaged)
 		
 		# Initialize UI with current player values
-		if "current_health" in player and "max_health" in player:
-			_on_player_health_changed(player.current_health, player.max_health, 0.0)
-		if "current_xp" in player and "xp_needed" in player:
-			_on_player_xp_changed(player.current_xp, player.xp_needed)
+		if "health" in player and "max_health" in player:
+			_on_player_health_changed(player.health, player.max_health, 0.0)
+		if "xp" in player and "xp_to_next_level" in player:
+			_on_player_xp_changed(player.xp, player.xp_to_next_level)
 	
 	# Connect spell manager signals
 	if spell_manager:
@@ -459,7 +425,11 @@ func _on_player_health_changed(new_health: float, max_health: float, overheal_am
 			health_label.text = "{0}/{1}".format([int(new_health), int(max_health)])
 
 func animate_progress_bar(progress_bar: ProgressBar, value: float, duration: float):
+	var previous_tween = progress_bar.get_meta("value_tween") if progress_bar.has_meta("value_tween") else null
+	if previous_tween is Tween and previous_tween.is_valid():
+		previous_tween.kill()
 	var tween = create_tween()
+	progress_bar.set_meta("value_tween", tween)
 	tween.tween_property(progress_bar, "value", value, duration)
 
 func update_health_bar_color(health_percent: float):
@@ -631,13 +601,23 @@ func show_damage_number(pos: Vector2, damage: float):
 	if damage_manager and damage_manager.has_method("show_damage"):
 		damage_manager.show_damage(pos, damage)
 
-func _on_player_level_up(new_level: int, player_stats: Dictionary):
-	# Refresh spell slot UI to show newly unlocked spells
+func _on_player_level_up(new_level: int, _player_stats: Dictionary):
+	pending_level_ups.append(new_level)
+	if current_state != GameState.LEVEL_UP:
+		show_next_level_up()
+
+func show_next_level_up():
+	var next_level = pending_level_ups.pop_front()
 	update_spell_slot_lock_status()
-	
 	change_state(GameState.LEVEL_UP)
 	if level_up_screen:
-		level_up_screen.show_level_up(new_level, player_stats)
+		level_up_screen.show_level_up(next_level, {
+			"spell_damage_multiplier": player.spell_damage_multiplier,
+			"cast_speed_multiplier": player.cast_speed_multiplier,
+			"movement_speed_multiplier": player.movement_speed_multiplier,
+			"max_health": player.max_health,
+			"xp_range_multiplier": player.xp_range_multiplier
+		})
 
 func _on_upgrade_selected(upgrade_data: Dictionary):
 	# Apply upgrade to player
@@ -654,8 +634,10 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 	# Refresh spell level displays in the HUD
 	refresh_spell_levels()
 	
-	# Resume game
-	change_state(GameState.PLAYING)
+	if pending_level_ups.is_empty():
+		change_state(GameState.PLAYING)
+	else:
+		show_next_level_up.call_deferred()
 
 func show_game_over_screen():
 	
