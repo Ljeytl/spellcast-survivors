@@ -248,6 +248,7 @@ var damage: float         # Damage dealt to player (uses base_damage)
 
 # Node references set up during initialization
 var player: CharacterBody2D    # The player character to chase
+var dying: bool = false
 var health_bar_fill: ColorRect # Visual health bar above enemy
 
 # Experience points dropped when enemy dies (scaled by difficulty)
@@ -418,6 +419,8 @@ func handle_shooter_behavior(delta: float):
 
 # Called when enemy takes damage from spells or other sources
 func take_damage(damage_amount: float):
+	if dying:
+		return
 	# Apply armor reduction for armored elites
 	var final_damage = damage_amount
 	if is_elite and elite_type == EliteType.ARMORED:
@@ -449,15 +452,18 @@ func update_health_bar():
 
 # Flash the enemy red when taking damage for visual feedback
 func flash_damage():
-	var visual = $Visual
+	var visual = $Sprite2D
 	if visual:
-		# Quick red flash animation
-		var tween = create_tween()
-		tween.tween_property(visual, "color", Color.WHITE, 0.1)
-		tween.tween_property(visual, "color", Color(0.8, 0.2, 0.2, 1), 0.1)
+		visual.modulate = Color(1.5, 0.5, 0.5)
+		create_tween().tween_property(visual, "modulate", Color.WHITE, 0.15)
 
-# Called when enemy health reaches 0 - handles death sequence
 func die():
+	if dying:
+		return
+	dying = true
+	finish_death.call_deferred()
+
+func finish_death():
 	# Handle elite death effects first
 	handle_elite_death_effects()
 	
@@ -486,7 +492,7 @@ func drop_xp_orb():
 	var xp_orb = xp_orb_scene.instantiate()
 	xp_orb.global_position = global_position
 	xp_orb.xp_value = xp_value  # Scaled based on difficulty
-	get_parent().add_child(xp_orb)
+	get_parent().add_child.call_deferred(xp_orb)
 
 # Collision handler for enemy's HurtBox area
 func _on_hurt_box_area_entered(area):

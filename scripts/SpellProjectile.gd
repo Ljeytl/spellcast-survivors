@@ -2,6 +2,8 @@
 # Supports multiple spell types with different visuals and behaviors
 extends Area2D
 
+var despawning: bool = false
+
 # Movement and damage properties
 var speed: float = 400.0              # Movement speed in pixels per second
 var damage: float = 10.0              # Damage dealt to enemies on hit
@@ -296,6 +298,8 @@ func update_visual():
 			tween.tween_callback(func(): queue_free()).set_delay(0.35)
 
 func _on_area_entered(area):
+	if despawning:
+		return
 	# Handle different projectile types
 	if is_in_group("enemy_projectiles"):
 		# Enemy projectile hitting player 
@@ -470,6 +474,7 @@ func setup_for_pool():
 	is_pooled = true
 
 func reset_for_pool():
+	despawning = false
 	# Reset object state for reuse from pool
 	# Reset all properties to defaults
 	speed = 400.0
@@ -497,6 +502,9 @@ func reset_for_pool():
 		sprite.visible = true
 
 func despawn():
+	if despawning:
+		return
+	despawning = true
 	# Remove projectile from scene (return to pool or queue_free)
 	if is_pooled:
 		pool_return_requested.emit()

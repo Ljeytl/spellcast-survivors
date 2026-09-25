@@ -411,6 +411,11 @@
       }
     }
   },
+  "enemies": {
+    "goblin": {
+      "id": "goblin", "name": "Goblin", "type": "basic", "tier": 1,
+      "health": 15, "speed": 80, "damage": 8, "xp_reward": 5, "unlock_time": 0
+    },
     "orc": {
       "id": "orc", 
       "name": "Orc",

@@ -23,7 +23,7 @@ mouse_filter = 0
 modulate = Color(0, 0, 0, 0.7)
 visible = false
 
-[node name="VBox" type="VBox" parent="ConsolePanel"]
+[node name="VBox" type="VBoxContainer" parent="ConsolePanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
