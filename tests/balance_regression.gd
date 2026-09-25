@@ -45,8 +45,9 @@ func run():
 	Input.parse_input_event(letter)
 	game.handle_input()
 	check(manager.game_time == 0.0, "Typing U cannot jump difficulty")
-	letter.pressed = false
-	Input.parse_input_event(letter)
+	var release = letter.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
 	for monster in manager.get_available_variants(0.0):
 		var stats = manager.calculate_monster_stats(monster, 1)
 		check(stats.health > 15.0 and stats.health <= 45.0, "%s dies within two to three base auto attacks" % monster.name)

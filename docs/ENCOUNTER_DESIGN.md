@@ -43,3 +43,5 @@ The final boss milestone is implemented at 20:00. Victory behavior is deliberate
 ## Verification scope
 
 Automated tests exercise all twelve variants, spawn gates, all four boss milestones, overlapping bosses, shield angles, warnings and damage timing, duplicate death protection, regeneration and multiple earned level-up choices. Opening simulations use the actual player/enemy/projectile/XP scenes with passive attacks and movement toward XP; these support tuning but do not replace human playtesting. Controlled late-stage visual fixtures are identified separately from ordinary runs.
+
+The final headless encounter and pacing checks report shutdown-only Tween/SceneTreeTimer leaks from unfinished animation/timer awaiters. Assertions pass, but clean shutdown and full lifecycle review remain open release work. Test evidence under `builds/` is excluded from Godot imports.

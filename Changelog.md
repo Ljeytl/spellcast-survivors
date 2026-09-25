@@ -33,3 +33,5 @@ The integrated source passes all 37 balance assertions and imports without scrip
 - Unified the visible timer with the encounter manager, removed the disabled legacy spawner, and retained source sprites matching each roster entry.
 - Retuned the opening after a poor first playtest: two-hit Pursuers, higher fodder XP and slower initial spawning. Prevented duplicate player deaths from simultaneous attacks.
 - Added encounter behavior tests and three seeded opening simulations. Final victory rules remain pending; this is an encounter-system milestone, not a production release.
+
+Validation: 33 balance checks, 3,321 encounter assertions and three seeded opening simulations pass. The simulations reached the first upgrade around seventeen seconds at full health. Exclude test evidence from resource imports. Headless encounter/pacing teardown still reports unfinished Tween/SceneTreeTimer leaks; release lifecycle qualification remains open.
