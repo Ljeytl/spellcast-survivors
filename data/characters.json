@@ -15,7 +15,26 @@
         "max_health": 100,
         "xp_range_multiplier": 1.0
       },
-      "passives": ["balanced_casting"]
+      "passives": ["balanced_casting"],
+      "visual": {
+        "portrait": "wizard_portrait.png",
+        "character_animations": {
+          "idle": {"frames": ["wizard_idle_01.png", "wizard_idle_02.png", "wizard_idle_03.png", "wizard_idle_04.png"], "fps": 6, "loop": true},
+          "walking": {"frames": ["wizard_walk_01.png", "wizard_walk_02.png", "wizard_walk_03.png", "wizard_walk_04.png", "wizard_walk_05.png", "wizard_walk_06.png"], "fps": 12, "loop": true},
+          "casting": {"frames": ["wizard_cast_01.png", "wizard_cast_02.png", "wizard_cast_03.png"], "fps": 18, "loop": false},
+          "typing": {"frames": ["wizard_typing_01.png", "wizard_typing_02.png"], "fps": 8, "loop": true},
+          "death": {"frames": ["wizard_death_01.png", "wizard_death_02.png", "wizard_death_03.png", "wizard_death_04.png"], "fps": 10, "loop": false}
+        },
+        "character_effects": {
+          "level_up": {"frames": ["levelup_effect_01.png", "levelup_effect_02.png", "levelup_effect_03.png"], "fps": 20, "loop": false},
+          "typing_aura": {"frames": ["typing_aura_01.png", "typing_aura_02.png", "typing_aura_03.png"], "fps": 10, "loop": true}
+        },
+        "ui_elements": {
+          "character_icon": "wizard_icon.png",
+          "character_thumbnail": "wizard_thumb.png",
+          "selection_highlight": {"frames": ["selection_01.png", "selection_02.png", "selection_03.png"], "fps": 8, "loop": true}
+        }
+      }
     },
     "battlemage": {
       "id": "battlemage", 

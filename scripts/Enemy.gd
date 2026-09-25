@@ -499,11 +499,57 @@ func _on_hurt_box_area_entered(area):
 
 # Status effect functions
 func apply_knockback(direction: Vector2, strength: float):
-	knockback_velocity += direction * strength
+	# Calculate knockback resistance based on enemy characteristics
+	var resistance = calculate_knockback_resistance()
+	var final_strength = strength * (1.0 - resistance)
+	knockback_velocity += direction * final_strength
+
+func calculate_knockback_resistance() -> float:
+	var resistance = 0.0
+	
+	# Base resistance by enemy type
+	match enemy_type:
+		EnemyType.SWARM:
+			resistance += 0.0  # Small, light enemies - no resistance
+		EnemyType.CHASER:
+			resistance += 0.1  # Normal enemies - slight resistance
+		EnemyType.SHOOTER:
+			resistance += 0.15  # Ranged enemies - moderate resistance
+		EnemyType.TANK:
+			resistance += 0.4  # Tanks are heavy - high resistance
+	
+	# Size-based resistance (bigger = heavier = more resistance)
+	var size_factor = scale.x  # Use current scale as size indicator
+	resistance += (size_factor - 1.0) * 0.2  # Each 0.1 scale adds 2% resistance
+	
+	# Elite bonus resistance
+	if is_elite:
+		resistance += 0.2  # Elites resist knockback more
+		
+		# Special elite type bonuses
+		match elite_type:
+			EliteType.ARMORED:
+				resistance += 0.15  # Heavy armor
+			EliteType.FROST:
+				resistance += 0.1   # Ice makes them heavier
+	
+	# Health tier resistance (higher tier = more resistance)
+	if max_health > 150:  # Tier 3 threshold
+		resistance += 0.15
+	elif max_health > 75:  # Tier 2 threshold  
+		resistance += 0.1
+	
+	# Cap resistance at 70% (always allow some knockback)
+	return min(0.7, resistance)
 
 func apply_slow(slow_amount: float, duration: float):
 	slow_multiplier = slow_amount
 	slow_timer = duration
+	
+	# Apply blue frozen visual effect
+	var sprite = $Sprite2D
+	if sprite:
+		sprite.modulate = Color(0.6, 0.8, 1.2, 1.0)  # Blue tint
 
 func process_status_effects(delta: float):
 	# Handle slow effect timer
@@ -511,6 +557,13 @@ func process_status_effects(delta: float):
 		slow_timer -= delta
 		if slow_timer <= 0:
 			slow_multiplier = 1.0  # Return to normal speed
+			# Remove blue frozen visual effect
+			var sprite = $Sprite2D
+			if sprite:
+				if is_elite:
+					apply_elite_visual_effects()  # Restore elite appearance
+				else:
+					sprite.modulate = Color.WHITE  # Return to normal color
 
 # Apply elite modifications to stats
 func apply_elite_modifications():

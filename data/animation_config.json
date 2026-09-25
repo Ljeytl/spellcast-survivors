@@ -1,0 +1,244 @@
+{
+  "animation_system": {
+    "version": "1.0",
+    "description": "Comprehensive animation configuration for SpellCast Survivors",
+    "asset_paths": {
+      "spells": "res://assets/spells/",
+      "characters": "res://assets/characters/",
+      "enemies": "res://assets/enemies/",
+      "effects": "res://assets/effects/",
+      "ui": "res://assets/ui/",
+      "particles": "res://assets/particles/"
+    }
+  },
+  
+  "spell_animation_types": {
+    "projectile": {
+      "visual_elements": ["projectile_sprite", "projectile_trail", "impact_effect", "cast_flash"],
+      "required_components": ["projectile_animation", "impact_animation"],
+      "optional_components": ["trail_particles", "cast_effect"]
+    },
+    "aoe": {
+      "visual_elements": ["explosion_animation", "ground_effect", "shockwave", "warning_indicator"],
+      "required_components": ["explosion_animation"],
+      "optional_components": ["warning_indicator", "ground_lingering_effect", "cast_effect"]
+    },
+    "multi_aoe": {
+      "visual_elements": ["multiple_explosions", "warning_indicators", "projectile_incoming"],
+      "required_components": ["projectile_animation", "explosion_animation", "warning_animation"],
+      "optional_components": ["incoming_sound", "multiple_impacts"]
+    },
+    "chain": {
+      "visual_elements": ["initial_projectile", "chain_lightning", "chain_indicators"],
+      "required_components": ["projectile_animation", "chain_effect"],
+      "optional_components": ["chain_particles", "target_indicators"]
+    },
+    "heal_over_time": {
+      "visual_elements": ["healing_aura", "heal_pulses", "particle_upflow"],
+      "required_components": ["aura_animation", "heal_tick_effect"],
+      "optional_components": ["heal_particles", "aura_glow"]
+    },
+    "shield": {
+      "visual_elements": ["shield_bubble", "absorption_effects", "shield_break"],
+      "required_components": ["shield_form_animation", "shield_break_animation"],
+      "optional_components": ["shield_pulse", "absorption_particles", "shield_recharge"]
+    },
+    "auto_attack": {
+      "visual_elements": ["simple_projectile", "basic_trail", "basic_impact"],
+      "required_components": ["projectile_animation", "impact_effect"],
+      "optional_components": ["muzzle_flash", "trail_particles"]
+    },
+    "channeled_aoe": {
+      "visual_elements": ["persistent_area_effect", "continuous_damage", "area_particles"],
+      "required_components": ["area_animation", "channel_effect"],
+      "optional_components": ["ground_burn", "continuous_particles", "pulsing_damage"]
+    },
+    "utility": {
+      "visual_elements": ["global_screen_effect", "time_distortion", "utility_aura"],
+      "required_components": ["activation_effect", "duration_indicator"],
+      "optional_components": ["screen_filter", "time_particles", "utility_sound"]
+    },
+    "chain_heal": {
+      "visual_elements": ["chain_beam", "heal_indicators", "chain_particles"],
+      "required_components": ["chain_animation", "heal_effect"],
+      "optional_components": ["chain_particles", "heal_numbers", "target_glow"]
+    },
+    "summon": {
+      "visual_elements": ["summon_circle", "creature_spawn", "creature_ai", "summon_duration"],
+      "required_components": ["summon_animation", "creature_animations", "spawn_effect"],
+      "optional_components": ["summon_circle_buildup", "creature_despawn", "summon_particles", "creature_death"]
+    },
+    "summon_projectile": {
+      "visual_elements": ["summoned_projectile", "creature_casting", "projectile_ai"],
+      "required_components": ["creature_cast_animation", "projectile_spawn", "projectile_animation"],
+      "optional_components": ["creature_aim_indicator", "multiple_projectiles", "creature_reload"]
+    }
+  },
+
+  "character_animation_types": {
+    "player_character": {
+      "required_animations": ["idle", "walking", "casting", "death"],
+      "optional_animations": ["typing", "hurt", "level_up"],
+      "required_effects": ["level_up_effect"],
+      "optional_effects": ["typing_aura", "spell_charge_aura"]
+    }
+  },
+
+  "enemy_animation_types": {
+    "basic_enemy": {
+      "required_animations": ["idle", "walking", "death"],
+      "optional_animations": ["attacking", "hurt", "spawning"],
+      "required_effects": ["death_effect"],
+      "optional_effects": ["spawn_effect", "hit_effect", "status_effects"]
+    },
+    "elite_enemy": {
+      "required_animations": ["idle", "walking", "death", "special_attack"],
+      "optional_animations": ["enrage", "charge", "cast"],
+      "required_effects": ["death_effect", "special_attack_effect"],
+      "optional_effects": ["aura_effect", "transformation_effect"]
+    }
+  },
+
+  "particle_systems": {
+    "spell_particles": {
+      "mana_trail": {
+        "texture": "mana_particle.png",
+        "emission_rate": 50,
+        "lifetime": 1.5,
+        "colors": [[0, 1, 1, 1], [0, 0.5, 1, 0.3]],
+        "scale_curve": [1.0, 0.5, 0.0],
+        "velocity": {"min": 50, "max": 150}
+      },
+      "lightning_sparks": {
+        "texture": "spark_particle.png",
+        "emission_rate": 100,
+        "lifetime": 0.5,
+        "colors": [[1, 1, 0, 1], [1, 1, 1, 0]],
+        "scale_curve": [0.5, 1.0, 0.2],
+        "velocity": {"min": 200, "max": 400}
+      },
+      "heal_sparkles": {
+        "texture": "heal_particle.png",
+        "emission_rate": 30,
+        "lifetime": 2.0,
+        "colors": [[0, 1, 0, 0.8], [0, 1, 0.5, 0]],
+        "scale_curve": [0.3, 0.8, 0.1],
+        "velocity": {"min": 20, "max": 80}
+      }
+    },
+    
+    "environmental_particles": {
+      "dust_motes": {
+        "texture": "dust_particle.png",
+        "emission_rate": 10,
+        "lifetime": 5.0,
+        "colors": [[0.8, 0.7, 0.6, 0.3], [0.8, 0.7, 0.6, 0]],
+        "scale_curve": [0.2, 0.2, 0.2],
+        "velocity": {"min": 5, "max": 15}
+      }
+    }
+  },
+
+  "animation_blending": {
+    "character_state_machine": {
+      "idle": {
+        "transitions": {
+          "walking": {"duration": 0.1, "curve": "ease_in_out"},
+          "casting": {"duration": 0.05, "curve": "ease_in"},
+          "typing": {"duration": 0.1, "curve": "ease_in"}
+        }
+      },
+      "walking": {
+        "transitions": {
+          "idle": {"duration": 0.2, "curve": "ease_out"},
+          "casting": {"duration": 0.1, "curve": "ease_in"}
+        }
+      },
+      "casting": {
+        "transitions": {
+          "idle": {"duration": 0.15, "curve": "ease_out"},
+          "walking": {"duration": 0.15, "curve": "ease_out"}
+        }
+      }
+    }
+  },
+
+  "ui_animations": {
+    "level_up_screen": {
+      "card_hover": {
+        "scale": {"from": 1.0, "to": 1.05, "duration": 0.15, "curve": "ease_out"},
+        "glow": {"from": 0.0, "to": 0.3, "duration": 0.15, "curve": "ease_out"}
+      },
+      "card_select": {
+        "flash": {"frames": ["card_flash_01.png", "card_flash_02.png"], "fps": 30, "loop": false},
+        "scale_pulse": {"from": 1.05, "to": 1.2, "duration": 0.1, "curve": "elastic_out"}
+      }
+    },
+    "spell_queue": {
+      "spell_added": {
+        "bounce_in": {"from": 0.0, "to": 1.0, "duration": 0.2, "curve": "bounce_out"},
+        "glow_pulse": {"frames": ["queue_glow_01.png", "queue_glow_02.png", "queue_glow_03.png"], "fps": 15, "loop": false}
+      },
+      "spell_cast": {
+        "scale_out": {"from": 1.0, "to": 0.0, "duration": 0.15, "curve": "ease_in"},
+        "flash_effect": {"frames": ["cast_flash_01.png", "cast_flash_02.png"], "fps": 24, "loop": false}
+      }
+    }
+  },
+
+  "performance_settings": {
+    "quality_levels": {
+      "low": {
+        "max_particles": 50,
+        "animation_fps_cap": 30,
+        "effect_quality": 0.5,
+        "disable_trail_effects": true
+      },
+      "medium": {
+        "max_particles": 100,
+        "animation_fps_cap": 60,
+        "effect_quality": 0.8,
+        "disable_trail_effects": false
+      },
+      "high": {
+        "max_particles": 200,
+        "animation_fps_cap": 120,
+        "effect_quality": 1.0,
+        "disable_trail_effects": false
+      }
+    },
+    "culling": {
+      "offscreen_animation_reduction": 0.5,
+      "distant_enemy_simplification": true,
+      "particle_count_scaling": true
+    }
+  },
+
+  "audio_integration": {
+    "animation_sound_cues": {
+      "spell_casting": {
+        "pre_cast": {"timing": 0.0, "volume": 0.8},
+        "cast_complete": {"timing": 0.5, "volume": 1.0},
+        "impact": {"timing": 1.0, "volume": 0.9}
+      },
+      "character_actions": {
+        "footsteps": {"timing": "on_frame", "frames": [2, 5], "volume": 0.3},
+        "typing_clicks": {"timing": "on_frame", "frames": [1], "volume": 0.5}
+      }
+    }
+  },
+
+  "platform_optimizations": {
+    "desktop": {
+      "enable_advanced_shaders": true,
+      "max_animation_layers": 10,
+      "particle_precision": "high"
+    },
+    "mobile": {
+      "enable_advanced_shaders": false,
+      "max_animation_layers": 5,
+      "particle_precision": "low",
+      "force_low_quality": true
+    }
+  }
+}

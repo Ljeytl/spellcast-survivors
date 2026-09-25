@@ -768,7 +768,29 @@ func is_time_dilated() -> bool:
 func setup_console():
 	# Create developer console (hidden cheat system)
 	console_instance = console_scene.instantiate()
-	add_child(console_instance)
+	
+	# Add console to UI layer so it appears on top of the game
+	var ui_layer = $UI
+	if ui_layer:
+		ui_layer.add_child(console_instance)
+		print("Console added to UI layer")
+	else:
+		# Fallback: create a dedicated console CanvasLayer
+		var console_layer = CanvasLayer.new()
+		console_layer.layer = 100  # High layer to ensure it's on top
+		console_layer.name = "ConsoleLayer"
+		add_child(console_layer)
+		console_layer.add_child(console_instance)
+		print("Console added to new CanvasLayer")
+	
+	# Ensure console is completely hidden on startup
+	if console_instance:
+		console_instance.visible = false
+		var console_panel = console_instance.get_node("ConsolePanel")
+		if console_panel:
+			console_panel.visible = false
+			console_panel.position.y = -300.0  # Start off-screen
+	
 	print("Console system loaded - press ~ to access hidden commands")
 
 func setup_object_pool():

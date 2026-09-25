@@ -98,6 +98,26 @@ func _ready():
 	tooltip_panel = panel.get_node_or_null("TooltipPanel")
 	tooltip_label = tooltip_panel.get_node_or_null("TooltipLabel") if tooltip_panel else null
 
+# Load upgrades from DataManager
+func load_upgrades_from_data():
+	if not DataManager:
+		print("Warning: DataManager not available, using fallback upgrades")
+		return
+		
+	# Load generic upgrades
+	generic_upgrades = DataManager.get_generic_upgrades()
+	
+	# Generate spell upgrades from spell data
+	var spell_data = DataManager.get_all_spells()
+	for spell_id in spell_data:
+		var spell = spell_data[spell_id]
+		spell_upgrades[spell_id] = {
+			"name": spell.name + "+",
+			"description": "+15% damage, scaling bonuses per level",
+			"icon": "⭐",
+			"effect": {"type": "spell_upgrade", "spell": spell_id}
+		}
+
 func show_level_up(player_level: int, player_stats: Dictionary = {}):
 	available_upgrades = generate_upgrade_options(player_stats, player_level)
 	update_ui(player_level, player_stats)

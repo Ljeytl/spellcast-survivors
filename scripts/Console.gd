@@ -226,25 +226,32 @@ var commands: Dictionary = {
 }
 
 func _ready():
-	# Hide console initially
+	# Hide console initially and position it off-screen
 	visible = false
 	console_panel.visible = false
+	console_panel.position.y = -300.0  # Start off-screen
 	
-	# Setup input field
-	input_field.placeholder_text = "Enter console command..."
-	input_field.text_submitted.connect(_on_command_submitted)
+	# Ensure input field is properly configured
+	if input_field:
+		input_field.placeholder_text = "Enter console command..."
+		input_field.text_submitted.connect(_on_command_submitted)
+		input_field.editable = true
+		input_field.focus_mode = Control.FOCUS_ALL
+	else:
+		print("ERROR: Console input_field not found!")
 	
 	# Setup suggestions list
-	suggestions_list.visible = false
-	suggestions_list.item_selected.connect(_on_suggestion_selected)
+	if suggestions_list:
+		suggestions_list.visible = false
+		suggestions_list.item_selected.connect(_on_suggestion_selected)
 	
 	# Find game node
 	game_node = get_tree().get_first_node_in_group("game")
 
 func _input(event):
-	# Toggle console with tilde key
+	# Toggle console with tilde key (backtick ` or tilde ~)
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_QUOTELEFT:  # Tilde key (~)
+		if event.keycode == KEY_QUOTELEFT:  # Backtick/Tilde key (`/~)
 			toggle_console()
 			get_viewport().set_input_as_handled()
 		elif is_console_open:
@@ -272,27 +279,36 @@ func open_console():
 	visible = true
 	console_panel.visible = true
 	
-	# Pause game
+	# Pause game (like Minecraft)
 	get_tree().paused = true
 	
-	# Focus input field
-	input_field.grab_focus()
+	# Smooth slide-down animation (Minecraft style)
+	console_panel.position.y = -300.0  # Start off-screen
+	var tween = create_tween()
+	tween.tween_property(console_panel, "position:y", 0.0, 0.15)
 	
-	# Show welcome message if first time
+	# Focus input field after animation
+	tween.tween_callback(func(): input_field.grab_focus())
+	
+	# Show minimal welcome message (Minecraft style)
 	if output_label.text.is_empty():
-		add_output("[color=cyan]SpellCast Survivors Developer Console[/color]")
-		add_output("Type 'help' for available commands")
-		add_output("Press ~ to close, Tab to autocomplete, Up/Down for history")
+		add_output("[color=gray]Developer Console - Type 'help' for commands[/color]")
 		add_output("")
 
 func close_console():
 	is_console_open = false
-	visible = false
-	console_panel.visible = false
 	suggestions_list.visible = false
 	
-	# Unpause game
-	get_tree().paused = false
+	# Smooth slide-up animation (Minecraft style)
+	var tween = create_tween()
+	tween.tween_property(console_panel, "position:y", -300.0, 0.15)
+	
+	# Hide console completely after animation and unpause game
+	tween.tween_callback(func():
+		visible = false
+		console_panel.visible = false
+		get_tree().paused = false
+	)
 
 func _on_command_submitted(command_text: String):
 	if command_text.strip_edges().is_empty():
