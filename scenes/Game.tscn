@@ -66,10 +66,6 @@ debug_color = Color(1, 0, 0, 0.3)
 [node name="SpellManager" type="Node" parent="."]
 script = ExtResource("3_q6m9a")
 
-[node name="EnemyManager_OLD" type="Node2D" parent="."]
-process_mode = 4
-script = ExtResource("4_r7n0b")
-
 [node name="MonsterManager" type="Node2D" parent="."]
 script = ExtResource("4_monster")
 

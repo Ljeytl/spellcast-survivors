@@ -418,7 +418,7 @@ func handle_shooter_behavior(delta: float):
 		shoot_timer = shoot_interval
 
 # Called when enemy takes damage from spells or other sources
-func take_damage(damage_amount: float):
+func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF):
 	if dying:
 		return
 	# Apply armor reduction for armored elites

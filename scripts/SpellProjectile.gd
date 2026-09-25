@@ -321,7 +321,7 @@ func _on_area_entered(area):
 		if area.name == "HurtBox" and area.get_parent().is_in_group("enemies"):
 			var enemy = area.get_parent()
 			if enemy.has_method("take_damage"):
-				enemy.take_damage(damage)
+				enemy.take_damage(damage, global_position)
 				
 				# Create particle effect on impact
 				var scene_tree = get_tree()
