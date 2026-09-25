@@ -1,5 +1,7 @@
 extends Control
 
+var selecting_upgrade: bool = false
+
 signal upgrade_selected(upgrade_data: Dictionary)
 
 var available_upgrades: Array = []
@@ -119,6 +121,7 @@ func load_upgrades_from_data():
 		}
 
 func show_level_up(player_level: int, player_stats: Dictionary = {}):
+	selecting_upgrade = false
 	available_upgrades = generate_upgrade_options(player_stats, player_level)
 	update_ui(player_level, player_stats)
 	
@@ -269,15 +272,18 @@ func hide_screen():
 	visible = false
 
 func _on_upgrade_button_pressed(button_index: int):
-	if button_index < available_upgrades.size():
+	if selecting_upgrade:
+		return
+	if button_index >= 0 and button_index < available_upgrades.size():
+		selecting_upgrade = true
 		var selected_upgrade = available_upgrades[button_index]
 		
 		# Play selection sound effect
 		if is_instance_valid(AudioManager):
 			AudioManager.play_sound(AudioManager.SoundType.UI_LEVEL_SELECT)
 		
+		await hide_screen()
 		upgrade_selected.emit(selected_upgrade)
-		hide_screen()
 
 # Enhanced hover effects with glow and scale
 # Enhanced hover effects with glow, scale, and tooltip
