@@ -1,3 +1,9 @@
+## Casting presentation implemented — 2026-09-26
+
+- Combat typing places animated stone letter keys with impact sounds; backspace shatters and fades the removed key. Successful casts briefly flash their completed word. A–Z, 0–9, and standard punctuation share the 32×32 key size; punctuation assets do not expand current spell input rules.
+- The supplied staff floats on a capped-speed orbit around the wizard, indicating the nearest visible living threat with visible-boss priority. Existing attack targeting is unchanged.
+- Later: human-test impact volume and animation pace, animate separate wizard body parts, and decide whether any future spell incantations need punctuation.
+
 ## Saved future concepts from friends — 2026-09-26
 
 Documentation only; see [the full concept notes](docs/CASTING_FANTASY_NOTES.md#saved-friend-concepts--september-26-2026).
@@ -16,7 +22,7 @@ Documentation only; see [the full concept notes](docs/CASTING_FANTASY_NOTES.md#s
 ## Authored interface art — 2026-09-26
 
 - Keycap textures now serve menu/action buttons and spell shortcuts; menu scenery uses the supplied grass and resting slime. Both tree and king-slime variants are in use.
-- Remaining logo-letter and key variants are preserved as alternatives. A complete matching alphabet/font and layered character animation remain future work.
+- Remaining logo-letter and key variants are preserved as alternatives. A matching 32×32 casting alphabet, digits, and punctuation are implemented; layered character animation remains future work.
 
 ## Art integration — 2026-09-26
 
