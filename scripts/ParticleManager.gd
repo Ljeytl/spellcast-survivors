@@ -411,7 +411,7 @@ func create_life_effect(pos: Vector2):
 	create_expanding_circle(pos, 100.0, Color.LIME_GREEN, 0.6, true)
 	# Play healing sound effect
 	if AudioManager:
-		AudioManager.play_sound(AudioManager.SoundType.SPELL_HEAL)
+		AudioManager.play_sound(AudioManager.SoundType.SPELL_LIFE)
 
 func create_ice_blast_effect(pos: Vector2):
 	# Create particle effect
@@ -969,3 +969,295 @@ func create_boss_death_effect(pos: Vector2):
 	create_expanding_circle(pos, 300.0, Color.ORANGE, 1.2, true)
 	create_expanding_circle(pos, 250.0, Color.YELLOW, 1.0, true)
 	create_expanding_circle(pos, 200.0, Color.WHITE, 0.8, true)
+
+func create_elite_spawn_effect(pos: Vector2, elite_type: String):
+	# Special spawn effects for elite enemies appearing!
+	match elite_type:
+		"ARMORED":
+			create_expanding_circle(pos, 100.0, Color.SILVER, 0.6, true)
+			create_expanding_circle(pos, 70.0, Color.WHITE, 0.4, true)
+		"REGENERATOR":
+			create_expanding_circle(pos, 90.0, Color.LIME_GREEN, 0.7, true)
+			create_expanding_circle(pos, 60.0, Color.GREEN, 0.5, true)
+		"SPLITTER":
+			create_expanding_circle(pos, 110.0, Color.MAGENTA, 0.6, true)
+			create_expanding_circle(pos, 80.0, Color.PURPLE, 0.4, true)
+		"FROST":
+			create_expanding_circle(pos, 95.0, Color.CYAN, 0.8, true)
+			create_expanding_circle(pos, 65.0, Color.LIGHT_BLUE, 0.5, true)
+		"EXPLOSIVE":
+			create_expanding_circle(pos, 120.0, Color.ORANGE_RED, 0.5, true)
+			create_expanding_circle(pos, 90.0, Color.ORANGE, 0.3, true)
+		_:
+			# Default elite spawn effect
+			create_expanding_circle(pos, 100.0, Color.GOLD, 0.6, true)
+			create_expanding_circle(pos, 70.0, Color.YELLOW, 0.4, true)
+	
+	# Play special elite spawn sound
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.ELITE_SPAWN)
+
+# Warning/telegraph system for enemy attacks
+func create_attack_warning(pos: Vector2, radius: float, delay: float, attack_type: String = "danger"):
+	# Create warning circle that shows where danger will be
+	var warning = AttackWarning.new()
+	warning.setup_warning(pos, radius, delay, attack_type)
+	add_child(warning)
+
+func create_aoe_telegraph(pos: Vector2, radius: float, charge_time: float, danger_color: Color = Color.RED):
+	# Telegraph for incoming AoE attacks with charging animation
+	var telegraph = AoETelegraph.new()
+	telegraph.setup_telegraph(pos, radius, charge_time, danger_color)
+	add_child(telegraph)
+
+func create_projectile_warning(from_pos: Vector2, to_pos: Vector2, delay: float):
+	# Warning line showing incoming projectile path
+	var warning = ProjectileWarning.new()
+	warning.setup_projectile_warning(from_pos, to_pos, delay)
+	add_child(warning)
+
+# Attack warning system - shows danger zones before attacks hit
+class AttackWarning extends Node2D:
+	var warning_radius: float = 100.0
+	var warning_color: Color = Color.ORANGE_RED
+	var alpha: float = 0.0
+	var pulse_speed: float = 3.0
+	var warning_duration: float = 2.0
+	var attack_type: String = "danger"
+	
+	func setup_warning(pos: Vector2, radius: float, delay: float, type: String):
+		global_position = pos
+		warning_radius = radius
+		warning_duration = delay
+		attack_type = type
+		z_index = 70  # Above most other effects
+		
+		# Different colors for different attack types
+		match type:
+			"explosion":
+				warning_color = Color.ORANGE_RED
+			"frost":
+				warning_color = Color.CYAN
+			"poison":
+				warning_color = Color.PURPLE
+			"lightning":
+				warning_color = Color.YELLOW
+			_:
+				warning_color = Color.RED
+		
+		# Start warning animation
+		start_warning_sequence()
+	
+	func start_warning_sequence():
+		# Phase 1: Fade in and pulse
+		var fade_tween = create_tween()
+		fade_tween.set_parallel(true)
+		fade_tween.tween_property(self, "alpha", 0.7, 0.3)
+		
+		# Phase 2: Pulsing warning
+		var pulse_tween = create_tween()
+		pulse_tween.set_loops()
+		pulse_tween.tween_method(
+			func(a): 
+				alpha = a
+				queue_redraw(),
+			0.7, 0.3, 0.3
+		)
+		pulse_tween.tween_method(
+			func(a): 
+				alpha = a
+				queue_redraw(),
+			0.3, 0.7, 0.3
+		)
+		
+		# Phase 3: Final danger flash and cleanup
+		var cleanup_timer = Timer.new()
+		cleanup_timer.wait_time = warning_duration
+		cleanup_timer.one_shot = true
+		cleanup_timer.timeout.connect(final_warning_flash)
+		add_child(cleanup_timer)
+		cleanup_timer.start()
+	
+	func final_warning_flash():
+		# Bright red flash to indicate imminent danger
+		var flash_tween = create_tween()
+		flash_tween.tween_method(
+			func(a):
+				alpha = a
+				queue_redraw(),
+			alpha, 1.0, 0.1
+		)
+		flash_tween.tween_method(
+			func(a):
+				alpha = a  
+				queue_redraw(),
+			1.0, 0.0, 0.2
+		)
+		flash_tween.finished.connect(queue_free)
+	
+	func _draw():
+		if warning_radius > 0 and alpha > 0:
+			var draw_color = warning_color
+			draw_color.a = alpha * 0.3  # Semi-transparent fill
+			
+			# Draw danger zone circle
+			draw_circle(Vector2.ZERO, warning_radius, draw_color)
+			
+			# Draw bright warning outline
+			var outline_color = warning_color
+			outline_color.a = alpha
+			draw_arc(Vector2.ZERO, warning_radius, 0, TAU, 64, outline_color, 4.0)
+			
+			# Draw inner warning ring
+			var inner_color = Color.WHITE
+			inner_color.a = alpha * 0.8
+			draw_arc(Vector2.ZERO, warning_radius * 0.7, 0, TAU, 32, inner_color, 2.0)
+
+# AoE Telegraph system - charging attacks with buildup
+class AoETelegraph extends Node2D:
+	var telegraph_radius: float = 150.0
+	var charge_progress: float = 0.0
+	var danger_color: Color = Color.RED
+	var charge_time: float = 3.0
+	var is_active: bool = true
+	
+	func setup_telegraph(pos: Vector2, radius: float, charge_duration: float, color: Color):
+		global_position = pos
+		telegraph_radius = radius
+		charge_time = charge_duration
+		danger_color = color
+		z_index = 65
+		
+		start_charging_sequence()
+	
+	func start_charging_sequence():
+		# Charging buildup animation
+		var charge_tween = create_tween()
+		charge_tween.tween_method(
+			func(progress):
+				charge_progress = progress
+				queue_redraw(),
+			0.0, 1.0, charge_time
+		).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		
+		charge_tween.finished.connect(trigger_attack)
+	
+	func trigger_attack():
+		is_active = false
+		# Flash bright and cleanup
+		var flash_tween = create_tween()
+		flash_tween.tween_method(
+			func(intensity):
+				modulate = Color(intensity, intensity, intensity, 1.0)
+				queue_redraw(),
+			1.0, 3.0, 0.1
+		)
+		flash_tween.tween_method(
+			func(intensity):
+				modulate = Color(intensity, intensity, intensity, intensity)
+				queue_redraw(),
+			3.0, 0.0, 0.3
+		)
+		flash_tween.finished.connect(queue_free)
+	
+	func _draw():
+		if not is_active or telegraph_radius <= 0:
+			return
+		
+		var intensity = charge_progress
+		var base_color = danger_color
+		
+		# Draw charging fill (gets brighter as it charges)
+		var fill_color = base_color
+		fill_color.a = intensity * 0.4
+		draw_circle(Vector2.ZERO, telegraph_radius, fill_color)
+		
+		# Draw charging outline (gets thicker as it charges)
+		var outline_color = base_color
+		outline_color.a = 0.7 + intensity * 0.3
+		var outline_width = 3.0 + intensity * 5.0
+		draw_arc(Vector2.ZERO, telegraph_radius, 0, TAU, 64, outline_color, outline_width)
+		
+		# Draw inner charging ring that shrinks as it charges
+		var inner_radius = telegraph_radius * (0.8 - intensity * 0.3)
+		var inner_color = Color.WHITE
+		inner_color.a = intensity * 0.6
+		draw_arc(Vector2.ZERO, inner_radius, 0, TAU, 32, inner_color, 2.0)
+		
+		# Draw charging segments
+		if intensity > 0.2:
+			for i in range(8):
+				var angle = (2 * PI * i) / 8
+				var segment_alpha = min(1.0, (intensity - 0.2) * 2.0)
+				var segment_color = Color.YELLOW
+				segment_color.a = segment_alpha
+				
+				var start_pos = Vector2(cos(angle), sin(angle)) * (telegraph_radius - 10)
+				var end_pos = Vector2(cos(angle), sin(angle)) * (telegraph_radius + 5)
+				draw_line(start_pos, end_pos, segment_color, 3.0)
+
+# Projectile warning system - shows projectile paths
+class ProjectileWarning extends Node2D:
+	var from_position: Vector2
+	var to_position: Vector2  
+	var warning_alpha: float = 0.0
+	var warning_duration: float = 1.0
+	
+	func setup_projectile_warning(start_pos: Vector2, end_pos: Vector2, delay: float):
+		from_position = start_pos - global_position
+		to_position = end_pos - global_position
+		warning_duration = delay
+		z_index = 60
+		
+		start_projectile_warning()
+	
+	func start_projectile_warning():
+		var warning_tween = create_tween()
+		warning_tween.set_loops()
+		warning_tween.tween_method(
+			func(a):
+				warning_alpha = a
+				queue_redraw(),
+			0.3, 0.8, 0.3
+		)
+		warning_tween.tween_method(
+			func(a):
+				warning_alpha = a
+				queue_redraw(),
+			0.8, 0.3, 0.3
+		)
+		
+		# Cleanup after delay
+		var cleanup_timer = Timer.new()
+		cleanup_timer.wait_time = warning_duration
+		cleanup_timer.one_shot = true
+		cleanup_timer.timeout.connect(queue_free)
+		add_child(cleanup_timer)
+		cleanup_timer.start()
+	
+	func _draw():
+		if warning_alpha <= 0:
+			return
+		
+		var line_color = Color.ORANGE_RED
+		line_color.a = warning_alpha
+		
+		# Draw warning line
+		draw_line(from_position, to_position, line_color, 4.0)
+		
+		# Draw arrow indicators along the path
+		var direction = (to_position - from_position).normalized()
+		var distance = from_position.distance_to(to_position)
+		var arrow_count = max(2, int(distance / 60))
+		
+		for i in range(arrow_count):
+			var t = float(i + 1) / (arrow_count + 1)
+			var arrow_pos = from_position.lerp(to_position, t)
+			
+			# Draw simple arrow
+			var arrow_size = 15.0
+			var arrow_left = arrow_pos + direction.rotated(2.5) * arrow_size
+			var arrow_right = arrow_pos + direction.rotated(-2.5) * arrow_size
+			
+			draw_line(arrow_pos, arrow_left, line_color, 2.0)
+			draw_line(arrow_pos, arrow_right, line_color, 2.0)

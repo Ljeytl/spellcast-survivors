@@ -141,7 +141,6 @@ func take_damage(damage: float):
 	# Play damage sound effect
 	if is_instance_valid(AudioManager):
 		AudioManager.on_damage_taken()
-	else:
 	
 	# Update the health bar UI
 	health_changed.emit(health, max_health, overheal)
