@@ -4,6 +4,14 @@ signal options_closed
 
 var called_from_pause: bool = false
 
+func _ready():
+	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "OptionsPanel")
+
+func _input(event):
+	if called_from_pause and event.is_action_pressed("ui_cancel") and not event.is_echo():
+		get_viewport().set_input_as_handled()
+		_on_back_button_pressed()
+
 func _on_back_button_pressed():
 	# Play button click sound
 	if AudioManager:
@@ -51,3 +59,6 @@ func _on_v_sync_check_box_toggled(button_pressed):
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
 	else:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+
+func _layout_readable_menu():
+	preload("res://scripts/GameplayReadability.gd").layout_menu(self, "OptionsPanel")

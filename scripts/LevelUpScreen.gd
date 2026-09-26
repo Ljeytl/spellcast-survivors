@@ -230,12 +230,16 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 		print("ERROR: Button is null in update_upgrade_button()")
 		return
 		
-	var icon = upgrade.get("icon", "")
 	var name = upgrade.get("name", "Unknown")
 	var description = upgrade.get("description", "")
 	
-	# Format the button text with better spacing
-	var title_line = icon + " " + name
+	var effect = upgrade.get("effect", {})
+	var category = "PASSIVE UPGRADE"
+	if effect.get("type", "") == "learn_spell":
+		category = "EVOLUTION" if effect.get("spell", "") in preload("res://scripts/SynergyCatalog.gd").RECIPES else "NEW SPELL"
+	elif effect.get("type", "") == "spell_upgrade":
+		category = "SPELL UPGRADE"
+	var title_line = category + " · " + name
 	button.text = ""
 	var copy = button.get_node_or_null("CardText") as Label
 	if copy == null:
@@ -243,10 +247,10 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 		copy.name = "CardText"
 		copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		copy.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		copy.add_theme_font_size_override("font_size", 16)
-		copy.add_theme_color_override("font_color", Color.WHITE)
+		copy.add_theme_font_size_override("font_size", 18)
+		copy.add_theme_color_override("font_color", Color("eee8d8"))
 		button.add_child(copy)
 		copy.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		copy.offset_left = 12
@@ -255,26 +259,15 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 		copy.offset_bottom = -16
 		copy.minimum_size_changed.connect(_resize_card.bind(button, copy))
 	copy.text = title_line + "\n" + description
+	copy.set_meta("base_copy", copy.text)
 	_resize_card.call_deferred(button, copy)
 	
 	
-	# Add subtle color coding based on upgrade type
-	var effect_type = upgrade.get("effect", {}).get("type", "")
-	match effect_type:
-		"spell_damage":
-			button.modulate = Color(1.0, 0.9, 0.9)  # Slight red tint
-		"cast_speed":
-			button.modulate = Color(0.9, 0.9, 1.0)  # Slight blue tint
-		"movement_speed":
-			button.modulate = Color(0.9, 1.0, 0.9)  # Slight green tint
-		"max_health":
-			button.modulate = Color(1.0, 0.95, 0.9) # Slight orange tint
-		"xp_range":
-			button.modulate = Color(1.0, 1.0, 0.9)  # Slight yellow tint
-		"spell_upgrade":
-			button.modulate = Color(0.95, 0.9, 1.0) # Slight purple tint
-		_:
-			button.modulate = Color.WHITE
+	button.modulate = Color.WHITE
+	var accent = Color("dfbd76") if category in ["NEW SPELL", "EVOLUTION"] else Color("58728b")
+	var style = preload("res://scripts/GameplayReadability.gd").panel_style(accent)
+	button.add_theme_stylebox_override("normal", style)
+	button.set_meta("unlocked_style", style.duplicate())
 
 func _resize_card(button: Button, copy: Label):
 	button.get_parent().custom_minimum_size.y = maxf(80.0, copy.get_minimum_size().y + 26.0)
@@ -489,15 +482,17 @@ func _on_banish_mode_toggled():
 	if selecting_upgrade:
 		return
 	choice_mode = "select" if choice_mode == "banish" else "banish"
-	banish_button.modulate = Color.RED if choice_mode == "banish" else Color.WHITE
+	banish_button.modulate = Color.WHITE
 	lock_button.modulate = Color.WHITE
+	update_choice_prompt()
 
 func _on_lock_mode_toggled():
 	if selecting_upgrade:
 		return
 	choice_mode = "select" if choice_mode == "lock" else "lock"
-	lock_button.modulate = Color.YELLOW if choice_mode == "lock" else Color.WHITE
+	lock_button.modulate = Color.WHITE
 	banish_button.modulate = Color.WHITE
+	update_choice_prompt()
 
 func reroll_upgrades():
 	generate_upgrade_options(offered_stats, offered_level)
@@ -586,31 +581,50 @@ func get_upgrade_key(upgrade: Dictionary) -> String:
 		return ""
 
 func update_reroll_button_texts():
+	update_choice_prompt()
 	# Update button texts with remaining counts
 	if reroll_button:
-		reroll_button.text = "🎲 Reroll (" + str(rerolls_remaining) + ")"
+		reroll_button.text = "Reroll (" + str(rerolls_remaining) + ")"
 		reroll_button.disabled = (rerolls_remaining <= 0)
 		
 	if banish_button:
-		banish_button.text = "🚫 Banish (" + str(banishes_remaining) + ")"
+		banish_button.text = "Banish (" + str(banishes_remaining) + ")"
 		banish_button.disabled = (banishes_remaining <= 0)
 		
 	if lock_button:
-		lock_button.text = "🔒 Lock (" + str(locks_remaining) + ")"
+		lock_button.text = "Lock (" + str(locks_remaining) + ")"
 		lock_button.disabled = (locks_remaining <= 0)
 
+func update_choice_prompt():
+	var prompt = $Panel/VBoxContainer/UpgradeLabel
+	prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	match choice_mode:
+		"lock":
+			prompt.text = "Choose a card to lock or unlock for rerolls"
+			prompt.modulate = Color("dfbd76")
+		"banish":
+			prompt.text = "Choose a card to banish from this run"
+			prompt.modulate = Color("ff8175")
+		_:
+			prompt.text = "Choose one upgrade"
+			prompt.modulate = Color.WHITE
+
 func update_upgrade_visual_state(index: int):
-	# Update visual state of upgrade to show if it's locked
-	if index < upgrade_cards.size() and upgrade_cards[index]:
-		var card = upgrade_cards[index]
-		
-		if index in locked_upgrades:
-			# Show locked state
-			card.modulate = Color.YELLOW
-			# Could add lock icon overlay here
-		else:
-			# Show normal state
-			card.modulate = Color.WHITE
+	if index >= upgrade_cards.size() or not upgrade_cards[index]:
+		return
+	var card = upgrade_cards[index]
+	card.modulate = Color.WHITE
+	var button = upgrade_buttons[index]
+	var copy = button.get_node_or_null("CardText")
+	if not copy:
+		return
+	var locked = index in locked_upgrades
+	copy.text = ("LOCKED · Held on reroll\n" if locked else "") + str(copy.get_meta("base_copy", copy.text))
+	var style = button.get_meta("unlocked_style").duplicate()
+	if locked:
+		style.border_color = Color("dfbd76")
+		style.set_border_width_all(2)
+	button.add_theme_stylebox_override("normal", style)
 
 func update_upgrade_displays():
 	update_ui(offered_level, offered_stats)

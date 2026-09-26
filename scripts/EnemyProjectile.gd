@@ -47,5 +47,5 @@ func _draw():
 		draw_line(Vector2(0, -12), Vector2(0, 12), Color.WHITE, 2.0)
 	else:
 		draw_rect(Rect2(-9, -9, 18, 18), Color(0.08, 0.02, 0.02))
-		draw_rect(Rect2(-7, -7, 14, 14), Color(1, 0.08, 0.05))
-		draw_rect(Rect2(-7, -7, 14, 14), Color(1, 0.85, 0.75), false, 1.5)
+		draw_rect(Rect2(-7, -7, 14, 14), Color("ff6b62"))
+		draw_rect(Rect2(-7, -7, 14, 14), Color("fff0de"), false, 1.5)

@@ -4,6 +4,7 @@ extends Control
 
 # Called when the main menu scene loads
 func _ready():
+	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "MenuPanel")
 	# Start playing the menu background music
 	if AudioManager:
 		AudioManager.play_music(AudioManager.SoundType.MUSIC_MENU, true, 1.0)
@@ -40,3 +41,7 @@ func _on_collection_pressed():
 		$MenuPanel.show()
 		$MenuPanel/VBoxContainer/CollectionButton.grab_focus()
 	)
+
+
+func _layout_readable_menu():
+	preload("res://scripts/GameplayReadability.gd").layout_menu(self, "MenuPanel")
