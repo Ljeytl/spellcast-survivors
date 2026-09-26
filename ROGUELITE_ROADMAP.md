@@ -369,3 +369,5 @@ This roadmap transforms SpellCast Survivors into a comprehensive roguelite while
 ## September 2026 encounter milestone
 
 Implemented the forgiving opening, regeneration repair, twelve enemy variants, timed ranged introductions and three boss milestones and immediate victory at 20:00. Next: introduce spell acquisition and combinations, then broader balance, art direction and release qualification. Spell choices should reward behavior and playstyle without requiring elemental counters. See `docs/ENCOUNTER_DESIGN.md` for the current roster and remaining decisions.
+
+Design review: [Core Game Design v0.2](docs/CORE_GAME_DESIGN.md) reconciles the agent proposal with the agreed direction. Its final section lists remaining choices; proposed systems and numerical experiments require review before implementation.

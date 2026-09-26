@@ -50,3 +50,11 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Keep bosses at 5/10/15 minutes and remove the 20-minute boss, which would coincide with victory.
 - Leave the narrative reason for winning to later design work.
 - Verify cutoff, no early victory, losses, duplicate results and post-result guards with twenty-four ending assertions.
+
+## 2026-09-26 — Reconciled core design draft
+
+- Added Core Game Design v0.2 and preserved the original agent draft for reference.
+- Incorporated immediate twenty-minute victory and agreed encounter/playstyle principles.
+- Separated approved direction, current prototype behavior, proposed content and experimental tuning.
+- Added typing/input constraints, the upgrade-choice budget, combination alternatives and a focused list of remaining product choices.
+- Documentation only; proposals do not change or approve game behavior.
