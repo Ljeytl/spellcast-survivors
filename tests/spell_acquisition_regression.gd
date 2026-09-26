@@ -72,8 +72,10 @@ func run():
 	check(screen.available_upgrades[0].key == held_key, "Reroll preserves a locked card")
 	validate_cards(screen)
 	var banned_key = screen.available_upgrades[1].key
+	screen.show_tooltip(1)
 	screen._on_banish_mode_toggled()
 	screen._on_upgrade_button_pressed(1)
+	check(not screen.tooltip_panel.visible, "Replacement hides stale tooltip content")
 	check(banned_key in screen.banished_upgrades and not screen.selecting_upgrade, "Banish mode removes a card without selecting it")
 	validate_cards(screen)
 	screen.show_level_up(3)

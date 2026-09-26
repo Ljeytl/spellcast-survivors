@@ -207,6 +207,10 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 	return options
 
 func update_ui(player_level: int, player_stats: Dictionary = {}):
+	if tooltip_tween:
+		tooltip_tween.kill()
+	if tooltip_panel:
+		tooltip_panel.hide()
 	# Update UI labels with null checks
 	if title_label:
 		title_label.text = "LEVEL UP!"
