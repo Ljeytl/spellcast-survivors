@@ -40,5 +40,4 @@ func animate_damage_number():
 	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.3)
 	
 	# Remove after animation
-	await tween.finished
-	queue_free()
+	tween.finished.connect(queue_free)

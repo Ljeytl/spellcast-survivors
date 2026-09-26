@@ -28,6 +28,21 @@ func run():
 	game.spell_manager.set_process(false)
 	game.player.set_physics_process(false)
 	game.player.is_invincible = true
+	var effect = game.particle_manager.get_pooled_particle("spell_cast")
+	effect.emitting = true
+	game.particle_manager.auto_cleanup_particle(effect, 0.5)
+	var cleanups: Array = []
+	effect.get_node("EmissionTimeout").timeout.connect(func(): cleanups.append(true))
+	await create_timer(0.1).timeout
+	game.particle_manager.auto_cleanup_particle(effect, 1.0)
+	await create_timer(0.6).timeout
+	check(cleanups.is_empty(), "Reused particles are not stopped by an earlier timeout")
+	paused = true
+	await create_timer(1.2).timeout
+	check(cleanups.is_empty(), "Particle cleanup pauses with the effect")
+	paused = false
+	await create_timer(1.2).timeout
+	check(cleanups.size() == 1 and not effect.emitting, "Particle emission stops once after its current lifetime")
 	manager.game_time = 0.0
 	check(manager.get_available_variants(0).size() == 1, "Opening begins with consistent pursuers")
 	check(manager.encounter_config.variants.size() == 12, "Twelve distinct variants exist")
@@ -157,5 +172,6 @@ func run():
 		if child is AudioStreamPlayer:
 			child.stop()
 	await create_timer(0.15, true, false, true).timeout
+	await process_frame
 	print("ENCOUNTER_CHECKS=", checks, " FAILURES=", failures)
 	quit(1 if failures else 0)

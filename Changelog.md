@@ -35,3 +35,10 @@ The integrated source passes all 37 balance assertions and imports without scrip
 - Added encounter behavior tests and three seeded opening simulations. Final victory rules remain pending; this is an encounter-system milestone, not a production release.
 
 Validation: 33 balance checks, 3,321 encounter assertions and three seeded opening simulations pass. The simulations reached the first upgrade around seventeen seconds at full health. Exclude test evidence from resource imports. Headless encounter/pacing teardown still reports unfinished Tween/SceneTreeTimer leaks; release lifecycle qualification remains open.
+
+## 2026-09-25 — Encounter shutdown cleanup
+
+- Removed suspended damage-number animation awaits and initialize damage numbers after adding them to the scene.
+- Give pooled particles a resettable child timer, so reuse cancels stale cleanup and pausing freezes the effect lifetime.
+- Encounter and opening simulations now exit without the previous Tween/SceneTreeTimer leaks. Added reuse, pause and expiry assertions.
+- Include the runtime JSON catalogs in the playtest export and exclude test scripts and local overrides.

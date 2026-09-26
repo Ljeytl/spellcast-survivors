@@ -16,5 +16,5 @@ func connect_to_existing_enemies():
 func _on_enemy_damaged(damage: float, position: Vector2):
 	# Create floating damage number
 	var damage_number = damage_number_scene.instantiate()
-	damage_number.setup(damage, position)
 	get_parent().add_child(damage_number)
+	damage_number.setup(damage, position)
