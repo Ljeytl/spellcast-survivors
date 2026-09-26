@@ -1,3 +1,7 @@
+## 2026-09-26 — Creator pitch and alchemist concept
+
+- Expand the [casting fantasy notes](docs/CASTING_FANTASY_NOTES.md) with the creator’s full explanation: frantic typed spells, siege/PvZ-like alternatives, the desired swing from panic to crowd-erasing power, and an alchemist defending a tower with about ten ingredients and four-to-five-ingredient potions. Preserve open questions about input, recipes, preparation and resources; no gameplay changes or approved pivot.
+
 ## 2026-09-26 — Casting fantasy discussion preserved
 
 - Record the creator’s movement-versus-casting panic, possible defense pivots, language composition ideas, and proposed playtest questions in [casting fantasy notes](docs/CASTING_FANTASY_NOTES.md). Distinguish user priorities, assistant suggestions, current mechanics, and unresolved decisions; no gameplay changes or pivot approval.

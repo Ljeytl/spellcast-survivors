@@ -412,3 +412,7 @@ Implemented Ember Lance, Plague Seed, Cinder Field and Arcane Orbit, plus Life B
 ### Core fantasy exploration — September 26
 
 See [typed magic discussion notes](docs/CASTING_FANTASY_NOTES.md) for the movement-versus-casting panic, possible gate-defense/tower-defense alternatives, and authored spell-language ideas. These are saved hypotheses, not committed features or an approved pivot. A proposed small-kit playtest should examine whether finishing a dangerous incantation feels worth giving up movement.
+
+### Alchemist concept — September 26
+
+Preserve the creator’s alternative of defending a tower by assembling and throwing potions: approximately ten ingredients available, up to four or five per potion, with greater preparation time buying greater potency. The desired emotional swing is from being overwhelmed to clearing the horde through a strong combination. Input method, recipe rules, resources, movement and progression remain open; see [the expanded concept notes](docs/CASTING_FANTASY_NOTES.md#alchemist-defending-a-tower). No pivot or prototype implementation has been approved.

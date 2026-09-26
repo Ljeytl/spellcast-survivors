@@ -13,12 +13,21 @@ A possible short pitch, synthesized from the discussion rather than quoted from 
 
 > You're a wizard fighting a horde by typing spells. You can keep running, or stop long enough to cast something that might save you. The dangerous moment is deciding whether to finish the incantation or flee.
 
-The exact wording used with friends has not been supplied separately; add it here if shared later.
+### Creator’s fuller explanation
+
+The following records the creator’s subsequent four-part explanation; the short pitch above remains an assistant synthesis.
+
+1. **Original loop:** hordes arrive, the player walks around and dodges them, and frantically types spells. Longer spells are intended to be more powerful while the player handles large crowds.
+2. **Possible different format:** the same loop might work in a siege or a tower-defense-like game, with Plants vs. Zombies offered as a reference for the format. This is an exploration, not a selected pivot.
+3. **Both emotional extremes matter:** panic when damage cannot keep up with the amount of enemies on screen, and a huge feeling of power when the right combination eradicates the crowd. The aim is to capture both through the pressure of typing—not merely to make casting stressful.
+4. **New alchemist concept:** an alchemist defends a tower with roughly ten ingredients available in front of them. A potion might contain up to four or five ingredients. The proposed relationship is that more ingredients make a more potent potion but take longer to prepare, while opening more possible combinations. The player assembles and throws potions under pressure.
+
+The ingredient counts and potency relationship are concept parameters to investigate, not implemented or finalized rules.
 
 ## Questions still open
 
 - Is survivors-style movement essential to that panic, or can approaching enemies create enough pressure without movement?
-- Should stronger spells generally take longer to type? What payoff earns that commitment: damage, coverage, sustained effects, or safety?
+- The original vision explicitly ties longer incantations to greater power. How should that payoff scale, and how much comes from damage, coverage, sustained effects, or safety?
 - Is typing primarily execution of a known incantation, or could composing the phrase become part of choosing the spell?
 - How much slowdown preserves a tense decision without making long spells unusable?
 - How do we support different typing speeds without making fast typing the only viable way to play?
@@ -59,6 +68,34 @@ This is separate from the existing hidden-synergy system, where only authored re
 
 Risks to test: remembering syntax while tracking threats, arbitrary guessing, unclear invalid phrases, and long inputs that never justify their danger. Known phrases should be easy to reference if this direction is explored.
 
+## Alchemist defending a tower
+
+**Source: creator-proposed concept.** This is a third expression of the same desired panic-to-power loop, alongside roaming typed magic and siege defense. It has not been selected for implementation.
+
+### Proposed loop
+
+Watch the approaching horde → choose ingredients → spend time preparing a potion → throw it → see whether the combination buys enough safety to prepare the next one.
+
+Roughly ten available ingredients and four or five ingredients per potion were suggested. A more complex potion is intended to offer greater potency at a greater preparation-time cost. Combination variety and the possibility of a spectacular crowd-clearing result are central to the appeal.
+
+### Still undecided
+
+- Does the player type ingredient names, press ingredient hotkeys, click ingredients, or use another interaction? The concept does not yet settle how typing carries over.
+- Does order matter? Can an ingredient repeat? Are recipes authored, assembled from consistent properties, or a mixture of both?
+- Are ingredients always available, consumed, replenished, or discovered during a run?
+- Can a partially prepared potion be thrown early, changed, or abandoned? What happens to the invested time or ingredients?
+- Does the player move, aim at locations, choose lanes, or operate from a fixed position?
+- What protects the tower while preparing, and how is failure determined?
+- Do short recipes remain useful through speed even when longer recipes are more potent?
+
+### Assistant assessment and possible experiment
+
+The promising distinction is that preparation could contain strategic choices: the player constructs a response while time runs out, rather than only reproducing a spell name. That is a hypothesis, not demonstrated fun.
+
+The main risks are too much recipe memorization, outcomes that feel arbitrary, and one best long recipe crowding out the rest. Having many possible combinations does not automatically mean having many worthwhile decisions. More ingredients can improve raw potency while short recipes retain practical value because they are ready sooner.
+
+One possible small prototype would use a single threatened gate, a handful of ingredients, and a few deliberately understandable interactions. Test the choice between throwing a simple potion immediately and taking the time to finish a stronger one. No crafting economy, full recipe catalog, or pivot is approved by recording this suggestion.
+
 ## What to observe before committing
 
 - Do players deliberately make space before a large cast?
@@ -67,5 +104,7 @@ Risks to test: remembering syntax while tracking threats, arbitrary guessing, un
 - Do short spells stay useful after stronger magic becomes available?
 - Does slowdown preserve a gamble, or remove it entirely?
 - Is panic exciting and readable across different typing speeds?
+- Does a successful combination produce the intended swing from being overwhelmed to feeling overwhelmingly powerful?
+- For alchemy, are ingredients chosen because of their effects, or does the player simply repeat the longest memorized recipe?
 
 Bot runs can reveal mechanical failures and patterns of damage. They cannot establish the human feeling of panic, satisfaction, or control. Any broader pivot should follow a small comparison prototype and actual player feedback.
