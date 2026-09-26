@@ -86,6 +86,10 @@ func _physics_process(delta):
 	
 # Process WASD movement input and set player velocity
 func handle_movement():
+	var spells = get_parent().get_node_or_null("SpellManager")
+	if spells and spells.is_typing:
+		velocity = Vector2.ZERO
+		return
 	var input_dir = Vector2.ZERO
 	
 	# Check each movement key and build direction vector

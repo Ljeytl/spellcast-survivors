@@ -31,3 +31,12 @@ func _on_quit_button_pressed():
 	if AudioManager:
 		AudioManager.on_button_click()  # Play button click sound
 	get_tree().quit()  # Close the application
+
+func _on_collection_pressed():
+	var collection = preload("res://scripts/SpellCollection.gd").new()
+	add_child(collection)
+	$MenuPanel.hide()
+	collection.closed.connect(func():
+		$MenuPanel.show()
+		$MenuPanel/VBoxContainer/CollectionButton.grab_focus()
+	)

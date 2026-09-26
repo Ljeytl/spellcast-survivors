@@ -1,6 +1,6 @@
 # Baseline bot
 
-This developer-only scripted player uses the normal Game scene. It does not change enemy stats, grant XP, unlock spells, set health, teleport, or invoke spell effects directly. It holds ordinary movement actions, sends numbered-slot and character key events, and activates the same upgrade-button signal as a click. It is not a physical mouse/focus/layout test.
+This developer-only scripted player uses the normal Game scene. It does not change enemy stats, grant XP, unlock spells, set health, teleport, or invoke spell effects directly. It holds ordinary movement actions, sends Space, character and Enter key events, and activates the same upgrade-button signal as a click. It is not a physical mouse/focus/layout test.
 
 Run from a source checkout with Python 3 and Godot 4.4:
 
@@ -14,9 +14,9 @@ The first command opens a visible bot run. Each run ends at actual death or vict
 
 ## Policy
 
-Every 0.3 input seconds, flee the closest enemy within 220 world units; otherwise approach the nearest XP orb, or wander if none exists. Every 2–4 input seconds choose a random owned numbered spell, type five characters per second, and stop moving while typing. Choose a random valid level-up card after one input second. This is deliberately unsophisticated, with no projectile prediction or special boss strategy.
+Every 0.3 input seconds, flee the closest enemy within 220 world units; otherwise approach the nearest XP orb, or wander if none exists. Every 2–4 input seconds choose a random owned spell, type five characters per second, and stop moving while typing. Choose a random valid level-up card after one input second. This is deliberately unsophisticated, with no projectile prediction or special boss strategy.
 
-Input timing is independent of the normal typing slow-motion effect. The game still controls simulation time. Casting currently uses numbered slots; Space casting and discovered synergy spells can be added to the policy after those features exist.
+Input timing is independent of the normal typing slow-motion effect. The game still controls simulation time. Casting uses Space/Enter and includes named synergies owned in the current run. Reports include per-spell cast counts.
 
 ## Interpretation and isolation
 

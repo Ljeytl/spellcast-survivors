@@ -113,6 +113,7 @@ func run():
 		check(spells.learn_spell(id), "Each remaining spell can be acquired")
 		spells.upgrade_spell(id)
 		check(spells.get_spell_rank(id) == 2, "Each canonical spell ID upgrades")
+	check(spells.learn_spell("life_bolt"), "Full base kit can acquire its synergy")
 	check(spells.get_learnable_spell_cards().is_empty(), "Full loadout has no acquisition cards")
 	screen.show_level_up(4)
 	validate_cards(screen)

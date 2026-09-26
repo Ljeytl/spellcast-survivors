@@ -14,6 +14,7 @@ var pending_text = ""
 var typed_index = 0
 var attempts = 0
 var successful_casts = 0
+var casts_by_spell: Dictionary = {}
 var failures = 0
 var characters_typed = 0
 var distance_walked = 0.0
@@ -52,7 +53,10 @@ func start():
 	previous_position = game.player.global_position
 	previous_health = game.player.health
 	game.player.health_changed.connect(observe_health)
-	game.spell_manager.spell_cast.connect(func(_spell): successful_casts += 1)
+	game.spell_manager.spell_cast.connect(func(spell):
+		successful_casts += 1
+		casts_by_spell[spell] = casts_by_spell.get(spell, 0) + 1
+	)
 	game.spell_manager.spell_locked_error.connect(func(_spell, _required, _level): failures += 1)
 	started = Time.get_ticks_msec()
 	DisplayServer.window_set_title("SpellCast Survivors — BASELINE BOT — seed %d" % run_seed)
@@ -122,15 +126,13 @@ func _process(delta):
 	cast_wait -= input_delta
 	if cast_wait <= 0.0:
 		cast_wait = rng.randf_range(2.0, 4.0)
-		var owned: Array = []
-		for slot in spells.spells:
-			if spells.is_spell_unlocked(slot):
-				owned.append(slot)
+		var owned = spells.get_owned_incantations()
 		if not owned.is_empty():
 			attempts += 1
-			press_key(KEY_0 + owned[rng.randi_range(0, owned.size() - 1)])
+			var selected = owned[rng.randi_range(0, owned.size() - 1)]
+			press_key(KEY_SPACE)
 			if spells.is_typing:
-				pending_text = spells.target_spell
+				pending_text = selected
 				typed_index = 0
 				type_wait = 0.2
 			else:
@@ -196,6 +198,7 @@ func finish(outcome: String):
 		"level": game.player.level, "health": game.player.health,
 		"kills": game.enemies_killed, "health_damage_taken": damage_taken,
 		"spell_attempts": attempts, "successful_casts": successful_casts,
+		"casting_input": "space_enter", "casts_by_spell": casts_by_spell,
 		"casting_failures": failures, "characters_typed": characters_typed,
 		"distance_walked": distance_walked, "spells_acquired": game.spell_manager.get_unlocked_spell_names(),
 		"upgrade_choices": upgrades, "checkpoints": checkpoints,

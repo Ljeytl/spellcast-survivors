@@ -73,6 +73,7 @@ var best_survival_time: float = 0.0
 var total_enemies_killed: int = 0
 var total_spells_cast: int = 0
 var achievements: Array = []
+var discovered_synergies: Array = []
 
 # Progression rewards
 var progression_rewards = {
@@ -104,7 +105,8 @@ func save_progression_data(slot: int = current_save_slot):
 		"best_survival_time": best_survival_time,
 		"total_enemies_killed": total_enemies_killed,
 		"total_spells_cast": total_spells_cast,
-		"achievements": achievements
+		"achievements": achievements,
+		"discovered_synergies": discovered_synergies
 	}
 	
 	var save_file_name = "user://spellcast_save_slot_" + str(slot) + ".save"
@@ -117,6 +119,7 @@ func save_progression_data(slot: int = current_save_slot):
 		print("Error: Could not save progression data to slot ", slot)
 
 func load_progression_data(slot: int = current_save_slot):
+	clear_progression_state()
 	var save_file_name = "user://spellcast_save_slot_" + str(slot) + ".save"
 	var save_file = FileAccess.open(save_file_name, FileAccess.READ)
 	if save_file:
@@ -125,7 +128,7 @@ func load_progression_data(slot: int = current_save_slot):
 		
 		var json = JSON.new()
 		var parse_result = json.parse(json_text)
-		if parse_result == OK:
+		if parse_result == OK and json.data is Dictionary:
 			var save_data = json.data
 			current_character = save_data.get("current_character", "wizard")
 			unlocked_characters = save_data.get("unlocked_characters", ["wizard"])
@@ -136,6 +139,9 @@ func load_progression_data(slot: int = current_save_slot):
 			total_enemies_killed = save_data.get("total_enemies_killed", 0)
 			total_spells_cast = save_data.get("total_spells_cast", 0)
 			achievements = save_data.get("achievements", [])
+			var saved_discoveries = save_data.get("discovered_synergies", [])
+			if saved_discoveries is Array:
+				discovered_synergies = saved_discoveries.filter(func(id): return id in preload("res://scripts/SynergyCatalog.gd").RECIPES)
 			print("Save slot ", slot, " progression data loaded")
 		else:
 			print("Error parsing progression data from slot ", slot)
@@ -336,7 +342,8 @@ func unlock_all_spells():
 	for spell_name in spell_unlock_conditions.keys():
 		unlock_spell(spell_name, "debug unlock")
 
-func reset_progression():
+func clear_progression_state():
+	discovered_synergies = []
 	unlocked_characters = ["wizard"]
 	unlocked_spells = ["mana_bolt", "bolt", "life"]
 	persistent_xp = 0
@@ -346,5 +353,13 @@ func reset_progression():
 	total_spells_cast = 0
 	achievements = []
 	current_character = "wizard"
+
+func reset_progression():
+	clear_progression_state()
 	save_progression_data()
 	print("Progression reset to defaults")
+
+func discover_synergy(id: String):
+	if id in preload("res://scripts/SynergyCatalog.gd").RECIPES and id not in discovered_synergies:
+		discovered_synergies.append(id)
+		save_progression_data()

@@ -220,10 +220,18 @@ Before publication: test normal and narrow layouts, input correction/cancellatio
 | Choice | Recommendation for discussion | Why it matters |
 |---|---|---|
 | Five or six equipped spells; does the passive count? | Keep six during the next playable iteration, then compare five once acquisition exists. Keep passive coverage separate unless there is a clear reason to spend a slot on it. | Limits build breadth and determines UI and acquisition rules. Current six is a testing baseline, not a commitment. |
-| Movement, slowdown and cast-speed meaning while typing | Prevent spelling keys from steering movement; keep slowdown consistent; make speed upgrades clearly beneficial. | Defines the moment-to-moment skill and whether an upgrade can make typing harder. |
+| Slowdown and cast-speed meaning while typing | Movement now stops during typing. Preserve current slowdown for this slice; review speed-upgrade meaning separately. | Defines input commitment and avoids upgrades making typing harder. |
 | Twenty minutes of game time or wall time? | Preserve simulation time for now and measure actual session length. | Typing slowdown makes the two different. A future promise of a twenty-minute real session needs a deliberate change. |
-| Natural interactions versus named combinations | Support both, starting with natural interactions and a few visible optional recipes. | Keeps clever play and the requested discovery/transformation fantasy. Fusion slot and ingredient rules remain undecided. |
+| Broader fusion slot and ingredient rules | First Life Bolt recipe preserves both ingredients and adds a typed-only spell. Review broader loadout limits as recipes expand. | Named authored recipes and persistent hidden discovery are agreed; arbitrary spell pairs do not combine. |
 | Upgrade depth and loadout flexibility | Aim for one or two signature spells with useful lower-rank support; permit deliberate replacement rather than trapping the player. | Resolves the rank/choice budget and reduces dependence on lucky early offers. Rank refunds or transfers still need a rule. |
 | How much of the proposed library belongs in the first milestone? | A small representative set first; keep twenty spells and the extra systems as a candidate release direction. | Proves the complete loop without committing every concept before it is played. |
 
 Already resolved, not questions to reopen: immediate victory at 20:00; no final fight; timer-based progression; easy opening; delayed ranged enemies; no required element or named spell.
+
+## September 2026 — Casting and discovery implementation
+
+Space opens casting for any owned spell; Enter casts, Backspace edits, Escape cancels, and movement stops during typing. Numbered spell shortcuts remain. Exact name matches in Space mode never fire before Enter, so longer names remain possible.
+
+Hidden synergies use an authored recipe table. Once learned in a run, their identity, requirements, effect and incantation persist in the current profile's Spell Collection; new runs must earn them again. Undiscovered recipes do not reveal their ingredients in the collection.
+
+First playable recipe: owning Bolt and Regeneration makes Life Bolt eligible as a level-up choice. Selecting it unlocks `life bolt`, retains both ingredients and records discovery. It fires one homing projectile with Bolt-scaled damage and heals up to 6 health on actual damage, limited by damage dealt. This recipe has no separate rank track yet. The healing number is initial tuning, not a permanent balance commitment. No difficulty changes accompany this slice.

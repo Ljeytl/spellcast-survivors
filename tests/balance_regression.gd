@@ -35,7 +35,7 @@ func run():
 		check(manager.get_current_difficulty_level() == pair[1], "Tier transition at %s" % pair[0])
 	manager.game_time = 0.0
 	Input.action_press("ui_up")
-	game.handle_input()
+	Input.flush_buffered_events()
 	Input.action_release("ui_up")
 	check(manager.game_time == 0.0, "Up Arrow cannot jump difficulty")
 	var letter = InputEventKey.new()
@@ -43,7 +43,7 @@ func run():
 	letter.physical_keycode = KEY_U
 	letter.pressed = true
 	Input.parse_input_event(letter)
-	game.handle_input()
+	Input.flush_buffered_events()
 	check(manager.game_time == 0.0, "Typing U cannot jump difficulty")
 	var release = letter.duplicate()
 	release.pressed = false
