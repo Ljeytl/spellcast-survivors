@@ -52,7 +52,7 @@ func run():
 		game.player.set_physics_process(false)
 		var manager = game.spell_manager
 		manager.set_process(false)
-		check(manager.spell_catalog.size() == 10, "Ten implemented base spell choices")
+		check(manager.spell_catalog.size() == 15, "Fifteen implemented base spell choices")
 		check(game.spell_slots.size() == 5, "HUD has five active slots")
 		var before = manager.spells.duplicate(true)
 		check(not manager.learn_spell(recipe_id) and manager.spells == before, "Ineligible evolution is atomic")

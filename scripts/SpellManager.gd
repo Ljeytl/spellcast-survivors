@@ -31,7 +31,7 @@ var _scale_before_change: float = 1.0
 var space_casting = false
 
 const MAX_EQUIPPED_SPELLS = 5
-const BASE_SPELL_IDS = ["bolt", "life", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit"]
+const BASE_SPELL_IDS = ["bolt", "life", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
 var spell_catalog: Dictionary = {}
 var evolved_ingredients: Dictionary = {}
 var acquired_spells: Dictionary = {"bolt": true}
@@ -428,7 +428,7 @@ func cast_spell_by_type(slot: int):
 	match spell_type:
 		"life_bolt":
 			cast_life_bolt(slot)
-		"piercing", "plague", "field", "orbit":
+		"piercing", "plague", "field", "orbit", "beam", "trap", "spirit", "trail", "returning":
 			cast_build_spell(slot)
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
@@ -1198,11 +1198,20 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 
 func cast_build_spell(slot: int):
 	var info = spells[slot]
-	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return effect.info.id == info.id and not effect.is_queued_for_deletion())
-	if active.size() >= 3:
+	var tactical = info.type in ["beam", "trap", "spirit", "trail", "returning"]
+	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return (effect.info.type == info.type if tactical else effect.info.id == info.id) and not effect.is_queued_for_deletion())
+	if active.size() >= int(info.get("active_limit", 3)):
 		active[0].queue_free()
-	var effect = preload("res://scripts/BuildSpellEffect.gd").new()
-	effect.configure(info, calculate_spell_damage(info), player, get_closest_enemy())
+	var target = get_closest_enemy()
+	if tactical:
+		target = null
+		var distance = INF
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if _live_spell_target(enemy) and player.global_position.distance_squared_to(enemy.global_position) < distance:
+				distance = player.global_position.distance_squared_to(enemy.global_position)
+				target = enemy
+	var effect = preload("res://scripts/TacticalSpellEffect.gd").new() if tactical else preload("res://scripts/BuildSpellEffect.gd").new()
+	effect.configure(info, calculate_spell_damage(info), player, target)
 	get_parent().add_child(effect)
 
 func _live_spell_target(target) -> bool:
