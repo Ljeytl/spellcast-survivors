@@ -1,3 +1,9 @@
+## Later: type-to-navigate menus — 2026-09-26
+
+- Deferred: type words to navigate menus or select level-up rewards and spells. Keep existing mouse and keyboard navigation for now.
+- This is separate from displaying typed combat-incantation letters on the supplied keycap art; deferring menu navigation does not defer that casting presentation.
+- Before implementation, settle selection words and input handling so keystrokes from combat cannot accidentally select a newly opened upgrade or menu action.
+
 ## Authored interface art — 2026-09-26
 
 - Keycap textures now serve menu/action buttons and spell shortcuts; menu scenery uses the supplied grass and resting slime. Both tree and king-slime variants are in use.

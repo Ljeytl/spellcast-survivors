@@ -1,3 +1,7 @@
+## 2026-09-26 — Defer typing-based menu navigation
+
+- Add typing to navigate menus and select upgrades/spells to the later roadmap. Preserve current controls; keep this separate from keycap visuals while typing combat spells. No gameplay changes.
+
 ## 2026-09-26 — Authored keycaps and remaining art
 
 - Use the supplied worn keycap art for menu/action buttons and blank keys behind numbered spell shortcuts, with readable ink and distinct hover, pressed, disabled, and keyboard-focus states. Keep long upgrade descriptions on high-contrast panels.
