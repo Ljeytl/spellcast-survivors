@@ -22,6 +22,9 @@ const SPELL_CAST_COOLDOWN = 0.1  # Minimum time between spell casts
 
 var spell_projectile_scene = preload("res://scenes/SpellProjectile.tscn")
 
+const Synergies = preload("res://scripts/SynergyCatalog.gd")
+var space_casting = false
+
 var acquired_spells: Dictionary = {"bolt": true}
 
 var spell_queue: Array = []
@@ -195,6 +198,14 @@ func _input(event):
 		handle_key_input(event)
 
 func handle_key_input(event: InputEventKey):
+	if space_casting:
+		handle_freeform_typing_input(event)
+		return
+	if event.keycode == KEY_SPACE and not is_typing and not event.echo:
+		if Time.get_ticks_msec() / 1000.0 - last_spell_cast_time >= SPELL_CAST_COOLDOWN:
+			space_casting = true
+			start_freeform_typing()
+		return
 	# Handle freeform mode input
 	if freeform_mode:
 		handle_freeform_input(event)
@@ -334,6 +345,7 @@ func cancel_typing():
 	end_typing()
 
 func end_typing():
+	space_casting = false
 	is_typing = false
 	current_typing_text = ""
 	target_spell = ""
@@ -1067,35 +1079,62 @@ func handle_freeform_typing_input(event: InputEventKey):
 				AudioManager.play_typing_sound(char)
 			
 			# Check if we have a perfect match with any spell
-			if current_typing_text in freeform_spells:
+			if not space_casting and current_typing_text in freeform_spells:
 				attempt_freeform_cast()
 
 func attempt_freeform_cast():
-	var spell_name = current_typing_text.strip_edges()
-	
-	if spell_name in freeform_spells:
-		var cast_succeeded = cast_freeform_spell(spell_name)
-		if cast_succeeded and AudioManager:
-			AudioManager.on_typing_complete()
-	else:
-		print("Unknown spell: ", spell_name)
-		print("Available spells: ", freeform_spells.keys())
-		cancel_typing()
-		# Play error sound for unknown spell
+	var spell_name = current_typing_text.strip_edges().to_lower()
+	if cast_freeform_spell(spell_name):
 		if AudioManager:
-			AudioManager.on_typing_error()
+			AudioManager.on_typing_complete()
+	elif is_typing:
+		game_manager.update_typing_display("Spell unavailable in this run.\nTyped: " + current_typing_text + "\nEdit the name, or Esc to cancel.")
 
 func cast_freeform_spell(spell_name: String) -> bool:
+	var id = spell_name.strip_edges().to_lower().replace(" ", "_")
+	if id in Synergies.RECIPES:
+		if not acquired_spells.has(id):
+			return false
+		match id:
+			"life_bolt": cast_life_bolt()
+			_: return false
+		last_spell_cast_time = Time.get_ticks_msec() / 1000.0
+		spell_cast.emit(Synergies.RECIPES[id].name)
+		game_manager.increment_spells_cast()
+		AudioManager.play_spell_sound("bolt")
+		end_typing()
+		return true
 	var slot = find_spell_slot(spell_name)
 	if not is_spell_unlocked(slot):
 		if slot in spells:
 			spell_locked_error.emit(spells[slot].name, 0, player.level)
-		cancel_typing()
 		return false
 	spell_queue.clear()
 	queue_spell(slot)
 	cast_spell()
 	return true
+
+func cast_life_bolt():
+	var projectile = spell_projectile_scene.instantiate()
+	get_parent().add_child(projectile)
+	var target = get_closest_enemy()
+	var damage = calculate_spell_damage(spells[1])
+	if target:
+		projectile.setup_homing(player.global_position, target, damage, Color.GREEN, "life_bolt")
+	else:
+		projectile.setup(player.global_position, Vector2.RIGHT, damage, Color.GREEN, "life_bolt")
+	projectile.healing_owner = weakref(player)
+	projectile.heal_on_hit = Synergies.RECIPES.life_bolt.heal_on_hit
+
+func get_owned_incantations() -> Array:
+	var names: Array = []
+	for slot in spells:
+		if is_spell_unlocked(slot):
+			names.append(spells[slot].display_name)
+	for id in Synergies.RECIPES:
+		if acquired_spells.has(id):
+			names.append(Synergies.RECIPES[id].incantation)
+	return names
 
 func cast_freeform_spell_by_type(spell_name: String, spell_data: Dictionary):
 	if not player or not is_instance_valid(player):
@@ -1145,11 +1184,11 @@ func update_freeform_typing_display():
 		var display_text = ""
 		if is_typing:
 			var potential_matches = []
-			for spell in freeform_spells:
+			for spell in get_owned_incantations():
 				if spell.begins_with(current_typing_text) and current_typing_text.length() > 0:
 					potential_matches.append(spell)
 			
-			display_text = "Freeform Casting\nTyped: " + current_typing_text
+			display_text = "Type a spell · Enter casts · Esc cancels\nTyped: " + current_typing_text
 			if potential_matches.size() > 0:
 				display_text += "\nMatches: " + ", ".join(potential_matches.slice(0, 3))
 				if potential_matches.size() > 3:
@@ -1295,6 +1334,12 @@ func find_spell_slot(spell_name: String) -> int:
 	return 0
 
 func learn_spell(spell_id: String) -> bool:
+	if spell_id in Synergies.RECIPES:
+		if acquired_spells.has(spell_id) or not synergy_eligible(spell_id):
+			return false
+		acquired_spells[spell_id] = true
+		CharacterManager.discover_synergy(spell_id)
+		return true
 	var slot = find_spell_slot(spell_id)
 	if slot == 0 or is_spell_unlocked(slot):
 		return false
@@ -1330,7 +1375,22 @@ func get_learnable_spell_cards() -> Array:
 		cards.append({"key": "learn:" + info.id, "name": "Learn " + info.name,
 			"description": roles.get(info.id, "Learn a new spell.") + "\nSlot %d · Type: %s" % [slot, info.display_name],
 			"icon": "+", "effect": {"type": "learn_spell", "spell": info.id}})
+	for id in Synergies.RECIPES:
+		if acquired_spells.has(id) or not synergy_eligible(id):
+			continue
+		var recipe = Synergies.RECIPES[id]
+		cards.append({"key": "learn:" + id, "name": ("Learn " if id in CharacterManager.discovered_synergies else "Discover ") + recipe.name,
+			"description": recipe.card_description + "\nSpace → " + recipe.incantation + " → Enter",
+			"icon": "+", "effect": {"type": "learn_spell", "spell": id}})
 	return cards
+
+func synergy_eligible(id: String) -> bool:
+	if id not in Synergies.RECIPES:
+		return false
+	for ingredient in Synergies.RECIPES[id].ingredients:
+		if not acquired_spells.has(ingredient):
+			return false
+	return true
 
 func get_rank_upgrade_description(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)

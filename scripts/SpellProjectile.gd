@@ -2,6 +2,9 @@
 # Supports multiple spell types with different visuals and behaviors
 extends Area2D
 
+var healing_owner: WeakRef
+var heal_on_hit = 0.0
+
 var despawning: bool = false
 
 # Movement and damage properties
@@ -154,11 +157,11 @@ func update_visual():
 			tween.tween_property(sprite, "modulate", Color(0.8, 1.0, 1.0), 0.3)
 			tween.tween_property(sprite, "modulate", Color(0.4, 0.8, 1.0), 0.3)
 			
-		"bolt":
+		"bolt", "life_bolt":
 			# Enhanced bolt with crackling energy
 			sprite.scale = Vector2(1.0, 1.0)
 			z_index = 10
-			sprite.modulate = Color.YELLOW * 1.2
+			sprite.modulate = effect_color * 1.2
 			
 			# Crackling animation
 			var tween = create_tween()
@@ -166,7 +169,7 @@ func update_visual():
 			tween.tween_property(sprite, "scale", Vector2(1.1, 1.1), 0.1)
 			tween.tween_property(sprite, "scale", Vector2(0.9, 0.9), 0.1)
 			tween.tween_property(sprite, "modulate", Color.WHITE, 0.05)
-			tween.tween_property(sprite, "modulate", Color.YELLOW * 1.2, 0.15)
+			tween.tween_property(sprite, "modulate", effect_color * 1.2, 0.15)
 			
 		"heal":
 			# Radiant healing with golden glow
@@ -321,7 +324,13 @@ func _on_area_entered(area):
 		if area.name == "HurtBox" and area.get_parent().is_in_group("enemies"):
 			var enemy = area.get_parent()
 			if enemy.has_method("take_damage"):
+				var health_before = enemy.current_health
 				enemy.take_damage(damage, global_position)
+				var dealt = maxf(0.0, health_before - enemy.current_health)
+				if heal_on_hit > 0.0 and dealt > 0.0 and healing_owner:
+					var owner_player = healing_owner.get_ref()
+					if is_instance_valid(owner_player) and owner_player.health > 0:
+						owner_player.heal(minf(heal_on_hit, dealt))
 				
 				# Create particle effect on impact
 				var scene_tree = get_tree()
@@ -474,6 +483,8 @@ func setup_for_pool():
 	is_pooled = true
 
 func reset_for_pool():
+	healing_owner = null
+	heal_on_hit = 0.0
 	despawning = false
 	# Reset object state for reuse from pool
 	# Reset all properties to defaults

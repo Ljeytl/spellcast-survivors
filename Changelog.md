@@ -79,3 +79,13 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Added per-seed isolated launch profiles and JSON/log reports, with explicit death, victory and incomplete outcomes.
 - Kept bot tooling outside normal exported builds; accelerated mode is smoke testing only.
 - Next: exercise Space casting and authored synergies after those mechanics land, then compare several realtime seeds and human playtests.
+
+## Space casting and first hidden synergy
+
+- Space opens an owned-spell casting box; Enter commits the name, Backspace edits, and Escape cancels. Numbered shortcuts remain available. Typing stops movement.
+- Added authored Life Bolt recipe: Bolt + Regeneration makes a learning card eligible. Selection unlocks the spell for the run and records a permanent discovery for the current save slot. Ingredients remain usable.
+- Life Bolt fires one green homing projectile using Bolt damage scaling and heals up to 6 HP on actual damage, capped by damage dealt. No healing on misses or defeated enemies; no rank choices for this first synergy.
+- Added Spell Collection with hidden undiscovered recipes, persisted requirements/effects/incantations, empty state and Back/Escape navigation.
+- Clear profile state before loading another slot, preventing discoveries from leaking into missing/malformed saves. Older saves default to no discoveries.
+- Updated the baseline bot to type owned spell names via Space/Enter and report casts per spell.
+- Next: more authored recipes, richer behavior upgrades and full-run balance; difficulty numbers remain unchanged.
