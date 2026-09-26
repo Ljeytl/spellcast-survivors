@@ -121,3 +121,4 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Reserved HUD space for wrapped spell names above ranks, and made the developer unlock command fill only available slots with truthful output.
 - Delayed mana, spread-bolt and chain callbacks now resolve weak target references and disconnect safely when their run ends; freed targets cancel pending hits.
 - Verified delayed-target cleanup with 7 targeted assertions, 182 spell-build assertions and 611 acquisition assertions. Diagnostic accelerated seed 11 ended in death at 452.2 seconds with 100 successful casts and no runtime errors; broader final-revision runs remain the next validation step.
+- Balance regression now waits for bounded observable level-up transitions instead of fixed timer delays, preserving the queued-choice and duplicate-input assertions under headless scheduling.
