@@ -16,6 +16,9 @@ func run():
 	root.add_child(menu)
 	current_scene = menu
 	await shot("res://builds/art-evidence/menu.png")
+	root.size = Vector2i(800, 600)
+	await shot("res://builds/art-evidence/menu-narrow.png")
+	root.size = Vector2i(1280, 720)
 	menu.queue_free()
 	await process_frame
 	var game = load("res://scenes/Game.tscn").instantiate()
