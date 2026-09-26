@@ -5,7 +5,7 @@ signal closed
 func _ready():
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var background = ColorRect.new()
-	background.color = Color(0.1, 0.08, 0.05)
+	background.color = Color("111c2b")
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 	var margin = MarginContainer.new()
@@ -71,9 +71,7 @@ func close_collection():
 	queue_free()
 
 func update_typography():
-	var scale_factor = float(get_window().size.x) / maxf(1.0, get_viewport_rect().size.x)
 	for label in find_children("*", "Label", true, false):
-		var pixels = 24.0 if label.name == "CollectionTitle" else 16.0
-		label.add_theme_font_size_override("font_size", ceili(pixels / maxf(0.1, scale_factor)))
+		label.add_theme_font_size_override("font_size", 28 if label.name == "CollectionTitle" else 18)
 	for button in find_children("*", "Button", true, false):
-		button.add_theme_font_size_override("font_size", ceili(16.0 / maxf(0.1, scale_factor)))
+		button.add_theme_font_size_override("font_size", 18)

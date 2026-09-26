@@ -310,7 +310,9 @@ func update_typing_display():
 	if game_manager and game_manager.has_method("update_typing_display"):
 		var display_text = ""
 		if is_typing:
-			display_text = "Casting: " + target_spell + "\nTyped: " + current_typing_text
+			display_text = target_spell + "  ›  " + (current_typing_text if not current_typing_text.is_empty() else "Start typing…")
+			if not target_spell.begins_with(current_typing_text):
+				display_text += " · Mismatch"
 		game_manager.update_typing_display(display_text)
 
 # Auto-attack system
@@ -1030,7 +1032,7 @@ func attempt_freeform_cast():
 		if AudioManager:
 			AudioManager.on_typing_complete()
 	elif is_typing:
-		game_manager.update_typing_display("Spell unavailable in this run.\nTyped: " + current_typing_text + "\nEdit the name, or Esc to cancel.")
+		game_manager.update_typing_display(current_typing_text + " · Spell unavailable in this run")
 
 func cast_freeform_spell(spell_name: String) -> bool:
 	var slot = find_spell_slot(spell_name)
@@ -1072,15 +1074,20 @@ func update_freeform_typing_display():
 		var display_text = ""
 		if is_typing:
 			var potential_matches = []
-			for spell in get_owned_incantations():
-				if spell.begins_with(current_typing_text) and current_typing_text.length() > 0:
-					potential_matches.append(spell)
+			for info in spells.values():
+				var normalized = current_typing_text.strip_edges().to_lower().replace("_", " ")
+				for alias in [info.id, info.name, info.display_name]:
+					if str(alias).to_lower().replace("_", " ").begins_with(normalized) and not normalized.is_empty():
+						potential_matches.append(info.display_name)
+						break
 			
-			display_text = "Type a spell · Enter casts · Esc cancels\nTyped: " + current_typing_text
+			display_text = current_typing_text if not current_typing_text.is_empty() else "Type an equipped spell…"
+			if not current_typing_text.is_empty() and potential_matches.is_empty():
+				display_text += " · No matching spell"
 			if potential_matches.size() > 0:
-				display_text += "\nMatches: " + ", ".join(potential_matches.slice(0, 3))
-				if potential_matches.size() > 3:
-					display_text += "..."
+				display_text += " · Ready to cast" if find_spell_slot(current_typing_text) != 0 else " · Matches: " + potential_matches[0]
+				if potential_matches.size() > 1 and find_spell_slot(current_typing_text) == 0:
+					display_text += " (+%d)" % (potential_matches.size() - 1)
 		game_manager.update_typing_display(display_text)
 
 func find_spell_slot(spell_name: String) -> int:

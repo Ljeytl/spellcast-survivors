@@ -11,6 +11,9 @@ signal return_to_menu
 @onready var play_again_button: Button = $Background/Panel/VBoxContainer/ButtonContainer/PlayAgainButton
 @onready var main_menu_button: Button = $Background/Panel/VBoxContainer/ButtonContainer/MainMenuButton
 @onready var panel: Panel = $Background/Panel
+var kit_label: Label
+var discovery_label: Label
+var action_started = false
 
 func _ready():
 	# Allow processing when game is paused
@@ -27,6 +30,7 @@ func _ready():
 	else:
 		print("ERROR: main_menu_button is null or not a Button, type: ", type_string(typeof(main_menu_button)) if main_menu_button else "null")
 	
+	setup_run_summary()
 	# Setup button hover effects
 	setup_button_effects()
 	
@@ -54,6 +58,7 @@ func show_game_over(stats: Dictionary):
 		call_deferred("show_game_over", stats)
 		return
 	
+	action_started = false
 	visible = true
 	display_stats(stats)
 	animate_in()
@@ -61,7 +66,10 @@ func show_game_over(stats: Dictionary):
 func display_stats(stats: Dictionary):
 	var won = stats.get("won", false)
 	title_label.text = "VICTORY!" if won else "GAME OVER"
-	title_label.add_theme_color_override("font_color", Color.GOLD if won else Color.RED)
+	title_label.add_theme_color_override("font_color", Color("dfbd76") if won else Color("ff8175"))
+	kit_label.text = "FINAL SPELL KIT\n" + "\n".join(stats.get("final_kit", [])) + "\nAutomatic Mana Bolt · Rank %d" % stats.get("mana_bolt_rank", 1)
+	var discoveries = stats.get("discoveries", [])
+	discovery_label.text = "NEW DISCOVERIES\n" + (", ".join(discoveries) if not discoveries.is_empty() else "No new evolutions discovered this run.")
 	# Format survival time
 	var total_seconds = stats.get("survival_time", 0.0)
 	var minutes = int(total_seconds / 60)
@@ -88,29 +96,51 @@ func display_stats(stats: Dictionary):
 	else:
 		print("ERROR: spells_cast_label is null")
 
+func setup_run_summary():
+	var content = $Background/Panel/VBoxContainer
+	var stats = content.get_node("StatsContainer")
+	stats.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	for row in stats.get_children():
+		row.get_child(0).hide()
+		row.get_child(1).add_theme_font_size_override("font_size", 18)
+	var scroll = ScrollContainer.new()
+	scroll.name = "RunSummaryScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(scroll)
+	content.move_child(scroll, content.get_node("HSeparator2").get_index())
+	var summary = VBoxContainer.new()
+	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	summary.add_theme_constant_override("separation", 16)
+	scroll.add_child(summary)
+	kit_label = Label.new()
+	kit_label.name = "FinalKit"
+	discovery_label = Label.new()
+	discovery_label.name = "Discoveries"
+	for label in [kit_label, discovery_label]:
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", 18)
+		label.add_theme_color_override("font_color", Color("eee8d8"))
+		summary.add_child(label)
+	content.add_theme_constant_override("separation", 12)
+
 func animate_in():
-	# Fade in background
+	panel.scale = Vector2.ONE
 	var fade_tween = create_tween()
-	fade_tween.tween_property(self, "modulate:a", 1.0, 0.5)
-	
-	# Scale in panel with slight delay and bounce (with null check)
-	if panel:
-		var scale_tween = create_tween()
-		scale_tween.tween_interval(0.2)
-		scale_tween.tween_property(panel, "scale", Vector2(1.1, 1.1), 0.3)
-		scale_tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.2)
-	else:
-		print("ERROR: panel is null in animate_in()")
-	
-	# Animate title with a dramatic shake
-	animate_title()
+	fade_tween.tween_property(self, "modulate:a", 1.0, 0.2)
 
 func _on_play_again_pressed():
+	if action_started:
+		return
+	action_started = true
 	if is_instance_valid(AudioManager):
 		AudioManager.on_button_click()
 	restart_game.emit()
 
 func _on_main_menu_pressed():
+	if action_started:
+		return
+	action_started = true
 	if AudioManager:
 		AudioManager.on_button_click()
 	return_to_menu.emit()
@@ -133,40 +163,19 @@ func setup_title_styling():
 	else:
 		print("ERROR: title_label is null in setup_title_styling()")
 
-func _on_button_hover(button: Button):
+func _on_button_hover(_button: Button):
 	if AudioManager:
 		AudioManager.on_button_hover()
-	var tween = create_tween()
-	tween.tween_property(button, "scale", Vector2(1.05, 1.05), 0.1)
 
-func _on_button_exit(button: Button):
-	var tween = create_tween()
-	tween.tween_property(button, "scale", Vector2(1.0, 1.0), 0.1)
+func _on_button_exit(_button: Button):
+	pass
 
-func animate_title():
-	# Dramatic title animation with shake and glow (with null check)
-	if not title_label:
-		print("ERROR: title_label is null in animate_title()")
-		return
-		
-	var title_tween = create_tween()
-	title_tween.set_parallel(true)
-	
-	# Shake effect
-	var original_pos = title_label.position
-	for i in range(5):
-		var shake_offset = Vector2(randf_range(-5, 5), randf_range(-5, 5))
-		title_tween.tween_property(title_label, "position", original_pos + shake_offset, 0.05)
-		title_tween.tween_property(title_label, "position", original_pos, 0.05)
-	
-	# Scale pulse
-	title_tween.tween_property(title_label, "scale", Vector2(1.2, 1.2), 0.3)
-	title_tween.tween_property(title_label, "scale", Vector2(1.0, 1.0), 0.2)
-
-func _input(event):
+func _unhandled_key_input(event):
 	# Allow Enter or Space to restart quickly
-	if visible and event is InputEventKey and event.pressed:
+	if visible and event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_SPACE:
+			get_viewport().set_input_as_handled()
 			_on_play_again_pressed()
 		elif event.keycode == KEY_ESCAPE:
+			get_viewport().set_input_as_handled()
 			_on_main_menu_pressed()

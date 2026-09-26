@@ -87,8 +87,8 @@ func run():
 		check(game.level_up_screen.current_upgrade_pool.any(func(card): return card.key == "rank:" + recipe_id), "Evolved rank available in real pool")
 		game.update_spell_slot_lock_status()
 		game.update_spell_slot_lock_status()
-		check(game.spell_slots[slot - 1].get_node("VBox/SpellName").text == recipe.incantation, "HUD names evolved incantation")
-		check(game.spell_slots[slot - 1].get_node("LevelLabel").text == "4", "HUD displays inherited upgraded rank")
+		check(game.spell_slots[slot - 1].get_node("VBox/SpellName").text == recipe.name, "HUD names equipped evolution")
+		check(game.spell_slots[slot - 1].get_node("LevelLabel").text == "Rank 4", "HUD displays inherited upgraded rank")
 		for i in range(6):
 			await process_frame
 		for card in game.spell_slots:

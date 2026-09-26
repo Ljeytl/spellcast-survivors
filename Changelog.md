@@ -1,3 +1,14 @@
+## 2026-09-26 — Gameplay readability pass
+
+- Give gameplay HUD and menus readable window-relative sizing without changing the world camera or combat scale. Use slate panels, parchment text, cyan casting feedback, gold choices, and coral danger.
+- Show five spell slots with full names, ranks, selected state, and empty-slot guidance; separate automatic Mana Bolt and always-visible slowdown availability/recharge.
+- Keep the incantation prompt above the player, report typing mistakes and owned-name matches, and retain bounded scrolling for long input.
+- Label choices as new spells, spell upgrades, passive upgrades, or evolutions; preserve functional descriptions and replacement details.
+- Darken the floor and outline enemies; retain conspicuous square hostile projectiles and outlined area warnings without altering their collision, damage, or timing.
+- Show final spell kit, survival time, and discoveries made during the current run in scrollable results. Guard result actions against repeated activation.
+- Keep pause options interactive in the UI layer and return Escape to the paused menu. Apply the same readable sizing to menu, help, options, and collection.
+- Add layout/state regressions with known-bad controls; desktop/narrow operated verification is recorded with the candidate evidence. Full art direction, additional spell effects, and balance changes remain later work.
+
 # Changelog
 
 ## 2026-09-26 — Limited typing slowdown

@@ -97,7 +97,7 @@ func run():
 	validate_cards(screen)
 	spells.learn_spell("life")
 	game.update_spell_slot_lock_status()
-	check(game.spell_slots[1].get_node("LevelLabel").text == "1", "HUD displays learned rank")
+	check(game.spell_slots[1].get_node("LevelLabel").text == "Rank 1", "HUD displays learned rank")
 	check(not spells.learn_spell("regeneration"), "Aliases cannot learn the same spell twice")
 	spells.upgrade_spell("life")
 	check(spells.get_spell_rank("regeneration") == 2, "ID-based upgrades share ranks with aliases")

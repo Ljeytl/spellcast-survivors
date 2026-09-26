@@ -2,7 +2,9 @@
 
 ## Current gameplay priority — September 2026
 
-Complete and verify the forgiving opening and regeneration first, preserving each earned level-up choice. Then offer new spells, upgrades, and passives as level-up choices, followed by a first set of distinct spell combinations. Art direction follows the working progression loop. The September balance patch has passed focused checks only on the isolated local-work candidate; resolve the committed baseline parse errors and revalidate an integrated revision before calling it release-ready.
+The ten-spell, five-slot progression loop and four hidden evolutions are implemented. Complete the focused readability pass before evaluating ordinary runs: acquisition clarity, typing feedback, slowdown recharge, combat contrast, and informative run results. UI sizing must remain independent of world-camera scale. Then playtest naturally earned builds, bosses, and a full 20-minute victory before tuning difficulty or commissioning a full art overhaul.
+
+Future visual work: cohesive enemy silhouettes and animation, spell-effect identity under crowded combat, optional interface scaling, and reduced-motion preferences. These should follow evidence from the gameplay pass rather than adding more content to mask pacing issues.
 
 ## Project Vision
 Transform SpellCast Survivors from a simple vampire survivors clone into a comprehensive roguelite experience with persistent progression, character classes, exploration, and deep customization while maintaining the unique typing-based spell casting mechanic.

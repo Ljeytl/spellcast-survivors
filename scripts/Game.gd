@@ -72,6 +72,7 @@ var game_over_screen: Control
 
 # Game session statistics for scoring
 var enemies_killed: int = 0  # Total enemies defeated this session
+var discoveries_at_start: Array = []
 var spells_cast: int = 0     # Total spells successfully cast this session
 
 # Called when the scene is first loaded and ready to run
@@ -79,6 +80,7 @@ func _ready():
 	
 	# Add to game group for other nodes to find this main game controller
 	add_to_group("game")
+	discoveries_at_start = CharacterManager.discovered_synergies.duplicate()
 	
 	# Start the background music for gameplay
 	if is_instance_valid(AudioManager):
@@ -92,6 +94,9 @@ func _ready():
 	update_spell_slot_lock_status()
 	# Initialize developer console
 	setup_console()
+	var readability = preload("res://scripts/GameplayReadability.gd").new()
+	readability.name = "GameplayReadability"
+	add_child(readability)
 	
 
 # Master setup function that initializes all game systems
@@ -147,19 +152,21 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 		name_label.name = "SpellName"
 		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.add_theme_font_size_override("font_size", 14)
+		name_label.add_theme_font_size_override("font_size", 18)
 		name_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		vbox.add_child(name_label)
 		name_label.minimum_size_changed.connect(_resize_spell_hud)
 	var info = spell_manager.spells.get(index + 1, {})
-	name_label.text = info.get("display_name", "Empty")
+	name_label.text = info.get("name", "Empty")
+	name_label.modulate = Color.WHITE if is_unlocked else Color("a6b4c8")
 	# Set up the level label
 	var level_label = slot_container.get_node_or_null("LevelLabel")
 	if level_label:
+		update_spell_level_display(level_label, spell_name)
 		if is_unlocked:
 			update_spell_level_display(level_label, spell_name)
 		else:
-			level_label.text = "🔒"
+			level_label.text = "Learn at level-up"
 			level_label.modulate = Color(0.6, 0.6, 0.6, 1.0)
 	
 	# Apply visual styling (background, borders, etc.)
@@ -171,11 +178,19 @@ func update_spell_level_display(level_label: Label, spell_name: String):
 	if not level_label or not spell_manager:
 		return
 	var rank = spell_manager.get_spell_rank(spell_name)
-	level_label.text = str(rank) if rank > 0 else "—"
+	level_label.text = "Rank %d" % rank if rank > 0 else "Learn at level-up"
+	level_label.add_theme_font_size_override("font_size", 14)
+	level_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	level_label.offset_top = -26
+	level_label.offset_left = 6
+	level_label.offset_right = -6
+	level_label.offset_bottom = -6
+	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	level_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	level_label.modulate = Color.GOLD if rank > 0 else Color.GRAY
 
 func _resize_spell_hud():
-	var height = 100.0
+	var height = 112.0
 	for card in spell_slots:
 		var name_label = card.get_node_or_null("VBox/SpellName")
 		if not name_label:
@@ -184,6 +199,7 @@ func _resize_spell_hud():
 		var key_height = card.get_node("VBox/KeyLabel").get_minimum_size().y
 		height = maxf(height, name_label.get_minimum_size().y + key_height + rank_height + 24.0)
 		card.get_node("VBox").offset_bottom = -rank_height - 10.0
+		card.get_node("LevelLabel").offset_top = -rank_height - 6.0
 	for card in spell_slots:
 		card.custom_minimum_size.y = height
 	get_node("UI/HUD/SpellSlotsPanel").offset_top = -height - 35.0
@@ -231,7 +247,7 @@ func update_difficulty_display():
 	var bosses = get_tree().get_nodes_in_group("bosses").filter(func(enemy): return not enemy.dying)
 	if not bosses.is_empty():
 		difficulty_label.text = "%s • %d HP" % [bosses[0].encounter_name, ceili(bosses[0].current_health)]
-	difficulty_label.modulate = Color(0.8, 1.0, 0.8) if tier < 3 else Color(1.0, 0.85, 0.5)
+	difficulty_label.modulate = Color("ff8175") if not bosses.is_empty() else Color("dfbd76")
 
 func setup_difficulty_tooltip():
 	if difficulty_tooltip:
@@ -309,7 +325,7 @@ func setup_ui():
 	if health_label and player:
 		var current_health = player.health if "health" in player else 100
 		var max_health = player.max_health if "max_health" in player else 100
-		health_label.text = "{0}/{1}".format([int(current_health), int(max_health)])
+		health_label.text = "Health · {0}/{1}".format([int(current_health), int(max_health)])
 	
 	# Set up XP bar to show values from 0-100%
 	if xp_bar:
@@ -408,9 +424,9 @@ func _on_player_health_changed(new_health: float, max_health: float, overheal_am
 		if overheal_amount > 0:
 			# Show overheal with remaining time
 			var time_remaining = player.get_overheal_time_remaining() if player and player.has_method("get_overheal_time_remaining") else 0.0
-			health_label.text = "{0}/{1} (+{2}) [{3}s]".format([int(new_health), int(max_health), int(overheal_amount), int(time_remaining)])
+			health_label.text = "Health · {0}/{1} (+{2}) [{3}s]".format([int(new_health), int(max_health), int(overheal_amount), int(time_remaining)])
 		else:
-			health_label.text = "{0}/{1}".format([int(new_health), int(max_health)])
+			health_label.text = "Health · {0}/{1}".format([int(new_health), int(max_health)])
 
 func animate_progress_bar(progress_bar: ProgressBar, value: float, duration: float):
 	var previous_tween = progress_bar.get_meta("value_tween") if progress_bar.has_meta("value_tween") else null
@@ -494,7 +510,7 @@ func _on_player_xp_changed(current_xp: float, xp_needed: float):
 	
 	# Update XP text label
 	if xp_label:
-		xp_label.text = "{0}/{1}".format([int(current_xp), int(xp_needed)])
+		xp_label.text = "Level %d · XP %d/%d" % [player.level, int(current_xp), int(xp_needed)]
 
 func update_xp_bar_effects(xp_percent: float):
 	var xp_bar_fill = get_or_create_progress_bar_style(xp_bar)
@@ -566,7 +582,7 @@ func update_typing_display(text: String):
 		typing_label.text = text
 		# Only set modulate if the label is still valid
 		if is_instance_valid(typing_label) and typing_label.has_method("set_modulate"):
-			typing_label.modulate = Color.WHITE  # Reset color in case it was changed
+			typing_label.modulate = Color("ff8175") if "Mismatch" in text or "No matching spell" in text or "unavailable" in text else Color("79d9e8")
 		
 		# Show/hide based on whether there's text to display
 		var should_show = text.length() > 0
@@ -667,7 +683,10 @@ func show_game_over_screen():
 			"survival_time": game_time,
 			"level": player.level if player else 1,
 			"enemies_killed": enemies_killed,
-			"spells_cast": spells_cast
+			"spells_cast": spells_cast,
+			"final_kit": spell_manager.spells.values().map(func(info): return "%s · Rank %d" % [info.name, spell_manager.get_spell_rank(info.id)]),
+			"mana_bolt_rank": spell_manager.get_spell_rank("mana_bolt"),
+			"discoveries": CharacterManager.discovered_synergies.filter(func(id): return id not in discoveries_at_start).map(func(id): return preload("res://scripts/SynergyCatalog.gd").RECIPES[id].name)
 		}
 		game_over_screen.show_game_over(stats)
 	else:
@@ -828,11 +847,11 @@ func setup_spell_slot_styling(slot_container: Node, is_locked: bool = false):
 	
 	# Different styling for locked vs unlocked spells
 	if is_locked:
-		normal_style.bg_color = Color(0.15, 0.15, 0.15, 0.6)  # Darker background for locked spells
-		normal_style.border_color = Color(0.4, 0.4, 0.4, 0.8)  # Gray border for locked spells
+		normal_style.bg_color = Color("111c2b")  # Darker background for locked spells
+		normal_style.border_color = Color("26384c")  # Gray border for locked spells
 	else:
-		normal_style.bg_color = Color(0.2, 0.2, 0.2, 0.8)  # Normal background
-		normal_style.border_color = Color.WHITE  # White border for unlocked spells
+		normal_style.bg_color = Color("17263a")  # Normal background
+		normal_style.border_color = Color("58728b")  # White border for unlocked spells
 	
 	normal_style.border_width_top = 2
 	normal_style.border_width_bottom = 2
@@ -844,7 +863,8 @@ func setup_spell_slot_styling(slot_container: Node, is_locked: bool = false):
 	normal_style.corner_radius_bottom_right = 5
 	
 	background.set("theme_override_styles/panel", normal_style)
-	background.anchors_preset = Control.PRESET_FULL_RECT
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	slot_container.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 # Update all spell slots to reflect current lock/unlock status
 func update_spell_slot_lock_status():
@@ -854,37 +874,15 @@ func update_spell_slot_lock_status():
 		spell_slots[i].tooltip_text = ("Type: " + info.display_name) if not info.is_empty() else "Learn a spell when you level up (five equipped spells maximum)"
 
 func highlight_spell_slot(slot_index: int):
-	# Highlight a specific spell slot
 	for i in range(spell_slots.size()):
-		var slot_container = spell_slots[i]
-		var background = slot_container.get_child(0) if slot_container.get_child_count() > 0 else null
-		if background and background is Panel:
-			var style = background.get("theme_override_styles/panel")
-			if style:
-				if i == slot_index:
-					# Highlight selected slot
-					style.bg_color = Color(0.8, 0.6, 0.2, 0.9)
-					style.border_color = Color.GOLD
-					
-					# Add pulsing animation
-					var tween = create_tween()
-					tween.set_loops()
-					tween.tween_property(style, "bg_color", Color(1.0, 0.8, 0.3, 0.9), 0.5)
-					tween.tween_property(style, "bg_color", Color(0.8, 0.6, 0.2, 0.9), 0.5)
-				else:
-					# Reset other slots
-					style.bg_color = Color(0.2, 0.2, 0.2, 0.8)
-					style.border_color = Color.WHITE
+		var background = spell_slots[i].get_node_or_null("SlotBackground")
+		if background:
+			var style = background.get_theme_stylebox("panel")
+			style.bg_color = Color("244350") if i == slot_index else (Color("17263a") if spell_manager.is_spell_unlocked(i + 1) else Color("111c2b"))
+			style.border_color = Color("79d9e8") if i == slot_index else (Color("58728b") if spell_manager.is_spell_unlocked(i + 1) else Color("26384c"))
 
 func clear_spell_slot_highlights():
-	# Clear all spell slot highlights
-	for slot_container in spell_slots:
-		var background = slot_container.get_child(0) if slot_container.get_child_count() > 0 else null
-		if background and background is Panel:
-			var style = background.get("theme_override_styles/panel")
-			if style:
-				style.bg_color = Color(0.2, 0.2, 0.2, 0.8)
-				style.border_color = Color.WHITE
+	highlight_spell_slot(-1)
 
 # Spell Manager signal handlers
 func _on_spell_queued(spell_name: String, slot: int):
@@ -966,7 +964,7 @@ func setup_typing_ui_style():
 	if is_instance_valid(typing_label) and typing_label.has_method("set_modulate"):
 		typing_label.modulate = Color.WHITE
 	typing_label.add_theme_color_override("font_color", Color.WHITE)
-	typing_label.add_theme_font_size_override("font_size", 20)
+	typing_label.add_theme_font_size_override("font_size", 22)
 	typing_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	typing_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	
@@ -988,14 +986,15 @@ func hide_typing_ui():
 		typing_label.visible = false
 	
 
-func update_typing_slowdown(remaining: float, capacity: float):
+func update_typing_slowdown(remaining: float, _capacity: float):
 	var status = $UI/HUD/TypingPanel/SlowdownStatus
-	status.text = "Slowdown: %.1fs / %.1fs" % [remaining, capacity] if remaining > 0.0 else "Slowdown empty · normal speed"
+	var instruction = "Enter casts" if spell_manager.space_casting else "Finish name to cast"
+	status.text = ("Slowdown %.1fs" % remaining if remaining > 0.0 else "Normal speed") + " · " + instruction + " · Esc cancels"
 
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	box.size.y = clampf(typing_label.get_minimum_size().y + 68.0, 148.0, get_viewport_rect().size.y * 0.35)
+	box.size.y = minf(maxf(typing_label.get_minimum_size().y + 44.0, 148.0), maxf(90.0, $UI/HUD.size.y * 0.5 - 180.0))
 	position_typing_ui_upper_screen()
 	_scroll_typing_to_end.call_deferred()
 
@@ -1008,16 +1007,17 @@ func position_typing_ui_upper_screen():
 		return
 	
 	# Get screen dimensions
-	var screen_size = get_viewport().get_visible_rect().size
+	var screen_size = $UI/HUD.size
 	
 	# Position in upper center of screen (25% down from top)
-	var typing_ui_position = Vector2(screen_size.x / 2, screen_size.y * 0.25)
+	var typing_ui_position = Vector2(screen_size.x / 2, screen_size.y * 0.5 - 40.0)
 	
 	# Find the typing panel (parent container) to position it
 	var typing_panel = typing_label.get_parent().get_parent()  # TypingArea -> TypingPanel
 	if typing_panel and typing_panel is Control:
 		var control = typing_panel as Control
-		control.position = typing_ui_position - control.size / 2  # Center the panel on the position
+		control.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		control.position = typing_ui_position - Vector2(control.size.x / 2, control.size.y)  # Center the panel on the position
 	
 
 func print_ui_structure(node: Node, indent: String = ""):
@@ -1052,7 +1052,11 @@ func _on_pause_options_pressed():
 	# Open the options screen while keeping the game paused
 	var options_scene = preload("res://scenes/Options.tscn")
 	var options_instance = options_scene.instantiate()
-	get_tree().current_scene.add_child(options_instance)
+	options_instance.called_from_pause = true
+	options_instance.process_mode = Node.PROCESS_MODE_ALWAYS
+	$UI.add_child(options_instance)
+	preload("res://scripts/GameplayReadability.gd").apply_theme(options_instance)
+	preload("res://scripts/GameplayReadability.gd").fit_root(options_instance)
 	
 	# Tell options it was called from pause menu
 	options_instance.called_from_pause = true

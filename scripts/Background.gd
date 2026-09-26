@@ -120,7 +120,7 @@ func draw_tiled_floor(top_left: Vector2, bottom_right: Vector2):
 			if texture:
 				# Draw the floor tile scaled to tile_size with smooth filtering
 				var dst_rect = Rect2(tile_pos, tile_size)
-				draw_texture_rect(texture, dst_rect, false)
+				draw_texture_rect(texture, dst_rect, false, Color(0.48, 0.55, 0.64))
 				
 				# Occasionally add some variation/wear
 				if get_tile_variation(x, y) > 0.9:
