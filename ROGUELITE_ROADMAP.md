@@ -1,3 +1,10 @@
+## 2026-09-26 — Design reconciliation before implementation
+
+- Consolidate playtest feedback into [core design v0.4](docs/CORE_GAME_DESIGN.md), the [spell/passive catalog](docs/SPELL_AND_UPGRADE_CATALOG.md), [art and feedback matrix](docs/ART_AND_FEEDBACK_PLAN.md), and [agent delivery plan](docs/PLAYTEST_REWORK_PLAN.md).
+- Record six active/six passive slots, additional slot-free combinations, distinct Bolt/Lightning/Lightning Bolt, per-cast slowdown, useful long-incantation payoff, readable effects and revised opening pressure. These are intended rules, not completed runtime changes.
+- Preserve frozen implementation branches and distinguish canonical build, remote UI changes and candidate evidence. Resume implementation only after design approval.
+- Keep Moonfall, Tree of Life, Grasping Hand, modifier words, alternate starters, map challenges, typed menus and audio separately scoped or deferred; do not silently add them to this pass.
+
 ## Minimal player information implemented — 2026-09-26
 
 - Normal play shows essential state; boss arrival timing is hidden until the boss arrives.
