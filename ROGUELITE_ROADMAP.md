@@ -408,3 +408,7 @@ Implemented Ember Lance, Plague Seed, Cinder Field and Arcane Orbit, plus Life B
 - Measure boss health remaining and target access before tuning first-boss durability; automatic nearest-target behavior and random bot casts can obscure the cause.
 - Compare uncollected XP against level timing before changing XP rewards.
 - Compare damage while typing with total contact/projectile/blast damage; preserve a forgiving opening and basic-spell viability.
+
+### Core fantasy exploration — September 26
+
+See [typed magic discussion notes](docs/CASTING_FANTASY_NOTES.md) for the movement-versus-casting panic, possible gate-defense/tower-defense alternatives, and authored spell-language ideas. These are saved hypotheses, not committed features or an approved pivot. A proposed small-kit playtest should examine whether finishing a dangerous incantation feels worth giving up movement.

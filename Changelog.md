@@ -1,3 +1,7 @@
+## 2026-09-26 — Casting fantasy discussion preserved
+
+- Record the creator’s movement-versus-casting panic, possible defense pivots, language composition ideas, and proposed playtest questions in [casting fantasy notes](docs/CASTING_FANTASY_NOTES.md). Distinguish user priorities, assistant suggestions, current mechanics, and unresolved decisions; no gameplay changes or pivot approval.
+
 ## 2026-09-26 — Playtest-driven balance corrections
 
 - Rename Quick Cast to Mana Tempo and describe its actual +10% automatic Mana Bolt attack-rate benefit. Preserve the internal upgrade key and existing attack cadence while keeping typing slowdown at 20% world speed regardless of attack-rate upgrades.
