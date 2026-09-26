@@ -24,7 +24,7 @@ var commands: Dictionary = {
 		"usage": "invincibility [on/off/toggle]"
 	},
 	"unlock_spells": {
-		"description": "Unlock all spells immediately", 
+		"description": "Fill empty manual spell slots (maximum five)",
 		"usage": "unlock_spells"
 	},
 	"level_up": {
@@ -472,7 +472,7 @@ func unlock_all_spells():
 		
 	if spell_manager and spell_manager.has_method("unlock_all_spells"):
 		spell_manager.unlock_all_spells()
-		add_output("[color=green]All spells unlocked![/color]")
+		add_output("[color=green]Manual loadout: %d/5 slots equipped. Existing spells and evolutions preserved.[/color]" % spell_manager.spells.size())
 	else:
 		add_output("[color=red]Could not unlock spells[/color]")
 

@@ -66,6 +66,7 @@ func run():
 		check(enemies[0].current_health <= 45.0, "Spawned enemy retains opening health after ready")
 		enemies[0].queue_free()
 	player.health = 20.0
+	spells.learn_spell("life")
 	spells.cast_spell_by_type(2)
 	check(spells.active_healing_effects.size() == 1, "Numbered Regeneration creates healing")
 	spells.process_healing_effects(1.0)

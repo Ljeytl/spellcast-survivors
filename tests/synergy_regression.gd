@@ -65,8 +65,7 @@ func run():
 	type_text("t")
 	key(KEY_ENTER)
 	check(game.spells_cast == 1 and not spells.is_typing, "Enter casts exactly once and closes")
-	while Time.get_ticks_msec() / 1000.0 - spells.last_spell_cast_time < 0.12:
-		await process_frame
+	spells.casting_clock += 0.12
 	key(KEY_SPACE)
 	type_text("life bolt")
 	key(KEY_ENTER)
@@ -81,10 +80,13 @@ func run():
 	game.level_up_screen.available_upgrades = cards.filter(func(card): return card.key == "learn:life_bolt")
 	game.level_up_screen.update_ui(2)
 	game.level_up_screen.upgrade_buttons[0].pressed.emit()
-	await create_timer(0.4, true, false, true).timeout
+	var selection_deadline = Time.get_ticks_msec() + 1000
+	while not spells.acquired_spells.has("life_bolt") and Time.get_ticks_msec() < selection_deadline:
+		await process_frame
 	check(spells.acquired_spells.has("life_bolt") and not paused, "Selecting recipe card grants spell and resumes")
 	check(not spells.learn_spell("life_bolt"), "Duplicate acquisition rejected")
-	check(spells.is_spell_unlocked(1) and spells.is_spell_unlocked(2), "Ingredients remain available")
+	check(spells.spells[1].id == "life_bolt" and spells.spells[2].id == "life", "Primary evolves in place and catalyst remains")
+	check(not spells.cast_freeform_spell("bolt"), "Consumed primary is not castable")
 	check("life bolt" in spells.get_owned_incantations(), "Owned synergy appears in casting names")
 	check("life_bolt" in profile.discovered_synergies, "Selection persists discovery")
 	profile.discovered_synergies.clear()

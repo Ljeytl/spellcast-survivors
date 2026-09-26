@@ -217,8 +217,8 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -420.0
-offset_top = -100.0
+offset_left = -510.0
+offset_top = -135.0
 offset_right = -10.0
 offset_bottom = -15.0
 
@@ -235,7 +235,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Slot1" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
-custom_minimum_size = Vector2(60, 70)
+custom_minimum_size = Vector2(90, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
@@ -248,7 +248,7 @@ anchor_bottom = 1.0
 offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
-offset_bottom = -5.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -285,7 +285,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Slot2" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
-custom_minimum_size = Vector2(60, 70)
+custom_minimum_size = Vector2(90, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
@@ -298,7 +298,7 @@ anchor_bottom = 1.0
 offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
-offset_bottom = -5.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -335,7 +335,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Slot3" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
-custom_minimum_size = Vector2(60, 70)
+custom_minimum_size = Vector2(90, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
@@ -348,7 +348,7 @@ anchor_bottom = 1.0
 offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
-offset_bottom = -5.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -385,7 +385,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Slot4" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
-custom_minimum_size = Vector2(60, 70)
+custom_minimum_size = Vector2(90, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
@@ -398,7 +398,7 @@ anchor_bottom = 1.0
 offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
-offset_bottom = -5.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -435,7 +435,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Slot5" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
-custom_minimum_size = Vector2(60, 70)
+custom_minimum_size = Vector2(90, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
@@ -448,7 +448,7 @@ anchor_bottom = 1.0
 offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
-offset_bottom = -5.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -485,7 +485,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Slot6" type="Panel" parent="UI/HUD/SpellSlotsPanel/SpellSlots"]
-custom_minimum_size = Vector2(60, 70)
+custom_minimum_size = Vector2(90, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_spell_slot")
@@ -498,7 +498,7 @@ anchor_bottom = 1.0
 offset_left = 5.0
 offset_top = 5.0
 offset_right = -5.0
-offset_bottom = -5.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 

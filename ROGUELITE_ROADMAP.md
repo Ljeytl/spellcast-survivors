@@ -374,7 +374,7 @@ Design review: [Core Game Design v0.2](docs/CORE_GAME_DESIGN.md) reconciles the 
 
 ### Spell-acquisition milestone
 
-Run-local acquisition is now implemented for the six existing manual spells, with Bolt as the starting spell and a separate passive attack. Level-ups offer learning, owned-spell ranks and implemented passives. New spells beyond this roster, replacement rules, authored combinations, branching specializations and typing-input revisions remain future work. Current reroll/banish/lock resource counts are preserved rather than redesigned.
+Run-local acquisition now offers ten base manual spells, five equipped slots, and four authored evolutions. Bolt starts equipped and automatic Mana Bolt remains separate. Level-ups offer learning, owned-spell ranks and passives; at capacity, only eligible evolutions can change spells. Reroll/banish/lock resources remain unchanged. Arbitrary replacement and branching specializations remain future work.
 
 Casting usability: keep the player visible and separate Escape cancellation from pausing. Next playtest must verify held movement, XP collection and an ordinary full run; the short stationary UI test does not qualify balance.
 
@@ -384,7 +384,7 @@ Developer bot tooling now supports repeatable movement/casting/upgrade runs and 
 
 ### First hidden synergy playable
 
-Space/Enter casting, movement lock while typing, Life Bolt acquisition and a persistent Spell Collection are implemented. Recipes are authored; arbitrary pairs do not combine. Discovery persists per save slot, while ownership resets each run. The first recipe preserves its ingredients and adds a typed spell without a numbered slot. Broader slot/replacement policy is still open. Next: verify more recipe behaviors and tune with human play plus multi-seed bot reports; leave encounter difficulty unchanged for now.
+Space/Enter casting, movement lock while typing, Life Bolt acquisition and a persistent Spell Collection are implemented. Recipes are authored; arbitrary pairs do not combine. Discovery persists per save slot, while ownership resets each run. Evolutions replace their primary ingredient in its numbered slot and retain rank; catalysts remain equipped. Four authored recipes are implemented, and discoveries remain hidden until selected. Next: verify more recipe behaviors and tune with human play plus multi-seed bot reports; leave encounter difficulty unchanged for now.
 
 ### 2026-09-26 UI containment follow-up
 
@@ -392,3 +392,7 @@ Space/Enter casting, movement lock while typing, Life Bolt acquisition and a per
 - Next UI pass: make text physically readable at narrow window sizes; current canvas scaling makes menus small even though content is contained.
 - Completed: shared three-second typing slowdown budget, ten-second refill outside typing, in-box countdown, and normal-speed casting after exhaustion.
 - Next balance pass: offer duration/refill upgrades and decide how the existing Quick Cast stat should interact with slowdown. Current enemy difficulty is unchanged.
+
+### Gameplay build expansion — September 26, 2026
+
+Implemented Ember Lance, Plague Seed, Cinder Field and Arcane Orbit, plus Life Bolt, Meteor Lance, Soul Bloom and Steam Field evolutions. Five manual slots create build commitments. Next: full-run human play alongside multiple bot seeds, then tune spell value, discovery frequency and boss pressure from evidence. Graphics remain deferred. Consider explicit replacement choices and additional recipes only after this pool produces satisfying runs.

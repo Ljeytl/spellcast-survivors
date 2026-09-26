@@ -30,13 +30,18 @@ var _scale_change_frame: int = -1
 var _scale_before_change: float = 1.0
 var space_casting = false
 
+const MAX_EQUIPPED_SPELLS = 5
+const BASE_SPELL_IDS = ["bolt", "life", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit"]
+var spell_catalog: Dictionary = {}
+var evolved_ingredients: Dictionary = {}
 var acquired_spells: Dictionary = {"bolt": true}
 
 var spell_queue: Array = []
 var current_typing_text: String = ""
 var is_typing: bool = false
 var target_spell: String = ""
-var last_spell_cast_time: float = 0.0
+var casting_clock: float = 0.0
+var last_spell_cast_time: float = -1.0
 
 # Freeform casting system
 var freeform_mode: bool = false
@@ -45,21 +50,7 @@ var freeform_mode: bool = false
 var spells = {}
 
 # Freeform spell library loaded from DataManager
-var freeform_spells = {
-	"lightning arc": {"chars": 13, "damage": 30, "level": 1, "type": "chain", "chain_count": 3},
-	"meteor shower": {"chars": 13, "damage": 35, "level": 1, "type": "multi_aoe", "meteor_count": 3},
-	"magic missile": {"chars": 13, "damage": 15, "level": 1, "type": "projectile"}, # Basic auto-attack spell
-	
-	# New test spells for expanded gameplay
-	"fireball": {"chars": 8, "damage": 25, "level": 1, "type": "projectile"},
-	"heal": {"chars": 4, "damage": 0, "level": 1, "type": "instant_heal", "heal_amount": 25},
-	"lightning": {"chars": 9, "damage": 35, "level": 1, "type": "projectile"},
-	"explosion": {"chars": 9, "damage": 40, "level": 1, "type": "aoe", "radius": 350},
-	"barrier": {"chars": 7, "damage": 0, "level": 1, "type": "shield", "shield_hp": 40},
-	"teleport": {"chars": 8, "damage": 0, "level": 1, "type": "utility"},
-	"slow": {"chars": 4, "damage": 0, "level": 1, "type": "debuff"},
-	"haste": {"chars": 5, "damage": 0, "level": 1, "type": "buff"}
-}
+var freeform_spells: Dictionary = {}
 
 # Mana bolt is the auto-attack spell
 var mana_bolt_damage = 15.0
@@ -100,99 +91,26 @@ func _ready():
 
 # Load spells from DataManager
 func load_spells_from_data():
-	if not DataManager:
-		print("Warning: DataManager not available, using fallback spells")
-		load_fallback_spells()
-		return
-	
-	# Load spell data and convert to slot-based format
-	var spell_data = DataManager.get_all_spells()
-	var slot = 1
-	
-	# Define specific spells for slots 1-6 with custom typing names
-	var slot_spell_config = [
-		{"id": "bolt", "display_name": "bolt"},
-		{"id": "life", "display_name": "regeneration"},
-		{"id": "ice_blast", "display_name": "ice blast"},
-		{"id": "earth_shield", "display_name": "earth shield"},
-		{"id": "lightning_arc", "display_name": "lightning arc"},
-		{"id": "meteor_shower", "display_name": "meteor shower"}
-	]
-	
-	# Assign specific spells to slots 1-6
-	for i in range(slot_spell_config.size()):
-		var config = slot_spell_config[i]
-		var spell_id = config["id"]
-		if spell_id in spell_data:
-			var spell = spell_data[spell_id]
-			var spell_slot = i + 1
-			var display_name = config["display_name"]
-			spells[spell_slot] = {
-				"id": spell_id,
-				"name": spell.get("name", spell_id),
-				"display_name": display_name,
-				"chars": display_name.length(),
-				"damage": spell.get("damage", 20),
-				"level": 1,
-				"type": spell.get("type", "projectile"),
-				"unlock_level": get_spell_unlock_level(spell)
-			}
-			# Copy additional properties
-			for key in spell:
-				if key not in ["name", "chars", "damage", "type"]:
-					spells[spell_slot][key] = spell[key]
-	
-	# Load ALL spells into freeform system
-	for spell_id in spell_data:
-		var spell = spell_data[spell_id]
-		freeform_spells[spell_id] = {
-			"chars": spell.get("chars", 4),
-			"damage": spell.get("damage", 20),
-			"level": 1,
-			"type": spell.get("type", "projectile")
-		}
-		# Copy additional properties for freeform
-		for key in spell:
-			if key not in ["name", "chars", "damage", "type"]:
-				freeform_spells[spell_id][key] = spell[key]
-	
-	print("SpellManager: Loaded ", spells.size(), " slot spells and ", freeform_spells.size(), " freeform spells")
-
-func load_fallback_spells():
-	# Perfectly balanced spell definitions for tactical gameplay
-	spells = {
-		# BOLT - Your Bread & Butter (4 chars = quick & reliable)
-		1: {"id": "bolt", "name": "Lightning Bolt", "display_name": "bolt", "chars": 4, "damage": 30, "level": 1, "type": "projectile", "unlock_level": 1, "speed": 600},
-		
-		# REGENERATION - Survival Insurance (12 chars = fair cost for safety)
-		2: {"id": "life", "name": "Regeneration", "display_name": "regeneration", "chars": 12, "damage": 0, "level": 1, "type": "heal", "unlock_level": 1, "heal_amount": 6, "duration": 6.0, "tick_rate": 1.0},
-		
-		# ICE BLAST - Safety Zone Creator (9 chars = utility over damage)
-		3: {"id": "ice_blast", "name": "Ice Blast", "display_name": "ice blast", "chars": 9, "damage": 8, "level": 1, "type": "aoe", "unlock_level": 2, "radius": 450, "knockback": 350, "slow_duration": 3.5, "slow_strength": 0.7},
-		
-		# EARTH SHIELD - Get Out of Jail Free (12 chars = panic button)
-		4: {"id": "earth_shield", "name": "Earth Shield", "display_name": "earth shield", "chars": 12, "damage": 0, "level": 1, "type": "shield", "unlock_level": 3, "shield_hp": 80, "duration": 10.0},
-		
-		# LIGHTNING ARC - Elite Killer (13 chars = focused devastation)
-		5: {"id": "lightning_arc", "name": "Lightning Arc", "display_name": "lightning arc", "chars": 13, "damage": 45, "level": 1, "type": "chain", "unlock_level": 4, "chain_count": 4, "chain_range": 250, "chain_damage_reduction": 0.75},
-		
-		# METEOR SHOWER - Crowd Clearer (13 chars = nuclear option)
-		6: {"id": "meteor_shower", "name": "Meteor Shower", "display_name": "meteor shower", "chars": 13, "damage": 50, "level": 1, "type": "multi_aoe", "unlock_level": 5, "meteor_count": 4, "radius": 200, "delay_interval": 0.25}
-	}
-
-func get_spell_unlock_level(spell_data: Dictionary) -> int:
-	var unlock_condition = spell_data.get("unlock_condition", {})
-	match unlock_condition.get("type", "default"):
-		"level":
-			return unlock_condition.get("value", 1)
-		"default":
-			return 1
-		_:
-			return 1  # Default fallback
+	spells.clear()
+	spell_catalog.clear()
+	var data = DataManager.get_all_spells()
+	for id in BASE_SPELL_IDS:
+		if not data.has(id):
+			continue
+		var info = data[id].duplicate(true)
+		info.id = id
+		info.display_name = "regeneration" if id == "life" else id.replace("_", " ")
+		info.chars = info.display_name.length()
+		info.level = 1
+		info.damage = info.get("damage", 0)
+		spell_catalog[id] = info
+	spells[1] = spell_catalog.bolt.duplicate(true)
 
 func _process(delta):
 	var frame_scale = _scale_before_change if _scale_change_frame == Engine.get_process_frames() else Engine.time_scale
-	advance_typing_slowdown(delta / maxf(frame_scale, 0.01))
+	var unscaled_delta = delta / maxf(frame_scale, 0.01)
+	casting_clock += unscaled_delta
+	advance_typing_slowdown(unscaled_delta)
 	# Handle auto-attack mana bolt
 	handle_auto_attack(delta)
 	
@@ -210,7 +128,7 @@ func handle_key_input(event: InputEventKey):
 		handle_freeform_typing_input(event)
 		return
 	if event.keycode == KEY_SPACE and not is_typing and not event.echo:
-		if Time.get_ticks_msec() / 1000.0 - last_spell_cast_time >= SPELL_CAST_COOLDOWN:
+		if casting_clock - last_spell_cast_time >= SPELL_CAST_COOLDOWN:
 			space_casting = true
 			start_freeform_typing()
 		return
@@ -222,7 +140,7 @@ func handle_key_input(event: InputEventKey):
 	# Handle normal slot-based input
 	var key_code = event.keycode
 	
-	if key_code >= KEY_1 and key_code <= KEY_6:
+	if key_code >= KEY_1 and key_code <= KEY_5:
 		var slot = key_code - KEY_0
 		if slot in spells:
 			# Don't allow new spell queuing while already typing
@@ -230,7 +148,7 @@ func handle_key_input(event: InputEventKey):
 				return
 			
 			# Check spell cast cooldown to prevent rapid casting
-			var current_time = Time.get_ticks_msec() / 1000.0
+			var current_time = casting_clock
 			if current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
 				return
 			
@@ -348,7 +266,7 @@ func cast_spell():
 	var slot = spell_data["slot"]
 	
 	# Update last cast time
-	last_spell_cast_time = Time.get_ticks_msec() / 1000.0
+	last_spell_cast_time = casting_clock
 	
 	# Play spell casting sound
 	if AudioManager:
@@ -501,6 +419,10 @@ func cast_spell_by_type(slot: int):
 	var spell_type = spell_info["type"]
 	
 	match spell_type:
+		"life_bolt":
+			cast_life_bolt(slot)
+		"piercing", "plague", "field", "orbit":
+			cast_build_spell(slot)
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
 		"heal", "heal_over_time":
@@ -1016,9 +938,12 @@ func is_spell_unlocked(slot: int) -> bool:
 	return slot in spells and acquired_spells.has(spells[slot].id)
 
 func unlock_all_spells():
-	for slot in spells:
-		learn_spell(spells[slot].id)
+	for id in BASE_SPELL_IDS:
+		if spells.size() >= MAX_EQUIPPED_SPELLS:
+			break
+		learn_spell(id)
 	game_manager.update_spell_slot_lock_status()
+
 
 func toggle_freeform_mode(action: String):
 	match action:
@@ -1042,7 +967,7 @@ func handle_freeform_input(event: InputEventKey):
 		# Check if it's a letter key
 		if (key_code >= KEY_A and key_code <= KEY_Z) or key_code == KEY_SPACE:
 			# Check spell cast cooldown to prevent rapid casting
-			var current_time = Time.get_ticks_msec() / 1000.0
+			var current_time = casting_clock
 			if current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
 				return
 			
@@ -1110,19 +1035,6 @@ func attempt_freeform_cast():
 		game_manager.update_typing_display("Spell unavailable in this run.\nTyped: " + current_typing_text + "\nEdit the name, or Esc to cancel.")
 
 func cast_freeform_spell(spell_name: String) -> bool:
-	var id = spell_name.strip_edges().to_lower().replace(" ", "_")
-	if id in Synergies.RECIPES:
-		if not acquired_spells.has(id):
-			return false
-		match id:
-			"life_bolt": cast_life_bolt()
-			_: return false
-		last_spell_cast_time = Time.get_ticks_msec() / 1000.0
-		spell_cast.emit(Synergies.RECIPES[id].name)
-		game_manager.increment_spells_cast()
-		AudioManager.play_spell_sound("bolt")
-		end_typing()
-		return true
 	var slot = find_spell_slot(spell_name)
 	if not is_spell_unlocked(slot):
 		if slot in spells:
@@ -1133,11 +1045,11 @@ func cast_freeform_spell(spell_name: String) -> bool:
 	cast_spell()
 	return true
 
-func cast_life_bolt():
+func cast_life_bolt(slot: int):
 	var projectile = spell_projectile_scene.instantiate()
 	get_parent().add_child(projectile)
 	var target = get_closest_enemy()
-	var damage = calculate_spell_damage(spells[1])
+	var damage = calculate_spell_damage(spells[slot])
 	if target:
 		projectile.setup_homing(player.global_position, target, damage, Color.GREEN, "life_bolt")
 	else:
@@ -1150,53 +1062,12 @@ func get_owned_incantations() -> Array:
 	for slot in spells:
 		if is_spell_unlocked(slot):
 			names.append(spells[slot].display_name)
-	for id in Synergies.RECIPES:
-		if acquired_spells.has(id):
-			names.append(Synergies.RECIPES[id].incantation)
 	return names
 
-func cast_freeform_spell_by_type(spell_name: String, spell_data: Dictionary):
-	if not player or not is_instance_valid(player):
-		return
-	
-	var spell_type = spell_data["type"]
-	var damage = calculate_freeform_spell_damage(spell_data)
-	
-	
-	match spell_type:
-		"projectile":
-			cast_freeform_projectile_spell(spell_name, spell_data, damage)
-		"heal", "heal_over_time":
-			cast_freeform_heal_spell(spell_name, spell_data)
-		"instant_heal":
-			cast_freeform_instant_heal_spell(spell_name, spell_data)
-		"aoe":
-			cast_freeform_aoe_spell(spell_name, spell_data, damage)
-		"shield":
-			cast_freeform_shield_spell(spell_name, spell_data)
-		"chain":
-			cast_freeform_chain_spell(spell_name, spell_data, damage)
-		"multi_aoe":
-			cast_freeform_multi_aoe_spell(spell_name, spell_data, damage)
-		"utility":
-			cast_freeform_utility_spell(spell_name, spell_data)
-		"debuff":
-			cast_freeform_debuff_spell(spell_name, spell_data)
-		"buff":
-			cast_freeform_buff_spell(spell_name, spell_data)
-		_:
-			print("Unknown freeform spell type: ", spell_type)
-
-func calculate_freeform_spell_damage(spell_data: Dictionary) -> float:
-	var base_damage = spell_data.get("damage", 0)
-	var spell_level = spell_data.get("level", 1)
-	var level_multiplier = 1.0 + 0.15 * (spell_level - 1)
-	var damage = base_damage * level_multiplier
-	
-	if player:
-		damage *= player.spell_damage_multiplier
-	
-	return damage
+func cast_freeform_spell_by_type(spell_name: String, _spell_data: Dictionary):
+	var slot = find_spell_slot(spell_name)
+	if is_spell_unlocked(slot):
+		cast_spell_by_type(slot)
 
 func update_freeform_typing_display():
 	if game_manager and game_manager.has_method("update_typing_display"):
@@ -1214,135 +1085,6 @@ func update_freeform_typing_display():
 					display_text += "..."
 		game_manager.update_typing_display(display_text)
 
-# Freeform spell implementations (basic versions for testing)
-func cast_freeform_projectile_spell(spell_name: String, spell_data: Dictionary, damage: float):
-	var closest_enemy = get_closest_enemy()
-	if not closest_enemy:
-		return
-	
-	var projectile = spell_projectile_scene.instantiate()
-	if not projectile:
-		return
-	
-	# Determine color based on spell name
-	var color = Color.CYAN
-	match spell_name:
-		"bolt", "lightning":
-			color = Color.YELLOW
-		"fireball":
-			color = Color.ORANGE_RED
-		"magic missile":
-			color = Color.CYAN
-	
-	projectile.setup_homing(player.global_position, closest_enemy, damage, color, spell_name)
-	get_parent().add_child(projectile)
-
-func cast_freeform_heal_spell(spell_name: String, spell_data: Dictionary):
-	# Heal over time (like existing life spell)
-	var heal_amount = spell_data.get("heal_amount", 8)
-	var duration = spell_data.get("duration", 5)
-	
-	var healing_effect = {
-		"heal_per_second": heal_amount,
-		"remaining_time": duration
-	}
-	active_healing_effects.append(healing_effect)
-	
-	# Create healing visual effect
-	create_healing_effect()
-
-func cast_freeform_instant_heal_spell(spell_name: String, spell_data: Dictionary):
-	# Instant healing
-	var heal_amount = spell_data.get("heal_amount", 25)
-	if player:
-		player.heal(heal_amount)
-		print("Instant heal: +", heal_amount, " health")
-
-func cast_freeform_aoe_spell(spell_name: String, spell_data: Dictionary, damage: float):
-	# Area of effect spell centered on player
-	var radius = spell_data.get("radius", 350)
-	var color = Color.LIGHT_BLUE if spell_name == "ice blast" else Color.RED
-	
-	create_aoe_explosion(player.global_position, radius, damage, color, spell_name)
-
-func cast_freeform_shield_spell(spell_name: String, spell_data: Dictionary):
-	# Shield/barrier spell
-	var shield_hp = spell_data.get("shield_hp", 40)
-	
-	if player and player.has_method("add_overheal"):
-		player.add_overheal(shield_hp)
-	
-	# Create shield visual effect
-	create_shield_effect()
-
-func cast_freeform_chain_spell(spell_name: String, spell_data: Dictionary, damage: float):
-	# Chain lightning spell
-	var chain_count = spell_data.get("chain_count", 3)
-	
-	var closest_enemy = get_closest_enemy()
-	if not closest_enemy:
-		return
-	
-	create_lightning_arc_visual(player.global_position, closest_enemy.global_position, closest_enemy)
-	chain_lightning(closest_enemy, damage, chain_count, [])
-
-func cast_freeform_multi_aoe_spell(spell_name: String, spell_data: Dictionary, damage: float):
-	# Multiple AoE attacks (meteor shower style)
-	var meteor_count = spell_data.get("meteor_count", 3)
-	
-	for i in meteor_count:
-		var delay = i * 0.3
-		var target_pos: Vector2
-		
-		var enemies = get_tree().get_nodes_in_group("enemies")
-		if enemies.size() > 0:
-			var random_enemy = enemies[randi() % enemies.size()]
-			target_pos = random_enemy.global_position + Vector2(randf_range(-150, 150), randf_range(-150, 150))
-		else:
-			target_pos = player.global_position + Vector2(randf_range(-200, 200), randf_range(-200, 200))
-		
-		var tree = get_tree()
-		if tree:
-			create_meteor_warning(target_pos, delay, 180.0)
-			tree.create_timer(delay).timeout.connect(func(): create_meteor_strike(target_pos, damage * 0.8))
-
-func cast_freeform_utility_spell(spell_name: String, spell_data: Dictionary):
-	match spell_name:
-		"teleport":
-			# Teleport player to mouse position
-			var mouse_pos = get_viewport().get_global_mouse_position()
-			if player:
-				player.global_position = mouse_pos
-				print("Teleported to: ", mouse_pos)
-
-func cast_freeform_debuff_spell(spell_name: String, spell_data: Dictionary):
-	match spell_name:
-		"slow":
-			# Slow all enemies
-			var enemies = get_tree().get_nodes_in_group("enemies")
-			for enemy in enemies:
-				if enemy.has_method("apply_slow"):
-					enemy.apply_slow(0.5, 5.0)  # 50% slow for 5 seconds
-			print("Slowed all enemies")
-
-func cast_freeform_buff_spell(spell_name: String, spell_data: Dictionary):
-	match spell_name:
-		"haste":
-			# Temporary speed boost for player
-			if player:
-				var original_speed = player.movement_speed_multiplier
-				player.movement_speed_multiplier *= 1.5
-				print("Haste activated: +50% movement speed for 10 seconds")
-				# Restore speed after duration
-				var tree = get_tree()
-				if tree:
-					tree.create_timer(10.0).timeout.connect(
-						func(): 
-							if player:
-								player.movement_speed_multiplier = original_speed
-								print("Haste effect ended")
-					)
-
 func find_spell_slot(spell_name: String) -> int:
 	var normalized = spell_name.strip_edges().to_lower().replace("_", " ")
 	for slot in spells:
@@ -1356,13 +1098,29 @@ func learn_spell(spell_id: String) -> bool:
 	if spell_id in Synergies.RECIPES:
 		if acquired_spells.has(spell_id) or not synergy_eligible(spell_id):
 			return false
+		var recipe = Synergies.RECIPES[spell_id]
+		var slot = find_spell_slot(recipe.ingredients[0])
+		if slot == 0:
+			return false
+		if is_typing:
+			cancel_typing()
+		var evolved = spells[slot].duplicate(true)
+		evolved.merge(recipe.overrides, true)
+		evolved.id = spell_id
+		evolved.name = recipe.name
+		evolved.display_name = recipe.incantation
+		evolved.chars = recipe.incantation.length()
+		acquired_spells.erase(spells[slot].id)
+		evolved_ingredients[spells[slot].id] = spell_id
+		spells[slot] = evolved
 		acquired_spells[spell_id] = true
 		CharacterManager.discover_synergy(spell_id)
-		return true
-	var slot = find_spell_slot(spell_id)
-	if slot == 0 or is_spell_unlocked(slot):
-		return false
-	acquired_spells[spells[slot].id] = true
+	else:
+		if not spell_catalog.has(spell_id) or acquired_spells.has(spell_id) or evolved_ingredients.has(spell_id) or spells.size() >= MAX_EQUIPPED_SPELLS:
+			return false
+		spells[spells.size() + 1] = spell_catalog[spell_id].duplicate(true)
+		acquired_spells[spell_id] = true
+	rebuild_freeform_library()
 	return true
 
 func get_spell_rank(spell_id: String) -> int:
@@ -1379,27 +1137,21 @@ func rebuild_freeform_library():
 			freeform_spells[alias] = info
 
 func get_learnable_spell_cards() -> Array:
-	var roles = {
-		"life": "Restore health over time.",
-		"ice_blast": "Push nearby enemies back and slow them.",
-		"earth_shield": "Gain temporary overheal for protection.",
-		"lightning_arc": "Strike several nearby enemies with chaining damage.",
-		"meteor_shower": "Bombard nearby enemies with delayed area attacks."
-	}
 	var cards: Array = []
-	for slot in spells:
-		if is_spell_unlocked(slot):
-			continue
-		var info = spells[slot]
-		cards.append({"key": "learn:" + info.id, "name": "Learn " + info.name,
-			"description": roles.get(info.id, "Learn a new spell.") + "\nSlot %d · Type: %s" % [slot, info.display_name],
-			"icon": "+", "effect": {"type": "learn_spell", "spell": info.id}})
+	if spells.size() < MAX_EQUIPPED_SPELLS:
+		for id in spell_catalog:
+			if acquired_spells.has(id) or evolved_ingredients.has(id):
+				continue
+			var info = spell_catalog[id]
+			cards.append({"key": "learn:" + id, "name": "Learn " + info.name,
+				"description": info.get("role", "Learn a new spell.") + "\nSlot %d of 5 · Type: %s" % [spells.size() + 1, info.display_name],
+				"icon": "+", "effect": {"type": "learn_spell", "spell": id}})
 	for id in Synergies.RECIPES:
 		if acquired_spells.has(id) or not synergy_eligible(id):
 			continue
 		var recipe = Synergies.RECIPES[id]
-		cards.append({"key": "learn:" + id, "name": ("Learn " if id in CharacterManager.discovered_synergies else "Discover ") + recipe.name,
-			"description": recipe.card_description + "\nSpace → " + recipe.incantation + " → Enter",
+		cards.append({"key": "learn:" + id, "name": ("Evolve: " if id in CharacterManager.discovered_synergies else "Discover: ") + recipe.name,
+			"description": recipe.card_description + "\nReplaces " + spells[find_spell_slot(recipe.ingredients[0])].name + "; keeps slot and rank.",
 			"icon": "+", "effect": {"type": "learn_spell", "spell": id}})
 	return cards
 
@@ -1430,4 +1182,13 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 			return prefix + damage
 		"meteor_shower":
 			return prefix + damage + ", +1 meteor"
-	return prefix + "Improved effectiveness"
+	return prefix + damage
+
+func cast_build_spell(slot: int):
+	var info = spells[slot]
+	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return effect.info.id == info.id and not effect.is_queued_for_deletion())
+	if active.size() >= 3:
+		active[0].queue_free()
+	var effect = preload("res://scripts/BuildSpellEffect.gd").new()
+	effect.configure(info, calculate_spell_damage(info), player, get_closest_enemy())
+	get_parent().add_child(effect)

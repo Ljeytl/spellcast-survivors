@@ -9,18 +9,25 @@ SpellCast Survivors combines the intense action of vampire survivors games with 
 ### Core Mechanics
 - **WASD Movement** - Navigate through enemy hordes
 - **Auto-Attack** - Continuous mana bolt projectiles
-- **Spell Queuing** - Press number keys (1-6) to queue spells
+- **Spell Queuing** - Press number keys (1-5) to queue equipped spells
 - **Typing System** - Type spell names to cast them
-- **Time Dilation** - Time slows to 20% while typing for strategic gameplay
+- **Time Dilation** - Typing has a shared three-second slowdown budget, refilling over ten seconds outside typing
 
 ### Spell System
-6 unique spells with balanced character counts:
-- **Bolt** (4 chars) - Quick damage projectile
-- **Ice Blast** (9 chars) - Freezing area attack  
-- **Life** (4 chars) - Healing spell
-- **Earth Shield** (11 chars) - Defensive barrier
-- **Lightning Arc** (12 chars) - Chain lightning
-- **Meteor Shower** (13 chars) - Devastating area spell
+Choose five manual spells from ten base spells. Automatic Mana Bolt is separate.
+
+- **Bolt** — Focused projectiles
+- **Regeneration** — Healing over time
+- **Ice Blast** — Area damage, knockback and slow
+- **Earth Shield** — Temporary overheal
+- **Lightning Arc** — Chaining damage
+- **Meteor Shower** — Delayed area strikes
+- **Ember Lance** — Straight piercing damage
+- **Plague Seed** — Spreading damage over time
+- **Cinder Field** — Stationary area damage
+- **Arcane Orbit** — Moving close-range sparks
+
+Four hidden authored evolutions can appear when their ingredients are equipped. Choosing one replaces its primary spell, retaining the slot and rank while preserving its catalyst. Discoveries persist in the Spell Collection; equipped spells reset each run.
 
 ## 🚀 How to Play
 
@@ -35,23 +42,23 @@ SpellCast Survivors combines the intense action of vampire survivors games with 
 
 ### Controls
 - **WASD** - Move player
-- **1-6** - Queue spells
+- **1-5** - Queue an equipped spell
 - **Type spell names** - Cast queued spells
-- **ESC** - Pause game
+- **Space** - Type any owned spell; **Enter** casts
+- **ESC** - Cancel typing, or pause outside typing
 
 ## 🎯 Game Features
 
 ### Progressive Difficulty
-- Enemy health scales every 30 seconds
-- Spawn rates increase every 45 seconds  
-- Enemy speed increases every 60 seconds
-- XP rewards scale with enemy strength
+- Survive twenty minutes for immediate victory.
+- Bosses arrive at five, ten and fifteen minutes.
+- Time advances encounter tiers regardless of boss survival; ranged enemies enter later.
 
 ### Leveling System
-- Gain XP by defeating enemies
-- Level up to choose spell upgrades
-- 8 upgrade levels per spell with 15% damage scaling per level
-- Level N requires `100 + (N * 25)` XP
+- Gain XP by defeating enemies.
+- Choose new spells, equipped-spell ranks, passives, or eligible evolutions.
+- At five equipped spells, new base-spell offers stop; evolutions and upgrades remain available.
+- Damage ranks add 15% of base damage, with spell-specific bonuses on existing spells.
 
 ### Audio System
 - Dynamic background music

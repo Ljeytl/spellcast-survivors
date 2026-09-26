@@ -26,7 +26,7 @@ The narrative reason for the assault and victory can be designed later. A twenty
 | Ranged introductions | Agreed: later pressure, roughly 10–12 minutes; clear hostile projectiles. |
 | Elemental identity | Agreed: primarily theme. Multiple approaches must remain viable; ordinary enemies must not require an element or named spell. Special late elemental interactions are undecided. |
 | Progression | Desired: acquire spells, choose meaningful upgrades and explore combinations during runs. Exact rules remain proposals. |
-| Spell count and slots | Open: twenty spells/five slots began as an example. The prototype has six numbered slots; neither count is immutable. |
+| Spell count and slots | Five equipped manual spells; automatic Mana Bolt is separate. Ten base spells and four authored evolutions are implemented. |
 | Production direction | Agreed: aim for publication, build the gameplay loop first, tackle art direction afterward. |
 
 Current numeric values are a baseline for experiments, not a veto on better design proposals.
@@ -122,7 +122,7 @@ Keep the passive attack available as basic coverage while manual spells provide 
 
 ### Loadout and replacement
 
-Five slots is a candidate, six is the current numbered interface. Choose based on meaningful choices and typing usability, not just precedent. At capacity, stopping new-spell offers is simple but can trap a player in an early commitment. Recommended proposal: permit an explicit replacement choice with clear consequences, and decide how invested ranks transfer or are lost before implementation.
+Five manual slots fill in acquisition order. At capacity, new base-spell offers stop; rank upgrades, passives and eligible evolutions remain available. An evolution replaces its primary ingredient in the same slot and retains its rank. The catalyst remains equipped. Arbitrary replacement is deferred; consumed primaries cannot be relearned or cast.
 
 ### Upgrade budget
 
@@ -203,7 +203,7 @@ Prioritize audio for player damage, incoming danger, spell success/failure and l
 
 ## 12. Validation and development sequence
 
-Implemented acquisition slice: start with Bolt and a separate passive attack, then learn the other five existing manual spells through level-up choices. Acquisition and ranks reset each run. Eligible offers include a learning card while unlearned, unbanished spells remain; only owned spells receive rank upgrades. The current six fixed slots and their spell mappings are a playable baseline, not a final loadout/replacement design.
+Implemented acquisition: start with Bolt and separate automatic Mana Bolt. Choose a five-spell kit from ten base spells through level-ups. Ownership and ranks reset each run. Eligible learning or evolution cards appear while available; every owned manual spell, including evolutions, can rank up.
 
 Next playable slice: develop several useful spell interactions and meaningful behavior changes within the existing timed encounter structure. Select a small representative subset of spells for that slice; the full proposed library remains available for later expansion.
 
@@ -219,10 +219,10 @@ Before publication: test normal and narrow layouts, input correction/cancellatio
 
 | Choice | Recommendation for discussion | Why it matters |
 |---|---|---|
-| Five or six equipped spells; does the passive count? | Keep six during the next playable iteration, then compare five once acquisition exists. Keep passive coverage separate unless there is a clear reason to spend a slot on it. | Limits build breadth and determines UI and acquisition rules. Current six is a testing baseline, not a commitment. |
+| Five or six equipped spells; does the passive count? | Approved: five manual spells, automatic Mana Bolt separate. | Slots 1–5 follow acquisition order. |
 | Slowdown and cast-speed meaning while typing | Movement now stops during typing. Preserve current slowdown for this slice; review speed-upgrade meaning separately. | Defines input commitment and avoids upgrades making typing harder. |
 | Twenty minutes of game time or wall time? | Preserve simulation time for now and measure actual session length. | Typing slowdown makes the two different. A future promise of a twenty-minute real session needs a deliberate change. |
-| Broader fusion slot and ingredient rules | First Life Bolt recipe preserves both ingredients and adds a typed-only spell. Review broader loadout limits as recipes expand. | Named authored recipes and persistent hidden discovery are agreed; arbitrary spell pairs do not combine. |
+| Broader fusion slot and ingredient rules | Approved: evolve the primary in place, retain rank and keep the catalyst usable. | Named authored recipes and persistent hidden discovery are agreed; arbitrary spell pairs do not combine. |
 | Upgrade depth and loadout flexibility | Aim for one or two signature spells with useful lower-rank support; permit deliberate replacement rather than trapping the player. | Resolves the rank/choice budget and reduces dependence on lucky early offers. Rank refunds or transfers still need a rule. |
 | How much of the proposed library belongs in the first milestone? | A small representative set first; keep twenty spells and the extra systems as a candidate release direction. | Proves the complete loop without committing every concept before it is played. |
 
@@ -234,4 +234,13 @@ Space opens casting for any owned spell; Enter casts, Backspace edits, Escape ca
 
 Hidden synergies use an authored recipe table. Once learned in a run, their identity, requirements, effect and incantation persist in the current profile's Spell Collection; new runs must earn them again. Undiscovered recipes do not reveal their ingredients in the collection.
 
-First playable recipe: owning Bolt and Regeneration makes Life Bolt eligible as a level-up choice. Selecting it unlocks `life bolt`, retains both ingredients and records discovery. It fires one homing projectile with Bolt-scaled damage and heals up to 6 health on actual damage, limited by damage dealt. This recipe has no separate rank track yet. The healing number is initial tuning, not a permanent balance commitment. No difficulty changes accompany this slice.
+Implemented recipes replace their first ingredient and retain its slot and rank:
+
+| Evolution | Primary + catalyst | Behavior |
+| --- | --- | --- |
+| Life Bolt | Bolt + Regeneration | Homing projectile heals up to 6 HP on actual damage, capped by health lost. |
+| Meteor Lance | Ember Lance + Meteor Shower | Piercing hits also explode for half damage in a 90-radius area. |
+| Soul Bloom | Plague Seed + Regeneration | Spreading damage heals 10% of actual health lost, capped at 2 HP total per half-second tick per cast. |
+| Steam Field | Cinder Field + Ice Blast | Persistent damage also slows enemies by 40%. |
+
+The four new base spells are Ember Lance (straight piercing), Plague Seed (spreading damage over time), Cinder Field (stationary area damage), and Arcane Orbit (three moving close-range sparks). Damage scales by 15% of base per rank. Plague Seed, Cinder Field and Arcane Orbit last five seconds and tick every half second. Infection reaches at most eight enemies per cast without reinfection. Persistent effects permit at most three simultaneous casts of each spell; a fourth replaces the oldest. These are initial tuning values, with no encounter difficulty changes.

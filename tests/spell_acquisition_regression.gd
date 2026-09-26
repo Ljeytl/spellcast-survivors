@@ -108,17 +108,19 @@ func run():
 	spells.queue_spell(2)
 	spells.cast_spell()
 	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 9.2), "Numbered and freeform healing match")
-	for id in ["ice_blast", "earth_shield", "lightning_arc", "meteor_shower"]:
+	for id in ["ice_blast", "earth_shield", "lightning_arc"]:
 		check(spells.learn_spell(id), "Each remaining spell can be acquired")
 		spells.upgrade_spell(id)
 		check(spells.get_spell_rank(id) == 2, "Each canonical spell ID upgrades")
-	check(spells.learn_spell("life_bolt"), "Full base kit can acquire its synergy")
+	check(not spells.learn_spell("meteor_shower"), "Sixth equipped spell is rejected")
+	check(spells.learn_spell("life_bolt"), "Full base kit can evolve its primary")
+	check(not spells.learn_spell("bolt"), "Consumed primary cannot be relearned")
 	check(spells.get_learnable_spell_cards().is_empty(), "Full loadout has no acquisition cards")
 	screen.show_level_up(4)
 	validate_cards(screen)
 	check(screen.available_upgrades.all(func(card): return card.effect.type != "learn_spell"), "Full loadout offers only upgrades")
-	var before_rank = spells.get_spell_rank("bolt")
-	screen.available_upgrades = [{"key":"rank:bolt", "name":"Bolt+", "effect":{"type":"spell_upgrade", "spell":"bolt"}}]
+	var before_rank = spells.get_spell_rank("life_bolt")
+	screen.available_upgrades = [{"key":"rank:life_bolt", "name":"Life Bolt+", "effect":{"type":"spell_upgrade", "spell":"life_bolt"}}]
 	screen.selecting_upgrade = false
 	game.change_state(game.GameState.LEVEL_UP)
 	screen._on_upgrade_button_pressed(0)
@@ -127,7 +129,7 @@ func run():
 	screen._on_reroll_pressed()
 	check(screen.rerolls_remaining == rerolls, "Reroll cannot mutate a resolving choice")
 	await create_timer(0.4).timeout
-	check(spells.get_spell_rank("bolt") == before_rank + 1, "Selecting an upgrade applies exactly once")
+	check(spells.get_spell_rank("life_bolt") == before_rank + 1, "Selecting an upgrade applies exactly once")
 	check(not paused, "Selection resumes the run")
 	var fresh = load("res://scenes/Game.tscn").instantiate()
 	game.queue_free()

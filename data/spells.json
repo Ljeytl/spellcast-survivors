@@ -35,6 +35,7 @@
       }
     },
     "bolt": {
+      "role": "Fast focused projectiles.",
       "id": "bolt",
       "name": "Lightning Bolt",
       "slot": 1,
@@ -68,6 +69,7 @@
       }
     },
     "life": {
+      "role": "Restore health over time.",
       "id": "life",
       "name": "Regeneration",
       "slot": 2,
@@ -107,6 +109,7 @@
       }
     },
     "ice_blast": {
+      "role": "Push nearby enemies back and slow them.",
       "id": "ice_blast",
       "name": "Ice Blast",
       "slot": 3,
@@ -155,6 +158,7 @@
       }
     },
     "earth_shield": {
+      "role": "Gain temporary overheal for protection.",
       "id": "earth_shield",
       "name": "Earth Shield",
       "slot": 4,
@@ -200,6 +204,7 @@
       }
     },
     "lightning_arc": {
+      "role": "Chain heavy damage through nearby enemies.",
       "id": "lightning_arc",
       "name": "Lightning Arc",
       "slot": 5,
@@ -247,6 +252,7 @@
       }
     },
     "meteor_shower": {
+      "role": "Bombard enemies with delayed area attacks.",
       "id": "meteor_shower",
       "name": "Meteor Shower",
       "slot": 6,
@@ -290,6 +296,50 @@
           "damage_bonus": 0.025,
           "radius_bonus": 0.015
         }
+      }
+    },
+    "ember_lance": {
+      "id": "ember_lance",
+      "name": "Ember Lance",
+      "type": "piercing",
+      "damage": 45,
+      "duration": 5.0,
+      "role": "Pierce a line of enemies with a straight lance.",
+      "unlock_condition": {
+        "type": "default"
+      }
+    },
+    "plague_seed": {
+      "id": "plague_seed",
+      "name": "Plague Seed",
+      "type": "plague",
+      "damage": 9,
+      "duration": 5.0,
+      "role": "Infect a target for 5 seconds; spread to nearby enemies.",
+      "unlock_condition": {
+        "type": "default"
+      }
+    },
+    "cinder_field": {
+      "id": "cinder_field",
+      "name": "Cinder Field",
+      "type": "field",
+      "damage": 12,
+      "duration": 5.0,
+      "role": "Burn a stationary area for 5 seconds.",
+      "unlock_condition": {
+        "type": "default"
+      }
+    },
+    "arcane_orbit": {
+      "id": "arcane_orbit",
+      "name": "Arcane Orbit",
+      "type": "orbit",
+      "damage": 16,
+      "duration": 5.0,
+      "role": "Orbiting sparks protect you at close range for 5 seconds.",
+      "unlock_condition": {
+        "type": "default"
       }
     },
     "fire_storm": {

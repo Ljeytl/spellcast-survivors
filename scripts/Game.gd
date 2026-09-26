@@ -109,18 +109,14 @@ func setup_all_systems():
 
 # Set up the 6 spell slot UI elements with their icons, labels and styling
 func setup_spell_slots():
-	# The 6 spells available in the game, mapped to number keys 1-6
-	var spell_names = ["bolt", "life", "ice blast", "earth shield", "lightning arc", "meteor shower"]
 	var spell_slots_container = get_node_or_null("UI/HUD/SpellSlotsPanel/SpellSlots")
 	if not spell_slots_container:
 		return
-		
-	# Create and configure each of the 6 spell slots
-	for i in range(6):
-		var slot_container = spell_slots_container.get_child(i) if i < spell_slots_container.get_child_count() else null
-		if slot_container:
+	for i in range(spell_slots_container.get_child_count()):
+		var slot_container = spell_slots_container.get_child(i)
+		slot_container.visible = i < spell_manager.MAX_EQUIPPED_SPELLS
+		if i < spell_manager.MAX_EQUIPPED_SPELLS:
 			spell_slots.append(slot_container)
-			setup_individual_spell_slot(slot_container, i, spell_names[i])
 
 # Configure a single spell slot with its number, name, icon and styling
 func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: String):
@@ -128,7 +124,7 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 	var vbox = slot_container.get_node_or_null("VBox")
 	var icon = vbox.get_node_or_null("Icon") if vbox else null
 	if icon:
-		icon.visible = true
+		icon.visible = false
 		icon.custom_minimum_size = ICON_SIZE
 	
 	# Check if spell is unlocked using SpellManager
@@ -145,6 +141,18 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 		key_label.text = str(index + 1)
 		key_label.modulate = Color.WHITE if is_unlocked else Color(0.6, 0.6, 0.6, 1.0)
 	
+	var name_label = vbox.get_node_or_null("SpellName")
+	if not name_label:
+		name_label = Label.new()
+		name_label.name = "SpellName"
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.add_theme_font_size_override("font_size", 14)
+		name_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		vbox.add_child(name_label)
+		name_label.minimum_size_changed.connect(_resize_spell_hud)
+	var info = spell_manager.spells.get(index + 1, {})
+	name_label.text = info.get("display_name", "Empty")
 	# Set up the level label
 	var level_label = slot_container.get_node_or_null("LevelLabel")
 	if level_label:
@@ -156,6 +164,7 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 	
 	# Apply visual styling (background, borders, etc.)
 	setup_spell_slot_styling(slot_container, not is_unlocked)
+	_resize_spell_hud.call_deferred()
 
 # Update the level display for a specific spell
 func update_spell_level_display(level_label: Label, spell_name: String):
@@ -165,15 +174,25 @@ func update_spell_level_display(level_label: Label, spell_name: String):
 	level_label.text = str(rank) if rank > 0 else "—"
 	level_label.modulate = Color.GOLD if rank > 0 else Color.GRAY
 
+func _resize_spell_hud():
+	var height = 100.0
+	for card in spell_slots:
+		var name_label = card.get_node_or_null("VBox/SpellName")
+		if not name_label:
+			continue
+		var rank_height = card.get_node("LevelLabel").get_minimum_size().y
+		var key_height = card.get_node("VBox/KeyLabel").get_minimum_size().y
+		height = maxf(height, name_label.get_minimum_size().y + key_height + rank_height + 24.0)
+		card.get_node("VBox").offset_bottom = -rank_height - 10.0
+	for card in spell_slots:
+		card.custom_minimum_size.y = height
+	get_node("UI/HUD/SpellSlotsPanel").offset_top = -height - 35.0
+
 func refresh_spell_levels():
-	var spell_names = ["bolt", "life", "ice blast", "earth shield", "lightning arc", "meteor shower"]
-	
 	for i in range(spell_slots.size()):
-		if i < spell_names.size():
-			var slot_container = spell_slots[i]
-			var level_label = slot_container.get_node_or_null("LevelLabel")
-			if level_label:
-				update_spell_level_display(level_label, spell_names[i])
+		var level_label = spell_slots[i].get_node_or_null("LevelLabel")
+		if level_label:
+			update_spell_level_display(level_label, spell_manager.spells.get(i + 1, {}).get("id", ""))
 
 # Update the survival timer display
 func update_timer_display():
@@ -797,9 +816,13 @@ func setup_chest_manager():
 func setup_spell_slot_styling(slot_container: Node, is_locked: bool = false):
 	# Setup styling for spell slot containers
 	# Add a background panel to the slot container
-	var background = Panel.new()
-	slot_container.add_child(background)
-	slot_container.move_child(background, 0)  # Move to back
+	var background = slot_container.get_node_or_null("SlotBackground")
+	if not background:
+		background = Panel.new()
+		background.name = "SlotBackground"
+		background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_container.add_child(background)
+		slot_container.move_child(background, 0)  # Move to back
 	
 	var normal_style = StyleBoxFlat.new()
 	
@@ -826,9 +849,9 @@ func setup_spell_slot_styling(slot_container: Node, is_locked: bool = false):
 # Update all spell slots to reflect current lock/unlock status
 func update_spell_slot_lock_status():
 	for i in range(spell_slots.size()):
-		var info = spell_manager.spells[i + 1]
-		setup_individual_spell_slot(spell_slots[i], i, info.id)
-		spell_slots[i].tooltip_text = ("Type: " + info.display_name) if spell_manager.is_spell_unlocked(i + 1) else ("Learn " + info.name + " when you level up")
+		var info = spell_manager.spells.get(i + 1, {})
+		setup_individual_spell_slot(spell_slots[i], i, info.get("id", ""))
+		spell_slots[i].tooltip_text = ("Type: " + info.display_name) if not info.is_empty() else "Learn a spell when you level up (five equipped spells maximum)"
 
 func highlight_spell_slot(slot_index: int):
 	# Highlight a specific spell slot

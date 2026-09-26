@@ -4,7 +4,7 @@
 
 The goal is a publishable game. First make the gameplay loop work well, then tackle art direction and release qualification. A run targets twenty minutes, with bosses at 5, 10 and 15 minutes. Time advances tiers independently of whether a previous boss is alive.
 
-Elements are themes, not mandatory counters. Spell decisions concern timing, coverage, precision, positioning, sustained damage and casting commitment. Multiple builds must have workable answers to each encounter. No spell, element or specific loadout is required. The discussion of twenty spells and five slots was an example, not approval to replace the current slot count.
+Elements are themes, not mandatory counters. Spell decisions concern timing, coverage, precision, positioning, sustained damage and casting commitment. Multiple builds must have workable answers to each encounter. No spell, element or specific loadout is required. The approved loadout is now five manual spells, with automatic Mana Bolt separate. Elements remain thematic rather than mandatory counters.
 
 ## Implemented roster
 
