@@ -1,3 +1,12 @@
+## Saved future concepts from friends — 2026-09-26
+
+Documentation only; see [the full concept notes](docs/CASTING_FANTASY_NOTES.md#saved-friend-concepts--september-26-2026).
+
+- Discoverable map locations offering a timed sequence of difficult words, potentially creating leylines or unlocking a reward. XP delay/loss is an undecided risk proposal.
+- A computer-mouse final boss: unrestricted movement directions and two attacks versus keyboard movement and a broad spell kit; possible skill-versus-speed lore.
+- A spell-catalog Easter egg tied to the number of keys on a keyboard, with the exact count and interpretation left open.
+- Preserve current run rules, diagonal movement, and equipped-spell limits until an implementation is explicitly designed and approved.
+
 ## Later: type-to-navigate menus — 2026-09-26
 
 - Deferred: type words to navigate menus or select level-up rewards and spells. Keep existing mouse and keyboard navigation for now.
