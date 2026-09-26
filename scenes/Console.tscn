@@ -8,20 +8,20 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-mouse_filter = 2
+z_index = 100
+mouse_filter = 0
 script = ExtResource("1_console")
 
 [node name="ConsolePanel" type="Panel" parent="."]
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -350.0
+offset_top = -300.0
+offset_bottom = 0.0
 grow_horizontal = 2
-grow_vertical = 0
 mouse_filter = 0
-modulate = Color(0.1, 0.1, 0.1, 0.95)
+modulate = Color(0, 0, 0, 0.7)
+visible = false
 
 [node name="VBox" type="VBox" parent="ConsolePanel"]
 layout_mode = 1
@@ -42,6 +42,9 @@ size_flags_stretch_ratio = 4.0
 bbcode_enabled = true
 scroll_following = true
 selection_enabled = true
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_outline_size = 1
 
 [node name="SuggestionsList" type="ItemList" parent="ConsolePanel/VBox"]
 layout_mode = 2

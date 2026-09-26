@@ -65,7 +65,7 @@ func use_fallback_config():
 
 func setup_spawn_timer():
 	spawn_timer = Timer.new()
-	spawn_timer.wait_time = 2.0
+	spawn_timer.wait_time = calculate_spawn_interval()
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	spawn_timer.autostart = true
 	add_child(spawn_timer)
@@ -83,7 +83,7 @@ func spawn_monster():
 		return
 		
 	# Calculate current difficulty level using formula
-	var difficulty_level = evaluate_formula("floor(time_seconds / 60) + 1", {"time_seconds": game_time})
+	var difficulty_level = get_current_difficulty_level()
 	
 	# Select monster to spawn
 	var monster_data = select_monster(difficulty_level)
@@ -205,7 +205,8 @@ func weighted_random_selection(weighted_monsters: Array) -> Dictionary:
 
 func calculate_monster_stats(monster_data: Dictionary, difficulty_level: int) -> Dictionary:
 	var archetype = monster_data.archetype
-	var base_multiplier = evaluate_formula("1 + (difficulty_level - 1) * 0.3", {"difficulty_level": difficulty_level})
+	var formula = monster_config.get("mathematical_formulas", {}).get("base_multiplier", "1 + (difficulty_level - 1) * 0.10")
+	var base_multiplier = evaluate_formula(formula, {"difficulty_level": difficulty_level})
 	
 	var stats = {}
 	
@@ -222,7 +223,7 @@ func calculate_monster_stats(monster_data: Dictionary, difficulty_level: int) ->
 			"base_multiplier": base_multiplier,
 			"time_seconds": game_time,
 			"difficulty_level": difficulty_level,
-			"health_multiplier": 1.0 + 0.1 * floor(game_time / 30.0)
+			"health_multiplier": base_multiplier * (1.0 + 0.05 * floor(max(0.0, game_time - 180.0) / 120.0))
 		}
 		
 		stats.health = evaluate_formula(archetype_data.health_formula, formula_context)
@@ -251,13 +252,8 @@ func calculate_monster_stats(monster_data: Dictionary, difficulty_level: int) ->
 	return stats
 
 func calculate_spawn_interval() -> float:
-	# Dynamic spawn rate based on time and difficulty
-	var base_interval = 2.0
-	var difficulty_level = evaluate_formula("floor(time_seconds / 60) + 1", {"time_seconds": game_time})
-	
-	# Faster spawning as difficulty increases
-	var interval = base_interval / (1.0 + difficulty_level * 0.2)
-	return max(0.3, interval)
+	var elapsed = max(0.0, game_time - 180.0)
+	return max(0.5, 2.0 / (1.0 + elapsed / 120.0 * 0.12))
 
 func initialize_monster(monster: CharacterBody2D, monster_data: Dictionary, stats: Dictionary):
 	# Set sprite if it exists
@@ -332,7 +328,8 @@ func map_archetype_to_enemy_type(archetype: String) -> int:
 
 # Debug functions
 func get_current_difficulty_level() -> int:
-	return int(evaluate_formula("floor(time_seconds / 60) + 1", {"time_seconds": game_time}))
+	var formula = monster_config.get("mathematical_formulas", {}).get("difficulty_level", "1 + floor(max(0, time_seconds - 60) / 120)")
+	return int(evaluate_formula(formula, {"time_seconds": game_time}))
 
 func get_monster_count() -> int:
 	return monsters_alive
