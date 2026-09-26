@@ -169,17 +169,11 @@ A fire-themed build must be able to handle normal encounters through several fir
 
 ## 9. Interactions, combinations and evolutions
 
-Preserve both natural interactions and the possibility of authored combined spells. They serve different purposes:
+Authored optional evolutions are implemented alongside natural spell interactions. Seven named recipes replace their first ingredient in its existing slot, retain its rank, and leave the catalyst equipped. Discoveries persist in the collection; ownership resets each run. Arbitrary pairs do not combine.
 
-- Natural interaction: group enemies with Gravity Well and hit them with Fireball; slow targets before a meteor; lead enemies through a wall.
-- Authored combination: a named ability deliberately changes behavior when ingredients or conditions are met.
-- Evolution: an owned spell transforms into a stronger or different version.
+Evolutions change tactical strengths rather than universally improve a spell. Offer cards and discovered collection entries show the gain and cost before the player replaces a basic spell. Basic rank investment remains available while its evolution is eligible. Ordinary offers, rerolls, and banishes preserve at least one valid non-evolution choice whenever alternatives are available; three explicitly locked evolution cards are preserved. A coherent basic build should remain viable without discovering a recipe.
 
-The newer draft favors natural interactions plus rare evolutions. The older combination design proposes named fusions and special incantations. The user has asked for combinations; that does not yet select either implementation.
-
-Recommended proposal: establish natural interactions, then add a small set of visible, optional authored combinations. Players should be able to discover the requirements in the game rather than needing an external recipe guide. A normal coherent build should win without finding an evolution.
-
-Still open: does a fusion replace one spell, consume two slots, add a special cast, or create a modifier? What happens to its ingredients and upgrades? These choices affect slot count and progression together.
+Natural interactions remain useful: slow enemies before delayed damage, align targets for piercing, or lead pursuers across a trail. Future fusion systems that consume multiple slots or add bonus casts are not implemented and require their own decisions.
 
 Internal behavior tags can help select eligible modifiers, but tags do not define outcomes by themselves. Convergence, Detonation, Echo Casting, Overchannel and Momentum remain candidate modifiers. Specify stacking, recursion prevention, damage attribution and timing before adding them. Echoed casts must not create an unintended infinite echo chain; damage-over-time explosions need a clear definition of remaining damage and overkill.
 
@@ -238,13 +232,13 @@ Implemented recipes replace their first ingredient and retain its slot and rank:
 
 | Evolution | Primary + catalyst | Behavior |
 | --- | --- | --- |
-| Life Bolt | Bolt + Regeneration | Homing projectile heals up to 6 HP on actual damage, capped by health lost. |
-| Meteor Lance | Ember Lance + Meteor Shower | Piercing hits also explode for half damage in a 90-radius area. |
-| Soul Bloom | Plague Seed + Regeneration | Spreading damage heals 10% of actual health lost, capped at 2 HP total per half-second tick per cast. |
-| Steam Field | Cinder Field + Ice Blast | Persistent damage also slows enemies by 40%. |
-| Prism Ray | Focus Ray + Ember Lance | Tracking beam hits up to three aligned enemies. |
-| Frost Sigil | Rune Trap + Ice Blast | Larger trap burst slows survivors by 40% for two seconds. |
-| Reaping Spirit | Seeking Spirit + Plague Seed | Direct spirit kills burst for half damage nearby; bursts do not chain. |
+| Life Bolt | Bolt + Regeneration | Heal up to 6 HP on actual damage. One projectile gives up ranked Bolt's extra shots; per-projectile damage is unchanged. |
+| Meteor Lance | Ember Lance + Meteor Shower | 40% less direct damage; each hit bursts for half of that reduced damage within 90. Rewards packed crowds. |
+| Soul Bloom | Plague Seed + Regeneration | 25% less infection damage; heal 10% of actual damage, capped at 2 HP per tick per cast. |
+| Steam Field | Cinder Field + Ice Blast | 40% slow, but lasts 3 seconds instead of Cinder Field's 5; same damage per tick. |
+| Prism Ray | Focus Ray + Ember Lance | Hits up to three aligned enemies, each for 40% less damage than Focus Ray. |
+| Frost Sigil | Rune Trap + Ice Blast | Larger burst and 40% slow for two seconds, but arms in 1.4 seconds instead of 0.8. |
+| Reaping Spirit | Seeking Spirit + Plague Seed | 25% less contact damage; direct kills burst for half of reduced damage nearby without chaining. |
 
 The four new base spells are Ember Lance (straight piercing), Plague Seed (spreading damage over time), Cinder Field (stationary area damage), and Arcane Orbit (three moving close-range sparks). Damage scales by 15% of base per rank. Plague Seed, Cinder Field and Arcane Orbit last five seconds and tick every half second. Infection reaches at most eight enemies per cast without reinfection. Persistent effects permit at most three simultaneous casts of each spell; a fourth replaces the oldest. These are initial tuning values, with no encounter difficulty changes.
 
@@ -252,3 +246,5 @@ The four new base spells are Ember Lance (straight piercing), Plague Seed (sprea
 The tactical expansion adds Focus Ray (12 damage each quarter-second for two seconds, 450 reach), Rune Trap (60 damage, arms after 0.8 seconds, expires after six seconds, triggers within 70 and bursts within 130), Seeking Spirit (22 damage at most every half-second on contact for five seconds), Ember Trail (15 damage per half-second in 40-radius patches left during five seconds of movement, each lasting two seconds), and Returning Blade (38 damage once per enemy on each outbound/return leg, at most three seconds). These numbers use the same 15%-of-base rank increase. Trails require 32 units of movement and do not regenerate a stationary field. Overlapping patches from one cast hit a target once per tick.
 
 Focus Ray and Prism Ray share one active beam. Other tactical families share a three-cast limit across their base/evolved variants; recasting replaces the oldest. Beams track a nearby living target and stop visibly at their hit limit. Spirits reacquire dead targets; returning blades home back to the moving caster. All effects expire and disappear with their caster. These roles are tactical opportunities, not mandatory elemental counters. Ordinary offer simulations demonstrate reachability but do not guarantee a recipe within any given run; a full five-spell kit can close off missing ingredients.
+
+Evolution damage factors apply once after `base damage × (1 + 0.15 × (rank − 1)) × player damage multiplier`. The stored primary base damage and retained rank are preserved. Damage rank increments therefore use the evolved effective base. Life Bolt is a healing benefit at rank one, with a substantial projectile-count cost at higher Bolt ranks; it receives no additional per-hit penalty. Initial values remain playtest tuning, not guarantees that every alternative wins every scenario.

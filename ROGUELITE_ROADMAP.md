@@ -4,6 +4,8 @@
 
 The fifteen-spell, five-slot progression loop and seven hidden evolutions are implemented. The latest content adds a focused beam, proximity trap, seeking spirit, movement trail, and returning blade. The focused readability pass is complete. The gameplay interaction pass addresses casting recovery, clickable spell selection, keyboard choices, and defeat explanations. Evaluate ordinary runs for: acquisition clarity, typing feedback, slowdown recharge, combat contrast, and informative run results. UI sizing must remain independent of world-camera scale. Then playtest naturally earned builds, bosses, and a full 20-minute victory before tuning difficulty or commissioning a full art overhaul.
 
+Evolutions now carry explicit tactical costs, and ordinary offers preserve a non-evolution alternative. Life Bolt uses its existing single-projectile cost instead of a blanket damage nerf. Compare equal-investment base-heavy and evolved runs for survival, crowd control, sustain, and boss damage before changing these initial tradeoff values.
+
 Next content evaluation: measure ordinary acquisition and discovery frequency with the larger catalog; distinguish missed ingredients from broken recipes. Evaluate movement trails, trap preparation, sustained tracking, and returning attacks in real builds before changing offer odds or damage numbers.
 
 Future visual work: cohesive enemy silhouettes and animation, spell-effect identity under crowded combat, optional interface scaling, and reduced-motion preferences. These should follow evidence from the gameplay pass rather than adding more content to mask pacing issues.

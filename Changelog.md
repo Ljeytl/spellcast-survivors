@@ -1,3 +1,11 @@
+## 2026-09-26 — Optional evolution tradeoffs
+
+- Keep basic spells useful beside their evolutions. Life Bolt retains equal damage per bolt but gives up ranked Bolt's extra projectiles for healing. Meteor Lance and Prism Ray deal 40% less direct/per-target damage in exchange for crowd coverage; Soul Bloom and Reaping Spirit deal 25% less damage for sustain or kill bursts.
+- Steam Field slows enemies but lasts three seconds instead of five. Frost Sigil has a larger slowing burst but arms in 1.4 seconds instead of 0.8; its visual arming progress uses the same delay as damage logic.
+- Show both gains and costs before replacement and in discovered collection entries. Damage penalties scale once with retained rank and player bonuses; rank cards identify the evolved base damage.
+- Prevent ordinary offers, rerolls, and banishes from forcing three evolutions: preserve a non-evolution choice, preferring an offered recipe's primary rank. Preserve explicit locks and banishes; all three explicitly locked evolutions remain the player's choice.
+- Compare basic/evolved damage, healing, crowd coverage, duration, and preparation at equal investment. Preserve basic damage, encounters, spell ownership, catalysts, and run rules. Next: compare ordinary base-heavy and evolved builds before further tuning.
+
 ## 2026-09-26 — Tactical spell variety
 
 - Expand the manual catalog from ten to fifteen base spells with Focus Ray, Rune Trap, Seeking Spirit, Ember Trail, and Returning Blade. Their roles reward tracking, preparation, pursuit, movement, and positioning without elemental immunities.
