@@ -2,6 +2,10 @@
 
 Status: design review, September 26, 2026. The user authorized design/documentation, not resumed implementation. Three agents performed read-only reviews. This package changes documentation only. Code, generated art, gameplay testing and merges remain paused until design approval.
 
+## Latest design acceptance
+
+The user has accepted the overall spell direction and specifically endorsed Frost Nova alongside cone-shaped Ice Blast. This is approval of the spell direction, not selection of every library idea or explicit authorization to resume implementation. Continue the comprehensive design process; preserve open numeric, targeting, recipe and progression decisions.
+
 ## Deliverables
 
 1. [Core design v0.4](CORE_GAME_DESIGN.md): reconciled intended rules and superseded decisions.

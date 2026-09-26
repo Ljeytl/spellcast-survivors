@@ -2,6 +2,10 @@
 
 This is the comprehensive design library, **not a promise to implement every row**. User ideas belong here even when outside the next build. Read alongside the [mechanics catalog](SPELL_AND_UPGRADE_CATALOG.md) and [art plan](ART_AND_FEEDBACK_PLAN.md). Last revised September 26, 2026 after the library/naming feedback.
 
+## Spell direction accepted — September 26
+
+The user approved the overall spell design direction and specifically liked Frost Nova as the radial counterpart to Ice Blast. Preserve the distinction: Ice Blast is a directional cone; Frost Nova is a circular burst around the caster. This endorses the concept, not a claim that Frost Nova is playable or that every library entry is selected. Keep and repair existing spells first; choose additions deliberately. Detailed values, unfinished geometry/aiming rules and recipe migrations remain to specify.
+
 ## Selection policy
 
 Keep and fix the currently implemented roster first. This library preserves every concept for later selection; it is not a replacement roster or automatic expansion plan. Decide separately which ideas to add, which names to change and which overlapping concepts to combine. Thunderwave is a user-originated concept already preserved here, not a newly invented suggestion.
@@ -120,7 +124,7 @@ These are reviewable design relationships, not final damage ratios. A longer tit
 | Tidal Wave | 9 | Idea | New water proposal | Broad advancing wave carries substantial damage and displacement across a crowd; pays more than Wave. | Proposed broad moving front | Release direction; aim open | Large readable travelling front with open sight lines. |
 | Maelstrom | 9 | Idea | New water proposal | Persistent swirling water gathers enemies and repeatedly damages the gathered group. Compare with Gravity Well; avoid duplicate control spells. | Proposed persistent circular vortex | Ground placement; aim open | Clear vortex motion and actual enemy paths. |
 | Ice Shard | 8 | Idea | Agent draft | Simple damaging ice projectile; add only if its behavior differs from Bolt and Ice Lance. | Proposed projectile contact | Aim policy open | Sharp projectile and truthful hit cue. |
-| Frost Nova | 9 | Inactive data / idea | Agent draft + old data | 360-degree radial frost concept; distinct from the confirmed directional Ice Blast cone. | Proposed 360-degree radial area | Caster-centered proposed | Radial freeze/slow only as actually implemented. |
+| Frost Nova | 9 | Endorsed concept / inactive data | User endorsed; agent draft + old data | 360-degree radial frost concept; distinct from the confirmed directional Ice Blast cone. | Proposed 360-degree radial area | Caster-centered proposed | Radial freeze/slow only as actually implemented. |
 | Glacial Lance | 12 | Idea | Agent draft | Longer ice-lance concept; requires more useful line payoff, not only a grander name. | Proposed larger piercing projectile | Release direction; aim open | Large piercing ice silhouette and contacts. |
 | Blizzard | 8 | Idea | Agent draft | Persistent storm of repeated ice hits and area control; coverage and duration justify commitment. | Undecided; see concept | Undecided | Readable circulating snow/shards without opaque fog. |
 

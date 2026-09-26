@@ -1,3 +1,7 @@
+## 2026-09-26 — Spell direction accepted
+
+- Frost Nova is an endorsed future selection candidate: circular coverage distinct from directional Ice Blast. Repair the current roster first; select additions deliberately. Detailed tuning and remaining system design still need resolution.
+
 ## Later — shaders
 
 - Shader development and shader-based visual polish are deferred by user decision. Revisit after the current gameplay, spell readability, art and UX baseline is settled. No shader implementation is included in the current pass.

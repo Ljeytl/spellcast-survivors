@@ -1,3 +1,7 @@
+## 2026-09-26 — Spell direction accepted (documentation only)
+
+- Record user acceptance of the spell direction and endorsement of circular Frost Nova alongside cone-shaped Ice Blast. Keep concept endorsement separate from playable status, expansion selection and implementation authorization.
+
 ## 2026-09-26 — Defer shaders (documentation only)
 
 - Record shader work as a later roadmap item, explicitly outside the current design and implementation scope. No runtime or asset changes.
