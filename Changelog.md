@@ -1,3 +1,7 @@
+## 2026-09-26 — Save friend-proposed ritual and boss concepts
+
+- Document map unlock locations, timed long-word rituals and leylines, possible XP risk, the mouse final boss, skill-versus-speed lore, and a keyboard-sized spell-catalog Easter egg. Preserve attribution, example words, and open decisions; no mechanics or run rules change.
+
 ## 2026-09-26 — Defer typing-based menu navigation
 
 - Add typing to navigate menus and select upgrades/spells to the later roadmap. Preserve current controls; keep this separate from keycap visuals while typing combat spells. No gameplay changes.

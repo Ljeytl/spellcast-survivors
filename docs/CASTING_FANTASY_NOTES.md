@@ -108,3 +108,28 @@ One possible small prototype would use a single threatened gate, a handful of in
 - For alchemy, are ingredients chosen because of their effects, or does the player simply repeat the longest memorized recipe?
 
 Bot runs can reveal mechanical failures and patterns of damage. They cannot establish the human feeling of panic, satisfaction, or control. Any broader pivot should follow a small comparison prototype and actual player feedback.
+
+## Saved friend concepts — September 26, 2026
+
+Status: documentation only, saved at the creator’s request. These are future ideas, not approved implementation or changes to the current twenty-minute immediate-win rule.
+
+### Discoverable map locations and typing rituals
+
+The creator’s framing: reach a point on the map, unlock it, and earn something exciting. This could make traversal lead to optional rewards in addition to surviving the horde.
+
+- **The Floorman:** an ability or ritual prompts the player to type roughly five difficult, unusually long words in sequence within a time limit, potentially laying down leylines.
+- **Fro:** the difficult-word sequence could be `incomprehensible → photosynthesis → circumstantial → electromagnetism → misinterpretation`.
+- **The Floorman:** `antidisestablishmentarianism` is another example of an extreme typing challenge.
+- **Fro:** attach risk to the reward, potentially delaying XP gain or losing XP entirely. These are alternative penalty ideas, not an agreed rule. The original suggestion does not specify which XP is at stake, how much, or whether the cost comes from starting, failing, or abandoning the challenge.
+
+Open decisions: what is unlocked or awarded; how locations are discovered; what leylines do; whether the challenge is optional; whether enemies keep moving and existing casting slowdown applies; the time limit and word selection; cancellation and retry rules; the exact XP risk. No answers are implied by saving the concept.
+
+### Mouse final boss and keyboard-versus-mouse lore
+
+- **Fro:** make the computer mouse the final boss.
+- **The Floorman:** contrast a mouse boss with unrestricted movement direction and only two kinds of attacks against a keyboard-controlled player with four directional inputs and many attacks.
+- The four-direction comparison is the friend’s conceptual framing, not a request to remove diagonal movement or change current controls. The two mouse attacks are not yet specified.
+- **The Floorman:** possible keyboard Easter egg—have as many spells as there are keys on a normal keyboard. The keyboard layout, number of spells, and whether this means the total catalog remain undecided; this does not alter the five-equipped-spell limit.
+- **Fro:** use the matchup as a skill-versus-speed motif: keyboard/player as skill, mouse/boss as speed. The protagonist ultimately wins through skill, while the faster mouse puts up a strong fight. Preserve this as proposed lore, not a guarantee of player victory or a claim about real input devices.
+
+The boss’s appearance, movement, attacks, unlock conditions, and placement are all open. This idea does not replace the current twenty-minute immediate victory or commit the game to a final-boss implementation.
