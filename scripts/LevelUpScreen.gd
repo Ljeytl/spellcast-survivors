@@ -292,6 +292,8 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 	var accent = Color("dfbd76") if category in ["NEW SPELL", "EVOLUTION"] else Color("58728b")
 	var style = preload("res://scripts/GameplayReadability.gd").panel_style(accent)
 	button.add_theme_stylebox_override("normal", style)
+	button.add_theme_stylebox_override("hover", preload("res://scripts/GameplayReadability.gd").panel_style(Color("dfbd76")))
+	button.add_theme_stylebox_override("pressed", preload("res://scripts/GameplayReadability.gd").panel_style(Color("79d9e8")))
 	button.set_meta("unlocked_style", style.duplicate())
 
 func _resize_card(button: Button, copy: Label):

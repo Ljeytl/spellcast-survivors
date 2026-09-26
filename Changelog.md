@@ -1,3 +1,8 @@
+## 2026-09-26 — Authored keycaps and remaining art
+
+- Use the supplied worn keycap art for menu/action buttons and blank keys behind numbered spell shortcuts, with readable ink and distinct hover, pressed, disabled, and keyboard-focus states. Keep long upgrade descriptions on high-contrast panels.
+- Add supplied grass and resting flower-slime art to the main menu. Use both tree drawings and both king-slime designs in the arena. Preserve existing control behavior and readable body typography.
+
 ## 2026-09-26 — Typecast art and forest arena
 
 - Integrate the supplied assembled wizard, nine slime variants, king-slime bosses, ranged wisps, nine grass tiles, trees, bushes, keyboard logo, and health-bar art with nearest-neighbor sampling.

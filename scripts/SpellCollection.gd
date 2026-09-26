@@ -3,6 +3,7 @@ extends Control
 signal closed
 
 func _ready():
+	preload("res://scripts/GameplayReadability.gd").apply_theme(self)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var background = ColorRect.new()
 	background.color = Color("111c2b")

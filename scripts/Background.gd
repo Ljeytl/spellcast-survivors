@@ -115,9 +115,9 @@ func create_decoration(cell: Vector2i) -> Node2D:
 		body.add_child(shape)
 		var tree = Sprite2D.new()
 		tree.name = "Canopy"
-		tree.texture = load(ART + "Level Tiles/Level Deco/Fir Tree 1 shaded.png")
+		tree.texture = load(ART + ("Level Tiles/Level Deco/Fir Tree 1 shaded.png" if posmod(cell.x + cell.y, 2) == 0 else "Level Tiles/Level Deco/Fir Tree 1.png"))
 		tree.scale = Vector2(2, 2)
-		tree.position.y = -105
+		tree.position.y = 20 - tree.texture.get_height()
 		tree.z_as_relative = false
 		tree.z_index = 2
 		holder.add_child(tree)

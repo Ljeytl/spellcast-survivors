@@ -146,6 +146,7 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 	# Set up the key number label
 	var key_label = vbox.get_node_or_null("KeyLabel") if vbox else null
 	if key_label:
+		preload("res://scripts/AuthoredInterface.gd").apply_shortcut(key_label)
 		key_label.text = str(index + 1)
 		key_label.modulate = Color.WHITE if is_unlocked else Color(0.6, 0.6, 0.6, 1.0)
 	

@@ -44,6 +44,7 @@ static func apply_theme(control: Control):
 	theme.set_stylebox("hover", "Button", panel_style(GOLD, Color("24374c")))
 	theme.set_stylebox("pressed", "Button", panel_style(CYAN, INK))
 	theme.set_stylebox("focus", "Button", panel_style(CYAN, Color.TRANSPARENT))
+	preload("res://scripts/AuthoredInterface.gd").apply_buttons(theme)
 	control.theme = theme
 
 static func fit_root(control: Control):

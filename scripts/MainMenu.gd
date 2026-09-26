@@ -5,6 +5,7 @@ extends Control
 # Called when the main menu scene loads
 func _ready():
 	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "MenuPanel")
+	preload("res://scripts/AuthoredInterface.gd").add_menu_art(self)
 	# Start playing the menu background music
 	if AudioManager:
 		AudioManager.play_music(AudioManager.SoundType.MUSIC_MENU, true, 1.0)

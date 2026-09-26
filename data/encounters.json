@@ -99,7 +99,7 @@
       "weight": 12,
       "size": 1.25,
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 4.png",
-      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime 2.png"
+      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime.png"
     },
     "charger": {
       "name": "Charger",

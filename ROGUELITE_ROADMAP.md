@@ -1,3 +1,8 @@
+## Authored interface art — 2026-09-26
+
+- Keycap textures now serve menu/action buttons and spell shortcuts; menu scenery uses the supplied grass and resting slime. Both tree and king-slime variants are in use.
+- Remaining logo-letter and key variants are preserved as alternatives. A complete matching alphabet/font and layered character animation remain future work.
+
 ## Art integration — 2026-09-26
 
 - Integrate the supplied Typecast pixel art: assembled wizard, melee slimes, king bosses, ranged wisps, grass variants, tree obstacles, bushes, keyboard logo, and health frame. Keep spell effects without supplied replacements as placeholders.
