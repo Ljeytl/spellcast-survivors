@@ -14,6 +14,11 @@ class ReportTests(unittest.TestCase):
         result.update(changes)
         return result
 
+    def test_ansi_errors_are_detected(self):
+        log = "Normal output\n\x1b[1;31mERROR:\x1b[0m leaked resources\nSCRIPT ERROR: failed"
+        self.assertEqual(runner.runtime_errors(log), ["ERROR: leaked resources", "SCRIPT ERROR: failed"])
+        self.assertEqual(runner.runtime_errors("Normal output"), [])
+
     def test_incomplete_run_is_valid_but_not_victory(self):
         result = self.report()
         runner.validate_report(result)
