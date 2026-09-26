@@ -1,3 +1,10 @@
+## 2026-09-26 — Minimal player interface and retained diagnostics
+
+- Hide tier labels, advance boss schedules, passive/rank/refill telemetry, permanent control paragraphs and empty spell slots during normal play. Show active boss health only after arrival; retain health, XP/level, clock, equipped spells and casting feedback.
+- Level-up cards show stone-letter names and one authored sentence; percentages come from the actual upgrade value, damage ranks show the actual added damage, and evolutions state the replacement and essential cost. Retain selection, reroll, banish and lock behavior.
+- Shorten help, collection entries and run endings; use compact HUD and ending panels. Keep full original card descriptions, encounter schedules, recipe rules and run summaries accessible through F3 / `ui_debug`, plus the `ui_details` console report.
+- Future: human-test the reduced text density and discoverability; typing-based menu navigation remains deferred.
+
 ## 2026-09-26 — Stone-letter menus
 
 - Reuse the generated stone letters for menu actions and headings, upgrade names, and discovered recipe titles across the main menu, settings, instructions, pause, collection, level-up, and run-end screens. Keep descriptions in readable body text.

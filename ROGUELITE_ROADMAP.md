@@ -1,3 +1,10 @@
+## Minimal player information implemented — 2026-09-26
+
+- Normal play shows essential state; boss arrival timing is hidden until the boss arrives.
+- Upgrade cards use a name and one concrete sentence, with exact effect values and concise evolution trade-offs. No categories, current-stat paragraphs or slot commentary in normal choices.
+- Diagnostics remain available: F3 toggles detailed HUD/cards/endings; open the console with backtick and run `ui_debug on`, `ui_debug off` or `ui_details` for full mechanics and run data.
+- Next: human-test first-run clarity and compact choices; retain current mouse and keyboard selection until typing-based navigation is designed.
+
 ## Stone-letter menus implemented — 2026-09-26
 
 - Menu actions, headings, upgrade names, and discovered recipe titles use the generated letter keys; descriptions retain normal typography.

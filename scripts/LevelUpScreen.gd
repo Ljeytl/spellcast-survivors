@@ -264,7 +264,11 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 		category = "EVOLUTION" if effect.get("spell", "") in preload("res://scripts/SynergyCatalog.gd").RECIPES else "NEW SPELL"
 	elif effect.get("type", "") == "spell_upgrade":
 		category = "SPELL UPGRADE"
-	var title_line = category
+	var game = get_tree().get_first_node_in_group("game")
+	var debug = game != null and game.interface_debug
+	var title_line = category if debug else ""
+	if not debug:
+		description = preload("res://scripts/UpgradeCopy.gd").description(upgrade, game.spell_manager)
 	button.text = ""
 	var copy = button.get_node_or_null("CardText") as Label
 	if copy == null:
@@ -297,7 +301,8 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 		heading.offset_top = 10
 		heading.minimum_size_changed.connect(_resize_card.bind(button, copy))
 	heading.text = name
-	copy.text = title_line + "\n" + description
+	copy.text = (title_line + "\n" if debug else "") + description
+	button.set_meta("debug_description", upgrade.get("description", ""))
 	copy.set_meta("base_copy", copy.text)
 	_resize_card.call_deferred(button, copy)
 	
@@ -455,6 +460,8 @@ func get_detailed_spell_upgrade_description(spell_name: String, _current_level: 
 func update_progress_bars(player_stats: Dictionary):
 	for i in range(min(progress_bars.size(), available_upgrades.size())):
 		var progress_bar = progress_bars[i]
+		if progress_bar:
+			progress_bar.get_parent().visible = get_tree().get_first_node_in_group("game").interface_debug
 		if not progress_bar or not is_instance_valid(progress_bar):
 			continue
 			
@@ -674,13 +681,13 @@ func update_choice_prompt():
 	prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	match choice_mode:
 		"lock":
-			prompt.text = "Choose a card to lock or unlock for rerolls"
+			prompt.text = "Choose a card to lock or unlock"
 			prompt.modulate = Color("dfbd76")
 		"banish":
 			prompt.text = "Choose a card to banish from this run"
 			prompt.modulate = Color("ff8175")
 		_:
-			prompt.text = "Arrows / Tab select · Enter / Space choose · Right-click locks"
+			prompt.text = "Choose an upgrade"
 			prompt.modulate = Color.WHITE
 
 func update_upgrade_visual_state(index: int):
@@ -693,7 +700,7 @@ func update_upgrade_visual_state(index: int):
 	if not copy:
 		return
 	var locked = index in locked_upgrades
-	copy.text = ("LOCKED · Held on reroll\n" if locked else "") + str(copy.get_meta("base_copy", copy.text))
+	copy.text = ("LOCKED\n" if locked else "") + str(copy.get_meta("base_copy", copy.text))
 	var style = button.get_meta("unlocked_style").duplicate()
 	if locked:
 		style.border_color = Color("dfbd76")

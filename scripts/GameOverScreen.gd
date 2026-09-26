@@ -15,6 +15,7 @@ var kit_label: Label
 var discovery_label: Label
 var action_started = false
 var keyboard_armed_at = 0
+var last_stats: Dictionary = {}
 var defeat_label: Label
 
 func _ready():
@@ -32,6 +33,7 @@ func _ready():
 	else:
 		print("ERROR: main_menu_button is null or not a Button, type: ", type_string(typeof(main_menu_button)) if main_menu_button else "null")
 	
+	play_again_button.text = "RETRY"
 	setup_run_summary()
 	# Setup button hover effects
 	setup_button_effects()
@@ -68,13 +70,19 @@ func show_game_over(stats: Dictionary):
 	animate_in()
 
 func display_stats(stats: Dictionary):
+	last_stats = stats.duplicate(true)
+	var game = get_tree().get_first_node_in_group("game")
+	var debug = game != null and game.interface_debug
 	var won = stats.get("won", false)
-	defeat_label.visible = not won
+	defeat_label.visible = not won and debug
+	kit_label.visible = debug
+	spells_cast_label.get_parent().visible = debug
 	defeat_label.text = describe_final_hit(stats.get("final_hit", {}))
 	title_label.text = "VICTORY!" if won else "GAME OVER"
 	title_label.add_theme_color_override("font_color", Color("dfbd76") if won else Color("ff8175"))
 	kit_label.text = "FINAL SPELL KIT\n" + "\n".join(stats.get("final_kit", [])) + "\nAutomatic Mana Bolt · Rank %d" % stats.get("mana_bolt_rank", 1)
 	var discoveries = stats.get("discoveries", [])
+	discovery_label.visible = debug or not discoveries.is_empty()
 	discovery_label.text = "NEW DISCOVERIES\n" + (", ".join(discoveries) if not discoveries.is_empty() else "No new evolutions discovered this run.")
 	# Format survival time
 	var total_seconds = stats.get("survival_time", 0.0)
@@ -83,17 +91,17 @@ func display_stats(stats: Dictionary):
 	
 	# Update labels with null checks
 	if survival_time_label:
-		survival_time_label.text = "Survival Time: %d:%02d" % [minutes, seconds]
+		survival_time_label.text = "Time: %d:%02d" % [minutes, seconds]
 	else:
 		print("ERROR: survival_time_label is null")
 	
 	if level_label:
-		level_label.text = "Level Reached: {0}".format([stats.get("level", 1)])
+		level_label.text = "Level: {0}".format([stats.get("level", 1)])
 	else:
 		print("ERROR: level_label is null")
 		
 	if enemies_killed_label:
-		enemies_killed_label.text = "Enemies Killed: {0}".format([stats.get("enemies_killed", 0)])
+		enemies_killed_label.text = "Kills: {0}".format([stats.get("enemies_killed", 0)])
 	else:
 		print("ERROR: enemies_killed_label is null")
 		
