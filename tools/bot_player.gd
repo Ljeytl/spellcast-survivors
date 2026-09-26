@@ -220,4 +220,10 @@ func cleanup():
 	game.queue_free()
 	await process_frame
 	await process_frame
+	for child in root.get_node("AudioManager").get_children():
+		if child is AudioStreamPlayer:
+			child.stop()
+	var stop_time = Time.get_ticks_msec()
+	while Time.get_ticks_msec() - stop_time < 250:
+		await process_frame
 	quit()

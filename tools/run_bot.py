@@ -24,6 +24,11 @@ def validate_report(result):
         raise ValueError("Bot stalled; see report and log")
 
 
+def runtime_errors(text):
+    plain = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", text)
+    return [line for line in plain.splitlines() if re.match(r"^(SCRIPT ERROR|ERROR):", line)]
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run the ordinary game with an isolated scripted player")
     parser.add_argument("--godot", default=shutil.which("godot") or "/Applications/Godot.app/Contents/MacOS/Godot")
@@ -51,7 +56,7 @@ def main():
             (project / "override.cfg").write_text('[application]\nconfig/use_custom_user_dir=true\nconfig/custom_user_dir_name=' + json.dumps(save_name) + '\n[display]\nwindow/size/mode=0\nwindow/size/window_width_override=1280\nwindow/size/window_height_override=720\n')
             with (output / f"{seed}-import.log").open("w") as log:
                 subprocess.run([args.godot, "--headless", "--path", str(project), "--editor", "--import", "--quit"], stdout=log, stderr=subprocess.STDOUT, check=True, timeout=180)
-            import_errors = [line for line in (output / f"{seed}-import.log").read_text().splitlines() if re.match(r"^(SCRIPT ERROR|ERROR):", line)]
+            import_errors = runtime_errors((output / f"{seed}-import.log").read_text())
             if import_errors:
                 raise RuntimeError("Godot import errors: " + "\n".join(import_errors))
             report = output / f"{seed}.json"
@@ -65,7 +70,7 @@ def main():
             with (output / f"{seed}.log").open("w") as log:
                 subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=3700)
             result = json.loads(report.read_text())
-            errors = [line for line in (output / f"{seed}.log").read_text().splitlines() if re.match(r"^(SCRIPT ERROR|ERROR):", line)]
+            errors = runtime_errors((output / f"{seed}.log").read_text())
             result.update(revision=revision, dirty_source=dirty, accelerated=args.fast, fixed_fps=60 if args.fast else None, runtime_errors=errors, command=command)
             report.write_text(json.dumps(result, indent=2) + "\n")
             print(f"Seed {seed}: {result['outcome']} at {result['survival_seconds']:.1f}s, level {result['level']}, {result['successful_casts']} casts", flush=True)

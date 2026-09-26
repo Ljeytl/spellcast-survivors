@@ -497,6 +497,7 @@ func _on_player_died():
 func finish_run(won: bool):
 	if current_state == GameState.GAME_OVER:
 		return
+	spell_manager.cancel_typing()
 	run_won = won
 	game_time = $MonsterManager.game_time
 	$MonsterManager.run_finished = true
@@ -964,10 +965,14 @@ func hide_typing_ui():
 		typing_label.visible = false
 	
 
+func update_typing_slowdown(remaining: float, capacity: float):
+	var status = $UI/HUD/TypingPanel/SlowdownStatus
+	status.text = "Slowdown: %.1fs / %.1fs" % [remaining, capacity] if remaining > 0.0 else "Slowdown empty · normal speed"
+
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	box.size.y = clampf(typing_label.get_minimum_size().y + 40.0, 120.0, get_viewport_rect().size.y * 0.35)
+	box.size.y = clampf(typing_label.get_minimum_size().y + 68.0, 148.0, get_viewport_rect().size.y * 0.35)
 	position_typing_ui_upper_screen()
 	_scroll_typing_to_end.call_deferred()
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-26 — Limited typing slowdown
+
+- Give each run a shared three-second typing slowdown budget, refilling fully over ten seconds outside typing. Casting, cancelling, or reopening does not reset it.
+- At exhaustion, restore normal world speed while preserving input and the ability to cast. Show remaining time inside the casting box; pause and level-up freeze consumption/refill.
+- Restore normal speed and close typing on death or victory. Keep capacity/refill configurable for later duration upgrades.
+- Preserve the pre-input time scale when measuring a transition frame; a 15 FPS integration check measured 2.999 seconds. The old calculation failed the same check at 2.733 seconds.
+- Correct help text for the 20-minute win and spell names; exclude local build fixtures from exports.
+- Stop bot audio before shutdown and detect ANSI-colored engine errors in its report gate; an accelerated smoke run exposed both gaps. Use real-time bot runs for casting cadence because fast mode also compresses cooldown time.
+- Validation: 20 budget, 6 timed integration, 30 layout, 615 acquisition, 36 synergy, and 24 ending assertions. Duration upgrades and revisiting Quick Cast remain future balance work.
+
 ## 2026-09-26 — Contained UI text
 
 - Wrap upgrade titles/descriptions inside padded, content-sized cards; scroll long offers while keeping reroll, banish, and lock controls visible.
