@@ -1,3 +1,14 @@
+## Current agreed next mechanics — September 26, 2026
+
+Keep the survivors premise; do not pivot to siege or alchemy now. See [Core Game Design](docs/CORE_GAME_DESIGN.md#4-typing-is-a-core-combat-system) for the authoritative per-cast slowdown decision and [supporting upgrades / Multicast](docs/CORE_GAME_DESIGN.md#supporting-upgrade-categories--agreed-design) for the agreed stat categories.
+
+- Pending: replace the shared slowdown reserve/refill with a fresh finite window on every cast; fixed strength, upgradeable duration, configurable negligible inter-cast delay.
+- Pending: spell-appropriate Multicast, adding one bolt, meteor, jump, healing pulse, or other defined output after one typed cast rather than duplicating the entire spell.
+- Pending: expand supporting stats and bundle Mana Bolt damage/rate/count. Keep secondary-slot limits, luck outcomes, and global-stat interactions with Mana Bolt explicitly unresolved.
+- Long learned incantations must justify their commitment with major payoff, while quick basic spells remain useful.
+
+Older milestone entries below are historical. Mentions of shared slowdown/refill describe the shipped prototype, not the newly agreed target. This documentation update does not implement these mechanics.
+
 # SpellCast Survivors: Roguelite Transformation Roadmap
 
 ## Current gameplay priority — September 2026

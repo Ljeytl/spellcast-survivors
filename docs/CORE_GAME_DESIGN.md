@@ -1,12 +1,14 @@
-# SpellCast Survivors — Core Game Design v0.2
+# SpellCast Survivors — Core Game Design v0.3
 
-Status: revised working design for user review. This document reconciles the supplied agent draft with the conversation through the immediate twenty-minute victory decision. It does not approve all proposed systems or change game behavior.
+Status: working design reconciled through the September 26 decisions on per-cast slowdown, supporting upgrades, and Multicast. Agreed design and current implementation are distinguished below. Updating this document does not implement the pending mechanics.
 
 The original draft is preserved in [the reference copy](reference/CORE_GAME_DESIGN_AGENT_V0_1.md). Current encounter implementation is described in [ENCOUNTER_DESIGN.md](ENCOUNTER_DESIGN.md). Older proposals, including [combined-spells-design.md](../combined-spells-design.md), remain sources of ideas rather than binding requirements.
 
 ## 1. What this game should feel like
 
 You begin as a spellcaster with enough breathing room to understand movement, typing, passive attacks and leveling. During the run, your spell choices and upgrades form a recognizable playstyle. By the end, your build should feel almost absurdly powerful while you manage more interesting enemy combinations. Escalation should increase the spectacle on both sides while preserving readable danger.
+
+The original survivors premise is retained; no siege, tower-defense, or alchemist pivot is planned now. Those alternatives remain in [discussion notes](CASTING_FANTASY_NOTES.md). Longer incantations should earn substantially greater power for their time and exposure: finishing a learned spell as elaborate as “super extreme meteor shower deluxe” should justify a spectacular, potentially board-clearing payoff. This is a power-fantasy example, not an implemented spell or permission to cast arbitrary unowned phrases. Short spells retain value through speed, utility, and immediate safety.
 
 The player succeeds through a combination of build decisions, positioning, targeting, timing and typing. The game should reward a chosen playstyle without unexpectedly invalidating it because the player omitted one particular spell or element.
 
@@ -27,6 +29,10 @@ The narrative reason for the assault and victory can be designed later. A twenty
 | Elemental identity | Agreed: primarily theme. Multiple approaches must remain viable; ordinary enemies must not require an element or named spell. Special late elemental interactions are undecided. |
 | Progression | Desired: acquire spells, choose meaningful upgrades and explore combinations during runs. Exact rules remain proposals. |
 | Spell count and slots | Five equipped manual spells; automatic Mana Bolt is separate. Fifteen base spells and seven authored evolutions are implemented. |
+| Core premise | Agreed: retain roaming survivors combat and frantic typed spells; do not pivot now. |
+| Typing slowdown | Agreed design, pending implementation: fresh finite window per cast, fixed slowdown strength, duration upgrades, no shared reserve or meaningful recharge wait. |
+| Multicast | Agreed design, pending implementation: one additional spell-appropriate unit of output per bonus, automatically after one typed cast. |
+| Supporting upgrades | Agreed categories are recorded in section 7; numeric tuning, item-slot rules, and some stat interactions remain open. |
 | Production direction | Agreed: aim for publication, build the gameplay loop first, tackle art direction afterward. |
 
 Current numeric values are a baseline for experiments, not a veto on better design proposals.
@@ -51,29 +57,26 @@ First-upgrade target: roughly 15–20 seconds under ordinary competent opening p
 
 ## 4. Typing is a core combat system
 
-### Current prototype behavior, not a final input specification
+### Agreed per-cast direction — pending implementation
 
-- Numbered slots enter a spelling prompt; a freeform casting path also exists.
-- Correct completion automatically casts. Backspace edits, Escape cancels, and Enter submits; an incorrect submission cancels.
-- Typing applies engine time scaling, initially 0.2. Simulation time, including the run clock, therefore advances more slowly than wall time.
-- Player movement still reads its movement actions while typing. WASD is also letter input, so movement and spelling can interfere.
-- The cast-speed multiplier both accelerates passive firing and increases the time scale during typing. The latter reduces the slowdown and gives the player less wall-clock thinking time per unit of enemy movement. That is a potentially adverse upgrade effect, not an endorsed design feature.
+- Each new cast receives its own fresh, finite slowdown duration. There is no shared reserve and no meaningful cooldown on access to slowdown for now.
+- Slowdown strength stays consistent. A duration upgrade extends protected typing time; it does not change how slowly enemies move.
+- When that duration expires, the world returns to normal speed while typing can continue. Long spells remain attemptable without duration upgrades, but finishing them may leave the player exposed.
+- Completing or cancelling a cast restores normal speed immediately. The next cast receives a fresh window.
+- Keep any inter-cast delay configurable and negligible for now, so it can be tuned later for game feel or cancel/restart abuse. No longer cooldown, resource cost, or anti-abuse rule has been selected.
+- Do not add slowdown recharge/recovery to the supporting upgrade list under this design.
 
-### Proposed direction for review
+### Current implementation and migration boundary
 
-Keep the move → choose spell → type → resolve → reposition rhythm. Keep typing assistance explicit and predictable. A typing mistake should normally cost time and require correction, rather than silently choosing another spell or imposing an additional health penalty.
+The shipped prototype still uses a shared three-second slowdown budget with a ten-second refill outside typing. It slows simulation to 0.2 world speed while budget remains. Per-cast reset and duration upgrades are not implemented by this documentation update. The existing 0.1-second inter-cast delay is a current value, not newly approved tuning.
 
-Resolve movement and aiming before promising complex placement spells. Each spell needs a targeting contract: automatic target, direction, player-centered, placed area or selected enemy. A wall cannot be balanced until its orientation and placement controls are known.
+Numbered slots and equipped spell cards open an owned-spell prompt; correct completion casts automatically. Space accepts an owned incantation and Enter casts. Backspace edits, Escape cancels, and incomplete or mistyped numbered submissions remain editable. Player movement stops while typing. Mana Tempo improves automatic Mana Bolt attack rate without weakening slowdown.
 
-Separate three concepts in both design and UI:
+Keep the move → choose spell → type → resolve → reposition rhythm. A mistake costs entry time rather than choosing another spell or imposing an extra health penalty. Each spell needs a targeting contract: automatic target, direction, player-centered, placed area or selected enemy.
 
-1. Human entry time: incantation length, readability, corrections and player fluency.
-2. Spell timing: release delay, cooldown and duration after input succeeds.
-3. Typing assistance: how the battlefield slows while the player enters text.
+Separate human entry time, spell effect timing, and typing assistance when balancing long spells. Test both novice and fast typists, and whether duration investment makes large spells more convenient without making short spells obsolete.
 
-Recommended starting position: keep typing slowdown consistent as power increases; make cast-speed upgrades improve clearly beneficial spell/passive timing. Test dedicated movement inputs during typing rather than allowing incantation letters to steer the character. These are recommendations requiring input-design review, not changes authorized by this document.
-
-Twenty minutes currently means simulation time. A heavily typing-focused run can take longer in real time. Whether the product promises twenty minutes of wall time is an open decision.
+Twenty minutes currently means simulation time. Typing slowdown therefore makes a run take longer in wall time. Whether to change that promise remains open.
 
 ## 5. Enemy design
 
@@ -118,11 +121,53 @@ Desired progression: early choices establish useful tools; later choices develop
 
 Working proposal: offer three choices per level, drawn from eligible new spells, owned-spell upgrades and passives. Improve the chance of seeing a new spell while slots remain open. Define that probability or guarantee explicitly; do not describe a probabilistic offer as guaranteed.
 
-Keep the passive attack available as basic coverage while manual spells provide meaningful advantages. Whether it occupies an equipped slot is still open.
+Keep automatic Mana Bolt as basic coverage while manual spells provide meaningful advantages. It is separate from the five equipped manual-spell slots.
 
 ### Loadout and replacement
 
 Five manual slots fill in acquisition order. At capacity, new base-spell offers stop; rank upgrades, passives and eligible evolutions remain available. An evolution replaces its primary ingredient in the same slot and retains its rank. The catalyst remains equipped. Arbitrary replacement is deferred; consumed primaries cannot be relearned or cast.
+
+### Supporting upgrade categories — agreed design
+
+These are the intended categories, not a claim that every stat is implemented. Separate them conceptually from equipped manual spells. A secondary equipment-slot cap has not been agreed.
+
+| Category | Intended benefit |
+|---|---|
+| Slowdown duration | More protected typing time on each fresh cast, with fixed slowdown strength. |
+| Spell area / size | Larger spell coverage or hitboxes where appropriate. |
+| Spell damage | Greater spell damage; interaction with bundled Mana Bolt damage remains to be settled. |
+| Movement speed | Faster escape and repositioning. |
+| Max health | More survivability. |
+| Multicast | Additional spell-appropriate output, replacing the proposed projectile-count-only stat. |
+| XP gain | Multiply XP received from collection. |
+| Mana Bolt mastery | One combined automatic-attack upgrade track covering damage, attack speed, and bolt count. Exact per-rank progression is undecided. |
+| Pickup radius | Collect XP from farther away. |
+| Luck | Improve explicitly defined favorable outcomes; affected systems and odds remain undecided. |
+| Crit chance | More frequent critical hits. |
+| Crit damage | Larger critical-hit payoff. |
+| Enemy population | More enemies to kill for faster potential growth, at the cost of greater combat pressure. This is an intentional risk/reward choice. |
+
+Enemy population creates additional XP opportunities that still require kills and collection; XP gain increases the reward from the same collected XP. Neither should silently alter the fixed boss milestones or tier unlock times. Population limits, rates, and reward tuning still require design and testing.
+
+The prototype currently offers damage, Mana Tempo attack rate, movement, max health, and pickup-radius passives, plus separate spell/Mana Bolt ranks. The expanded categories and bundled Mana Bolt mastery are pending implementation.
+
+### Multicast contract — agreed design
+
+One bonus adds one unit appropriate to the spell after a single successful typed cast. It does not require typing the phrase again, and it does not blindly repeat an entire multi-part spell. A five-meteor shower becomes six meteors, not ten.
+
+| Spell or effect | Additional output |
+|---|---|
+| Lightning Bolt | One additional bolt. |
+| Meteor Shower | One additional meteor. |
+| Chain Lightning | One additional jump. |
+| Healing spell | One additional healing pulse. |
+| Trap | One additional trap. |
+| Seeking Spirit | One additional spirit. |
+| Area burst | One additional burst; exact placement and delay need tuning. |
+
+Offer or inspection text should show the concrete effect, such as “5 → 6 meteors” or “3 → 4 jumps,” rather than only an opaque Multicast number. Persistent beams, shields, fields, overlapping effects, and effect caps need explicit per-spell rules so extra output neither overwrites itself nor creates unlimited stacking. Examples such as an extra beam target or shield layer remain proposals.
+
+Whether global Multicast also affects automatic Mana Bolt remains open because bolt count is already part of its bundled mastery. Do not silently choose a double-scaling rule. Values, caps, targeting, spacing, and interactions with existing rank bonuses remain implementation decisions to resolve.
 
 ### Upgrade budget
 
