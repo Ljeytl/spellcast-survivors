@@ -96,6 +96,9 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D
 			stats.xp *= 12.0
 		monster.configure(definition, stats, is_boss)
 		monster.position = player.global_position + Vector2.from_angle(angle) * distance + Vector2(index * 38, 0)
+		var terrain = get_parent().get_node_or_null("Background")
+		if terrain and terrain.has_method("clear_spawn"):
+			monster.position = terrain.clear_spawn(monster.position, 29.0 * monster.scale.x)
 		monster.enemy_died.connect(_on_monster_died)
 		var damage_manager = get_parent().get_node_or_null("DamageManager")
 		if damage_manager:

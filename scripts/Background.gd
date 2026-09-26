@@ -1,176 +1,156 @@
 extends Node2D
 
-var tile_size: Vector2 = Vector2(512, 512)  # Size of floor sprites - 4x larger for bigger tiles
-var bg_color: Color = Color(0.1, 0.1, 0.15, 1.0)
-
-@onready var camera: Camera2D = null
-var last_camera_pos: Vector2
-var cache_threshold: float = 32.0
-
-# Floor textures
+const CELL_SIZE = 460.0
+const TRUNK_RADIUS = 22.0
+const TILE_SIZE = 128.0
+const ART = "res://assets/typecast/"
+var camera: Camera2D
+var player: CharacterBody2D
+var clearing_center = Vector2.ZERO
+var initialized = false
 var floor_textures: Array[Texture2D] = []
-var texture_weights: Array[float] = []
-
-# Performance settings
-var draw_distance: float = 800.0  # How far to draw tiles
-var tile_cache: Dictionary = {}
+var decorations: Dictionary = {}
+var last_cell = Vector2i(2147483647, 2147483647)
+var last_view = Vector2.ZERO
 
 func _ready():
-	# Delay camera search to ensure Game.gd has finished setup
-	call_deferred("find_camera")
-	
-func find_camera():
-	# Find camera reference - try multiple approaches
-	camera = get_tree().get_first_node_in_group("camera")
-	if not camera:
-		# Look for camera in the scene
-		var game_node = get_tree().get_first_node_in_group("game")
-		if game_node:
-			camera = game_node.get_node_or_null("Camera2D")
-	
-	# Load floor textures
-	load_floor_textures()
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	z_index = -100
+	for i in range(1, 10):
+		floor_textures.append(load(ART + "Level Tiles/Grass Tile %d.png" % i))
+	initialize.call_deferred()
 
-func load_floor_textures():
-	# Load floor textures from the sprites/environment folder
-	# Load consistent stone-themed floor textures
-	var textures = [
-		{"path": "res://sprites/environment/floor_stone.png", "weight": 40.0},
-		{"path": "res://sprites/environment/limestone_0.png", "weight": 35.0},
-		{"path": "res://sprites/environment/marble_floor_1.png", "weight": 25.0}
-	]
-	
-	for tex_data in textures:
-		var texture = load(tex_data.path)
-		if texture:
-			floor_textures.append(texture)
-			texture_weights.append(tex_data.weight)
-	
-	# Fallback: if no textures loaded, create a simple colored texture
-	if floor_textures.is_empty():
-		create_fallback_textures()
+func initialize():
+	camera = get_parent().get_node("Camera2D")
+	player = get_parent().get_node("Player")
+	clearing_center = player.global_position
+	initialized = true
+	refresh_decorations()
+	queue_redraw()
 
+func cell_for(point: Vector2) -> Vector2i:
+	return Vector2i(floori(point.x / CELL_SIZE), floori(point.y / CELL_SIZE))
 
-
-func create_fallback_textures():
-	"""Create simple colored textures as fallback if image loading fails"""
-	var image = Image.create(512, 512, false, Image.FORMAT_RGB8)
-	
-	# Create consistent stone-themed floor textures
-	var colors = [
-		Color(0.45, 0.45, 0.45),  # Light gray stone
-		Color(0.4, 0.4, 0.4),     # Medium gray stone
-		Color(0.35, 0.35, 0.35)   # Dark gray stone
-	]
-	
-	for color in colors:
-		image.fill(color)
-		var texture = ImageTexture.new()
-		texture.set_image(image)
-		floor_textures.append(texture)
-		texture_weights.append(33.3)
-
-func _draw():
-	if not camera:
-		# Try to find camera again if we haven't found it yet
-		camera = get_tree().get_first_node_in_group("camera")
-		if not camera:
-			var game_node = get_tree().get_first_node_in_group("game")
-			if game_node:
-				camera = game_node.get_node_or_null("Camera2D")
-		
-		return
-	
-	# If no textures, show a simple background
-	if floor_textures.is_empty():
-		var screen_size = get_viewport().get_visible_rect().size
-		var camera_pos = camera.global_position
-		var half_screen = screen_size * 0.5
-		var rect = Rect2(camera_pos - half_screen, screen_size)
-		draw_rect(rect, Color(0.2, 0.2, 0.25))
-		return
-	
-	var screen_size = get_viewport().get_visible_rect().size
-	var camera_pos = camera.global_position
-	
-	# Calculate visible area around camera
-	var half_screen = screen_size * 0.5
-	var top_left = camera_pos - half_screen - Vector2(256, 256)  # Extra margin for larger tiles
-	var bottom_right = camera_pos + half_screen + Vector2(256, 256)
-	
-	# Draw tiled floor
-	draw_tiled_floor(top_left, bottom_right)
-
-func draw_tiled_floor(top_left: Vector2, bottom_right: Vector2):
-	# Draw a tiled floor using various floor textures
-	# Calculate grid bounds aligned to tile size
-	var start_x = floor(top_left.x / tile_size.x) * tile_size.x
-	var start_y = floor(top_left.y / tile_size.y) * tile_size.y
-	var end_x = ceil(bottom_right.x / tile_size.x) * tile_size.x
-	var end_y = ceil(bottom_right.y / tile_size.y) * tile_size.y
-	
-	# Draw tiles
-	var y = start_y
-	while y < end_y:
-		var x = start_x
-		while x < end_x:
-			var tile_pos = Vector2(x, y)
-			var texture = get_tile_texture(x, y)
-			
-			if texture:
-				# Draw the floor tile scaled to tile_size with smooth filtering
-				var dst_rect = Rect2(tile_pos, tile_size)
-				draw_texture_rect(texture, dst_rect, false, Color(0.48, 0.55, 0.64))
-				
-				# Occasionally add some variation/wear
-				if get_tile_variation(x, y) > 0.9:
-					# Slightly darken some tiles for variation
-					draw_rect(Rect2(tile_pos, tile_size), Color(0, 0, 0, 0.1))
-			
-			x += tile_size.x
-		y += tile_size.y
-
-func get_tile_texture(x: float, y: float) -> Texture2D:
-	# Get texture for a tile at given position, with deterministic randomness
-	if floor_textures.is_empty():
-		return null
-	
-	# Use position as seed for deterministic "randomness"
-	var seed_value = int(x * 0.1) + int(y * 0.1) * 1000
+func tree_position(cell: Vector2i) -> Vector2:
 	var rng = RandomNumberGenerator.new()
-	rng.seed = seed_value
-	
-	# Weighted random selection
-	var total_weight = 0.0
-	for weight in texture_weights:
-		total_weight += weight
-	
-	var random_value = rng.randf() * total_weight
-	var current_weight = 0.0
-	
-	for i in range(floor_textures.size()):
-		current_weight += texture_weights[i]
-		if random_value <= current_weight:
-			return floor_textures[i]
-	
-	# Fallback to first texture
-	return floor_textures[0]
+	rng.seed = hash("typecast:%d:%d" % [cell.x, cell.y])
+	return Vector2(cell) * CELL_SIZE + Vector2(CELL_SIZE / 2, CELL_SIZE / 2) + Vector2(rng.randf_range(-95, 95), rng.randf_range(-95, 95))
 
-func get_tile_variation(x: float, y: float) -> float:
-	# Get variation value for tile effects
-	var seed_value = int(x * 0.05) + int(y * 0.05) * 2000 + 12345
-	var rng = RandomNumberGenerator.new()
-	rng.seed = seed_value
-	return rng.randf()
+func has_tree(cell: Vector2i) -> bool:
+	return tree_position(cell).distance_to(clearing_center) > 300.0
+
+func nearby_trunks(point: Vector2) -> Array[Vector2]:
+	var result: Array[Vector2] = []
+	var cell = cell_for(point)
+	for y in range(cell.y - 1, cell.y + 2):
+		for x in range(cell.x - 1, cell.x + 2):
+			var key = Vector2i(x, y)
+			if has_tree(key):
+				result.append(tree_position(key))
+	return result
+
+func is_clear(point: Vector2, radius: float) -> bool:
+	for trunk in nearby_trunks(point):
+		if point.distance_to(trunk) < radius + TRUNK_RADIUS + 8:
+			return false
+	return true
+
+func clear_spawn(point: Vector2, radius: float) -> Vector2:
+	if is_clear(point, radius):
+		return point
+	for ring in range(1, 7):
+		for step in range(16):
+			var candidate = point + Vector2.from_angle(step * TAU / 16) * ring * 48.0
+			if is_clear(candidate, radius):
+				return candidate
+	return clearing_center
+
+func steer(point: Vector2, desired: Vector2, radius: float) -> Vector2:
+	if desired.is_zero_approx():
+		return desired
+	var heading = desired.normalized()
+	for trunk in nearby_trunks(point):
+		var offset = trunk - point
+		var ahead = offset.dot(heading)
+		var clearance = radius + TRUNK_RADIUS + 18.0
+		if ahead > 0 and ahead < clearance + 90 and absf(offset.cross(heading)) < clearance:
+			var side = 1.0 if offset.cross(heading) < 0 else -1.0
+			return (heading * 0.25 + heading.orthogonal() * side).normalized() * desired.length()
+	return desired
+
+func refresh_decorations():
+	var cell = cell_for(player.global_position)
+	var view = get_viewport_rect().size / camera.zoom
+	if cell == last_cell and view == last_view:
+		return
+	last_cell = cell
+	last_view = view
+	var extent = Vector2i(ceili(view.x / (2 * CELL_SIZE)) + 2, ceili(view.y / (2 * CELL_SIZE)) + 2)
+	var wanted: Dictionary = {}
+	for y in range(cell.y - extent.y, cell.y + extent.y + 1):
+		for x in range(cell.x - extent.x, cell.x + extent.x + 1):
+			var key = Vector2i(x, y)
+			wanted[key] = true
+			if not decorations.has(key):
+				decorations[key] = create_decoration(key)
+	for key in decorations.keys():
+		if not wanted.has(key):
+			decorations[key].queue_free()
+			decorations.erase(key)
+
+func create_decoration(cell: Vector2i) -> Node2D:
+	var holder = Node2D.new()
+	holder.position = tree_position(cell)
+	add_child(holder)
+	if has_tree(cell):
+		var body = StaticBody2D.new()
+		body.collision_layer = 32
+		body.collision_mask = 0
+		body.add_to_group("tree_obstacles")
+		holder.add_child(body)
+		var shape = CollisionShape2D.new()
+		var circle = CircleShape2D.new()
+		circle.radius = TRUNK_RADIUS
+		shape.shape = circle
+		body.add_child(shape)
+		var tree = Sprite2D.new()
+		tree.name = "Canopy"
+		tree.texture = load(ART + "Level Tiles/Level Deco/Fir Tree 1 shaded.png")
+		tree.scale = Vector2(2, 2)
+		tree.position.y = -105
+		tree.z_as_relative = false
+		tree.z_index = 2
+		holder.add_child(tree)
+	var bush = Sprite2D.new()
+	bush.texture = load(ART + "Level Tiles/Level Deco/Bush v%d.png" % (1 + posmod(cell.x + cell.y, 2)))
+	bush.scale = Vector2(2, 2)
+	bush.position = Vector2(125, 80)
+	holder.add_child(bush)
+	return holder
 
 func _process(_delta):
-	# Only redraw when camera moves significantly
-	if not camera:
+	if not initialized:
 		return
-	
-	var camera_pos = camera.global_position
-	var distance = last_camera_pos.distance_to(camera_pos)
-	
-	if distance > cache_threshold:
-		queue_redraw()
-		last_camera_pos = camera_pos
+	refresh_decorations()
+	var actors: Array = get_tree().get_nodes_in_group("enemies")
+	actors.append(player)
+	for holder in decorations.values():
+		var canopy = holder.get_node_or_null("Canopy")
+		if canopy:
+			canopy.modulate.a = 1.0
+			for actor in actors:
+				var offset = actor.global_position - holder.global_position
+				if absf(offset.x) < 100 and offset.y > -265 and offset.y < 40:
+					canopy.modulate.a = 0.35
+					break
+	queue_redraw()
+
+func _draw():
+	if not initialized:
+		return
+	var half_view = get_viewport_rect().size / camera.zoom / 2 + Vector2.ONE * TILE_SIZE
+	var center = camera.get_screen_center_position()
+	for y in range(floori((center.y - half_view.y) / TILE_SIZE), ceili((center.y + half_view.y) / TILE_SIZE)):
+		for x in range(floori((center.x - half_view.x) / TILE_SIZE), ceili((center.x + half_view.x) / TILE_SIZE)):
+			var index = posmod(hash("grass:%d:%d" % [x, y]), floor_textures.size())
+			draw_texture_rect(floor_textures[index], Rect2(Vector2(x, y) * TILE_SIZE, Vector2.ONE * TILE_SIZE), false, Color(0.72, 0.78, 0.72))

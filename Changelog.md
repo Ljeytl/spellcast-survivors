@@ -1,3 +1,10 @@
+## 2026-09-26 — Typecast art and forest arena
+
+- Integrate the supplied assembled wizard, nine slime variants, king-slime bosses, ranged wisps, nine grass tiles, trees, bushes, keyboard logo, and health-bar art with nearest-neighbor sampling.
+- Add sparse deterministic trunk obstacles, an open starting clearing, bounded scenery streaming, enemy steering, and spawn clearance. Trees block movement while spells continue through foliage; nearby canopies fade to preserve player visibility.
+- Preserve the separate wizard components and alternate exported designs under assets/typecast for future animation. Keep unsupplied spell effects as placeholders and retain combat stats, encounter timing, and hitbox sizes.
+- Record future layered wizard animation and obstacle-aware bot improvements in the roadmap.
+
 ## 2026-09-26 — Casting decisions and branch reconciliation
 
 - Confirm the existing survivors premise, long-incantation power fantasy, and fixed-strength per-cast slowdown with upgradeable duration. Record that the shipped shared budget/refill still needs replacement.
