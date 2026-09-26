@@ -7,6 +7,7 @@ var remaining: float = 6.0
 var warning_time: float = 0.0
 var blast_radius: float = 0.0
 var detonated: bool = false
+var damage_source: String = ""
 var player: Node2D
 
 func _ready():
@@ -24,7 +25,7 @@ func _physics_process(delta):
 			detonated = true
 			remaining = 0.18
 			if global_position.distance_to(player.global_position) <= blast_radius + 16.0:
-				player.take_damage(damage)
+				player.take_damage(damage, {"kind": "blast", "source": damage_source})
 		if detonated:
 			remaining -= delta
 	else:
@@ -32,7 +33,7 @@ func _physics_process(delta):
 		global_position += direction * speed * delta
 		var closest = Geometry2D.get_closest_point_to_segment(player.global_position, start, global_position)
 		if closest.distance_to(player.global_position) <= 24.0:
-			player.take_damage(damage)
+			player.take_damage(damage, {"kind": "projectile", "source": damage_source})
 			queue_free()
 		remaining -= delta
 	if remaining <= 0.0:

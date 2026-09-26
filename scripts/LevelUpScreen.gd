@@ -115,6 +115,10 @@ func load_upgrades_from_data():
 			"effect": {"type": "spell_upgrade", "spell": spell_id}
 		}
 
+func _input(event):
+	if visible and event is InputEventKey and event.pressed and event.echo and event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+		get_viewport().set_input_as_handled()
+
 func show_level_up(player_level: int, player_stats: Dictionary = {}):
 	selecting_upgrade = false
 	locks_remaining += locked_upgrades.size()
@@ -282,6 +286,35 @@ func show_screen():
 	if panel:
 		panel.scale = Vector2.ONE
 		panel.modulate = Color.WHITE
+	configure_choice_navigation()
+	focus_first_choice.call_deferred()
+
+func configure_choice_navigation():
+	var controls: Array = []
+	for button in upgrade_buttons + [reroll_button, banish_button, lock_button]:
+		if button and button.visible and not button.disabled:
+			controls.append(button)
+	for i in range(controls.size()):
+		var previous = controls[i].get_path_to(controls[posmod(i - 1, controls.size())])
+		var next = controls[i].get_path_to(controls[(i + 1) % controls.size()])
+		controls[i].focus_previous = previous
+		controls[i].focus_next = next
+		controls[i].focus_neighbor_top = previous
+		controls[i].focus_neighbor_left = previous
+		controls[i].focus_neighbor_bottom = next
+		controls[i].focus_neighbor_right = next
+
+func focus_first_choice():
+	if not visible or selecting_upgrade or available_upgrades.is_empty():
+		return
+	var scroll = $Panel/VBoxContainer/UpgradeScroll
+	scroll.follow_focus = false
+	upgrade_buttons[0].grab_focus()
+	scroll.follow_focus = true
+	scroll.scroll_vertical = 0
+	await get_tree().process_frame
+	if visible and not selecting_upgrade and get_viewport().gui_get_focus_owner() == upgrade_buttons[0]:
+		scroll.scroll_vertical = 0
 
 func hide_screen():
 	var tween = create_tween()
@@ -429,9 +462,11 @@ func setup_reroll_system():
 	if banish_button:
 		banish_button.pressed.connect(_on_banish_mode_toggled)
 		banish_button.disabled = (banishes_remaining <= 0)
+		banish_button.tooltip_text = "Choose Banish, then choose a card to remove from this run"
 	if lock_button:
 		lock_button.pressed.connect(_on_lock_mode_toggled)
-		lock_button.disabled = (locks_remaining <= 0)
+		lock_button.disabled = (locks_remaining <= 0 and locked_upgrades.is_empty())
+		lock_button.tooltip_text = "Choose Lock, then a card; right-click also locks or unlocks"
 	
 	# Setup right-click detection on upgrade cards
 	setup_upgrade_right_click()
@@ -452,17 +487,9 @@ func _on_upgrade_right_click(event: InputEvent, index: int):
 		handle_upgrade_right_click(index)
 
 func handle_upgrade_right_click(index: int):
-	# Check if we're in banish mode or lock mode based on which has resources
-	if banishes_remaining > 0 and locks_remaining > 0:
-		# Show context menu to choose
-		show_upgrade_context_menu(index)
-	elif banishes_remaining > 0:
-		banish_upgrade(index)
-	elif locks_remaining > 0:
-		lock_upgrade(index)
+	lock_upgrade(index)
 
 func show_upgrade_context_menu(index: int):
-	# For now, default to lock action (could enhance with popup menu later)
 	lock_upgrade(index)
 
 func _on_reroll_pressed():
@@ -590,10 +617,12 @@ func update_reroll_button_texts():
 	if banish_button:
 		banish_button.text = "Banish (" + str(banishes_remaining) + ")"
 		banish_button.disabled = (banishes_remaining <= 0)
+		banish_button.tooltip_text = "Choose Banish, then choose a card to remove from this run"
 		
 	if lock_button:
 		lock_button.text = "Lock (" + str(locks_remaining) + ")"
-		lock_button.disabled = (locks_remaining <= 0)
+		lock_button.disabled = (locks_remaining <= 0 and locked_upgrades.is_empty())
+		lock_button.tooltip_text = "Choose Lock, then a card; right-click also locks or unlocks"
 
 func update_choice_prompt():
 	var prompt = $Panel/VBoxContainer/UpgradeLabel
@@ -606,7 +635,7 @@ func update_choice_prompt():
 			prompt.text = "Choose a card to banish from this run"
 			prompt.modulate = Color("ff8175")
 		_:
-			prompt.text = "Choose one upgrade"
+			prompt.text = "Arrows / Tab select · Enter / Space choose · Right-click locks"
 			prompt.modulate = Color.WHITE
 
 func update_upgrade_visual_state(index: int):
@@ -627,6 +656,7 @@ func update_upgrade_visual_state(index: int):
 	button.add_theme_stylebox_override("normal", style)
 
 func update_upgrade_displays():
+	configure_choice_navigation()
 	update_ui(offered_level, offered_stats)
 	for i in range(upgrade_cards.size()):
 		update_upgrade_visual_state(i)

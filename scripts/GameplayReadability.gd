@@ -13,6 +13,9 @@ var passive_label: Label
 var focus_label: Label
 var focus_bar: ProgressBar
 var last_size = Vector2.ZERO
+var guidance: Label
+var feedback_remaining = 0.0
+var feedback_copy = ""
 
 static func panel_style(accent: Color = Color("394e68"), fill: Color = PANEL) -> StyleBoxFlat:
 	var style = StyleBoxFlat.new()
@@ -84,6 +87,14 @@ func _ready():
 	focus_bar.add_theme_stylebox_override("background", panel_style(Color.TRANSPARENT, INK))
 	focus_bar.add_theme_stylebox_override("fill", panel_style(Color.TRANSPARENT, CYAN))
 	hud.add_child(focus_bar)
+	guidance = Label.new()
+	guidance.name = "GameplayGuidance"
+	guidance.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	guidance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	guidance.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	guidance.add_theme_font_size_override("font_size", 16)
+	guidance.add_theme_color_override("font_color", PAPER)
+	hud.add_child(guidance)
 	layout()
 
 func _process(_delta):
@@ -94,6 +105,13 @@ func _process(_delta):
 	for supplemental in [passive_label, focus_label, focus_bar]:
 		supplemental.visible = not (typing.visible and typing.get_global_rect().intersects(supplemental.get_global_rect()))
 	var manager = game.spell_manager
+	if game.current_state == game.GameState.PLAYING and not manager.is_typing:
+		feedback_remaining = maxf(0, feedback_remaining - _delta)
+	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Mana Bolt fires automatically\nClick a spell or press 1–5, then type · Space chooses any learned spell"
+	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing
+	var spells_panel = game.get_node("UI/HUD/SpellSlotsPanel")
+	guidance.size = Vector2(spells_panel.size.x, maxf(48, guidance.get_minimum_size().y))
+	guidance.position = Vector2(spells_panel.position.x, spells_panel.position.y - guidance.size.y - 8)
 	passive_label.text = "AUTO · Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt")
 	var remaining = manager.typing_slowdown_remaining
 	var capacity = manager.typing_slowdown_capacity
@@ -106,6 +124,10 @@ func _process(_delta):
 		focus_label.text = "SLOWDOWN · %.1fs · full in %.1fs" % [remaining, seconds]
 	else:
 		focus_label.text = "SLOWDOWN READY · %.1fs" % capacity
+
+func show_feedback(text: String):
+	feedback_copy = text
+	feedback_remaining = 6.0
 
 func layout():
 	last_size = Vector2(game.get_window().size)

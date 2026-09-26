@@ -43,6 +43,7 @@ var flash_duration: float = DAMAGE_FLASH_DURATION  # How long damage flash lasts
 var debug_x_pressed: bool = false
 
 # Invincibility cheat system
+var last_damage_context: Dictionary = {}
 var is_invincible: bool = false     # When true, player takes no damage
 
 # Called when player scene is first loaded
@@ -119,7 +120,10 @@ func handle_movement():
 		velocity = Vector2.ZERO
 
 # Called when player takes damage from enemies or other sources
-func take_damage(damage: float):
+func take_damage(damage: float, source: Dictionary = {}):
+	var previous_health = health
+	var previous_overheal = overheal
+	var previous_total = health + overheal
 	if health <= 0.0:
 		return
 	# Check invincibility first
@@ -135,6 +139,13 @@ func take_damage(damage: float):
 	# Apply remaining damage to health
 	health -= damage
 	health = max(0, health)  # Don't let health go below 0
+	var actual_damage = maxf(0, previous_total - health - overheal)
+	if actual_damage > 0:
+		last_damage_context = source.duplicate(true)
+		last_damage_context["kind"] = source.get("kind", "unknown")
+		last_damage_context["damage"] = actual_damage
+		last_damage_context["health_loss"] = maxf(0, previous_health - health)
+		last_damage_context["overheal_loss"] = maxf(0, previous_overheal - overheal)
 	
 	# Play damage sound effect
 	if is_instance_valid(AudioManager):
@@ -268,7 +279,7 @@ func process_enemy_contact_damage(delta: float):
 					var damage = enemy.base_damage if enemy.get("base_damage") else 20.0
 					total_damage += damage
 				
-				take_damage(total_damage)
+				take_damage(total_damage, {"kind": "contact", "count": touching_enemies.size()})
 				damage_timer = DAMAGE_INTERVAL  # Reset timer
 
 # Calculate movement slowdown based on number of touching enemies

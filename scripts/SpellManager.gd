@@ -124,6 +124,8 @@ func _input(event):
 		handle_key_input(event)
 
 func handle_key_input(event: InputEventKey):
+	if event.echo and event.keycode != KEY_BACKSPACE:
+		return
 	if space_casting:
 		handle_freeform_typing_input(event)
 		return
@@ -141,25 +143,25 @@ func handle_key_input(event: InputEventKey):
 	var key_code = event.keycode
 	
 	if key_code >= KEY_1 and key_code <= KEY_5:
-		var slot = key_code - KEY_0
-		if slot in spells:
-			# Don't allow new spell queuing while already typing
-			if is_typing:
-				return
-			
-			# Check spell cast cooldown to prevent rapid casting
-			var current_time = casting_clock
-			if current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
-				return
-			
-			# Clear queue and immediately start typing this spell
-			spell_queue.clear()
-			queue_spell(slot)
-			start_typing()
+		activate_spell_slot(key_code - KEY_0)
 		return
-	
+
 	if is_typing:
 		handle_typing_input(event)
+
+func activate_spell_slot(slot: int) -> bool:
+	if not game_manager or game_manager.current_state != game_manager.GameState.PLAYING or is_typing:
+		return false
+	if not is_spell_unlocked(slot):
+		game_manager.show_gameplay_feedback("Empty slot · Learn a spell when you level up")
+		return false
+	if casting_clock - last_spell_cast_time < SPELL_CAST_COOLDOWN:
+		game_manager.show_gameplay_feedback("Spell recovering · Try again in a moment")
+		return false
+	spell_queue.clear()
+	queue_spell(slot)
+	start_typing()
+	return is_typing
 
 func queue_spell(slot: int):
 	if slot not in spells:
@@ -213,6 +215,8 @@ func _apply_typing_slowdown():
 		game_manager.update_typing_slowdown(typing_slowdown_remaining, typing_slowdown_capacity)
 
 func handle_typing_input(event: InputEventKey):
+	if event.echo and event.keycode != KEY_BACKSPACE:
+		return
 	if not is_typing:
 		return
 	
@@ -252,7 +256,8 @@ func attempt_cast():
 		if AudioManager:
 			AudioManager.on_typing_complete()
 	else:
-		cancel_typing()
+		var feedback = "Keep typing" if target_spell.begins_with(current_typing_text) else "Mismatch"
+		game_manager.update_typing_display(target_spell + " › " + current_typing_text + " · " + feedback)
 		# Play error sound for mistyped spell
 		if AudioManager:
 			AudioManager.on_typing_error()
@@ -994,6 +999,8 @@ func start_freeform_typing():
 	update_freeform_typing_display()
 
 func handle_freeform_typing_input(event: InputEventKey):
+	if event.echo and event.keycode != KEY_BACKSPACE:
+		return
 	if not is_typing:
 		return
 	
