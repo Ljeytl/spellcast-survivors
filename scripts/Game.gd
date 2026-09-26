@@ -23,6 +23,8 @@ const ICON_SIZE = Vector2(32, 32)          # Standard size for spell slot icons
 
 # Current game state - starts in PLAYING mode
 var current_state: GameState = GameState.PLAYING
+var run_won: bool = false
+var result_recorded: bool = false
 # Total time spent in this game session (used for survival scoring)
 var game_time: float = 0.0
 var pending_level_ups: Array[int] = []
@@ -84,6 +86,7 @@ func _ready():
 	
 	# Initialize all game systems in the correct order
 	setup_all_systems()
+	$MonsterManager.run_completed.connect(func(): finish_run(true))
 	# Configure the spell slot UI with icons and labels
 	setup_spell_slots()
 	# Initialize developer console
@@ -234,7 +237,9 @@ func update_difficulty_display():
 	if not manager:
 		return
 	var tier = manager.get_current_difficulty_level()
-	difficulty_label.text = "Tier %d • Boss %02d:00" % [tier, mini(20, tier * 5)]
+	difficulty_label.text = "Tier %d • Boss %02d:00" % [tier, mini(15, tier * 5)]
+	if tier == 4:
+		difficulty_label.text = "Tier 4 • Survive to 20:00"
 	var bosses = get_tree().get_nodes_in_group("bosses").filter(func(enemy): return not enemy.dying)
 	if not bosses.is_empty():
 		difficulty_label.text = "%s • %d HP" % [bosses[0].encounter_name, ceili(bosses[0].current_health)]
@@ -279,7 +284,7 @@ func update_difficulty_tooltip_content():
 	content += "Monster tier: %d\n" % manager.get_current_difficulty_level()
 	content += "Spawn interval: %.2fs\n\n" % manager.calculate_spawn_interval()
 	content += "Normal and fast melee form the opening.\n"
-	content += "Bosses and new tiers arrive every five minutes.\n"
+	content += "Bosses arrive at 5, 10 and 15 minutes; win at 20.\n"
 	content += "Ranged enemies join after ten minutes."
 	difficulty_tooltip_label.text = content
 
@@ -526,7 +531,20 @@ func create_xp_glow_effect(style: StyleBoxFlat):
 	glow_tween.tween_property(style, "bg_color", Color.ORANGE, GLOW_ANIMATION_DURATION)
 
 func _on_player_died():
+	finish_run(false)
+
+func finish_run(won: bool):
+	if current_state == GameState.GAME_OVER:
+		return
+	run_won = won
+	game_time = $MonsterManager.game_time
+	$MonsterManager.run_finished = true
+	$MonsterManager.spawn_timer.stop()
+	pending_level_ups.clear()
+	level_up_screen.hide()
+	pause_overlay.hide()
 	change_state(GameState.GAME_OVER)
+	update_timer_display()
 	show_game_over_screen()
 
 func _on_upgrade_selected_stub(upgrade_data: Dictionary):
@@ -605,11 +623,15 @@ func show_damage_number(pos: Vector2, damage: float):
 		damage_manager.show_damage(pos, damage)
 
 func _on_player_level_up(new_level: int, _player_stats: Dictionary):
+	if current_state == GameState.GAME_OVER:
+		return
 	pending_level_ups.append(new_level)
 	if current_state != GameState.LEVEL_UP:
 		show_next_level_up()
 
 func show_next_level_up():
+	if current_state == GameState.GAME_OVER or pending_level_ups.is_empty():
+		return
 	var next_level = pending_level_ups.pop_front()
 	update_spell_slot_lock_status()
 	change_state(GameState.LEVEL_UP)
@@ -623,6 +645,8 @@ func show_next_level_up():
 		})
 
 func _on_upgrade_selected(upgrade_data: Dictionary):
+	if current_state == GameState.GAME_OVER:
+		return
 	# Apply upgrade to player
 	if player:
 		player.apply_upgrade(upgrade_data)
@@ -643,6 +667,12 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 		show_next_level_up.call_deferred()
 
 func show_game_over_screen():
+	if result_recorded:
+		return
+	if not is_instance_valid(game_over_screen) or not game_over_screen.is_inside_tree():
+		show_game_over_screen.call_deferred()
+		return
+	result_recorded = true
 	
 	# Process game end for character progression
 	if CharacterManager:
@@ -650,12 +680,8 @@ func show_game_over_screen():
 		CharacterManager.process_game_end(game_time, player_level, enemies_killed, spells_cast)
 	
 	if game_over_screen and is_instance_valid(game_over_screen):
-		# Ensure the game over screen is properly initialized
-		if not game_over_screen.is_inside_tree():
-			print("ERROR: game_over_screen is not in scene tree yet")
-			call_deferred("show_game_over_screen")
-			return
 		var stats = {
+			"won": run_won,
 			"survival_time": game_time,
 			"level": player.level if player else 1,
 			"enemies_killed": enemies_killed,

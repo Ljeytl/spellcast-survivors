@@ -3,6 +3,9 @@ extends Node2D
 signal monster_spawned(monster_data: Dictionary)
 signal monster_died(monster_data: Dictionary)
 signal boss_arrived(boss_name: String)
+signal run_completed
+
+var run_finished: bool = false
 
 const EnemyScene = preload("res://scenes/EncounterEnemy.tscn")
 var encounter_config: Dictionary = {}
@@ -24,8 +27,7 @@ func _ready():
 	add_child(spawn_timer)
 
 func _process(delta):
-	game_time += delta
-	check_boss_milestones()
+	advance_time(delta)
 
 func get_available_variants(at_time: float) -> Array:
 	var available: Array = []
@@ -68,6 +70,8 @@ func _on_spawn_timer_timeout():
 	spawn_timer.wait_time = calculate_spawn_interval()
 
 func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D:
+	if run_finished:
+		return null
 	if not is_instance_valid(player) or (monsters_alive >= max_monsters and not is_boss):
 		return null
 	if definition.is_empty():
@@ -104,6 +108,8 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D
 	return first
 
 func check_boss_milestones():
+	if run_finished:
+		return
 	for milestone in encounter_config.bosses:
 		var at_time = int(milestone.time)
 		if game_time < at_time or spawned_bosses.has(at_time):
@@ -134,5 +140,15 @@ func _on_monster_died(monster: CharacterBody2D):
 	monster_died.emit({"variant": monster.variant, "boss": monster.boss})
 
 func add_game_time(additional_time: float):
-	game_time = maxf(0.0, game_time + additional_time)
+	advance_time(additional_time)
+
+func advance_time(delta: float):
+	if run_finished:
+		return
+	game_time = clampf(game_time + delta, 0.0, float(encounter_config.run_duration))
+	if game_time >= float(encounter_config.run_duration):
+		run_finished = true
+		spawn_timer.stop()
+		run_completed.emit()
+		return
 	check_boss_milestones()

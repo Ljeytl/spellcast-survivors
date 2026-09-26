@@ -42,3 +42,11 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Give pooled particles a resettable child timer, so reuse cancels stale cleanup and pausing freezes the effect lifetime.
 - Encounter and opening simulations now exit without the previous Tween/SceneTreeTimer leaks. Added reuse, pause and expiry assertions.
 - Include the runtime JSON catalogs in the playtest export and exclude test scripts and local overrides.
+
+## 2026-09-26 — Immediate twenty-minute victory
+
+- Win immediately at 20:00; stop the clock, spawning and combat, and show VICTORY with run statistics.
+- Keep zero health as a loss and record progression once for either outcome. Ignore late level-up callbacks after a result.
+- Keep bosses at 5/10/15 minutes and remove the 20-minute boss, which would coincide with victory.
+- Leave the narrative reason for winning to later design work.
+- Verify cutoff, no early victory, losses, duplicate results and post-result guards with twenty-four ending assertions.
