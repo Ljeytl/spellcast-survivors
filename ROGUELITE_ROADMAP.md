@@ -1,3 +1,9 @@
+## 2026-09-26 — Preserve the baseline and separate debug from play (documentation only)
+
+- Keep and repair the implemented roster; select library expansions separately instead of silently replacing existing spells.
+- Define normal play, ordinary spellbook and opt-in debug as distinct information surfaces. Keep technical overlays and test controls out of normal runs.
+- Record Earth Wall/Earth Walls separately from Earth Shield, retain Thunderwave as a user concept, and leave protective versus terrain behavior explicit for design selection.
+
 ## 2026-09-26 — Complete spell library and naming feedback (documentation only)
 
 - Add the [full spell library](docs/SPELL_LIBRARY.md) with individual status, source, letter count, fantasy and visual identity rows. Preserve user concepts, inactive drafts and name alternatives; add clearly labelled water, sun, earth and arcane suggestions. Rows are not a promised playable spell count.

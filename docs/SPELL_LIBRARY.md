@@ -2,6 +2,10 @@
 
 This is the comprehensive design library, **not a promise to implement every row**. User ideas belong here even when outside the next build. Read alongside the [mechanics catalog](SPELL_AND_UPGRADE_CATALOG.md) and [art plan](ART_AND_FEEDBACK_PLAN.md). Last revised September 26, 2026 after the library/naming feedback.
 
+## Selection policy
+
+Keep and fix the currently implemented roster first. This library preserves every concept for later selection; it is not a replacement roster or automatic expansion plan. Decide separately which ideas to add, which names to change and which overlapping concepts to combine. Thunderwave is a user-originated concept already preserved here, not a newly invented suggestion.
+
 ## Reading the status column
 
 - **Current / rework:** an acquirable counterpart exists, but the intended description may require changes. It does not certify that the listed fantasy is implemented.
@@ -137,12 +141,14 @@ These are reviewable design relationships, not final damage ratios. A longer tit
 
 | Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
 |---|---:|---|---|---|---|
-| Earth Shield | 11 | Rework direction | User concept | Raise terrain around the caster; barrier decays over time and enemies can damage it. Geometry, escape/pass-through and enemy interaction remain to specify. | Ground rises into visible segments which erode and crack. |
+| Earth Shield | 11 | Rework direction | User concept | Keep the existing shield identity and explore damageable, decaying protection around the caster. Compare with separately placed Earth Wall before deciding whether this is terrain, attached protection or another shape. | Ground rises into visible segments which erode and crack. |
 | Rune Trap | 8 | Current / rework | User decision | Prepared persistent ground trap until triggered; count/replacement policy remains proposed. | Inscription, armed rune and clear trigger. |
 | Earth Bolt | 9 | Idea | User concept | Potential physical earth projectile; proposed stagger or impact weight to distinguish from ordinary Bolt. | Travelling stone and impact fragments. |
 | Earthquake | 10 | Idea | User concept | Broad ground disruption with repeated useful crowd impact. Select stagger/displacement behavior before tuning. | Ground pulses and enemy reactions that match real control. |
 | Stone | 5 | Idea | New proposal | Short heavy single projectile; modest impact control, limited reach or speed. | One thrown stone and compact hit. |
-| Stonewall | 9 | Idea | New proposal | Place a directional barrier for route control, distinct from Earth Shield forming around the caster. | A directional rising wall with readable gaps/damage. |
+| Earth Wall | 9 | Idea | User concept | Separately placed damageable earth terrain for blocking routes; potentially entirely different from caster-focused Earth Shield. Decay, shape and pass-through rules remain open. | A placed rising barrier with readable cracks and erosion. |
+| Earth Walls | 10 | Naming / variant idea | User concept | Plural formation alternative for Earth Wall; multiple segments could justify a distinct effect, but no automatic second spell or alias. | Multiple clearly placed barrier segments if selected. |
+| Stonewall | 9 | Naming alternative | Earlier assistant proposal | Compare this name with Earth Wall; do not silently add duplicate barrier spells. | Same placed-wall concept unless deliberately differentiated. |
 
 ## Moon, sun and blades
 
@@ -168,7 +174,8 @@ These are reviewable design relationships, not final damage ratios. A longer tit
 - Seeker → Seeking Spirit → Reaping Spirit is a proposed naming/fantasy relationship, not an approved mandatory upgrade chain. The existing Reaping Spirit recipe must be revisited if its ingredient changes to Seeker.
 - Life Bolt: recommend **Bolt + Life** after the split; this is a new recipe proposal, not a silent conversion of the old Bolt + Regeneration recipe. Keep Soul Bloom tied to Regeneration unless separately revised.
 - Firewalk, Fire Trail and Ember Trail are competing names for one current movement-fire role. Choose Firewalk provisionally; no alias should allow different typing commitments for identical output.
-- Grasping Hand and Earth Shield need exact control/collision contracts before effects or code. Earth Shield must not accidentally trap its caster; pass-through rules and openings remain explicit design questions.
+- Earth Shield and Earth Wall are separate design candidates, not interchangeable names. Shield should focus on protecting the caster; walls should shape routes. Their exact behaviors remain proposed.
+- Grasping Hand and earth protection/terrain need exact control/collision contracts before effects or code. Earth Shield must not accidentally trap its caster; pass-through rules and openings remain explicit design questions.
 - Yggdrasil stays in the library. Tune its landmark role, unlock route and commitment deliberately. “Tree of Life” is an alternative name; longer ritual/map versions are possible later, not a requirement imposed now.
 - Similar ideas (Homing Bolt/Magic Missile, Gravity Well/Maelstrom, Ice Blast/Frost Nova, Moon Slash/Crescent Slash) remain visible until deliberately combined or differentiated. Do not inflate the promised playable count with synonyms.
 

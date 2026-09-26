@@ -22,7 +22,7 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Life, new split | Small restorative pulse on actual immediate healing → quick fade. | Fast modest recovery, about 4 HP; distinct from sustained Regeneration. |
 | Regeneration | Restorative bloom → motes drawn inward → pulse on actual healing → restrained repeated restoration → thinning motes. | Recovery that visibly works; distinguish full-health or capped healing. |
 | Ice Blast | Ice gathers → radial shards expand → impact and actual knockback → small slow accents on affected survivors → melt/break. | Space to breathe; transparent gaps preserve enemy visibility. |
-| Earth Shield | Ground rises around caster → visible terrain segments → cracks on enemy damage → visible erosion over time → collapse of depleted segments. | Damageable, decaying terrain; shape and movement rules must be settled before storyboarding final geometry. |
+| Earth Shield | Proposed earth protection assembles near caster → damage cracks → readable remaining protection/erosion → break or expiry. | Final geometry awaits Shield versus Earth Wall distinction; do not generate a placed-wall asset and assume it defines the shield. |
 | Meteor Shower | Strong invocation → separate descending meteors and landing cues → forceful rock/fire impacts → only real lingering effects → settling debris. | Major earned crowd payoff. Optional brief bounded shake on impact. |
 | Ember Lance | Narrow ignition → long piercing spear silhouette → sparks at each real hit → none → extinguished tail. | Precise destructive line. Not a recolored small bolt. |
 | Plague Seed | Seed forms → visible travel and planting in host → infection onset → persistent plant marker plus travelling host-to-host transfer → withering. | “I am infecting the horde.” Show actual source/destination, never fictional spread. |
@@ -55,7 +55,7 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Enemy hit | Local spark and restrained flash/squash. | No implied knockback or stun unless real. |
 | Enemy death | Slime collapse/pop with bounded fragments; wisp dissolution. | Dead silhouette disappears promptly; debris never looks like a surviving threat. |
 | Player hurt | Clear local hurt flash and contact/direction cue. | Wizard stays locatable; no opaque full-screen flash. |
-| Terrain barrier takes damage | Local segment crack and updated erosion/durability state. | Earth Shield terrain damage is not player HP loss. Preserve separate absorption feedback only for effects that actually absorb hits. |
+| Terrain barrier takes damage | Local segment crack and updated erosion/durability state. | Earth barrier damage is not player HP loss. Preserve separate absorption feedback only for effects that actually absorb hits. |
 | XP collection | Crystal disappears into short inward cyan glint. | No unexplained generic explosion; one collection event, no lingering fake pickup. |
 | XP crystal | Requested larger crystals; target roughly 1.5× visual size with clear facets/outline. | Size alone does not alter value, magnet or pickup radius. |
 | Level-up | Brief readable growth cue followed by choice screen. | Pause transition and choices remain immediate; no extended visual obstruction. |

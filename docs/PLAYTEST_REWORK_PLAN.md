@@ -37,8 +37,10 @@ All runtime dispositions below remain pending implementation/review unless expli
 | F19 | Meteor/long-spell impact should feel substantial. | Spell behavior + art | Useful hits first, then bounded shake/flash, mixed hazards and reduced-effects settings. Spectacle does not certify power. |
 | F20 | Preserve every named concept with status and provenance; add new ideas without treating them as implementation scope. | Design coordinator | Roadmap distinguishes concepts from approved changes; no accidental new spells, typed menus, audio or pivot. |
 | F21 | Life and Regeneration are separate; long healing pays more. | Spell behavior + progression | New IDs/ownership, distinct typing phrases, about-4-HP Life target, stronger Regeneration, heal caps and recipe migration. |
-| F22 | Earth Shield is decaying, damageable terrain. | Spell behavior + world/art | Geometry, caster escape, enemy damage, timed erosion, recast and debris; no invisible blocking or assumed overheal. |
+| F22 | Repair Earth Shield; distinguish its protective role from separate Earth Wall terrain. | Spell behavior + world/art | Geometry, caster escape, enemy damage, timed erosion, recast and debris; no invisible blocking or assumed overheal. |
 | F23 | No homing on basic Bolt; names fit effects. | Spell behavior + UX | Aim-once path; no steering; Homing Bolt stays a separate idea. Seeker/Firewalk name and behavior changes agree across copy and recipes. |
+| F24 | Keep current spells and fix the baseline before selecting expansions. | Design coordinator | No existing spell silently removed or replaced by a library alternative; every new identity has explicit scope status. |
+| F25 | Debug and ordinary game should feel substantially different. | UX + diagnostics | Fresh normal run has no diagnostic UI; ordinary spellbook remains sufficient; opt-in debug exposes technical tools and marks gameplay-changing commands. |
 
 ## Agent execution plan
 
@@ -68,7 +70,7 @@ Merge/review foundation dependencies before rebalancing effects or authoring fin
 - Art/VFX agent owns distinct lifecycle effects and non-spell feedback against the approved event contracts.
 - If these touch common managers/scenes, changes are serialized or moved behind a reviewed interface; never resolve collisions by overwriting another branch.
 
-Priority identities: Bolt/Lightning/Lightning Bolt; Plague Seed; Cross Blade; Rune Trap; Seeker/Seeking Spirit split; Life/Regeneration split; Earth Shield terrain; then complete the remaining existing roster and approved migrations. The full library includes future ideas and naming alternatives; those rows require separate scope approval and are not implied implementation work.
+Priority identities: Bolt/Lightning/Lightning Bolt; Plague Seed; Cross Blade; Rune Trap; Seeker/Seeking Spirit split; Life/Regeneration split; Earth Shield versus Earth Wall roles; then complete the remaining existing roster and approved migrations. The full library includes future ideas and naming alternatives; those rows require separate scope approval and are not implied implementation work.
 
 ### Phase 3 — balance and integrated review
 
@@ -116,7 +118,7 @@ No statement here means the user is already playing the intended design. Do not 
 | Automatic Mana Bolt and passive slots | Innate attack free; choosing mastery occupies one of six passive slots. | Proposed. |
 | Bonus acquisition and ranks | Eligible level-up reward, rank 1, independent upgrades; discovery persists separately. | Proposed; additive/no-slot/keep-ingredients rule already confirmed. |
 | Persistent trap cap | Three active traps, oldest replaced on overflow; define shared versus separate Frost Sigil cap. | Proposed, not an agreed cap. |
-| Earth Shield | Damageable terrain around caster with timed decay. Design geometry, enemy damage and safe caster movement before implementation. | User concept; detailed interaction rules open. |
+| Earth Shield / Earth Wall | Keep and repair the existing shield. Separately consider placed walls; damage/decay and caster protection versus route control need distinct contracts. | User distinction; exact implementations open. |
 | Plague empty-target handling | Visible bounded living-host selection; explain no-target without silently wasting a cast. | Exact range and input behavior open. |
 | Cross Blade input spelling | Display/type “Cross Blade”; retire Returning Blade alias if it bypasses intended identity. | Name direction accepted; exact canonical phrase/alias policy proposed. |
 | Slowdown clock | Real elapsed typing seconds; pause/menu time excluded. Negligible debounce, no reserve. | Timing detail proposed; per-cast rule confirmed. |

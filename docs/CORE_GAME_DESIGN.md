@@ -10,6 +10,10 @@ Move through a horde, choose a spell, stop to type it under pressure, release a 
 
 Keep roaming survivors combat. Tower defense, siege management and alchemy are saved alternatives, not a pivot. Elements primarily establish theme; ordinary enemies must not make an entire chosen magic school useless. Strategic advantages come from geometry, timing, persistence, control and sustain rather than compulsory elemental counters.
 
+## Baseline and future selection
+
+Keep the spells already implemented and repair their identities, useful output, acquisition, feedback and readability. Do not remove an existing spell merely because the idea library now offers alternatives. New spells and stronger variants are selected deliberately after reviewing that baseline; a library entry, proposed rename or historical draft does not authorize adding or replacing content.
+
 ## Agreed rules
 
 | System | Intended rule |
@@ -27,7 +31,7 @@ Keep roaming survivors combat. Tower defense, siege management and alchemy are s
 | Lightning identities | Bolt = straight non-homing projectile. Lightning = direct strike. Lightning Bolt = bouncing projectile from Bolt + Lightning. |
 | Slowdown | Each new cast gets a fresh finite window at fixed slowdown strength. Duration upgrades extend that window. Expiry returns the world to normal while typing may continue. No shared reserve or meaningful recharge wait. |
 | Healing identities | Life is a separate quick small heal (about 4 HP); Regeneration takes longer to type and gives substantially greater healing over time. |
-| Earth Shield concept | Latest proposed direction: terrain raised around the caster, decaying over time and damageable by enemies. Exact geometry and collision rules need design. |
+| Earth Shield concept | Preserve Earth Shield as an existing spell to repair. Damageable, decaying earth protection is a concept; distinguish caster protection from separately placed Earth Wall terrain before deciding geometry and collision. |
 | Spell payoff | Longer incantations earn greater useful output, not merely a larger damage number. Preserve quick basics and situational bonuses. |
 | Multicast | One extra spell-appropriate unit of output after one completed incantation: another projectile, meteor, jump, pulse or other explicitly defined unit. No extra typing. |
 | Presentation | Existing ancient stone/pixel-world direction. Legible large keycaps, concise choices and minimal HUD. Audio work is deferred. |
@@ -67,6 +71,16 @@ Normal HUD: health, XP/level, elapsed time, owned active shortcuts and casting f
 Level-up choices: readable name and one accurate sentence. Show an exact effect, such as “Increase spell damage by 5%,” rather than a range or a paragraph. Preserve essential trade-offs. Keep useful build/spell details in an ordinary pause/spellbook menu; reserve formulas, spawn schedules and diagnostics for debug.
 
 Bonus spells must be easy to find and cast without memorizing hidden names or filling the HUD with icons. Proposed: a bonus section in the spellbook and owned-only suggestions in the casting interface. Typed menu navigation remains deferred.
+
+### Game presentation versus debug tools
+
+| Surface | Intended information and controls |
+|---|---|
+| Normal game | Minimal HUD, readable combat feedback, concise accurate upgrade choices. No diagnostic controls, technical IDs, collision circles, spawn budgets, hidden timing forecasts or bot status. |
+| Ordinary pause / spellbook | Owned spells and bonuses, passive build, understandable mechanics and discovered recipes. Players must not enable debug to understand their tools. |
+| Explicit debug mode | Full numerical state, damage/healing and status-event diagnostics, cast/slowdown timing, targets and ranges, colliders, spawn schedules, RNG seeds, bot controls and test scenarios. These are planned diagnostic capabilities, not a claim all exist. |
+
+Debug is explicitly opt-in and visibly identified. Diagnostic overlays must not leak into a fresh normal run. Record any debug commands that change gameplay so the run cannot be mistaken for an ordinary balance sample. Debug visibility must not alter normal combat rules.
 
 ## Documents and review boundary
 
