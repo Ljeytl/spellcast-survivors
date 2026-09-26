@@ -1,3 +1,11 @@
+## 2026-09-26 — Tactical spell variety
+
+- Expand the manual catalog from ten to fifteen base spells with Focus Ray, Rune Trap, Seeking Spirit, Ember Trail, and Returning Blade. Their roles reward tracking, preparation, pursuit, movement, and positioning without elemental immunities.
+- Add three authored hidden evolutions: Prism Ray, Frost Sigil, and Reaping Spirit. Existing ingredient ownership, primary replacement, retained ranks/catalysts, persistent discovery, and five-slot limits apply.
+- Bound effect lifetimes, moving-target tracking, per-leg blade hits, trail spacing, and simultaneous casts. Primary/evolution variants share their family cap; Focus/Prism permits one beam. Show beam endpoints and trap arming truthfully.
+- Cover actual owned typing, rank damage, enemy/caster cleanup, pause, ordinary seeded offers, and evolution caps. Seeded strategic offer simulations record failed full-kit attempts as well as successful acquisition; they do not establish natural discovery rates.
+- Keep run length, encounter difficulty, offer odds, shared slowdown, and existing spell balance unchanged. Next: ordinary build playtests, discovery-frequency evaluation, and crowded-combat readability before full art direction.
+
 ## 2026-09-26 — Gameplay interaction pass
 
 - Preserve incomplete or mistyped numbered incantations on Enter; Escape cancels. Ignore held activation/letter repeats while preserving repeated Backspace editing.

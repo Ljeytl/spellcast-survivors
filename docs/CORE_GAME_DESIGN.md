@@ -26,7 +26,7 @@ The narrative reason for the assault and victory can be designed later. A twenty
 | Ranged introductions | Agreed: later pressure, roughly 10–12 minutes; clear hostile projectiles. |
 | Elemental identity | Agreed: primarily theme. Multiple approaches must remain viable; ordinary enemies must not require an element or named spell. Special late elemental interactions are undecided. |
 | Progression | Desired: acquire spells, choose meaningful upgrades and explore combinations during runs. Exact rules remain proposals. |
-| Spell count and slots | Five equipped manual spells; automatic Mana Bolt is separate. Ten base spells and four authored evolutions are implemented. |
+| Spell count and slots | Five equipped manual spells; automatic Mana Bolt is separate. Fifteen base spells and seven authored evolutions are implemented. |
 | Production direction | Agreed: aim for publication, build the gameplay loop first, tackle art direction afterward. |
 
 Current numeric values are a baseline for experiments, not a veto on better design proposals.
@@ -203,7 +203,7 @@ Prioritize audio for player damage, incoming danger, spell success/failure and l
 
 ## 12. Validation and development sequence
 
-Implemented acquisition: start with Bolt and separate automatic Mana Bolt. Choose a five-spell kit from ten base spells through level-ups. Ownership and ranks reset each run. Eligible learning or evolution cards appear while available; every owned manual spell, including evolutions, can rank up.
+Implemented acquisition: start with Bolt and separate automatic Mana Bolt. Choose a five-spell kit from fifteen base spells through level-ups. Ownership and ranks reset each run. Eligible learning or evolution cards appear while available; every owned manual spell, including evolutions, can rank up.
 
 Next playable slice: develop several useful spell interactions and meaningful behavior changes within the existing timed encounter structure. Select a small representative subset of spells for that slice; the full proposed library remains available for later expansion.
 
@@ -242,5 +242,13 @@ Implemented recipes replace their first ingredient and retain its slot and rank:
 | Meteor Lance | Ember Lance + Meteor Shower | Piercing hits also explode for half damage in a 90-radius area. |
 | Soul Bloom | Plague Seed + Regeneration | Spreading damage heals 10% of actual health lost, capped at 2 HP total per half-second tick per cast. |
 | Steam Field | Cinder Field + Ice Blast | Persistent damage also slows enemies by 40%. |
+| Prism Ray | Focus Ray + Ember Lance | Tracking beam hits up to three aligned enemies. |
+| Frost Sigil | Rune Trap + Ice Blast | Larger trap burst slows survivors by 40% for two seconds. |
+| Reaping Spirit | Seeking Spirit + Plague Seed | Direct spirit kills burst for half damage nearby; bursts do not chain. |
 
 The four new base spells are Ember Lance (straight piercing), Plague Seed (spreading damage over time), Cinder Field (stationary area damage), and Arcane Orbit (three moving close-range sparks). Damage scales by 15% of base per rank. Plague Seed, Cinder Field and Arcane Orbit last five seconds and tick every half second. Infection reaches at most eight enemies per cast without reinfection. Persistent effects permit at most three simultaneous casts of each spell; a fourth replaces the oldest. These are initial tuning values, with no encounter difficulty changes.
+
+
+The tactical expansion adds Focus Ray (12 damage each quarter-second for two seconds, 450 reach), Rune Trap (60 damage, arms after 0.8 seconds, expires after six seconds, triggers within 70 and bursts within 130), Seeking Spirit (22 damage at most every half-second on contact for five seconds), Ember Trail (15 damage per half-second in 40-radius patches left during five seconds of movement, each lasting two seconds), and Returning Blade (38 damage once per enemy on each outbound/return leg, at most three seconds). These numbers use the same 15%-of-base rank increase. Trails require 32 units of movement and do not regenerate a stationary field. Overlapping patches from one cast hit a target once per tick.
+
+Focus Ray and Prism Ray share one active beam. Other tactical families share a three-cast limit across their base/evolved variants; recasting replaces the oldest. Beams track a nearby living target and stop visibly at their hit limit. Spirits reacquire dead targets; returning blades home back to the moving caster. All effects expire and disappear with their caster. These roles are tactical opportunities, not mandatory elemental counters. Ordinary offer simulations demonstrate reachability but do not guarantee a recipe within any given run; a full five-spell kit can close off missing ingredients.

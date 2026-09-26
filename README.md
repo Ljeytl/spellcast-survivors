@@ -14,7 +14,7 @@ SpellCast Survivors combines the intense action of vampire survivors games with 
 - **Time Dilation** - Typing has a shared three-second slowdown budget, refilling over ten seconds outside typing
 
 ### Spell System
-Choose five manual spells from ten base spells. Automatic Mana Bolt is separate.
+Choose five manual spells from fifteen base spells. Automatic Mana Bolt is separate.
 
 - **Bolt** — Focused projectiles
 - **Regeneration** — Healing over time
@@ -26,8 +26,13 @@ Choose five manual spells from ten base spells. Automatic Mana Bolt is separate.
 - **Plague Seed** — Spreading damage over time
 - **Cinder Field** — Stationary area damage
 - **Arcane Orbit** — Moving close-range sparks
+- **Focus Ray** — Sustained tracking beam against a nearby target
+- **Rune Trap** — Delayed proximity trap with a single area burst
+- **Seeking Spirit** — Pursuing spirit with repeated contact strikes
+- **Ember Trail** — Leave temporary damage patches while moving
+- **Returning Blade** — Outbound and returning sweep, one hit per enemy on each leg
 
-Four hidden authored evolutions can appear when their ingredients are equipped. Choosing one replaces its primary spell, retaining the slot and rank while preserving its catalyst. Discoveries persist in the Spell Collection; equipped spells reset each run.
+Seven hidden authored evolutions can appear when their ingredients are equipped. Choosing one replaces its primary spell, retaining the slot and rank while preserving its catalyst. Discoveries persist in the Spell Collection; equipped spells reset each run.
 
 ## 🚀 How to Play
 

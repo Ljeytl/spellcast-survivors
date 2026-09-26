@@ -797,6 +797,66 @@
           "health_bonus": 0.05
         }
       }
+    },
+    "focus_ray": {
+      "id": "focus_ray",
+      "name": "Focus Ray",
+      "type": "beam",
+      "damage": 12,
+      "duration": 2.0,
+      "active_limit": 1,
+      "role": "Track a nearby enemy with a focused beam for 2 seconds. Hits one target every 0.25 seconds; one active beam.",
+      "unlock_condition": {
+        "type": "default"
+      }
+    },
+    "rune_trap": {
+      "id": "rune_trap",
+      "name": "Rune Trap",
+      "type": "trap",
+      "damage": 60,
+      "duration": 6.0,
+      "active_limit": 3,
+      "role": "Place a trap up to 160 ahead. Arms after 0.8 seconds; a nearby enemy triggers one 130-radius burst. Expires after 6 seconds. Up to 3 traps.",
+      "unlock_condition": {
+        "type": "default"
+      }
+    },
+    "seeking_spirit": {
+      "id": "seeking_spirit",
+      "name": "Seeking Spirit",
+      "type": "spirit",
+      "damage": 22,
+      "duration": 5.0,
+      "active_limit": 3,
+      "role": "A spirit pursues nearby enemies for 5 seconds, striking one every 0.5 seconds on contact. Up to 3 spirits.",
+      "unlock_condition": {
+        "type": "default"
+      }
+    },
+    "ember_trail": {
+      "id": "ember_trail",
+      "name": "Ember Trail",
+      "type": "trail",
+      "damage": 15,
+      "duration": 7.0,
+      "active_limit": 3,
+      "role": "For 5 seconds, leave burning tracks as you move. Tracks last 2 seconds and damage pursuers every 0.5 seconds; overlapping tracks hit once per trail tick. Up to 3 trails.",
+      "unlock_condition": {
+        "type": "default"
+      }
+    },
+    "returning_blade": {
+      "id": "returning_blade",
+      "name": "Returning Blade",
+      "type": "returning",
+      "damage": 38,
+      "duration": 3.0,
+      "active_limit": 3,
+      "role": "A blade flies 350 ahead, then returns to you. Each enemy can be hit once on each leg. Expires after 3 seconds; up to 3 blades.",
+      "unlock_condition": {
+        "type": "default"
+      }
     }
   },
   "spell_categories": {
