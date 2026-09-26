@@ -264,12 +264,13 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 		category = "EVOLUTION" if effect.get("spell", "") in preload("res://scripts/SynergyCatalog.gd").RECIPES else "NEW SPELL"
 	elif effect.get("type", "") == "spell_upgrade":
 		category = "SPELL UPGRADE"
-	var title_line = category + " · " + name
+	var title_line = category
 	button.text = ""
 	var copy = button.get_node_or_null("CardText") as Label
 	if copy == null:
 		copy = Label.new()
 		copy.name = "CardText"
+		copy.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -283,6 +284,19 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 		copy.offset_top = 10
 		copy.offset_bottom = -16
 		copy.minimum_size_changed.connect(_resize_card.bind(button, copy))
+	var heading = button.get_node_or_null("KeyTitle") as Label
+	if heading == null:
+		heading = Label.new()
+		heading.name = "KeyTitle"
+		heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		preload("res://scripts/AuthoredInterface.gd").apply_heading(heading, 24)
+		button.add_child(heading)
+		heading.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+		heading.offset_left = 12
+		heading.offset_right = -12
+		heading.offset_top = 10
+		heading.minimum_size_changed.connect(_resize_card.bind(button, copy))
+	heading.text = name
 	copy.text = title_line + "\n" + description
 	copy.set_meta("base_copy", copy.text)
 	_resize_card.call_deferred(button, copy)
@@ -297,7 +311,10 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 	button.set_meta("unlocked_style", style.duplicate())
 
 func _resize_card(button: Button, copy: Label):
-	button.get_parent().custom_minimum_size.y = maxf(80.0, copy.get_minimum_size().y + 26.0)
+	var heading = button.get_node_or_null("KeyTitle") as Label
+	var heading_height = heading.get_minimum_size().y + 8 if heading else 0.0
+	copy.offset_top = 10 + heading_height
+	button.get_parent().custom_minimum_size.y = maxf(80.0, copy.get_minimum_size().y + heading_height + 26.0)
 
 func show_screen():
 	visible = true
@@ -634,18 +651,21 @@ func get_upgrade_key(upgrade: Dictionary) -> String:
 
 func update_reroll_button_texts():
 	update_choice_prompt()
+	for action in [reroll_button, banish_button, lock_button]:
+		if action:
+			action.add_theme_font_size_override("font_size", 20)
 	# Update button texts with remaining counts
 	if reroll_button:
-		reroll_button.text = "Reroll (" + str(rerolls_remaining) + ")"
+		reroll_button.text = "Reroll " + str(rerolls_remaining)
 		reroll_button.disabled = (rerolls_remaining <= 0)
 		
 	if banish_button:
-		banish_button.text = "Banish (" + str(banishes_remaining) + ")"
+		banish_button.text = "Banish " + str(banishes_remaining)
 		banish_button.disabled = (banishes_remaining <= 0)
 		banish_button.tooltip_text = "Choose Banish, then choose a card to remove from this run"
 		
 	if lock_button:
-		lock_button.text = "Lock (" + str(locks_remaining) + ")"
+		lock_button.text = "Lock " + str(locks_remaining)
 		lock_button.disabled = (locks_remaining <= 0 and locked_upgrades.is_empty())
 		lock_button.tooltip_text = "Choose Lock, then a card; right-click also locks or unlocks"
 

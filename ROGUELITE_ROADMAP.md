@@ -1,3 +1,8 @@
+## Stone-letter menus implemented — 2026-09-26
+
+- Menu actions, headings, upgrade names, and discovered recipe titles use the generated letter keys; descriptions retain normal typography.
+- Existing click and keyboard navigation remains active. Typing to select choices is still a later feature.
+
 ## XP pickup art — 2026-09-26
 
 - Implemented: cyan mana crystals replace square XP placeholders.

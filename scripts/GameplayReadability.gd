@@ -46,6 +46,7 @@ static func apply_theme(control: Control):
 	theme.set_stylebox("focus", "Button", panel_style(CYAN, Color.TRANSPARENT))
 	preload("res://scripts/AuthoredInterface.gd").apply_buttons(theme)
 	control.theme = theme
+	preload("res://scripts/AuthoredInterface.gd").decorate_menu(control)
 
 static func fit_root(control: Control):
 	var viewport_size = control.get_viewport_rect().size

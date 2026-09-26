@@ -22,6 +22,7 @@ func _ready():
 	title.text = "SPELL COLLECTION"
 	title.add_theme_font_size_override("font_size", 32)
 	column.add_child(title)
+	preload("res://scripts/AuthoredInterface.gd").apply_heading(title)
 	var summary = Label.new()
 	summary.text = "Discovered recipes stay here. Earn each spell again during a new run."
 	summary.add_theme_font_size_override("font_size", 24)
@@ -41,10 +42,16 @@ func _ready():
 			continue
 		count += 1
 		var recipe = preload("res://scripts/SynergyCatalog.gd").RECIPES[id]
+		var heading = Label.new()
+		heading.name = "RecipeTitle"
+		heading.set_meta("recipe_heading", true)
+		heading.text = recipe.name
+		preload("res://scripts/AuthoredInterface.gd").apply_heading(heading, 24)
+		entries.add_child(heading)
 		var entry = Label.new()
 		entry.add_theme_font_size_override("font_size", 24)
 		entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		entry.text = recipe.name + "\n\n" + recipe.requirements + "\n\n" + recipe.description + "\n\nCast: Space → " + recipe.incantation + " → Enter"
+		entry.text = recipe.requirements + "\n\n" + recipe.description + "\n\nCast: Space → " + recipe.incantation + " → Enter"
 		entries.add_child(entry)
 	if count == 0:
 		var empty = Label.new()
@@ -54,6 +61,7 @@ func _ready():
 		entries.add_child(empty)
 	var back = Button.new()
 	back.text = "BACK"
+	back.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	back.add_theme_font_size_override("font_size", 24)
 	back.custom_minimum_size.y = 50
 	back.pressed.connect(close_collection)
@@ -72,7 +80,12 @@ func close_collection():
 	queue_free()
 
 func update_typography():
+	if get_parent() is Control:
+		scale = Vector2.ONE
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	else:
+		preload("res://scripts/GameplayReadability.gd").fit_root(self)
 	for label in find_children("*", "Label", true, false):
-		label.add_theme_font_size_override("font_size", 28 if label.name == "CollectionTitle" else 18)
+		label.add_theme_font_size_override("font_size", 28 if label.name == "CollectionTitle" else (24 if label.has_meta("recipe_heading") else 18))
 	for button in find_children("*", "Button", true, false):
-		button.add_theme_font_size_override("font_size", 18)
+		button.add_theme_font_size_override("font_size", 24)
