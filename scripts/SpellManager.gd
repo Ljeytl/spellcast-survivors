@@ -209,8 +209,7 @@ func _apply_typing_slowdown():
 	if typing_slowdown_remaining <= 0.0:
 		_set_typing_time_scale(1.0)
 	else:
-		var cast_speed_bonus = player.cast_speed_multiplier if player else 1.0
-		_set_typing_time_scale(clampf(TIME_SCALE_DURING_TYPING + (cast_speed_bonus - 1.0) * 0.5, TIME_SCALE_DURING_TYPING, 0.8))
+		_set_typing_time_scale(TIME_SCALE_DURING_TYPING)
 	if game_manager and game_manager.has_method("update_typing_slowdown"):
 		game_manager.update_typing_slowdown(typing_slowdown_remaining, typing_slowdown_capacity)
 

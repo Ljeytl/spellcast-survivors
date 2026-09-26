@@ -397,8 +397,14 @@ Space/Enter casting, movement lock while typing, Life Bolt acquisition and a per
 - Completed: wrapping/content-sized upgrade cards, scrollable offers, bounded casting text, help markup.
 - Next UI pass: make text physically readable at narrow window sizes; current canvas scaling makes menus small even though content is contained.
 - Completed: shared three-second typing slowdown budget, ten-second refill outside typing, in-box countdown, and normal-speed casting after exhaustion.
-- Next balance pass: offer duration/refill upgrades and decide how the existing Quick Cast stat should interact with slowdown. Current enemy difficulty is unchanged.
+- Mana Tempo (formerly Quick Cast) improves automatic Mana Bolt attack rate without weakening the three-second typing slowdown. Duration/refill upgrades remain a future experiment; current enemy difficulty is unchanged.
 
 ### Gameplay build expansion — September 26, 2026
 
 Implemented Ember Lance, Plague Seed, Cinder Field and Arcane Orbit, plus Life Bolt, Meteor Lance, Soul Bloom and Steam Field evolutions. Five manual slots create build commitments. Next: full-run human play alongside multiple bot seeds, then tune spell value, discovery frequency and boss pressure from evidence. Graphics remain deferred. Consider explicit replacement choices and additional recipes only after this pool produces satisfying runs.
+
+### Playtest hypotheses — September 26
+
+- Measure boss health remaining and target access before tuning first-boss durability; automatic nearest-target behavior and random bot casts can obscure the cause.
+- Compare uncollected XP against level timing before changing XP rewards.
+- Compare damage while typing with total contact/projectile/blast damage; preserve a forgiving opening and basic-spell viability.

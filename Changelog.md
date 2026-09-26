@@ -1,3 +1,11 @@
+## 2026-09-26 — Playtest-driven balance corrections
+
+- Rename Quick Cast to Mana Tempo and describe its actual +10% automatic Mana Bolt attack-rate benefit. Preserve the internal upgrade key and existing attack cadence while keeping typing slowdown at 20% world speed regardless of attack-rate upgrades.
+- Ignore dying, zero-health, queued-for-removal, and freed enemies when computing contact damage and its attacker count. Live enemies still deal their normal damage.
+- Extend ordinary bot reports with contact/projectile/blast damage, damage while typing, recent hits, boss arrivals/defeats/surviving health, and uncollected XP. Validate contradictory damage reports rather than infer balance from survival time alone.
+- Add real-time typed-cast and physical-contact regressions with baseline failure evidence. Preserve the three-second typing budget, ten-second recharge, encounter curve, spell damage, and twenty-minute ending.
+- Next experiments: distinguish boss target access from boss durability, and XP left behind from insufficient XP rewards before changing middle-run pressure. Small random bot batches do not establish human difficulty or final balance.
+
 ## 2026-09-26 — Optional evolution tradeoffs
 
 - Keep basic spells useful beside their evolutions. Life Bolt retains equal damage per bolt but gives up ranked Bolt's extra projectiles for healing. Meteor Lance and Prism Ray deal 40% less direct/per-target damage in exchange for crowd coverage; Soul Bloom and Reaping Spirit deal 25% less damage for sustain or kill bursts.

@@ -6,6 +6,8 @@ var restart_count = 0
 
 class Contact extends Node2D:
 	var base_damage = 6.0
+	var current_health = 30.0
+	var dying = false
 
 func _initialize():
 	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):

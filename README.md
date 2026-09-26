@@ -64,6 +64,7 @@ Seven hidden authored evolutions can appear when their ingredients are equipped.
 - Choose new spells, equipped-spell ranks, passives, or eligible evolutions.
 - At five equipped spells, new base-spell offers stop; evolutions and upgrades remain available.
 - Damage ranks add 15% of base damage, with spell-specific bonuses on existing spells.
+- Mana Tempo increases automatic Mana Bolt attack rate by 10% per pick. It does not weaken or extend the shared typing slowdown.
 
 ### Audio System
 - Dynamic background music
