@@ -203,7 +203,9 @@ Prioritize audio for player damage, incoming danger, spell success/failure and l
 
 ## 12. Validation and development sequence
 
-Next playable slice: earn new spells, make meaningful upgrade choices, and experience several useful interactions within the existing timed encounter structure. Select a small representative subset of spells for that slice; the full proposed library remains available for later expansion.
+Implemented acquisition slice: start with Bolt and a separate passive attack, then learn the other five existing manual spells through level-up choices. Acquisition and ranks reset each run. Eligible offers include a learning card while unlearned, unbanished spells remain; only owned spells receive rank upgrades. The current six fixed slots and their spell mappings are a playable baseline, not a final loadout/replacement design.
+
+Next playable slice: develop several useful spell interactions and meaningful behavior changes within the existing timed encounter structure. Select a small representative subset of spells for that slice; the full proposed library remains available for later expansion.
 
 Then evaluate progression across single-target, area, damage-over-time, control and mixed builds. These categories should describe coherent builds, not imply that every arbitrary collection of non-damaging or conflicting choices must be equally powerful. The fairness requirement is multiple viable approaches without mandatory named spells or elemental keys.
 

@@ -1,6 +1,9 @@
 extends Control
 
 var selecting_upgrade: bool = false
+var choice_mode: String = "select"
+var offered_stats: Dictionary = {}
+var offered_level: int = 1
 
 signal upgrade_selected(upgrade_data: Dictionary)
 
@@ -122,6 +125,13 @@ func load_upgrades_from_data():
 
 func show_level_up(player_level: int, player_stats: Dictionary = {}):
 	selecting_upgrade = false
+	locks_remaining += locked_upgrades.size()
+	locked_upgrades.clear()
+	choice_mode = "select"
+	banish_button.modulate = Color.WHITE
+	lock_button.modulate = Color.WHITE
+	offered_stats = player_stats
+	offered_level = player_level
 	available_upgrades = generate_upgrade_options(player_stats, player_level)
 	update_ui(player_level, player_stats)
 	
@@ -129,6 +139,9 @@ func show_level_up(player_level: int, player_stats: Dictionary = {}):
 	if is_instance_valid(AudioManager):
 		AudioManager.play_sound(AudioManager.SoundType.LEVEL_UP)
 	
+	update_reroll_button_texts()
+	for i in range(upgrade_cards.size()):
+		update_upgrade_visual_state(i)
 	show_screen()
 
 func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Array:
@@ -143,6 +156,8 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		var upgrade = generic_upgrades[key].duplicate(true)
 		# Update descriptions with current values
 		var effect = upgrade.get("effect", {})
+		if effect.get("type", "") not in ["spell_damage", "cast_speed", "movement_speed", "max_health", "xp_range"]:
+			continue
 		match effect.get("type", ""):
 			"spell_damage":
 				var current_bonus = (player_stats.get("spell_damage_multiplier", 1.0) - 1.0) * 100
@@ -159,6 +174,7 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 			"xp_range":
 				var current_bonus = (player_stats.get("xp_range_multiplier", 1.0) - 1.0) * 100
 				upgrade["description"] = upgrade["description"] + " (Currently: +" + str(int(current_bonus)) + "%)"
+		upgrade["key"] = "passive:" + key
 		all_upgrades.append(upgrade)
 	
 	# Add spell upgrades only for currently unlocked spells
@@ -169,16 +185,32 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 			# Get current spell level from SpellManager to show specific upgrade benefits
 			var current_spell_level = get_current_spell_level(spell_name)
 			upgrade["description"] = get_detailed_spell_upgrade_description(spell_name, current_spell_level)
+			upgrade["key"] = "rank:" + spell_name
 			all_upgrades.append(upgrade)
 	
+	var manager = get_tree().get_first_node_in_group("game").get_node("SpellManager")
+	all_upgrades.append_array(manager.get_learnable_spell_cards())
+	all_upgrades = all_upgrades.filter(func(card): return get_upgrade_key(card) not in banished_upgrades)
+	current_upgrade_pool = all_upgrades
+
 	# Randomly select 3 unique upgrades
 	all_upgrades.shuffle()
-	for i in range(min(3, all_upgrades.size())):
-		options.append(all_upgrades[i])
+	var learning = all_upgrades.filter(func(card): return card.effect.type == "learn_spell")
+	if not learning.is_empty():
+		options.append(learning[0])
+	for card in all_upgrades:
+		if options.size() == 3:
+			break
+		if card not in options:
+			options.append(card)
 	
 	return options
 
 func update_ui(player_level: int, player_stats: Dictionary = {}):
+	if tooltip_tween:
+		tooltip_tween.kill()
+	if tooltip_panel:
+		tooltip_panel.hide()
 	# Update UI labels with null checks
 	if title_label:
 		title_label.text = "LEVEL UP!"
@@ -275,6 +307,12 @@ func _on_upgrade_button_pressed(button_index: int):
 	if selecting_upgrade:
 		return
 	if button_index >= 0 and button_index < available_upgrades.size():
+		if choice_mode == "banish":
+			banish_upgrade(button_index)
+			return
+		if choice_mode == "lock":
+			lock_upgrade(button_index)
+			return
 		selecting_upgrade = true
 		var selected_upgrade = available_upgrades[button_index]
 		
@@ -346,77 +384,12 @@ func get_unlocked_spells() -> Array:
 
 # Helper function to get current spell level from SpellManager
 func get_current_spell_level(spell_name: String) -> int:
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return 1
-	
-	var spell_manager = scene_tree.get_first_node_in_group("game")
-	if spell_manager:
-		spell_manager = spell_manager.get_node_or_null("SpellManager")
-	
-	if not spell_manager:
-		return 1
-	
-	# Handle mana bolt separately
-	if spell_name == "mana_bolt":
-		if "mana_bolt_level" in spell_manager:
-			return spell_manager.mana_bolt_level
-		else:
-			return 1
-	
-	# Check spell dictionary
-	if "spells" in spell_manager:
-		var spells = spell_manager.spells
-		for slot in spells:
-			var spell_info = spells[slot]
-			if spell_info.get("name") == spell_name:
-				if "level" in spell_info:
-					return spell_info.level
-				else:
-					return 1
-	
-	return 1
+	var game = get_tree().get_first_node_in_group("game")
+	return game.get_node("SpellManager").get_spell_rank(spell_name) if game else 0
 
-# Generate detailed upgrade descriptions showing current level and next improvements
-func get_detailed_spell_upgrade_description(spell_name: String, current_level: int) -> String:
-	var next_level = current_level + 1
-	var base_description = ""
-	
-	match spell_name:
-		"mana_bolt":
-			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
-			if next_level % 3 == 1 and next_level > 1:
-				base_description += ", +1 missile"
-		"bolt":
-			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
-			if next_level % 3 == 1 and next_level > 1:
-				base_description += ", +1 projectile"
-		"life":
-			base_description = "Level {0}→{1}: +15% healing/sec".format([current_level, next_level])
-			if current_level < 3:
-				base_description += ", longer duration"
-		"ice blast":
-			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
-			if next_level % 2 == 1 and next_level > 1:
-				base_description += ", +20% area"
-		"earth shield":
-			base_description = "Level {0}→{1}: +15% overheal amount".format([current_level, next_level])
-			if current_level < 4:
-				base_description += ", longer duration"
-		"lightning arc":
-			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
-			if next_level % 2 == 1 and next_level > 1:
-				base_description += ", +1 chain target"
-		"meteor shower":
-			base_description = "Level {0}→{1}: +15% damage".format([current_level, next_level])
-			if next_level % 2 == 1 and next_level > 1:
-				base_description += ", +1 meteor"
-		_:
-			base_description = "Level {0}→{1}: +15% effectiveness".format([current_level, next_level])
-	
-	return base_description
+func get_detailed_spell_upgrade_description(spell_name: String, _current_level: int) -> String:
+	return get_tree().get_first_node_in_group("game").get_node("SpellManager").get_rank_upgrade_description(spell_name)
 
-# Update progress bars to show spell/stat progression
 func update_progress_bars(player_stats: Dictionary):
 	for i in range(min(progress_bars.size(), available_upgrades.size())):
 		var progress_bar = progress_bars[i]
@@ -449,7 +422,7 @@ func update_progress_bars(player_stats: Dictionary):
 				var current_level = get_current_spell_level(spell_name)
 				progress_value = min((current_level - 1) / 7.0, 1.0)  # Level 8 = full bar
 			_:
-				progress_value = 0.3  # Default low value
+				progress_value = 0.0  # Default low value
 		
 		# Update progress bar width directly
 		progress_bar.anchor_right = clamp(progress_value, 0.0, 1.0)
@@ -490,82 +463,8 @@ func hide_tooltip():
 	tooltip_tween.tween_callback(func(): tooltip_panel.visible = false)
 
 # Generate rich text tooltip content
-func generate_tooltip_text(upgrade: Dictionary, effect: Dictionary) -> String:
-	var text = "[center][b]" + upgrade.get("name", "Unknown") + "[/b][/center]\n\n"
-	
-	match effect.get("type", ""):
-		"spell_damage":
-			text += "[color=red]Spell Damage Boost[/color]\n"
-			text += "• Increases all spell damage by 10%\n"
-			text += "• Stacks multiplicatively with other bonuses\n"
-			text += "• Affects: Mana Bolt, all castable spells\n\n"
-			text += "[color=gray]Formula: damage × (1 + bonus)[/color]"
-			
-		"cast_speed":
-			text += "[color=blue]Casting Speed Boost[/color]\n"
-			text += "• Reduces spell casting time by 10%\n"
-			text += "• Faster typing = more DPS\n"
-			text += "• Affects: All spell casting\n\n"
-			text += "[color=gray]Makes time dilation feel smoother[/color]"
-			
-		"movement_speed":
-			text += "[color=green]Movement Speed Boost[/color]\n"
-			text += "• Increases movement speed by 8%\n"
-			text += "• Better positioning and kiting\n"
-			text += "• Essential for survival\n\n"
-			text += "[color=gray]Faster movement = safer gameplay[/color]"
-			
-		"max_health":
-			text += "[color=orange]Health Increase[/color]\n"
-			text += "• Permanently adds 15 max health\n"
-			text += "• Instantly heals to new maximum\n"
-			text += "• More survivability vs tough enemies\n\n"
-			text += "[color=gray]Health scaling is crucial late game[/color]"
-			
-		"xp_range":
-			text += "[color=yellow]XP Collection Range[/color]\n"
-			text += "• Increases XP pickup range by 20%\n"
-			text += "• Auto-collect XP from further away\n"
-			text += "• Faster leveling = more upgrades\n\n"
-			text += "[color=gray]Quality of life improvement[/color]"
-			
-		"spell_upgrade":
-			var spell_name = effect.get("spell", "")
-			var current_level = get_current_spell_level(spell_name)
-			var next_level = current_level + 1
-			
-			text += "[color=purple]Spell Enhancement[/color]\n"
-			text += "• Upgrade " + spell_name + " to level " + str(next_level) + "\n"
-			text += "• +15% base damage\n"
-			
-			# Add spell-specific bonus info
-			match spell_name:
-				"mana_bolt":
-					if next_level % 3 == 1 and next_level > 1:
-						text += "• [b]+1 additional missile![/b]\n"
-				"bolt":
-					if next_level % 3 == 1 and next_level > 1:
-						text += "• [b]+1 projectile spread![/b]\n"
-				"ice blast":
-					if next_level % 2 == 1 and next_level > 1:
-						text += "• [b]+20% area of effect![/b]\n"
-				"lightning arc":
-					if next_level % 2 == 1 and next_level > 1:
-						text += "• [b]+1 chain target![/b]\n"
-				"meteor shower":
-					if next_level % 2 == 1 and next_level > 1:
-						text += "• [b]+1 meteor strike![/b]\n"
-			
-			text += "\n[color=gray]Max level: 8[/color]"
-			
-		_:
-			text += "[color=white]Generic Enhancement[/color]\n"
-			text += "• Improves overall effectiveness\n"
-			text += "• Stacks with other upgrades"
-	
-	return text
-
-# ========== REROLL SYSTEM ==========
+func generate_tooltip_text(upgrade: Dictionary, _effect: Dictionary) -> String:
+	return "[b]" + upgrade.get("name", "Upgrade") + "[/b]\n\n" + upgrade.get("description", "")
 
 func setup_reroll_system():
 	# Connect button signals
@@ -593,7 +492,7 @@ func setup_upgrade_right_click():
 			# Connect gui_input for right-click detection
 			button.gui_input.connect(_on_upgrade_right_click.bind(i))
 
-func _on_upgrade_right_click(index: int, event: InputEvent):
+func _on_upgrade_right_click(event: InputEvent, index: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		handle_upgrade_right_click(index)
 
@@ -612,7 +511,7 @@ func show_upgrade_context_menu(index: int):
 	lock_upgrade(index)
 
 func _on_reroll_pressed():
-	if rerolls_remaining <= 0:
+	if selecting_upgrade or rerolls_remaining <= 0:
 		return
 		
 	rerolls_remaining -= 1
@@ -625,50 +524,58 @@ func _on_reroll_pressed():
 	update_upgrade_displays()
 
 func _on_banish_mode_toggled():
-	# Toggle visual indicator that we're in banish mode
-	banish_button.modulate = Color.RED if banish_button.modulate == Color.WHITE else Color.WHITE
+	if selecting_upgrade:
+		return
+	choice_mode = "select" if choice_mode == "banish" else "banish"
+	banish_button.modulate = Color.RED if choice_mode == "banish" else Color.WHITE
+	lock_button.modulate = Color.WHITE
 
 func _on_lock_mode_toggled():
-	# Toggle visual indicator that we're in lock mode  
-	lock_button.modulate = Color.YELLOW if lock_button.modulate == Color.WHITE else Color.WHITE
+	if selecting_upgrade:
+		return
+	choice_mode = "select" if choice_mode == "lock" else "lock"
+	lock_button.modulate = Color.YELLOW if choice_mode == "lock" else Color.WHITE
+	banish_button.modulate = Color.WHITE
 
 func reroll_upgrades():
-	# Generate new upgrades while preserving locked ones
-	var new_upgrades = []
-	
+	generate_upgrade_options(offered_stats, offered_level)
+	var used: Array = []
+	for i in locked_upgrades:
+		used.append(get_upgrade_key(available_upgrades[i]))
+	var candidates = current_upgrade_pool.filter(func(card): return get_upgrade_key(card) not in used)
+	candidates.shuffle()
+	var has_learning = available_upgrades.any(func(card): return get_upgrade_key(card) in used and card.effect.type == "learn_spell")
+	if not has_learning:
+		candidates.sort_custom(func(a, b): return a.effect.type == "learn_spell" and b.effect.type != "learn_spell")
 	for i in range(available_upgrades.size()):
-		if i in locked_upgrades:
-			# Keep the locked upgrade
-			new_upgrades.append(available_upgrades[i])
-		else:
-			# Generate a new upgrade
-			var new_upgrade = generate_single_upgrade()
-			new_upgrades.append(new_upgrade)
-	
-	available_upgrades = new_upgrades
+		if i not in locked_upgrades and not candidates.is_empty():
+			available_upgrades[i] = candidates.pop_front()
 
 func banish_upgrade(index: int):
-	if banishes_remaining <= 0 or index >= available_upgrades.size():
+	if selecting_upgrade or banishes_remaining <= 0 or index < 0 or index >= available_upgrades.size():
 		return
-		
+	var used = available_upgrades.map(func(card): return get_upgrade_key(card))
+	var candidates = current_upgrade_pool.filter(func(card): return get_upgrade_key(card) not in used and get_upgrade_key(card) not in banished_upgrades)
+	if candidates.is_empty():
+		return
 	banishes_remaining -= 1
-	
-	# Add upgrade to banished list
-	var upgrade_key = get_upgrade_key(available_upgrades[index])
-	if upgrade_key and upgrade_key not in banished_upgrades:
-		banished_upgrades.append(upgrade_key)
-	
-	# Generate replacement upgrade
-	available_upgrades[index] = generate_single_upgrade()
-	
-	# Update UI
+	banished_upgrades.append(get_upgrade_key(available_upgrades[index]))
+	if index in locked_upgrades:
+		locked_upgrades.erase(index)
+		locks_remaining += 1
+	var has_learning = false
+	for i in range(available_upgrades.size()):
+		if i != index and available_upgrades[i].effect.type == "learn_spell":
+			has_learning = true
+	var learning = candidates.filter(func(card): return card.effect.type == "learn_spell")
+	available_upgrades[index] = learning.pick_random() if not has_learning and not learning.is_empty() else candidates.pick_random()
+	choice_mode = "select"
+	banish_button.modulate = Color.WHITE
 	update_reroll_button_texts()
 	update_upgrade_displays()
-	
-	print("Banished upgrade: ", upgrade_key)
 
 func lock_upgrade(index: int):
-	if locks_remaining <= 0 or index >= available_upgrades.size():
+	if selecting_upgrade or index < 0 or index >= available_upgrades.size() or (locks_remaining <= 0 and index not in locked_upgrades):
 		return
 		
 	if index in locked_upgrades:
@@ -704,19 +611,8 @@ func generate_single_upgrade() -> Dictionary:
 	return generate_random_upgrade()
 
 func generate_random_upgrade() -> Dictionary:
-	# Use existing upgrade generation logic
-	var all_upgrades = []
-	
-	# Add generic upgrades
-	for key in generic_upgrades.keys():
-		all_upgrades.append({"type": "generic", "key": key, "data": generic_upgrades[key]})
-	
-	# Add spell upgrades  
-	for key in spell_upgrades.keys():
-		all_upgrades.append({"type": "spell", "key": key, "data": spell_upgrades[key]})
-	
-	# Select random upgrade
-	return all_upgrades[randi() % all_upgrades.size()]
+	var candidates = current_upgrade_pool.filter(func(card): return get_upgrade_key(card) not in banished_upgrades)
+	return candidates.pick_random() if not candidates.is_empty() else {}
 
 func get_upgrade_key(upgrade: Dictionary) -> String:
 	# Extract a unique key for the upgrade
@@ -755,23 +651,10 @@ func update_upgrade_visual_state(index: int):
 			card.modulate = Color.WHITE
 
 func update_upgrade_displays():
-	# Refresh the upgrade display with new data
-	for i in range(min(available_upgrades.size(), upgrade_buttons.size())):
-		if upgrade_buttons[i]:
-			var upgrade = available_upgrades[i]
-			var display_data = upgrade.get("data", {})
-			
-			# Update button text
-			var title = display_data.get("name", "Unknown")
-			var description = display_data.get("description", "")
-			var icon = display_data.get("icon", "⚡")
-			
-			upgrade_buttons[i].text = icon + " " + title + "\n" + description
-			
-			# Update visual state
-			update_upgrade_visual_state(i)
+	update_ui(offered_level, offered_stats)
+	for i in range(upgrade_cards.size()):
+		update_upgrade_visual_state(i)
 
-# Reset reroll resources (called when starting new game or leveling up)
 func reset_reroll_resources():
 	rerolls_remaining = 5
 	banishes_remaining = 5

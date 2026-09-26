@@ -89,19 +89,10 @@ func _ready():
 	$MonsterManager.run_completed.connect(func(): finish_run(true))
 	# Configure the spell slot UI with icons and labels
 	setup_spell_slots()
+	update_spell_slot_lock_status()
 	# Initialize developer console
 	setup_console()
 	
-
-# Handle input events
-func _input(event):
-	if event is InputEventKey and event.pressed:
-		# General input handling only - no more hotkey cheats!
-		# All cheats are now hidden in the console (press ~ to access)
-		match event.keycode:
-			KEY_ESCAPE:
-				if current_state == GameState.PLAYING:
-					toggle_pause()
 
 # Master setup function that initializes all game systems
 # Order matters here - some systems depend on others being ready first
@@ -145,6 +136,9 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 	if spell_manager and spell_manager.has_method("is_spell_unlocked"):
 		is_unlocked = spell_manager.is_spell_unlocked(index + 1)  # SpellManager uses 1-6 indexing
 	
+	if icon:
+		icon.modulate = Color.WHITE if is_unlocked else Color(0.45, 0.45, 0.45, 0.4)
+
 	# Set up the key number label
 	var key_label = vbox.get_node_or_null("KeyLabel") if vbox else null
 	if key_label:
@@ -167,35 +161,10 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 func update_spell_level_display(level_label: Label, spell_name: String):
 	if not level_label or not spell_manager:
 		return
-		
-	var spell_level = 1
-	
-	# Handle mana bolt separately (auto-attack)
-	if spell_name == "bolt":  # Mana Bolt is called "bolt" in the slot but "mana_bolt" in SpellManager  
-		if "mana_bolt_level" in spell_manager:
-			spell_level = spell_manager.mana_bolt_level
-	else:
-		# Check spell dictionary for other spells
-		if "spells" in spell_manager:
-			var spells = spell_manager.spells
-			for slot in spells:
-				var spell_info = spells[slot]
-				if spell_info.get("name") == spell_name:
-					spell_level = spell_info.get("level", 1)
-					break
-	
-	# Update the label with level info
-	level_label.text = str(spell_level)
-	
-	# Color code based on level (green for higher levels)
-	if spell_level >= 5:
-		level_label.modulate = Color(0.4, 1.0, 0.4, 1.0)  # Bright green
-	elif spell_level >= 3:
-		level_label.modulate = Color(0.8, 1.0, 0.6, 1.0)  # Light green  
-	else:
-		level_label.modulate = Color(1.0, 1.0, 0.6, 1.0)  # Yellow
+	var rank = spell_manager.get_spell_rank(spell_name)
+	level_label.text = str(rank) if rank > 0 else "—"
+	level_label.modulate = Color.GOLD if rank > 0 else Color.GRAY
 
-# Refresh all spell level displays (called when spells are upgraded)
 func refresh_spell_levels():
 	var spell_names = ["bolt", "life", "ice blast", "earth shield", "lightning arc", "meteor shower"]
 	
@@ -296,15 +265,6 @@ func _process(delta):
 	# Update timer and difficulty displays
 	update_timer_display()
 	update_difficulty_display()
-	
-	# Check for global input like pause key
-	handle_input()
-
-# Process global input that works in any game state
-func handle_input():
-	# ESC key toggles pause (only works during PLAYING or PAUSED states)
-	if Input.is_action_just_pressed("ui_cancel"):  # ESC key
-		toggle_pause()
 	
 # Initialize the main UI elements (health bar, XP bar, typing display)
 func setup_ui():
@@ -658,8 +618,9 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 			var spell_name = effect.get("spell", "")
 			spell_manager.upgrade_spell(spell_name)
 	
-	# Refresh spell level displays in the HUD
-	refresh_spell_levels()
+	if effect.get("type") == "learn_spell":
+		spell_manager.learn_spell(effect.get("spell", ""))
+	update_spell_slot_lock_status()
 	
 	if pending_level_ups.is_empty():
 		change_state(GameState.PLAYING)
@@ -862,29 +823,10 @@ func setup_spell_slot_styling(slot_container: Node, is_locked: bool = false):
 
 # Update all spell slots to reflect current lock/unlock status
 func update_spell_slot_lock_status():
-	var spell_names = ["bolt", "life", "ice blast", "earth shield", "lightning arc", "meteor shower"]
-	
 	for i in range(spell_slots.size()):
-		if i < spell_names.size():
-			var slot_container = spell_slots[i]
-			var label = slot_container.get_node_or_null("VBox/Label")
-			if not label:
-				label = slot_container.get_node_or_null("Label")
-			
-			if label:
-				# Check if spell is unlocked
-				var is_unlocked = true
-				if spell_manager and spell_manager.has_method("is_spell_unlocked"):
-					is_unlocked = spell_manager.is_spell_unlocked(i + 1)
-				
-				# Update label text and color
-				var spell_name = spell_names[i]
-				if is_unlocked:
-					label.text = str(i + 1) + "\n" + spell_name
-					label.modulate = Color.WHITE
-				else:
-					label.text = str(i + 1) + "\n🔒 " + spell_name
-					label.modulate = Color(0.6, 0.6, 0.6, 1.0)
+		var info = spell_manager.spells[i + 1]
+		setup_individual_spell_slot(spell_slots[i], i, info.id)
+		spell_slots[i].tooltip_text = ("Type: " + info.display_name) if spell_manager.is_spell_unlocked(i + 1) else ("Learn " + info.name + " when you level up")
 
 func highlight_spell_slot(slot_index: int):
 	# Highlight a specific spell slot
@@ -934,7 +876,7 @@ func _on_typing_ended():
 
 func _on_spell_locked_error(spell_name: String, required_level: int, current_level: int):
 	# Show error message when player tries to use locked spell
-	var error_msg = "🔒 {0} requires level {1}!\n(You're level {2})".format([spell_name.capitalize(), required_level, current_level])
+	var error_msg = "Learn %s from a level-up choice first." % spell_name
 	
 	# Try to find typing label if it's null
 	if not typing_label:
