@@ -26,7 +26,7 @@ func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false)
 func _ready():
 	player = get_tree().get_first_node_in_group("player")
 	health_bar_fill = $HealthBar/Fill
-	$Sprite2D.texture = load(spawn_data.sprite)
+	$Sprite2D.texture = load(spawn_data.get("boss_sprite", spawn_data.sprite) if boss else spawn_data.sprite)
 	update_health_bar()
 	add_to_group("enemies")
 	if boss:
@@ -65,6 +65,9 @@ func _physics_process(delta):
 				velocity = Vector2.ZERO
 		"marksman", "fan_caster", "mortar":
 			update_ranged(delta, toward, offset.length())
+	var terrain = get_parent().get_node_or_null("Background")
+	if terrain and terrain.has_method("steer") and charge_remaining <= 0.0:
+		velocity = terrain.steer(global_position, velocity, 29.0 * scale.x)
 	velocity += knockback_velocity
 	move_and_slide()
 	knockback_velocity *= pow(knockback_decay, delta * 60.0)

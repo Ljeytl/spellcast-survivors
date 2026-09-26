@@ -442,6 +442,8 @@ func animate_progress_bar(progress_bar: ProgressBar, value: float, duration: flo
 	tween.tween_property(progress_bar, "value", value, duration)
 
 func update_health_bar_color(health_percent: float):
+	if health_bar.has_node("AuthoredHealth"):
+		return
 	var health_bar_fill = get_or_create_progress_bar_style(health_bar)
 	
 	if health_percent > HEALTH_HIGH_THRESHOLD:
@@ -459,6 +461,10 @@ func get_or_create_progress_bar_style(progress_bar: ProgressBar) -> StyleBoxFlat
 	return style
 
 func update_overheal_display(current_health: float, max_health: float, overheal_amount: float):
+	var authored = health_bar.get_node_or_null("AuthoredHealth")
+	if authored:
+		authored.shield_ratio = clampf(overheal_amount / maxf(1, max_health), 0, 1)
+		return
 	# Create or manage overheal bar overlay
 	var overheal_bar = health_bar.get_node_or_null("OverhealBar")
 	

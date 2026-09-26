@@ -1,3 +1,9 @@
+## Art integration — 2026-09-26
+
+- Integrate the supplied Typecast pixel art: assembled wizard, melee slimes, king bosses, ranged wisps, grass variants, tree obstacles, bushes, keyboard logo, and health frame. Keep spell effects without supplied replacements as placeholders.
+- Preserve separate wizard hat, face, robes, and staff assets for a later layered animation pass; no animation rig is implied by this static swap.
+- Follow up with authored walk/cast animation and obstacle-aware bot behavior after playtesting sparse forest traversal.
+
 ## Current agreed next mechanics — September 26, 2026
 
 Keep the survivors premise; do not pivot to siege or alchemy now. See [Core Game Design](docs/CORE_GAME_DESIGN.md#4-typing-is-a-core-combat-system) for the authoritative per-cast slowdown decision and [supporting upgrades / Multicast](docs/CORE_GAME_DESIGN.md#supporting-upgrade-categories--agreed-design) for the agreed stat categories.

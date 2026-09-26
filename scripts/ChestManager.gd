@@ -53,6 +53,9 @@ func spawn_chest():
 	
 	# Position chest at screen edge
 	var spawn_position = get_edge_spawn_position()
+	var terrain = get_parent().get_node_or_null("Background")
+	if terrain and terrain.has_method("clear_spawn"):
+		spawn_position = terrain.clear_spawn(spawn_position, 32.0)
 	chest.global_position = spawn_position
 	
 	# Connect chest collection signal

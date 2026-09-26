@@ -1,9 +1,9 @@
 extends Node
 
-const INK = Color("111c2b")
-const PANEL = Color("17263a")
+const INK = Color("17231c")
+const PANEL = Color("25382b")
 const PAPER = Color("eee8d8")
-const MUTED = Color("a6b4c8")
+const MUTED = Color("b8c5aa")
 const GOLD = Color("dfbd76")
 const CYAN = Color("79d9e8")
 const CORAL = Color("ff8175")
@@ -22,7 +22,7 @@ static func panel_style(accent: Color = Color("394e68"), fill: Color = PANEL) ->
 	style.bg_color = fill
 	style.border_color = accent
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(6)
+	style.set_corner_radius_all(0)
 	style.content_margin_left = 12
 	style.content_margin_right = 12
 	style.content_margin_top = 8
@@ -69,6 +69,12 @@ func _ready():
 		var bar = hud.get_node("StatsPanel/" + bar_name)
 		bar.add_theme_stylebox_override("background", panel_style(Color.TRANSPARENT, INK))
 		bar.add_theme_stylebox_override("fill", panel_style(Color.TRANSPARENT, CORAL if bar_name == "HealthBar" else GOLD))
+	var authored_health = preload("res://scripts/AuthoredHealthBar.gd").new()
+	authored_health.name = "AuthoredHealth"
+	var health = hud.get_node("StatsPanel/HealthBar")
+	health.add_child(authored_health)
+	health.add_theme_stylebox_override("background", StyleBoxEmpty.new())
+	health.get_theme_stylebox("fill").bg_color.a = 0.0
 	for name in ["HealthLabel", "XPLabel"]:
 		hud.get_node("StatsPanel/" + name).add_theme_font_size_override("font_size", 17)
 	passive_label = Label.new()

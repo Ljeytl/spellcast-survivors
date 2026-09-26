@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://clbs6713ks20m" path="res://scripts/Game.gd" id="1_2v3xy"]
 [ext_resource type="Script" uid="uid://cdc4jpr00h1xb" path="res://scripts/Player.gd" id="2_p4k8z"]
 [ext_resource type="Script" uid="uid://dhgi4dxtpvsqw" path="res://scripts/SpellManager.gd" id="3_q6m9a"]
-[ext_resource type="Texture2D" uid="uid://4fayulb770q1" path="res://sprites/player/human_male.png" id="4_aug50"]
+[ext_resource type="Texture2D" path="res://assets/typecast/Main Character/Wizard 2.0.png" id="4_aug50"]
 [ext_resource type="Script" uid="uid://bw4xq5hglhwly" path="res://scripts/MonsterManager.gd" id="4_monster"]
 [ext_resource type="Script" uid="uid://bata6eg8uwl2b" path="res://scripts/EnemyManager.gd" id="4_r7n0b"]
 [ext_resource type="Script" uid="uid://dbe2jepdb3pqa" path="res://scripts/Background.gd" id="5_bg1n2"]
@@ -46,10 +46,11 @@ script = ExtResource("1_2v3xy")
 script = ExtResource("5_bg1n2")
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["player"]]
-collision_mask = 0
+collision_mask = 32
 script = ExtResource("2_p4k8z")
 
 [node name="Sprite2D" type="Sprite2D" parent="Player"]
+texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("4_aug50")
 
