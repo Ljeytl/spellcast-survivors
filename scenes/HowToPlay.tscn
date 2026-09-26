@@ -57,6 +57,7 @@ theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
 [node name="Instructions" type="RichTextLabel" parent="HowToPlayPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+bbcode_enabled = true
 text = "[center]SPELLCAST SURVIVORS[/center]
 
 [b]Movement:[/b] WASD or arrow keys. Movement stops while typing.

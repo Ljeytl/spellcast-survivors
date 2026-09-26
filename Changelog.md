@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-26 — Contained UI text
+
+- Wrap upgrade titles/descriptions inside padded, content-sized cards; scroll long offers while keeping reroll, banish, and lock controls visible.
+- Remove duplicate hover descriptions and hover scaling that could clip card edges.
+- Wrap casting text, grow its box up to a bounded height, and scroll longer input without truncating it.
+- Render How to Play formatting tags correctly.
+- Validation: 29 layout assertions (including a known-bad unwrapped control), 615 acquisition assertions, clean Godot import, desktop/narrow three-card fixtures, scroll then select, long casting error, and help scroll/back. Full visual redesign and narrow-window text scaling remain future work.
+
 ## 2026-09-25 — Forgiving opening and regeneration
 
 - Lower early XP thresholds to 25, 40, 55, then +15 per level.

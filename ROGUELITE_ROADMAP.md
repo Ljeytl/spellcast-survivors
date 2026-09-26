@@ -385,3 +385,9 @@ Developer bot tooling now supports repeatable movement/casting/upgrade runs and 
 ### First hidden synergy playable
 
 Space/Enter casting, movement lock while typing, Life Bolt acquisition and a persistent Spell Collection are implemented. Recipes are authored; arbitrary pairs do not combine. Discovery persists per save slot, while ownership resets each run. The first recipe preserves its ingredients and adds a typed spell without a numbered slot. Broader slot/replacement policy is still open. Next: verify more recipe behaviors and tune with human play plus multi-seed bot reports; leave encounter difficulty unchanged for now.
+
+### 2026-09-26 UI containment follow-up
+
+- Completed: wrapping/content-sized upgrade cards, scrollable offers, bounded casting text, help markup.
+- Next UI pass: make text physically readable at narrow window sizes; current canvas scaling makes menus small even though content is contained.
+- Requested next: limit typing slowdown with a replenishing budget, leaving duration upgrades for a later balance pass.
