@@ -184,9 +184,14 @@ func setup_heal_particle(particle: GPUParticles2D):
 
 func auto_cleanup_particle(particle: GPUParticles2D, delay: float):
 	# Automatically stop particle emission after delay
-	await get_tree().create_timer(delay).timeout
-	if particle and is_instance_valid(particle):
-		particle.emitting = false
+	var timer = particle.get_node_or_null("EmissionTimeout")
+	if not timer:
+		timer = Timer.new()
+		timer.name = "EmissionTimeout"
+		timer.one_shot = true
+		timer.timeout.connect(func(): particle.emitting = false)
+		particle.add_child(timer)
+	timer.start(delay)
 
 # Public methods to create particles
 func create_spell_cast_effect(pos: Vector2):

@@ -29,8 +29,8 @@ func run():
 	for time in [0.0, 60.0, 179.9]:
 		manager.game_time = time
 		check(manager.get_current_difficulty_level() == 1, "Opening stays tier 1 at %s" % time)
-		check(is_equal_approx(manager.calculate_spawn_interval(), 2.0), "Opening spawn pace at %s" % time)
-	for pair in [[180.0, 2], [300.0, 3], [420.0, 4]]:
+		check(is_equal_approx(manager.calculate_spawn_interval(), 3.0), "Opening spawn pace at %s" % time)
+	for pair in [[300.0, 2], [600.0, 3], [900.0, 4]]:
 		manager.game_time = pair[0]
 		check(manager.get_current_difficulty_level() == pair[1], "Tier transition at %s" % pair[0])
 	manager.game_time = 0.0
@@ -45,24 +45,25 @@ func run():
 	Input.parse_input_event(letter)
 	game.handle_input()
 	check(manager.game_time == 0.0, "Typing U cannot jump difficulty")
-	letter.pressed = false
-	Input.parse_input_event(letter)
-	for monster in manager.monster_config.monster_roster.tier_1_basic:
+	var release = letter.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
+	for monster in manager.get_available_variants(0.0):
 		var stats = manager.calculate_monster_stats(monster, 1)
-		check(stats.health <= 30.0, "%s dies within two base auto attacks" % monster.name)
+		check(stats.health > 15.0 and stats.health <= 45.0, "%s dies within two to three base auto attacks" % monster.name)
 		check(stats.xp >= 2.0, "%s supplies early XP" % monster.name)
 	manager.game_time = 300.0
-	var goblin = manager.monster_config.monster_roster.tier_1_basic[0]
+	var goblin = manager.get_available_variants(0.0)[0]
 	var later = manager.calculate_monster_stats(goblin, 3)
-	check(is_equal_approx(later.health, 25.2), "Configured gentle growth drives actual health")
-	check(manager.calculate_spawn_interval() < 2.0, "Pressure increases after grace period")
+	check(is_equal_approx(later.health, 34.8), "Configured gentle growth drives actual health")
+	check(manager.calculate_spawn_interval() < 3.0, "Pressure increases after grace period")
 	manager.game_time = 0.0
 	manager.spawn_monster()
 	await process_frame
 	var enemies = get_nodes_in_group("enemies")
 	check(enemies.size() == 1, "Real spawn creates exactly one enemy")
 	if enemies.size() == 1:
-		check(enemies[0].current_health <= 30.0, "Spawned enemy retains opening health after ready")
+		check(enemies[0].current_health <= 45.0, "Spawned enemy retains opening health after ready")
 		enemies[0].queue_free()
 	player.health = 20.0
 	spells.cast_spell_by_type(2)
@@ -95,5 +96,9 @@ func run():
 	check(game.pending_level_ups.is_empty() and not screen.visible, "No stale upgrade modal or queue")
 	game.queue_free()
 	await process_frame
+	for child in root.get_node("AudioManager").get_children():
+		if child is AudioStreamPlayer:
+			child.stop()
+	await create_timer(0.15, true, false, true).timeout
 	print("BALANCE_CHECKS=", checks, " FAILURES=", failures)
 	quit(1 if failures else 0)

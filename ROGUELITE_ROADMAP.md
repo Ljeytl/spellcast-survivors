@@ -366,3 +366,6 @@ Move away from infinite procedural arenas to handcrafted, interconnected areas t
 - **Learning Curve**: Accessible to newcomers while rewarding mastery
 
 This roadmap transforms SpellCast Survivors into a comprehensive roguelite while preserving its unique typing-based identity and ensuring long-term player engagement through meaningful progression and discovery systems.
+## September 2026 encounter milestone
+
+Implemented the forgiving opening, regeneration repair, twelve enemy variants, timed ranged introductions and four boss milestones. Next: settle the 20-minute victory condition, introduce spell acquisition and combinations, then broader balance, art direction and release qualification. Spell choices should reward behavior and playstyle without requiring elemental counters. See `docs/ENCOUNTER_DESIGN.md` for the current roster and remaining decisions.

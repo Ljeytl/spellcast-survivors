@@ -1,0 +1,181 @@
+{
+  "run_duration": 1200,
+  "tier_duration": 300,
+  "ranged_start": 600,
+  "scaling": {
+    "grace_seconds": 180,
+    "health_growth_per_120_seconds": 1.16,
+    "damage_growth_per_second": 0.0004,
+    "minimum_spawn_interval": 0.6,
+    "maximum_enemies": 160,
+    "opening_spawn_interval": 3.0
+  },
+  "bosses": [
+    {
+      "time": 300,
+      "variant": "juggernaut",
+      "name": "The Gatekeeper"
+    },
+    {
+      "time": 600,
+      "variant": "charger",
+      "name": "The Pursuer"
+    },
+    {
+      "time": 900,
+      "variant": "shieldbearer",
+      "name": "The Iron Guard"
+    },
+    {
+      "time": 1200,
+      "variant": "slammer",
+      "name": "The Colossus"
+    }
+  ],
+  "variants": {
+    "pursuer": {
+      "name": "Pursuer",
+      "family": "grunt",
+      "unlock_time": 0,
+      "health": 30,
+      "speed": 65,
+      "damage": 4,
+      "xp": 10,
+      "weight": 100,
+      "size": 0.85,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/goblin_new.png"
+    },
+    "sprinter": {
+      "name": "Sprinter",
+      "family": "runner",
+      "unlock_time": 45,
+      "health": 12,
+      "speed": 165,
+      "damage": 3,
+      "xp": 6,
+      "weight": 22,
+      "size": 0.65,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/animals/bat.png"
+    },
+    "flanker": {
+      "name": "Flanker",
+      "family": "grunt",
+      "unlock_time": 120,
+      "health": 32,
+      "speed": 72,
+      "damage": 5,
+      "xp": 7,
+      "weight": 22,
+      "size": 0.85,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/kobold_new.png"
+    },
+    "skirmisher": {
+      "name": "Skirmisher",
+      "family": "grunt",
+      "unlock_time": 180,
+      "health": 30,
+      "speed": 85,
+      "damage": 5,
+      "xp": 7,
+      "weight": 18,
+      "size": 0.85,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/orc_new.png"
+    },
+    "swarmer": {
+      "name": "Swarmer",
+      "family": "runner",
+      "unlock_time": 240,
+      "health": 9,
+      "speed": 150,
+      "damage": 2,
+      "xp": 3,
+      "weight": 20,
+      "size": 0.65,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/animals/giant_mite.png"
+    },
+    "juggernaut": {
+      "name": "Juggernaut",
+      "family": "brute",
+      "unlock_time": 300,
+      "health": 135,
+      "speed": 38,
+      "damage": 12,
+      "xp": 18,
+      "weight": 12,
+      "size": 1.25,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/ogre_new.png"
+    },
+    "charger": {
+      "name": "Charger",
+      "family": "runner",
+      "unlock_time": 360,
+      "health": 15,
+      "speed": 110,
+      "damage": 7,
+      "xp": 8,
+      "weight": 15,
+      "size": 0.65,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/animals/giant_ant.png"
+    },
+    "shieldbearer": {
+      "name": "Shieldbearer",
+      "family": "brute",
+      "unlock_time": 420,
+      "health": 95,
+      "speed": 45,
+      "damage": 9,
+      "xp": 15,
+      "weight": 12,
+      "size": 1.25,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/orc_warrior_new.png"
+    },
+    "slammer": {
+      "name": "Slammer",
+      "family": "brute",
+      "unlock_time": 480,
+      "health": 110,
+      "speed": 42,
+      "damage": 9,
+      "xp": 18,
+      "weight": 10,
+      "size": 1.25,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/hill_giant_new.png"
+    },
+    "marksman": {
+      "name": "Marksman",
+      "family": "shooter",
+      "unlock_time": 600,
+      "health": 32,
+      "speed": 55,
+      "damage": 7,
+      "xp": 12,
+      "weight": 12,
+      "size": 0.85,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/centaur.png"
+    },
+    "fan_caster": {
+      "name": "Fan Caster",
+      "family": "shooter",
+      "unlock_time": 660,
+      "health": 38,
+      "speed": 48,
+      "damage": 6,
+      "xp": 14,
+      "weight": 10,
+      "size": 0.85,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/orc_wizard_new.png"
+    },
+    "mortar": {
+      "name": "Mortar",
+      "family": "shooter",
+      "unlock_time": 720,
+      "health": 45,
+      "speed": 40,
+      "damage": 10,
+      "xp": 16,
+      "weight": 8,
+      "size": 0.85,
+      "sprite": "res://Dungeon Crawl Stone Soup Full/monster/deep_elf_conjurer.png"
+    }
+  }
+}

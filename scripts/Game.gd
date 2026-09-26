@@ -234,7 +234,10 @@ func update_difficulty_display():
 	if not manager:
 		return
 	var tier = manager.get_current_difficulty_level()
-	difficulty_label.text = "Opening • Tier 1" if manager.game_time < 180.0 else "Difficulty: Tier %d" % tier
+	difficulty_label.text = "Tier %d • Boss %02d:00" % [tier, mini(20, tier * 5)]
+	var bosses = get_tree().get_nodes_in_group("bosses").filter(func(enemy): return not enemy.dying)
+	if not bosses.is_empty():
+		difficulty_label.text = "%s • %d HP" % [bosses[0].encounter_name, ceili(bosses[0].current_health)]
 	difficulty_label.modulate = Color(0.8, 1.0, 0.8) if tier < 3 else Color(1.0, 0.85, 0.5)
 
 func setup_difficulty_tooltip():
@@ -275,15 +278,15 @@ func update_difficulty_tooltip_content():
 	var content = "[center][b]Difficulty[/b][/center]\n\n"
 	content += "Monster tier: %d\n" % manager.get_current_difficulty_level()
 	content += "Spawn interval: %.2fs\n\n" % manager.calculate_spawn_interval()
-	content += "The first three minutes give you time to build.\n"
-	content += "New tiers arrive every two minutes after that.\n"
-	content += "Health and spawn pressure increase gradually."
+	content += "Normal and fast melee form the opening.\n"
+	content += "Bosses and new tiers arrive every five minutes.\n"
+	content += "Ranged enemies join after ten minutes."
 	difficulty_tooltip_label.text = content
 
 func _process(delta):
 	# Only advance game time while actively playing (not paused/level up/game over)
 	if current_state == GameState.PLAYING:
-		game_time += delta
+		game_time = $MonsterManager.game_time
 	
 	# Update timer and difficulty displays
 	update_timer_display()
@@ -1074,7 +1077,6 @@ func increase_difficulty_level():
 	# - Speed multiplier increases every 60 seconds
 	# - Damage/spawn rate increases every 45 seconds
 	var difficulty_jump = 60.0
-	game_time += difficulty_jump
 	
 	# Also add the same time to monster manager if it exists
 	var monster_manager = get_node_or_null("MonsterManager")

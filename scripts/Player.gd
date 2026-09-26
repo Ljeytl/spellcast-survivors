@@ -116,6 +116,8 @@ func handle_movement():
 
 # Called when player takes damage from enemies or other sources
 func take_damage(damage: float):
+	if health <= 0.0:
+		return
 	# Check invincibility first
 	if is_invincible:
 		return
