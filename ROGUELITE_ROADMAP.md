@@ -1,3 +1,8 @@
+## XP pickup art — 2026-09-26
+
+- Implemented: cyan mana crystals replace square XP placeholders.
+- Later: consider larger-value crystal clusters or rare star-shaped pickups with explicit gameplay meaning; do not imply value tiers through random colors.
+
 ## Casting presentation implemented — 2026-09-26
 
 - Combat typing places animated stone letter keys with impact sounds; backspace shatters and fades the removed key. Successful casts briefly flash their completed word. A–Z, 0–9, and standard punctuation share the 32×32 key size; punctuation assets do not expand current spell input rules.

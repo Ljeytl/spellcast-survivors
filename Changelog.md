@@ -1,3 +1,9 @@
+## 2026-09-26 — Mana-crystal XP pickups
+
+- Replace yellow square XP drops with a transparent cyan mana-crystal sprite, a dark outline and pale facet highlights for contrast against grass. Preserve the existing pulse, magnet movement, collection radius, sound, and XP values.
+- Keep the source artwork outside runtime imports and export a compact 24×24 texture with nearest-neighbor sampling.
+- Future: consider distinct crystal clusters for larger XP drops once value tiers are designed.
+
 ## 2026-09-26 — Stone typing keys and orbiting staff
 
 - Add matching 32×32 stone keys for A–Z, digits, and all standard keyboard punctuation. Typed combat letters drop into place with a soft impact; backspace breaks the removed key into fading fragments with a crumble sound. Long incantations wrap and scroll; successful casts briefly retain their completed word.
