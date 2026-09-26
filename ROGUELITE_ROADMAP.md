@@ -1,3 +1,9 @@
+## 2026-09-26 — Complete spell library and naming feedback (documentation only)
+
+- Add the [full spell library](docs/SPELL_LIBRARY.md) with individual status, source, letter count, fantasy and visual identity rows. Preserve user concepts, inactive drafts and name alternatives; add clearly labelled water, sun, earth and arcane suggestions. Rows are not a promised playable spell count.
+- Separate quick Life (about 4 HP) from stronger Regeneration, specify straight non-homing Bolt, document Seeker versus stronger Seeking Spirit, recommend Firewalk as a working trail name, and revise Earth Shield toward damageable terrain which decays.
+- Reopen affected recipes explicitly rather than silently mapping Life Bolt or Reaping Spirit to new ingredients. Keep implementation, generated art and merges paused for design review.
+
 ## 2026-09-26 — Design reconciliation before implementation
 
 - Consolidate playtest feedback into [core design v0.4](docs/CORE_GAME_DESIGN.md), the [spell/passive catalog](docs/SPELL_AND_UPGRADE_CATALOG.md), [art and feedback matrix](docs/ART_AND_FEEDBACK_PLAN.md), and [agent delivery plan](docs/PLAYTEST_REWORK_PLAN.md).

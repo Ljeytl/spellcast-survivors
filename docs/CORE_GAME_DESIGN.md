@@ -24,8 +24,10 @@ Keep roaming survivors combat. Tower defense, siege management and alchemy are s
 | Passive slots | Six distinct passive families. Further ranks occupy the existing family slot. Map-found overflow is deferred. |
 | Bonus spells | All authored combinations unlock additional spells, retain both ingredients and consume no active slot. They are never replacements. |
 | Ownership | Only spells owned in the current run can be cast. Discovering a recipe in an earlier run does not grant its spell in a new run. |
-| Lightning identities | Bolt = simple projectile. Lightning = direct strike. Lightning Bolt = bouncing projectile from Bolt + Lightning. |
+| Lightning identities | Bolt = straight non-homing projectile. Lightning = direct strike. Lightning Bolt = bouncing projectile from Bolt + Lightning. |
 | Slowdown | Each new cast gets a fresh finite window at fixed slowdown strength. Duration upgrades extend that window. Expiry returns the world to normal while typing may continue. No shared reserve or meaningful recharge wait. |
+| Healing identities | Life is a separate quick small heal (about 4 HP); Regeneration takes longer to type and gives substantially greater healing over time. |
+| Earth Shield concept | Latest proposed direction: terrain raised around the caster, decaying over time and damageable by enemies. Exact geometry and collision rules need design. |
 | Spell payoff | Longer incantations earn greater useful output, not merely a larger damage number. Preserve quick basics and situational bonuses. |
 | Multicast | One extra spell-appropriate unit of output after one completed incantation: another projectile, meteor, jump, pulse or other explicitly defined unit. No extra typing. |
 | Presentation | Existing ancient stone/pixel-world direction. Legible large keycaps, concise choices and minimal HUD. Audio work is deferred. |
@@ -68,6 +70,7 @@ Bonus spells must be easy to find and cast without memorizing hidden names or fi
 
 ## Documents and review boundary
 
+- [Full spell library](SPELL_LIBRARY.md): all named concepts, current counterparts, inactive drafts, alternatives and new suggestions, each with explicit status.
 - [Spell and upgrade catalog](SPELL_AND_UPGRADE_CATALOG.md): all current base identities, combinations, passive families and proposals.
 - [Art and feedback specification](ART_AND_FEEDBACK_PLAN.md): matching visual lifecycle matrix, non-spell feedback, world and accessibility requirements.
 - [Playtest rework plan](PLAYTEST_REWORK_PLAN.md): feedback coverage, agent assignments, dependencies, acceptance gates and unresolved decisions.

@@ -2,6 +2,8 @@
 
 Status: design proposal, no new art generation or runtime edits. Match the supplied ancient stone/pixel-world art. Read with the [spell catalog](SPELL_AND_UPGRADE_CATALOG.md); visuals must reflect its approved behavior, not invent mechanics.
 
+The [full spell library](SPELL_LIBRARY.md) adds preliminary visual identities for future concepts, including water. The lifecycle tables here cover current content and its proposed migrations; they do not mark future concept art as complete.
+
 ## Asset audit
 
 Supplied Typecast assets cover the wizard/staff, slimes/kings, wisps, world vegetation/tiles, health UI, keys/branding and mana crystal. They do not constitute complete spell lifecycle sheets.
@@ -17,9 +19,10 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Mana Bolt | Tiny staff discharge → flat cyan projectile with aligned tail → small spark → none → disappearance. | Dependable automatic support. No tumbling faux-3D rotation. |
 | Bolt | Sharp cast snap → compact forward projectile → concentrated contact spark → none → tail collapse. | Immediate, reliable bread-and-butter attack. Distinct from automatic Mana Bolt. |
 | Lightning | Charge cue → decisive vertical strike at actual target → branching contact flash → brief residual flicker → dissipation. | Immediate focused force, not a travelling or bouncing bolt. |
+| Life, new split | Small restorative pulse on actual immediate healing → quick fade. | Fast modest recovery, about 4 HP; distinct from sustained Regeneration. |
 | Regeneration | Restorative bloom → motes drawn inward → pulse on actual healing → restrained repeated restoration → thinning motes. | Recovery that visibly works; distinguish full-health or capped healing. |
 | Ice Blast | Ice gathers → radial shards expand → impact and actual knockback → small slow accents on affected survivors → melt/break. | Space to breathe; transparent gaps preserve enemy visibility. |
-| Earth Shield | Stones assemble → close protective pieces → absorption chip/crack → readable protection state → depletion break or quiet expiry. | Anticipated protection. Final states depend on the shield/overheal decision. |
+| Earth Shield | Ground rises around caster → visible terrain segments → cracks on enemy damage → visible erosion over time → collapse of depleted segments. | Damageable, decaying terrain; shape and movement rules must be settled before storyboarding final geometry. |
 | Meteor Shower | Strong invocation → separate descending meteors and landing cues → forceful rock/fire impacts → only real lingering effects → settling debris. | Major earned crowd payoff. Optional brief bounded shake on impact. |
 | Ember Lance | Narrow ignition → long piercing spear silhouette → sparks at each real hit → none → extinguished tail. | Precise destructive line. Not a recolored small bolt. |
 | Plague Seed | Seed forms → visible travel and planting in host → infection onset → persistent plant marker plus travelling host-to-host transfer → withering. | “I am infecting the horde.” Show actual source/destination, never fictional spread. |
@@ -27,8 +30,9 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Arcane Orbit | Fragments assemble → satellites circle wizard → flare on actual satellite contact → individually readable orbiting objects → retract/dissolve. | Close protection through motion; distinguish from autonomous creatures. |
 | Focus Ray | Focal point gathers → coherent single beam → concentrated target endpoint → stable tracking pulses → contraction/cutoff. | Sustained focused damage. No damaging-looking beam through unaffected targets. |
 | Rune Trap | Inscription begins → unmistakable arming progression → armed sustain → trigger burst → removal; cap replacement uses a separate fade. | A prepared tool waiting to work. No ordinary timed expiration under the new design. |
-| Seeking Spirit | Several hunters emerge → individually visible pursuit → local contact strikes → retargeting hunters → unravel at end. | Summoned allies doing useful work while the wizard moves. |
-| Ember Trail | Trailing origin ignites → tracks follow actual movement → local tick sparks → independently aging patches → cooling. | The player's route becomes a weapon. Distinct from stationary field placement. |
+| Seeker, proposed rename | One hunter emerges → readable pursuit → contact strike → retargeting → dissolution. | Short basic summon; count matches mechanics. |
+| Seeking Spirit, stronger idea | Several hunters emerge → individually visible pursuit → local contact strikes → retargeting hunters → unravel at end. | Summoned allies doing useful work while the wizard moves. |
+| Firewalk, working name for Ember Trail | Trailing origin ignites → tracks follow actual movement → local tick sparks → independently aging patches → cooling. | The player's route becomes a weapon. Distinct from stationary field placement. |
 | Cross Blade | Blade assembles → outward flight → cutting contacts → obvious linger → return trail and catch/disappearance. | Deliberate outbound/return opportunity, not a generic spinning crescent. |
 
 ## Bonus spell art matrix
@@ -51,7 +55,7 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Enemy hit | Local spark and restrained flash/squash. | No implied knockback or stun unless real. |
 | Enemy death | Slime collapse/pop with bounded fragments; wisp dissolution. | Dead silhouette disappears promptly; debris never looks like a surviving threat. |
 | Player hurt | Clear local hurt flash and contact/direction cue. | Wizard stays locatable; no opaque full-screen flash. |
-| Shield absorbs damage | Stone chip/crack and updated state. | Separate absorption from HP loss. |
+| Terrain barrier takes damage | Local segment crack and updated erosion/durability state. | Earth Shield terrain damage is not player HP loss. Preserve separate absorption feedback only for effects that actually absorb hits. |
 | XP collection | Crystal disappears into short inward cyan glint. | No unexplained generic explosion; one collection event, no lingering fake pickup. |
 | XP crystal | Requested larger crystals; target roughly 1.5× visual size with clear facets/outline. | Size alone does not alter value, magnet or pickup radius. |
 | Level-up | Brief readable growth cue followed by choice screen. | Pause transition and choices remain immediate; no extended visual obstruction. |
