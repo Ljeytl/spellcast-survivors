@@ -13,6 +13,7 @@ script = ExtResource("1_8xm3k")
 
 [node name="Visual" type="Sprite2D" parent="."]
 texture_filter = 1
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_crystal")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

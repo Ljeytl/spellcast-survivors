@@ -1,3 +1,10 @@
+## 2026-09-26 — Forest groves and clearer XP crystals
+
+- Replace evenly scattered single trees with deterministic groves of varied sizes, occasional isolated trees, empty stretches, and clustered decorative bushes using the existing art.
+- Preserve the starting clearing and broad connected routes between groves. Halve physical trunk radius from 22 to 11 pixels without shrinking canopies, anchor both tree variants on their visible lower trunk, keep bushes nonblocking, and scenery, collision, enemy/chest spawn clearance consistent when cells stream out and return. Spawn clearance checks square enemy footprints so boss corners stay outside trunks.
+- Enlarge mana-crystal visuals and their pulse by 1.5× without changing XP values, magnet range, collection shapes, or movement.
+- Future: evaluate grove density and canopy fading during crowded human playtests before adding new terrain types or obstacles.
+
 ## 2026-09-26 — Stone-letter menus
 
 - Reuse the generated stone letters for menu actions and headings, upgrade names, and discovered recipe titles across the main menu, settings, instructions, pause, collection, level-up, and run-end screens. Keep descriptions in readable body text.

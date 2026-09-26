@@ -1,3 +1,9 @@
+## Forest groves and XP readability — 2026-09-26
+
+- Implemented: irregular deterministic tree/bush groves, occasional lone trees, and empty ground instead of one tree per evenly spaced cell. The starting clearing and connected routes remain open; only tree trunks block movement, with their collision radius reduced from 22 to 11 pixels while canopy art keeps its size.
+- Implemented: mana crystals render at 1.5× their previous size, including their pulse, with unchanged pickup and XP mechanics.
+- Later: human-test crowded combat around groves and canopy readability at the chosen camera scale. Additional terrain types and environmental gameplay remain separate design work.
+
 ## Stone-letter menus implemented — 2026-09-26
 
 - Menu actions, headings, upgrade names, and discovered recipe titles use the generated letter keys; descriptions retain normal typography.

@@ -1,5 +1,7 @@
 extends Area2D
 
+const VISUAL_SCALE = 1.5
+
 var collected: bool = false
 
 var xp_value: float = 10.0
@@ -76,8 +78,8 @@ func add_sparkle_effect():
 	# Simple pulsing effect
 	var tween = create_tween()
 	tween.set_loops()
-	tween.tween_property($Visual, "scale", Vector2(1.2, 1.2), 0.5)
-	tween.tween_property($Visual, "scale", Vector2(1.0, 1.0), 0.5)
+	tween.tween_property($Visual, "scale", Vector2.ONE * VISUAL_SCALE * 1.2, 0.5)
+	tween.tween_property($Visual, "scale", Vector2.ONE * VISUAL_SCALE, 0.5)
 
 func play_collection_effect():
 	# Create particle effect
@@ -89,5 +91,5 @@ func play_collection_effect():
 	
 	# Quick scale up before disappearing
 	var tween = create_tween()
-	tween.parallel().tween_property($Visual, "scale", Vector2(1.5, 1.5), 0.1)
+	tween.parallel().tween_property($Visual, "scale", Vector2.ONE * VISUAL_SCALE * 1.5, 0.1)
 	tween.parallel().tween_property($Visual, "modulate", Color.TRANSPARENT, 0.1)
