@@ -1,7 +1,7 @@
 # Typed magic: core fantasy and possible directions
 
 Date: September 26, 2026
-Status: Discussion notes for later design and playtesting. This records the conversation; it does not approve a pivot or change the current game rules.
+Status: Historical discussion and saved alternatives. The creator has since explicitly chosen to retain the current survivors premise and not pivot now. Current agreed direction, including per-cast slowdown and Multicast, is recorded in [the core design](CORE_GAME_DESIGN.md). These notes do not implement mechanics.
 
 ## The idea worth preserving
 
@@ -42,7 +42,7 @@ These are assistant-proposed experiments, not settled requirements.
 - Make threats readable enough to estimate the time available. A close call should come from a chosen risk rather than an attack the player could not anticipate.
 - Treat long spells as worthwhile commitments, not automatic replacements for short spells. More damage is one payoff; hitting a line, clearing an encirclement, or buying safety are other possibilities.
 
-Current implementation context: typing stops movement, Escape cancels, and a shared three-second slowdown budget recharges over ten seconds outside typing. Those existing numbers are a starting point for experiments, not newly confirmed design targets.
+Current implementation context: typing stops movement, Escape cancels, and the prototype still has a shared three-second slowdown budget with a ten-second refill. The subsequent agreed design replaces that reserve with a fresh finite window per cast and duration upgrades; see the core design for the implementation boundary.
 
 ## Defense alternatives discussed
 

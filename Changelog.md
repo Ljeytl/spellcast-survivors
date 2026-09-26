@@ -1,3 +1,10 @@
+## 2026-09-26 — Casting decisions and branch reconciliation
+
+- Confirm the existing survivors premise, long-incantation power fantasy, and fixed-strength per-cast slowdown with upgradeable duration. Record that the shipped shared budget/refill still needs replacement.
+- Document thirteen supporting upgrade categories, bundled Mana Bolt mastery, enemy population as risk/reward growth, and spell-appropriate Multicast instead of a projectile-only stat. Preserve open Mana Bolt interactions and secondary-slot rules.
+- Refresh stale core-design descriptions of movement, incorrect input, passive slots, and the repaired attack-rate stat. Mark prior pivot discussions and roadmap milestones as historical.
+- Reconcile the original opening-balance branch only after auditing its already-reapplied changes against the recovered and subsequently tested mainline; retain current gameplay behavior.
+
 ## 2026-09-26 — Creator pitch and alchemist concept
 
 - Expand the [casting fantasy notes](docs/CASTING_FANTASY_NOTES.md) with the creator’s full explanation: frantic typed spells, siege/PvZ-like alternatives, the desired swing from panic to crowd-erasing power, and an alchemist defending a tower with about ten ingredients and four-to-five-ingredient potions. Preserve open questions about input, recipes, preparation and resources; no gameplay changes or approved pivot.
