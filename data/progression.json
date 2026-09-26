@@ -9,8 +9,8 @@
         "weight": 100
       },
       "cast_speed": {
-        "name": "Quick Cast",
-        "description": "+10% Cast Speed",
+        "name": "Mana Tempo",
+        "description": "+10% automatic Mana Bolt attack rate",
         "icon": "⏱️", 
         "effect": {"type": "cast_speed", "value": 0.10},
         "weight": 100

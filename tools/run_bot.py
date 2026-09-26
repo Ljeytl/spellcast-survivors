@@ -1,5 +1,6 @@
 import argparse
 import json
+import math
 import re
 import shutil
 import subprocess
@@ -22,6 +23,25 @@ def validate_report(result):
         raise ValueError("Godot runtime errors; see report and log")
     if outcome == "watchdog":
         raise ValueError("Bot stalled; see report and log")
+    if result.get("schema_version", 1) >= 2:
+        damage = result.get("damage_by_kind")
+        if not isinstance(damage, dict) or any(not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 for v in damage.values()):
+            raise ValueError("Invalid damage-source telemetry")
+        total = sum(damage.values())
+        typing = result.get("damage_while_typing", -1)
+        if not isinstance(typing, (int, float)) or not math.isfinite(typing) or not 0 <= typing <= total + 0.01:
+            raise ValueError("Typing damage contradicts total damage")
+        health_loss = result.get("health_damage_taken", -1)
+        if not isinstance(health_loss, (int, float)) or not math.isfinite(health_loss) or health_loss < 0:
+            raise ValueError("Invalid observed health loss")
+        if total + 0.01 < health_loss:
+            raise ValueError("Damage sources omit observed health loss")
+        for field in ("boss_events", "surviving_bosses", "recent_damage"):
+            if not isinstance(result.get(field), list):
+                raise ValueError("Missing encounter telemetry: " + field)
+        if len(result["recent_damage"]) > 12:
+            raise ValueError("Recent damage history is not bounded")
+
 
 
 def runtime_errors(text):

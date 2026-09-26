@@ -19,7 +19,13 @@ var failures = 0
 var characters_typed = 0
 var distance_walked = 0.0
 var damage_taken = 0.0
+var damage_by_kind: Dictionary = {}
+var damage_while_typing = 0.0
+var damage_events: Array = []
+var boss_events: Array = []
 var previous_health = 100.0
+var previous_overheal = 0.0
+var pending_damage = 0.0
 var previous_position = Vector2.ZERO
 var upgrades: Array = []
 var checkpoints: Array = []
@@ -52,7 +58,16 @@ func start():
 	current_scene = game
 	previous_position = game.player.global_position
 	previous_health = game.player.health
+	previous_overheal = game.player.overheal
 	game.player.health_changed.connect(observe_health)
+	game.player.player_damaged.connect(observe_damage)
+	game.get_node("MonsterManager").boss_arrived.connect(func(boss_name):
+		boss_events.append({"event": "arrived", "name": boss_name, "seconds": run_time()})
+	)
+	game.get_node("MonsterManager").monster_died.connect(func(data):
+		if data.get("boss", false):
+			boss_events.append({"event": "defeated", "variant": data.variant, "seconds": run_time()})
+	)
 	game.spell_manager.spell_cast.connect(func(spell):
 		successful_casts += 1
 		casts_by_spell[spell] = casts_by_spell.get(spell, 0) + 1
@@ -81,7 +96,7 @@ func _process(delta):
 		finish("watchdog")
 		return false
 	if time >= next_checkpoint:
-		checkpoints.append({"seconds": time, "level": game.player.level, "health": game.player.health, "kills": game.enemies_killed})
+		checkpoints.append({"seconds": time, "level": game.player.level, "health": game.player.health, "kills": game.enemies_killed, "enemies_alive": get_nodes_in_group("enemies").size(), "uncollected_xp": uncollected_xp(), "bosses": boss_snapshot(), "damage_by_kind": damage_by_kind.duplicate(), "damage_while_typing": damage_while_typing})
 		print("BOT checkpoint ", checkpoints.back())
 		next_checkpoint += 60.0
 	var input_delta = delta / maxf(Engine.time_scale, 0.01)
@@ -185,18 +200,57 @@ func release_movement():
 	for action in ACTIONS:
 		Input.action_release(action)
 
-func observe_health(health: float, _maximum: float, _overheal: float):
+func observe_health(health: float, _maximum: float, overheal: float):
 	damage_taken += maxf(0.0, previous_health - health)
+	pending_damage = maxf(0.0, previous_health + previous_overheal - health - overheal)
 	previous_health = health
+	previous_overheal = overheal
+
+func run_time() -> float:
+	return game.get_node("MonsterManager").game_time
+
+func uncollected_xp() -> float:
+	var total = 0.0
+	for orb in get_nodes_in_group("xp_orbs"):
+		if is_instance_valid(orb) and not orb.is_queued_for_deletion() and not orb.collected:
+			total += orb.xp_value
+	return total
+
+func boss_snapshot() -> Array:
+	var result: Array = []
+	for enemy in get_nodes_in_group("bosses"):
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and not enemy.dying:
+			result.append({"name": enemy.encounter_name, "variant": enemy.variant, "health": enemy.current_health, "max_health": enemy.max_health, "distance": enemy.global_position.distance_to(game.player.global_position)})
+	return result
+
+func observe_damage():
+	var context = game.player.last_damage_context.duplicate(true)
+	var amount = pending_damage
+	pending_damage = 0.0
+	if amount <= 0:
+		return
+	var kind = str(context.get("kind", "unknown"))
+	damage_by_kind[kind] = damage_by_kind.get(kind, 0.0) + amount
+	if game.spell_manager.is_typing:
+		damage_while_typing += amount
+	context["damage"] = amount
+	context["seconds"] = run_time()
+	context["typing"] = game.spell_manager.is_typing
+	damage_events.append(context)
+	if damage_events.size() > 12:
+		damage_events.pop_front()
 
 func finish(outcome: String):
 	finished = true
 	release_movement()
-	var report = {"schema_version": 1, "seed": run_seed, "outcome": outcome,
+	var report = {"schema_version": 2, "seed": run_seed, "outcome": outcome,
 		"survival_seconds": game.get_node("MonsterManager").game_time,
 		"wall_seconds": (Time.get_ticks_msec() - started) / 1000.0,
 		"level": game.player.level, "health": game.player.health,
 		"kills": game.enemies_killed, "health_damage_taken": damage_taken,
+		"damage_by_kind": damage_by_kind, "damage_while_typing": damage_while_typing,
+		"recent_damage": damage_events, "boss_events": boss_events, "surviving_bosses": boss_snapshot(),
+		"uncollected_xp": uncollected_xp(),
 		"spell_attempts": attempts, "successful_casts": successful_casts,
 		"casting_input": "space_enter", "casts_by_spell": casts_by_spell,
 		"casting_failures": failures, "characters_typed": characters_typed,

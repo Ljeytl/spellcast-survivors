@@ -28,6 +28,24 @@ class ReportTests(unittest.TestCase):
         runner.validate_report(self.report(outcome="victory", survival_seconds=1200))
         runner.validate_report(self.report(outcome="death", health=0))
 
+    def test_balance_telemetry_accepts_absorbed_shield_damage(self):
+        runner.validate_report(self.report(schema_version=2, damage_by_kind={"contact": 20},
+                                          health_damage_taken=10, damage_while_typing=15,
+                                          boss_events=[], surviving_bosses=[], recent_damage=[]))
+
+    def test_contradictory_balance_telemetry_is_rejected(self):
+        baseline = dict(schema_version=2, damage_by_kind={"contact": 20},
+                        health_damage_taken=20, damage_while_typing=10,
+                        boss_events=[], surviving_bosses=[], recent_damage=[])
+        for change in [dict(damage_by_kind={"contact": -1}),
+                       dict(damage_by_kind={"contact": float("nan")}),
+                       dict(damage_while_typing=21), dict(health_damage_taken=21),
+                       dict(health_damage_taken=float("nan")), dict(health_damage_taken=-1),
+                       dict(health_damage_taken="invalid"),
+                       dict(boss_events=None), dict(recent_damage=[{}] * 13)]:
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                runner.validate_report(self.report(**(baseline | change)))
+
     def test_known_bad_reports_are_rejected(self):
         controls = [dict(outcome="victory"), dict(outcome="death"),
                     dict(save_directory="/profiles/SpellCast Survivors"),

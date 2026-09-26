@@ -22,7 +22,7 @@ var xp_to_next_level: float = BASE_XP_REQUIREMENT  # XP needed for next level
 
 # Upgrade multipliers - these improve through level-up choices
 var spell_damage_multiplier: float = 1.0     # Increases damage of all spells
-var cast_speed_multiplier: float = 1.0       # Reduces spell casting time
+var cast_speed_multiplier: float = 1.0
 var movement_speed_multiplier: float = 1.0   # Increases walking speed
 var xp_range_multiplier: float = 1.0         # Increases XP orb pickup range
 
@@ -269,7 +269,7 @@ func process_enemy_contact_damage(delta: float):
 			# Clean up any invalid enemies from the list
 			for i in range(touching_enemies.size() - 1, -1, -1):
 				var enemy = touching_enemies[i]
-				if not is_instance_valid(enemy):
+				if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.get("dying") or float(enemy.get("current_health")) <= 0.0:
 					touching_enemies.remove_at(i)
 			
 			# Apply damage from all touching enemies
@@ -297,7 +297,7 @@ func apply_upgrade(upgrade_data: Dictionary):
 		"spell_damage":
 			spell_damage_multiplier += value  # Increase spell damage
 		"cast_speed":
-			cast_speed_multiplier += value    # Reduce spell casting time
+			cast_speed_multiplier += value
 		"movement_speed":
 			movement_speed_multiplier += value # Increase walking speed
 		"max_health":
