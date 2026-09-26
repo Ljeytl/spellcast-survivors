@@ -169,18 +169,13 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		upgrade["key"] = "passive:" + key
 		all_upgrades.append(upgrade)
 	
-	# Add spell upgrades only for currently unlocked spells
-	for spell_name in unlocked_spells:
-		# Find the corresponding upgrade in our spell_upgrades dictionary
-		if spell_name in spell_upgrades:
-			var upgrade = spell_upgrades[spell_name].duplicate(true)
-			# Get current spell level from SpellManager to show specific upgrade benefits
-			var current_spell_level = get_current_spell_level(spell_name)
-			upgrade["description"] = get_detailed_spell_upgrade_description(spell_name, current_spell_level)
-			upgrade["key"] = "rank:" + spell_name
-			all_upgrades.append(upgrade)
-	
 	var manager = get_tree().get_first_node_in_group("game").get_node("SpellManager")
+	for spell_name in unlocked_spells:
+		var slot = manager.find_spell_slot(spell_name)
+		var title = "Mana Bolt" if spell_name == "mana_bolt" else manager.spells[slot].name
+		all_upgrades.append({"key": "rank:" + spell_name, "name": title + "+", "icon": "⭐",
+			"description": manager.get_rank_upgrade_description(spell_name),
+			"effect": {"type": "spell_upgrade", "spell": spell_name}})
 	all_upgrades.append_array(manager.get_learnable_spell_cards())
 	all_upgrades = all_upgrades.filter(func(card): return get_upgrade_key(card) not in banished_upgrades)
 	current_upgrade_pool = all_upgrades

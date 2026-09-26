@@ -12,6 +12,11 @@ func check(condition: bool, description: String):
 		failures += 1
 		printerr("FAIL: ", description)
 
+func wait_for_state(condition: Callable):
+	var deadline = Time.get_ticks_msec() + 2000
+	while not condition.call() and Time.get_ticks_msec() < deadline:
+		await process_frame
+
 func run():
 	var game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child(game)
@@ -66,6 +71,7 @@ func run():
 		check(enemies[0].current_health <= 45.0, "Spawned enemy retains opening health after ready")
 		enemies[0].queue_free()
 	player.health = 20.0
+	spells.learn_spell("life")
 	spells.cast_spell_by_type(2)
 	check(spells.active_healing_effects.size() == 1, "Numbered Regeneration creates healing")
 	spells.process_healing_effects(1.0)
@@ -87,11 +93,11 @@ func run():
 	check(screen.visible and screen.level_label.text == "Level 2", "First choice is level 2")
 	screen._on_upgrade_button_pressed(0)
 	screen._on_upgrade_button_pressed(0)
-	await create_timer(0.4, true, false, true).timeout
+	await wait_for_state(func(): return screen.visible and screen.level_label.text == "Level 3" and not screen.selecting_upgrade)
 	check(game.current_state == game.GameState.LEVEL_UP, "Game remains paused for second choice")
 	check(screen.visible and screen.level_label.text == "Level 3", "Second choice survives hide animation")
 	screen._on_upgrade_button_pressed(0)
-	await create_timer(0.4, true, false, true).timeout
+	await wait_for_state(func(): return game.current_state == game.GameState.PLAYING and not paused and not screen.visible)
 	check(game.current_state == game.GameState.PLAYING and not paused, "Game resumes after both choices")
 	check(game.pending_level_ups.is_empty() and not screen.visible, "No stale upgrade modal or queue")
 	game.queue_free()

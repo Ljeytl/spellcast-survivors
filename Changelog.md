@@ -107,3 +107,18 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Clear profile state before loading another slot, preventing discoveries from leaking into missing/malformed saves. Older saves default to no discoveries.
 - Updated the baseline bot to type owned spell names via Space/Enter and report casts per spell.
 - Next: more authored recipes, richer behavior upgrades and full-run balance; difficulty numbers remain unchanged.
+
+## September 26, 2026 — Spell builds and authored evolutions
+
+- Ten base spells compete for five manual slots; automatic Mana Bolt stays separate. Slot keys and HUD names follow actual acquisition order.
+- Added piercing Ember Lance, spreading Plague Seed, persistent Cinder Field and close-range Arcane Orbit, each with working rank scaling.
+- Added Meteor Lance, Soul Bloom and Steam Field; Life Bolt now evolves Bolt in place. Every evolution retains its primary slot and rank, preserves its catalyst, and remains upgradeable.
+- Full kits still receive eligible evolutions, rank upgrades and passives. Consumed primaries cannot be cast or relearned; invalid evolution requests leave ownership intact.
+- Bound infection spreading and persistent effect counts/lifetimes; healing uses actual enemy health lost. Collection records only selected discoveries.
+- Casting cooldown uses active unscaled run time, keeping accelerated bot tests consistent with ordinary play. Difficulty and art remain unchanged.
+- Next: compare complete runs and spell choices across human play and multiple bot seeds before changing balance.
+
+- Reserved HUD space for wrapped spell names above ranks, and made the developer unlock command fill only available slots with truthful output.
+- Delayed mana, spread-bolt and chain callbacks now resolve weak target references and disconnect safely when their run ends; freed targets cancel pending hits.
+- Verified delayed-target cleanup with 7 targeted assertions, 182 spell-build assertions and 611 acquisition assertions. Diagnostic accelerated seed 11 ended in death at 452.2 seconds with 100 successful casts and no runtime errors; broader final-revision runs remain the next validation step.
+- Balance regression now waits for bounded observable level-up transitions instead of fixed timer delays, preserving the queued-choice and duplicate-input assertions under headless scheduling.
