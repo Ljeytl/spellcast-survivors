@@ -34,7 +34,12 @@ func run():
 	for time in [0.0, 60.0, 179.9]:
 		manager.game_time = time
 		check(manager.get_current_difficulty_level() == 1, "Opening stays tier 1 at %s" % time)
-		check(is_equal_approx(manager.calculate_spawn_interval(), 3.0), "Opening spawn pace at %s" % time)
+		check(manager.calculate_spawn_interval() <= 3.0, "Opening never falls below initial spawn pressure at %s" % time)
+	for pair in [[0.0, 3.0], [9.9, 3.0], [10.0, 1.0], [44.9, 1.0], [45.0, 3.0], [90.0, 1.35], [105.0, 2.5], [120.0, 1.2], [135.0, 2.5], [180.0, 2.5]]:
+		manager.game_time = pair[0]
+		check(is_equal_approx(manager.calculate_spawn_interval(), pair[1]), "Opening pressure transition at %s" % pair[0])
+	manager.game_time = 240.0
+	check(manager.calculate_spawn_interval() < 2.5, "Long-term density increases after the opening waves")
 	for pair in [[300.0, 2], [600.0, 3], [900.0, 4]]:
 		manager.game_time = pair[0]
 		check(manager.get_current_difficulty_level() == pair[1], "Tier transition at %s" % pair[0])

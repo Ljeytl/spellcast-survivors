@@ -127,8 +127,13 @@ func check_boss_milestones():
 			print("Boss milestone: %ds, %s" % [at_time, milestone.name])
 
 func calculate_spawn_interval() -> float:
-	var elapsed = maxf(0.0, game_time - 180.0)
-	return maxf(float(encounter_config.get("scaling", {}).get("minimum_spawn_interval", 0.6)), float(encounter_config.get("scaling", {}).get("opening_spawn_interval", 3.0)) / pow(1.28, elapsed / 180.0))
+	var scaling = encounter_config.scaling
+	var interval = float(scaling.opening_spawn_interval)
+	for phase in scaling.spawn_phases:
+		if game_time >= float(phase.start):
+			interval = float(phase.interval)
+	var elapsed = maxf(0.0, game_time - float(scaling.spawn_growth_start_seconds))
+	return maxf(float(scaling.minimum_spawn_interval), interval / pow(1.28, elapsed / 180.0))
 
 func get_current_difficulty_level() -> int:
 	return mini(4, int(game_time / 300.0) + 1)
