@@ -55,13 +55,14 @@ func run():
 	var area = game.typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
 	check(box.get_global_rect().encloses(area.get_global_rect()), "Typing scroll area fits box")
+	check(box.get_global_rect().encloses(box.get_node("SlowdownStatus").get_global_rect()), "Budget status fits inside casting box")
 	check(game.typing_label.size.x <= area.size.x, "Typing text wraps within box width")
 	check(box.size.y <= game.get_viewport_rect().size.y * 0.35, "Long typing stays bounded")
 	check(area.get_v_scroll_bar().max_value > area.size.y, "All long typing text remains scrollable")
 	check(area.scroll_vertical >= area.get_v_scroll_bar().max_value - area.get_v_scroll_bar().page - 1, "New input is scrolled to the end")
 	game.update_typing_display("Type: bolt")
 	await settle()
-	check(is_equal_approx(box.size.y, 120), "Short typing shrinks back")
+	check(is_equal_approx(box.size.y, 148), "Short typing shrinks back")
 	print("Text layout: ", checks, " assertions, ", failures, " failures")
 	for child in root.get_node("AudioManager").get_children():
 		if child is AudioStreamPlayer:

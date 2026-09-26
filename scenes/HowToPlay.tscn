@@ -69,17 +69,19 @@ text = "[center]SPELLCAST SURVIVORS[/center]
 • Escape cancels typing; Backspace corrects mistakes
 • Discover named synergies through level-up choices
 • View discovered recipes in Spell Collection
-• Time slows while typing!
+• Typing shares 3 seconds of slowdown across casts.
+• It refills over 10 seconds outside typing.
+• At empty, keep typing at normal world speed.
 
 [b]Spells:[/b]
 • \"bolt\" - Fast single target
-• \"life\" - Healing over time
+• \"regeneration\" - Healing over time
 • \"ice blast\" - Area frost damage
-• \"earthshield\" - Damage absorption
+• \"earth shield\" - Damage absorption
 • \"lightning arc\" - Chain lightning
 • \"meteor shower\" - Massive area damage
 
-[b]Goal:[/b] Survive as long as possible!
+[b]Goal:[/b] Survive 20 minutes to win!
 Enemies get stronger over time, but you level up by collecting XP orbs."
 
 [node name="BackButton" type="Button" parent="HowToPlayPanel/VBoxContainer"]

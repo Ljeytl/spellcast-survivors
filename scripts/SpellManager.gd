@@ -23,6 +23,11 @@ const SPELL_CAST_COOLDOWN = 0.1  # Minimum time between spell casts
 var spell_projectile_scene = preload("res://scenes/SpellProjectile.tscn")
 
 const Synergies = preload("res://scripts/SynergyCatalog.gd")
+@export_range(0.1, 30.0, 0.1) var typing_slowdown_capacity: float = 3.0
+@export_range(0.1, 60.0, 0.1) var typing_slowdown_refill_seconds: float = 10.0
+var typing_slowdown_remaining: float = 3.0
+var _scale_change_frame: int = -1
+var _scale_before_change: float = 1.0
 var space_casting = false
 
 var acquired_spells: Dictionary = {"bolt": true}
@@ -77,6 +82,7 @@ var aoe_effect_scene = preload("res://scenes/SpellProjectile.tscn")
 signal healing_applied(amount: float)
 
 func _ready():
+	typing_slowdown_remaining = typing_slowdown_capacity
 	# Clear any existing queue
 	spell_queue.clear()
 	
@@ -185,6 +191,8 @@ func get_spell_unlock_level(spell_data: Dictionary) -> int:
 			return 1  # Default fallback
 
 func _process(delta):
+	var frame_scale = _scale_before_change if _scale_change_frame == Engine.get_process_frames() else Engine.time_scale
+	advance_typing_slowdown(delta / maxf(frame_scale, 0.01))
 	# Handle auto-attack mana bolt
 	handle_auto_attack(delta)
 	
@@ -257,17 +265,34 @@ func start_typing():
 	current_typing_text = ""
 	target_spell = spell_queue[0].get("display_name", spell_queue[0]["name"].to_lower())
 	
-	# Apply cast speed - higher cast speed = less time dilation (faster typing)
-	# cast_speed_multiplier 1.0 = normal, 1.1 = 10% faster casting
-	var cast_speed_bonus = player.cast_speed_multiplier if player else 1.0
-	var adjusted_time_scale = TIME_SCALE_DURING_TYPING + (cast_speed_bonus - 1.0) * 0.5
-	# Clamp between 0.2 (normal) and 0.8 (very fast)
-	adjusted_time_scale = clamp(adjusted_time_scale, TIME_SCALE_DURING_TYPING, 0.8)
-	
-	Engine.time_scale = adjusted_time_scale
-	
+	_apply_typing_slowdown()
+
 	typing_started.emit()
 	update_typing_display()
+
+func advance_typing_slowdown(unscaled_delta: float):
+	if is_typing:
+		typing_slowdown_remaining = maxf(0.0, typing_slowdown_remaining - unscaled_delta)
+		_apply_typing_slowdown()
+	else:
+		var refill_rate = typing_slowdown_capacity / maxf(typing_slowdown_refill_seconds, 0.01)
+		typing_slowdown_remaining = minf(typing_slowdown_capacity, typing_slowdown_remaining + unscaled_delta * refill_rate)
+
+func _set_typing_time_scale(value: float):
+	var frame = Engine.get_process_frames()
+	if _scale_change_frame != frame:
+		_scale_change_frame = frame
+		_scale_before_change = Engine.time_scale
+	Engine.time_scale = value
+
+func _apply_typing_slowdown():
+	if typing_slowdown_remaining <= 0.0:
+		_set_typing_time_scale(1.0)
+	else:
+		var cast_speed_bonus = player.cast_speed_multiplier if player else 1.0
+		_set_typing_time_scale(clampf(TIME_SCALE_DURING_TYPING + (cast_speed_bonus - 1.0) * 0.5, TIME_SCALE_DURING_TYPING, 0.8))
+	if game_manager and game_manager.has_method("update_typing_slowdown"):
+		game_manager.update_typing_slowdown(typing_slowdown_remaining, typing_slowdown_capacity)
 
 func handle_typing_input(event: InputEventKey):
 	if not is_typing:
@@ -351,7 +376,7 @@ func end_typing():
 	target_spell = ""
 	
 	# Force time scale back to normal - this is critical
-	Engine.time_scale = 1.0
+	_set_typing_time_scale(1.0)
 	
 	# Also try the time dilation system
 	var scene_tree = get_tree()
@@ -1038,14 +1063,8 @@ func start_freeform_typing():
 	current_typing_text = ""
 	target_spell = ""  # No target in freeform mode, we'll match dynamically
 	
-	# Apply cast speed - higher cast speed = less time dilation (faster typing)
-	var cast_speed_bonus = player.cast_speed_multiplier if player else 1.0
-	var adjusted_time_scale = TIME_SCALE_DURING_TYPING + (cast_speed_bonus - 1.0) * 0.5
-	# Clamp between 0.2 (normal) and 0.8 (very fast)
-	adjusted_time_scale = clamp(adjusted_time_scale, TIME_SCALE_DURING_TYPING, 0.8)
-	
-	Engine.time_scale = adjusted_time_scale
-	
+	_apply_typing_slowdown()
+
 	typing_started.emit()
 	update_freeform_typing_display()
 

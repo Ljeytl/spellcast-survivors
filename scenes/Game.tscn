@@ -546,6 +546,18 @@ offset_top = -60.0
 offset_right = 250.0
 offset_bottom = 60.0
 
+[node name="SlowdownStatus" type="Label" parent="UI/HUD/TypingPanel"]
+layout_mode = 1
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 12.0
+offset_right = -20.0
+offset_bottom = 40.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+text = "Slowdown: 3.0s / 3.0s"
+
 [node name="TypingArea" type="ScrollContainer" parent="UI/HUD/TypingPanel"]
 layout_mode = 1
 horizontal_scroll_mode = 0
@@ -553,7 +565,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = 20.0
+offset_top = 48.0
 offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 2

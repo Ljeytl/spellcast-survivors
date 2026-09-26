@@ -390,4 +390,5 @@ Space/Enter casting, movement lock while typing, Life Bolt acquisition and a per
 
 - Completed: wrapping/content-sized upgrade cards, scrollable offers, bounded casting text, help markup.
 - Next UI pass: make text physically readable at narrow window sizes; current canvas scaling makes menus small even though content is contained.
-- Requested next: limit typing slowdown with a replenishing budget, leaving duration upgrades for a later balance pass.
+- Completed: shared three-second typing slowdown budget, ten-second refill outside typing, in-box countdown, and normal-speed casting after exhaustion.
+- Next balance pass: offer duration/refill upgrades and decide how the existing Quick Cast stat should interact with slowdown. Current enemy difficulty is unchanged.
