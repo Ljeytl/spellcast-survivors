@@ -363,7 +363,7 @@ func fire_mana_bolt():
 		
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				func(): create_mana_bolt_projectile(target, damage, i)
+				_delayed_mana_bolt.bind(weakref(target), damage, i)
 			)
 		else:
 			create_mana_bolt_projectile(target, damage, i)
@@ -532,7 +532,7 @@ func cast_enhanced_bolt_spell(slot: int):
 		# Create spread + homing projectile with delay
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				func(): create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i)
+				_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i)
 			)
 		else:
 			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i)
@@ -835,12 +835,12 @@ func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_
 				enemy.apply_slow(slow_strength, slow_duration)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
-	if not target or not is_instance_valid(target) or remaining_chains <= 0:
+	if not _live_spell_target(target) or remaining_chains <= 0:
 		return
 	
 	# Damage current target
 	target.take_damage(damage)
-	hit_enemies.append(target)
+	hit_enemies.append(target.get_instance_id())
 	
 	# Find next target
 	var scene_tree = get_tree()
@@ -851,7 +851,7 @@ func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: 
 	var closest_distance = INF
 	
 	for enemy in enemies:
-		if enemy in hit_enemies or not is_instance_valid(enemy):
+		if not _live_spell_target(enemy) or enemy.get_instance_id() in hit_enemies:
 			continue
 		
 		var distance = target.global_position.distance_to(enemy.global_position)
@@ -874,9 +874,7 @@ func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: 
 		var tree = get_tree()
 		if tree:
 			tree.create_timer(0.1).timeout.connect(
-				func(): 
-					if is_instance_valid(next_target):
-						chain_lightning(next_target, damage * CHAIN_DAMAGE_REDUCTION, remaining_chains - 1, hit_enemies)
+				_delayed_chain.bind(weakref(next_target), damage * CHAIN_DAMAGE_REDUCTION, remaining_chains - 1, hit_enemies.duplicate())
 			)
 
 func create_lightning_arc_visual(from_pos: Vector2, to_pos: Vector2, target_enemy: Node2D = null, from_target: Node2D = null):
@@ -1192,3 +1190,28 @@ func cast_build_spell(slot: int):
 	var effect = preload("res://scripts/BuildSpellEffect.gd").new()
 	effect.configure(info, calculate_spell_damage(info), player, get_closest_enemy())
 	get_parent().add_child(effect)
+
+func _live_spell_target(target) -> bool:
+	return is_instance_valid(target) and not target.is_queued_for_deletion() and not target.get("dying") and float(target.get("current_health")) > 0.0
+
+func _delayed_mana_bolt(reference: WeakRef, damage: float, index: int):
+	if not is_inside_tree() or not is_instance_valid(player):
+		return
+	var target = reference.get_ref()
+	if _live_spell_target(target):
+		create_mana_bolt_projectile(target, damage, index)
+
+func _delayed_spread_bolt(direction: Vector2, angle: float, reference: WeakRef, damage: float, index: int):
+	if not is_inside_tree() or not is_instance_valid(player):
+		return
+	var target = reference.get_ref() if reference else null
+	if reference and not _live_spell_target(target):
+		return
+	create_spread_homing_bolt_projectile(direction, angle, target, damage, index)
+
+func _delayed_chain(reference: WeakRef, damage: float, remaining: int, hit_ids: Array):
+	if not is_inside_tree() or not is_instance_valid(player):
+		return
+	var target = reference.get_ref()
+	if _live_spell_target(target):
+		chain_lightning(target, damage, remaining, hit_ids)
