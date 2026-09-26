@@ -377,3 +377,7 @@ Design review: [Core Game Design v0.2](docs/CORE_GAME_DESIGN.md) reconciles the 
 Run-local acquisition is now implemented for the six existing manual spells, with Bolt as the starting spell and a separate passive attack. Level-ups offer learning, owned-spell ranks and implemented passives. New spells beyond this roster, replacement rules, authored combinations, branching specializations and typing-input revisions remain future work. Current reroll/banish/lock resource counts are preserved rather than redesigned.
 
 Casting usability: keep the player visible and separate Escape cancellation from pausing. Next playtest must verify held movement, XP collection and an ordinary full run; the short stationary UI test does not qualify balance.
+
+### Scripted baseline player
+
+Developer bot tooling now supports repeatable movement/casting/upgrade runs and isolated progression profiles. Use it for mechanical regressions and multi-seed observations, not as proof of human difficulty or UI quality. Space casting, named hidden-recipe synergies and their persistent discovery menu remain next milestones. See `docs/BASELINE_BOT.md`.
