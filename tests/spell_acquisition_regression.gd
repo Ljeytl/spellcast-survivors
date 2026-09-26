@@ -31,6 +31,21 @@ func run():
 	var spells = game.spell_manager
 	spells.set_process(false)
 	var screen = game.level_up_screen
+	spells.queue_spell(1)
+	spells.start_typing()
+	check(spells.player_sprite.modulate.a == 1.0, "Player stays visible while typing")
+	var escape = InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	Input.parse_input_event(escape)
+	await process_frame
+	check(not spells.is_typing and not paused, "Escape cancels casting without pausing")
+	Input.parse_input_event(escape)
+	await process_frame
+	check(paused, "Escape pauses when no spell is being typed")
+	Input.parse_input_event(escape)
+	await process_frame
+	check(not paused, "Escape resumes a paused run")
 	check(spells.get_unlocked_spell_names() == ["mana_bolt", "bolt"], "Run starts with Bolt and the passive only")
 	var y_key = InputEventKey.new()
 	y_key.keycode = KEY_Y

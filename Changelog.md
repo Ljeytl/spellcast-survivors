@@ -66,3 +66,9 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Share acquired spell state between numbered and freeform casting. Fix ID/name mismatches that prevented upgrades from applying and remove the ordinary Y unlock cheat.
 - Repair reroll, banish and lock actions to use eligible, unique, applicable cards; prevent changes while a choice resolves. Remove unimplemented passive effects from the offer pool.
 - Describe actual rank benefits and dim unlearned HUD icons. Authored combinations and the wider proposed spell library remain follow-up work.
+
+## Casting playtest follow-up
+
+- Keep the player fully visible during typing.
+- Consume cast cancellation before pause handling and remove the duplicate polled Escape handler.
+- Live playtest reached 1:28 with full health; movement and normal XP collection remain unverified because the UI controller could not hold movement keys.

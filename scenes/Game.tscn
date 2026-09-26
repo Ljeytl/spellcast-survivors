@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://c4qktx05mkq1i"]
+[gd_scene load_steps=20 format=3 uid="uid://c4qktx05mkq1i"]
 
 [ext_resource type="Script" uid="uid://clbs6713ks20m" path="res://scripts/Game.gd" id="1_2v3xy"]
 [ext_resource type="Script" uid="uid://cdc4jpr00h1xb" path="res://scripts/Player.gd" id="2_p4k8z"]
@@ -14,6 +14,8 @@
 [ext_resource type="Texture2D" uid="uid://dfqlpnpghjdhc" path="res://sprites/effects/zap_0.png" id="10_spell5"]
 [ext_resource type="Texture2D" uid="uid://cgmex7kl3utg" path="res://sprites/effects/flame_0.png" id="11_spell6"]
 [ext_resource type="Theme" uid="uid://c5k8pqw4dqh3k" path="res://themes/medieval_theme.tres" id="12_theme"]
+
+[ext_resource type="Script" path="res://scripts/PauseInput.gd" id="13_pause_input"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1v8p3"]
 size = Vector2(64, 64)
@@ -636,3 +638,6 @@ text = "MAIN MENU"
 [connection signal="pressed" from="UI/PauseOverlay/PauseMenu/VBoxContainer/OptionsButton" to="." method="_on_pause_options_pressed"]
 [connection signal="pressed" from="UI/PauseOverlay/PauseMenu/VBoxContainer/RestartButton" to="." method="_on_pause_restart_pressed"]
 [connection signal="pressed" from="UI/PauseOverlay/PauseMenu/VBoxContainer/MainMenuButton" to="." method="_on_pause_main_menu_pressed"]
+
+[node name="PauseInput" type="Node" parent="."]
+script = ExtResource("13_pause_input")

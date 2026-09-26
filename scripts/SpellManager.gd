@@ -12,7 +12,7 @@ const SPELL_DAMAGE_MULTIPLIER = 0.15
 const MANA_BOLT_COOLDOWN = 1.5
 const CHAIN_LIGHTNING_RANGE = 200.0
 const CHAIN_DAMAGE_REDUCTION = 0.8
-const PLAYER_TRANSPARENCY_TYPING = 0.3
+const PLAYER_TRANSPARENCY_TYPING = 1.0
 const METEOR_DELAY_INTERVAL = 0.5
 const METEOR_SPREAD_RANGE = 300.0
 const AOE_RADIUS_METEOR = 100.0
@@ -190,6 +190,8 @@ func _process(delta):
 
 func _input(event):
 	if event is InputEventKey and event.pressed:
+		if is_typing and event.keycode == KEY_ESCAPE:
+			get_viewport().set_input_as_handled()
 		handle_key_input(event)
 
 func handle_key_input(event: InputEventKey):
@@ -328,6 +330,7 @@ func cast_spell():
 	end_typing()
 
 func cancel_typing():
+	spell_queue.clear()
 	end_typing()
 
 func end_typing():

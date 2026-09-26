@@ -94,16 +94,6 @@ func _ready():
 	setup_console()
 	
 
-# Handle input events
-func _input(event):
-	if event is InputEventKey and event.pressed:
-		# General input handling only - no more hotkey cheats!
-		# All cheats are now hidden in the console (press ~ to access)
-		match event.keycode:
-			KEY_ESCAPE:
-				if current_state == GameState.PLAYING:
-					toggle_pause()
-
 # Master setup function that initializes all game systems
 # Order matters here - some systems depend on others being ready first
 func setup_all_systems():
@@ -275,15 +265,6 @@ func _process(delta):
 	# Update timer and difficulty displays
 	update_timer_display()
 	update_difficulty_display()
-	
-	# Check for global input like pause key
-	handle_input()
-
-# Process global input that works in any game state
-func handle_input():
-	# ESC key toggles pause (only works during PLAYING or PAUSED states)
-	if Input.is_action_just_pressed("ui_cancel"):  # ESC key
-		toggle_pause()
 	
 # Initialize the main UI elements (health bar, XP bar, typing display)
 func setup_ui():
