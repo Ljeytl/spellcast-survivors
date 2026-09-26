@@ -122,6 +122,9 @@ func setup_spell_slots():
 		slot_container.visible = i < spell_manager.MAX_EQUIPPED_SPELLS
 		if i < spell_manager.MAX_EQUIPPED_SPELLS:
 			spell_slots.append(slot_container)
+			slot_container.gui_input.connect(_on_spell_slot_input.bind(i + 1))
+			for child in slot_container.find_children("*", "Control", true, false):
+				child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 # Configure a single spell slot with its number, name, icon and styling
 func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: String):
@@ -157,6 +160,8 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 		vbox.add_child(name_label)
 		name_label.minimum_size_changed.connect(_resize_spell_hud)
 	var info = spell_manager.spells.get(index + 1, {})
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot_container.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if is_unlocked else Control.CURSOR_ARROW
 	name_label.text = info.get("name", "Empty")
 	name_label.modulate = Color.WHITE if is_unlocked else Color("a6b4c8")
 	# Set up the level label
@@ -658,6 +663,17 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 	if effect.get("type") == "learn_spell":
 		spell_manager.learn_spell(effect.get("spell", ""))
 	update_spell_slot_lock_status()
+	var acknowledgement = upgrade_data.get("name", "Upgrade applied")
+	if effect.get("type") == "learn_spell":
+		var slot = spell_manager.find_spell_slot(effect.get("spell", ""))
+		if slot > 0:
+			var action = "evolved" if effect.get("spell", "") in preload("res://scripts/SynergyCatalog.gd").RECIPES else "learned"
+			acknowledgement = spell_manager.spells[slot].name + " " + action + " · Press %d, then type %s" % [slot, spell_manager.spells[slot].display_name]
+	elif effect.get("type") == "spell_upgrade":
+		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
+	else:
+		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (Currently:")[0]
+	show_gameplay_feedback(acknowledgement)
 	
 	if pending_level_ups.is_empty():
 		change_state(GameState.PLAYING)
@@ -680,6 +696,7 @@ func show_game_over_screen():
 	if game_over_screen and is_instance_valid(game_over_screen):
 		var stats = {
 			"won": run_won,
+			"final_hit": player.last_damage_context.duplicate(true) if player else {},
 			"survival_time": game_time,
 			"level": player.level if player else 1,
 			"enemies_killed": enemies_killed,
@@ -871,7 +888,17 @@ func update_spell_slot_lock_status():
 	for i in range(spell_slots.size()):
 		var info = spell_manager.spells.get(i + 1, {})
 		setup_individual_spell_slot(spell_slots[i], i, info.get("id", ""))
-		spell_slots[i].tooltip_text = ("Type: " + info.display_name) if not info.is_empty() else "Learn a spell when you level up (five equipped spells maximum)"
+		spell_slots[i].tooltip_text = ("Click or press %d, then type: %s" % [i + 1, info.display_name]) if not info.is_empty() else "Learn a spell when you level up (five equipped spells maximum)"
+
+func _on_spell_slot_input(event: InputEvent, slot: int):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		spell_slots[slot - 1].accept_event()
+		spell_manager.activate_spell_slot(slot)
+
+func show_gameplay_feedback(text: String):
+	var interface = get_node_or_null("GameplayReadability")
+	if interface:
+		interface.show_feedback(text)
 
 func highlight_spell_slot(slot_index: int):
 	for i in range(spell_slots.size()):

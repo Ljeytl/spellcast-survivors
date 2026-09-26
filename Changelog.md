@@ -1,3 +1,12 @@
+## 2026-09-26 — Gameplay interaction pass
+
+- Preserve incomplete or mistyped numbered incantations on Enter; Escape cancels. Ignore held activation/letter repeats while preserving repeated Backspace editing.
+- Let owned spell cards start the same guarded typing flow as number keys; empty cards explain acquisition. Add compact movement, automatic attack, and casting guidance plus a nonmodal acknowledgement after an applied upgrade.
+- Focus the first level-up choice and provide deterministic arrows/Tab navigation. Ignore held accept-key repeats across new offers. Right-click consistently locks/unlocks; banishing remains an explicit action.
+- Record actual health and bonus-health loss with contact, projectile, area-blast, or unknown source context. Defeat results explain the final hit without attributing aggregate contact to a single enemy.
+- Guard the first 350 ms of results from keyboard acceptance and ignore repeated accept keys; deliberate mouse actions remain immediate.
+- Add operated-input regressions and known-bad controls. Run length, bosses, difficulty, spell ownership, shared slowdown, camera, and visual direction remain unchanged.
+
 ## 2026-09-26 — Gameplay readability pass
 
 - Give gameplay HUD and menus readable window-relative sizing without changing the world camera or combat scale. Use slate panels, parchment text, cyan casting feedback, gold choices, and coral danger.

@@ -14,6 +14,8 @@ signal return_to_menu
 var kit_label: Label
 var discovery_label: Label
 var action_started = false
+var keyboard_armed_at = 0
+var defeat_label: Label
 
 func _ready():
 	# Allow processing when game is paused
@@ -59,12 +61,16 @@ func show_game_over(stats: Dictionary):
 		return
 	
 	action_started = false
+	keyboard_armed_at = Time.get_ticks_msec() + 350
+	get_viewport().gui_release_focus()
 	visible = true
 	display_stats(stats)
 	animate_in()
 
 func display_stats(stats: Dictionary):
 	var won = stats.get("won", false)
+	defeat_label.visible = not won
+	defeat_label.text = describe_final_hit(stats.get("final_hit", {}))
 	title_label.text = "VICTORY!" if won else "GAME OVER"
 	title_label.add_theme_color_override("font_color", Color("dfbd76") if won else Color("ff8175"))
 	kit_label.text = "FINAL SPELL KIT\n" + "\n".join(stats.get("final_kit", [])) + "\nAutomatic Mana Bolt · Rank %d" % stats.get("mana_bolt_rank", 1)
@@ -113,16 +119,39 @@ func setup_run_summary():
 	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	summary.add_theme_constant_override("separation", 16)
 	scroll.add_child(summary)
+	defeat_label = Label.new()
+	defeat_label.name = "DefeatCause"
 	kit_label = Label.new()
 	kit_label.name = "FinalKit"
 	discovery_label = Label.new()
 	discovery_label.name = "Discoveries"
-	for label in [kit_label, discovery_label]:
+	for label in [defeat_label, kit_label, discovery_label]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 18)
 		label.add_theme_color_override("font_color", Color("eee8d8"))
 		summary.add_child(label)
 	content.add_theme_constant_override("separation", 12)
+
+func describe_final_hit(context: Dictionary) -> String:
+	var cause = "Damage source not recorded"
+	var source = str(context.get("source", ""))
+	match context.get("kind", "unknown"):
+		"contact":
+			var count = int(context.get("count", 1))
+			cause = "Contact with %d enemies" % count if count > 1 else "Enemy contact"
+		"projectile":
+			cause = (source + " projectile") if not source.is_empty() else "Enemy projectile"
+		"blast":
+			cause = (source + " area blast") if not source.is_empty() else "Enemy area blast"
+	var amount = " · %.1f damage taken" % float(context.damage) if context.has("damage") else ""
+	if context.get("overheal_loss", 0.0) > 0:
+		amount += " (%.1f health + %.1f bonus health)" % [context.get("health_loss", 0.0), context.overheal_loss]
+	return "FINAL HIT\n" + cause + amount
+
+func _input(event):
+	if visible and event is InputEventKey and event.pressed and event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+		if event.echo or Time.get_ticks_msec() < keyboard_armed_at:
+			get_viewport().set_input_as_handled()
 
 func animate_in():
 	panel.scale = Vector2.ONE
@@ -173,7 +202,10 @@ func _on_button_exit(_button: Button):
 func _unhandled_key_input(event):
 	# Allow Enter or Space to restart quickly
 	if visible and event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_ENTER or event.keycode == KEY_SPACE:
+		if event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE] and Time.get_ticks_msec() < keyboard_armed_at:
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
 			get_viewport().set_input_as_handled()
 			_on_play_again_pressed()
 		elif event.keycode == KEY_ESCAPE:
