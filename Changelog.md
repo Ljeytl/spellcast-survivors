@@ -58,3 +58,11 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Separated approved direction, current prototype behavior, proposed content and experimental tuning.
 - Added typing/input constraints, the upgrade-choice budget, combination alternatives and a focused list of remaining product choices.
 - Documentation only; proposals do not change or approve game behavior.
+
+## 2026-09-26 — Learn spells during a run
+
+- Start with manual Bolt and the passive Mana Bolt; learn Regeneration, Ice Blast, Earth Shield, Lightning Arc and Meteor Shower from level-up choices in their existing six numbered slots.
+- Offer an eligible learning card while unlearned, unbanished spells remain. Once learned, spells receive rank upgrades instead; ownership and ranks reset each run.
+- Share acquired spell state between numbered and freeform casting. Fix ID/name mismatches that prevented upgrades from applying and remove the ordinary Y unlock cheat.
+- Repair reroll, banish and lock actions to use eligible, unique, applicable cards; prevent changes while a choice resolves. Remove unimplemented passive effects from the offer pool.
+- Describe actual rank benefits and dim unlearned HUD icons. Authored combinations and the wider proposed spell library remain follow-up work.

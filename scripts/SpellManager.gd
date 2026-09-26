@@ -22,6 +22,8 @@ const SPELL_CAST_COOLDOWN = 0.1  # Minimum time between spell casts
 
 var spell_projectile_scene = preload("res://scenes/SpellProjectile.tscn")
 
+var acquired_spells: Dictionary = {"bolt": true}
+
 var spell_queue: Array = []
 var current_typing_text: String = ""
 var is_typing: bool = false
@@ -77,6 +79,7 @@ func _ready():
 	
 	# Load spell data from DataManager
 	load_spells_from_data()
+	rebuild_freeform_library()
 	
 	# Find player sprite for transparency effect
 	if player:
@@ -198,11 +201,6 @@ func handle_key_input(event: InputEventKey):
 	# Handle normal slot-based input
 	var key_code = event.keycode
 	
-	# Check for 'Y' key to unlock all spells
-	if key_code == KEY_Y:
-		unlock_all_spells()
-		return
-	
 	if key_code >= KEY_1 and key_code <= KEY_6:
 		var slot = key_code - KEY_0
 		if slot in spells:
@@ -225,21 +223,14 @@ func handle_key_input(event: InputEventKey):
 		handle_typing_input(event)
 
 func queue_spell(slot: int):
-	if slot in spells:
-		var spell_info = spells[slot]
-		var spell_name = spell_info["name"]
-		var spell_display_name = spell_info.get("display_name", spell_name.to_lower())
-		var unlock_level = spell_info.get("unlock_level", 1)
-		
-		# Check if player has reached required level
-		if player and player.level < unlock_level:
-			var error_msg = "🔒 {0} requires level {1}! (You're level {2})".format([spell_name.capitalize(), unlock_level, player.level])
-			print(error_msg)
-			spell_locked_error.emit(spell_name, unlock_level, player.level)
-			return
-		
-		spell_queue.append({"slot": slot, "name": spell_name, "display_name": spell_display_name})
-		spell_queued.emit(spell_name, slot)
+	if slot not in spells:
+		return
+	var info = spells[slot]
+	if not is_spell_unlocked(slot):
+		spell_locked_error.emit(info.name, 0, player.level)
+		return
+	spell_queue.append({"slot": slot, "name": info.name, "display_name": info.display_name})
+	spell_queued.emit(info.name, slot)
 
 func start_typing():
 	if spell_queue.size() == 0:
@@ -949,26 +940,13 @@ func _on_typing_ended():
 
 # Function to upgrade spells
 func upgrade_spell(spell_name: String):
-	# Handle mana bolt (auto-attack) separately
 	if spell_name == "mana_bolt":
 		mana_bolt_level += 1
-		print("Mana Bolt upgraded to level ", mana_bolt_level)
 		return
-	
-	# Find and upgrade the spell
-	for slot in spells:
-		var spell_info = spells[slot]
-		if spell_info["name"] == spell_name:
-			spell_info["level"] += 1
-			print(spell_name.capitalize(), " upgraded to level ", spell_info["level"])
-			return
-		# Also check variations like "ice blast" vs "ice_blast"
-		elif spell_info["name"].replace(" ", "_") == spell_name:
-			spell_info["level"] += 1
-			print(spell_name.capitalize(), " upgraded to level ", spell_info["level"])
-			return
+	var slot = find_spell_slot(spell_name)
+	if is_spell_unlocked(slot):
+		spells[slot].level += 1
 
-# Function to get mana bolt damage with scaling
 func get_mana_bolt_damage() -> float:
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
 	var damage = mana_bolt_damage * level_multiplier
@@ -982,65 +960,25 @@ func get_mana_bolt_damage() -> float:
 
 # Get list of available spells for current player level
 func get_available_spells() -> Array:
-	var available = []
-	if not player:
-		return available
-	
+	var available: Array = []
 	for slot in spells:
-		var spell_info = spells[slot]
-		var unlock_level = spell_info.get("unlock_level", 1)
-		if player.level >= unlock_level:
-			available.append({
-				"slot": slot,
-				"name": spell_info["name"],
-				"unlock_level": unlock_level
-			})
-	
+		if is_spell_unlocked(slot):
+			available.append({"slot": slot, "name": spells[slot].name, "unlock_level": 1})
 	return available
 
-# Get list of unlocked spell names (efficient version for LevelUpScreen)
 func get_unlocked_spell_names() -> Array:
-	# Check if we have a CharacterManager for persistent unlocks
-	var character_manager = get_node_or_null("/root/CharacterManager")
-	if character_manager and character_manager.has_method("get_unlocked_spells"):
-		return character_manager.get_unlocked_spells()
-	
-	# Fallback to level-based unlocks if no CharacterManager
-	var unlocked = ["mana_bolt"]  # mana_bolt is always available
-	if not player:
-		return unlocked
-	
-	for slot in spells:
-		var spell_info = spells[slot]
-		var unlock_level = spell_info.get("unlock_level", 1)
-		if player.level >= unlock_level:
-			unlocked.append(spell_info["name"])
-	
-	return unlocked
+	var owned: Array = ["mana_bolt"]
+	for id in acquired_spells:
+		owned.append(id)
+	return owned
 
-# Check if a specific spell is unlocked
 func is_spell_unlocked(slot: int) -> bool:
-	if not player or slot not in spells:
-		return false
-	
-	var unlock_level = spells[slot].get("unlock_level", 1)
-	return player.level >= unlock_level
+	return slot in spells and acquired_spells.has(spells[slot].id)
 
-# Unlock all spells (cheat command)
 func unlock_all_spells():
-	
-	# Set all spell unlock levels to 1 (already unlocked)
 	for slot in spells:
-		spells[slot]["unlock_level"] = 1
-	
-	# Update the UI to reflect unlocked spells
-	if game_manager and game_manager.has_method("update_spell_slot_lock_status"):
-		game_manager.update_spell_slot_lock_status()
-	
-	# Print confirmation message
-	print("All spells unlocked! You can now use all 6 spells regardless of level.")
-
-# ========== FREEFORM CASTING SYSTEM ==========
+		learn_spell(spells[slot].id)
+	game_manager.update_spell_slot_lock_status()
 
 func toggle_freeform_mode(action: String):
 	match action:
@@ -1058,11 +996,6 @@ func toggle_freeform_mode(action: String):
 
 func handle_freeform_input(event: InputEventKey):
 	var key_code = event.keycode
-	
-	# Special keys that work in both modes
-	if key_code == KEY_Y:
-		unlock_all_spells()
-		return
 	
 	# Start typing on any alphabetic key
 	if not is_typing:
@@ -1138,9 +1071,8 @@ func attempt_freeform_cast():
 	var spell_name = current_typing_text.strip_edges()
 	
 	if spell_name in freeform_spells:
-		cast_freeform_spell(spell_name)
-		# Play successful cast completion sound
-		if AudioManager:
+		var cast_succeeded = cast_freeform_spell(spell_name)
+		if cast_succeeded and AudioManager:
 			AudioManager.on_typing_complete()
 	else:
 		print("Unknown spell: ", spell_name)
@@ -1150,29 +1082,17 @@ func attempt_freeform_cast():
 		if AudioManager:
 			AudioManager.on_typing_error()
 
-func cast_freeform_spell(spell_name: String):
-	if not spell_name in freeform_spells:
-		return
-	
-	var spell_data = freeform_spells[spell_name]
-	
-	# Update last cast time
-	last_spell_cast_time = Time.get_ticks_msec() / 1000.0
-	
-	# Play spell casting sound
-	if AudioManager:
-		AudioManager.play_spell_sound(spell_name)
-	
-	spell_cast.emit(spell_name)
-	
-	# Notify game manager about spell cast
-	if game_manager and game_manager.has_method("increment_spells_cast"):
-		game_manager.increment_spells_cast()
-	
-	# Cast the appropriate spell type
-	cast_freeform_spell_by_type(spell_name, spell_data)
-	
-	end_typing()
+func cast_freeform_spell(spell_name: String) -> bool:
+	var slot = find_spell_slot(spell_name)
+	if not is_spell_unlocked(slot):
+		if slot in spells:
+			spell_locked_error.emit(spells[slot].name, 0, player.level)
+		cancel_typing()
+		return false
+	spell_queue.clear()
+	queue_spell(slot)
+	cast_spell()
+	return true
 
 func cast_freeform_spell_by_type(spell_name: String, spell_data: Dictionary):
 	if not player or not is_instance_valid(player):
@@ -1361,3 +1281,71 @@ func cast_freeform_buff_spell(spell_name: String, spell_data: Dictionary):
 								player.movement_speed_multiplier = original_speed
 								print("Haste effect ended")
 					)
+
+func find_spell_slot(spell_name: String) -> int:
+	var normalized = spell_name.strip_edges().to_lower().replace("_", " ")
+	for slot in spells:
+		var info = spells[slot]
+		for alias in [info.id, info.name, info.display_name]:
+			if str(alias).to_lower().replace("_", " ") == normalized:
+				return slot
+	return 0
+
+func learn_spell(spell_id: String) -> bool:
+	var slot = find_spell_slot(spell_id)
+	if slot == 0 or is_spell_unlocked(slot):
+		return false
+	acquired_spells[spells[slot].id] = true
+	return true
+
+func get_spell_rank(spell_id: String) -> int:
+	if spell_id == "mana_bolt":
+		return mana_bolt_level
+	var slot = find_spell_slot(spell_id)
+	return int(spells[slot].level) if is_spell_unlocked(slot) else 0
+
+func rebuild_freeform_library():
+	freeform_spells.clear()
+	for slot in spells:
+		var info = spells[slot]
+		for alias in [info.id, info.name.to_lower(), info.display_name]:
+			freeform_spells[alias] = info
+
+func get_learnable_spell_cards() -> Array:
+	var roles = {
+		"life": "Restore health over time.",
+		"ice_blast": "Push nearby enemies back and slow them.",
+		"earth_shield": "Gain temporary overheal for protection.",
+		"lightning_arc": "Strike several nearby enemies with chaining damage.",
+		"meteor_shower": "Bombard nearby enemies with delayed area attacks."
+	}
+	var cards: Array = []
+	for slot in spells:
+		if is_spell_unlocked(slot):
+			continue
+		var info = spells[slot]
+		cards.append({"key": "learn:" + info.id, "name": "Learn " + info.name,
+			"description": roles.get(info.id, "Learn a new spell.") + "\nSlot %d · Type: %s" % [slot, info.display_name],
+			"icon": "+", "effect": {"type": "learn_spell", "spell": info.id}})
+	return cards
+
+func get_rank_upgrade_description(spell_id: String) -> String:
+	var rank = get_spell_rank(spell_id)
+	var prefix = "Rank %d → %d: " % [rank, rank + 1]
+	var damage = "+15% of base damage"
+	match spell_id:
+		"mana_bolt":
+			return prefix + damage + (", +1 missile" if rank + 1 in [3, 6, 10] else "")
+		"bolt":
+			return prefix + damage + (", +1 projectile" if rank < 5 else "")
+		"life":
+			return prefix + "+15% of base healing per second"
+		"ice_blast":
+			return prefix + damage + ", +25 radius, +50 knockback"
+		"earth_shield":
+			return prefix + "+15% of base overheal"
+		"lightning_arc":
+			return prefix + damage
+		"meteor_shower":
+			return prefix + damage + ", +1 meteor"
+	return prefix + "Improved effectiveness"
