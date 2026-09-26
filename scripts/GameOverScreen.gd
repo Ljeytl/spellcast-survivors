@@ -59,6 +59,9 @@ func show_game_over(stats: Dictionary):
 	animate_in()
 
 func display_stats(stats: Dictionary):
+	var won = stats.get("won", false)
+	title_label.text = "VICTORY!" if won else "GAME OVER"
+	title_label.add_theme_color_override("font_color", Color.GOLD if won else Color.RED)
 	# Format survival time
 	var total_seconds = stats.get("survival_time", 0.0)
 	var minutes = int(total_seconds / 60)

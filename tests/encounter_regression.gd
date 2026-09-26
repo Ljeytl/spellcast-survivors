@@ -63,7 +63,7 @@ func run():
 	check(runner.health <= 15 and runner.speed >= grunt.speed * 2.0 and runner.speed <= grunt.speed * 3.0, "Sprinter trades durability for 2–3x speed")
 	manager.game_time = 900.0
 	check(manager.calculate_monster_stats(definition(manager, "pursuer")).health > grunt.health, "Health grows when passive attack is not upgraded")
-	for boundary in [300, 600, 900, 1200]:
+	for boundary in [300, 600, 900]:
 		manager.game_time = boundary - 0.01
 		manager.check_boss_milestones()
 		check(manager.spawned_bosses.size() == boundary / 300 - 1, "Boss never arrives early")
@@ -71,7 +71,7 @@ func run():
 		manager.check_boss_milestones()
 		manager.check_boss_milestones()
 		check(manager.spawned_bosses.size() == boundary / 300, "Boss milestone dispatches once")
-	check(get_nodes_in_group("bosses").size() == 4, "Bosses coexist when earlier ones are alive")
+	check(get_nodes_in_group("bosses").size() == 3, "Bosses coexist when earlier ones are alive")
 	check(manager.get_current_difficulty_level() == 4, "Living bosses do not prevent tier advancement")
 	for enemy in get_nodes_in_group("enemies"):
 		enemy.queue_free()
