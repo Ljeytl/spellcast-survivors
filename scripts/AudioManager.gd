@@ -196,8 +196,8 @@ func load_audio_resources():
 	audio_resources[SoundType.ELITE_SPAWN] = [SFX_PATH + "enemy_death_1.wav"]  # Reuse enemy death sound for elite spawn
 	
 	# Typing sounds
-	audio_resources[SoundType.TYPING_KEYSTROKE] = [SFX_PATH + "typing_keystroke_1.wav", SFX_PATH + "typing_keystroke_2.wav", SFX_PATH + "typing_keystroke_3.wav"]
-	audio_resources[SoundType.TYPING_BACKSPACE] = [SFX_PATH + "typing_backspace.wav"]
+	audio_resources[SoundType.TYPING_KEYSTROKE] = [SFX_PATH + "stone_key_thud.wav"]
+	audio_resources[SoundType.TYPING_BACKSPACE] = [SFX_PATH + "stone_key_crumble.wav"]
 	audio_resources[SoundType.TYPING_COMPLETE] = [SFX_PATH + "typing_complete.wav"]
 	audio_resources[SoundType.TYPING_ERROR] = [SFX_PATH + "typing_error.wav"]
 	

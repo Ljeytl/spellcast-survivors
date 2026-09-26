@@ -1,3 +1,10 @@
+## 2026-09-26 — Stone typing keys and orbiting staff
+
+- Add matching 32×32 stone keys for A–Z, digits, and all standard keyboard punctuation. Typed combat letters drop into place with a soft impact; backspace breaks the removed key into fading fragments with a crumble sound. Long incantations wrap and scroll; successful casts briefly retain their completed word.
+- Add the supplied floating staff around the wizard, smoothly orbiting toward the nearest visible living enemy and prioritizing visible bosses. Preserve existing attacks, spell ownership, input acceptance, and menu controls.
+- Keep the high-resolution source atlases out of runtime exports and provide a repeatable native-size export tool. Retain symbol assets for future incantations that use them.
+- Future: tune sound and impact feel in human playtests; keep layered character animation and typing-based menu navigation on the roadmap.
+
 ## 2026-09-26 — Save friend-proposed ritual and boss concepts
 
 - Document map unlock locations, timed long-word rituals and leylines, possible XP risk, the mouse final boss, skill-versus-speed lore, and a keyboard-sized spell-catalog Easter egg. Preserve attribution, example words, and open decisions; no mechanics or run rules change.

@@ -308,6 +308,8 @@ func _process(delta):
 	update_difficulty_display()
 	
 # Initialize the main UI elements (health bar, XP bar, typing display)
+var typing_keycaps: Control
+
 func setup_ui():
 	# Set up health bar to show values from 0-100%
 	if health_bar:
@@ -351,6 +353,10 @@ func setup_ui():
 		typing_label.text = ""  # Start with no text
 		typing_label.minimum_size_changed.connect(_fit_typing_content)
 		setup_typing_ui_style()  # Apply visual styling
+		typing_keycaps = preload("res://scripts/TypingKeycaps.gd").new()
+		typing_keycaps.manager = spell_manager
+		typing_label.add_child(typing_keycaps)
+		spell_manager.spell_cast.connect(typing_keycaps.finish_cast)
 		
 		# Hide the typing UI initially (shown only when typing spells)
 		hide_typing_ui()
@@ -360,6 +366,7 @@ func setup_ui():
 
 func setup_player():
 	if player:
+		player.add_child(preload("res://scripts/OrbitingStaff.gd").new())
 		player.health_changed.connect(_on_player_health_changed)
 		player.xp_changed.connect(_on_player_xp_changed)
 		player.player_died.connect(_on_player_died)
@@ -544,6 +551,7 @@ func _on_player_died():
 func finish_run(won: bool):
 	if current_state == GameState.GAME_OVER:
 		return
+	typing_keycaps.completion_remaining = 0
 	spell_manager.cancel_typing()
 	run_won = won
 	game_time = $MonsterManager.game_time
@@ -597,7 +605,9 @@ func update_typing_display(text: String):
 			typing_label.modulate = Color("ff8175") if "Mismatch" in text or "No matching spell" in text or "unavailable" in text else Color("79d9e8")
 		
 		# Show/hide based on whether there's text to display
-		var should_show = text.length() > 0
+		if is_instance_valid(typing_keycaps):
+			typing_keycaps.sync(spell_manager.current_typing_text, text)
+		var should_show = text.length() > 0 or (is_instance_valid(typing_keycaps) and typing_keycaps.completion_remaining > 0)
 		
 		# Only hide/show the specific typing containers, not all UI
 		var typing_area = typing_label.get_parent()  # TypingArea
@@ -1028,7 +1038,7 @@ func update_typing_slowdown(remaining: float, _capacity: float):
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	box.size.y = minf(maxf(typing_label.get_minimum_size().y + 44.0, 148.0), maxf(90.0, $UI/HUD.size.y * 0.5 - 180.0))
+	box.size.y = minf(maxf(typing_label.get_minimum_size().y + 44.0, 148.0), maxf(112.0, $UI/HUD.size.y * 0.5 - 180.0))
 	position_typing_ui_upper_screen()
 	_scroll_typing_to_end.call_deferred()
 
