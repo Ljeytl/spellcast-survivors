@@ -72,3 +72,10 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Keep the player fully visible during typing.
 - Consume cast cancellation before pause handling and remove the duplicate polled Escape handler.
 - Live playtest reached 1:28 with full health; movement and normal XP collection remain unverified because the UI controller could not hold movement keys.
+
+## Developer baseline bot
+
+- Added an opt-in scripted player that flees threats, seeks XP, types owned spells and randomly chooses normal level-up buttons.
+- Added per-seed isolated launch profiles and JSON/log reports, with explicit death, victory and incomplete outcomes.
+- Kept bot tooling outside normal exported builds; accelerated mode is smoke testing only.
+- Next: exercise Space casting and authored synergies after those mechanics land, then compare several realtime seeds and human playtests.

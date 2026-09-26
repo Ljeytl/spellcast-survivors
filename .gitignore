@@ -39,3 +39,5 @@ Dungeon Crawl Stone Soup Full/
 *.log
 
 /override.cfg
+
+__pycache__/
