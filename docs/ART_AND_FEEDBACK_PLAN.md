@@ -84,3 +84,7 @@ Long spells earn choreography and meaningful impacts, not screen-filling glare. 
 Hostile projectiles, attack warnings and the player stay readable over friendly effects. Reduce decorative debris and secondary sparks first under load; preserve actual hits, infection transfers, expiry states and dangerous areas. Prototype worst-case overlapping spells and late hordes before approving effect density.
 
 Audio production is outside this pass. Moonfall, Yggdrasil and Grasping Hand require approved behavior before final storyboards or asset generation.
+
+## Deferred shader work
+
+Shader development and shader-based polish are later work, not part of the current spell, feedback, art or UX pass. This does not request removing existing rendering behavior. Settle the gameplay/readability baseline first, then scope shader work separately.

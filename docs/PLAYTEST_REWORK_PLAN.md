@@ -43,6 +43,10 @@ All runtime dispositions below remain pending implementation/review unless expli
 | F25 | Debug and ordinary game should feel substantially different. | UX + diagnostics | Fresh normal run has no diagnostic UI; ordinary spellbook remains sufficient; opt-in debug exposes technical tools and marks gameplay-changing commands. |
 | F26 | Ice Blast is a cone; every spell needs explicit hit geometry and aiming. | Spell behavior + art | Inside/outside/behind/boundary and obstacle cases; moving shapes, impact areas, size/Multicast changes, normal visual clarity and debug overlays agree with real hits. |
 
+## Deferred rendering scope
+
+User decision: shader work is deferred. No implementation agent should add shader development or shader-based polish to this pass; revisit it separately after the baseline is settled.
+
 ## Agent execution plan
 
 Four concurrent slots are available: coordinator plus at most three workers. Agents do not all edit one checkout. Every implementation tranche gets a dedicated branch/worktree, owned files resolved from a read-only code map, and a reviewable PR. Shared files and dependencies are coordinated explicitly. Existing dirty work remains preserved, never absorbed blindly.

@@ -1,3 +1,7 @@
+## 2026-09-26 — Defer shaders (documentation only)
+
+- Record shader work as a later roadmap item, explicitly outside the current design and implementation scope. No runtime or asset changes.
+
 ## 2026-09-26 — Spell geometry contracts (documentation only)
 
 - Correct Ice Blast to the user-confirmed directional cone and retain radial Frost Nova as a distinct idea.

@@ -1,3 +1,7 @@
+## Later — shaders
+
+- Shader development and shader-based visual polish are deferred by user decision. Revisit after the current gameplay, spell readability, art and UX baseline is settled. No shader implementation is included in the current pass.
+
 ## 2026-09-26 — Spell geometry contracts (documentation only)
 
 - Correct Ice Blast to the user-confirmed directional cone and retain radial Frost Nova as a distinct idea.
