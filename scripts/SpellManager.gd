@@ -743,7 +743,7 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 	if player:
 		damage *= player.spell_damage_multiplier
 	
-	return damage
+	return damage * float(spell_info.get("damage_multiplier", 1.0))
 
 func process_healing_effects(delta):
 	for i in range(active_healing_effects.size() - 1, -1, -1):
@@ -1178,7 +1178,7 @@ func synergy_eligible(id: String) -> bool:
 func get_rank_upgrade_description(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)
 	var prefix = "Rank %d → %d: " % [rank, rank + 1]
-	var damage = "+15% of base damage"
+	var damage = "+15% of evolved base damage" if Synergies.RECIPES.has(spell_id) and float(Synergies.RECIPES[spell_id].overrides.get("damage_multiplier", 1.0)) != 1.0 else "+15% of base damage"
 	match spell_id:
 		"mana_bolt":
 			return prefix + damage + (", +1 missile" if rank + 1 in [3, 6, 10] else "")

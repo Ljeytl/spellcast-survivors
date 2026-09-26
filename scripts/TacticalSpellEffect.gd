@@ -105,7 +105,7 @@ func advance_beam(delta: float, player: Node2D):
 		deal_damage(enemy, damage)
 
 func advance_trap():
-	if triggered or age + 0.000001 < 0.8:
+	if triggered or age + 0.000001 < float(info.get("arm_delay", 0.8)):
 		return
 	if not closest_target(global_position, 70):
 		return
@@ -186,8 +186,8 @@ func _draw():
 			var radius = float(info.get("trap_radius", 130)) if triggered else 32.0
 			draw_circle(Vector2.ZERO, radius, Color(color, 0.2))
 			draw_arc(Vector2.ZERO, radius, 0, TAU, 32, Color(color, 0.35), 3)
-			draw_arc(Vector2.ZERO, radius, -PI / 2, -PI / 2 + TAU * clampf(age / 0.8, 0.001, 1), 32, color, 3)
-			if age >= 0.8:
+			draw_arc(Vector2.ZERO, radius, -PI / 2, -PI / 2 + TAU * clampf(age / float(info.get("arm_delay", 0.8)), 0.001, 1), 32, color, 3)
+			if age >= float(info.get("arm_delay", 0.8)):
 				draw_circle(Vector2.ZERO, 6, color)
 			draw_line(Vector2(-18, 0), Vector2(18, 0), color, 3)
 			draw_line(Vector2(0, -18), Vector2(0, 18), color, 3)

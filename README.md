@@ -32,7 +32,7 @@ Choose five manual spells from fifteen base spells. Automatic Mana Bolt is separ
 - **Ember Trail** — Leave temporary damage patches while moving
 - **Returning Blade** — Outbound and returning sweep, one hit per enemy on each leg
 
-Seven hidden authored evolutions can appear when their ingredients are equipped. Choosing one replaces its primary spell, retaining the slot and rank while preserving its catalyst. Discoveries persist in the Spell Collection; equipped spells reset each run.
+Seven hidden authored evolutions can appear when their ingredients are equipped. Choosing one replaces its primary spell, retaining the slot and rank while preserving its catalyst. Discoveries persist in the Spell Collection; equipped spells reset each run. Evolutions show a gain and a cost: crowd coverage, healing, or control can trade away direct damage, duration, preparation time, or ranked projectiles. Keeping and ranking a basic spell remains a valid choice. Ordinary offers retain a non-evolution alternative unless all three choices were explicitly locked.
 
 ## 🚀 How to Play
 

@@ -195,7 +195,28 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		if card not in options:
 			options.append(card)
 	
+	ensure_optional_evolutions(options)
 	return options
+
+func is_evolution_card(card: Dictionary) -> bool:
+	var effect = card.get("effect", {})
+	return effect.get("type") == "learn_spell" and effect.get("spell") in preload("res://scripts/SynergyCatalog.gd").RECIPES
+
+func ensure_optional_evolutions(options: Array, locked: Array = []):
+	if options.is_empty() or not options.all(is_evolution_card):
+		return
+	var used = options.map(get_upgrade_key)
+	var alternatives = current_upgrade_pool.filter(func(card): return not is_evolution_card(card) and get_upgrade_key(card) not in banished_upgrades and get_upgrade_key(card) not in used)
+	if alternatives.is_empty():
+		return
+	var preferred: Array = []
+	for card in options:
+		preferred.append("rank:" + preload("res://scripts/SynergyCatalog.gd").RECIPES[card.effect.spell].ingredients[0])
+	alternatives.sort_custom(func(a, b): return get_upgrade_key(a) in preferred and get_upgrade_key(b) not in preferred)
+	for i in range(options.size() - 1, -1, -1):
+		if i not in locked:
+			options[i] = alternatives[0]
+			return
 
 func update_ui(player_level: int, player_stats: Dictionary = {}):
 	# Update UI labels with null checks
@@ -534,6 +555,7 @@ func reroll_upgrades():
 	for i in range(available_upgrades.size()):
 		if i not in locked_upgrades and not candidates.is_empty():
 			available_upgrades[i] = candidates.pop_front()
+	ensure_optional_evolutions(available_upgrades, locked_upgrades)
 
 func banish_upgrade(index: int):
 	if selecting_upgrade or banishes_remaining <= 0 or index < 0 or index >= available_upgrades.size():
@@ -553,6 +575,7 @@ func banish_upgrade(index: int):
 			has_learning = true
 	var learning = candidates.filter(func(card): return card.effect.type == "learn_spell")
 	available_upgrades[index] = learning.pick_random() if not has_learning and not learning.is_empty() else candidates.pick_random()
+	ensure_optional_evolutions(available_upgrades, locked_upgrades)
 	choice_mode = "select"
 	banish_button.modulate = Color.WHITE
 	update_reroll_button_texts()
