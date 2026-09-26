@@ -3,6 +3,7 @@ extends RefCounted
 const KEY = preload("res://assets/typecast/Logo/Blank Key.png")
 const WORN_KEY = preload("res://assets/typecast/Logo/Base Key Variant 5.png")
 const KEY_INK = Color("514f43")
+const MENU_FONT = preload("res://assets/typecast/Keys/menu-font.fnt")
 
 static func key_style(tint: Color = Color.WHITE) -> StyleBoxTexture:
 	var style = StyleBoxTexture.new()
@@ -13,14 +14,44 @@ static func key_style(tint: Color = Color.WHITE) -> StyleBoxTexture:
 		style.set_content_margin(edge, 12 if edge in [SIDE_LEFT, SIDE_RIGHT] else 8)
 	return style
 
+static func menu_button_style(fill: Color, border: Color = Color.TRANSPARENT) -> StyleBoxFlat:
+	var style = StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	return style
+
 static func apply_buttons(theme: Theme):
-	theme.set_stylebox("normal", "Button", key_style())
-	theme.set_stylebox("hover", "Button", key_style(Color("fff3cb")))
-	theme.set_stylebox("pressed", "Button", key_style(Color("abd4ca")))
-	theme.set_stylebox("disabled", "Button", key_style(Color("a5aa9e")))
+	theme.set_font("font", "Button", MENU_FONT)
+	theme.set_font_size("font_size", "Button", 24)
+	theme.set_stylebox("normal", "Button", menu_button_style(Color.TRANSPARENT))
+	theme.set_stylebox("hover", "Button", menu_button_style(Color("314b38"), Color("dfbd76")))
+	theme.set_stylebox("pressed", "Button", menu_button_style(Color("17231c"), Color("79d9e8")))
+	theme.set_stylebox("disabled", "Button", menu_button_style(Color.TRANSPARENT))
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		theme.set_color(state, "Button", KEY_INK)
-	theme.set_color("font_disabled_color", "Button", Color("62675c"))
+		theme.set_color(state, "Button", Color.WHITE)
+	theme.set_color("font_disabled_color", "Button", Color(0.55, 0.55, 0.55))
+
+static func apply_heading(label: Label, font_size: int = 28):
+	label.add_theme_font_override("font", MENU_FONT)
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+static func decorate_menu(control: Control):
+	for label in control.find_children("*", "Label", true, false):
+		if "title" in str(label.name).to_lower():
+			apply_heading(label)
+		elif label.name in ["AudioLabel", "GraphicsLabel"]:
+			apply_heading(label, 20)
+	for button in control.find_children("*", "Button", true, false):
+		button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 static func apply_shortcut(label: Label):
 	label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

@@ -1,3 +1,9 @@
+## 2026-09-26 — Stone-letter menus
+
+- Reuse the generated stone letters for menu actions and headings, upgrade names, and discovered recipe titles across the main menu, settings, instructions, pause, collection, level-up, and run-end screens. Keep descriptions in readable body text.
+- Add a reusable bitmap font with printable ASCII coverage, wrapping, hover/focus/disabled states, and responsive upgrade-card spacing. Preserve click and keyboard controls.
+- Future: typing to activate menu choices remains deferred; tune visual density through human playtests.
+
 ## 2026-09-26 — Mana-crystal XP pickups
 
 - Replace yellow square XP drops with a transparent cyan mana-crystal sprite, a dark outline and pale facet highlights for contrast against grass. Preserve the existing pulse, magnet movement, collection radius, sound, and XP values.
