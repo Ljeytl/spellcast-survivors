@@ -1,3 +1,9 @@
+## 2026-09-26 — Spell geometry contracts (documentation only)
+
+- Correct Ice Blast to the user-confirmed directional cone and retain radial Frost Nova as a distinct idea.
+- Add geometry and targeting to the full library, plus detailed origin, dimensions, timing, collision and upgrade requirements for current spell families.
+- Require ordinary VFX to communicate the real affected shape; reserve exact hitbox overlays for opt-in debug. Keep unapproved shape and aim choices explicitly proposed.
+
 ## 2026-09-26 — Preserve the baseline and separate debug from play (documentation only)
 
 - Keep and repair the implemented roster; select library expansions separately instead of silently replacing existing spells.

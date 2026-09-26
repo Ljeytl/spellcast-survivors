@@ -21,7 +21,7 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Lightning | Charge cue → decisive vertical strike at actual target → branching contact flash → brief residual flicker → dissipation. | Immediate focused force, not a travelling or bouncing bolt. |
 | Life, new split | Small restorative pulse on actual immediate healing → quick fade. | Fast modest recovery, about 4 HP; distinct from sustained Regeneration. |
 | Regeneration | Restorative bloom → motes drawn inward → pulse on actual healing → restrained repeated restoration → thinning motes. | Recovery that visibly works; distinguish full-health or capped healing. |
-| Ice Blast | Ice gathers → radial shards expand → impact and actual knockback → small slow accents on affected survivors → melt/break. | Space to breathe; transparent gaps preserve enemy visibility. |
+| Ice Blast | Ice gathers → forward cone of shards expands → impacts/knockback only inside cone → slow accents on affected survivors → melt/break. | Confirmed directional cone. Clear origin, opening angle and reach; no radial visual suggesting hits behind the wizard. |
 | Earth Shield | Proposed earth protection assembles near caster → damage cracks → readable remaining protection/erosion → break or expiry. | Final geometry awaits Shield versus Earth Wall distinction; do not generate a placed-wall asset and assume it defines the shield. |
 | Meteor Shower | Strong invocation → separate descending meteors and landing cues → forceful rock/fire impacts → only real lingering effects → settling debris. | Major earned crowd payoff. Optional brief bounded shake on impact. |
 | Ember Lance | Narrow ignition → long piercing spear silhouette → sparks at each real hit → none → extinguished tail. | Precise destructive line. Not a recolored small bolt. |
@@ -47,6 +47,10 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Frost Sigil | Frost inscription → slower visible arming → wider trigger shards → slowed-survivor accents → cracked glyph fades. | Persistent until triggered or explicitly replaced under the chosen cap. |
 | Reaping Spirit | Reaper hunter emerges → pursuit → contact strike → distinct local burst on qualifying contact kill → normal dissolution. | No burst on ordinary hit or unrelated nearby death; no false chain reaction. |
 | Lightning Bolt | Combined cast → travelling bolt → first contact → next visible bounce legs in real hit order → final discharge. | Different from both instant Lightning and simple Bolt. |
+
+## Geometry must read accurately
+
+Use the [geometry contracts](SPELL_AND_UPGRADE_CATALOG.md#spell-geometry-and-targeting-contracts) for silhouettes and motion. Lines, cones, impact circles, moving contact objects and persistent patches must visibly differ. Distinguish projectile travel from impact area, trap trigger from blast radius, and infection spread reach from actual damage locations. Render exact collision/range overlays only in debug; ordinary effects and necessary attack telegraphs convey play-relevant geometry.
 
 ## Non-spell event art
 

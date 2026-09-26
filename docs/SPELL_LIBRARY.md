@@ -23,6 +23,8 @@ Water is a requested gap in the library. Splash, Water Jet, Undertow, Tidal Wave
 
 
 
+Geometry and aim columns describe intended contracts, not verified runtime hitboxes. Unsettled entries remain **undecided** or **proposed**. A moving projectile also needs a collision footprint; effects with bursts or spread have additional independent regions. See the [detailed geometry specification](SPELL_AND_UPGRADE_CATALOG.md#spell-geometry-and-targeting-contracts).
+
 ## Naming and commitment examples
 
 | Shorter commitment | Longer commitment | Why typing more is worthwhile |
@@ -38,135 +40,135 @@ These are reviewable design relationships, not final damage ratios. A longer tit
 
 ## Mana and arcane
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Mana Bolt | 8 | Automatic | Current game | Automatic support projectile; stays separate from typed Bolt. | Tiny staff spark, flat cyan projectile. |
-| Bolt | 4 | Rework | User decision | Short, straight projectile; aim once at cast, no steering or homing after launch, no bounce. | Clean forward bolt and one contact spark. |
-| Homing Bolt | 10 | Idea | User concept | A separate later projectile which steers toward living targets; reliability earns the longer name. Not an alias for Bolt. | Readable curved travel and target changes. |
-| Arcane Orbit | 11 | Current / rework | Current game | Orbiting satellites damage nearby enemies while the wizard moves. | Distinct satellites, not spirit creatures. |
-| Focus Ray | 8 | Current / rework | Current game | Sustained concentrated beam; target contact and actual damage stay aligned. | Stable beam and concentrated endpoint. |
-| Prism Ray | 8 | Current bonus / rework | Current game | Piercing beam for lined-up targets; less individual damage than Focus Ray in current tuning. | Faceted origin and multiple real contact points. |
-| Mana Storm | 9 | Idea | User concept | Proposed sustained storm of arcane volleys over a crowd; choose a pattern distinct from orbit and spirits. | Sweeping coordinated projectile volleys. |
-| Pulse | 5 | Idea | New proposal | Short, small close-range push; buys a little room without matching Ice Blast coverage. | One brief outward ring, no lingering aura. |
-| Gravity Well | 11 | Idea | Agent draft / new detail | Pull a group toward a focal point for follow-up attacks; deliberate delayed control rather than direct burst. | Enemies visibly pulled toward a dark focal point. |
-| Magic Missile | 12 | Idea | Agent draft | Alternative guided-projectile concept; compare against Homing Bolt before keeping both. | Guided arcane dart. |
-| Arcane Orb | 9 | Idea | Agent draft | Slow moving damage volume; must differ from satellites and a small bolt. | One large travelling orb with local contacts. |
-| Arcane Shield | 12 | Idea | Agent draft | Possible magical absorption protection; distinguish from Earth Shield terrain. | Close personal barrier, no false ground wall. |
-| Arcane Missiles | 14 | Inactive data | Old data | Existing draft volley concept; no available acquisition path. | Multiple distinct projectiles, not one larger glow. |
-| Time Warp | 8 | Inactive data | Old data | Separate time-magic concept; cannot redefine ordinary per-cast slowdown. | A distinct localized distortion if later designed. |
-| Arcane Turret | 12 | Inactive data | Old data | Placed autonomous attacker; health, duration and attack pattern undecided. | Visible placed construct and actual shots. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Mana Bolt | 8 | Automatic | Current game | Automatic support projectile; stays separate from typed Bolt. | Projectile; collision size open | Automatic acquired target; audit steering | Tiny staff spark, flat cyan projectile. |
+| Bolt | 4 | Rework | User decision | Short, straight projectile; aim once at cast, no steering or homing after launch, no bounce. | Straight projectile; no homing | Aim once at release; fallback open | Clean forward bolt and one contact spark. |
+| Homing Bolt | 10 | Idea | User concept | A separate later projectile which steers toward living targets; reliability earns the longer name. Not an alias for Bolt. | Proposed steering projectile | Proposed living-target tracking | Readable curved travel and target changes. |
+| Arcane Orbit | 11 | Current / rework | Current game | Orbiting satellites damage nearby enemies while the wizard moves. | Proposed moving satellite hitboxes | Orbit caster; gaps not damage | Distinct satellites, not spirit creatures. |
+| Focus Ray | 8 | Current / rework | Current game | Sustained concentrated beam; target contact and actual damage stay aligned. | Proposed finite-width beam | Track one acquired target | Stable beam and concentrated endpoint. |
+| Prism Ray | 8 | Current bonus / rework | Current game | Piercing beam for lined-up targets; less individual damage than Focus Ray in current tuning. | Proposed piercing finite-width beam | Aligned targets; direction policy open | Faceted origin and multiple real contact points. |
+| Mana Storm | 9 | Idea | User concept | Proposed sustained storm of arcane volleys over a crowd; choose a pattern distinct from orbit and spirits. | Undecided; see concept | Undecided | Sweeping coordinated projectile volleys. |
+| Pulse | 5 | Idea | New proposal | Short, small close-range push; buys a little room without matching Ice Blast coverage. | Proposed small radial push | Caster-centered proposed | One brief outward ring, no lingering aura. |
+| Gravity Well | 11 | Idea | Agent draft / new detail | Pull a group toward a focal point for follow-up attacks; deliberate delayed control rather than direct burst. | Proposed circular pull region | Ground placement; aim open | Enemies visibly pulled toward a dark focal point. |
+| Magic Missile | 12 | Idea | Agent draft | Alternative guided-projectile concept; compare against Homing Bolt before keeping both. | Undecided; see concept | Undecided | Guided arcane dart. |
+| Arcane Orb | 9 | Idea | Agent draft | Slow moving damage volume; must differ from satellites and a small bolt. | Undecided; see concept | Undecided | One large travelling orb with local contacts. |
+| Arcane Shield | 12 | Idea | Agent draft | Possible magical absorption protection; distinguish from Earth Shield terrain. | Undecided; see concept | Undecided | Close personal barrier, no false ground wall. |
+| Arcane Missiles | 14 | Inactive data | Old data | Existing draft volley concept; no available acquisition path. | Undecided; see concept | Undecided | Multiple distinct projectiles, not one larger glow. |
+| Time Warp | 8 | Inactive data | Old data | Separate time-magic concept; cannot redefine ordinary per-cast slowdown. | Undecided; see concept | Undecided | A distinct localized distortion if later designed. |
+| Arcane Turret | 12 | Inactive data | Old data | Placed autonomous attacker; health, duration and attack pattern undecided. | Undecided; see concept | Undecided | Visible placed construct and actual shots. |
 
 ## Life, nature and plague
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Life | 4 | Idea / requested split | User decision | Quick small immediate heal, target about 4 HP. A genuinely separate short spell, never an alias for Regeneration. | One compact healing pulse. |
-| Regeneration | 12 | Current / rework | User decision | Longer cast buys substantially greater total healing over time; current 40 HP over 5 seconds is a baseline, not newly approved tuning. | Repeated restorative pulses when HP is gained. |
-| Life Bolt | 8 | Current bonus / rework | Current game | Projectile damage with earned healing. Splitting Life from Regeneration requires an explicit recipe decision. | Damage contact followed by real healing return mote. |
-| Plague Seed | 10 | Current / rework | User decision | Plant infection in a host, then spread visibly through nearby enemies. | Seed planting, growth and host-to-host transfer. |
-| Plague | 6 | Idea | User concept | Alternative area infection concept; must remain smaller/less expansive than longer spreading spells if retained. | Localized infected area; clearly bounded initial reach. |
-| Soul Bloom | 9 | Current bonus / rework | Current game | Spreading infection plus earned healing; less restorative than specialist Regeneration. | Flowering infected markers and separate healing motes. |
-| Yggdrasil | 9 | Idea | User concept | Tree of Life: grow a powerful restorative landmark. Preserve the idea; choose access/commitment and balance rather than dismissing it for its 9-letter name. | A tree grows into a readable healing landmark. |
-| Tree of Life | 10 | Naming alternative | User concept | Alternate name for the Yggdrasil concept, not automatically a second spell or alias with identical cost. | Same living-tree fantasy pending name decision. |
-| Thorn Volley | 11 | Idea | Agent draft | Nature projectile fan; line coverage and contact behavior need definition. | A fan of visible thorns. |
-| Venom Mark | 9 | Idea | Agent draft | Focused damage-over-time mark, distinct from spreading Plague Seed. | Persistent single-host venom marker. |
-| Spore Bloom | 10 | Idea | Agent draft | Potential spore burst that seeds an area; distinguish from healing Soul Bloom. | Burst of spores followed by truthful infection states. |
-| Regrowth | 8 | Naming alternative | Agent draft | Historical healing name; evaluate alongside Life and Regeneration, not three interchangeable heals. | Nature restoration if retained as a distinct behavior. |
-| Heal | 4 | Naming alternative | Old combination notes | Historical short-heal label; prefer Life for the proposed 4-HP identity. | Small restorative pulse. |
-| Chain Heal | 9 | Inactive data | Old data | Draft healing-chain concept; meaningful recipients must exist before it fits this single-player game. | Visible transfer between real eligible recipients. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Life | 4 | Idea / requested split | User decision | Quick small immediate heal, target about 4 HP. A genuinely separate short spell, never an alias for Regeneration. | Self; no damage volume | Caster | One compact healing pulse. |
+| Regeneration | 12 | Current / rework | User decision | Longer cast buys substantially greater total healing over time; current 40 HP over 5 seconds is a baseline, not newly approved tuning. | Self over time | Caster | Repeated restorative pulses when HP is gained. |
+| Life Bolt | 8 | Current bonus / rework | Current game | Projectile damage with earned healing. Splitting Life from Regeneration requires an explicit recipe decision. | Projectile contact; self heal | Release direction; heal on valid hit | Damage contact followed by real healing return mote. |
+| Plague Seed | 10 | Current / rework | User decision | Plant infection in a host, then spread visibly through nearby enemies. | Host + local spread radius | First host then neighbors; range open | Seed planting, growth and host-to-host transfer. |
+| Plague | 6 | Idea | User concept | Alternative area infection concept; must remain smaller/less expansive than longer spreading spells if retained. | Proposed area infection | Placement/shape open | Localized infected area; clearly bounded initial reach. |
+| Soul Bloom | 9 | Current bonus / rework | Current game | Spreading infection plus earned healing; less restorative than specialist Regeneration. | Host + spread radius; self healing | First host then neighbors | Flowering infected markers and separate healing motes. |
+| Yggdrasil | 9 | Idea | User concept | Tree of Life: grow a powerful restorative landmark. Preserve the idea; choose access/commitment and balance rather than dismissing it for its 9-letter name. | Proposed landmark + restorative area | Placement and area shape open | A tree grows into a readable healing landmark. |
+| Tree of Life | 10 | Naming alternative | User concept | Alternate name for the Yggdrasil concept, not automatically a second spell or alias with identical cost. | Alternative landmark concept | See Yggdrasil | Same living-tree fantasy pending name decision. |
+| Thorn Volley | 11 | Idea | Agent draft | Nature projectile fan; line coverage and contact behavior need definition. | Proposed projectile fan | Aim/spread open | A fan of visible thorns. |
+| Venom Mark | 9 | Idea | Agent draft | Focused damage-over-time mark, distinct from spreading Plague Seed. | Proposed single-host effect | Target acquisition open | Persistent single-host venom marker. |
+| Spore Bloom | 10 | Idea | Agent draft | Potential spore burst that seeds an area; distinguish from healing Soul Bloom. | Undecided; see concept | Undecided | Burst of spores followed by truthful infection states. |
+| Regrowth | 8 | Naming alternative | Agent draft | Historical healing name; evaluate alongside Life and Regeneration, not three interchangeable heals. | Undecided; see concept | Undecided | Nature restoration if retained as a distinct behavior. |
+| Heal | 4 | Naming alternative | Old combination notes | Historical short-heal label; prefer Life for the proposed 4-HP identity. | Undecided; see concept | Undecided | Small restorative pulse. |
+| Chain Heal | 9 | Inactive data | Old data | Draft healing-chain concept; meaningful recipients must exist before it fits this single-player game. | Undecided; see concept | Undecided | Visible transfer between real eligible recipients. |
 
 ## Spirits and control
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Seeker | 6 | Rework proposal | User concept | Short basic summon: one small pursuing hunter. Rename/rebudget the current single-spirit behavior rather than calling it a grand summon. | One distinct hunter with readable pursuit. |
-| Seeking Spirit | 13 | Long-form idea / legacy current name | User concept | Proposed stronger separate summon with several useful hunters or substantially longer service. Do not keep it as a free alias for Seeker. Whether both stay is open. | Multiple visible hunters if multiple exist mechanically. |
-| Reaping Spirit | 13 | Current bonus / rework | Current game | Spirit whose qualifying kills cause local bursts. Recipe must be reviewed against Seeker versus Seeking Spirit. | Distinct hunter and earned kill burst. |
-| Grasping Hand | 12 | Idea | User concept | Powerful area-control hand; hold, root, pull or crush remains undecided. | Large hand visibly performing the chosen control action. |
-| Skeleton Warrior | 15 | Inactive data | Old data | Draft summoned fighter; overlaps hunter role unless blocking/melee behavior differs. | A legible summoned fighter, not a wisp recolor. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Seeker | 6 | Rework proposal | User concept | Short basic summon: one small pursuing hunter. Rename/rebudget the current single-spirit behavior rather than calling it a grand summon. | Proposed moving hunter contact shape | Pursue acquired living targets | One distinct hunter with readable pursuit. |
+| Seeking Spirit | 13 | Long-form idea / legacy current name | User concept | Proposed stronger separate summon with several useful hunters or substantially longer service. Do not keep it as a free alias for Seeker. Whether both stay is open. | Proposed multiple hunter contact shapes | Independent pursuit proposed | Multiple visible hunters if multiple exist mechanically. |
+| Reaping Spirit | 13 | Current bonus / rework | Current game | Spirit whose qualifying kills cause local bursts. Recipe must be reviewed against Seeker versus Seeking Spirit. | Hunter contact + conditional kill-burst area | Pursuit; burst at qualifying kill | Distinct hunter and earned kill burst. |
+| Grasping Hand | 12 | Idea | User concept | Powerful area-control hand; hold, root, pull or crush remains undecided. | Undecided area-control shape | Choose action and aim before geometry | Large hand visibly performing the chosen control action. |
+| Skeleton Warrior | 15 | Inactive data | Old data | Draft summoned fighter; overlaps hunter role unless blocking/melee behavior differs. | Undecided; see concept | Undecided | A legible summoned fighter, not a wisp recolor. |
 
 ## Fire
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Ember Lance | 10 | Current / rework | User concept / current game | Piercing spear through aligned enemies; keep the strong existing fantasy. | Long fire spear and real piercing contacts. |
-| Cinder Field | 11 | Current / rework | User concept / current game | Persistent burning ground; total damage must justify the longer phrase. | Low irregular ground flames with clear gaps. |
-| Firewalk | 8 | Rework proposal | User naming suggestion | Preferred working name for movement-laid fire; terrain you draw while kiting. Tune for its shorter commitment. | Flaming tracks laid on the actual route. |
-| Ember Trail | 10 | Legacy current name | Current game | Current movement-trail identity; replacement candidate Firewalk. Not another required spell. | Aging fire tracks. |
-| Fire Trail | 9 | Naming alternative | User concept | Alternative to Firewalk; not a second identical trail spell. | Movement-laid flame tracks. |
-| Meteor Shower | 12 | Current / rework | User concept / current game | Several substantial delayed impacts with reliable crowd payoff. | Descending meteors, distinct impacts, bounded shake. |
-| Meteor Lance | 11 | Current bonus / rework | Current game | Piercing spear creates local explosions; useful against aligned clusters. | Molten spear and separate hit explosions. |
-| Fire Bolt | 8 | Idea | User concept | A distinct longer-than-Bolt fire projectile; proposed impact burst or burn, not mandatory elemental coverage. | Projectile plus truthful burn/burst on contact. |
-| Fireball | 8 | Idea | Agent draft / new detail | Proposed compact impact explosion; distinguish from piercing Ember Lance and delayed meteors. | Round projectile with readable local blast. |
-| Fire Wall | 8 | Idea | User concept | Directional lane of flame that controls crossing enemies, unlike round Cinder Field. | Clearly oriented ground-fire line. |
-| Flame Wall | 9 | Naming alternative | Agent draft | Alternative name to Fire Wall, not automatically another spell. | Same lane concept until distinguished. |
-| Firestorm | 9 | Inactive data / idea | User concept + old data | Large moving or sustained fiery storm; pattern undecided. Name alone does not justify being stronger than longer Meteor Shower. | Coherent moving storm, not enlarged field texture. |
-| Flame Elemental | 14 | Inactive data | Old data | Draft fire summon; autonomous role and lifetime need differentiation from spirits. | A distinct fiery creature with actual attack cues. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Ember Lance | 10 | Current / rework | User concept / current game | Piercing spear through aligned enemies; keep the strong existing fantasy. | Proposed narrow piercing swept projectile | Release direction; acquisition open | Long fire spear and real piercing contacts. |
+| Cinder Field | 11 | Current / rework | User concept / current game | Persistent burning ground; total damage must justify the longer phrase. | Proposed persistent ground circle | Acquired ground position proposed | Low irregular ground flames with clear gaps. |
+| Firewalk | 8 | Rework proposal | User naming suggestion | Preferred working name for movement-laid fire; terrain you draw while kiting. Tune for its shorter commitment. | Proposed chain of ground patches | Along actual player movement | Flaming tracks laid on the actual route. |
+| Ember Trail | 10 | Legacy current name | Current game | Current movement-trail identity; replacement candidate Firewalk. Not another required spell. | Legacy movement-trail patches | See Firewalk proposal | Aging fire tracks. |
+| Fire Trail | 9 | Naming alternative | User concept | Alternative to Firewalk; not a second identical trail spell. | Alternative movement-trail patches | See Firewalk proposal | Movement-laid flame tracks. |
+| Meteor Shower | 12 | Current / rework | User concept / current game | Several substantial delayed impacts with reliable crowd payoff. | Proposed separate impact circles | Proposed target-area landings | Descending meteors, distinct impacts, bounded shake. |
+| Meteor Lance | 11 | Current bonus / rework | Current game | Piercing spear creates local explosions; useful against aligned clusters. | Piercing projectile + impact areas | Acquired line proposed | Molten spear and separate hit explosions. |
+| Fire Bolt | 8 | Idea | User concept | A distinct longer-than-Bolt fire projectile; proposed impact burst or burn, not mandatory elemental coverage. | Proposed projectile + impact area or burn | Release direction; aim open | Projectile plus truthful burn/burst on contact. |
+| Fireball | 8 | Idea | Agent draft / new detail | Proposed compact impact explosion; distinguish from piercing Ember Lance and delayed meteors. | Proposed projectile + circular impact | Release direction; aim open | Round projectile with readable local blast. |
+| Fire Wall | 8 | Idea | User concept | Directional lane of flame that controls crossing enemies, unlike round Cinder Field. | Proposed persistent ground strip | Placement/orientation open | Clearly oriented ground-fire line. |
+| Flame Wall | 9 | Naming alternative | Agent draft | Alternative name to Fire Wall, not automatically another spell. | Alternative ground-strip concept | See Fire Wall | Same lane concept until distinguished. |
+| Firestorm | 9 | Inactive data / idea | User concept + old data | Large moving or sustained fiery storm; pattern undecided. Name alone does not justify being stronger than longer Meteor Shower. | Undecided; see concept | Undecided | Coherent moving storm, not enlarged field texture. |
+| Flame Elemental | 14 | Inactive data | Old data | Draft fire summon; autonomous role and lifetime need differentiation from spirits. | Undecided; see concept | Undecided | A distinct fiery creature with actual attack cues. |
 
 ## Water and ice
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Ice Blast | 8 | Current / rework | User concept / current game | Radial burst buys space through push and slow. | Expanding shards, real knockback, frost on survivors. |
-| Steam Field | 10 | Current bonus / rework | Current game | A short damaging ground cloud that also slows enemies; current design trades duration for control. | Low moving vapor, transparent gaps and contact cues. |
-| Frost Sigil | 10 | Current bonus / rework | Current game | Persistent prepared trap with a wider slowing burst and slower arming. | Frost inscription, armed state, triggered shards. |
-| Ice Lance | 8 | Idea | User concept | A line attack with meaningful control versus Ember Lance damage; not a color swap. | Ice spear and actual survivor frost state. |
-| Splash | 6 | Idea | New water proposal | Short close-range water slap with light damage and a small push. Less reach/control than longer spells. | Compact fan of water droplets and actual displacement. |
-| Wave | 4 | Idea | User concept; water interpretation proposed | A short travelling front pushes a narrow group. Potential ingredient for Thunderwave, recipe unapproved. | Low directional water front. |
-| Water Jet | 8 | Idea | New water proposal | Sustained narrow stream damages and pushes along a line. Distinct from instant Wave. | Continuous stream with visible contact spray. |
-| Undertow | 8 | Idea | New water proposal | A bounded current draws enemies backward toward its origin, setting up a follow-up cast. | Directional current and visibly displaced enemies. |
-| Tidal Wave | 9 | Idea | New water proposal | Broad advancing wave carries substantial damage and displacement across a crowd; pays more than Wave. | Large readable travelling front with open sight lines. |
-| Maelstrom | 9 | Idea | New water proposal | Persistent swirling water gathers enemies and repeatedly damages the gathered group. Compare with Gravity Well; avoid duplicate control spells. | Clear vortex motion and actual enemy paths. |
-| Ice Shard | 8 | Idea | Agent draft | Simple damaging ice projectile; add only if its behavior differs from Bolt and Ice Lance. | Sharp projectile and truthful hit cue. |
-| Frost Nova | 9 | Inactive data / idea | Agent draft + old data | Radial frost proposal overlaps Ice Blast; merge or distinguish deliberately. | Radial freeze/slow only as actually implemented. |
-| Glacial Lance | 12 | Idea | Agent draft | Longer ice-lance concept; requires more useful line payoff, not only a grander name. | Large piercing ice silhouette and contacts. |
-| Blizzard | 8 | Idea | Agent draft | Persistent storm of repeated ice hits and area control; coverage and duration justify commitment. | Readable circulating snow/shards without opaque fog. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Ice Blast | 8 | Current / rework | User concept / current game | Directional cone buys space through push and slow in front of the caster. | Confirmed cone; angle/reach open | From caster; aim-at-release proposed | Forward fan of shards, real knockback, frost on affected survivors. |
+| Steam Field | 10 | Current bonus / rework | Current game | A short damaging ground cloud that also slows enemies; current design trades duration for control. | Proposed persistent ground circle | Acquired ground position proposed | Low moving vapor, transparent gaps and contact cues. |
+| Frost Sigil | 10 | Current bonus / rework | Current game | Persistent prepared trap with a wider slowing burst and slower arming. | Trigger region + separate wider burst | Ground placement policy open | Frost inscription, armed state, triggered shards. |
+| Ice Lance | 8 | Idea | User concept | A line attack with meaningful control versus Ember Lance damage; not a color swap. | Proposed piercing projectile | Release direction; aim open | Ice spear and actual survivor frost state. |
+| Splash | 6 | Idea | New water proposal | Short close-range water slap with light damage and a small push. Less reach/control than longer spells. | Proposed short fan/cone | Directional from caster | Compact fan of water droplets and actual displacement. |
+| Wave | 4 | Idea | User concept; water interpretation proposed | A short travelling front pushes a narrow group. Potential ingredient for Thunderwave, recipe unapproved. | Proposed moving front | Directional from caster; aim open | Low directional water front. |
+| Water Jet | 8 | Idea | New water proposal | Sustained narrow stream damages and pushes along a line. Distinct from instant Wave. | Proposed sustained finite-width stream | Direction/tracking open | Continuous stream with visible contact spray. |
+| Undertow | 8 | Idea | New water proposal | A bounded current draws enemies backward toward its origin, setting up a follow-up cast. | Proposed directional current region | Ground placement; aim open | Directional current and visibly displaced enemies. |
+| Tidal Wave | 9 | Idea | New water proposal | Broad advancing wave carries substantial damage and displacement across a crowd; pays more than Wave. | Proposed broad moving front | Release direction; aim open | Large readable travelling front with open sight lines. |
+| Maelstrom | 9 | Idea | New water proposal | Persistent swirling water gathers enemies and repeatedly damages the gathered group. Compare with Gravity Well; avoid duplicate control spells. | Proposed persistent circular vortex | Ground placement; aim open | Clear vortex motion and actual enemy paths. |
+| Ice Shard | 8 | Idea | Agent draft | Simple damaging ice projectile; add only if its behavior differs from Bolt and Ice Lance. | Proposed projectile contact | Aim policy open | Sharp projectile and truthful hit cue. |
+| Frost Nova | 9 | Inactive data / idea | Agent draft + old data | 360-degree radial frost concept; distinct from the confirmed directional Ice Blast cone. | Proposed 360-degree radial area | Caster-centered proposed | Radial freeze/slow only as actually implemented. |
+| Glacial Lance | 12 | Idea | Agent draft | Longer ice-lance concept; requires more useful line payoff, not only a grander name. | Proposed larger piercing projectile | Release direction; aim open | Large piercing ice silhouette and contacts. |
+| Blizzard | 8 | Idea | Agent draft | Persistent storm of repeated ice hits and area control; coverage and duration justify commitment. | Undecided; see concept | Undecided | Readable circulating snow/shards without opaque fog. |
 
 ## Lightning and storm
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Lightning | 9 | Rework | User decision | Direct focused strike; no travelling projectile or base chain. | One vertical strike and contact branches. |
-| Lightning Arc | 12 | Legacy current name | Current game | Old chaining spell/data identity to migrate to Lightning. Not an extra approved fourth lightning spell. | Legacy behavior is not the target art contract. |
-| Lightning Bolt | 13 | New bonus design | User decision | Bolt + Lightning: travelling projectile bounces among enemies. Originals stay owned. | Visible travel and successive bounce legs. |
-| Thunder | 7 | Naming alternative | User concept | Possible call-down name discussed; retain Lightning as the settled direct-strike name unless explicitly changed. | Direct strike if selected as the replacement name. |
-| Thunderwave | 11 | Idea | User concept | Electric/shock knockback wave; possible Wave combination. Define an electrical control advantage beyond ordinary Wave. | Readable travelling shock front and real knockback. |
-| Lightning Rain | 13 | Idea | User concept | Repeated direct strikes across an area; longer spell promises multiple meaningful hits. | Separate overhead strikes, not bouncing projectiles. |
-| Chain Lightning | 14 | Idea | Agent draft | Historical chaining concept overlaps Lightning Bolt. Preserve the reference; avoid a duplicate unless instant-chain versus projectile-bounce is intentionally distinct. | Connected real strike sequence if retained. |
-| Thunder Spear | 12 | Idea | Agent draft | Storm spear concept; distinguish from lances and direct Lightning. | Directional spear and truthful electrical impact. |
-| Static Field | 11 | Idea | Agent draft | Potential persistent electrical zone; choose a control role beyond Cinder Field recolor. | Sparse electrical ground connections. |
-| Tempest | 7 | Idea | Agent draft | Storm concept; its 7-letter name cannot automatically claim ultimate-tier output. | Coherent storm pattern after behavior design. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Lightning | 9 | Rework | User decision | Direct focused strike; no travelling projectile or base chain. | Direct strike; impact footprint open | Acquired target | One vertical strike and contact branches. |
+| Lightning Arc | 12 | Legacy current name | Current game | Old chaining spell/data identity to migrate to Lightning. Not an extra approved fourth lightning spell. | Undecided; see concept | Undecided | Legacy behavior is not the target art contract. |
+| Lightning Bolt | 13 | New bonus design | User decision | Bolt + Lightning: travelling projectile bounces among enemies. Originals stay owned. | Bouncing projectile | First target then eligible bounce targets | Visible travel and successive bounce legs. |
+| Thunder | 7 | Naming alternative | User concept | Possible call-down name discussed; retain Lightning as the settled direct-strike name unless explicitly changed. | Undecided; see concept | Undecided | Direct strike if selected as the replacement name. |
+| Thunderwave | 11 | Idea | User concept | Electric/shock knockback wave; possible Wave combination. Define an electrical control advantage beyond ordinary Wave. | Proposed shock front; cone vs arc open | Direction/placement open | Readable travelling shock front and real knockback. |
+| Lightning Rain | 13 | Idea | User concept | Repeated direct strikes across an area; longer spell promises multiple meaningful hits. | Proposed multiple strike footprints | Area selection open | Separate overhead strikes, not bouncing projectiles. |
+| Chain Lightning | 14 | Idea | Agent draft | Historical chaining concept overlaps Lightning Bolt. Preserve the reference; avoid a duplicate unless instant-chain versus projectile-bounce is intentionally distinct. | Undecided; see concept | Undecided | Connected real strike sequence if retained. |
+| Thunder Spear | 12 | Idea | Agent draft | Storm spear concept; distinguish from lances and direct Lightning. | Undecided; see concept | Undecided | Directional spear and truthful electrical impact. |
+| Static Field | 11 | Idea | Agent draft | Potential persistent electrical zone; choose a control role beyond Cinder Field recolor. | Undecided; see concept | Undecided | Sparse electrical ground connections. |
+| Tempest | 7 | Idea | Agent draft | Storm concept; its 7-letter name cannot automatically claim ultimate-tier output. | Undecided; see concept | Undecided | Coherent storm pattern after behavior design. |
 
 ## Earth and runes
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Earth Shield | 11 | Rework direction | User concept | Keep the existing shield identity and explore damageable, decaying protection around the caster. Compare with separately placed Earth Wall before deciding whether this is terrain, attached protection or another shape. | Ground rises into visible segments which erode and crack. |
-| Rune Trap | 8 | Current / rework | User decision | Prepared persistent ground trap until triggered; count/replacement policy remains proposed. | Inscription, armed rune and clear trigger. |
-| Earth Bolt | 9 | Idea | User concept | Potential physical earth projectile; proposed stagger or impact weight to distinguish from ordinary Bolt. | Travelling stone and impact fragments. |
-| Earthquake | 10 | Idea | User concept | Broad ground disruption with repeated useful crowd impact. Select stagger/displacement behavior before tuning. | Ground pulses and enemy reactions that match real control. |
-| Stone | 5 | Idea | New proposal | Short heavy single projectile; modest impact control, limited reach or speed. | One thrown stone and compact hit. |
-| Earth Wall | 9 | Idea | User concept | Separately placed damageable earth terrain for blocking routes; potentially entirely different from caster-focused Earth Shield. Decay, shape and pass-through rules remain open. | A placed rising barrier with readable cracks and erosion. |
-| Earth Walls | 10 | Naming / variant idea | User concept | Plural formation alternative for Earth Wall; multiple segments could justify a distinct effect, but no automatic second spell or alias. | Multiple clearly placed barrier segments if selected. |
-| Stonewall | 9 | Naming alternative | Earlier assistant proposal | Compare this name with Earth Wall; do not silently add duplicate barrier spells. | Same placed-wall concept unless deliberately differentiated. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Earth Shield | 11 | Rework direction | User concept | Keep the existing shield identity and explore damageable, decaying protection around the caster. Compare with separately placed Earth Wall before deciding whether this is terrain, attached protection or another shape. | Undecided protective geometry | Caster-focused; placement open | Ground rises into visible segments which erode and crack. |
+| Rune Trap | 8 | Current / rework | User decision | Prepared persistent ground trap until triggered; count/replacement policy remains proposed. | Trigger region + separate burst area | Ground placement policy open | Inscription, armed rune and clear trigger. |
+| Earth Bolt | 9 | Idea | User concept | Potential physical earth projectile; proposed stagger or impact weight to distinguish from ordinary Bolt. | Proposed projectile contact/impact | Release direction; aim open | Travelling stone and impact fragments. |
+| Earthquake | 10 | Idea | User concept | Broad ground disruption with repeated useful crowd impact. Select stagger/displacement behavior before tuning. | Proposed repeated ground regions | Origin/shape open | Ground pulses and enemy reactions that match real control. |
+| Stone | 5 | Idea | New proposal | Short heavy single projectile; modest impact control, limited reach or speed. | Proposed projectile contact | Release direction; aim open | One thrown stone and compact hit. |
+| Earth Wall | 9 | Idea | User concept | Separately placed damageable earth terrain for blocking routes; potentially entirely different from caster-focused Earth Shield. Decay, shape and pass-through rules remain open. | Proposed placed barrier | Ground placement; aiming open | A placed rising barrier with readable cracks and erosion. |
+| Earth Walls | 10 | Naming / variant idea | User concept | Plural formation alternative for Earth Wall; multiple segments could justify a distinct effect, but no automatic second spell or alias. | Proposed multiple barrier segments | Placement pattern open | Multiple clearly placed barrier segments if selected. |
+| Stonewall | 9 | Naming alternative | Earlier assistant proposal | Compare this name with Earth Wall; do not silently add duplicate barrier spells. | Alternative barrier concept | See Earth Wall; undecided | Same placed-wall concept unless deliberately differentiated. |
 
 ## Moon, sun and blades
 
-| Spell | Letters | Status | Source | Intended effect / typing payoff | Visual identity |
-|---|---:|---|---|---|---|
-| Cross Blade | 10 | Rework proposal | User concept | Blade flies out, lingers, returns; positional useful damage should substantially exceed Bolt per cast. | Outbound path, linger, return and catch. |
-| Returning Blade | 14 | Legacy current name | Current game | Existing name for the Cross Blade candidate, not an additional planned attack. | Existing return attack needs the proposed linger. |
-| Boomerang | 9 | Naming alternative | User concept | Shorter alternative name discussed for returning weapon. Do not expose all names as cost-free aliases. | Outward and return silhouette. |
-| Slash | 5 | Idea / deferred starter | User concept | Short directional cut toward nearest enemy; possible future character starter. | One clear cutting arc. |
-| Whip | 4 | Idea / deferred starter | User concept | Short close-range sweep; possible future floating weapon/character. | A visible lash rather than a generic circular flash. |
-| Crescent | 8 | Idea | User naming concept; behavior proposed | A small travelling crescent with limited piercing; needs distinction from Cross Blade. | One moon-shaped travelling cut. |
-| Moonfall | 8 | Idea | User concept | Moon area damages enemies and heals the wizard less effectively than pure Regeneration. | Moon arrival and separately readable healing/damage. |
-| Moon Slash | 9 | Idea | User concept | Moon-themed cut proposal; potentially the same design as Crescent Slash. Do not implement both without distinct patterns. | Purple lunar slash geometry. |
-| Crescent Slash | 13 | Idea | User concept | Multiple purple directional slashes with useful fan coverage; longer phrase pays more than Slash. | Several individually visible cutting arcs. |
-| Sunbeam | 7 | Idea | New sun proposal | Focused radiant beam with a distinct charge/release pattern; compare with Focus Ray before retaining both. | Bright narrow beam without blinding full-screen flash. |
-| Daybreak | 8 | Idea | New sun proposal | Expanding radiant burst clears close pressure; differentiated reach/timing needed versus Ice Blast. | A brief sun disc and expanding rays. |
-| Solar Flare | 10 | Idea | New sun proposal | Large directional flare damages a fan of enemies; pays for longer typing through broad useful coverage. | Readable fan-shaped flare, hazards remain visible. |
-| Divine Aura | 10 | Inactive data | Old data | Draft sustained holy aura; damage/healing role undecided. | Restrained persistent aura tied to actual ticks. |
+| Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
+|---|---:|---|---|---|---|---|---|
+| Cross Blade | 10 | Rework proposal | User concept | Blade flies out, lingers, returns; positional useful damage should substantially exceed Bolt per cast. | Moving outbound/linger/return shape | Release direction; return to caster | Outbound path, linger, return and catch. |
+| Returning Blade | 14 | Legacy current name | Current game | Existing name for the Cross Blade candidate, not an additional planned attack. | Legacy returning projectile | See Cross Blade proposal | Existing return attack needs the proposed linger. |
+| Boomerang | 9 | Naming alternative | User concept | Shorter alternative name discussed for returning weapon. Do not expose all names as cost-free aliases. | Alternative returning projectile | Name/behavior selection open | Outward and return silhouette. |
+| Slash | 5 | Idea / deferred starter | User concept | Short directional cut toward nearest enemy; possible future character starter. | Proposed short cutting arc | Toward nearest target | One clear cutting arc. |
+| Whip | 4 | Idea / deferred starter | User concept | Short close-range sweep; possible future floating weapon/character. | Proposed sweep | Origin/aim open | A visible lash rather than a generic circular flash. |
+| Crescent | 8 | Idea | User naming concept; behavior proposed | A small travelling crescent with limited piercing; needs distinction from Cross Blade. | Proposed travelling cutting shape | Direction/aim open | One moon-shaped travelling cut. |
+| Moonfall | 8 | Idea | User concept | Moon area damages enemies and heals the wizard less effectively than pure Regeneration. | Proposed mixed heal/damage area | Ground placement; footprint open | Moon arrival and separately readable healing/damage. |
+| Moon Slash | 9 | Idea | User concept | Moon-themed cut proposal; potentially the same design as Crescent Slash. Do not implement both without distinct patterns. | Proposed slash geometry; count open | Direction pattern open | Purple lunar slash geometry. |
+| Crescent Slash | 13 | Idea | User concept | Multiple purple directional slashes with useful fan coverage; longer phrase pays more than Slash. | Proposed multiple directional cuts | Fan/direction pattern open | Several individually visible cutting arcs. |
+| Sunbeam | 7 | Idea | New sun proposal | Focused radiant beam with a distinct charge/release pattern; compare with Focus Ray before retaining both. | Proposed finite-width beam | Direction/targeting open | Bright narrow beam without blinding full-screen flash. |
+| Daybreak | 8 | Idea | New sun proposal | Expanding radiant burst clears close pressure; differentiated reach/timing needed versus Ice Blast. | Proposed expanding radial area | Caster-centered proposed | A brief sun disc and expanding rays. |
+| Solar Flare | 10 | Idea | New sun proposal | Large directional flare damages a fan of enemies; pays for longer typing through broad useful coverage. | Proposed directional fan/cone | Aim policy open | Readable fan-shaped flare, hazards remain visible. |
+| Divine Aura | 10 | Inactive data | Old data | Draft sustained holy aura; damage/healing role undecided. | Undecided; see concept | Undecided | Restrained persistent aura tied to actual ticks. |
 
 ## Relationships still to design
 
@@ -177,7 +179,7 @@ These are reviewable design relationships, not final damage ratios. A longer tit
 - Earth Shield and Earth Wall are separate design candidates, not interchangeable names. Shield should focus on protecting the caster; walls should shape routes. Their exact behaviors remain proposed.
 - Grasping Hand and earth protection/terrain need exact control/collision contracts before effects or code. Earth Shield must not accidentally trap its caster; pass-through rules and openings remain explicit design questions.
 - Yggdrasil stays in the library. Tune its landmark role, unlock route and commitment deliberately. “Tree of Life” is an alternative name; longer ritual/map versions are possible later, not a requirement imposed now.
-- Similar ideas (Homing Bolt/Magic Missile, Gravity Well/Maelstrom, Ice Blast/Frost Nova, Moon Slash/Crescent Slash) remain visible until deliberately combined or differentiated. Do not inflate the promised playable count with synonyms.
+- Similar ideas (Homing Bolt/Magic Missile, Gravity Well/Maelstrom, Moon Slash/Crescent Slash) remain visible until deliberately combined or differentiated. Do not inflate the promised playable count with synonyms.
 
 ## Saved word and expansion ideas
 

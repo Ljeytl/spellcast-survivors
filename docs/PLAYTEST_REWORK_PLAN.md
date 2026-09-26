@@ -41,6 +41,7 @@ All runtime dispositions below remain pending implementation/review unless expli
 | F23 | No homing on basic Bolt; names fit effects. | Spell behavior + UX | Aim-once path; no steering; Homing Bolt stays a separate idea. Seeker/Firewalk name and behavior changes agree across copy and recipes. |
 | F24 | Keep current spells and fix the baseline before selecting expansions. | Design coordinator | No existing spell silently removed or replaced by a library alternative; every new identity has explicit scope status. |
 | F25 | Debug and ordinary game should feel substantially different. | UX + diagnostics | Fresh normal run has no diagnostic UI; ordinary spellbook remains sufficient; opt-in debug exposes technical tools and marks gameplay-changing commands. |
+| F26 | Ice Blast is a cone; every spell needs explicit hit geometry and aiming. | Spell behavior + art | Inside/outside/behind/boundary and obstacle cases; moving shapes, impact areas, size/Multicast changes, normal visual clarity and debug overlays agree with real hits. |
 
 ## Agent execution plan
 

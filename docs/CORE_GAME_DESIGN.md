@@ -30,6 +30,7 @@ Keep the spells already implemented and repair their identities, useful output, 
 | Ownership | Only spells owned in the current run can be cast. Discovering a recipe in an earlier run does not grant its spell in a new run. |
 | Lightning identities | Bolt = straight non-homing projectile. Lightning = direct strike. Lightning Bolt = bouncing projectile from Bolt + Lightning. |
 | Slowdown | Each new cast gets a fresh finite window at fixed slowdown strength. Duration upgrades extend that window. Expiry returns the world to normal while typing may continue. No shared reserve or meaningful recharge wait. |
+| Spell geometry | Ice Blast is a directional cone. Specify hit shape, origin, aim, dimensions and hit rules per spell; visuals must match the affected region. Other undecided shapes remain proposals. |
 | Healing identities | Life is a separate quick small heal (about 4 HP); Regeneration takes longer to type and gives substantially greater healing over time. |
 | Earth Shield concept | Preserve Earth Shield as an existing spell to repair. Damageable, decaying earth protection is a concept; distinguish caster protection from separately placed Earth Wall terrain before deciding geometry and collision. |
 | Spell payoff | Longer incantations earn greater useful output, not merely a larger damage number. Preserve quick basics and situational bonuses. |
