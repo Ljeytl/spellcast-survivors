@@ -28,7 +28,7 @@ var spell_upgrades = {}
 
 @onready var title_label: Label = $Panel/VBoxContainer/TitleContainer/TitleLabel
 @onready var level_label: Label = $Panel/VBoxContainer/TitleContainer/LevelLabel
-@onready var upgrade_container: VBoxContainer = $Panel/VBoxContainer/UpgradeContainer
+@onready var upgrade_container: VBoxContainer = $Panel/VBoxContainer/UpgradeScroll/UpgradeContainer
 @onready var fade_overlay: ColorRect = $FadeOverlay
 @onready var panel: Panel = $Panel
 
@@ -40,11 +40,6 @@ var spell_upgrades = {}
 # Upgrade card components
 var upgrade_cards: Array = []
 var progress_bars: Array = []
-
-# Tooltip system
-@onready var tooltip_panel: Panel = null
-@onready var tooltip_label: RichTextLabel = null
-var tooltip_tween: Tween
 
 func _ready():
 	visible = false
@@ -72,7 +67,7 @@ func _ready():
 						upgrade_buttons.append(button)
 						upgrade_cards.append(panel_container)
 						button.pressed.connect(_on_upgrade_button_pressed.bind(i))
-						button.mouse_entered.connect(_on_upgrade_button_mouse_entered.bind(button, panel_container, i))
+						button.mouse_entered.connect(_on_upgrade_button_mouse_entered.bind(button, panel_container))
 						button.mouse_exited.connect(_on_upgrade_button_mouse_exited.bind(button, panel_container))
 						
 						# Get progress bar for this upgrade
@@ -99,9 +94,6 @@ func _ready():
 	# Connect reroll system buttons
 	setup_reroll_system()
 	
-	# Setup tooltip components
-	tooltip_panel = panel.get_node_or_null("TooltipPanel")
-	tooltip_label = tooltip_panel.get_node_or_null("TooltipLabel") if tooltip_panel else null
 
 # Load upgrades from DataManager
 func load_upgrades_from_data():
@@ -207,10 +199,6 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 	return options
 
 func update_ui(player_level: int, player_stats: Dictionary = {}):
-	if tooltip_tween:
-		tooltip_tween.kill()
-	if tooltip_panel:
-		tooltip_panel.hide()
 	# Update UI labels with null checks
 	if title_label:
 		title_label.text = "LEVEL UP!"
@@ -253,11 +241,27 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 	
 	# Format the button text with better spacing
 	var title_line = icon + " " + name
-	button.text = title_line + "\n" + description
+	button.text = ""
+	var copy = button.get_node_or_null("CardText") as Label
+	if copy == null:
+		copy = Label.new()
+		copy.name = "CardText"
+		copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		copy.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		copy.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		copy.add_theme_font_size_override("font_size", 16)
+		copy.add_theme_color_override("font_color", Color.WHITE)
+		button.add_child(copy)
+		copy.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		copy.offset_left = 12
+		copy.offset_right = -12
+		copy.offset_top = 10
+		copy.offset_bottom = -16
+		copy.minimum_size_changed.connect(_resize_card.bind(button, copy))
+	copy.text = title_line + "\n" + description
+	_resize_card.call_deferred(button, copy)
 	
-	# Increase font size for better readability
-	button.add_theme_font_size_override("font_size", 16)
-	button.add_theme_color_override("font_color", Color.WHITE)
 	
 	# Add subtle color coding based on upgrade type
 	var effect_type = upgrade.get("effect", {}).get("type", "")
@@ -276,6 +280,9 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 			button.modulate = Color(0.95, 0.9, 1.0) # Slight purple tint
 		_:
 			button.modulate = Color.WHITE
+
+func _resize_card(button: Button, copy: Label):
+	button.get_parent().custom_minimum_size.y = maxf(80.0, copy.get_minimum_size().y + 26.0)
 
 func show_screen():
 	visible = true
@@ -325,10 +332,9 @@ func _on_upgrade_button_pressed(button_index: int):
 
 # Enhanced hover effects with glow and scale
 # Enhanced hover effects with glow, scale, and tooltip
-func _on_upgrade_button_mouse_entered(button: Button, panel_container: Panel, upgrade_index: int):
+func _on_upgrade_button_mouse_entered(button: Button, panel_container: Panel):
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(panel_container, "scale", Vector2(1.03, 1.03), 0.15)
 	tween.tween_property(button, "modulate", button.modulate * 1.2, 0.15)
 	
 	# Add subtle glow effect by brightening the panel
@@ -339,21 +345,16 @@ func _on_upgrade_button_mouse_entered(button: Button, panel_container: Panel, up
 	if is_instance_valid(AudioManager):
 		AudioManager.play_sound(AudioManager.SoundType.UI_BUTTON_HOVER)
 	
-	# Show detailed tooltip
-	show_tooltip(upgrade_index)
 
 func _on_upgrade_button_mouse_exited(button: Button, panel_container: Panel):
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(panel_container, "scale", Vector2.ONE, 0.15)
 	tween.tween_property(button, "modulate", button.modulate / 1.2, 0.15)
 	
 	# Remove glow effect
 	if panel_container.has_method("set_self_modulate"):
 		tween.tween_property(panel_container, "self_modulate", Color.WHITE, 0.15)
 	
-	# Hide tooltip
-	hide_tooltip()
 
 # Get list of currently unlocked spells from SpellManager
 func get_unlocked_spells() -> Array:
@@ -431,40 +432,6 @@ func update_progress_bars(player_stats: Dictionary):
 func set_progress_bar_width(progress_bar: ColorRect, width: float):
 	if progress_bar and is_instance_valid(progress_bar):
 		progress_bar.anchor_right = clamp(width, 0.0, 1.0)
-
-# Show detailed tooltip with rich information
-func show_tooltip(upgrade_index: int):
-	if not tooltip_panel or not tooltip_label or upgrade_index >= available_upgrades.size():
-		return
-	
-	var upgrade = available_upgrades[upgrade_index]
-	var effect = upgrade.get("effect", {})
-	var tooltip_text = generate_tooltip_text(upgrade, effect)
-	
-	tooltip_label.text = tooltip_text
-	tooltip_panel.visible = true
-	
-	# Animate tooltip appearance
-	if tooltip_tween:
-		tooltip_tween.kill()
-	tooltip_tween = create_tween()
-	tooltip_panel.modulate = Color.TRANSPARENT
-	tooltip_tween.tween_property(tooltip_panel, "modulate", Color.WHITE, 0.2)
-
-# Hide tooltip with animation
-func hide_tooltip():
-	if not tooltip_panel:
-		return
-	
-	if tooltip_tween:
-		tooltip_tween.kill()
-	tooltip_tween = create_tween()
-	tooltip_tween.tween_property(tooltip_panel, "modulate", Color.TRANSPARENT, 0.15)
-	tooltip_tween.tween_callback(func(): tooltip_panel.visible = false)
-
-# Generate rich text tooltip content
-func generate_tooltip_text(upgrade: Dictionary, _effect: Dictionary) -> String:
-	return "[b]" + upgrade.get("name", "Upgrade") + "[/b]\n\n" + upgrade.get("description", "")
 
 func setup_reroll_system():
 	# Connect button signals

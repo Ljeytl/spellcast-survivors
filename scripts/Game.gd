@@ -308,6 +308,7 @@ func setup_ui():
 	typing_label = find_typing_label($UI)
 	if typing_label:
 		typing_label.text = ""  # Start with no text
+		typing_label.minimum_size_changed.connect(_fit_typing_content)
 		setup_typing_ui_style()  # Apply visual styling
 		
 		# Hide the typing UI initially (shown only when typing spells)
@@ -962,6 +963,17 @@ func hide_typing_ui():
 		# Fallback: just hide the label itself
 		typing_label.visible = false
 	
+
+func _fit_typing_content():
+	var area = typing_label.get_parent() as ScrollContainer
+	var box = area.get_parent() as Control
+	box.size.y = clampf(typing_label.get_minimum_size().y + 40.0, 120.0, get_viewport_rect().size.y * 0.35)
+	position_typing_ui_upper_screen()
+	_scroll_typing_to_end.call_deferred()
+
+func _scroll_typing_to_end():
+	var area = typing_label.get_parent() as ScrollContainer
+	area.scroll_vertical = int(area.get_v_scroll_bar().max_value)
 
 func position_typing_ui_upper_screen():
 	if not typing_label:
