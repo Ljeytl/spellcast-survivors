@@ -111,12 +111,12 @@ func _process(_delta):
 		layout()
 	var typing = game.get_node("UI/HUD/TypingPanel")
 	for supplemental in [passive_label, focus_label, focus_bar]:
-		supplemental.visible = not (typing.visible and typing.get_global_rect().intersects(supplemental.get_global_rect()))
+		supplemental.visible = game.interface_debug and not (typing.visible and typing.get_global_rect().intersects(supplemental.get_global_rect()))
 	var manager = game.spell_manager
 	if game.current_state == game.GameState.PLAYING and not manager.is_typing:
 		feedback_remaining = maxf(0, feedback_remaining - _delta)
 	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Mana Bolt fires automatically\nClick a spell or press 1–5, then type · Space chooses any learned spell"
-	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing
+	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing and (game.interface_debug or feedback_remaining > 0)
 	var spells_panel = game.get_node("UI/HUD/SpellSlotsPanel")
 	guidance.size = Vector2(spells_panel.size.x, maxf(48, guidance.get_minimum_size().y))
 	guidance.position = Vector2(spells_panel.position.x, spells_panel.position.y - guidance.size.y - 8)
@@ -194,7 +194,8 @@ func layout():
 	for screen in [game.level_up_screen, game.game_over_screen]:
 		if is_instance_valid(screen):
 			var panel = screen.panel
-			panel.size = Vector2(minf(680, width - 36), minf(650, height - 36))
+			var compact_ending = screen == game.game_over_screen and not game.interface_debug
+			panel.size = Vector2(minf(560 if compact_ending else 680, width - 36), minf(360 if compact_ending else 650, height - 36))
 			panel.position = (Vector2(width, height) - panel.size) / 2
 			panel.add_theme_stylebox_override("panel", panel_style(GOLD))
 

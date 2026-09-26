@@ -33,6 +33,7 @@ func run():
 	await settle()
 	game.get_node("MonsterManager").spawn_timer.stop()
 	game.get_node("MonsterManager").set_process(false)
+	game.set_interface_debug(true)
 	var manager = game.spell_manager
 	var ui = game.get_node("GameplayReadability")
 	var hud = game.get_node("UI/HUD")

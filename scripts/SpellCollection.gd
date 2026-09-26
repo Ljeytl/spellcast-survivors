@@ -24,7 +24,7 @@ func _ready():
 	column.add_child(title)
 	preload("res://scripts/AuthoredInterface.gd").apply_heading(title)
 	var summary = Label.new()
-	summary.text = "Discovered recipes stay here. Earn each spell again during a new run."
+	summary.text = "Discoveries"
 	summary.add_theme_font_size_override("font_size", 24)
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(summary)
@@ -38,7 +38,7 @@ func _ready():
 	scroll.add_child(entries)
 	var count = 0
 	for id in preload("res://scripts/SynergyCatalog.gd").RECIPES:
-		if id not in CharacterManager.discovered_synergies:
+		if id not in get_tree().root.get_node("CharacterManager").discovered_synergies:
 			continue
 		count += 1
 		var recipe = preload("res://scripts/SynergyCatalog.gd").RECIPES[id]
@@ -51,13 +51,13 @@ func _ready():
 		var entry = Label.new()
 		entry.add_theme_font_size_override("font_size", 24)
 		entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		entry.text = recipe.requirements + "\n\n" + recipe.description + "\n\nCast: Space → " + recipe.incantation + " → Enter"
+		entry.text = "%s + %s\n%s" % [recipe.ingredients[0].replace("_", " ").capitalize(), ("Regeneration" if recipe.ingredients[1] == "life" else recipe.ingredients[1].replace("_", " ").capitalize()), preload("res://scripts/UpgradeCopy.gd").EVOLUTIONS[id]]
 		entries.add_child(entry)
 	if count == 0:
 		var empty = Label.new()
 		empty.add_theme_font_size_override("font_size", 24)
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		empty.text = "No synergies discovered yet.\nExperiment with learned spells and watch your level-up choices."
+		empty.text = "No discoveries yet."
 		entries.add_child(empty)
 	var back = Button.new()
 	back.text = "BACK"

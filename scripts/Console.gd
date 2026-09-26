@@ -15,6 +15,8 @@ var game_node: Node2D = null
 
 # Available console commands
 var commands: Dictionary = {
+	"ui_debug": {"description": "Toggle full interface diagnostics (F3)", "usage": "ui_debug [on/off]"},
+	"ui_details": {"description": "Show encounter, upgrade, spell, recipe and run details", "usage": "ui_details"},
 	"help": {
 		"description": "Show all available commands",
 		"usage": "help [command]"
@@ -251,7 +253,10 @@ func _ready():
 func _input(event):
 	# Toggle console with tilde key (backtick ` or tilde ~)
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_QUOTELEFT:  # Backtick/Tilde key (`/~)
+		if event.keycode == KEY_F3 and not event.echo:
+			game_node.set_interface_debug(not game_node.interface_debug)
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_QUOTELEFT:  # Backtick/Tilde key (`/~)
 			toggle_console()
 			get_viewport().set_input_as_handled()
 		elif is_console_open:
@@ -334,6 +339,11 @@ func execute_command(command_text: String):
 	var args = parts.slice(1)
 	
 	match command:
+		"ui_debug":
+			game_node.set_interface_debug(args[0] == "on" if not args.is_empty() else not game_node.interface_debug)
+			add_output("Interface diagnostics: " + str(game_node.interface_debug))
+		"ui_details":
+			add_output(game_node.interface_debug_report())
 		"help":
 			show_help(args)
 		"invincibility":
