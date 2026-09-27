@@ -64,7 +64,7 @@ func run():
 	var manager = game.spell_manager
 	var player = game.player
 	var interface = game.get_node("GameplayReadability")
-	check("WASD" in interface.guidance.text and "automatically" in interface.guidance.text, "Fresh run explains movement and automatic attack")
+	check(not interface.guidance.visible, "Fresh run keeps persistent instructions out of the HUD")
 	key(KEY_1)
 	key(KEY_B, 98)
 	key(KEY_O, 111)
@@ -96,6 +96,9 @@ func run():
 	click(game.spell_slots[0])
 	check(manager.is_typing and manager.target_spell == "bolt", "Actual owned-slot mouse click starts guarded numbered casting")
 	manager.cancel_typing()
+	check(not game.spell_slots[1].visible, "Unlearned slots stay out of player HUD")
+	game.set_interface_debug(true)
+	await settle()
 	click(game.spell_slots[1])
 	check(not manager.is_typing and manager.spells.size() == 1, "Actual empty-slot click never grants or casts spell")
 	check("Learn a spell" in interface.feedback_copy, "Empty-slot click explains acquisition")
@@ -161,8 +164,9 @@ func run():
 	await settle()
 	check(not manager.is_typing, "Offer selection does not leak Space into casting")
 	check(interface.guidance.visible and not interface.feedback_copy.is_empty(), "Applied choice gets nonmodal acknowledgement")
+	game.set_interface_debug(false)
 	game._on_upgrade_selected({"name": "Empowered Spells", "description": "+10% spell damage (Currently: +0%)", "effect": {"type": "spell_damage", "value": 0.1}})
-	check("+10% spell damage" in interface.feedback_copy and not "Currently" in interface.feedback_copy, "Acknowledgement shows applied change without stale pre-upgrade total")
+	check(interface.feedback_copy == "Empowered Spells", "Acknowledgement confirms the selected upgrade without repeating its details")
 	for geometry in [Vector2i(1280, 720), Vector2i(800, 900), Vector2i(960, 540)]:
 		root.size = geometry
 		interface.layout()

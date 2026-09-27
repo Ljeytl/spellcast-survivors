@@ -58,31 +58,17 @@ theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
-text = "[center]SPELLCAST SURVIVORS[/center]
+text = "[b]Move[/b] with WASD or the arrow keys.
 
-[b]Movement:[/b] WASD or arrow keys. Movement stops while typing.
+[b]Cast[/b] by pressing 1–5 and typing the spell shown, or press Space, type a learned spell and press Enter.
 
-[b]Spell Casting:[/b]
-• Press number keys 1-5 to queue spells
-• Type the spell name to cast it
-• Or press Space, type any learned spell, then Enter
-• Escape cancels typing; Backspace corrects mistakes
-• Discover named synergies through level-up choices
-• View discovered recipes in Spell Collection
-• Typing shares 3 seconds of slowdown across casts.
-• It refills over 10 seconds outside typing.
-• At empty, keep typing at normal world speed.
+Movement stops while typing, and slowdown is limited.
 
-[b]Spells:[/b]
-• \"bolt\" - Fast single target
-• \"regeneration\" - Healing over time
-• \"ice blast\" - Area frost damage
-• \"earth shield\" - Damage absorption
-• \"lightning arc\" - Chain lightning
-• \"meteor shower\" - Massive area damage
+Backspace corrects a mistake; Escape cancels a cast or pauses.
 
-[b]Goal:[/b] Survive 20 minutes to win!
-Enemies get stronger over time, but you level up by collecting XP orbs."
+Collect crystals to level up, learn spells and discover combinations.
+
+Survive 20 minutes to win."
 
 [node name="BackButton" type="Button" parent="HowToPlayPanel/VBoxContainer"]
 layout_mode = 2

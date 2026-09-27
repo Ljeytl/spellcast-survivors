@@ -28,6 +28,7 @@ var result_recorded: bool = false
 # Total time spent in this game session (used for survival scoring)
 var game_time: float = 0.0
 var pending_level_ups: Array[int] = []
+var interface_debug = false
 
 # Developer console system
 var console_scene = preload("res://scenes/Console.tscn")
@@ -164,6 +165,7 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot_container.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if is_unlocked else Control.CURSOR_ARROW
 	name_label.text = info.get("name", "Empty")
+	slot_container.visible = is_unlocked or interface_debug
 	name_label.modulate = Color.WHITE if is_unlocked else Color("a6b4c8")
 	# Set up the level label
 	var level_label = slot_container.get_node_or_null("LevelLabel")
@@ -185,6 +187,7 @@ func update_spell_level_display(level_label: Label, spell_name: String):
 		return
 	var rank = spell_manager.get_spell_rank(spell_name)
 	level_label.text = "Rank %d" % rank if rank > 0 else "Learn at level-up"
+	level_label.visible = interface_debug
 	level_label.add_theme_font_size_override("font_size", 14)
 	level_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	level_label.offset_top = -26
@@ -196,19 +199,25 @@ func update_spell_level_display(level_label: Label, spell_name: String):
 	level_label.modulate = Color.GOLD if rank > 0 else Color.GRAY
 
 func _resize_spell_hud():
-	var height = 112.0
+	var height = 112.0 if interface_debug else 88.0
 	for card in spell_slots:
+		if not card.visible:
+			continue
 		var name_label = card.get_node_or_null("VBox/SpellName")
 		if not name_label:
 			continue
-		var rank_height = card.get_node("LevelLabel").get_minimum_size().y
+		var rank_height = card.get_node("LevelLabel").get_minimum_size().y if interface_debug else 0.0
 		var key_height = card.get_node("VBox/KeyLabel").get_minimum_size().y
 		height = maxf(height, name_label.get_minimum_size().y + key_height + rank_height + 24.0)
 		card.get_node("VBox").offset_bottom = -rank_height - 10.0
 		card.get_node("LevelLabel").offset_top = -rank_height - 6.0
 	for card in spell_slots:
 		card.custom_minimum_size.y = height
-	get_node("UI/HUD/SpellSlotsPanel").offset_top = -height - 35.0
+	var panel = get_node("UI/HUD/SpellSlotsPanel")
+	panel.offset_top = -height - 35.0
+	var width = minf(680 if interface_debug else maxf(150, spell_manager.spells.size() * 132 + 20), $UI/HUD.size.x - 36)
+	panel.offset_left = -width / 2
+	panel.offset_right = width / 2
 
 func refresh_spell_levels():
 	for i in range(spell_slots.size()):
@@ -254,6 +263,9 @@ func update_difficulty_display():
 	if not bosses.is_empty():
 		difficulty_label.text = "%s • %d HP" % [bosses[0].encounter_name, ceili(bosses[0].current_health)]
 	difficulty_label.modulate = Color("ff8175") if not bosses.is_empty() else Color("dfbd76")
+	difficulty_label.visible = interface_debug or not bosses.is_empty()
+	timer_panel.size = Vector2(minf(340 if difficulty_label.visible else 160, hud.size.x * 0.48), 92 if difficulty_label.visible else 54)
+	timer_panel.position.x = hud.size.x - timer_panel.size.x - 18
 
 func setup_difficulty_tooltip():
 	if difficulty_tooltip:
@@ -267,7 +279,7 @@ func setup_difficulty_tooltip():
 
 # Show difficulty tooltip when hovering over timer panel
 func _on_timer_panel_mouse_entered():
-	if difficulty_tooltip and difficulty_tooltip_label:
+	if interface_debug and difficulty_tooltip and difficulty_tooltip_label:
 		update_difficulty_tooltip_content()
 		difficulty_tooltip.visible = true
 		
@@ -690,7 +702,7 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
 	else:
 		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (Currently:")[0]
-	show_gameplay_feedback(acknowledgement)
+	show_gameplay_feedback(acknowledgement if interface_debug else str(upgrade_data.get("name", "Upgrade applied")))
 	
 	if pending_level_ups.is_empty():
 		change_state(GameState.PLAYING)
@@ -1173,3 +1185,32 @@ func toggle_invincibility():
 		
 		var status = "ON" if not current_invincible else "OFF"
 		# Invincibility toggled silently
+
+func set_interface_debug(enabled: bool):
+	interface_debug = enabled
+	difficulty_tooltip.visible = false
+	update_difficulty_display()
+	update_spell_slot_lock_status()
+	if is_instance_valid(level_up_screen):
+		level_up_screen.update_upgrade_displays()
+	if is_instance_valid(game_over_screen) and not game_over_screen.last_stats.is_empty():
+		game_over_screen.display_stats(game_over_screen.last_stats)
+	if has_node("GameplayReadability"):
+		$GameplayReadability.layout()
+
+func interface_debug_report() -> String:
+	update_difficulty_tooltip_content()
+	var lines: Array[String] = [difficulty_tooltip_label.text, "PLAYER STATS", JSON.stringify({"spell_damage": player.spell_damage_multiplier, "attack_speed": player.cast_speed_multiplier, "move_speed": player.movement_speed_multiplier, "max_health": player.max_health, "pickup_range": player.xp_range_multiplier}, "  ")]
+	lines.append("UPGRADE DETAILS")
+	for card in level_up_screen.current_upgrade_pool:
+		lines.append(str(card.name) + ": " + str(card.description))
+	lines.append("SPELL DETAILS")
+	for id in spell_manager.spell_catalog:
+		var info = spell_manager.spell_catalog[id]
+		lines.append(str(info.name) + ": " + str(info.get("role", "")))
+	lines.append("SYNERGY DETAILS")
+	for recipe in preload("res://scripts/SynergyCatalog.gd").RECIPES.values():
+		lines.append(recipe.name + ": " + recipe.requirements + " " + recipe.description)
+	if not game_over_screen.last_stats.is_empty():
+		lines.append("LAST RUN\n" + JSON.stringify(game_over_screen.last_stats, "  "))
+	return "\n".join(lines)
