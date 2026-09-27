@@ -29,6 +29,7 @@ var typing_slowdown_remaining: float = 3.0
 var _scale_change_frame: int = -1
 var _scale_before_change: float = 1.0
 var space_casting = false
+var last_cast_failure: String = ""
 
 const MAX_EQUIPPED_SPELLS = 6
 const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
@@ -252,9 +253,7 @@ func handle_typing_input(event: InputEventKey):
 
 func attempt_cast():
 	if current_typing_text == target_spell:
-		cast_spell()
-		# Play successful cast completion sound
-		if AudioManager:
+		if cast_spell() and AudioManager:
 			AudioManager.on_typing_complete()
 	else:
 		var feedback = "Keep typing" if target_spell.begins_with(current_typing_text) else "Mismatch"
@@ -263,31 +262,25 @@ func attempt_cast():
 		if AudioManager:
 			AudioManager.on_typing_error()
 
-func cast_spell():
-	if spell_queue.size() == 0:
-		return
-	
-	var spell_data = spell_queue.pop_front()
+func cast_spell() -> bool:
+	last_cast_failure = ""
+	if spell_queue.is_empty():
+		return false
+	var spell_data = spell_queue[0]
 	var spell_name = spell_data["name"]
-	var slot = spell_data["slot"]
-	
-	# Update last cast time
+	if not cast_spell_by_type(spell_data["slot"]):
+		if not last_cast_failure.is_empty() and game_manager:
+			game_manager.update_typing_display(current_typing_text + " · " + last_cast_failure)
+		return false
+	spell_queue.pop_front()
 	last_spell_cast_time = casting_clock
-	
-	# Play spell casting sound
 	if AudioManager:
 		AudioManager.play_spell_sound(spell_name)
-	
 	spell_cast.emit(spell_name)
-	
-	# Notify game manager about spell cast
 	if game_manager and game_manager.has_method("increment_spells_cast"):
 		game_manager.increment_spells_cast()
-	
-	# Cast the appropriate spell type
-	cast_spell_by_type(slot)
-	
 	end_typing()
+	return true
 
 func cancel_typing():
 	spell_queue.clear()
@@ -419,9 +412,10 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 		projectile.queue_free()  # Clean up if we can't add it
 
 # Main spell casting dispatcher
-func cast_spell_by_type(slot: int):
+func cast_spell_by_type(slot: int) -> bool:
+	last_cast_failure = ""
 	if not player or not is_spell_unlocked(slot):
-		return
+		return false
 	
 	var spell_info = get_spell_info(slot)
 	var spell_type = spell_info["type"]
@@ -430,7 +424,7 @@ func cast_spell_by_type(slot: int):
 		"life_bolt":
 			cast_life_bolt(slot)
 		"piercing", "plague", "field", "orbit", "beam", "trap", "spirit", "trail", "returning":
-			cast_build_spell(slot)
+			return cast_build_spell(slot)
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
 		"heal":
@@ -447,6 +441,7 @@ func cast_spell_by_type(slot: int):
 			cast_bouncing_bolt(slot)
 		"multi_aoe":
 			cast_meteor_shower_spell(slot)
+	return true
 
 # Individual spell implementations
 func cast_bolt_spell(slot: int):
@@ -1019,9 +1014,10 @@ func attempt_freeform_cast():
 		if AudioManager:
 			AudioManager.on_typing_complete()
 	elif is_typing:
-		game_manager.update_typing_display(current_typing_text + " · Spell unavailable in this run")
+		game_manager.update_typing_display(current_typing_text + " · " + (last_cast_failure if not last_cast_failure.is_empty() else "Spell unavailable in this run"))
 
 func cast_freeform_spell(spell_name: String) -> bool:
+	last_cast_failure = ""
 	var slot = find_cast_spell_slot(spell_name)
 	if not is_spell_unlocked(slot):
 		if slot in spells:
@@ -1029,8 +1025,7 @@ func cast_freeform_spell(spell_name: String) -> bool:
 		return false
 	spell_queue.clear()
 	queue_spell(slot)
-	cast_spell()
-	return true
+	return cast_spell()
 
 func cast_life_bolt(slot: int):
 	var projectile = spell_projectile_scene.instantiate()
@@ -1198,14 +1193,17 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 			return prefix + damage + ", +1 meteor"
 	return prefix + damage
 
-func cast_build_spell(slot: int):
+func cast_build_spell(slot: int) -> bool:
 	var info = get_spell_info(slot).duplicate(true)
+	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
+	if info.type == "plague" and target == null:
+		last_cast_failure = "No target in range"
+		return false
 	info.projectile_speed_multiplier = player.projectile_speed_multiplier
 	var tactical = info.type in ["beam", "trap", "spirit", "trail", "returning"]
 	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return (effect.info.type == info.type if tactical else effect.info.id == info.id) and not effect.is_queued_for_deletion())
 	if active.size() >= int(info.get("active_limit", 3)):
 		active[0].queue_free()
-	var target = get_closest_enemy()
 	if tactical:
 		target = null
 		var distance = INF
@@ -1216,6 +1214,23 @@ func cast_build_spell(slot: int):
 	var effect = preload("res://scripts/TacticalSpellEffect.gd").new() if tactical else preload("res://scripts/BuildSpellEffect.gd").new()
 	effect.configure(info, calculate_spell_damage(info), player, target)
 	get_parent().add_child(effect)
+	return true
+
+func get_visible_plague_host(info: Dictionary):
+	var nearest = null
+	var nearest_distance = INF
+	var maximum_distance = maxf(0.0, float(info.get("cast_range", INF)))
+	var viewport = get_viewport().get_visible_rect()
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not _live_spell_target(enemy) or not enemy.is_visible_in_tree():
+			continue
+		if not viewport.has_point(enemy.get_global_transform_with_canvas().origin):
+			continue
+		var distance = player.global_position.distance_to(enemy.global_position)
+		if distance <= maximum_distance and distance < nearest_distance:
+			nearest = enemy
+			nearest_distance = distance
+	return nearest
 
 func _live_spell_target(target) -> bool:
 	return is_instance_valid(target) and not target.is_queued_for_deletion() and not target.get("dying") and float(target.get("current_health")) > 0.0

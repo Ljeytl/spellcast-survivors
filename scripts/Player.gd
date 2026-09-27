@@ -148,8 +148,11 @@ func take_damage(damage: float, source: Dictionary = {}):
 	var actual_damage = maxf(0, previous_total - health - overheal)
 	if actual_damage > 0:
 		var particles = get_parent().get("particle_manager")
-		if is_instance_valid(particles) and particles.has_method("create_hurt_effect"):
-			particles.create_hurt_effect(global_position)
+		if is_instance_valid(particles):
+			if previous_overheal > overheal and particles.has_method("create_earthshield_effect"):
+				particles.create_earthshield_effect(global_position)
+			if previous_health > health and particles.has_method("create_hurt_effect"):
+				particles.create_hurt_effect(global_position)
 		last_damage_context = source.duplicate(true)
 		last_damage_context["kind"] = source.get("kind", "unknown")
 		last_damage_context["damage"] = actual_damage
@@ -164,7 +167,8 @@ func take_damage(damage: float, source: Dictionary = {}):
 	health_changed.emit(health, max_health, overheal)
 
 	# Trigger visual and camera effects
-	flash_damage()        # Make player sprite flash red
+	if previous_health > health:
+		flash_damage()
 	player_damaged.emit() # Trigger camera shake in Game.gd
 
 	# Check if player has died
