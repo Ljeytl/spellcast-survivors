@@ -10,6 +10,7 @@ var endpoint = Vector2.ZERO
 var followed: WeakRef
 var mode = "burst"
 var tint = Color.WHITE
+var particle_size = 25.0
 
 func _ready():
 	add_to_group("effect_bursts")
@@ -39,7 +40,7 @@ func _draw():
 		"link":
 			draw_line(Vector2.ZERO, endpoint, Color(art.INK, opacity), 4)
 			draw_line(Vector2.ZERO, endpoint, Color(art.PALETTE.get(kind, art.PALETTE.plague), opacity), 2)
-			art.stamp(self, kind, endpoint * progress, Vector2.ONE * 14)
+			art.stamp(self, kind, endpoint * progress, Vector2.ONE * particle_size)
 		"directional":
 			if half_angle > 0:
 				for i in range(9):
@@ -48,10 +49,10 @@ func _draw():
 			else:
 				art.beam(self, Vector2.ZERO, direction * radius, 3, opacity)
 		"follow":
-			art.wreath(self, kind, Vector2.ZERO, radius, 0, opacity, 6)
+			art.wreath(self, kind, Vector2.ZERO, radius, 0, opacity, 6, particle_size)
 		"warning":
 			draw_arc(Vector2.ZERO, radius, 0, TAU, 48, Color("f27367"), 2)
 			draw_line(Vector2(-6, 0), Vector2(6, 0), Color("f1dfaf"), 2)
 			draw_line(Vector2(0, -6), Vector2(0, 6), Color("f1dfaf"), 2)
 		_:
-			art.wreath(self, kind, Vector2.ZERO, radius * progress, 0, opacity, 5)
+			art.wreath(self, kind, Vector2.ZERO, radius * progress, 0, opacity, 5, particle_size)

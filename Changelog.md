@@ -4,6 +4,14 @@
 - Release estimates on misses, impact, expiry, despawn and pooled reuse. Add reusable group-coverage selection for downstream area spells and document the entire implemented library targeting policy.
 - Verify real enemies and typed casts with a reservation-disabled negative control. Future: integrate ground-area selection and judge crowded-scene gameplay with the effects pass.
 
+## 2026-09-26 — Readability and world scale candidate
+
+- Enlarge player/enemy sprites 1.75x and camera zoom 1.2x; preserve background world sizes and collision footprints. Fit staff orbit and enemy health bars to the larger bodies.
+- Keep incantations on one row with readable 48px keycaps, a wider prompt, and horizontal overflow that follows the latest key. Preserve placement, backspace, cancellation and completion feedback.
+- Replace XP pulsing with steady crystals roughly twice the prior apparent size. Blue is below 25 XP, green is 25–99, and purple is 100+; stored-value changes immediately refresh appearance for consolidation.
+- Enlarge cosmetic burst particles independently of affected-area geometry. Keep particle counts unchanged.
+- Verification: isolated native rendering plus mechanical regressions; final integrated crowded readability and player judgment of sight range remain required.
+
 ## 2026-09-26 — Second playtest pass specification
 
 - Consolidate targeting, spell payoff, shared AoE/fire visuals, scale, typing, particles, XP consolidation, minutes 3–8 pressure, contact recoil and boss rewards in `docs/PLAYTEST_PASS_2_SPEC.md`.

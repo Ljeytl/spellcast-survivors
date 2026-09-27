@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var orbit_radius = 54.0
+@export var orbit_radius = 94.5
 @export var angular_speed = 3.0
 @export var angle_deadzone = 0.08
 var orbit_angle = -0.7
@@ -13,7 +13,7 @@ func _ready():
 	staff = Sprite2D.new()
 	staff.texture = preload("res://assets/typecast/Main Character/Wizard Staff 1.png")
 	staff.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	staff.scale = Vector2(1.5, 1.5)
+	staff.scale = Vector2(2.625, 2.625)
 	add_child(staff)
 	update_orbit(0.0)
 
