@@ -126,14 +126,24 @@ func check_boss_milestones():
 			boss_arrived.emit(milestone.name)
 			print("Boss milestone: %ds, %s" % [at_time, milestone.name])
 
+func spawn_phase_interval(at_time: float) -> float:
+	var scaling = encounter_config.get("scaling", {})
+	var interval = maxf(0.01, float(scaling.get("opening_spawn_interval", 3.0)))
+	var latest_start = -INF
+	for phase in scaling.get("spawn_phases", []):
+		if not phase is Dictionary:
+			continue
+		var start = float(phase.get("start", -1.0))
+		var candidate = float(phase.get("interval", 0.0))
+		if is_finite(start) and is_finite(candidate) and start >= 0.0 and start <= at_time and start > latest_start and candidate > 0.0:
+			latest_start = start
+			interval = candidate
+	return interval
+
 func calculate_spawn_interval() -> float:
-	var scaling = encounter_config.scaling
-	var interval = float(scaling.opening_spawn_interval)
-	for phase in scaling.spawn_phases:
-		if game_time >= float(phase.start):
-			interval = float(phase.interval)
-	var elapsed = maxf(0.0, game_time - float(scaling.spawn_growth_start_seconds))
-	return maxf(float(scaling.minimum_spawn_interval), interval / pow(1.28, elapsed / 180.0))
+	var scaling = encounter_config.get("scaling", {})
+	var elapsed = maxf(0.0, game_time - float(scaling.get("spawn_growth_start_seconds", 180.0)))
+	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.6))), spawn_phase_interval(game_time) / pow(1.28, elapsed / 180.0))
 
 func get_current_difficulty_level() -> int:
 	return mini(4, int(game_time / 300.0) + 1)
@@ -153,10 +163,13 @@ func add_game_time(additional_time: float):
 func advance_time(delta: float):
 	if run_finished:
 		return
+	var previous_phase = spawn_phase_interval(game_time)
 	game_time = clampf(game_time + delta, 0.0, float(encounter_config.run_duration))
 	if game_time >= float(encounter_config.run_duration):
 		run_finished = true
 		spawn_timer.stop()
 		run_completed.emit()
 		return
+	if not is_equal_approx(previous_phase, spawn_phase_interval(game_time)) and not spawn_timer.is_stopped():
+		spawn_timer.start(calculate_spawn_interval())
 	check_boss_milestones()

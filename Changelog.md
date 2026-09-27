@@ -227,3 +227,10 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Kept early enemies at two passive hits for grunts and one for runners; introduced runners after twelve seconds, below player speed. Health, contact damage, ranged gates, boss times and immediate twenty-minute victory remain unchanged.
 - Added isolated bot modes for idle, movement only, stationary casting and active play, with first-damage telemetry and checks against mode contamination.
 - Added deterministic checks for the pressure/recovery transitions. Full behavioral evidence and remaining balance limitations accompany this change.
+
+### Opening pressure timer follow-up
+
+- Spawn phase boundaries restart the running timer with the new interval, so pressure/recovery changes no longer wait for the previous deadline. Stopped timers remain stopped.
+- Unsorted phase rows use the latest valid start; invalid/nonpositive rows are ignored and missing configuration retains safe baseline defaults. Pressure values remain provisional.
+- Bot reports must match the requested behavior mode.
+- Verified 7 real-timer assertions, 44 balance assertions and 8 Python report tests. Removing the boundary update makes four timer assertions fail.

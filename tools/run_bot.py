@@ -9,7 +9,9 @@ import uuid
 from pathlib import Path
 
 
-def validate_report(result):
+def validate_report(result, expected_mode=None):
+    if expected_mode is not None and result.get("behavior_mode") != expected_mode:
+        raise ValueError("Reported bot behavior differs from requested mode")
     mode = result.get("behavior_mode", "active")
     if mode not in {"idle", "movement", "casting", "active"}:
         raise ValueError("Invalid bot behavior mode")
@@ -102,7 +104,7 @@ def main():
             result.update(revision=revision, dirty_source=dirty, accelerated=args.fast, fixed_fps=60 if args.fast else None, runtime_errors=errors, command=command)
             report.write_text(json.dumps(result, indent=2) + "\n")
             print(f"Seed {seed}: {result['outcome']} at {result['survival_seconds']:.1f}s, level {result['level']}, {result['successful_casts']} casts", flush=True)
-            validate_report(result)
+            validate_report(result, args.mode)
 
 
 if __name__ == "__main__":
