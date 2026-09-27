@@ -1,3 +1,7 @@
+## 2026-09-27 — Enemy visibility adjustment
+
+- Enlarge every enemy and boss visual by 15%, preserving the individual size hierarchy. Existing fitted health bars and boss labels follow the artwork; camera, wizard, scenery, particles and collision sizes stay at the reviewed settings.
+
 ## 2026-09-27 — Reviewed world proportions
 
 - Set camera zoom to1.5 and restore baseline wizard, staff and scenery proportions. Keep floor detail, readable keycaps and gameplay collision/spell areas unchanged.

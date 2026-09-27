@@ -34,7 +34,7 @@ func run():
 		enemy.set_physics_process(false)
 		var sprite = enemy.get_node("Sprite2D")
 		var used = sprite.texture.get_image().get_used_rect()
-		check(absf(used.size.x * sprite.scale.x * enemy.scale.x - widths[id]) < 0.1, "Authored body width: " + id)
+		check(absf(used.size.x * sprite.scale.x * enemy.scale.x - widths[id] * 1.15) < 0.1, "Authored body width: " + id)
 		check(is_equal_approx(enemy.scale.x, definition.size) and enemy.get_node("CollisionShape2D").shape.size == Vector2(40,40), "Variant collision scale unchanged: " + id)
 		check(enemy.current_health == definition.health and enemy.speed == definition.speed and enemy.damage == definition.damage, "Variant gameplay stats unchanged: " + id)
 		var top = (used.position.y - sprite.texture.get_height() / 2.0) * sprite.scale.y
@@ -46,7 +46,7 @@ func run():
 		var enemy = manager.spawn_monster(definition, true, true)
 		var sprite = enemy.get_node("Sprite2D")
 		var width = sprite.texture.get_image().get_used_rect().size.x * sprite.scale.x * enemy.scale.x
-		check(absf(width - {"juggernaut":140,"charger":125,"shieldbearer":155}[id]) < 0.1, "Boss has deliberate silhouette: " + id)
+		check(absf(width - {"juggernaut":140,"charger":125,"shieldbearer":155}[id] * 1.15) < 0.1, "Boss has deliberate silhouette: " + id)
 		check(is_equal_approx(enemy.scale.x, definition.size * 1.7) and enemy.current_health == definition.health * 12, "Boss gameplay size/HP unchanged: " + id)
 		var label = enemy.get_node("BossLabel")
 		check(label.get_global_transform().get_scale().is_equal_approx(Vector2.ONE) and label.get_theme_font_size("font_size") == 16, "Boss names have consistent effective text size: " + id)
