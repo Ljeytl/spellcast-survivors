@@ -304,3 +304,5 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Balance regression now waits for bounded observable level-up transitions instead of fixed timer delays, preserving the queued-choice and duplicate-input assertions under headless scheduling.
 
 - Follow-up: Ice Blast now uses a forward 90-degree cone with matching damage/control bounds; Lightning is one direct strike. Personal stone protection follows the player through the effects API; heal/hurt visuals respond to actual health changes.
+
+- Integrated healing seeds and bouncing-projectile effect contracts for regression validation. Migrated old replacement/shared-reserve tests to additive bonuses and fresh per-cast timing; coalesce healing feedback to one burst per 150 ms while preserving all health restoration.

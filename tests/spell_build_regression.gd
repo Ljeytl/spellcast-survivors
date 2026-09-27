@@ -42,6 +42,8 @@ func effect_for(game, id):
 func run():
 	root.get_node("CharacterManager").reset_progression()
 	for recipe_id in preload("res://scripts/SynergyCatalog.gd").RECIPES:
+		if not preload("res://scripts/SynergyCatalog.gd").RECIPES[recipe_id].get("enabled", true):
+			continue
 		var game = load("res://scenes/Game.tscn").instantiate()
 		root.add_child(game)
 		current_scene = game
@@ -52,8 +54,8 @@ func run():
 		game.player.set_physics_process(false)
 		var manager = game.spell_manager
 		manager.set_process(false)
-		check(manager.spell_catalog.size() == 15, "Fifteen implemented base spell choices")
-		check(game.spell_slots.size() == 5, "HUD has five active slots")
+		check(manager.spell_catalog.size() == 16, "Sixteen implemented base spell choices")
+		check(game.spell_slots.size() == 6, "HUD has six active slots")
 		var before = manager.spells.duplicate(true)
 		check(not manager.learn_spell(recipe_id) and manager.spells == before, "Ineligible evolution is atomic")
 		var recipe = manager.Synergies.RECIPES[recipe_id]
@@ -65,36 +67,37 @@ func run():
 		manager.upgrade_spell(primary)
 		var slot = manager.find_spell_slot(primary)
 		for id in manager.BASE_SPELL_IDS:
-			if manager.spells.size() < 5:
+			if manager.spells.size() < 6:
 				manager.learn_spell(id)
-		check(manager.spells.size() == 5, "Loadout reaches five")
-		check(manager.get_learnable_spell_cards().all(func(card): return card.effect.spell in manager.Synergies.RECIPES), "Full kit only offers evolutions, never sixth spell")
+		check(manager.spells.size() == 6, "Loadout reaches six")
+		check(manager.get_learnable_spell_cards().all(func(card): return card.effect.spell in manager.Synergies.RECIPES), "Full kit only offers evolutions, never seventh primary spell")
 		manager.queue_spell(slot)
 		manager.start_typing()
 		manager.typing_slowdown_remaining = 1.0
 		check(manager.learn_spell(recipe_id), "Full kit can evolve")
-		check(not manager.is_typing and manager.spell_queue.is_empty(), "Evolution cancels stale primary typing")
-		check(manager.typing_slowdown_remaining == 1.0, "Evolution does not refill slowdown")
-		check(manager.spells.size() == 5 and manager.spells[slot].id == recipe_id, "Evolution retains occupied slot")
-		check(manager.get_spell_rank(recipe_id) == 3, "Evolution retains primary rank")
-		check(manager.get_spell_rank(primary) == 0, "Primary no longer equipped")
-		check(not manager.learn_spell(primary), "Primary cannot be reacquired")
-		check(not manager.cast_freeform_spell(primary), "Primary cannot cast through freeform")
-		check(manager.get_spell_rank(recipe.ingredients[1]) > 0, "Catalyst retained")
+		check(manager.is_typing, "Additive learning preserves an ingredient cast")
+		check(manager.typing_slowdown_remaining == 1.0, "Learning does not reset current cast allowance")
+		check(manager.spells.size() == 6 and manager.spells[slot].id == primary, "Bonus preserves occupied primary slot")
+		check(manager.get_spell_rank(recipe_id) == 1, "Bonus starts at rank one")
+		check(manager.get_spell_rank(primary) == 3, "Ingredient rank preserved")
+		check(not manager.learn_spell(primary), "Duplicate ingredient rejected")
+		check(manager.find_cast_spell_slot(manager.spells[slot].display_name) == slot, "Ingredient remains castable")
+		check(manager.get_spell_rank(recipe.ingredients[1]) > 0, "Both ingredients retained")
 		manager.upgrade_spell(recipe_id)
-		check(manager.get_spell_rank(recipe_id) == 4, "Evolved spell still upgrades")
+		check(manager.get_spell_rank(recipe_id) == 2, "Bonus ranks independently")
 		game.level_up_screen.generate_upgrade_options({}, 5)
-		check(game.level_up_screen.current_upgrade_pool.any(func(card): return card.key == "rank:" + recipe_id), "Evolved rank available in real pool")
+		check(game.level_up_screen.current_upgrade_pool.any(func(card): return card.key == "rank:" + recipe_id), "Bonus rank available in real pool")
+		manager.cancel_typing()
 		game.update_spell_slot_lock_status()
 		game.update_spell_slot_lock_status()
-		check(game.spell_slots[slot - 1].get_node("VBox/SpellName").text == recipe.name, "HUD names equipped evolution")
-		check(game.spell_slots[slot - 1].get_node("LevelLabel").text == "Rank 4", "HUD displays inherited upgraded rank")
+		check(game.spell_slots[slot - 1].get_node("VBox/SpellName").text == manager.spells[slot].name, "HUD retains ingredient name")
+		check(not game.spell_slots[slot - 1].get_node("LevelLabel").visible, "Normal HUD omits rank detail")
 		for i in range(6):
 			await process_frame
 		for card in game.spell_slots:
 			var name_rect = card.get_node("VBox/SpellName").get_global_rect()
 			var rank_rect = card.get_node("LevelLabel").get_global_rect()
-			check(name_rect.end.y <= rank_rect.position.y, "Equipped spell name reserves space above rank")
+			check(not card.get_node("LevelLabel").visible or name_rect.end.y <= rank_rect.position.y, "Visible rank reserves space below spell name")
 			check(card.get_global_rect().encloses(name_rect), "Wrapped equipped name stays inside its card")
 			check(game.get_node("UI/HUD/SpellSlotsPanel").get_global_rect().encloses(card.get_global_rect()), "HUD panel contains all equipped cards")
 		check(game.spell_slots[slot - 1].find_children("SlotBackground", "Panel", false, false).size() == 1, "HUD refresh reuses background")
@@ -136,7 +139,7 @@ func run():
 	effect.advance(0.3)
 	check(c.current_health < 1000, "Meteor Lance splash reaches off-line enemy")
 	manager.learn_spell("plague_seed")
-	manager.learn_spell("life")
+	manager.learn_spell("regeneration")
 	manager.learn_spell("soul_bloom")
 	game.player.health = 20.0
 	manager.cast_freeform_spell("soul bloom")
@@ -233,15 +236,16 @@ func run():
 	var active = get_nodes_in_group("build_spell_effects").filter(func(item): return item.info.id == "arcane_orbit" and not item.is_queued_for_deletion())
 	check(active.size() == 3, "Repeated casts retain at most three active effects")
 	manager.spells.clear()
+	manager.bonus_spells.clear()
 	manager.acquired_spells.clear()
 	manager.evolved_ingredients.clear()
 	manager.learn_spell("bolt")
 	manager.unlock_all_spells()
-	check(manager.spells.size() == 5, "Public unlock helper fills available slots")
-	check(manager.get_unlocked_spell_names() == ["mana_bolt", "bolt", "life", "ice_blast", "earth_shield", "lightning_arc"], "Public unlock helper fills in deterministic catalog order")
+	check(manager.spells.size() == 6, "Public unlock helper fills available slots")
+	check(manager.get_unlocked_spell_names() == ["mana_bolt", "bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning_arc"], "Public unlock helper fills in deterministic catalog order")
 	manager.learn_spell("life_bolt")
 	manager.unlock_all_spells()
-	check(manager.spells.size() == 5 and manager.spells[1].id == "life_bolt", "Repeated unlock respects cap and preserves evolution")
+	check(manager.spells.size() == 6 and manager.spells[1].id == "bolt" and manager.bonus_spells.size() == 1, "Repeated unlock respects cap and preserves bonus")
 	manager.last_spell_cast_time = manager.casting_clock
 	var space = InputEventKey.new()
 	space.keycode = KEY_SPACE
