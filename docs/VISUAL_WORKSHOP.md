@@ -40,3 +40,13 @@ Publish catalog, index, PNG posters, MP4s and GIFs under builds/current/spell-ga
 - Gallery: filters/counts, empty search, visible-loop playback, modal pause/close/Escape, frame steps, seek, speed, GIF download; offscreen previews pause.
 - Lifecycle: desktop/narrow, reload defaults, integrated-source provenance. Books have separate acquisition/reset/menu regressions.
 - Negative control: native fixture deliberately compounds scale and must fail that exact invariant.
+
+## Projectile body sizing and impact contract
+
+Projectile size uses `ProjectileVisual` to scale drawings, never the physics node. Bolts, the Ice Blast shard fan, Ember/Meteor Lance, Cross Blade, Seeker, Arcane Orbit bodies, Plague/Soul Bloom spores and falling meteor rocks all opt into this contract. Orbit centers, cast reach, movement speed, collisions, meteor warning rings and explosion radii remain authored values. Particle size controls decorative fragments separately, including the directional particle demonstration.
+
+Ice Blast applies damage, slow and knockback when a moving shard sweeps across an enemy hurtbox. A shard is consumed on contact; an enemy can take damage only once from one fan. Plague spores attach infection markers only on arrival. Both initial and spread spores travel, including death transfers; pending spores count toward the eight-host cap. Invalidated targets can redirect to another eligible live host within the original acquisition radius, or expire.
+
+Release visual checks should pause Ice Blast before its first contact (no red flashes), then step into contact; compare small/large projectile settings for each registered family while keeping meteor area outlines and orbit paths fixed. Check plague flight, marker arrival, first damage tick and death-spread flight separately.
+
+Native draw verification: after building the staging project, run Godot with `--path builds/workshop-project --script tools/workshop/TestProjectileRendering.gd`. It compares frozen 1x and 2.5x renders for thirteen projectile spell bodies; `-- --known-bad-sizing` disables the size response and must fail. Images are saved under staging `builds/comparison/`.

@@ -48,7 +48,7 @@ func _draw():
 				preload("res://scripts/AreaArt.gd").cone(self, radius, direction.angle(), half_angle, Color("9fe9ee"), opacity)
 				for i in range(9):
 					var heading = direction.rotated(lerpf(-half_angle, half_angle, i / 8.0))
-					art.stamp(self, kind, heading * radius * progress, Vector2.ONE * 20, Color(1, 1, 1, opacity), heading.angle())
+					art.stamp(self, kind, heading * radius * progress, Vector2.ONE * particle_size, Color(1, 1, 1, opacity), heading.angle())
 			else:
 				art.beam(self, Vector2.ZERO, direction * radius, 3, opacity)
 		"follow":

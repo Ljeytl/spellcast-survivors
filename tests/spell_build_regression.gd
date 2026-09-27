@@ -144,7 +144,7 @@ func run():
 	game.player.health = 20.0
 	manager.cast_freeform_spell("soul bloom")
 	effect = effect_for(game, "soul_bloom")
-	effect.advance(0.5)
+	effect.advance(1.25)
 	check(game.player.health > 20.0 and game.player.health <= 22.0, "Soul Bloom heals only from actual damage")
 	check(effect.infections.size() > 1, "Infection spreads to neighbor")
 	for i in range(15):

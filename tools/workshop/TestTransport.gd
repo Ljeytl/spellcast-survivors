@@ -45,7 +45,7 @@ func run():
 	await settled(workshop)
 	check(workshop.playing and not paused, "select after pause starts playback")
 	check(workshop.fixture.selected == "ice_blast", "Ice Blast actually selected")
-	check(not get_nodes_in_group("effect_bursts").is_empty(), "Ice Blast spawns visible effect")
+	check(not get_nodes_in_group("ice_blasts").is_empty(), "Ice Blast spawns visible effect")
 	send(workshop, {"action":"step"})
 	send(workshop, {"action":"select", "id":"bolt"})
 	await settled(workshop)

@@ -57,6 +57,25 @@ func run():
 	fixture.apply_sizes()
 	var effect = fixture.game.particle_manager.get_children()[-1]
 	check(is_equal_approx(effect.particle_size, float(effect.get_meta("preview_original_particle")) * 2), "particle stamp multiplier")
+	fixture.settings.comparison = false
+	fixture.settings.projectile = 1.0
+	for spell_id in ["bolt", "mana_bolt", "lightning_bolt", "life_bolt", "ice_blast", "ember_lance", "meteor_lance", "returning_blade", "seeking_spirit", "arcane_orbit", "plague_seed", "soul_bloom", "meteor_shower"]:
+		await fixture.setup(root, spell_id)
+		var visuals = get_nodes_in_group("projectile_visuals").filter(func(node): return not node.is_queued_for_deletion())
+		check(not visuals.is_empty(), spell_id + " registers visible projectile bodies")
+		var geometry = []
+		for node in visuals:
+			geometry.append({"node": node, "transform": node.transform, "radius": node.get("effect_radius"), "info": node.get("info").duplicate(true) if node.get("info") is Dictionary else {}, "reach": node.get("reach")})
+		fixture.settings.projectile = 2.0
+		fixture.apply_sizes()
+		if spell_id == "meteor_shower" and "--known-bad-area-scale" in OS.get_cmdline_user_args():
+			visuals[0].scale *= 2
+		for saved in geometry:
+			var node = saved.node
+			check(preload("res://scripts/ProjectileVisual.gd").size(node, Vector2(32, 24)) == Vector2(64, 48), spell_id + " projectile drawing contract scales its body")
+			check(node.transform == saved.transform and node.get("effect_radius") == saved.radius and node.get("reach") == saved.reach and (node.get("info") == saved.info if node.get("info") is Dictionary else true), spell_id + " world transform area radius orbit and reach remain unchanged")
+		fixture.settings.projectile = 1.0
+		fixture.apply_sizes()
 	if "--known-bad-compounding" in OS.get_cmdline_user_args():
 		fixture.settings.wizard = 2.0
 		fixture.apply_sizes()
