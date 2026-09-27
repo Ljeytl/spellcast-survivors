@@ -9,7 +9,16 @@ import uuid
 from pathlib import Path
 
 
-def validate_report(result):
+def validate_report(result, expected_mode=None):
+    if expected_mode is not None and result.get("behavior_mode") != expected_mode:
+        raise ValueError("Reported bot behavior differs from requested mode")
+    mode = result.get("behavior_mode", "active")
+    if mode not in {"idle", "movement", "casting", "active"}:
+        raise ValueError("Invalid bot behavior mode")
+    if mode in {"idle", "movement"} and result.get("successful_casts", 0) != 0:
+        raise ValueError("Noncasting mode performed active casts")
+    if mode in {"idle", "casting"} and result.get("distance_walked", 0) > 1.0:
+        raise ValueError("Stationary mode moved")
     outcome = result.get("outcome")
     if outcome not in {"death", "victory", "time_limit", "watchdog"}:
         raise ValueError("Missing or invalid outcome")
@@ -55,6 +64,7 @@ def main():
     parser.add_argument("--seeds", type=int, nargs="+", default=[11])
     parser.add_argument("--seconds", type=float, default=1200)
     parser.add_argument("--headless", action="store_true")
+    parser.add_argument("--mode", choices=["idle", "movement", "casting", "active"], default="active")
     parser.add_argument("--fast", action="store_true", help="Fixed 60 FPS simulation without wall-clock pacing; not identical to realtime")
     parser.add_argument("--output", type=Path, default=Path("builds/bot"))
     args = parser.parse_args()
@@ -85,7 +95,7 @@ def main():
                 command += ["--headless"]
             if args.fast:
                 command += ["--fixed-fps", "60", "--disable-render-loop"]
-            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}"]
+            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}"]
             print(f"Running seed {seed}; results: {output}", flush=True)
             with (output / f"{seed}.log").open("w") as log:
                 subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=3700)
@@ -94,7 +104,7 @@ def main():
             result.update(revision=revision, dirty_source=dirty, accelerated=args.fast, fixed_fps=60 if args.fast else None, runtime_errors=errors, command=command)
             report.write_text(json.dumps(result, indent=2) + "\n")
             print(f"Seed {seed}: {result['outcome']} at {result['survival_seconds']:.1f}s, level {result['level']}, {result['successful_casts']} casts", flush=True)
-            validate_report(result)
+            validate_report(result, args.mode)
 
 
 if __name__ == "__main__":

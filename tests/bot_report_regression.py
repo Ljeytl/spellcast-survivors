@@ -46,6 +46,23 @@ class ReportTests(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 runner.validate_report(self.report(**(baseline | change)))
 
+    def test_requested_mode_matches_report(self):
+        runner.validate_report(self.report(behavior_mode="idle", successful_casts=0, distance_walked=0), "idle")
+        for reported in ("active", None):
+            with self.assertRaises(ValueError):
+                runner.validate_report(self.report(behavior_mode=reported), "idle")
+
+    def test_behavior_modes_reject_contamination(self):
+        for mode in ("idle", "movement", "casting", "active"):
+            runner.validate_report(self.report(behavior_mode=mode, successful_casts=0, distance_walked=0))
+        for change in (dict(behavior_mode="idle", successful_casts=1),
+                       dict(behavior_mode="movement", successful_casts=1),
+                       dict(behavior_mode="casting", distance_walked=10),
+                       dict(behavior_mode="idle", distance_walked=10),
+                       dict(behavior_mode="invalid")):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                runner.validate_report(self.report(**change))
+
     def test_known_bad_reports_are_rejected(self):
         controls = [dict(outcome="victory"), dict(outcome="death"),
                     dict(save_directory="/profiles/SpellCast Survivors"),

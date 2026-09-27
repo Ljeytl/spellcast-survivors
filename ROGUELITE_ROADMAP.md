@@ -537,3 +537,8 @@ See [typed magic discussion notes](docs/CASTING_FANTASY_NOTES.md) for the moveme
 Preserve the creator’s alternative of defending a tower by assembling and throwing potions: approximately ten ingredients available, up to four or five per potion, with greater preparation time buying greater potency. The desired emotional swing is from being overwhelmed to clearing the horde through a strong combination. Input method, recipe rules, resources, movement and progression remain open; see [the expanded concept notes](docs/CASTING_FANTASY_NOTES.md#alchemist-defending-a-tower). No pivot or prototype implementation has been approved.
 
 - Casting foundation follow-up: cone geometry, direct Lightning, additive recipe tests and per-cast timing gates are implemented. Area, multicast, XP, luck, critical stats and population still need supported gameplay contracts before entering the passive offer pool.
+### Opening pressure validation — September 26, 2026
+
+The opening now uses a short pressure wave followed by recovery and later brief surges. Evaluate idle, movement-only, stationary casting and active play separately. Preserve active agency before demanding an exact death time for a kiting player. Next: repeat these behavioral comparisons after terrain, spell naming, projectile-speed upgrades and VFX integration; the changed draft pool can alter outcomes for the same seeds. Human play and longer active runs remain necessary before declaring production balance complete.
+
+- Opening pressure follow-up: phase timer transitions and requested bot mode validation are covered; rerun provisional pressure values against the integrated per-cast slowdown and spell build before final tuning.
