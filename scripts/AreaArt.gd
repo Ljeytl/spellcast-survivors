@@ -82,9 +82,9 @@ static func meteor_warning(canvas: CanvasItem, radius: float, progress: float, p
 		return
 	var descent = clampf((progress - 0.3) / 0.7, 0, 1)
 	var point = Vector2(70, -190) * (1 - descent)
-	canvas.draw_set_transform(point.round(), 0, Vector2.ONE * projectile_scale)
 	for index in range(3, 0, -1):
-		art.stamp(canvas, "ember", Vector2(index * 8, -index * 20), Vector2.ONE * (38 - index * 5))
+		art.stamp(canvas, "ember", point + Vector2(index * 8, -index * 20) * projectile_scale, Vector2.ONE * (38 - index * 5) * projectile_scale)
+	canvas.draw_set_transform(point.round(), 0, Vector2.ONE * projectile_scale)
 	var rock = PackedVector2Array([Vector2(-16, -8), Vector2(-8, -8), Vector2(-8, -16), Vector2(10, -16), Vector2(10, -8), Vector2(17, -8), Vector2(17, 10), Vector2(9, 10), Vector2(9, 17), Vector2(-10, 17), Vector2(-10, 10), Vector2(-16, 10)])
 	canvas.draw_colored_polygon(rock, Color("e88d52"))
 	rock.append(rock[0])
