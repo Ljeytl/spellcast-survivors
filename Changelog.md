@@ -4,6 +4,11 @@
 - Make successful contact hits briefly recoil enemies with weight-scaled movement and collision. The Pursuer boss dash is faster and longer with its existing windup; ordinary chargers retain their values.
 - Consolidate stationary distant offscreen XP locally without losing value or collecting moving pickups.
 - Record implementation approval and resolved choices in the shared specification.
+## 2026-09-26 — Shared spell targeting
+
+- Select useful targets for rapid and delayed Bolt, Mana Bolt, Life Bolt and Lightning Bolt attacks using expiring in-flight damage estimates. Homing attacks reacquire after target death; straight attacks retain their trajectory.
+- Release estimates on misses, impact, expiry, despawn and pooled reuse. Add reusable group-coverage selection for downstream area spells and document the entire implemented library targeting policy.
+- Verify real enemies and typed casts with a reservation-disabled negative control. Future: integrate ground-area selection and judge crowded-scene gameplay with the effects pass.
 
 ## 2026-09-26 — Second playtest pass specification
 

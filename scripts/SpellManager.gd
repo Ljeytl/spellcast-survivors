@@ -20,6 +20,8 @@ const SLOW_EFFECT_STRENGTH = 0.5
 const SLOW_EFFECT_DURATION = 3.0
 const SPELL_CAST_COOLDOWN = 0.1  # Minimum time between spell casts
 
+const Targeting = preload("res://scripts/SpellTargeting.gd")
+
 var spell_projectile_scene = preload("res://scenes/SpellProjectile.tscn")
 
 const Synergies = preload("res://scripts/SynergyCatalog.gd")
@@ -371,6 +373,7 @@ func fire_mana_bolt():
 
 # Helper function to create individual mana bolt projectiles
 func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index: int):
+	target = Targeting.select(get_tree(), player.global_position)
 	if not target or not is_instance_valid(target):
 		return
 	
@@ -454,7 +457,7 @@ func cast_bolt_spell(slot: int):
 		
 	var damage = calculate_spell_damage(spell_info)
 	
-	var closest_enemy = get_closest_enemy()
+	var closest_enemy = Targeting.select(get_tree(), player.global_position)
 	if not closest_enemy or not is_instance_valid(closest_enemy):
 		return
 	
@@ -484,6 +487,7 @@ func cast_bolt_spell(slot: int):
 		
 		# Setup projectile after it's been added to the scene
 		projectile.setup(player.global_position, direction, damage, Color.YELLOW, "bolt")
+		projectile.assign_target(closest_enemy)
 	else:
 		projectile.queue_free()  # Clean up if we can't add it
 
@@ -546,6 +550,10 @@ func cast_enhanced_bolt_spell(slot: int):
 
 # Helper function to create individual spread + homing bolt projectiles
 func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle: float, target: Node2D, damage: float, projectile_index: int):
+	target = Targeting.select(get_tree(), player.global_position)
+	if target:
+		base_direction = player.global_position.direction_to(target.global_position)
+		spread_angle = 0.0
 	if not spell_projectile_scene:
 		return
 	
@@ -588,6 +596,7 @@ func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle:
 		
 		projectile.setup(player.global_position, initial_direction, damage, projectile_color, "bolt")
 		projectile.is_homing = false
+		projectile.assign_target(target)
 	else:
 		projectile.queue_free()  # Clean up if we can't add it
 
@@ -667,7 +676,7 @@ func cast_lightning_arc_spell(slot: int):
 
 func cast_bouncing_bolt(slot: int):
 	var info = get_spell_info(slot)
-	var target = get_closest_enemy()
+	var target = Targeting.select(get_tree(), player.global_position)
 	if not _live_spell_target(target):
 		return
 	var projectile = spell_projectile_scene.instantiate()
@@ -1036,9 +1045,10 @@ func cast_life_bolt(slot: int):
 	projectile.set_meta("healing_seed_cap", 6)
 	projectile.set_meta("healing_seed_owner", weakref(player))
 	get_parent().add_child(projectile)
-	var target = get_closest_enemy()
+	var target = Targeting.select(get_tree(), player.global_position)
 	var direction = player.global_position.direction_to(target.global_position) if _live_spell_target(target) else Vector2.RIGHT
 	projectile.setup(player.global_position, direction, calculate_spell_damage(get_spell_info(slot)), Color.GREEN, "life_bolt")
+	projectile.assign_target(target)
 
 func add_healing_effect(amount: float, duration: float):
 	if amount <= 0.0 or duration <= 0.0 or not is_instance_valid(player):
@@ -1239,14 +1249,13 @@ func _delayed_mana_bolt(reference: WeakRef, damage: float, index: int):
 	if not is_inside_tree() or not is_instance_valid(player):
 		return
 	var target = reference.get_ref()
-	if _live_spell_target(target):
-		create_mana_bolt_projectile(target, damage, index)
+	create_mana_bolt_projectile(target, damage, index)
 
 func _delayed_spread_bolt(direction: Vector2, angle: float, reference: WeakRef, damage: float, index: int):
 	if not is_inside_tree() or not is_instance_valid(player):
 		return
-	var target = reference.get_ref() if reference else null
-	if reference and not _live_spell_target(target):
+	var target = Targeting.select(get_tree(), player.global_position)
+	if reference and target == null:
 		return
 	create_spread_homing_bolt_projectile(direction, angle, target, damage, index)
 
