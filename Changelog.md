@@ -325,3 +325,5 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Unsorted phase rows use the latest valid start; invalid/nonpositive rows are ignored and missing configuration retains safe baseline defaults. Pressure values remain provisional.
 - Bot reports must match the requested behavior mode.
 - Verified 7 real-timer assertions, 44 balance assertions and 8 Python report tests. Removing the boundary update makes four timer assertions fail.
+
+- Migrated seeded magic, acquisition and typing-presentation fixtures to six active slots, separate Life/Regeneration, additive bonus spells and distinct Bolt identities. Preserve real input, reroll/banish, effect-cap and deferred-recipe coverage.

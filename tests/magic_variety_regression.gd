@@ -1,7 +1,7 @@
 extends SceneTree
 
 const NEW_IDS = ["focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
-const NEW_RECIPES = ["prism_ray", "frost_sigil", "reaping_spirit"]
+const NEW_RECIPES = ["prism_ray", "frost_sigil"]
 var checks = 0
 var failures = 0
 var game
@@ -77,9 +77,10 @@ func type_name(text: String):
 func run():
 	root.size = Vector2i(1280, 720)
 	fresh()
-	check(manager.spell_catalog.size() == 15, "Fifteen implemented base spells")
+	check(manager.spell_catalog.size() == 16, "Sixteen implemented base spells")
 	for id in NEW_IDS:
-		check(not manager.cast_freeform_spell(id), "Unowned new spell is rejected: " + id)
+		check(not manager.cast_freeform_spell(manager.spell_catalog[id].display_name), "Unowned new spell is rejected: " + id)
+	check(not manager.learn_spell("reaping_spirit") and not manager.get_learnable_spell_cards().any(func(card): return card.effect.spell == "reaping_spirit"), "Deferred Reaping Spirit is not available")
 	for id in NEW_IDS:
 		fresh()
 		check(manager.learn_spell(id), "New spell acquired: " + id)
@@ -116,12 +117,14 @@ func run():
 			manager.learn_spell(ingredient)
 		var primary_slot = manager.find_spell_slot(recipe.ingredients[0])
 		manager.cast_spell_by_type(primary_slot)
-		manager.learn_spell(recipe_id)
+		check(manager.learn_spell(recipe_id), "Learn additive tactical bonus: " + recipe_id)
+		var bonus_slot = manager.find_spell_slot(recipe_id)
+		check(bonus_slot > 6 and manager.find_spell_slot(recipe.ingredients[0]) == primary_slot, "Tactical bonus preserves primary slot")
 		for i in range(5):
-			manager.cast_spell_by_type(primary_slot)
+			manager.cast_spell_by_type(bonus_slot)
 		var family = manager.spells[primary_slot].type
 		var family_nodes = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.type == family and not node.is_queued_for_deletion())
-		check(family_nodes.size() == manager.spells[primary_slot].active_limit, "Evolution shares active family cap: " + recipe_id)
+		check(family_nodes.size() == manager.spells[primary_slot].active_limit, "Bonus shares active effect family cap: " + recipe_id)
 	for id in ["rune_trap", "returning_blade"]:
 		fresh()
 		manager.learn_spell(id)
@@ -305,15 +308,15 @@ func test_ordinary_offers():
 				if manager.find_spell_slot(goal) != 0:
 					achieved = true
 					break
-				if manager.spells.size() == 5 and desired.any(func(id): return id != goal and manager.find_spell_slot(id) == 0):
+				if manager.spells.size() == 6 and desired.any(func(id): return id != goal and manager.find_spell_slot(id) == 0):
 					break
 			seed_results.append({"seed": run_seed, "goal": goal, "level": last_level, "achieved": achieved})
 			if achieved:
 				break
 		check(achieved and offered.has(goal) and acquired.has(goal), "Seeded ordinary offers acquire build component: " + goal)
-		check(manager.spells.size() <= 5, "Ordinary seeded progression respects kit cap")
+		check(manager.spells.size() <= 6, "Ordinary seeded progression respects kit cap")
 		if goal in NEW_RECIPES and achieved:
 			var primary = manager.Synergies.RECIPES[goal].ingredients[0]
 			var catalyst = manager.Synergies.RECIPES[goal].ingredients[1]
-			check(manager.find_spell_slot(primary) == 0 and manager.find_spell_slot(catalyst) != 0, "Ordinary evolution replaces primary and keeps catalyst")
+			check(manager.find_spell_slot(primary) != 0 and manager.find_spell_slot(catalyst) != 0 and manager.find_spell_slot(goal) > 6, "Ordinary bonus preserves both ingredients outside active slots")
 	print("MAGIC_SEEDED_OFFERED=", JSON.stringify(offered.keys()), " ACQUIRED=", JSON.stringify(acquired.keys()), " RUNS=", JSON.stringify(seed_results))
