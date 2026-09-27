@@ -22,6 +22,9 @@ func _process(delta):
 		if not is_instance_valid(target) or target.is_queued_for_deletion():
 			queue_free()
 			return
+		if kind == "stone" and target.get("overheal") != null and float(target.overheal) <= 0:
+			queue_free()
+			return
 		global_position = target.global_position
 	if age >= duration:
 		queue_free()

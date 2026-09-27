@@ -74,6 +74,9 @@ func create_persistent_life_circle(target: Node2D, duration: float):
 	return follow_effect(target, duration, "heal", 24)
 
 func create_persistent_shield_circle(target: Node2D, duration: float):
+	for effect in get_children():
+		if effect is Burst and effect.kind == "stone" and effect.followed and effect.followed.get_ref() == target:
+			effect.queue_free()
 	return follow_effect(target, duration, "stone", 30)
 
 func create_persistent_lightning_arc(from_target: Node2D, to_pos: Vector2, duration: float = 1.0, _to_target: Node2D = null):

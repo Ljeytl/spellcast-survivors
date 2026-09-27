@@ -47,10 +47,12 @@ func run():
 	var target = target_for(game, game.player.position + Vector2(1000, 0))
 	spells.fire_mana_bolt()
 	var before = projectile_count(game)
+	var before_ids = game.get_children().filter(func(child): return child is Area2D and child.get("projectile_type") in ["mana_bolt", "bolt"]).map(func(child): return child.get_instance_id())
 	check(before == 1, "First mana projectile fires immediately")
 	target.free()
 	await settle(0.08)
-	check(projectile_count(game) == before, "Delayed mana projectile skips freed target")
+	var after_ids = game.get_children().filter(func(child): return child is Area2D and child.get("projectile_type") in ["mana_bolt", "bolt"]).map(func(child): return child.get_instance_id())
+	check(after_ids.all(func(id): return before_ids.has(id)), "Delayed mana projectile skips freed target while existing projectiles may expire")
 	target = target_for(game, game.player.position + Vector2(1000, 0))
 	spells.spells[1].level = 3
 	spells.cast_enhanced_bolt_spell(1)

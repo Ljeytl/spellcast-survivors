@@ -11,6 +11,7 @@ var infections: Array = []
 var angle = 0.0
 var healing_remaining = 2.0
 var color = Color.ORANGE_RED
+var infection_links: Array = []
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	info = data.duplicate(true)
@@ -23,7 +24,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 		if info.type == "field":
 			global_position = target.global_position
 		if info.type == "plague":
-			infect(target)
+			infect(target, player.global_position)
 	if info.type == "piercing":
 		remaining = 1.5
 	if info.type == "plague":
@@ -43,10 +44,13 @@ func advance(delta: float):
 		queue_free()
 		return
 	var elapsed = minf(delta, remaining)
+	for link in infection_links:
+		link.age += elapsed
+	infection_links = infection_links.filter(func(link): return link.age < 0.35)
 	remaining -= elapsed
 	if info.type == "piercing":
 		var start = global_position
-		global_position += direction * 700.0 * elapsed
+		global_position += direction * 700.0 * float(info.get("projectile_speed_multiplier", 1.0)) * elapsed
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()):
 				continue
@@ -96,11 +100,13 @@ func pulse(center: Vector2, radius: float, amount: float, excluded = null):
 		if info.get("slow", 0.0) > 0.0 and enemy.has_method("apply_slow"):
 			enemy.apply_slow(1.0 - float(info.slow), 0.7)
 
-func infect(enemy):
+func infect(enemy, source: Vector2 = Vector2.INF):
 	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or infections.size() >= 8:
 		return
 	hit_ids[enemy.get_instance_id()] = true
 	infections.append(weakref(enemy))
+	if source != Vector2.INF:
+		infection_links.append({"from": source, "to": enemy.global_position, "age": 0.0})
 
 func tick_infections():
 	healing_remaining = 2.0
@@ -115,21 +121,30 @@ func tick_infections():
 			continue
 		for other in enemies:
 			if valid_target(other) and center.distance_to(other.global_position) <= 130.0 and not hit_ids.has(other.get_instance_id()):
-				infect(other)
+				infect(other, center)
 				break
 
 func _draw():
+	var art = preload("res://scripts/EffectArt.gd")
 	match info.type:
 		"piercing":
-			draw_line(-direction * 55.0, direction * 15.0, color, 8.0)
+			art.stamp(self, "lance", Vector2.ZERO, Vector2(56, 24), Color.WHITE, direction.angle())
 		"field":
-			draw_circle(Vector2.ZERO, 150.0, Color(color, 0.16))
-			draw_arc(Vector2.ZERO, 150.0, 0, TAU, 48, color, 3.0)
+			for x in range(-3, 4):
+				for y in range(-3, 4):
+					var point = Vector2(x, y) * 40
+					if point.length() <= 140:
+						art.stamp(self, "smoke" if info.get("slow", 0.0) > 0 else "flame", point, Vector2.ONE * 20, Color(1, 1, 1, minf(remaining, 0.7)))
 		"orbit":
 			for i in range(3):
-				draw_circle(Vector2.from_angle(angle + TAU * i / 3.0) * 65.0, 15.0, color)
+				art.stamp(self, "mana", Vector2.from_angle(angle + TAU * i / 3.0) * 65.0, Vector2.ONE * 24, Color.WHITE, angle + TAU * i / 3.0 + PI / 2)
 		"plague":
+			for link in infection_links:
+				var from = to_local(link.from)
+				var to = to_local(link.to)
+				draw_line(from, to, Color("83a35d", 1 - link.age / 0.35), 2)
+				art.stamp(self, "plague", from.lerp(to, link.age / 0.35), Vector2.ONE * 16)
 			for reference in infections:
 				var enemy = reference.get_ref()
 				if valid_target(enemy):
-					draw_arc(to_local(enemy.global_position), 22.0, 0, TAU, 16, color, 3.0)
+					art.stamp(self, "plague", to_local(enemy.global_position) + Vector2(0, -22), Vector2.ONE * 18)
