@@ -1,7 +1,7 @@
 {
-  "phase": "implementation_preparation",
+  "phase": "integrated_verification",
   "implementation_authorized": true,
-  "branch": "docs/playtest-design",
+  "branch": "feature/gameplay-integration",
   "documentation_writer": "root",
   "reviewers_read_only": [
     "minimal_interface",
@@ -13,6 +13,9 @@
     "design_audits": "complete",
     "consolidated_documents": "complete",
     "independent_document_review": "complete; all three reviews, no outstanding blockers",
-    "implementation": "in progress"
+    "implementation": "implemented selected baseline; expanded passive contracts deferred",
+    "integration": "complete locally; PR and final pack verification pending",
+    "mechanical_gates": "25 suites clean at fd7521f; shutdown follow-up reviewed",
+    "human_playtest": "open; current user run preserved"
   }
 }
