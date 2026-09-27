@@ -140,6 +140,17 @@ func run():
 	manager.process_healing_effects(5)
 	check(game.player.health == 46, "Healing seed API clamps finaltick andtotal")
 	fresh()
+	game.player.health = 20
+	var feedback_before = game.particle_manager.get_child_count()
+	for i in range(100):
+		game.player.heal(0.1)
+	check(is_equal_approx(game.player.health, 30), "Feedback coalescing preserves every heal tick")
+	check(game.particle_manager.get_child_count() <= feedback_before + 1, "One hundred same-frame heals emit at most one feedback burst")
+	game.player.health = game.player.max_health
+	game.player.next_heal_feedback_msec = 0
+	feedback_before = game.particle_manager.get_child_count()
+	game.player.heal(10)
+	check(game.particle_manager.get_child_count() == feedback_before, "Full health emits no healing feedback")
 	var front = target_at(Vector2(30, 0))
 	var inside = target_at(Vector2(200, 100))
 	var behind = target_at(Vector2(-70, 0))

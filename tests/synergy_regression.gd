@@ -85,8 +85,8 @@ func run():
 		await process_frame
 	check(spells.acquired_spells.has("life_bolt") and not paused, "Selecting recipe card grants spell and resumes")
 	check(not spells.learn_spell("life_bolt"), "Duplicate acquisition rejected")
-	check(spells.spells[1].id == "life_bolt" and spells.spells[2].id == "life", "Primary evolves in place and catalyst remains")
-	check(not spells.cast_freeform_spell("bolt"), "Consumed primary is not castable")
+	check(spells.spells[1].id == "bolt" and spells.spells[2].id == "life" and spells.bonus_spells.size() == 1, "Bonus preserves both ingredients")
+	check(spells.cast_freeform_spell("bolt"), "Ingredient remains castable")
 	check("life bolt" in spells.get_owned_incantations(), "Owned synergy appears in casting names")
 	check("life_bolt" in profile.discovered_synergies, "Selection persists discovery")
 	profile.discovered_synergies.clear()
@@ -112,33 +112,35 @@ func run():
 	check(game.player.health == 50.0, "Casting alone cannot heal")
 	var projectile
 	for child in game.get_children():
-		if child is Area2D and child.get("heal_on_hit") != null and child.heal_on_hit > 0:
+		if child is Area2D and child.has_meta("healing_seed_amount"):
 			projectile = child
-	check(projectile != null, "Life Bolt creates healing projectile")
+	check(projectile != null, "Life Bolt creates seed-bearing projectile")
+	projectile.global_position = target.global_position
 	projectile._on_area_entered(hurt)
-	check(game.player.health == 56.0, "Damaging hit heals configured amount")
+	check(game.player.health == 50.0, "Damaging hit does not remotely heal")
+	var seeds = get_nodes_in_group("healing_seeds")
+	check(seeds.size() == 1 and seeds[0].global_position == target.global_position, "Actual impact plants one seed at the enemy")
 	projectile._on_area_entered(hurt)
-	check(game.player.health == 56.0, "Same projectile cannot heal twice")
-	var miss = load("res://scenes/SpellProjectile.tscn").instantiate()
-	game.add_child(miss)
-	miss.healing_owner = weakref(game.player)
-	miss.heal_on_hit = 6.0
-	target.dying = true
-	miss._on_area_entered(hurt)
-	check(game.player.health == 56.0, "Already dying target cannot heal")
+	check(get_nodes_in_group("healing_seeds").size() == 1, "Same projectile cannot plant twice")
+	var seed = seeds[0]
+	seed.set_physics_process(false)
+	game.player.global_position = seed.global_position
+	game.player.health = game.player.max_health
+	seed._physics_process(0.1)
+	check(not seed.collected, "Full health preserves the seed")
+	game.player.health = 50
+	seed._physics_process(0.1)
+	check(seed.collected and game.player.health == 50, "Physical collection starts healing without an instant return")
+	spells.process_healing_effects(1)
+	check(game.player.health == 53, "Collected seed heals three HP in one second")
+	spells.process_healing_effects(10)
+	check(game.player.health == 56, "Seed HoT cannot exceed six total HP")
 	var pooled = load("res://scenes/SpellProjectile.tscn").instantiate()
 	game.add_child(pooled)
-	pooled.healing_owner = weakref(game.player)
-	pooled.heal_on_hit = 6.0
+	pooled.set_meta("healing_seed_amount", 6.0)
+	pooled.set_meta("healing_seed_owner", weakref(game.player))
 	pooled.reset_for_pool()
-	check(pooled.healing_owner == null and pooled.heal_on_hit == 0, "Pool reset removes healing")
-	pooled.healing_owner = weakref(game.player)
-	pooled.heal_on_hit = 6.0
-	pooled.damage = 10.0
-	target.dying = false
-	target.current_health = 1.0
-	pooled._on_area_entered(hurt)
-	check(game.player.health == 57.0, "Overkill healing cannot exceed actual health lost")
+	check(not pooled.has_meta("healing_seed_amount") and not pooled.has_meta("healing_seed_owner"), "Pool reset removes seed ownership")
 	game.queue_free()
 	await process_frame
 	await process_frame
@@ -167,7 +169,7 @@ func run():
 	menu.get_node("MenuPanel/VBoxContainer/CollectionButton").pressed.emit()
 	labels = menu.find_children("*", "Label", true, false)
 	check(not labels.any(func(label): return "Life Bolt" in label.text), "Unknown recipe details stay hidden")
-	check(labels.any(func(label): return "No synergies discovered" in label.text), "Empty collection explains discovery")
+	check(labels.any(func(label): return "No discoveries yet." in label.text), "Empty collection explains discovery")
 	menu.queue_free()
 	await process_frame
 	for child in root.get_node("AudioManager").get_children():

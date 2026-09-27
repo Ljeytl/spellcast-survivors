@@ -25,6 +25,7 @@ var spell_damage_multiplier: float = 1.0     # Increases damage of all spells
 var cast_speed_multiplier: float = 1.0
 var projectile_speed_multiplier: float = 1.0
 var typing_duration_bonus: float = 0.0
+var next_heal_feedback_msec: int = 0
 const MAX_PASSIVE_FAMILIES = 6
 const SUPPORTED_PASSIVES = ["spell_damage", "movement_speed", "max_health", "xp_range", "projectile_speed", "slowdown_duration", "mana_bolt_mastery"]
 var passive_ranks: Dictionary = {}
@@ -217,7 +218,8 @@ func heal(amount: float):
 		return
 	var previous_health = health
 	health = min(max_health, health + amount)
-	if health > previous_health:
+	if health > previous_health and Time.get_ticks_msec() >= next_heal_feedback_msec:
+		next_heal_feedback_msec = Time.get_ticks_msec() + 150
 		var particles = get_parent().get("particle_manager")
 		if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
 			particles.create_heal_effect(global_position)
