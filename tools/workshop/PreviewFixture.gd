@@ -105,8 +105,14 @@ func cast():
 	else:
 		if RECIPES.has(selected):
 			for ingredient in RECIPES[selected].ingredients:
-				assert(manager.learn_spell(ingredient) or ingredient == "bolt")
-		assert(manager.learn_spell(selected) or selected == "bolt")
+				var learned = manager.learn_spell(ingredient)
+				if not learned and ingredient != "bolt":
+					push_error("Preview could not learn ingredient " + ingredient)
+					return
+		var learned = manager.learn_spell(selected)
+		if not learned and selected != "bolt":
+			push_error("Preview could not learn spell " + selected)
+			return
 		var slot = manager.find_spell_slot(selected)
 		var info = manager.get_spell_info(slot)
 		duration = maxf(2.0, float(info.get("duration", 0.0)) + 0.8)
@@ -114,7 +120,8 @@ func cast():
 			duration = 12.8
 		if selected == "life_bolt":
 			duration = 11.0
-		assert(manager.cast_spell_by_type(slot))
+		if not manager.cast_spell_by_type(slot):
+			push_error("Preview could not cast " + selected)
 
 func particle(method: String):
 	var origin = game.player.global_position + Vector2(120, 0)

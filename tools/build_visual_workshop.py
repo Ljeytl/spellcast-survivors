@@ -44,6 +44,7 @@ html/canvas_resize_policy=2
 html/focus_canvas_on_start=false
 progressive_web_app/enabled=false
 ''')
+    shutil.rmtree(stage / '.godot/exported', ignore_errors=True)
     with (output / 'export.log').open('w') as log:
         for args in (['--editor', '--import'], ['--export-release', 'Workshop', str(output / 'engine.html')]):
             subprocess.run([godot, '--headless', '--path', str(stage), *args], stdout=log, stderr=subprocess.STDOUT, check=True)
