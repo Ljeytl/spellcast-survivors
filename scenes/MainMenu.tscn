@@ -90,7 +90,7 @@ text = "HOW TO PLAY"
 [node name="CollectionButton" type="Button" parent="MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "SPELL COLLECTION"
+text = "NECRONOMICON"
 
 [node name="QuitButton" type="Button" parent="MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
