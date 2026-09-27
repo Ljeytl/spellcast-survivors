@@ -1,5 +1,7 @@
 ## 2026-09-27 — Simple pixel spell motif atlas
 
+- Visual workshop: redraw the floor after preview camera/size updates so spell replay and zoom do not leave uncovered gray regions.
+
 - Add one transparent 4 × 4 motif atlas for current spell projectiles, hunters, orbit bodies, shield stones and supporting particles. Preserve supplied Typecast artwork and draw hit boundaries, warnings, beams and paths from their existing gameplay geometry.
 - Give Mana Bolt, Bolt, lances, ice shards, plague spores, Cross Blade, Firewalk/Cinder, Steam, Meteor, healing and Prism Ray distinct restrained silhouettes; keep impact, healing and infection timing tied to existing combat behavior.
 - Record the image prompt, source, cell map and geometry contract in `docs/SPELL_PIXEL_ART_PASS.md`; add an atlas and Spell Size contract check. Audio remains outside this visual change.
@@ -452,3 +454,4 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Migrated seeded magic, acquisition and typing-presentation fixtures to six active slots, separate Life/Regeneration, additive bonus spells and distinct Bolt identities. Preserve real input, reroll/banish, effect-cap and deferred-recipe coverage.
 
 - Plague Seed and Soul Bloom acquire only visible living hosts, optionally respecting an authored initial cast range. No-target attempts remain editable with “No target in range,” preserve the current slowdown allowance, and do not count or flash as successful casts. Shield-only absorption emits stone feedback; health loss emits red feedback, with both on overflow.
+

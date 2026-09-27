@@ -159,6 +159,8 @@ func scaled(node: Node2D, multiplier: float):
 func apply_sizes():
 	tree.root.set_meta("projectile_preview_scale", settings.projectile)
 	game.camera.zoom = Vector2.ONE * settings.zoom
+	game.camera.force_update_scroll()
+	game.get_node("Background").queue_redraw()
 	scaled(game.player.get_node("Sprite2D"), settings.wizard)
 	for enemy in targets:
 		if is_instance_valid(enemy):
