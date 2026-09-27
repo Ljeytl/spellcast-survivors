@@ -1,0 +1,13 @@
+{
+  "source": "user instructions and playtest feedback, September 26 2026",
+  "confirmed": [
+    "design before implementation",
+    "six active slots",
+    "six passive families",
+    "all combinations additive and slot-free",
+    "Bolt/Lightning/Lightning Bolt distinct",
+    "fresh finite slowdown per cast"
+  ],
+  "proposals": "See docs/PLAYTEST_REWORK_PLAN.md decision table",
+  "implementation_gate": "Explicit user approval of reconciled design"
+}
