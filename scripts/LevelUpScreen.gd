@@ -185,7 +185,7 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 	all_upgrades.append_array(manager.get_learnable_spell_cards())
 	all_upgrades = all_upgrades.filter(func(card): return get_upgrade_key(card) not in banished_upgrades)
 	if all_upgrades.is_empty():
-		all_upgrades.append({"key": "rank:bolt", "name": "Bolt+", "description": manager.get_rank_upgrade_description("bolt"), "icon": "⭐", "effect": {"type": "spell_upgrade", "spell": "bolt"}})
+		all_upgrades.append({"key": "recovery", "name": "Recovery", "description": "Restore 25 health.", "icon": "✚", "effect": {"type": "recovery", "value": 25.0}})
 	current_upgrade_pool = all_upgrades
 
 	# Randomly select 3 unique upgrades

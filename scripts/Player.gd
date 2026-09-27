@@ -326,10 +326,12 @@ func apply_upgrade(upgrade_data: Dictionary) -> bool:
 		if not can_acquire_passive(effect_type):
 			return false
 		passive_ranks[effect_type] = int(passive_ranks.get(effect_type, 0)) + 1
-	elif effect_type not in ["spell_upgrade", "learn_spell"]:
+	elif effect_type not in ["spell_upgrade", "learn_spell", "recovery"]:
 		return false
 	# Apply the upgrade based on its type
 	match effect_type:
+		"recovery":
+			heal(float(value))
 		"spell_damage":
 			spell_damage_multiplier += value  # Increase spell damage
 		"cast_speed":

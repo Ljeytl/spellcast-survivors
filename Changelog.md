@@ -1,6 +1,6 @@
 ## 2026-09-27 — Pass two rewards and encounter interactions
 
-- Add one upgrade-choice chest on boss defeat, reusing the existing slot-aware upgrade flow without granting a player level; exhausted offer filters fall back to an owned Bolt rank.
+- Add one upgrade-choice chest on boss defeat, reusing the existing slot-aware upgrade flow without granting a player level; exhausted offer filters fall back to recovery without restoring banished upgrades.
 - Make successful contact hits briefly recoil enemies with weight-scaled movement and collision. The Pursuer boss dash is faster and longer with its existing windup; ordinary chargers retain their values.
 - Consolidate stationary distant offscreen XP locally without losing value or collecting moving pickups.
 - Record implementation approval and resolved choices in the shared specification.

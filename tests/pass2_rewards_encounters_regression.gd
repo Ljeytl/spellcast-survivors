@@ -89,7 +89,9 @@ func run():
 	screen.generate_upgrade_options({}, level)
 	for card in screen.current_upgrade_pool:
 		screen.banished_upgrades.append(screen.get_upgrade_key(card))
-	check(not screen.generate_upgrade_options({}, level).is_empty(), "Exhausted offer filters retain an actionable owned-spell upgrade")
+	screen.available_upgrades = screen.generate_upgrade_options({}, level)
+	check(not screen.available_upgrades.is_empty(), "Exhausted offer filters retain an actionable recovery")
+	check(screen.available_upgrades.all(func(card): return screen.get_upgrade_key(card) not in screen.banished_upgrades), "Fallback does not restore banished cards")
 	manager.run_finished = true
 	var last_boss = spawn("charger", true)
 	check(last_boss == null, "Run completion prevents new bosses")
