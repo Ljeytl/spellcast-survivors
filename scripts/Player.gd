@@ -146,6 +146,9 @@ func take_damage(damage: float, source: Dictionary = {}):
 	health = max(0, health)  # Don't let health go below 0
 	var actual_damage = maxf(0, previous_total - health - overheal)
 	if actual_damage > 0:
+		var particles = get_parent().get("particle_manager")
+		if is_instance_valid(particles) and particles.has_method("create_hurt_effect"):
+			particles.create_hurt_effect(global_position)
 		last_damage_context = source.duplicate(true)
 		last_damage_context["kind"] = source.get("kind", "unknown")
 		last_damage_context["damage"] = actual_damage
@@ -210,8 +213,14 @@ func do_level_up():
 
 # Restore health to the player (from Life spell or chest items)
 func heal(amount: float):
-	# Don't heal above maximum health
+	if health <= 0.0 or amount <= 0.0:
+		return
+	var previous_health = health
 	health = min(max_health, health + amount)
+	if health > previous_health:
+		var particles = get_parent().get("particle_manager")
+		if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
+			particles.create_heal_effect(global_position)
 	# Update the health bar UI
 	health_changed.emit(health, max_health, overheal)
 
