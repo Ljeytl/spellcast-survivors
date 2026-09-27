@@ -77,9 +77,12 @@ func run():
 	manager.handle_freeform_typing_input(key(98))
 	check(caps.letters == "b", "Space casting shares the key renderer")
 	check("Matches:" in caps.visible_caption(), "Owned spell suggestions remain visible")
+	manager.current_typing_text = "bolt"
+	manager.update_freeform_typing_display()
+	check("Ready to cast" in caps.visible_caption(), "Completed owned incantation visibly says ready")
 	manager.current_typing_text = "lightning bolt"
 	manager.update_freeform_typing_display()
-	check("Ready to cast" in caps.visible_caption(), "Completed owned alias visibly says ready")
+	check(not "Ready to cast" in caps.visible_caption(), "Unowned Lightning Bolt is not a starter alias")
 	manager.current_typing_text = "a".repeat(caps.columns() + 1)
 	manager.update_freeform_typing_display()
 	var old_height = game.typing_label.custom_minimum_size.y
@@ -144,5 +147,10 @@ func run():
 	check(not staff.eligible(boss), "Known-bad dead visible threat fails eligibility")
 	game.queue_free()
 	await process_frame
+	for child in root.get_node("AudioManager").get_children():
+		if child is AudioStreamPlayer:
+			child.stop()
+			child.stream = null
+	await create_timer(0.25, true, false, true).timeout
 	print("Casting presentation: %d assertions, %d failures" % [checks, failures])
 	quit(1 if failures else 0)
