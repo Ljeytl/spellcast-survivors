@@ -208,6 +208,9 @@ func run():
 		await settle()
 		var book = game.get_node("PauseInput").spellbook
 		check(is_instance_valid(book), "Keyboard opens spellbook")
+		for button in book.spell_buttons.values():
+			for word in button.text.split(" "):
+				check(button.get_theme_font("font").get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, button.get_theme_font_size("font_size")).x <= button.size.x - 20, "Spellbook word fits: %s at %s" % [word, geometry])
 		var last = book.spell_buttons.values().back()
 		for i in range(14):
 			if root.gui_get_focus_owner() == last:

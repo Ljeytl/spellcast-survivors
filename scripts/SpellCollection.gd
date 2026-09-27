@@ -97,6 +97,7 @@ func add_entry(id: String, spell_name: String, incantation: String, description:
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ART.apply_heading(heading, 28)
 	text.add_child(heading)
+	heading.resized.connect(func(): ART.fit_words(heading, heading.size.x))
 	for line in [description, ("Type: " + incantation) if not incantation.is_empty() else "", status]:
 		if line.is_empty():
 			continue

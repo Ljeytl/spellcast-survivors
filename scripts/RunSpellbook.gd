@@ -114,6 +114,7 @@ func add_spell_rows(spells: Dictionary):
 		button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		button.pressed.connect(func(): cast_requested.emit(slot))
 		entries.add_child(button)
+		button.resized.connect(func(): ART.fit_words(button, button.size.x - 24))
 		spell_buttons[slot] = button
 		var description = COPY.EVOLUTIONS.get(info.id, COPY.SPELLS.get(info.id, ""))
 		text_row("Type: %s · Rank %d\n%s" % [info.display_name, game.spell_manager.get_spell_rank(info.id), description])
