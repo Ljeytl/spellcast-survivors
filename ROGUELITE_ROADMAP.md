@@ -1,3 +1,9 @@
+## Integrated baseline — September 26, 2026
+
+- Implemented: per-cast focus, six active/six passive slots, additive bonus spells, Life/Regeneration separation, healing-seed Life Bolt, simple readable effects, cone Ice Blast, personal Earth Shield, clustered forest and reduced-effects preference.
+- Seven passive families currently work. Area, Multicast, XP gain, Luck, critical stats and enemy population remain design work; they are not offered as nonfunctional upgrades.
+- Next human pass: long-incantation payoff, boss pressure, and crowded effect readability. Do not equate bot survival or assertion counts with fun.
+
 ## Current pass — ordinary build inspection
 
 - Expose owned spells, slot-free bonuses, passive ranks and discoveries in the pause spellbook. Larger existing key art improves readability without an art-production expansion.

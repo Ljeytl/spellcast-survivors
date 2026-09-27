@@ -1,3 +1,8 @@
+## 2026-09-26 — Player-controlled reduced effects
+
+- Add a persistent Reduced effects option in both title and pause menus. It disables screen shake immediately and lowers the cosmetic particle budget without changing spell mechanics.
+- Verify persistence across reopening and a new run, pause behavior, and control containment at desktop and narrow sizes.
+
 ## 2026-09-26 — Integrated casting and compact-window verification
 
 - Integrate owned bonus spells, per-cast slowdown, simple effects and provisional encounter pressure. Correct bonus hints and hide unavailable discoveries.

@@ -108,6 +108,7 @@ func setup_all_systems():
 	setup_camera()          # Position camera and create shake system
 	setup_damage_manager()  # Create floating damage number system
 	setup_particle_manager() # Create visual effects system
+	preload("res://scripts/EffectPreferences.gd").apply(self, preload("res://scripts/EffectPreferences.gd").reduced())
 	setup_time_dilation()   # Create time slowdown system for spell casting
 	setup_object_pool()     # Create object pooling for performance
 	setup_chest_manager()   # Create treasure chest spawning system
