@@ -155,6 +155,11 @@ func _on_monster_died(monster: CharacterBody2D):
 	monsters_alive = maxi(0, monsters_alive - 1)
 	if get_parent().has_method("increment_enemies_killed"):
 		get_parent().increment_enemies_killed()
+	if monster.boss and not run_finished and not monster.has_meta("boss_reward_dropped"):
+		monster.set_meta("boss_reward_dropped", true)
+		var reward = preload("res://scripts/BossReward.gd").new()
+		reward.position = monster.global_position
+		get_parent().add_child(reward)
 	monster_died.emit({"variant": monster.variant, "boss": monster.boss})
 
 func add_game_time(additional_time: float):

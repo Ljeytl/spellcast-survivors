@@ -11,13 +11,34 @@
     "opening_spawn_interval": 3.0,
     "spawn_growth_start_seconds": 180.0,
     "spawn_phases": [
-      {"start": 0, "interval": 3.0},
-      {"start": 10, "interval": 1.0},
-      {"start": 45, "interval": 3.0},
-      {"start": 90, "interval": 1.35},
-      {"start": 105, "interval": 2.5},
-      {"start": 120, "interval": 1.2},
-      {"start": 135, "interval": 2.5}
+      {
+        "start": 0,
+        "interval": 3.0
+      },
+      {
+        "start": 10,
+        "interval": 1.0
+      },
+      {
+        "start": 45,
+        "interval": 3.0
+      },
+      {
+        "start": 90,
+        "interval": 1.35
+      },
+      {
+        "start": 105,
+        "interval": 2.5
+      },
+      {
+        "start": 120,
+        "interval": 1.2
+      },
+      {
+        "start": 135,
+        "interval": 2.5
+      }
     ]
   },
   "bosses": [
@@ -122,7 +143,14 @@
       "weight": 15,
       "size": 0.65,
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 3.png",
-      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime 2.png"
+      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime 2.png",
+      "boss_charge": {
+        "speed_multiplier": 3.8,
+        "duration": 1.0,
+        "trigger_range": 700.0,
+        "warning": 0.9,
+        "cooldown": 3.5
+      }
     },
     "shieldbearer": {
       "name": "Shieldbearer",
@@ -185,5 +213,11 @@
       "size": 0.85,
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 6 tophat.png"
     }
+  },
+  "contact_recoil": {
+    "duration": 0.24,
+    "speed": 320.0,
+    "heavy_multiplier": 0.6,
+    "boss_multiplier": 0.35
   }
 }

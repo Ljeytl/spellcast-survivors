@@ -301,7 +301,12 @@ func process_enemy_contact_damage(delta: float):
 					var damage = enemy.base_damage if enemy.get("base_damage") else 20.0
 					total_damage += damage
 
+				var before = health + overheal
 				take_damage(total_damage, {"kind": "contact", "count": touching_enemies.size()})
+				if health + overheal < before:
+					for enemy in touching_enemies:
+						if is_instance_valid(enemy) and enemy.has_method("recoil_from_contact"):
+							enemy.recoil_from_contact(global_position)
 				damage_timer = DAMAGE_INTERVAL  # Reset timer
 
 # Calculate movement slowdown based on number of touching enemies

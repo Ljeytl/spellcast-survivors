@@ -98,6 +98,9 @@ func _ready():
 	var readability = preload("res://scripts/GameplayReadability.gd").new()
 	readability.name = "GameplayReadability"
 	add_child(readability)
+	var xp_consolidation = preload("res://scripts/XPConsolidation.gd").new()
+	xp_consolidation.name = "XPConsolidation"
+	add_child(xp_consolidation)
 	
 
 # Master setup function that initializes all game systems
@@ -661,6 +664,14 @@ func _on_player_level_up(new_level: int, _player_stats: Dictionary):
 	if current_state != GameState.LEVEL_UP:
 		show_next_level_up()
 
+func queue_boss_reward() -> bool:
+	if current_state == GameState.GAME_OVER:
+		return false
+	pending_level_ups.append(0)
+	if current_state != GameState.LEVEL_UP:
+		show_next_level_up()
+	return true
+
 func show_next_level_up():
 	if current_state == GameState.GAME_OVER or pending_level_ups.is_empty():
 		return
@@ -668,7 +679,7 @@ func show_next_level_up():
 	update_spell_slot_lock_status()
 	change_state(GameState.LEVEL_UP)
 	if level_up_screen:
-		level_up_screen.show_level_up(next_level, {
+		level_up_screen.show_level_up(player.level if next_level == 0 else next_level, {
 			"spell_damage_multiplier": player.spell_damage_multiplier,
 			"cast_speed_multiplier": player.cast_speed_multiplier,
 			"projectile_speed_multiplier": player.projectile_speed_multiplier,
@@ -677,6 +688,10 @@ func show_next_level_up():
 			"max_health": player.max_health,
 			"xp_range_multiplier": player.xp_range_multiplier
 		})
+
+		if next_level == 0:
+			level_up_screen.title_label.text = "BOSS REWARD"
+			level_up_screen.level_label.text = "Choose an upgrade"
 
 func _on_upgrade_selected(upgrade_data: Dictionary):
 	if current_state == GameState.GAME_OVER:

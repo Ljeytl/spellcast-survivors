@@ -1,3 +1,10 @@
+## 2026-09-27 — Pass two rewards and encounter interactions
+
+- Add one upgrade-choice chest on boss defeat, reusing the existing slot-aware upgrade flow without granting a player level; exhausted offer filters fall back to an owned Bolt rank.
+- Make successful contact hits briefly recoil enemies with weight-scaled movement and collision. The Pursuer boss dash is faster and longer with its existing windup; ordinary chargers retain their values.
+- Consolidate stationary distant offscreen XP locally without losing value or collecting moving pickups.
+- Record implementation approval and resolved choices in the shared specification.
+
 ## 2026-09-26 — Second playtest pass specification
 
 - Consolidate targeting, spell payoff, shared AoE/fire visuals, scale, typing, particles, XP consolidation, minutes 3–8 pressure, contact recoil and boss rewards in `docs/PLAYTEST_PASS_2_SPEC.md`.
