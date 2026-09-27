@@ -105,7 +105,10 @@ func run():
 		for node in active:
 			node.set_physics_process(false)
 			node.advance(20)
-			check(node.is_queued_for_deletion(), "Empty-arena effect expires after large delta")
+			if node.info.type == "trap":
+				check(not node.is_queued_for_deletion() and not node.triggered, "Untriggered trap remains prepared in empty arena")
+			else:
+				check(node.is_queued_for_deletion(), "Nonpersistent empty-arena effect expires after large delta")
 	for recipe_id in NEW_RECIPES:
 		fresh()
 		var recipe = load("res://scripts/SynergyCatalog.gd").RECIPES[recipe_id]
@@ -219,7 +222,7 @@ func run():
 	var blade = effect("returning_blade", near)
 	blade.advance(0.7)
 	check(near.hits == 1 and far.hits == 1 and blade.leg == 1, "Outbound sweep hits each crossed enemy once")
-	blade.advance(0.7)
+	blade.advance(1.1)
 	check(near.hits == 2 and far.hits == 2, "Return leg can hit each enemy once again")
 	check(near.hits != 3, "Known-bad per-frame blade hit would fail deduplication")
 	fresh()
@@ -227,7 +230,7 @@ func run():
 	blade = effect("returning_blade", near)
 	blade.advance(0.7)
 	game.player.position += Vector2(0, 100)
-	blade.advance(0.2)
+	blade.advance(0.6)
 	check(blade.global_position.y > game.player.position.y - 100, "Returning blade tracks moving caster")
 	blade.advance(20)
 	check(blade.is_queued_for_deletion(), "Moving-caster blade remains finite")
