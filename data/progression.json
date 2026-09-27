@@ -44,10 +44,10 @@
         "weight": 50
       },
       "area_size": {
-        "name": "Amplify", 
-        "description": "+12% Area of Effect",
+        "name": "Spell Size",
+        "description": "+12% spell size",
         "icon": "📈",
-        "effect": {"type": "area_size", "value": 0.12},
+        "effect": {"type": "spell_area", "value": 0.12},
         "weight": 60
       },
       "cooldown_reduction": {

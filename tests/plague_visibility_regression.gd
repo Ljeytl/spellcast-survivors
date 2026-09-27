@@ -47,7 +47,7 @@ func run():
 	effect.advance(0.75)
 	check(targets[1].current_health == 91, "Infection survives external host death before first tick and damages real neighbor")
 	check(targets[2].current_health == 100, "Death transfer respects spread distance")
-	check(effect.infections.size() == 2, "Death transfers only once to a nearby host")
+	check(effect.hosts_started == 2, "Death transfers only once to a nearby host")
 	check(effect.z_index > 2, "Plague feedback draws above tree canopies")
 	var before = targets[1].current_health
 	effect.advance(0.5)
@@ -55,7 +55,7 @@ func run():
 	effect.remaining = 0
 	targets[1].take_damage(1000, game.player.position)
 	await process_frame
-	check(effect.infections.size() == 2, "Expired infection cannot transfer on death")
+	check(effect.hosts_started == 2, "Expired infection cannot transfer on death")
 	var terrain = game.get_node("Background")
 	var trunk = null
 	for holder in terrain.decorations.values():
@@ -89,13 +89,13 @@ func run():
 	game.add_child(chain)
 	chain.set_physics_process(false)
 	chain.advance(1.25)
-	check(chain.infections.size() == 2, "Plague killing tick launches spore which transfers on arrival")
+	check(chain.hosts_started == 2, "Plague killing tick launches spore which transfers on arrival")
 	await process_frame
-	check(chain.infections.size() == 2, "Deferred death signal does not transfer twice")
+	check(chain.hosts_started == 2, "Deferred death signal does not transfer twice")
 	for index in range(16):
 		chain.advance(0.5)
 		await process_frame
-	check(chain.infections.size() == 8, "Death chains retain eight-host cap")
+	check(chain.hosts_started == 8, "Death chains retain eight-host cap")
 	var survivors = group.filter(func(enemy): return is_instance_valid(enemy) and not enemy.dying)
 	check(survivors.size() == 2, "Bounded chain leaves two of ten enemies untouched")
 	game.queue_free()

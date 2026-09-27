@@ -81,7 +81,7 @@ func command(arguments: Array):
 				for id in values.enemy_sizes:
 					if fixture.game.get_node("MonsterManager").encounter_config.variants.has(id):
 						fixture.settings.enemy_sizes[id] = clampf(float(values.enemy_sizes[id]), 0.5, 3.0)
-			for key in ["wizard", "enemy", "tree", "bush", "projectile", "particle", "zoom"]:
+			for key in ["wizard", "enemy", "tree", "bush", "spell_size", "projectile", "particle", "zoom"]:
 				if values.has(key):
 					fixture.settings[key] = clampf(float(values[key]), 0.5, 3.0)
 			for key in ["comparison", "scenery"]:
@@ -92,10 +92,10 @@ func command(arguments: Array):
 				fixture.settings.enemy = fixture.settings.enemy_sizes.get(values.variant, 1.0)
 			if values.has("enemy"):
 				fixture.settings.enemy_sizes[fixture.settings.variant] = fixture.settings.enemy
-			if busy and (values.has("variant") or values.has("comparison")):
+			if busy and (values.has("variant") or values.has("comparison") or values.has("spell_size")):
 				rebuild_requested = true
 			if not busy:
-				if values.has("variant") or values.has("comparison"):
+				if values.has("variant") or values.has("comparison") or values.has("spell_size"):
 					replay()
 				else:
 					fixture.apply_sizes()

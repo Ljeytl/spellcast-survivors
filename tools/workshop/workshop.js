@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
-const defaults = {wizard:1,enemy:1,enemy_sizes:{},tree:1,bush:1,projectile:1,particle:1,zoom:1.5,variant:'pursuer',comparison:false,scenery:true};
-const labels = {wizard:'Wizard',enemy:'Selected enemy',tree:'Trees',bush:'Bushes',projectile:'Projectiles',particle:'Particle stamps',zoom:'Camera zoom'};
+const defaults = {wizard:1,enemy:1,enemy_sizes:{},tree:1,bush:1,spell_size:1,projectile:1,particle:1,zoom:1.5,variant:'pursuer',comparison:false,scenery:true};
+const labels = {wizard:'Wizard',enemy:'Selected enemy',tree:'Trees',bush:'Bushes',spell_size:'Spell Size (gameplay)',projectile:'Projectile artwork only',particle:'Decorative particles',zoom:'Camera zoom'};
 let settings = structuredClone(defaults), catalog = [], ready = false, playing = true, revision = 'unknown', activeId = 'bolt';
 const frame = document.querySelector('iframe');
 function send(action, extras = {}) { if (ready) frame.contentWindow.workshopCommand(JSON.stringify({action,...extras})); }

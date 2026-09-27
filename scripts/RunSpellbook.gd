@@ -113,7 +113,7 @@ func spell_name(id: String) -> String:
 	return str(info.get("name", id.replace("_", " ").capitalize()))
 
 func passive_name(family: String) -> String:
-	return {"spell_damage": "Spell damage", "movement_speed": "Movement speed", "max_health": "Max health", "xp_range": "Pickup radius", "projectile_speed": "Projectile speed", "slowdown_duration": "Slowdown duration", "mana_bolt": "Mana Bolt mastery", "mana_bolt_mastery": "Mana Bolt mastery", "spell_area": "Spell area", "multicast": "Multicast", "xp_gain": "XP gain", "luck": "Luck", "crit_chance": "Critical chance", "crit_damage": "Critical damage", "enemy_population": "Enemy population"}.get(family, family.replace("_", " ").capitalize())
+	return {"spell_damage": "Spell damage", "movement_speed": "Movement speed", "max_health": "Max health", "xp_range": "Pickup radius", "projectile_speed": "Projectile speed", "slowdown_duration": "Slowdown duration", "mana_bolt": "Mana Bolt mastery", "mana_bolt_mastery": "Mana Bolt mastery", "spell_area": "Spell Size", "multicast": "Multicast", "xp_gain": "XP gain", "luck": "Luck", "crit_chance": "Critical chance", "crit_damage": "Critical damage", "enemy_population": "Enemy population"}.get(family, family.replace("_", " ").capitalize())
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):

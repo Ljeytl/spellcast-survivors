@@ -1,3 +1,12 @@
+## 2026-09-27 — Spell geometry and persistent plague spores
+
+- Add Spell Size as a six-slot passive family: +12% projectile/body width, beam width and area/trail/trap radii, with matching artwork. Preserve travel distance, orbit path, piercing and stop-on-contact behavior. Shared authored dimensions account for stamp padding; Focus Ray keeps its existing damaging width and now shows it.
+- Refresh pooled projectile geometry after upgrades and keep hostile shots independent of player size.
+- Add a gameplay Spell Size workshop control that rebuilds casts; label separate art-only projectile and decorative-particle controls explicitly.
+- Remove generic hit sparks from enemy damage and projectile callbacks. Keep red damage flashes, ice fragments, elemental effects and death feedback.
+- Infected host deaths from any source transfer immediately if possible or leave a pulsing spore for three seconds. Late arrivals receive a full infection duration. Each cast can infect eight unique hosts; pending retargets preserve their deadline and do not consume the infection budget. Unclaimed spores expire without invisible damage.
+- Add actual 1×/2× hit-boundary checks, pooled reuse and passive-cap checks, late-death/arrival, delayed death, expiry, retarget-budget and bounded-chain regressions with known-bad controls.
+
 ## 2026-09-27 — Projectile impacts and consistent preview sizing
 
 - Added native before/after render checks for thirteen projectile bodies; caught and fixed meteor particle stamps resetting the rock drawing transform.

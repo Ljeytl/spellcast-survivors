@@ -691,7 +691,7 @@ func cast_meteor_shower_spell(slot: int):
 	var info = get_spell_info(slot)
 	var damage = calculate_spell_damage(info)
 	var count = int(info["meteor_count"]) + int(info["level"]) - 1
-	var radius = float(info.get("radius", 220.0))
+	var radius = float(info.get("radius", 220.0)) * preload("res://scripts/SpellGeometry.gd").multiplier(player)
 	var planned_damage: Dictionary = {}
 	for index in range(count):
 		var delay = float(info.get("warning_duration", 0.65)) + index * float(info.get("delay_interval", 0.3))
@@ -796,7 +796,7 @@ func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_
 	var target = get_closest_enemy()
 	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
 	var effect = preload("res://scripts/IceBlast.gd").new()
-	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, player.projectile_speed_multiplier)
+	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, player.projectile_speed_multiplier, preload("res://scripts/SpellGeometry.gd").multiplier(player))
 	get_parent().add_child(effect)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
