@@ -32,7 +32,7 @@ func _on_how_to_play_button_pressed():
 func _on_quit_button_pressed():
 	if AudioManager:
 		AudioManager.on_button_click()  # Play button click sound
-	get_tree().quit()  # Close the application
+	AudioManager.request_quit()
 
 func _on_collection_pressed():
 	var collection = preload("res://scripts/SpellCollection.gd").new()

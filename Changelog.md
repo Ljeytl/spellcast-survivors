@@ -1,3 +1,7 @@
+## 2026-09-26 — Clean native quit
+
+- Drain active audio streams before menu quit or window close so the native playtest no longer reports audio resources still in use at shutdown. Both routes share an idempotent quit path.
+
 ## 2026-09-26 — Player-controlled reduced effects
 
 - Add a persistent Reduced effects option in both title and pause menus. It disables screen shake immediately and lowers the cosmetic particle budget without changing spell mechanics.
