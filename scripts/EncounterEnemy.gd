@@ -1,5 +1,7 @@
 extends "res://scripts/Enemy.gd"
 
+static var sprite_bounds: Dictionary = {}
+
 const Hazard = preload("res://scripts/EnemyProjectile.gd")
 var variant: String = "pursuer"
 var family: String = "grunt"
@@ -29,13 +31,25 @@ func _ready():
 	player = get_tree().get_first_node_in_group("player")
 	health_bar_fill = $HealthBar/Fill
 	$Sprite2D.texture = load(spawn_data.get("boss_sprite", spawn_data.sprite) if boss else spawn_data.sprite)
+	var sprite = $Sprite2D
+	sprite.scale = Vector2.ONE * float(spawn_data.get("boss_visual_scale", spawn_data.get("visual_scale", 2.0)) if boss else spawn_data.get("visual_scale", 2.0))
+	var texture_path = sprite.texture.resource_path
+	if not sprite_bounds.has(texture_path):
+		sprite_bounds[texture_path] = sprite.texture.get_image().get_used_rect()
+	var body_bounds: Rect2i = sprite_bounds[texture_path]
+	var body_top = (body_bounds.position.y - sprite.texture.get_height() / 2.0) * sprite.scale.y
+	var bar = $HealthBar
+	bar.offset_left = -body_bounds.size.x * sprite.scale.x / 2.0
+	bar.offset_right = -bar.offset_left
+	bar.offset_bottom = body_top - 5.0
+	bar.offset_top = bar.offset_bottom - 5.0
 	update_health_bar()
 	add_to_group("enemies")
 	if boss:
 		add_to_group("bosses")
 		var label = Label.new()
 		label.text = encounter_name
-		label.position = Vector2(-70, -90)
+		label.position = Vector2(-70, body_top - 28.0)
 		label.add_theme_font_size_override("font_size", 16)
 		add_child(label)
 

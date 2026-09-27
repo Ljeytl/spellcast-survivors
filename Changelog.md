@@ -1,3 +1,10 @@
+## 2026-09-27 — Reviewed world proportions
+
+- Set camera zoom to1.5 and restore baseline wizard, staff and scenery proportions. Keep floor detail, readable keycaps and gameplay collision/spell areas unchanged.
+- Give each enemy an authored visual scale: tiny swarmers, small runners, medium grunts, large brutes and distinct King Slime bosses. Normalize supplied art footprints and align health bars above their visible artwork without changing enemy HP/speed or physical size.
+- Keep XP crystals stable and color-coded at baseline size; use restrained pickup sparkles, clearer hit/death bursts and a larger boss-death burst.
+- Future: tune crowded combat readability through player sessions before adding shaders or new art.
+
 ## 2026-09-27 — Encounter rushes and distant enemy recycling
 
 - Preserve distant regular enemies and their health/status by moving them to a new offscreen approach angle; bosses stay in the world. Camera-aware spawn geometry respects zoom, offset and terrain clearance.

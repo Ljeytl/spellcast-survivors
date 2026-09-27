@@ -10,7 +10,7 @@ var endpoint = Vector2.ZERO
 var followed: WeakRef
 var mode = "burst"
 var tint = Color.WHITE
-var particle_size = 25.0
+var particle_size = 18.0
 
 func _ready():
 	add_to_group("effect_bursts")

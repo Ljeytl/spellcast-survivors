@@ -34,13 +34,14 @@ func auto_cleanup_particle(particle: GPUParticles2D, delay: float):
 		particle.add_child(timer)
 	timer.start(maxf(delay, particle.lifetime))
 
-func spawn_effect(pos: Vector2, kind: String, radius: float = 24.0, duration: float = 0.35):
+func spawn_effect(pos: Vector2, kind: String, radius: float = 24.0, duration: float = 0.35, particle_size: float = 18.0):
 	if get_child_count() >= (40 if reduced_effects else 100):
 		return null
 	var effect = Burst.new()
 	effect.kind = kind
 	effect.radius = radius
 	effect.duration = duration
+	effect.particle_size = particle_size
 	add_child(effect)
 	effect.global_position = pos
 	return effect
@@ -91,13 +92,13 @@ func create_spell_cast_effect(pos: Vector2):
 	return spawn_effect(pos, "mana", 14)
 
 func create_enemy_death_effect(pos: Vector2):
-	return spawn_effect(pos, "smoke", 28)
+	return spawn_effect(pos, "smoke", 28, 0.35, 22)
 
 func create_xp_collect_effect(pos: Vector2):
-	return spawn_effect(pos, "xp", 16)
+	return spawn_effect(pos, "xp", 12, 0.25, 10)
 
 func create_spell_impact_effect(pos: Vector2):
-	return spawn_effect(pos, "impact", 18)
+	return spawn_effect(pos, "impact", 18, 0.3, 20)
 
 func create_heal_effect(pos: Vector2):
 	return spawn_effect(pos, "heal", 20)
@@ -133,7 +134,7 @@ func create_spell_unlock_effect(pos: Vector2):
 	return spawn_effect(pos, "impact", 32)
 
 func create_boss_death_effect(pos: Vector2):
-	return spawn_effect(pos, "smoke", 70)
+	return spawn_effect(pos, "smoke", 70, 0.35, 28)
 
 func create_powerful_spell_effect(pos: Vector2, spell_name: String):
 	return spawn_effect(pos, "flame" if "meteor" in spell_name else "impact", 45)

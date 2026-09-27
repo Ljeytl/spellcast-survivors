@@ -32,8 +32,8 @@ func run():
 	game.get_node("MonsterManager").spawn_timer.stop()
 	game.get_node("MonsterManager").set_process(false)
 	game.player.is_invincible = true
-	check(game.get_node("Camera2D").zoom == Vector2.ONE * 1.2, "Camera candidate is baseline times 1.2")
-	check(game.player.get_node("Sprite2D").scale == Vector2.ONE * 3.5, "Player visual growth is 1.75")
+	check(game.get_node("Camera2D").zoom == Vector2.ONE * 1.5, "Camera uses reviewed 1.5 zoom")
+	check(game.player.get_node("Sprite2D").scale == Vector2.ONE * 2.0, "Player retains baseline art proportions")
 	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(64, 64), "Trunk navigation footprint remains deliberate baseline")
 	if visual:
 		root.size = Vector2i(1280, 720)
@@ -57,17 +57,17 @@ func run():
 		await settle()
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://builds/readability-evidence/scale-candidate.png")
-		game.camera.zoom = Vector2.ONE
-		game.player.get_node("Sprite2D").scale /= 1.75
+		game.camera.zoom = Vector2.ONE * 1.2
+		game.player.get_node("Sprite2D").scale *= 1.75
 		for enemy in get_nodes_in_group("enemies"):
-			enemy.get_node("Sprite2D").scale /= 1.75
+			enemy.get_node("Sprite2D").scale = Vector2.ONE * 3.5
 		for gem in get_nodes_in_group("xp_orbs"):
-			gem.get_node("Visual").scale = Vector2.ONE * 1.5
+			gem.get_node("Visual").scale = Vector2.ONE * 2.5
 		await settle()
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://builds/readability-evidence/scale-baseline-reference.png")
-		game.camera.zoom = Vector2.ONE * 1.2
-		game.player.get_node("Sprite2D").scale *= 1.75
+		game.camera.zoom = Vector2.ONE * 1.5
+		game.player.get_node("Sprite2D").scale /= 1.75
 		for enemy in get_nodes_in_group("enemies"):
 			enemy.queue_free()
 		for gem in get_nodes_in_group("xp_orbs"):
@@ -101,7 +101,7 @@ func run():
 	root.add_child(orb)
 	await settle()
 	var visual = orb.get_node("Visual")
-	check(visual.scale == Vector2.ONE * 2.5, "Low XP apparent scale is twice baseline including camera")
+	check(visual.scale == Vector2.ONE * 1.5, "Low XP uses stable baseline artwork size")
 	var low_texture = visual.texture
 	orb.xp_value = 25
 	check(visual.texture != low_texture, "Stored XP setter updates tier immediately")
@@ -113,7 +113,7 @@ func run():
 	check(visual.scale == stable, "Crystal size does not pulse")
 	check(orb.xp_value == 100, "Visual updates preserve XP")
 	var burst = load("res://scripts/EffectBurst.gd").new()
-	check(burst.particle_size == 25, "Cosmetic particles grow independently of radius")
+	check(burst.particle_size == 18, "Cosmetic particles use reviewed baseline size independent of radius")
 	check(burst.radius == 24, "Particle geometry remains unchanged")
 	burst.free()
 	orb.queue_free()

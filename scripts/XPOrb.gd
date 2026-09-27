@@ -1,6 +1,6 @@
 extends Area2D
 
-const VISUAL_SCALE = 2.5
+const VISUAL_SCALE = 1.5
 const GREEN_THRESHOLD = 25.0
 const PURPLE_THRESHOLD = 100.0
 
