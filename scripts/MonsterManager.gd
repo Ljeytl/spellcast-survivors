@@ -14,6 +14,9 @@ var game_time: float = 0.0
 var monsters_alive: int = 0
 var max_monsters: int = 160
 var spawned_bosses: Dictionary = {}
+var spawn_attempts = 0
+var actual_spawns = 0
+var cap_rejections = 0
 @onready var player: CharacterBody2D = get_parent().get_node("Player")
 
 func _ready():
@@ -72,6 +75,9 @@ func _on_spawn_timer_timeout():
 func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D:
 	if run_finished:
 		return null
+	spawn_attempts += 1
+	if monsters_alive >= max_monsters and not is_boss:
+		cap_rejections += 1
 	if not is_instance_valid(player) or (monsters_alive >= max_monsters and not is_boss):
 		return null
 	if definition.is_empty():
@@ -105,6 +111,7 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D
 			monster.enemy_damaged.connect(damage_manager._on_enemy_damaged)
 		get_parent().add_child(monster)
 		monsters_alive += 1
+		actual_spawns += 1
 		monster_spawned.emit(definition)
 		if not first:
 			first = monster
@@ -143,7 +150,18 @@ func spawn_phase_interval(at_time: float) -> float:
 func calculate_spawn_interval() -> float:
 	var scaling = encounter_config.get("scaling", {})
 	var elapsed = maxf(0.0, game_time - float(scaling.get("spawn_growth_start_seconds", 180.0)))
-	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.6))), spawn_phase_interval(game_time) / pow(1.28, elapsed / 180.0))
+	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.6))), spawn_phase_interval(game_time) / pow(1.28, elapsed / 180.0) / midgame_pressure(game_time))
+
+func midgame_pressure(at_time: float) -> float:
+	var points = encounter_config.scaling.get("midgame_pressure", [])
+	if points.size() < 2 or at_time <= float(points[0].time) or at_time >= float(points[-1].time):
+		return 1.0
+	for index in range(1, points.size()):
+		var right = points[index]
+		var left = points[index - 1]
+		if at_time <= float(right.time):
+			return lerpf(float(left.multiplier), float(right.multiplier), inverse_lerp(float(left.time), float(right.time), at_time))
+	return 1.0
 
 func get_current_difficulty_level() -> int:
 	return mini(4, int(game_time / 300.0) + 1)
@@ -155,6 +173,11 @@ func _on_monster_died(monster: CharacterBody2D):
 	monsters_alive = maxi(0, monsters_alive - 1)
 	if get_parent().has_method("increment_enemies_killed"):
 		get_parent().increment_enemies_killed()
+	if monster.boss and not run_finished and not monster.has_meta("boss_reward_dropped"):
+		monster.set_meta("boss_reward_dropped", true)
+		var reward = preload("res://scripts/BossReward.gd").new()
+		reward.position = monster.global_position
+		get_parent().add_child(reward)
 	monster_died.emit({"variant": monster.variant, "boss": monster.boss})
 
 func add_game_time(additional_time: float):

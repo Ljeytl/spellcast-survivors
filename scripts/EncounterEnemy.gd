@@ -11,6 +11,8 @@ var action_time: float = 2.0
 var warning: float = 0.0
 var action_direction: Vector2 = Vector2.ZERO
 var charge_remaining: float = 0.0
+var recoil_remaining = 0.0
+var recoil_velocity = Vector2.ZERO
 var spawn_data: Dictionary = {}
 
 func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false):
@@ -33,7 +35,7 @@ func _ready():
 		add_to_group("bosses")
 		var label = Label.new()
 		label.text = encounter_name
-		label.position = Vector2(-70, -65)
+		label.position = Vector2(-70, -90)
 		label.add_theme_font_size_override("font_size", 16)
 		add_child(label)
 
@@ -41,6 +43,11 @@ func _physics_process(delta):
 	if dying or not is_instance_valid(player):
 		return
 	process_status_effects(delta)
+	if recoil_remaining > 0.0:
+		recoil_remaining = maxf(0.0, recoil_remaining - delta)
+		velocity = recoil_velocity
+		move_and_slide()
+		return
 	behavior_time += delta
 	action_time -= delta
 	var offset = player.global_position - global_position
@@ -73,18 +80,34 @@ func _physics_process(delta):
 	knockback_velocity *= pow(knockback_decay, delta * 60.0)
 	queue_redraw()
 
+func recoil_from_contact(source: Vector2):
+	if dying or recoil_remaining > 0.0:
+		return
+	var manager = get_tree().get_first_node_in_group("monster_manager")
+	var settings = manager.encounter_config.get("contact_recoil", {}) if manager else {}
+	var weight = float(settings.get("boss_multiplier", 0.35)) if boss else (float(settings.get("heavy_multiplier", 0.6)) if family == "brute" else 1.0)
+	var away = source.direction_to(global_position)
+	if away.is_zero_approx():
+		away = Vector2.RIGHT
+	recoil_remaining = float(settings.get("duration", 0.24))
+	recoil_velocity = away * float(settings.get("speed", 320.0)) * weight
+	charge_remaining = 0.0
+	warning = 0.0
+	action_time = maxf(action_time, 0.7)
+
 func update_charge(delta: float, toward: Vector2, distance: float):
+	var settings = spawn_data.get("boss_charge", {}) if boss else {}
 	if charge_remaining > 0.0:
-		velocity = action_direction * speed * 2.5 * slow_multiplier
+		velocity = action_direction * speed * float(settings.get("speed_multiplier", 2.5)) * slow_multiplier
 		charge_remaining -= delta
 	elif warning > 0.0:
 		velocity = Vector2.ZERO
 		warning -= delta
 		if warning <= 0.0:
-			charge_remaining = 0.65
-			action_time = 3.5
-	elif action_time <= 0.0 and distance < 450.0:
-		warning = 0.9
+			charge_remaining = float(settings.get("duration", 0.65))
+			action_time = float(settings.get("cooldown", 3.5))
+	elif action_time <= 0.0 and distance < float(settings.get("trigger_range", 450.0)):
+		warning = float(settings.get("warning", 0.9))
 		action_direction = toward
 		velocity = Vector2.ZERO
 	elif action_time > 2.8:
@@ -143,4 +166,8 @@ func _draw():
 		draw_arc(Vector2.ZERO, 32, facing.angle() - 0.95, facing.angle() + 0.95, 16, Color(0.7, 0.85, 1), 5.0)
 	if warning > 0.0:
 		var line_direction = action_direction if variant != "mortar" else (action_direction - global_position).normalized()
-		draw_line(Vector2.ZERO, line_direction * 100.0, Color(1, 0.2, 0.1, 0.8), 4.0)
+		var reach = 100.0
+		if variant == "charger" and boss:
+			var settings = spawn_data.get("boss_charge", {})
+			reach = speed * float(settings.get("speed_multiplier", 2.5)) * float(settings.get("duration", 0.65)) / scale.x
+		draw_line(Vector2.ZERO, line_direction * reach, Color(1, 0.2, 0.1, 0.8), 4.0)

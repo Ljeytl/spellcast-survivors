@@ -301,7 +301,12 @@ func process_enemy_contact_damage(delta: float):
 					var damage = enemy.base_damage if enemy.get("base_damage") else 20.0
 					total_damage += damage
 
+				var before = health + overheal
 				take_damage(total_damage, {"kind": "contact", "count": touching_enemies.size()})
+				if health + overheal < before:
+					for enemy in touching_enemies:
+						if is_instance_valid(enemy) and enemy.has_method("recoil_from_contact"):
+							enemy.recoil_from_contact(global_position)
 				damage_timer = DAMAGE_INTERVAL  # Reset timer
 
 # Calculate movement slowdown based on number of touching enemies
@@ -321,10 +326,12 @@ func apply_upgrade(upgrade_data: Dictionary) -> bool:
 		if not can_acquire_passive(effect_type):
 			return false
 		passive_ranks[effect_type] = int(passive_ranks.get(effect_type, 0)) + 1
-	elif effect_type not in ["spell_upgrade", "learn_spell"]:
+	elif effect_type not in ["spell_upgrade", "learn_spell", "recovery"]:
 		return false
 	# Apply the upgrade based on its type
 	match effect_type:
+		"recovery":
+			heal(float(value))
 		"spell_damage":
 			spell_damage_multiplier += value  # Increase spell damage
 		"cast_speed":

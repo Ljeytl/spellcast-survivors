@@ -1,3 +1,39 @@
+## 2026-09-27 — Integrated second playtest pass
+
+- Integrate targeting, readable spell areas, stronger Orbit/Cross Blade/Firewalk, larger characters and stable XP tiers, single-line incantations, boss rewards, contact recoil and the Pursuer dash.
+- Raise spawn pressure only through the previously flat middle stretch, tapering back to existing nine-minute parameters. Preserve Focus Ray and passive power.
+- Verify actual input, reward acquisition, trunk collisions, XP conservation, real projectile pooling, geometry, natural bot runs and the full timed run lifecycle. Record measured tuning and remaining human judgments in `docs/PLAYTEST_PASS_2_RESULTS.md`.
+- Future: tune the candidate from human feedback; narrow-window HUD polish, shaders and a Plague death-ground redesign remain outside this pass.
+
+## 2026-09-27 — Pass two rewards and encounter interactions
+
+- Add one upgrade-choice chest on boss defeat, reusing the existing slot-aware upgrade flow without granting a player level; exhausted offer filters fall back to recovery without restoring banished upgrades.
+- Make successful contact hits briefly recoil enemies with weight-scaled movement and collision. The Pursuer boss dash is faster and longer with its existing windup; ordinary chargers retain their values.
+- Consolidate stationary distant offscreen XP locally without losing value or collecting moving pickups.
+- Record implementation approval and resolved choices in the shared specification.
+## 2026-09-26 — Spell area payoff and visible geometry
+
+- Make Lightning a160-radius blue burst lasting0.2s, with once-per-enemy damage and group selection; reuse its existing electrical sound. Give Meteor Shower data-driven220-radius growing telegraphs before every impact.
+- Enlarge Arcane Orbit to130orbit/42body radius with bounded contact damage. Strengthen Cross Blade to60damage per pass,42radius and0.9s of controlled lingering damage. Preserve Focus Ray.
+- Extend Firewalk patches from2s to6s, widen them to65radius, and draw continuous burning ground using the same path geometry as damage. Shared circle/cone boundaries also cover fields, traps, Meteor Lance splash and Ice Blast.
+- Fit infection markers above enlarged enemies; retain existing host-death spread repair. Audit all24implemented spells including passive and bonuses in docs/SPELL_PASS_2_AUDIT.md.
+- Distribute Meteor Shower impacts using per-cast expected damage; preserve full telegraphs and healthy-boss concentration. Preserve unburned holes when Firewalk loops back on itself.
+- Add real-enemy geometry/cadence/boss-chase tests and native crowded/narrow fixtures plus a rendered closed-path negative control. Future: player judgment of integrated balance and crowded visibility; Plague death-ground redesign remains deferred.
+
+## 2026-09-26 — Shared spell targeting
+
+- Select useful targets for rapid and delayed Bolt, Mana Bolt, Life Bolt and Lightning Bolt attacks using expiring in-flight damage estimates. Homing attacks reacquire after target death; straight attacks retain their trajectory.
+- Release estimates on misses, impact, expiry, despawn and pooled reuse. Add reusable group-coverage selection for downstream area spells and document the entire implemented library targeting policy.
+- Verify real enemies and typed casts with a reservation-disabled negative control. Future: integrate ground-area selection and judge crowded-scene gameplay with the effects pass.
+
+## 2026-09-26 — Readability and world scale candidate
+
+- Enlarge player/enemy sprites 1.75x and camera zoom 1.2x; preserve background world sizes and collision footprints. Fit staff orbit and enemy health bars to the larger bodies.
+- Keep incantations on one row with readable 48px keycaps, a wider prompt, and horizontal overflow that follows the latest key. Preserve placement, backspace, cancellation and completion feedback.
+- Replace XP pulsing with steady crystals roughly twice the prior apparent size. Blue is below 25 XP, green is 25–99, and purple is 100+; stored-value changes immediately refresh appearance for consolidation.
+- Enlarge cosmetic burst particles independently of affected-area geometry. Keep particle counts unchanged.
+- Verification: isolated native rendering plus mechanical regressions; final integrated crowded readability and player judgment of sight range remain required.
+
 ## 2026-09-26 — Second playtest pass specification
 
 - Consolidate targeting, spell payoff, shared AoE/fire visuals, scale, typing, particles, XP consolidation, minutes 3–8 pressure, contact recoil and boss rewards in `docs/PLAYTEST_PASS_2_SPEC.md`.

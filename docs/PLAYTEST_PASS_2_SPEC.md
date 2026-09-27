@@ -1,6 +1,6 @@
 # Playtest pass 2 — shared build specification
 
-Status: consolidated for user review; gameplay implementation NOT authorized by creating this document.
+Status: implementation authorized by the user: “ok build to it.” Boss upgrade chest confirmed; Pursuer means farther/faster dash.
 Baseline: main `9588205ebaaa1d9255ed1f000460e626407e5cf0` (Plague host-death / player-only canopy repair).
 Owner: integration lead. This is the controlling checklist for this pass; update dispositions here as work proceeds.
 
@@ -12,7 +12,7 @@ A completed pass means one integrated, reviewed, tested build, not disconnected 
 
 ## Authority and scope
 
-- The user requested this document so implementation can follow a shared specification. Writing/merging the document is not approval to start gameplay implementation.
+- The user explicitly approved implementation after this specification was merged. The confirmed chest reward and farther/faster Pursuer dash resolve both earlier product questions.
 - Confirmed describes the user's requested outcome. Proposed describes an implementation/tuning choice awaiting approval of this specification or the specific open choice. Measured values must be recorded before and after tuning.
 - Later corrections override earlier suggestions: targeted intelligence applies across the library; effect language is shared across relevant spells; difficulty changes target minutes 3–8, not a global increase or passive nerf.
 - Earlier accepted rules remain in force unless explicitly changed here. The previous pass is historical context, not authorization for this new pass.
@@ -153,13 +153,13 @@ Confirmed: an enemy that lands a physical contact hit should briefly move/bounce
 
 Acceptance: recoil follows a successful contact hit, not every overlap frame; no repeated overlap damage, endless stun lock, wall clipping or trapped actors. Verify boss and normal enemy cases near trees.
 
-OPEN: user requested more Pursuer range. Clarify detection/pursuit distance versus melee reach; do not silently implement either interpretation. Independent work can proceed without that choice.
+Confirmed clarification: The Pursuer boss dash should travel farther and faster. This is the charger boss, not the basic grunt named Pursuer. Preserve readable windup and collision with trees. Do not increase unrelated melee reach.
 
 ### P2-14 — Boss defeat reward
 
 Confirmed: boss defeat must drop something meaningful and clearly visible, beyond an unremarkable ordinary kill.
 
-OPEN proposal: guaranteed reward chest that provides an upgrade choice through the existing acquisition system, respecting six active/six passive limits and bonus rules. User has not specifically chosen the chest format. Confirm before implementing that reward format.
+Confirmed: guaranteed reward chest that provides an upgrade choice through the existing acquisition system, respecting six active/six passive limits and bonus rules.
 
 Acceptance after selection: real boss defeat, exactly one reward, discoverable drop, collection, valid offers when slots are open/full or upgrades exhausted, application once, return to gameplay and run reset. Handle the 20:00 victory boundary without requiring post-victory collection.
 
@@ -209,8 +209,8 @@ For each P2 ID record: agreed behavior, reproduction journey, baseline observati
 
 ## Open choices and deferred ideas
 
-1. Pursuer range: pursuit/detection versus melee reach — user clarification required.
-2. Boss reward: chest/upgrade-choice format proposed, meaningful reward confirmed — confirm format.
+1. Resolved: Pursuer boss dash farther and faster.
+2. Resolved: boss drops an upgrade-choice chest.
 3. Exact spell strengths, XP thresholds, consolidation distances and middle-curve values — routine measured tuning after scope approval, recorded in data and this pass's results.
 4. Scale candidate 1.2x zoom / 1.75x character visuals — approved starting experiment; verify view range before finalizing.
 5. Plague death-ground infection area — idea only, rework deferred until current spell works and reads well.
@@ -218,11 +218,6 @@ For each P2 ID record: agreed behavior, reproduction journey, baseline observati
 
 ## Progress ledger
 
-| Requirements | Current disposition | Evidence / next step |
-|---|---|---|
-| P2-01–06, P2-08–12, P2-15 | Planned; implementation awaiting approval | This specification; establish baseline and assigned worktrees after approval |
-| P2-07 | Previous fix merged; new readability/real-game verification planned | PR33 / baseline9588205; do not treat as full visual sign-off |
-| P2-13 | Recoil planned; Pursuer interpretation open | Clarify range before that specific change |
-| P2-14 | Reward required; format open | Confirm chest proposal |
+Implementation is integrated. Per-requirement dispositions, measured tuning, verification evidence and explicit human-review limits are recorded in [PLAYTEST_PASS_2_RESULTS.md](PLAYTEST_PASS_2_RESULTS.md). The full implemented spell table is [SPELL_PASS_2_AUDIT.md](SPELL_PASS_2_AUDIT.md).
 
-Update this ledger and the individual requirement evidence as work proceeds. Do not overwrite the historical baseline or silently remove a user obligation.
+All P2 requirements have an implementation and evidence disposition. The two product choices are resolved: farther/faster Pursuer boss dash and upgrade-choice boss chest. Balance and final scale preference remain human playtest judgments rather than automated pass claims. Deferred ideas remain deferred.

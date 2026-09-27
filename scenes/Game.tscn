@@ -51,7 +51,7 @@ script = ExtResource("2_p4k8z")
 
 [node name="Sprite2D" type="Sprite2D" parent="Player"]
 texture_filter = 1
-scale = Vector2(2, 2)
+scale = Vector2(3.5, 3.5)
 texture = ExtResource("4_aug50")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
@@ -65,6 +65,7 @@ shape = SubResource("RectangleShape2D_hitbox")
 debug_color = Color(1, 0, 0, 0.3)
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(1.2, 1.2)
 
 [node name="SpellManager" type="Node" parent="."]
 script = ExtResource("3_q6m9a")

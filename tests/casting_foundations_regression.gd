@@ -166,7 +166,7 @@ func run():
 	var before_lightning = front.current_health
 	var neighbor_health = inside.current_health
 	manager.cast_freeform_spell("lightning")
-	check(front.current_health < before_lightning and inside.current_health == neighbor_health, "Lightning directly strikes one target without chain damage")
+	check(front.current_health < before_lightning and side.current_health < 1000 and inside.current_health == neighbor_health, "Lightning strikes nearby group and excludes enemies beyond circle")
 	manager.cast_freeform_spell("bolt")
 	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("is_homing") != null and not node.is_queued_for_deletion())
 	check(bolts.any(func(node): return not node.is_homing and node.get("damage") > 0), "Typed Bolt travels straight")

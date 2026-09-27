@@ -1,10 +1,18 @@
 extends Area2D
 
-const VISUAL_SCALE = 1.5
+const VISUAL_SCALE = 2.5
+const GREEN_THRESHOLD = 25.0
+const PURPLE_THRESHOLD = 100.0
+
+static var visual_textures: Array[Texture2D] = []
 
 var collected: bool = false
 
-var xp_value: float = 10.0
+var xp_value: float = 10.0:
+	set(value):
+		xp_value = value
+		if is_node_ready():
+			update_visual()
 var collection_distance: float = 100.0
 var move_speed: float = 200.0
 
@@ -74,12 +82,31 @@ func collect_xp():
 	# Remove orb
 	queue_free()
 
+func set_xp_value(value: float):
+	xp_value = value
+
+func update_visual():
+	var tier = 2 if xp_value >= PURPLE_THRESHOLD else (1 if xp_value >= GREEN_THRESHOLD else 0)
+	$Visual.scale = Vector2.ONE * VISUAL_SCALE * [1.0, 1.08, 1.16][tier]
+	$Visual.texture = crystal_textures()[tier]
+
+static func crystal_textures() -> Array:
+	if visual_textures.is_empty():
+		var original = preload("res://assets/typecast/Pickups/Mana Crystal.png")
+		visual_textures.append(original)
+		for hue in [0.32, 0.76]:
+			var image = original.get_image()
+			image.convert(Image.FORMAT_RGBA8)
+			for y in range(image.get_height()):
+				for x in range(image.get_width()):
+					var pixel = image.get_pixel(x, y)
+					if pixel.a > 0 and pixel.s > 0.15:
+						image.set_pixel(x, y, Color.from_hsv(hue, pixel.s, pixel.v, pixel.a))
+			visual_textures.append(ImageTexture.create_from_image(image))
+	return visual_textures
+
 func add_sparkle_effect():
-	# Simple pulsing effect
-	var tween = create_tween()
-	tween.set_loops()
-	tween.tween_property($Visual, "scale", Vector2.ONE * VISUAL_SCALE * 1.2, 0.5)
-	tween.tween_property($Visual, "scale", Vector2.ONE * VISUAL_SCALE, 0.5)
+	update_visual()
 
 func play_collection_effect():
 	# Create particle effect
@@ -88,8 +115,3 @@ func play_collection_effect():
 		var game_node = scene_tree.get_first_node_in_group("game")
 		if game_node and game_node.has_method("create_xp_collect_effect"):
 			game_node.create_xp_collect_effect(global_position)
-	
-	# Quick scale up before disappearing
-	var tween = create_tween()
-	tween.parallel().tween_property($Visual, "scale", Vector2.ONE * VISUAL_SCALE * 1.5, 0.1)
-	tween.parallel().tween_property($Visual, "modulate", Color.TRANSPARENT, 0.1)

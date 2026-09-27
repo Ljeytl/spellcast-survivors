@@ -35,10 +35,11 @@ func columns() -> int:
 	return maxi(1, floori(maxf(STRIDE, size.x - 16) / STRIDE))
 
 func key_position(index: int) -> Vector2:
-	var cols = columns()
-	var row_start = (index / cols) * cols
-	var row_count = mini(cols, letters.length() - row_start)
-	return Vector2((size.x - row_count * STRIDE + STRIDE - KEY_SIZE) / 2 + (index % cols) * STRIDE, 30 + floori(float(index) / cols) * STRIDE)
+	var available = maxf(KEY_SIZE, size.x - 16.0)
+	var stride = clampf((available - KEY_SIZE) / maxf(1, letters.length() - 1), KEY_SIZE, STRIDE)
+	var width = maxf(0, letters.length() - 1) * stride + KEY_SIZE
+	var origin = (size.x - width) / 2 if width <= available else size.x - 8 - width
+	return Vector2(origin + index * stride, 30)
 
 func sync(text: String, message: String):
 	feedback = message
@@ -69,8 +70,7 @@ func clear_keys():
 	queue_redraw()
 
 func update_height():
-	var rows = maxi(1, ceili(float(letters.length()) / columns()))
-	var height = 34 + rows * STRIDE
+	var height = 34 + STRIDE
 	for piece in fragments:
 		height = maxf(height, piece.floor_height)
 	label.custom_minimum_size.y = height

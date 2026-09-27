@@ -331,7 +331,7 @@ func play_spell_sound(spell_name: String, level: int = 1):
 		"earth shield":
 			# Earth shield gets more resonant at higher levels
 			play_sound(SoundType.SPELL_EARTHSHIELD, volume_variation, max(0.8, 1.0 - (level - 1) * 0.02))
-		"lightning arc":
+		"lightning arc", "lightning":
 			# Lightning gets more crackling/higher pitched at higher levels
 			play_sound(SoundType.SPELL_LIGHTNING_ARC, volume_variation, min(1.3, 1.0 + (level - 1) * 0.06))
 		"meteor shower":
@@ -352,7 +352,7 @@ func play_spell_impact_sound(spell_name: String, level: int = 1):
 			play_sound(SoundType.SPELL_IMPACT_FIRE, volume_variation, pitch_variation)
 		"ice blast":
 			play_sound(SoundType.SPELL_IMPACT_ICE, volume_variation, max(0.7, pitch_variation - 0.2))
-		"lightning arc":
+		"lightning arc", "lightning":
 			play_sound(SoundType.SPELL_IMPACT_LIGHTNING, volume_variation, min(1.4, pitch_variation + 0.3))
 		"earth shield":
 			play_sound(SoundType.SPELL_IMPACT_EARTH, volume_variation, max(0.6, pitch_variation - 0.3))

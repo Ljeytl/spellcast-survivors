@@ -197,12 +197,12 @@ func run():
 	manager.learn_spell("arcane_orbit")
 	manager.cast_freeform_spell("arcane orbit")
 	effect = effect_for(game, "arcane_orbit")
-	b.position = game.player.position + Vector2.from_angle(2.0) * 65.0
+	b.position = game.player.position + Vector2.from_angle(2.0) * float(effect.info.orbit_radius)
 	var old_health = b.current_health
 	effect.advance(0.5)
 	check(is_equal_approx(effect.angle, 2.0), "Orbit naturally rotates four radians per second")
 	check(b.current_health < old_health, "Orbit damages target at its naturally advanced spark position")
-	b.position = game.player.position + Vector2.from_angle(4.0) * 65.0
+	b.position = game.player.position + Vector2.from_angle(4.0) * float(effect.info.orbit_radius)
 	old_health = b.current_health
 	effect.advance(0.5)
 	check(b.current_health < old_health, "Orbit continues hitting at the next rotated position")

@@ -1,5 +1,6 @@
 # Spell and upgrade catalog
 
+Current pass-2 runtime values and complete implemented-spell audit: [SPELL_PASS_2_AUDIT.md](SPELL_PASS_2_AUDIT.md). Earlier proposals below remain historical where superseded.
 Status: proposed implementation specification for review; no runtime changes. Read with [core design](CORE_GAME_DESIGN.md) and the matching [art matrix](ART_AND_FEEDBACK_PLAN.md).
 
 The [full spell library](SPELL_LIBRARY.md) is the master list of current identities, user ideas, inactive drafts, naming alternatives and new proposals, with explicit status and typing length. This document specifies current mechanics and migration; it is not the complete imagined roster.

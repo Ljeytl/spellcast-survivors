@@ -96,7 +96,7 @@ func run():
 		check(enemy.hits == 1, "Outbound path hits once")
 		blade.advance(0.2)
 		check(is_equal_approx(blade.position.x, 350), "Blade visibly lingers before return")
-		blade.advance(1.2)
+		blade.advance(1.5)
 		check(enemy.hits == 2 and blade.is_queued_for_deletion(), "Return contributes second useful hit")
 		clear_effects()
 	enemy = target_at(Vector2(300, 0))
