@@ -23,6 +23,12 @@ var xp_to_next_level: float = BASE_XP_REQUIREMENT  # XP needed for next level
 # Upgrade multipliers - these improve through level-up choices
 var spell_damage_multiplier: float = 1.0     # Increases damage of all spells
 var cast_speed_multiplier: float = 1.0
+var projectile_speed_multiplier: float = 1.0
+var typing_duration_bonus: float = 0.0
+var next_heal_feedback_msec: int = 0
+const MAX_PASSIVE_FAMILIES = 6
+const SUPPORTED_PASSIVES = ["spell_damage", "movement_speed", "max_health", "xp_range", "projectile_speed", "slowdown_duration", "mana_bolt_mastery"]
+var passive_ranks: Dictionary = {}
 var movement_speed_multiplier: float = 1.0   # Increases walking speed
 var xp_range_multiplier: float = 1.0         # Increases XP orb pickup range
 
@@ -50,8 +56,8 @@ var is_invincible: bool = false     # When true, player takes no damage
 func _ready():
 	# Register with player group so other systems can find us
 	add_to_group("player")
-	
-	
+
+
 	# Send initial UI updates with starting values
 	health_changed.emit(health, max_health, overheal)
 	xp_changed.emit(xp, xp_to_next_level)
@@ -69,13 +75,13 @@ func _physics_process(delta):
 	handle_movement()
 	# Actually move the player using Godot's built-in physics
 	move_and_slide()
-	
+
 	# Handle overheal expiration
 	handle_overheal_expiration(delta)
-	
+
 	# Process continuous damage from touching enemies
 	process_enemy_contact_damage(delta)
-	
+
 	# Update the red damage flash effect
 	if is_flashing:
 		flash_timer -= delta
@@ -84,7 +90,7 @@ func _physics_process(delta):
 			is_flashing = false
 			if sprite:
 				sprite.modulate = Color.WHITE
-	
+
 # Process WASD movement input and set player velocity
 func handle_movement():
 	var spells = get_parent().get_node_or_null("SpellManager")
@@ -92,7 +98,7 @@ func handle_movement():
 		velocity = Vector2.ZERO
 		return
 	var input_dir = Vector2.ZERO
-	
+
 	# Check each movement key and build direction vector
 	if Input.is_action_pressed("move_left"):    # A key
 		input_dir.x -= 1
@@ -102,18 +108,18 @@ func handle_movement():
 		input_dir.y -= 1
 	if Input.is_action_pressed("move_down"):    # S key
 		input_dir.y += 1
-	
+
 	# Apply movement if any direction keys are pressed
 	if input_dir != Vector2.ZERO:
 		# Normalize to prevent faster diagonal movement
 		input_dir = input_dir.normalized()
 		# Apply speed with upgrades multiplier
 		var current_speed = BASE_SPEED * movement_speed_multiplier
-		
+
 		# Apply slowdown based on touching enemies
 		var slowdown_multiplier = calculate_enemy_slowdown()
 		current_speed *= slowdown_multiplier
-		
+
 		velocity = input_dir * current_speed
 	else:
 		# Stop moving when no keys are pressed
@@ -129,35 +135,42 @@ func take_damage(damage: float, source: Dictionary = {}):
 	# Check invincibility first
 	if is_invincible:
 		return
-	
+
 	# Apply damage to overheal first, then health
 	if overheal > 0:
 		var damage_to_overheal = min(damage, overheal)
 		overheal -= damage_to_overheal
 		damage -= damage_to_overheal
-	
+
 	# Apply remaining damage to health
 	health -= damage
 	health = max(0, health)  # Don't let health go below 0
 	var actual_damage = maxf(0, previous_total - health - overheal)
 	if actual_damage > 0:
+		var particles = get_parent().get("particle_manager")
+		if is_instance_valid(particles):
+			if previous_overheal > overheal and particles.has_method("create_earthshield_effect"):
+				particles.create_earthshield_effect(global_position)
+			if previous_health > health and particles.has_method("create_hurt_effect"):
+				particles.create_hurt_effect(global_position)
 		last_damage_context = source.duplicate(true)
 		last_damage_context["kind"] = source.get("kind", "unknown")
 		last_damage_context["damage"] = actual_damage
 		last_damage_context["health_loss"] = maxf(0, previous_health - health)
 		last_damage_context["overheal_loss"] = maxf(0, previous_overheal - overheal)
-	
+
 	# Play damage sound effect
 	if is_instance_valid(AudioManager):
 		AudioManager.on_damage_taken()
-	
+
 	# Update the health bar UI
 	health_changed.emit(health, max_health, overheal)
-	
+
 	# Trigger visual and camera effects
-	flash_damage()        # Make player sprite flash red
+	if previous_health > health:
+		flash_damage()
 	player_damaged.emit() # Trigger camera shake in Game.gd
-	
+
 	# Check if player has died
 	if health <= 0:
 		player_died.emit()  # Trigger game over screen
@@ -172,11 +185,11 @@ func flash_damage():
 # Add experience points to the player, potentially triggering level up
 func add_xp(amount: float):
 	xp += amount
-	
+
 	# Handle multiple level ups if player gained a lot of XP at once
 	while xp >= xp_to_next_level:
 		do_level_up()
-	
+
 	# Update the XP bar UI
 	xp_changed.emit(xp, xp_to_next_level)
 
@@ -186,15 +199,17 @@ func do_level_up():
 	xp -= xp_to_next_level
 	level += 1
 	xp_to_next_level = BASE_XP_REQUIREMENT + ((level - 1) * XP_LEVEL_INCREMENT)
-	
+
 	# Play level up sound effect
 	if is_instance_valid(AudioManager):
 		AudioManager.on_level_up()
-	
+
 	# Send level up event with current player stats for upgrade selection
 	var player_stats = {
 		"spell_damage_multiplier": spell_damage_multiplier,
-		"cast_speed_multiplier": cast_speed_multiplier, 
+		"cast_speed_multiplier": cast_speed_multiplier,
+		"projectile_speed_multiplier": projectile_speed_multiplier,
+		"passive_ranks": passive_ranks.duplicate(),
 		"movement_speed_multiplier": movement_speed_multiplier,
 		"max_health": max_health,
 		"xp_range_multiplier": xp_range_multiplier
@@ -203,8 +218,15 @@ func do_level_up():
 
 # Restore health to the player (from Life spell or chest items)
 func heal(amount: float):
-	# Don't heal above maximum health
+	if health <= 0.0 or amount <= 0.0:
+		return
+	var previous_health = health
 	health = min(max_health, health + amount)
+	if health > previous_health and Time.get_ticks_msec() >= next_heal_feedback_msec:
+		next_heal_feedback_msec = Time.get_ticks_msec() + 150
+		var particles = get_parent().get("particle_manager")
+		if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
+			particles.create_heal_effect(global_position)
 	# Update the health bar UI
 	health_changed.emit(health, max_health, overheal)
 
@@ -212,7 +234,7 @@ func heal(amount: float):
 func toggle_invincibility():
 	is_invincible = not is_invincible
 	var status = "ON" if is_invincible else "OFF"
-	
+
 	# Visual feedback - make player flash when invincible
 	if is_invincible:
 		sprite.modulate = Color(1.0, 1.0, 0.5, 0.8)  # Golden tint with transparency
@@ -237,11 +259,11 @@ func add_overheal(amount: float):
 func handle_overheal_expiration(delta: float):
 	if overheal > 0:
 		overheal_timer -= delta
-		
+
 		# Warn when overheal is about to expire (last 5 seconds)
 		if overheal_timer <= 5.0 and overheal_timer > 4.9:
 			print("⚠️ Earthshield expiring in 5 seconds!")
-		
+
 		if overheal_timer <= 0:
 			# Overheal has expired
 			print("🛡️ Earthshield expired - overheal removed")
@@ -271,14 +293,14 @@ func process_enemy_contact_damage(delta: float):
 				var enemy = touching_enemies[i]
 				if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.get("dying") or float(enemy.get("current_health")) <= 0.0:
 					touching_enemies.remove_at(i)
-			
+
 			# Apply damage from all touching enemies
 			if touching_enemies.size() > 0:
 				var total_damage = 0.0
 				for enemy in touching_enemies:
 					var damage = enemy.base_damage if enemy.get("base_damage") else 20.0
 					total_damage += damage
-				
+
 				take_damage(total_damage, {"kind": "contact", "count": touching_enemies.size()})
 				damage_timer = DAMAGE_INTERVAL  # Reset timer
 
@@ -287,17 +309,32 @@ func calculate_enemy_slowdown() -> float:
 	return 1.0  # No slowdown - player moves at full speed regardless of enemy contact
 
 # Apply upgrades selected from the level-up screen
-func apply_upgrade(upgrade_data: Dictionary):
-	var effect = upgrade_data.get("effect", {}) 
+func can_acquire_passive(family: String) -> bool:
+	return family in SUPPORTED_PASSIVES and (passive_ranks.has(family) or passive_ranks.size() < MAX_PASSIVE_FAMILIES)
+
+func apply_upgrade(upgrade_data: Dictionary) -> bool:
+	var effect = upgrade_data.get("effect", {})
 	var effect_type = effect.get("type", "")
 	var value = effect.get("value", 0.0)
-	
+
+	if effect_type in SUPPORTED_PASSIVES:
+		if not can_acquire_passive(effect_type):
+			return false
+		passive_ranks[effect_type] = int(passive_ranks.get(effect_type, 0)) + 1
+	elif effect_type not in ["spell_upgrade", "learn_spell"]:
+		return false
 	# Apply the upgrade based on its type
 	match effect_type:
 		"spell_damage":
 			spell_damage_multiplier += value  # Increase spell damage
 		"cast_speed":
 			cast_speed_multiplier += value
+		"projectile_speed":
+			projectile_speed_multiplier += value
+		"slowdown_duration":
+			typing_duration_bonus += value
+		"mana_bolt_mastery":
+			cast_speed_multiplier += 0.1
 		"movement_speed":
 			movement_speed_multiplier += value # Increase walking speed
 		"max_health":
@@ -310,6 +347,7 @@ func apply_upgrade(upgrade_data: Dictionary):
 			# Spell level upgrades are handled by SpellManager
 			var spell_name = effect.get("spell", "")
 			pass
+	return true
 
 # Track enemies currently touching the player for continuous damage
 var touching_enemies: Array = []
@@ -327,3 +365,8 @@ func _on_hit_box_body_entered(body):
 func _on_hit_box_body_exited(body):
 	if body.is_in_group("enemies") and body in touching_enemies:
 		touching_enemies.erase(body)
+
+func start_healing_over_time(amount: float, duration: float):
+	var game = get_tree().get_first_node_in_group("game")
+	if game != null and health > 0.0:
+		game.spell_manager.add_healing_effect(amount, duration)

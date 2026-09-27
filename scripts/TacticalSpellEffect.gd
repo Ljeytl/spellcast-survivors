@@ -10,7 +10,8 @@ var trail_sample = 0.0
 var last_trail_position = Vector2.ZERO
 var leg = 0
 var leg_hits = [{}, {}]
-var outbound_remaining = 0.7
+var outbound_distance = 350.0
+var linger_remaining = 0.4
 var burst_remaining = 0.0
 var burst_position = Vector2.ZERO
 
@@ -37,9 +38,12 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 
 func advance(delta: float):
 	var player = caster.get_ref() if caster else null
-	if not is_instance_valid(player) or player.is_queued_for_deletion() or remaining <= 0:
+	if not is_instance_valid(player) or player.is_queued_for_deletion() or (player.get("health") != null and float(player.health) <= 0) or remaining <= 0:
 		queue_free()
 		return
+	var persistent = info.type == "trap" and not triggered
+	if persistent:
+		remaining = maxf(remaining, delta + 1.0)
 	var budget = minf(maxf(delta, 0), remaining)
 	while budget > 0.000001 and remaining > 0.000001:
 		var step = minf(minf(budget, remaining), 0.05)
@@ -121,7 +125,7 @@ func advance_trap():
 func advance_spirit(delta: float, player: Node2D):
 	var target = tracking_target(player.global_position, 600)
 	var destination = target.global_position if target else player.global_position
-	global_position = global_position.move_toward(destination, 320 * delta)
+	global_position = global_position.move_toward(destination, 320 * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
 	strike_ready = maxf(0, strike_ready - delta)
 	if target and valid_target(target) and global_position.distance_to(target.global_position) <= 24 and strike_ready <= 0.000001:
 		var center = target.global_position
@@ -158,48 +162,47 @@ func advance_trail(delta: float, player: Node2D):
 
 func advance_returning(delta: float, player: Node2D):
 	var start = global_position
+	var movement = 500 * float(info.get("projectile_speed_multiplier", 1.0)) * delta
 	if leg == 0:
-		global_position += direction * 500 * delta
-		outbound_remaining -= delta
+		var distance = minf(outbound_distance, movement)
+		global_position += direction * distance
+		outbound_distance -= distance
+	elif linger_remaining > 0:
+		linger_remaining -= delta
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if valid_target(enemy) and not leg_hits[0].has(enemy.get_instance_id()) and global_position.distance_to(enemy.global_position) <= 24:
+				leg_hits[0][enemy.get_instance_id()] = true
+				deal_damage(enemy, damage)
+		return
 	else:
-		global_position = global_position.move_toward(player.global_position, 500 * delta)
+		global_position = global_position.move_toward(player.global_position, movement)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if valid_target(enemy) and not leg_hits[leg].has(enemy.get_instance_id()) and Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= 24:
 			leg_hits[leg][enemy.get_instance_id()] = true
 			deal_damage(enemy, damage)
-	if leg == 0 and outbound_remaining <= 0.000001:
+	if leg == 0 and outbound_distance <= 0.000001:
 		leg = 1
 	elif leg == 1 and global_position.distance_to(player.global_position) <= 18:
 		remaining = 0
 
 func _draw():
+	var art = preload("res://scripts/EffectArt.gd")
 	if burst_remaining > 0:
-		var center = to_local(burst_position)
-		var alpha = burst_remaining / 0.25
-		draw_circle(center, 100, Color(color, alpha * 0.15))
-		draw_arc(center, 100, 0, TAU, 40, Color(color, alpha), 3)
+		art.burst(self, 3, to_local(burst_position), 200, 1 - burst_remaining / 0.25)
 	match info.type:
 		"beam":
-			draw_line(Vector2.ZERO, beam_end, Color(color, 0.22), 22)
-			draw_line(Vector2.ZERO, beam_end, color, 5)
+			art.beam(self, Vector2.ZERO, beam_end, 4, 0.85)
 		"trap":
 			var radius = float(info.get("trap_radius", 130)) if triggered else 32.0
-			draw_circle(Vector2.ZERO, radius, Color(color, 0.2))
-			draw_arc(Vector2.ZERO, radius, 0, TAU, 32, Color(color, 0.35), 3)
-			draw_arc(Vector2.ZERO, radius, -PI / 2, -PI / 2 + TAU * clampf(age / float(info.get("arm_delay", 0.8)), 0.001, 1), 32, color, 3)
-			if age >= float(info.get("arm_delay", 0.8)):
-				draw_circle(Vector2.ZERO, 6, color)
-			draw_line(Vector2(-18, 0), Vector2(18, 0), color, 3)
-			draw_line(Vector2(0, -18), Vector2(0, 18), color, 3)
+			if triggered:
+				art.burst(self, 1 if info.get("frost", false) else 3, Vector2.ZERO, radius * 2, 0.5, minf(remaining * 4, 0.8))
+			else:
+				art.stamp(self, "rune", Vector2.ZERO, Vector2.ONE * 40, Color(1, 1, 1, 0.9))
+				draw_arc(Vector2.ZERO, radius, -PI / 2, -PI / 2 + TAU * clampf(age / float(info.get("arm_delay", 0.8)), 0.001, 1), 32, color, 2)
 		"spirit":
-			draw_circle(Vector2.ZERO, 13, Color(color, 0.3))
-			draw_circle(Vector2.ZERO, 7, color)
-			draw_arc(Vector2.ZERO, 19, age * 4, age * 4 + PI, 16, color, 2)
+			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Vector2.ONE * 28, Color(0.8, 1, 1))
 		"trail":
 			for point in trail_points:
-				draw_circle(to_local(point.position), 40, Color(color, 0.25 * (1 - point.age / 2)))
-				draw_arc(to_local(point.position), 24, 0, TAU, 16, color, 2)
+				art.stamp(self, "flame", to_local(point.position), Vector2.ONE * 30, Color(1, 1, 1, 0.65 * (1 - point.age / 2)))
 		"returning":
-			var axis = Vector2.from_angle(age * 12) * 20
-			draw_line(-axis, axis, color, 6)
-			draw_line(-axis.rotated(PI / 2), axis.rotated(PI / 2), color, 3)
+			art.stamp(self, "blade", Vector2.ZERO, Vector2.ONE * 30, Color.WHITE, age * 12)

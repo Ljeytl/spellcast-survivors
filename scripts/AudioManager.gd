@@ -78,6 +78,7 @@ var audio_resources: Dictionary = {}
 # Current music player
 var current_music_player: AudioStreamPlayer
 var is_music_playing: bool = false
+var quitting = false
 
 # Volume settings (0.0 to 1.0)
 var master_volume: float = 1.0
@@ -87,6 +88,7 @@ var music_volume: float = 1.0  # Temporarily set to max volume for debugging
 func _ready():
 	# Make AudioManager process independently from Engine.time_scale
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().auto_accept_quit = false
 	
 	# Add to audio group for easy access
 	add_to_group("audio_manager")
@@ -216,7 +218,7 @@ func setup_music_player():
 
 func play_sound(sound_type: SoundType, volume_override: float = -1.0, pitch_override: float = -1.0):
 	"""Play a sound effect with optional volume and pitch override"""
-	if active_audio_players.size() >= MAX_CONCURRENT_SOUNDS:
+	if quitting or active_audio_players.size() >= MAX_CONCURRENT_SOUNDS:
 		# Limit concurrent sounds to prevent audio overload
 		return
 	
@@ -487,3 +489,26 @@ func get_audio_debug_info() -> Dictionary:
 		"music_volume": music_volume,
 		"total_audio_resources": audio_resources.size()
 	}
+
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		request_quit()
+
+func request_quit():
+	if quitting:
+		return
+	quitting = true
+	get_tree().paused = true
+	for tween in get_tree().get_processed_tweens():
+		tween.kill()
+	for child in get_children():
+		if child is AudioStreamPlayer:
+			child.stop()
+			child.stream = null
+	current_music_player = null
+	is_music_playing = false
+	active_audio_players.clear()
+	audio_pools.clear()
+	audio_resources.clear()
+	await get_tree().create_timer(0.25, true, false, true).timeout
+	get_tree().quit()

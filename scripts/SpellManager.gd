@@ -29,11 +29,13 @@ var typing_slowdown_remaining: float = 3.0
 var _scale_change_frame: int = -1
 var _scale_before_change: float = 1.0
 var space_casting = false
+var last_cast_failure: String = ""
 
-const MAX_EQUIPPED_SPELLS = 5
-const BASE_SPELL_IDS = ["bolt", "life", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
+const MAX_EQUIPPED_SPELLS = 6
+const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
 var spell_catalog: Dictionary = {}
 var evolved_ingredients: Dictionary = {}
+var bonus_spells: Dictionary = {}
 var acquired_spells: Dictionary = {"bolt": true}
 
 var spell_queue: Array = []
@@ -92,6 +94,9 @@ func _ready():
 # Load spells from DataManager
 func load_spells_from_data():
 	spells.clear()
+	bonus_spells.clear()
+	acquired_spells = {"bolt": true}
+	evolved_ingredients.clear()
 	spell_catalog.clear()
 	var data = DataManager.get_all_spells()
 	for id in BASE_SPELL_IDS:
@@ -99,7 +104,7 @@ func load_spells_from_data():
 			continue
 		var info = data[id].duplicate(true)
 		info.id = id
-		info.display_name = "regeneration" if id == "life" else id.replace("_", " ")
+		info.display_name = info.get("incantation", id.replace("_", " "))
 		info.chars = info.display_name.length()
 		info.level = 1
 		info.damage = info.get("damage", 0)
@@ -142,7 +147,7 @@ func handle_key_input(event: InputEventKey):
 	# Handle normal slot-based input
 	var key_code = event.keycode
 	
-	if key_code >= KEY_1 and key_code <= KEY_5:
+	if key_code >= KEY_1 and key_code <= KEY_6:
 		activate_spell_slot(key_code - KEY_0)
 		return
 
@@ -164,9 +169,9 @@ func activate_spell_slot(slot: int) -> bool:
 	return is_typing
 
 func queue_spell(slot: int):
-	if slot not in spells:
+	if not is_spell_unlocked(slot):
 		return
-	var info = spells[slot]
+	var info = get_spell_info(slot)
 	if not is_spell_unlocked(slot):
 		spell_locked_error.emit(info.name, 0, player.level)
 		return
@@ -182,6 +187,7 @@ func start_typing():
 		return
 	
 	is_typing = true
+	typing_slowdown_remaining = typing_slowdown_capacity
 	current_typing_text = ""
 	target_spell = spell_queue[0].get("display_name", spell_queue[0]["name"].to_lower())
 	
@@ -192,11 +198,8 @@ func start_typing():
 
 func advance_typing_slowdown(unscaled_delta: float):
 	if is_typing:
-		typing_slowdown_remaining = maxf(0.0, typing_slowdown_remaining - unscaled_delta)
+		typing_slowdown_remaining = maxf(0.0, typing_slowdown_remaining - maxf(unscaled_delta, 0.0))
 		_apply_typing_slowdown()
-	else:
-		var refill_rate = typing_slowdown_capacity / maxf(typing_slowdown_refill_seconds, 0.01)
-		typing_slowdown_remaining = minf(typing_slowdown_capacity, typing_slowdown_remaining + unscaled_delta * refill_rate)
 
 func _set_typing_time_scale(value: float):
 	var frame = Engine.get_process_frames()
@@ -250,9 +253,7 @@ func handle_typing_input(event: InputEventKey):
 
 func attempt_cast():
 	if current_typing_text == target_spell:
-		cast_spell()
-		# Play successful cast completion sound
-		if AudioManager:
+		if cast_spell() and AudioManager:
 			AudioManager.on_typing_complete()
 	else:
 		var feedback = "Keep typing" if target_spell.begins_with(current_typing_text) else "Mismatch"
@@ -261,31 +262,25 @@ func attempt_cast():
 		if AudioManager:
 			AudioManager.on_typing_error()
 
-func cast_spell():
-	if spell_queue.size() == 0:
-		return
-	
-	var spell_data = spell_queue.pop_front()
+func cast_spell() -> bool:
+	last_cast_failure = ""
+	if spell_queue.is_empty():
+		return false
+	var spell_data = spell_queue[0]
 	var spell_name = spell_data["name"]
-	var slot = spell_data["slot"]
-	
-	# Update last cast time
+	if not cast_spell_by_type(spell_data["slot"]):
+		if not last_cast_failure.is_empty() and game_manager:
+			game_manager.update_typing_display(current_typing_text + " · " + last_cast_failure)
+		return false
+	spell_queue.pop_front()
 	last_spell_cast_time = casting_clock
-	
-	# Play spell casting sound
 	if AudioManager:
 		AudioManager.play_spell_sound(spell_name)
-	
 	spell_cast.emit(spell_name)
-	
-	# Notify game manager about spell cast
 	if game_manager and game_manager.has_method("increment_spells_cast"):
 		game_manager.increment_spells_cast()
-	
-	# Cast the appropriate spell type
-	cast_spell_by_type(slot)
-	
 	end_typing()
+	return true
 
 func cancel_typing():
 	spell_queue.clear()
@@ -404,7 +399,7 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 	
 	# Slightly vary speed
 	var speed_variation = 450.0 + (projectile_index * 25.0)
-	projectile.speed = speed_variation
+	projectile.speed = speed_variation * player.projectile_speed_multiplier
 	
 	# Strong homing for mana bolts
 	projectile.homing_strength = 6.0
@@ -417,37 +412,43 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 		projectile.queue_free()  # Clean up if we can't add it
 
 # Main spell casting dispatcher
-func cast_spell_by_type(slot: int):
-	if not player or slot not in spells:
-		return
+func cast_spell_by_type(slot: int) -> bool:
+	last_cast_failure = ""
+	if not player or not is_spell_unlocked(slot):
+		return false
 	
-	var spell_info = spells[slot]
+	var spell_info = get_spell_info(slot)
 	var spell_type = spell_info["type"]
 	
 	match spell_type:
 		"life_bolt":
 			cast_life_bolt(slot)
 		"piercing", "plague", "field", "orbit", "beam", "trap", "spirit", "trail", "returning":
-			cast_build_spell(slot)
+			return cast_build_spell(slot)
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
-		"heal", "heal_over_time":
+		"heal":
+			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)))
+		"heal_over_time":
 			cast_life_spell(slot)
 		"aoe":
 			cast_ice_blast_spell(slot)
 		"shield":
 			cast_earthshield_spell(slot)
-		"chain":
+		"chain", "direct_strike":
 			cast_lightning_arc_spell(slot)
+		"bouncing_projectile":
+			cast_bouncing_bolt(slot)
 		"multi_aoe":
 			cast_meteor_shower_spell(slot)
+	return true
 
 # Individual spell implementations
 func cast_bolt_spell(slot: int):
 	if not player or not is_instance_valid(player):
 		return
 		
-	var spell_info = spells.get(slot, {})
+	var spell_info = get_spell_info(slot)
 	if spell_info.is_empty():
 		return
 		
@@ -474,7 +475,7 @@ func cast_bolt_spell(slot: int):
 	
 	
 	# Set projectile properties before calling setup
-	projectile.speed = 600.0  # Faster than normal
+	projectile.speed = 600.0 * player.projectile_speed_multiplier  # Faster than normal
 	
 	# Add to scene first, then setup (this ensures _ready() runs before setup)
 	var parent = get_parent()
@@ -491,7 +492,7 @@ func cast_enhanced_bolt_spell(slot: int):
 	if not player or not is_instance_valid(player):
 		return
 		
-	var spell_info = spells.get(slot, {})
+	var spell_info = get_spell_info(slot)
 	if spell_info.is_empty():
 		return
 		
@@ -575,7 +576,7 @@ func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle:
 	
 	# Slightly vary speed for additional visual distinction
 	var speed_variation = 500.0 + (projectile_index * 30.0)  # Each bolt slightly faster
-	projectile.speed = speed_variation
+	projectile.speed = speed_variation * player.projectile_speed_multiplier
 	
 	# Set very subtle homing strength for spread bolts (allows many misses but provides minimal guidance)
 	projectile.homing_strength = 1.5  # Very subtle homing to maintain spread pattern and allow many misses
@@ -585,18 +586,8 @@ func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle:
 	if parent:
 		parent.add_child(projectile)
 		
-		# Setup spread + homing projectile
-		if target and is_instance_valid(target):
-			# Has target: start with spread direction but gradually home to target
-			projectile.setup_homing(player.global_position, target, damage, projectile_color, "bolt")
-			# Override initial direction to use spread
-			projectile.direction = initial_direction
-		else:
-			# No target: just fire in spread direction (will look for targets as it travels)
-			projectile.setup(player.global_position, initial_direction, damage, projectile_color, "bolt")
-			# Enable homing anyway in case enemies appear
-			projectile.is_homing = true
-			projectile.homing_strength = 2.5  # Light homing when no initial target
+		projectile.setup(player.global_position, initial_direction, damage, projectile_color, "bolt")
+		projectile.is_homing = false
 	else:
 		projectile.queue_free()  # Clean up if we can't add it
 
@@ -613,7 +604,7 @@ func get_multiple_enemies(count: int) -> Array:
 	# Sort enemies by distance from player
 	var sorted_enemies = []
 	for enemy in enemies:
-		if not is_instance_valid(enemy):
+		if not _live_spell_target(enemy):
 			continue
 		var distance = player.global_position.distance_to(enemy.global_position)
 		sorted_enemies.append({"enemy": enemy, "distance": distance})
@@ -629,7 +620,7 @@ func get_multiple_enemies(count: int) -> Array:
 	return targets
 
 func cast_life_spell(slot: int):
-	var spell_info = spells[slot]
+	var spell_info = get_spell_info(slot)
 	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
 	var heal_per_second = spell_info["heal_amount"] * level_multiplier
 	var duration = spell_info["duration"]
@@ -641,12 +632,10 @@ func cast_life_spell(slot: int):
 	}
 	active_healing_effects.append(healing_effect)
 	
-	# Create healing visual effect
-	create_healing_effect()
 
 func cast_ice_blast_spell(slot: int):
 	print("🧊 cast_ice_blast_spell called!")
-	var spell_info = spells[slot]
+	var spell_info = get_spell_info(slot)
 	var damage = calculate_spell_damage(spell_info)
 	var radius = spell_info.get("radius", 400) + (spell_info["level"] - 1) * 25  # Radius grows with level
 	var knockback = spell_info.get("knockback", 400) + (spell_info["level"] - 1) * 50  # Knockback grows with level
@@ -654,11 +643,10 @@ func cast_ice_blast_spell(slot: int):
 	var slow_strength = spell_info.get("slow_effect", 0.3)
 	
 	print("🧊 Ice blast: radius=", radius, " damage=", damage, " player_pos=", player.global_position)
-	# Create player-centered ice explosion with proper radius visualization
 	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength)
 
 func cast_earthshield_spell(slot: int):
-	var spell_info = spells[slot]
+	var spell_info = get_spell_info(slot)
 	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
 	var overheal_amount = spell_info["shield_hp"] * level_multiplier
 	
@@ -670,22 +658,27 @@ func cast_earthshield_spell(slot: int):
 	create_shield_effect()
 
 func cast_lightning_arc_spell(slot: int):
-	var spell_info = spells[slot]
-	var damage = calculate_spell_damage(spell_info)
-	var chain_count = spell_info["chain_count"]
-	
-	var closest_enemy = get_closest_enemy()
-	if not closest_enemy:
+	var target = get_closest_enemy()
+	if not _live_spell_target(target):
 		return
-	
-	# Create initial lightning arc visual from player to first target
-	create_lightning_arc_visual(player.global_position, closest_enemy.global_position, closest_enemy)
-	
-	# Start chain lightning
-	chain_lightning(closest_enemy, damage, chain_count, [])
+	var damage = calculate_spell_damage(get_spell_info(slot))
+	create_lightning_arc_visual(player.global_position, target.global_position, target)
+	target.take_damage(damage, player.global_position)
+
+func cast_bouncing_bolt(slot: int):
+	var info = get_spell_info(slot)
+	var target = get_closest_enemy()
+	if not _live_spell_target(target):
+		return
+	var projectile = spell_projectile_scene.instantiate()
+	projectile.speed = 550.0 * player.projectile_speed_multiplier
+	projectile.set_meta("bounce_count", int(info.get("bounce_count", 2)))
+	projectile.set_meta("bounce_range", float(info.get("bounce_range", 240.0)))
+	get_parent().add_child(projectile)
+	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
 
 func cast_meteor_shower_spell(slot: int):
-	var spell_info = spells[slot]
+	var spell_info = get_spell_info(slot)
 	var damage = calculate_spell_damage(spell_info)
 	var meteor_count = spell_info["meteor_count"] + spell_info["level"] - 1  # More meteors at higher levels
 	
@@ -724,7 +717,7 @@ func get_closest_enemy():
 	var closest_distance = INF
 	
 	for enemy in enemies:
-		if not is_instance_valid(enemy):
+		if not _live_spell_target(enemy):
 			continue
 		var distance = player.global_position.distance_to(enemy.global_position)
 		if distance < closest_distance:
@@ -765,17 +758,10 @@ func create_simple_spell_flash(pos: Vector2, color: Color):
 		flash.scale = Vector2(0.5, 0.5)  # Make it smaller than AoE effects
 		get_parent().add_child(flash)
 
-func create_healing_effect():
-	# Create healing effect around player
-	var effect = spell_projectile_scene.instantiate()
-	effect.setup_effect(player.global_position, Color.GREEN, "heal", 2.0)
-	get_parent().add_child(effect)
-
 func create_shield_effect():
-	# Create shield effect around player
-	var effect = spell_projectile_scene.instantiate()
-	effect.setup_effect(player.global_position, Color.ORANGE, "shield", 3.0)
-	get_parent().add_child(effect)
+	var particles = get_parent().get("particle_manager")
+	if is_instance_valid(particles) and particles.has_method("create_persistent_shield_circle"):
+		particles.create_persistent_shield_circle(player, player.overheal_duration)
 
 func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String):
 	# Create satisfying area effect explosion
@@ -808,37 +794,25 @@ func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 	get_parent().add_child(warning)
 
 func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6):
-	# Create expanding ice blast visual effect - this should be a big satisfying explosion
-	print("🧊 Creating ice explosion at ", pos, " with radius ", radius)
-	var effect = spell_projectile_scene.instantiate()
-	if not effect:
-		print("❌ Failed to instantiate spell projectile for ice explosion")
-		return
-	effect.setup_aoe_effect(pos, radius, Color.LIGHT_BLUE, "ice")
-	get_parent().add_child(effect)
-	print("✅ Ice explosion effect created and added to scene")
-	
-	# Deal damage and apply enhanced knockback to enemies in range
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var enemies = scene_tree.get_nodes_in_group("enemies")
-	for enemy in enemies:
-		var distance = pos.distance_to(enemy.global_position)
-		if distance <= radius:
-			# Deal damage
-			enemy.take_damage(damage)
-			
-			# Apply stronger knockback - push enemies away from center
-			if enemy.has_method("apply_knockback"):
-				var knockback_direction = (enemy.global_position - pos).normalized()
-				var distance_factor = 1.0 - (distance / radius)  # Closer = stronger knockback
-				var knockback_strength = knockback_base * (1.2 + distance_factor * 0.8)  # 1.2x to 2.0x base knockback
-				enemy.apply_knockback(knockback_direction, knockback_strength)
-			
-			# Apply stronger slow effect
-			if enemy.has_method("apply_slow"):
-				enemy.apply_slow(slow_strength, slow_duration)
+	var target = get_closest_enemy()
+	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
+	var half_angle = deg_to_rad(45.0)
+	var particles = get_parent().get("particle_manager")
+	if is_instance_valid(particles) and particles.has_method("create_directional_effect"):
+		particles.create_directional_effect(pos, direction, "ice", radius, half_angle)
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not _live_spell_target(enemy):
+			continue
+		var offset: Vector2 = enemy.global_position - pos
+		var distance = offset.length()
+		if distance > radius or (distance > 0.001 and direction.dot(offset.normalized()) < cos(half_angle)):
+			continue
+		enemy.take_damage(damage)
+		if enemy.has_method("apply_knockback"):
+			var strength = knockback_base * (1.2 + (1.0 - distance / radius) * 0.8)
+			enemy.apply_knockback(offset.normalized(), strength)
+		if enemy.has_method("apply_slow"):
+			enemy.apply_slow(slow_strength, slow_duration)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
 	if not _live_spell_target(target) or remaining_chains <= 0:
@@ -911,7 +885,7 @@ func upgrade_spell(spell_name: String):
 		return
 	var slot = find_spell_slot(spell_name)
 	if is_spell_unlocked(slot):
-		spells[slot].level += 1
+		get_spell_info(slot).level += 1
 
 func get_mana_bolt_damage() -> float:
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
@@ -927,9 +901,9 @@ func get_mana_bolt_damage() -> float:
 # Get list of available spells for current player level
 func get_available_spells() -> Array:
 	var available: Array = []
-	for slot in spells:
+	for slot in get_all_spells():
 		if is_spell_unlocked(slot):
-			available.append({"slot": slot, "name": spells[slot].name, "unlock_level": 1})
+			available.append({"slot": slot, "name": get_spell_info(slot).name, "unlock_level": 1})
 	return available
 
 func get_unlocked_spell_names() -> Array:
@@ -939,7 +913,8 @@ func get_unlocked_spell_names() -> Array:
 	return owned
 
 func is_spell_unlocked(slot: int) -> bool:
-	return slot in spells and acquired_spells.has(spells[slot].id)
+	var info = get_spell_info(slot)
+	return not info.is_empty() and acquired_spells.has(info.id)
 
 func unlock_all_spells():
 	for id in BASE_SPELL_IDS:
@@ -989,6 +964,7 @@ func start_freeform_typing():
 		return
 	
 	is_typing = true
+	typing_slowdown_remaining = typing_slowdown_capacity
 	current_typing_text = ""
 	target_spell = ""  # No target in freeform mode, we'll match dynamically
 	
@@ -1038,36 +1014,42 @@ func attempt_freeform_cast():
 		if AudioManager:
 			AudioManager.on_typing_complete()
 	elif is_typing:
-		game_manager.update_typing_display(current_typing_text + " · Spell unavailable in this run")
+		game_manager.update_typing_display(current_typing_text + " · " + (last_cast_failure if not last_cast_failure.is_empty() else "Spell unavailable in this run"))
 
 func cast_freeform_spell(spell_name: String) -> bool:
-	var slot = find_spell_slot(spell_name)
+	last_cast_failure = ""
+	var slot = find_cast_spell_slot(spell_name)
 	if not is_spell_unlocked(slot):
 		if slot in spells:
-			spell_locked_error.emit(spells[slot].name, 0, player.level)
+			spell_locked_error.emit(get_spell_info(slot).name, 0, player.level)
 		return false
 	spell_queue.clear()
 	queue_spell(slot)
-	cast_spell()
-	return true
+	return cast_spell()
 
 func cast_life_bolt(slot: int):
 	var projectile = spell_projectile_scene.instantiate()
+	projectile.speed *= player.projectile_speed_multiplier
+	projectile.set_meta("healing_seed_amount", 6.0)
+	projectile.set_meta("healing_seed_duration", 2.0)
+	projectile.set_meta("healing_seed_lifetime", 10.0)
+	projectile.set_meta("healing_seed_cap", 6)
+	projectile.set_meta("healing_seed_owner", weakref(player))
 	get_parent().add_child(projectile)
 	var target = get_closest_enemy()
-	var damage = calculate_spell_damage(spells[slot])
-	if target:
-		projectile.setup_homing(player.global_position, target, damage, Color.GREEN, "life_bolt")
-	else:
-		projectile.setup(player.global_position, Vector2.RIGHT, damage, Color.GREEN, "life_bolt")
-	projectile.healing_owner = weakref(player)
-	projectile.heal_on_hit = Synergies.RECIPES.life_bolt.heal_on_hit
+	var direction = player.global_position.direction_to(target.global_position) if _live_spell_target(target) else Vector2.RIGHT
+	projectile.setup(player.global_position, direction, calculate_spell_damage(get_spell_info(slot)), Color.GREEN, "life_bolt")
+
+func add_healing_effect(amount: float, duration: float):
+	if amount <= 0.0 or duration <= 0.0 or not is_instance_valid(player):
+		return
+	active_healing_effects.append({"heal_per_second": amount / duration, "remaining_time": duration})
 
 func get_owned_incantations() -> Array:
 	var names: Array = []
-	for slot in spells:
+	for slot in get_all_spells():
 		if is_spell_unlocked(slot):
-			names.append(spells[slot].display_name)
+			names.append(get_spell_info(slot).display_name)
 	return names
 
 func cast_freeform_spell_by_type(spell_name: String, _spell_data: Dictionary):
@@ -1080,9 +1062,9 @@ func update_freeform_typing_display():
 		var display_text = ""
 		if is_typing:
 			var potential_matches = []
-			for info in spells.values():
+			for info in get_all_spells().values():
 				var normalized = current_typing_text.strip_edges().to_lower().replace("_", " ")
-				for alias in [info.id, info.name, info.display_name]:
+				for alias in [info.name, info.display_name]:
 					if str(alias).to_lower().replace("_", " ").begins_with(normalized) and not normalized.is_empty():
 						potential_matches.append(info.display_name)
 						break
@@ -1091,43 +1073,58 @@ func update_freeform_typing_display():
 			if not current_typing_text.is_empty() and potential_matches.is_empty():
 				display_text += " · No matching spell"
 			if potential_matches.size() > 0:
-				display_text += " · Ready to cast" if find_spell_slot(current_typing_text) != 0 else " · Matches: " + potential_matches[0]
-				if potential_matches.size() > 1 and find_spell_slot(current_typing_text) == 0:
+				display_text += " · Ready to cast" if find_cast_spell_slot(current_typing_text) != 0 else " · Matches: " + potential_matches[0]
+				if potential_matches.size() > 1 and find_cast_spell_slot(current_typing_text) == 0:
 					display_text += " (+%d)" % (potential_matches.size() - 1)
 		game_manager.update_typing_display(display_text)
 
+func get_all_spells() -> Dictionary:
+	var all = spells.duplicate()
+	all.merge(bonus_spells)
+	return all
+
+func get_spell_info(slot: int) -> Dictionary:
+	return spells.get(slot, bonus_spells.get(slot, {}))
+
 func find_spell_slot(spell_name: String) -> int:
 	var normalized = spell_name.strip_edges().to_lower().replace("_", " ")
-	for slot in spells:
-		var info = spells[slot]
+	for slot in get_all_spells():
+		var info = get_spell_info(slot)
 		for alias in [info.id, info.name, info.display_name]:
 			if str(alias).to_lower().replace("_", " ") == normalized:
 				return slot
 	return 0
 
+func find_cast_spell_slot(spell_name: String) -> int:
+	var normalized = spell_name.strip_edges().to_lower()
+	for slot in get_all_spells():
+		var info = get_spell_info(slot)
+		if normalized == info.display_name or normalized == str(info.name).to_lower():
+			return slot
+	return 0
+
 func learn_spell(spell_id: String) -> bool:
+	if acquired_spells.has(spell_id):
+		return false
 	if spell_id in Synergies.RECIPES:
-		if acquired_spells.has(spell_id) or not synergy_eligible(spell_id):
+		if not synergy_eligible(spell_id):
 			return false
 		var recipe = Synergies.RECIPES[spell_id]
-		var slot = find_spell_slot(recipe.ingredients[0])
-		if slot == 0:
+		var ingredient = spell_catalog.get(recipe.ingredients[0], {})
+		if ingredient.is_empty():
 			return false
-		if is_typing:
-			cancel_typing()
-		var evolved = spells[slot].duplicate(true)
-		evolved.merge(recipe.overrides, true)
-		evolved.id = spell_id
-		evolved.name = recipe.name
-		evolved.display_name = recipe.incantation
-		evolved.chars = recipe.incantation.length()
-		acquired_spells.erase(spells[slot].id)
-		evolved_ingredients[spells[slot].id] = spell_id
-		spells[slot] = evolved
+		var bonus = ingredient.duplicate(true)
+		bonus.merge(recipe.overrides, true)
+		bonus.id = spell_id
+		bonus.name = recipe.name
+		bonus.display_name = recipe.incantation
+		bonus.chars = recipe.incantation.length()
+		bonus.level = 1
+		bonus_spells[MAX_EQUIPPED_SPELLS + bonus_spells.size() + 1] = bonus
 		acquired_spells[spell_id] = true
 		CharacterManager.discover_synergy(spell_id)
 	else:
-		if not spell_catalog.has(spell_id) or acquired_spells.has(spell_id) or evolved_ingredients.has(spell_id) or spells.size() >= MAX_EQUIPPED_SPELLS:
+		if not spell_catalog.has(spell_id) or spells.size() >= MAX_EQUIPPED_SPELLS:
 			return false
 		spells[spells.size() + 1] = spell_catalog[spell_id].duplicate(true)
 		acquired_spells[spell_id] = true
@@ -1138,36 +1135,35 @@ func get_spell_rank(spell_id: String) -> int:
 	if spell_id == "mana_bolt":
 		return mana_bolt_level
 	var slot = find_spell_slot(spell_id)
-	return int(spells[slot].level) if is_spell_unlocked(slot) else 0
+	return int(get_spell_info(slot).level) if is_spell_unlocked(slot) else 0
 
 func rebuild_freeform_library():
 	freeform_spells.clear()
-	for slot in spells:
-		var info = spells[slot]
-		for alias in [info.id, info.name.to_lower(), info.display_name]:
+	for info in get_all_spells().values():
+		for alias in [str(info.name).to_lower(), info.display_name]:
 			freeform_spells[alias] = info
 
 func get_learnable_spell_cards() -> Array:
 	var cards: Array = []
 	if spells.size() < MAX_EQUIPPED_SPELLS:
 		for id in spell_catalog:
-			if acquired_spells.has(id) or evolved_ingredients.has(id):
+			if acquired_spells.has(id):
 				continue
 			var info = spell_catalog[id]
 			cards.append({"key": "learn:" + id, "name": "Learn " + info.name,
-				"description": info.get("role", "Learn a new spell.") + "\nSlot %d of 5 · Type: %s" % [spells.size() + 1, info.display_name],
+				"description": info.get("role", "Learn a new spell.") + "\nSlot %d of 6 · Type: %s" % [spells.size() + 1, info.display_name],
 				"icon": "+", "effect": {"type": "learn_spell", "spell": id}})
 	for id in Synergies.RECIPES:
 		if acquired_spells.has(id) or not synergy_eligible(id):
 			continue
 		var recipe = Synergies.RECIPES[id]
-		cards.append({"key": "learn:" + id, "name": ("Evolve: " if id in CharacterManager.discovered_synergies else "Discover: ") + recipe.name,
-			"description": recipe.card_description + "\nReplaces " + spells[find_spell_slot(recipe.ingredients[0])].name + "; keeps slot and rank.",
+		cards.append({"key": "learn:" + id, "name": "Learn " + recipe.name,
+			"description": recipe.card_description + "\nBonus spell; keeps both ingredients, takes no active slot and starts at rank 1.",
 			"icon": "+", "effect": {"type": "learn_spell", "spell": id}})
 	return cards
 
 func synergy_eligible(id: String) -> bool:
-	if id not in Synergies.RECIPES:
+	if id not in Synergies.RECIPES or not Synergies.RECIPES[id].get("enabled", true):
 		return false
 	for ingredient in Synergies.RECIPES[id].ingredients:
 		if not acquired_spells.has(ingredient):
@@ -1184,6 +1180,8 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 		"bolt":
 			return prefix + damage + (", +1 projectile" if rank < 5 else "")
 		"life":
+			return prefix + "+15% of base instant healing"
+		"regeneration":
 			return prefix + "+15% of base healing per second"
 		"ice_blast":
 			return prefix + damage + ", +25 radius, +50 knockback"
@@ -1195,13 +1193,17 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 			return prefix + damage + ", +1 meteor"
 	return prefix + damage
 
-func cast_build_spell(slot: int):
-	var info = spells[slot]
+func cast_build_spell(slot: int) -> bool:
+	var info = get_spell_info(slot).duplicate(true)
+	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
+	if info.type == "plague" and target == null:
+		last_cast_failure = "No target in range"
+		return false
+	info.projectile_speed_multiplier = player.projectile_speed_multiplier
 	var tactical = info.type in ["beam", "trap", "spirit", "trail", "returning"]
 	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return (effect.info.type == info.type if tactical else effect.info.id == info.id) and not effect.is_queued_for_deletion())
 	if active.size() >= int(info.get("active_limit", 3)):
 		active[0].queue_free()
-	var target = get_closest_enemy()
 	if tactical:
 		target = null
 		var distance = INF
@@ -1212,6 +1214,23 @@ func cast_build_spell(slot: int):
 	var effect = preload("res://scripts/TacticalSpellEffect.gd").new() if tactical else preload("res://scripts/BuildSpellEffect.gd").new()
 	effect.configure(info, calculate_spell_damage(info), player, target)
 	get_parent().add_child(effect)
+	return true
+
+func get_visible_plague_host(info: Dictionary):
+	var nearest = null
+	var nearest_distance = INF
+	var maximum_distance = maxf(0.0, float(info.get("cast_range", INF)))
+	var viewport = get_viewport().get_visible_rect()
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not _live_spell_target(enemy) or not enemy.is_visible_in_tree():
+			continue
+		if not viewport.has_point(enemy.get_global_transform_with_canvas().origin):
+			continue
+		var distance = player.global_position.distance_to(enemy.global_position)
+		if distance <= maximum_distance and distance < nearest_distance:
+			nearest = enemy
+			nearest_distance = distance
+	return nearest
 
 func _live_spell_target(target) -> bool:
 	return is_instance_valid(target) and not target.is_queued_for_deletion() and not target.get("dying") and float(target.get("current_health")) > 0.0

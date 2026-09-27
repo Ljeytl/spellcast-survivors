@@ -113,7 +113,7 @@ func run():
 	player.process_enemy_contact_damage(0)
 	check(is_equal_approx(player.health, 92), "Queued removal is excluded while live contact still counts")
 	check(player.last_damage_context.count == 1, "Contact explanation counts only living attackers")
-	var rate_upgrade = root.get_node("DataManager").get_generic_upgrades().get("cast_speed", {})
+	var rate_upgrade = root.get_node("DataManager").get_generic_upgrades().get("mana_bolt_mastery", {})
 	check(rate_upgrade.get("description", "").contains("Mana Bolt"), "Upgrade explains its actual automatic attack benefit")
 	game.queue_free()
 	await process_frame
@@ -121,6 +121,7 @@ func run():
 	for child in root.get_node("AudioManager").get_children():
 		if child is AudioStreamPlayer:
 			child.stop()
+			child.stream = null
 	await wait_real(0.25)
 	print("CAST_BALANCE_CHECKS=", checks, " FAILURES=", failures)
 	quit(1 if failures else 0)

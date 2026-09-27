@@ -121,12 +121,12 @@ func run():
 	var choices = game.level_up_screen
 	check(root.gui_get_focus_owner() == choices.upgrade_buttons[0], "Actual level-up gives first visible card keyboard focus")
 	var choice_scroll = choices.get_node("Panel/VBoxContainer/UpgradeScroll")
-	var first_copy = choices.upgrade_buttons[0].get_node("CardText")
+	var first_copy = choices.upgrade_buttons[0].get_node("KeyTitle")
 	check(choice_scroll.scroll_vertical == 0, "Initial short-window offer starts at top after layout settles")
 	check(first_copy.get_global_rect().position.y >= choice_scroll.get_global_rect().position.y, "Initially focused card title remains visible at 540px")
 	var last_copy = choices.upgrade_buttons[2].get_node("CardText")
 	var original_copy = last_copy.text
-	last_copy.text = original_copy.repeat(8)
+	last_copy.text = (original_copy + "\n").repeat(40)
 	await settle()
 	choice_scroll.scroll_vertical = 50
 	await settle()

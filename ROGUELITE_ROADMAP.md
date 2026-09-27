@@ -1,8 +1,24 @@
+## Integrated baseline — September 26, 2026
+
+- Implemented: per-cast focus, six active/six passive slots, additive bonus spells, Life/Regeneration separation, healing-seed Life Bolt, simple readable effects, cone Ice Blast, personal Earth Shield, clustered forest and reduced-effects preference.
+- Seven passive families currently work. Area, Multicast, XP gain, Luck, critical stats and enemy population remain design work; they are not offered as nonfunctional upgrades.
+- Next human pass: long-incantation payoff, boss pressure, and crowded effect readability. Do not equate bot survival or assertion counts with fun.
+
+## Current pass — ordinary build inspection
+
+- Expose owned spells, slot-free bonuses, passive ranks and discoveries in the pause spellbook. Larger existing key art improves readability without an art-production expansion.
+- Typed menu navigation, elaborate art, shaders and audio redesign remain deferred.
 ## Forest groves and XP readability — 2026-09-26
 
 - Implemented: irregular deterministic tree/bush groves, occasional lone trees, and empty ground instead of one tree per evenly spaced cell. The starting clearing and connected routes remain open; only tree trunks block movement, with their collision radius reduced from 22 to 11 pixels while canopy art keeps its size.
 - Implemented: mana crystals render at 1.5× their previous size, including their pulse, with unchanged pickup and XP mechanics.
 - Later: human-test crowded combat around groves and canopy readability at the chosen camera scale. Additional terrain types and environmental gameplay remain separate design work.
+## Casting foundations — 2026-09-27
+
+- Implemented foundation: fresh per-cast slowdown, six primary slots, six distinct passive families, independently ranked bonus ownership and current-run casting gates.
+- Supported offers: spell power, movement, health, pickup range, projectile speed, Focus duration and bundled Mana Mastery. Other catalog families remain unavailable until their effects are implemented.
+- Integration pending: bouncing Lightning Bolt, collectable Life Bolt healing seeds, effect-side projectile speed, bonus access in the player spellbook and complete geometry/feedback review.
+- Working acquisition policy: bonus choices begin at rank 1; ingredients retain their slots/ranks. Innate automatic Mana Bolt is free; its first mastery upgrade occupies a passive family.
 
 ## 2026-09-26 — Simple art matched to supplied assets (documentation only)
 
@@ -525,3 +541,10 @@ See [typed magic discussion notes](docs/CASTING_FANTASY_NOTES.md) for the moveme
 ### Alchemist concept — September 26
 
 Preserve the creator’s alternative of defending a tower by assembling and throwing potions: approximately ten ingredients available, up to four or five per potion, with greater preparation time buying greater potency. The desired emotional swing is from being overwhelmed to clearing the horde through a strong combination. Input method, recipe rules, resources, movement and progression remain open; see [the expanded concept notes](docs/CASTING_FANTASY_NOTES.md#alchemist-defending-a-tower). No pivot or prototype implementation has been approved.
+
+- Casting foundation follow-up: cone geometry, direct Lightning, additive recipe tests and per-cast timing gates are implemented. Area, multicast, XP, luck, critical stats and population still need supported gameplay contracts before entering the passive offer pool.
+### Opening pressure validation — September 26, 2026
+
+The opening now uses a short pressure wave followed by recovery and later brief surges. Evaluate idle, movement-only, stationary casting and active play separately. Preserve active agency before demanding an exact death time for a kiting player. Next: repeat these behavioral comparisons after terrain, spell naming, projectile-speed upgrades and VFX integration; the changed draft pool can alter outcomes for the same seeds. Human play and longer active runs remain necessary before declaring production balance complete.
+
+- Opening pressure follow-up: phase timer transitions and requested bot mode validation are covered; rerun provisional pressure values against the integrated per-cast slowdown and spell build before final tuning.

@@ -34,7 +34,12 @@ func run():
 	for time in [0.0, 60.0, 179.9]:
 		manager.game_time = time
 		check(manager.get_current_difficulty_level() == 1, "Opening stays tier 1 at %s" % time)
-		check(is_equal_approx(manager.calculate_spawn_interval(), 3.0), "Opening spawn pace at %s" % time)
+		check(manager.calculate_spawn_interval() <= 3.0, "Opening never falls below initial spawn pressure at %s" % time)
+	for pair in [[0.0, 3.0], [9.9, 3.0], [10.0, 1.0], [44.9, 1.0], [45.0, 3.0], [90.0, 1.35], [105.0, 2.5], [120.0, 1.2], [135.0, 2.5], [180.0, 2.5]]:
+		manager.game_time = pair[0]
+		check(is_equal_approx(manager.calculate_spawn_interval(), pair[1]), "Opening pressure transition at %s" % pair[0])
+	manager.game_time = 240.0
+	check(manager.calculate_spawn_interval() < 2.5, "Long-term density increases after the opening waves")
 	for pair in [[300.0, 2], [600.0, 3], [900.0, 4]]:
 		manager.game_time = pair[0]
 		check(manager.get_current_difficulty_level() == pair[1], "Tier transition at %s" % pair[0])
@@ -71,7 +76,7 @@ func run():
 		check(enemies[0].current_health <= 45.0, "Spawned enemy retains opening health after ready")
 		enemies[0].queue_free()
 	player.health = 20.0
-	spells.learn_spell("life")
+	spells.learn_spell("regeneration")
 	spells.cast_spell_by_type(2)
 	check(spells.active_healing_effects.size() == 1, "Numbered Regeneration creates healing")
 	spells.process_healing_effects(1.0)
@@ -80,7 +85,7 @@ func run():
 	check(is_equal_approx(player.health, 60.0), "Final healing tick is clamped to five second lifetime")
 	check(spells.active_healing_effects.is_empty(), "Healing expires")
 	player.health = 95.0
-	spells.cast_freeform_spell_by_type("life", spells.freeform_spells["life"])
+	spells.cast_freeform_spell_by_type("regeneration", spells.freeform_spells["regeneration"])
 	check(spells.active_healing_effects.size() == 1, "Freeform Regeneration creates healing")
 	spells.process_healing_effects(5.0)
 	check(player.health == player.max_health, "Healing cannot exceed max health")

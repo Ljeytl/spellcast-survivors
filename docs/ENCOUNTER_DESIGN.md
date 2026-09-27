@@ -45,3 +45,14 @@ Reaching 20:00 awards immediate victory, regardless of living enemies or bosses.
 Automated tests exercise all twelve variants, spawn gates, all three boss milestones and the twenty-minute victory cutoff, overlapping bosses, shield angles, warnings and damage timing, duplicate death protection, regeneration and multiple earned level-up choices. Opening simulations use the actual player/enemy/projectile/XP scenes with passive attacks and movement toward XP; these support tuning but do not replace human playtesting. Controlled late-stage visual fixtures are identified separately from ordinary runs.
 
 Shutdown regression checks now exit cleanly: damage-number completion uses a node-bound signal connection, and particle cleanup uses a resettable child timer that pauses with the effect and is destroyed with it. Test evidence under `builds/` is excluded from Godot imports. Full release lifecycle and platform qualification remain follow-on work.
+
+
+## Opening pressure revision — September 26, 2026
+
+The opening is an encounter sequence rather than a three-minute density grace period. Spawns start every three seconds for ten seconds, surge to one second until 45 seconds, then ease to three seconds until 90. Short pressure windows run at 90–105 seconds (1.35-second interval) and 120–135 seconds (1.2-second interval), with 2.5-second intervals between and after them. Exponential density scaling begins at 180 seconds, retaining the existing 0.6-second floor and 160-enemy cap.
+
+Pursuers remain 30 HP with four contact damage and now move at 90. Sprinters become eligible at twelve seconds with twelve HP, three contact damage and 270 speed: one passive hit, three times grunt speed, still slower than the player's 300 speed. Early health scaling is unchanged. Bosses remain at 5/10/15 minutes, no shooter is eligible before ten minutes, and surviving twenty minutes immediately wins.
+
+Behavioral evaluation uses ordinary inputs and four modes: idle, movement without typed casts, stationary casting, and the original moving/typing bot. Active bots choose random upgrades and spells and type five characters per second. They measure a deliberately weak policy; surviving a time-limited probe is not a victory or proof that human balance is finished. Movement-only kiting is reported honestly rather than defeated through artificial damage or forced deaths. Paired fast-runner drafts were rejected because they killed every tested active bot within the first minute.
+
+Phase boundaries restart a running spawn timer using the new interval: the ten-second pressure phase schedules its next spawn at eleven seconds. Recovery similarly starts a full new interval. Stopped/debug simulations are not restarted. Phase rows may be unordered; the latest valid nonnegative start with a positive interval wins. Missing phase data falls back to the original three-second opening.

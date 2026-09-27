@@ -80,5 +80,10 @@ func run():
 	body.offset_top = correct_height
 	game.queue_free()
 	await process_frame
+	for player in root.get_node("AudioManager").get_children():
+		if player is AudioStreamPlayer:
+			player.stop()
+			player.stream = null
+	await create_timer(0.25, true, false, true).timeout
 	print("Menu keys: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

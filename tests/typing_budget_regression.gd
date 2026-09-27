@@ -4,7 +4,7 @@ var checks = 0
 var failures = 0
 
 func _initialize():
-	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Slowdown Test"):
+	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
 		printerr("Refusing nonisolated slowdown regression")
 		quit(2)
 		return
@@ -40,7 +40,7 @@ func run():
 	check(is_equal_approx(Engine.time_scale, 1), "Cancel restores speed")
 	spells.queue_spell(1)
 	spells.start_typing()
-	check(is_equal_approx(spells.typing_slowdown_remaining, 2), "Numbered casting shares the existing budget")
+	check(is_equal_approx(spells.typing_slowdown_remaining, 3), "Numbered casting starts a fresh budget")
 	spells.advance_typing_slowdown(3.0)
 	check(is_equal_approx(spells.typing_slowdown_remaining, 0), "Budget clamps at zero")
 	check(spells.is_typing and is_equal_approx(Engine.time_scale, 1), "Expiry keeps typing at normal speed")
@@ -49,7 +49,7 @@ func run():
 	check(not spells.is_typing, "Numbered spell still casts after expiry")
 	spells.start_freeform_typing()
 	spells.space_casting = true
-	check(is_equal_approx(Engine.time_scale, 1), "Reopening cannot reset empty budget")
+	check(is_equal_approx(Engine.time_scale, 0.2), "Reopening starts a fresh slowdown")
 	spells.current_typing_text = "unknown"
 	spells.attempt_freeform_cast()
 	var error_copy = game.typing_label.text
@@ -60,9 +60,9 @@ func run():
 	check(spells.current_typing_text == "unknow", "Invalid input remains editable at normal speed")
 	spells.cancel_typing()
 	spells.advance_typing_slowdown(5.0)
-	check(is_equal_approx(spells.typing_slowdown_remaining, 1.5), "Five seconds refills half the budget")
+	check(is_equal_approx(spells.typing_slowdown_remaining, 2.0), "Idle time leaves the previous cast budget unchanged")
 	spells.advance_typing_slowdown(100.0)
-	check(is_equal_approx(spells.typing_slowdown_remaining, 3.0), "Refill cannot exceed capacity")
+	check(is_equal_approx(spells.typing_slowdown_remaining, 2.0), "No idle refill exists")
 	spells.start_freeform_typing()
 	spells._scale_change_frame = -1
 	spells._process(0.2)
@@ -77,7 +77,7 @@ func run():
 	game.change_state(game.GameState.LEVEL_UP)
 	for i in range(5):
 		await process_frame
-	check(is_equal_approx(spells.typing_slowdown_remaining, before_pause), "Level-up freezes refill")
+	check(is_equal_approx(spells.typing_slowdown_remaining, before_pause), "Level-up preserves the inactive budget")
 	spells.set_process(false)
 	game.change_state(game.GameState.PLAYING)
 	spells.start_freeform_typing()

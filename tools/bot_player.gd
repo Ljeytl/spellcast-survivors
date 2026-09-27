@@ -5,6 +5,8 @@ var game
 var rng = RandomNumberGenerator.new()
 var run_seed = 11
 var limit = 1200.0
+var behavior_mode = "active"
+var first_damage_seconds = -1.0
 var report_path = ""
 var reaction = 0.0
 var type_wait = 0.0
@@ -44,8 +46,12 @@ func _initialize():
 			"--seed": run_seed = int(parts[1])
 			"--limit": limit = clampf(float(parts[1]), 1.0, 1200.0)
 			"--report": report_path = parts[1]
+			"--mode": behavior_mode = parts[1]
 	if not OS.get_user_data_dir().contains("SpellCast Survivors Bot/") or report_path.is_empty():
 		printerr("Bot requires isolated saves and report path; actual save directory: ", OS.get_user_data_dir())
+		quit(2)
+		return
+	if behavior_mode not in ["idle", "movement", "casting", "active"]:
 		quit(2)
 		return
 	start.call_deferred()
@@ -137,9 +143,12 @@ func _process(delta):
 	reaction -= input_delta
 	if reaction <= 0.0:
 		reaction = 0.3
-		move_decision()
+		if behavior_mode in ["movement", "active"]:
+			move_decision()
+		else:
+			release_movement()
 	cast_wait -= input_delta
-	if cast_wait <= 0.0:
+	if cast_wait <= 0.0 and behavior_mode in ["casting", "active"]:
 		cast_wait = rng.randf_range(2.0, 4.0)
 		var owned = spells.get_owned_incantations()
 		if not owned.is_empty():
@@ -229,6 +238,8 @@ func observe_damage():
 	pending_damage = 0.0
 	if amount <= 0:
 		return
+	if first_damage_seconds < 0.0:
+		first_damage_seconds = run_time()
 	var kind = str(context.get("kind", "unknown"))
 	damage_by_kind[kind] = damage_by_kind.get(kind, 0.0) + amount
 	if game.spell_manager.is_typing:
@@ -243,7 +254,7 @@ func observe_damage():
 func finish(outcome: String):
 	finished = true
 	release_movement()
-	var report = {"schema_version": 2, "seed": run_seed, "outcome": outcome,
+	var report = {"behavior_mode": behavior_mode, "first_damage_seconds": first_damage_seconds, "schema_version": 2, "seed": run_seed, "outcome": outcome,
 		"survival_seconds": game.get_node("MonsterManager").game_time,
 		"wall_seconds": (Time.get_ticks_msec() - started) / 1000.0,
 		"level": game.player.level, "health": game.player.health,

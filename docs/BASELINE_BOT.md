@@ -8,9 +8,14 @@ Run from a source checkout with Python 3 and Godot 4.4:
 python3 tools/run_bot.py --seeds 11
 python3 tools/run_bot.py --headless --seeds 11 29 73
 python3 tools/run_bot.py --headless --fast --seconds 60 --seeds 11
+python3 tools/run_bot.py --headless --fast --seconds 60 --mode idle --seeds 11 29 73
 ```
 
 The first command opens a visible bot run. Each run ends at actual death or victory; `--seconds` can deliberately stop a shorter smoke test. Time-limited runs are incomplete, never victories. Reports and engine logs are written under a uniquely named directory in `builds/bot`. Use `--output` or `--godot` to change locations. Close the game window to stop a visible run early; an absent report is incomplete.
+
+## Behavior modes
+
+`--mode active` retains the original moving, typing, randomly upgrading bot. `idle` suppresses movement and typed spells, `movement` suppresses typed spells, and `casting` suppresses movement. Automatic Mana Bolt, enemy behavior, damage, XP and level-up choices stay enabled in every mode. These are behavioral controls, not forced death or invulnerability scenarios. Reports record mode and first damage time; validation rejects typed casts in noncasting modes or movement in stationary modes.
 
 ## Policy
 

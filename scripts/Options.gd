@@ -3,8 +3,10 @@ extends Control
 signal options_closed
 
 var called_from_pause: bool = false
+const EFFECTS = preload("res://scripts/EffectPreferences.gd")
 
 func _ready():
+	$OptionsPanel/VBoxContainer/ReducedEffectsCheckBox.set_pressed_no_signal(EFFECTS.reduced())
 	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "OptionsPanel")
 
 func _input(event):
@@ -62,3 +64,9 @@ func _on_v_sync_check_box_toggled(button_pressed):
 
 func _layout_readable_menu():
 	preload("res://scripts/GameplayReadability.gd").layout_menu(self, "OptionsPanel")
+
+func _on_reduced_effects_toggled(value: bool):
+	var result = EFFECTS.save_reduced(value)
+	if result != OK:
+		$OptionsPanel/VBoxContainer/ReducedEffectsCheckBox.tooltip_text = "Could not save this preference."
+	EFFECTS.apply(get_tree().current_scene, value)

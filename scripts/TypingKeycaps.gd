@@ -1,7 +1,7 @@
 extends Control
 
-const KEY_SIZE = 32.0
-const STRIDE = 36.0
+const KEY_SIZE = 48.0
+const STRIDE = 54.0
 const DROP_SECONDS = 0.13
 const BLANK = preload("res://assets/typecast/Logo/Blank Key.png")
 var manager: Node
@@ -38,7 +38,7 @@ func key_position(index: int) -> Vector2:
 	var cols = columns()
 	var row_start = (index / cols) * cols
 	var row_count = mini(cols, letters.length() - row_start)
-	return Vector2((size.x - row_count * STRIDE + 4) / 2 + (index % cols) * STRIDE, 20 + floori(float(index) / cols) * STRIDE)
+	return Vector2((size.x - row_count * STRIDE + STRIDE - KEY_SIZE) / 2 + (index % cols) * STRIDE, 30 + floori(float(index) / cols) * STRIDE)
 
 func sync(text: String, message: String):
 	feedback = message
@@ -70,7 +70,7 @@ func clear_keys():
 
 func update_height():
 	var rows = maxi(1, ceili(float(letters.length()) / columns()))
-	var height = 24 + rows * STRIDE
+	var height = 34 + rows * STRIDE
 	for piece in fragments:
 		height = maxf(height, piece.floor_height)
 	label.custom_minimum_size.y = height
@@ -82,7 +82,7 @@ func shatter(index: int):
 		for x in range(2):
 			if fragments.size() >= 64:
 				fragments.pop_front()
-			fragments.append({"texture": texture, "region": Rect2(x * 16, y * 16, 16, 16), "position": origin + Vector2(x * 16, y * 16), "velocity": Vector2((x * 2 - 1) * 65, -50 - y * 25), "age": 0.0, "floor_height": label.custom_minimum_size.y})
+			fragments.append({"texture": texture, "region": Rect2(x * 16, y * 16, 16, 16), "position": origin + Vector2(x, y) * (KEY_SIZE / 2), "velocity": Vector2((x * 2 - 1) * 65, -50 - y * 25), "age": 0.0, "floor_height": label.custom_minimum_size.y})
 
 func finish_cast(_spell: String = ""):
 	if letters.is_empty():
@@ -133,15 +133,15 @@ func _draw():
 			tint.a = completion_remaining / 0.22
 		draw_texture_rect(texture, Rect2(pos, Vector2.ONE * KEY_SIZE), false, tint)
 		if texture == BLANK and key != " ":
-			draw_string(font, pos + Vector2(0, 23), key, HORIZONTAL_ALIGNMENT_CENTER, KEY_SIZE, 18, Color("514f43"))
+			draw_string(font, pos + Vector2(0, 34), key, HORIZONTAL_ALIGNMENT_CENTER, KEY_SIZE, 27, Color("514f43"))
 		elif key == " ":
-			draw_line(pos + Vector2(10, 23), pos + Vector2(22, 23), Color("999587"), 2)
+			draw_line(pos + Vector2(15, 34), pos + Vector2(33, 34), Color("999587"), 2)
 	for piece in fragments:
-		draw_texture_rect_region(piece.texture, Rect2(piece.position, Vector2(16, 16)), piece.region, Color(1, 1, 1, 1 - piece.age / 0.32))
+		draw_texture_rect_region(piece.texture, Rect2(piece.position, Vector2.ONE * (KEY_SIZE / 2)), piece.region, Color(1, 1, 1, 1 - piece.age / 0.32))
 
 	var caption_y = float(label.get_parent().scroll_vertical)
-	draw_rect(Rect2(0, caption_y, size.x, 20), Color("21382a"))
-	draw_string(font, Vector2(8, caption_y + 14), visible_caption(), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 14, Color("eee8d8"))
+	draw_rect(Rect2(0, caption_y, size.x, 26), Color("21382a"))
+	draw_string(font, Vector2(8, caption_y + 19), fitted_caption(font), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 18, Color("eee8d8"))
 
 func visible_caption() -> String:
 	if completion_remaining > 0:
@@ -153,3 +153,12 @@ func visible_caption() -> String:
 		var status = feedback.substr(feedback.find(" · ") + 3)
 		caption = caption + " · " + status if not manager.target_spell.is_empty() else status
 	return caption
+
+func fitted_caption(font: Font) -> String:
+	var text = visible_caption()
+	var available = maxf(1, size.x - 16)
+	if font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x <= available:
+		return text
+	while text.length() > 1 and font.get_string_size(text + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x > available:
+		text = text.left(text.length() - 1)
+	return text + "…"

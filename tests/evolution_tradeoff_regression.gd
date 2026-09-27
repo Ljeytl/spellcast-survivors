@@ -51,7 +51,9 @@ func fresh(recipe: String, evolved: bool):
 	manager.upgrade_spell(primary)
 	if evolved:
 		manager.learn_spell(recipe)
-	var info = manager.spells[manager.find_spell_slot(recipe if evolved else primary)]
+		manager.upgrade_spell(recipe)
+		manager.upgrade_spell(recipe)
+	var info = manager.get_spell_info(manager.find_spell_slot(recipe if evolved else primary))
 	if evolved and "--known-bad-no-damage-cost" in OS.get_cmdline_user_args():
 		info.damage_multiplier = 1.0
 	return info
@@ -73,6 +75,8 @@ func effect(info: Dictionary, aim):
 func run():
 	root.size = Vector2i(1280, 720)
 	for id in CATALOG.RECIPES:
+		if not CATALOG.RECIPES[id].get("enabled", true):
+			continue
 		var base = fresh(id, false).duplicate(true)
 		var primary = CATALOG.RECIPES[id].ingredients[0]
 		var offers = manager.get_learnable_spell_cards()
@@ -80,14 +84,17 @@ func run():
 		game.level_up_screen.generate_upgrade_options({}, 8)
 		check(game.level_up_screen.current_upgrade_pool.any(func(card): return card.key == "rank:" + primary), "Basic rank investment remains available beside evolution: " + id)
 		var base_damage = manager.calculate_spell_damage(base)
+		var authored_damage = float(CATALOG.RECIPES[id].overrides.get("damage", base.damage))
+		base_damage *= authored_damage / float(base.damage)
 		var evolved = fresh(id, true)
 		var expected_factor = float(CATALOG.RECIPES[id].overrides.get("damage_multiplier", 1.0))
 		check(is_equal_approx(manager.calculate_spell_damage(evolved), base_damage * expected_factor), "Equal rank and player scaling apply cost once: " + id)
-		check(evolved.level == 3 and evolved.damage == base.damage, "Evolution retains rank and stored base damage: " + id)
-		check(manager.find_spell_slot(primary) == 0 and manager.find_spell_slot(CATALOG.RECIPES[id].ingredients[1]) > 0, "Primary replaced and catalyst retained: " + id)
-		check("Gain:" in CATALOG.RECIPES[id].card_description and "Cost:" in CATALOG.RECIPES[id].card_description and "Cost:" in CATALOG.RECIPES[id].description, "Offer and collection disclose both sides: " + id)
+		check(evolved.level == 3 and evolved.damage == authored_damage, "Independently ranked bonus uses authored damage: " + id)
+		check(manager.find_spell_slot(primary) > 0 and manager.find_spell_slot(CATALOG.RECIPES[id].ingredients[1]) > 0, "Both ingredients retained: " + id)
+		if id not in ["lightning_bolt", "life_bolt"]:
+			check("Gain:" in CATALOG.RECIPES[id].card_description and "Cost:" in CATALOG.RECIPES[id].card_description and "Cost:" in CATALOG.RECIPES[id].description, "Offer and collection disclose both sides: " + id)
 		manager.upgrade_spell(id)
-		check(is_equal_approx(manager.calculate_spell_damage(evolved) - base_damage * expected_factor, float(base.damage) * 0.15 * 1.7 * expected_factor), "Rank increment retains evolved cost: " + id)
+		check(is_equal_approx(manager.calculate_spell_damage(evolved) - base_damage * expected_factor, authored_damage * 0.15 * 1.7 * expected_factor), "Rank increment retains evolved cost: " + id)
 		if expected_factor < 1:
 			check("evolved base damage" in manager.get_rank_upgrade_description(id), "Rank copy identifies penalized base: " + id)
 	compare_optional_offers()
@@ -97,7 +104,7 @@ func run():
 	compare_fields()
 	compare_prism()
 	compare_traps()
-	compare_spirits()
+	check(not manager.learn_spell("reaping_spirit"), "Deferred Reaping Spirit cannot enter acquisition")
 	print("Evolution tradeoffs: ", checks, " assertions, ", failures, " failures")
 	game.queue_free()
 	await process_frame
@@ -118,14 +125,14 @@ func compare_life():
 		hurt.name = "HurtBox"
 		enemy.add_child(hurt)
 		game.player.health = 50
-		manager.cast_spell_by_type(1)
+		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.4).timeout
 		var projectiles = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
 		check(projectiles.size() == (1 if evolved else 3), "Real rank-three volley count vs single healing bolt")
 		for projectile in projectiles:
 			projectile._on_area_entered(hurt)
 		totals.append(10000 - enemy.current_health)
-		check(game.player.health == (56 if evolved else 50), "Life Bolt benefits injured player while Bolt does not heal")
+		check(game.player.health == 50, "Life Bolt requires seed pickup instead of remote healing")
 	check(totals[0] > totals[1], "Ranked Bolt wins damage against healthy durable enemy")
 	var rank_five_damage: Array = []
 	for evolved in [false, true]:
@@ -137,7 +144,7 @@ func compare_life():
 		var hitbox = Area2D.new()
 		hitbox.name = "HurtBox"
 		durable.add_child(hitbox)
-		manager.cast_spell_by_type(1)
+		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.6).timeout
 		var volley = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
 		check(volley.size() == (1 if evolved else 5), "Real rank-five Bolt retains five shots while Life Bolt has one")
@@ -150,7 +157,7 @@ func compare_life():
 	var hurt = Area2D.new()
 	hurt.name = "HurtBox"
 	enemy.add_child(hurt)
-	manager.cast_spell_by_type(1)
+	manager.cast_spell_by_type(manager.find_spell_slot("life_bolt"))
 	var projectile = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") == "life_bolt")[0]
 	projectile._on_area_entered(hurt)
 	check(game.player.health == game.player.max_health, "Life Bolt provides no overheal at full health")
@@ -262,7 +269,7 @@ func compare_spirits():
 
 func compare_optional_offers():
 	fresh("life_bolt", false)
-	for id in ["plague_seed", "cinder_field", "ice_blast"]:
+	for id in ["plague_seed", "cinder_field", "ice_blast", "regeneration"]:
 		manager.learn_spell(id)
 	var screen = game.level_up_screen
 	for i in range(100):

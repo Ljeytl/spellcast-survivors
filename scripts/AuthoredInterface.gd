@@ -27,7 +27,7 @@ static func menu_button_style(fill: Color, border: Color = Color.TRANSPARENT) ->
 
 static func apply_buttons(theme: Theme):
 	theme.set_font("font", "Button", MENU_FONT)
-	theme.set_font_size("font_size", "Button", 24)
+	theme.set_font_size("font_size", "Button", 32)
 	theme.set_stylebox("normal", "Button", menu_button_style(Color.TRANSPARENT))
 	theme.set_stylebox("hover", "Button", menu_button_style(Color("314b38"), Color("dfbd76")))
 	theme.set_stylebox("pressed", "Button", menu_button_style(Color("17231c"), Color("79d9e8")))
@@ -36,9 +36,9 @@ static func apply_buttons(theme: Theme):
 		theme.set_color(state, "Button", Color.WHITE)
 	theme.set_color("font_disabled_color", "Button", Color(0.55, 0.55, 0.55))
 
-static func apply_heading(label: Label, font_size: int = 28):
+static func apply_heading(label: Label, font_size: int = 36):
 	label.add_theme_font_override("font", MENU_FONT)
-	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_font_size_override("font_size", maxi(32, font_size))
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

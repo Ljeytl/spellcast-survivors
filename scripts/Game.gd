@@ -108,6 +108,7 @@ func setup_all_systems():
 	setup_camera()          # Position camera and create shake system
 	setup_damage_manager()  # Create floating damage number system
 	setup_particle_manager() # Create visual effects system
+	preload("res://scripts/EffectPreferences.gd").apply(self, preload("res://scripts/EffectPreferences.gd").reduced())
 	setup_time_dilation()   # Create time slowdown system for spell casting
 	setup_object_pool()     # Create object pooling for performance
 	setup_chest_manager()   # Create treasure chest spawning system
@@ -670,6 +671,8 @@ func show_next_level_up():
 		level_up_screen.show_level_up(next_level, {
 			"spell_damage_multiplier": player.spell_damage_multiplier,
 			"cast_speed_multiplier": player.cast_speed_multiplier,
+			"projectile_speed_multiplier": player.projectile_speed_multiplier,
+			"passive_ranks": player.passive_ranks.duplicate(),
 			"movement_speed_multiplier": player.movement_speed_multiplier,
 			"max_health": player.max_health,
 			"xp_range_multiplier": player.xp_range_multiplier
@@ -680,24 +683,31 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 		return
 	# Apply upgrade to player
 	if player:
-		player.apply_upgrade(upgrade_data)
+		if not player.apply_upgrade(upgrade_data):
+			return
 	
 	# Apply spell upgrades to spell manager if needed
 	var effect = upgrade_data.get("effect", {})
+	if effect.get("type") == "slowdown_duration":
+		spell_manager.typing_slowdown_capacity += float(effect.value)
+	if effect.get("type") == "mana_bolt_mastery":
+		spell_manager.upgrade_spell("mana_bolt")
 	if effect.get("type") == "spell_upgrade":
 		if spell_manager and spell_manager.has_method("upgrade_spell"):
 			var spell_name = effect.get("spell", "")
 			spell_manager.upgrade_spell(spell_name)
 	
 	if effect.get("type") == "learn_spell":
-		spell_manager.learn_spell(effect.get("spell", ""))
+		if not spell_manager.learn_spell(effect.get("spell", "")):
+			return
 	update_spell_slot_lock_status()
 	var acknowledgement = upgrade_data.get("name", "Upgrade applied")
 	if effect.get("type") == "learn_spell":
 		var slot = spell_manager.find_spell_slot(effect.get("spell", ""))
 		if slot > 0:
-			var action = "evolved" if effect.get("spell", "") in preload("res://scripts/SynergyCatalog.gd").RECIPES else "learned"
-			acknowledgement = spell_manager.spells[slot].name + " " + action + " · Press %d, then type %s" % [slot, spell_manager.spells[slot].display_name]
+			var learned = spell_manager.get_spell_info(slot)
+			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)
+			acknowledgement = learned.name + " learned · Press %s, then type %s" % [cast_hint, learned.display_name]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
 	else:
@@ -730,7 +740,7 @@ func show_game_over_screen():
 			"level": player.level if player else 1,
 			"enemies_killed": enemies_killed,
 			"spells_cast": spells_cast,
-			"final_kit": spell_manager.spells.values().map(func(info): return "%s · Rank %d" % [info.name, spell_manager.get_spell_rank(info.id)]),
+			"final_kit": spell_manager.get_all_spells().values().map(func(info): return "%s · Rank %d" % [info.name, spell_manager.get_spell_rank(info.id)]),
 			"mana_bolt_rank": spell_manager.get_spell_rank("mana_bolt"),
 			"discoveries": CharacterManager.discovered_synergies.filter(func(id): return id not in discoveries_at_start).map(func(id): return preload("res://scripts/SynergyCatalog.gd").RECIPES[id].name)
 		}
@@ -1050,7 +1060,8 @@ func update_typing_slowdown(remaining: float, _capacity: float):
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	box.size.y = minf(maxf(typing_label.get_minimum_size().y + 44.0, 148.0), maxf(112.0, $UI/HUD.size.y * 0.5 - 180.0))
+	box.size.x = minf(900.0 if $UI/HUD.size.y <= 600 else 620.0, $UI/HUD.size.x - 36.0)
+	box.size.y = minf(maxf(typing_label.get_minimum_size().y + 44.0, 148.0), maxf(132.0, $UI/HUD.size.y * 0.5 - 180.0))
 	position_typing_ui_upper_screen()
 	_scroll_typing_to_end.call_deferred()
 
@@ -1073,7 +1084,9 @@ func position_typing_ui_upper_screen():
 	if typing_panel and typing_panel is Control:
 		var control = typing_panel as Control
 		control.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		control.position = typing_ui_position - Vector2(control.size.x / 2, control.size.y)  # Center the panel on the position
+		control.position = typing_ui_position - Vector2(control.size.x / 2, control.size.y)
+		if screen_size.y <= 600:
+			control.position.y = screen_size.y * 0.5 + 36.0
 	
 
 func print_ui_structure(node: Node, indent: String = ""):
@@ -1200,7 +1213,7 @@ func set_interface_debug(enabled: bool):
 
 func interface_debug_report() -> String:
 	update_difficulty_tooltip_content()
-	var lines: Array[String] = [difficulty_tooltip_label.text, "PLAYER STATS", JSON.stringify({"spell_damage": player.spell_damage_multiplier, "attack_speed": player.cast_speed_multiplier, "move_speed": player.movement_speed_multiplier, "max_health": player.max_health, "pickup_range": player.xp_range_multiplier}, "  ")]
+	var lines: Array[String] = [difficulty_tooltip_label.text, "PLAYER STATS", JSON.stringify({"spell_damage": player.spell_damage_multiplier, "attack_speed": player.cast_speed_multiplier, "projectile_speed": player.projectile_speed_multiplier, "passives": player.passive_ranks, "move_speed": player.movement_speed_multiplier, "max_health": player.max_health, "pickup_range": player.xp_range_multiplier}, "  ")]
 	lines.append("UPGRADE DETAILS")
 	for card in level_up_screen.current_upgrade_pool:
 		lines.append(str(card.name) + ": " + str(card.description))

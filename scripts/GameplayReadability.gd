@@ -115,9 +115,10 @@ func _process(_delta):
 	var manager = game.spell_manager
 	if game.current_state == game.GameState.PLAYING and not manager.is_typing:
 		feedback_remaining = maxf(0, feedback_remaining - _delta)
-	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Mana Bolt fires automatically\nClick a spell or press 1–5, then type · Space chooses any learned spell"
+	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Mana Bolt fires automatically\nClick a spell or press 1–6, then type · Space chooses any learned spell"
 	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing and (game.interface_debug or feedback_remaining > 0)
 	var spells_panel = game.get_node("UI/HUD/SpellSlotsPanel")
+	spells_panel.visible = not (typing.visible and game.get_node("UI/HUD").size.y <= 600)
 	guidance.size = Vector2(spells_panel.size.x, maxf(48, guidance.get_minimum_size().y))
 	guidance.position = Vector2(spells_panel.position.x, spells_panel.position.y - guidance.size.y - 8)
 	passive_label.text = "AUTO · Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt")
@@ -126,12 +127,9 @@ func _process(_delta):
 	focus_bar.max_value = capacity
 	focus_bar.value = remaining
 	if manager.is_typing:
-		focus_label.text = "SLOWDOWN · %.1fs" % remaining if remaining > 0 else "SLOWDOWN EMPTY · normal speed"
-	elif remaining < capacity:
-		var seconds = (capacity - remaining) / capacity * manager.typing_slowdown_refill_seconds
-		focus_label.text = "SLOWDOWN · %.1fs · full in %.1fs" % [remaining, seconds]
+		focus_label.text = "SLOWDOWN · %.1fs" % remaining if remaining > 0 else "CAST WINDOW ENDED · normal speed"
 	else:
-		focus_label.text = "SLOWDOWN READY · %.1fs" % capacity
+		focus_label.text = "PER CAST · %.1fs at 20%% speed" % capacity
 
 func show_feedback(text: String):
 	feedback_copy = text
@@ -181,7 +179,7 @@ func layout():
 	focus_bar.position = Vector2(20, 192)
 	focus_bar.size = Vector2(240, 6)
 	var pause_panel = game.get_node("UI/PauseOverlay/PauseMenu")
-	pause_panel.size = Vector2(minf(440, width - 36), 360)
+	pause_panel.size = Vector2(minf(520, width - 36), minf(450, height - 36))
 	pause_panel.position = (Vector2(width, height) - pause_panel.size) / 2
 	var typing = hud.get_node("TypingPanel")
 	typing.size.x = minf(620, width - 36)

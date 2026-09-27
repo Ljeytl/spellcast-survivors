@@ -53,10 +53,10 @@ func run():
 		check(not hud.get_node("StatsPanel").get_global_rect().intersects(hud.get_node("TimerPanel").get_global_rect()), "Health and clock never overlap")
 		game.update_typing_display("CAST · meteor shower\nmeteor shx\nMismatch · Backspace to correct")
 		await settle()
-		check(hud.get_node("TypingPanel").position.y + hud.get_node("TypingPanel").size.y <= hud.size.y * 0.5 - 39, "Casting clears player projection at screen center")
+		check(hud.get_node("TypingPanel").position.y + hud.get_node("TypingPanel").size.y <= hud.size.y * 0.5 - 39 or hud.get_node("TypingPanel").position.y >= hud.size.y * 0.5 + 35, "Casting clears player projection at screen center")
 		check(contains(hud, hud.get_node("TypingPanel")), "Casting prompt stays in viewport")
 		check(contains(hud.get_node("TypingPanel"), game.typing_label.get_parent()), "Casting scroll area contained")
-		check(not hud.get_node("TypingPanel").get_global_rect().intersects(hud.get_node("SpellSlotsPanel").get_global_rect()), "Casting does not cover spell slots")
+		check(not hud.get_node("SpellSlotsPanel").visible or not hud.get_node("TypingPanel").get_global_rect().intersects(hud.get_node("SpellSlotsPanel").get_global_rect()), "Casting does not cover spell slots")
 		var pause_panel = game.get_node("UI/PauseOverlay/PauseMenu")
 		check(contains(pause_panel, pause_panel.get_node("VBoxContainer/MainMenuButton")), "Pause actions contained")
 		game.level_up_screen.show_level_up(2, {})
@@ -78,6 +78,7 @@ func run():
 		check(not supplemental.visible or not hud.get_node("TypingPanel").get_global_rect().intersects(supplemental.get_global_rect()), "Casting never overlaps visible supplemental HUD")
 	manager.cancel_typing()
 	await settle()
+	check(hud.get_node("SpellSlotsPanel").visible, "Short-window spell bar returns after casting")
 	check(ui.passive_label.visible and ui.focus_label.visible and ui.focus_bar.visible, "Supplemental HUD returns after casting")
 	manager.space_casting = true
 	manager.start_freeform_typing()
@@ -116,10 +117,10 @@ func run():
 	manager.space_casting = true
 	manager.start_freeform_typing()
 	check("Enter casts" in hud.get_node("TypingPanel/SlowdownStatus").text, "Space prompt requires Enter")
-	for alias in ["lightning bolt", "earth shield", "earth_shield"]:
+	for alias in ["bolt", "earth shield"]:
 		manager.current_typing_text = alias
 		manager.update_freeform_typing_display()
-		check(not "No matching spell" in game.typing_label.text, "Owned visible/canonical alias matches: " + alias)
+		check(not "No matching spell" in game.typing_label.text, "Owned visible incantation matches: " + alias)
 	manager.current_typing_text = "meteor shower"
 	manager.update_freeform_typing_display()
 	check("No matching spell" in game.typing_label.text, "Unowned name shows no match")
@@ -137,13 +138,13 @@ func run():
 	check(not "Mismatch" in game.typing_label.text, "Correction removes stale mismatch")
 	manager.typing_slowdown_remaining = 0
 	ui._process(0)
-	check("EMPTY" in ui.focus_label.text, "Exhaustion visibly says normal speed")
+	check("normal speed" in ui.focus_label.text, "Exhaustion visibly says normal speed")
 	manager.cancel_typing()
 	ui._process(0)
-	check("full in" in ui.focus_label.text, "Recharge visible outside casting")
+	check("PER CAST" in ui.focus_label.text and not "full in" in ui.focus_label.text, "Outside casting describes fresh per-cast window without recharge")
 	manager.typing_slowdown_remaining = manager.typing_slowdown_capacity
 	ui._process(0)
-	check("READY" in ui.focus_label.text, "Full budget visibly ready")
+	check("PER CAST" in ui.focus_label.text, "Next cast has its own window")
 	var slot_style = game.spell_slots[0].get_node("SlotBackground").get_theme_stylebox("panel")
 	game.highlight_spell_slot(0)
 	check(slot_style.border_color == Color("79d9e8"), "Selected slot cyan")
@@ -170,7 +171,7 @@ func run():
 	await settle()
 	var result = game.game_over_screen
 	check("7:52" in result.survival_time_label.text, "Result shows simulation survival time")
-	check("Steam Field" in result.kit_label.text and not "Cinder Field" in result.kit_label.text, "Result snapshots evolved current kit")
+	check("Steam Field" in result.kit_label.text and "Cinder Field" in result.kit_label.text, "Result preserves ingredients alongside bonus")
 	check("Steam Field" in result.discovery_label.text and not "Life Bolt" in result.discovery_label.text, "Only discoveries new this run appear")
 	for geometry in [Vector2i(1280, 720), Vector2i(800, 900), Vector2i(960, 540)]:
 		root.size = geometry
@@ -216,6 +217,7 @@ func run():
 	for child in root.get_node("AudioManager").get_children():
 		if child is AudioStreamPlayer:
 			child.stop()
+			child.stream = null
 	paused = false
-	await create_timer(0.2).timeout
+	await create_timer(0.25, true, false, true).timeout
 	quit(1 if failures else 0)

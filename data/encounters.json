@@ -8,7 +8,17 @@
     "damage_growth_per_second": 0.0004,
     "minimum_spawn_interval": 0.6,
     "maximum_enemies": 160,
-    "opening_spawn_interval": 3.0
+    "opening_spawn_interval": 3.0,
+    "spawn_growth_start_seconds": 180.0,
+    "spawn_phases": [
+      {"start": 0, "interval": 3.0},
+      {"start": 10, "interval": 1.0},
+      {"start": 45, "interval": 3.0},
+      {"start": 90, "interval": 1.35},
+      {"start": 105, "interval": 2.5},
+      {"start": 120, "interval": 1.2},
+      {"start": 135, "interval": 2.5}
+    ]
   },
   "bosses": [
     {
@@ -33,7 +43,7 @@
       "family": "grunt",
       "unlock_time": 0,
       "health": 30,
-      "speed": 65,
+      "speed": 90,
       "damage": 4,
       "xp": 10,
       "weight": 100,
@@ -43,12 +53,12 @@
     "sprinter": {
       "name": "Sprinter",
       "family": "runner",
-      "unlock_time": 45,
+      "unlock_time": 12,
       "health": 12,
-      "speed": 165,
+      "speed": 270,
       "damage": 3,
       "xp": 6,
-      "weight": 22,
+      "weight": 50,
       "size": 0.65,
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 2.png"
     },

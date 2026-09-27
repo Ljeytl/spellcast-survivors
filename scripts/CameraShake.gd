@@ -4,6 +4,7 @@ class_name CameraShake
 @export var camera: Camera2D
 @export var follow_target: Node2D
 
+var reduced_effects = false
 var original_offset: Vector2
 var shake_intensity: float = 0.0
 var shake_duration: float = 0.0
@@ -25,7 +26,7 @@ func _process(delta):
 	
 	# Handle screen shake
 	if shake_timer > 0:
-		shake_timer -= delta
+		shake_timer = maxf(0, shake_timer - delta)
 		
 		# Calculate shake offset using noise
 		var shake_offset = Vector2(
@@ -46,9 +47,9 @@ func _process(delta):
 
 func shake(intensity: float, duration: float):
 	# Trigger a screen shake with specified intensity and duration
-	shake_intensity = intensity
-	shake_duration = duration
-	shake_timer = duration
+	shake_intensity = 0.0 if reduced_effects else clampf(intensity, 0.0, 6.0)
+	shake_duration = clampf(duration, 0.0, 0.3)
+	shake_timer = shake_duration
 
 func shake_light(duration: float = 0.2):
 	# Light shake for minor hits

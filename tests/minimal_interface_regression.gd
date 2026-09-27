@@ -46,7 +46,7 @@ func run():
 		check(minimal(COPY.description({"effect": {"type": "learn_spell", "spell": id}}, manager)), "Base spell copy is concise: " + id)
 	for id in COPY.EVOLUTIONS:
 		var text = COPY.description({"effect": {"type": "learn_spell", "spell": id}}, manager)
-		check(minimal(text) and text.begins_with("Replace "), "Evolution identifies replacement and concise cost: " + id)
+		check(minimal(text) and not "Replace " in text, "Bonus describes its effect without replacing ingredients: " + id)
 	for geometry in [Vector2i(1280, 720), Vector2i(960, 540)]:
 		root.size = geometry
 		game.get_node("GameplayReadability").layout()
@@ -77,7 +77,7 @@ func run():
 	check(COPY.description({"effect": {"type": "movement_speed", "value": 0.08}}, manager) == "Gain 8% movement speed.", "No percentage ranges")
 	check(COPY.rank_description("bolt", manager) == "Deal 6 more damage per hit and fire one extra bolt.", "Rank card describes actual damage increment and additional projectile")
 	var report = game.interface_debug_report()
-	check("Bosses arrive" in report and "UPGRADE DETAILS" in report and "SYNERGY DETAILS" in report and "keeps slot" in report.to_lower(), "Full diagnostic report retains schedules, cards and recipe mechanics")
+	check("Bosses arrive" in report and "UPGRADE DETAILS" in report and "SYNERGY DETAILS" in report and "bonus" in report.to_lower(), "Full diagnostic report retains schedules, cards and recipe mechanics")
 	var monster_manager = game.get_node("MonsterManager")
 	monster_manager.game_time = 300
 	monster_manager.check_boss_milestones()
@@ -89,5 +89,10 @@ func run():
 	check(game.game_over_screen.kit_label.visible and game.game_over_screen.defeat_label.visible, "Debug can restore retained run details")
 	game.queue_free()
 	await process_frame
+	for child in root.get_node("AudioManager").get_children():
+		if child is AudioStreamPlayer:
+			child.stop()
+			child.stream = null
+	await create_timer(0.25, true, false, true).timeout
 	print("Minimal interface: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

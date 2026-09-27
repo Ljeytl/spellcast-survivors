@@ -1,9 +1,45 @@
+## 2026-09-26 — Clean native quit
+
+- Drain active audio streams before menu quit or window close so the native playtest no longer reports audio resources still in use at shutdown. Both routes share an idempotent quit path.
+
+## 2026-09-26 — Player-controlled reduced effects
+
+- Add a persistent Reduced effects option in both title and pause menus. It disables screen shake immediately and lowers the cosmetic particle budget without changing spell mechanics.
+- Verify persistence across reopening and a new run, pause behavior, and control containment at desktop and narrow sizes.
+
+## 2026-09-26 — Integrated casting and compact-window verification
+
+- Integrate owned bonus spells, per-cast slowdown, simple effects and provisional encounter pressure. Correct bonus hints and hide unavailable discoveries.
+- Keep enlarged typing keys fully visible in short windows; use the lower casting area and temporarily hide the spell bar while the prompt is visible. Preserve health, timer and player visibility.
+- Update UI regression expectations for additive bonuses and per-cast windows; include Regeneration in healing metadata.
+
+## 2026-09-26 — Readable keys and ordinary run spellbook
+
+- Enlarge typed keys and stone menu headings, preserving original artwork and wrapping. Add a pause spellbook with owned active/bonus casting, passive ranks and discovered recipes; keep technical diagnostics separate.
+- Replace shared-meter debug copy with per-cast duration language. Verify menus and spellbook flows at desktop and narrow sizes after foundation integration.
 ## 2026-09-26 — Forest groves and clearer XP crystals
 
 - Replace evenly scattered single trees with deterministic groves of varied sizes, occasional isolated trees, empty stretches, and clustered decorative bushes using the existing art.
 - Preserve the starting clearing and broad connected routes between groves. Halve physical trunk radius from 22 to 11 pixels without shrinking canopies, anchor both tree variants on their visible lower trunk, keep bushes nonblocking, and scenery, collision, enemy/chest spawn clearance consistent when cells stream out and return. Spawn clearance checks square enemy footprints so boss corners stay outside trunks.
 - Enlarge mana-crystal visuals and their pulse by 1.5× without changing XP values, magnet range, collection shapes, or movement.
 - Future: evaluate grove density and canopy fading during crowded human playtests before adding new terrain types or obstacles.
+## 2026-09-27 — Casting and acquisition foundations
+
+- Give each cast a fresh finite real-time slowdown window; remove idle refill dependency and add the Focus duration passive at fixed slowdown strength.
+- Support six primary spells and six passive families. Passive ranks stay in their family slot; Mana Mastery bundles automatic Mana Bolt rank and attack rate. Only passives with working effects enter the offer pool.
+- Learn authored bonus spells separately at rank 1 while preserving both ingredients and their ranks. Add unified owned-spell lookup/library APIs, reject unowned casts, and keep discovery memory separate from run ownership.
+- Separate quick Life from Regeneration and Bolt from Lightning. Reserve Lightning Bolt's bouncing-projectile contract and Life Bolt's collectable healing-seed contract for the effects integration; defer Reaping Spirit acquisition.
+- Future: integrate the effects contracts and player spellbook, audit remaining passive families, and validate the combined candidate before delivery.
+## 2026-09-26 — Simple spell behavior and feedback
+
+- Give Plague Seed bounded visible plant transfers, Cross Blade an outbound/linger/return path, persistent armed traps, and projectile-speed snapshots for lances, hunters and blades.
+- Add capped Lightning Bolt ricochets and collectible Life Bolt healing seeds; actual pickup requests six healing over two seconds, with full-health preservation and ten-second expiry.
+- Replace oversized projectile circles and animated texture trails with small outlined pixel shapes. Keep functional shield/charge/hazard indicators; hide decorative enemy-family circles outside debug. Bound impact feedback and camera shake.
+- Validate focused effect mechanics, legacy magic behaviors, encounter timing and delayed-target teardown in an isolated profile. Integrated ownership/UI validation and final player-healing hooks remain with the combined build.
+
+## 2026-09-26 — Simple combat feedback foundation
+
+- Add bounded pixel-shaped spell, healing, pickup and impact helpers, with directional cone/link feedback and readable hazard telegraphs. Preserve supplied art and pause behavior; no shader or audio additions.
 
 ## 2026-09-26 — Implementation authorized
 
@@ -281,3 +317,24 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Delayed mana, spread-bolt and chain callbacks now resolve weak target references and disconnect safely when their run ends; freed targets cancel pending hits.
 - Verified delayed-target cleanup with 7 targeted assertions, 182 spell-build assertions and 611 acquisition assertions. Diagnostic accelerated seed 11 ended in death at 452.2 seconds with 100 successful casts and no runtime errors; broader final-revision runs remain the next validation step.
 - Balance regression now waits for bounded observable level-up transitions instead of fixed timer delays, preserving the queued-choice and duplicate-input assertions under headless scheduling.
+
+- Follow-up: Ice Blast now uses a forward 90-degree cone with matching damage/control bounds; Lightning is one direct strike. Personal stone protection follows the player through the effects API; heal/hurt visuals respond to actual health changes.
+
+- Integrated healing seeds and bouncing-projectile effect contracts for regression validation. Migrated old replacement/shared-reserve tests to additive bonuses and fresh per-cast timing; coalesce healing feedback to one burst per 150 ms while preserving all health restoration.
+## September 26, 2026 — Opening pressure and behavioral controls
+
+- Replaced the flat early spawn grace period with opening pressure and recovery windows, then the existing exponential density growth.
+- Kept early enemies at two passive hits for grunts and one for runners; introduced runners after twelve seconds, below player speed. Health, contact damage, ranged gates, boss times and immediate twenty-minute victory remain unchanged.
+- Added isolated bot modes for idle, movement only, stationary casting and active play, with first-damage telemetry and checks against mode contamination.
+- Added deterministic checks for the pressure/recovery transitions. Full behavioral evidence and remaining balance limitations accompany this change.
+
+### Opening pressure timer follow-up
+
+- Spawn phase boundaries restart the running timer with the new interval, so pressure/recovery changes no longer wait for the previous deadline. Stopped timers remain stopped.
+- Unsorted phase rows use the latest valid start; invalid/nonpositive rows are ignored and missing configuration retains safe baseline defaults. Pressure values remain provisional.
+- Bot reports must match the requested behavior mode.
+- Verified 7 real-timer assertions, 44 balance assertions and 8 Python report tests. Removing the boundary update makes four timer assertions fail.
+
+- Migrated seeded magic, acquisition and typing-presentation fixtures to six active slots, separate Life/Regeneration, additive bonus spells and distinct Bolt identities. Preserve real input, reroll/banish, effect-cap and deferred-recipe coverage.
+
+- Plague Seed and Soul Bloom acquire only visible living hosts, optionally respecting an authored initial cast range. No-target attempts remain editable with “No target in range,” preserve the current slowdown allowance, and do not count or flash as successful casts. Shield-only absorption emits stone feedback; health loss emits red feedback, with both on overflow.

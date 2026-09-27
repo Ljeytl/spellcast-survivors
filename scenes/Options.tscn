@@ -114,6 +114,11 @@ button_pressed = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
 
+[node name="ReducedEffectsCheckBox" type="CheckBox" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Reduced effects"
+tooltip_text = "Disable screen shake and reduce cosmetic particles."
+
 [node name="BackButton" type="Button" parent="OptionsPanel/VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 50)
@@ -125,3 +130,4 @@ text = "BACK"
 [connection signal="value_changed" from="OptionsPanel/VBoxContainer/MusicContainer/MusicSlider" to="." method="_on_music_slider_value_changed"]
 [connection signal="toggled" from="OptionsPanel/VBoxContainer/FullscreenCheckBox" to="." method="_on_fullscreen_check_box_toggled"]
 [connection signal="toggled" from="OptionsPanel/VBoxContainer/VSyncCheckBox" to="." method="_on_v_sync_check_box_toggled"]
+[connection signal="toggled" from="OptionsPanel/VBoxContainer/ReducedEffectsCheckBox" to="." method="_on_reduced_effects_toggled"]

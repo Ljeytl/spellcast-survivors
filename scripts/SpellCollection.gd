@@ -42,6 +42,9 @@ func _ready():
 			continue
 		count += 1
 		var recipe = preload("res://scripts/SynergyCatalog.gd").RECIPES[id]
+		if not recipe.get("enabled", true):
+			count -= 1
+			continue
 		var heading = Label.new()
 		heading.name = "RecipeTitle"
 		heading.set_meta("recipe_heading", true)
@@ -51,7 +54,7 @@ func _ready():
 		var entry = Label.new()
 		entry.add_theme_font_size_override("font_size", 24)
 		entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		entry.text = "%s + %s\n%s" % [recipe.ingredients[0].replace("_", " ").capitalize(), ("Regeneration" if recipe.ingredients[1] == "life" else recipe.ingredients[1].replace("_", " ").capitalize()), preload("res://scripts/UpgradeCopy.gd").EVOLUTIONS[id]]
+		entry.text = "%s + %s\n%s" % [ingredient_name(recipe.ingredients[0]), ingredient_name(recipe.ingredients[1]), preload("res://scripts/UpgradeCopy.gd").EVOLUTIONS.get(id, "")]
 		entries.add_child(entry)
 	if count == 0:
 		var empty = Label.new()
@@ -86,6 +89,10 @@ func update_typography():
 	else:
 		preload("res://scripts/GameplayReadability.gd").fit_root(self)
 	for label in find_children("*", "Label", true, false):
-		label.add_theme_font_size_override("font_size", 28 if label.name == "CollectionTitle" else (24 if label.has_meta("recipe_heading") else 18))
+		label.add_theme_font_size_override("font_size", 36 if label.name == "CollectionTitle" else (32 if label.has_meta("recipe_heading") else 20))
 	for button in find_children("*", "Button", true, false):
-		button.add_theme_font_size_override("font_size", 24)
+		button.add_theme_font_size_override("font_size", 32)
+
+func ingredient_name(id: String) -> String:
+	var data = get_tree().root.get_node("DataManager").get_spell_data(id)
+	return str(data.get("name", id.replace("_", " ").capitalize()))
