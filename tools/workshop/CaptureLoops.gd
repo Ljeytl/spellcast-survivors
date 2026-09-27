@@ -43,7 +43,11 @@ func run():
 			fixture.advance(1.0 / FPS)
 			await RenderingServer.frame_post_draw
 			if frame == floori(poster_time * FPS):
-				assert(root.get_texture().get_image().save_png(OUT + entry.poster) == OK)
+				var error = root.get_texture().get_image().save_png(OUT + entry.poster)
+				if error != OK:
+					push_error("Could not save gallery poster")
+					quit(2)
+					return
 		entry.end_frame = Engine.get_frames_drawn()
 		entry.duration = float(entry.end_frame - entry.start_frame) / FPS
 		entry.video = entry.id + ".mp4"

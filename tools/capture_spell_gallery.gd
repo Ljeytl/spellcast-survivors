@@ -82,11 +82,14 @@ func run():
 		else:
 			if recipes.has(id):
 				for ingredient in recipes[id].ingredients:
-					assert(manager.learn_spell(ingredient) or ingredient == "bolt")
-			assert(manager.learn_spell(id) or id == "bolt")
+					var learned = manager.learn_spell(ingredient)
+					assert(learned or ingredient == "bolt")
+			var learned = manager.learn_spell(id)
+			assert(learned or id == "bolt")
 			var slot = manager.find_spell_slot(id)
 			title = manager.get_spell_info(slot).get("name", id)
-			assert(manager.cast_spell_by_type(slot))
+			var casted = manager.cast_spell_by_type(slot)
+			assert(casted)
 		var frames = []
 		var elapsed = 0.0
 		for index in range(TIMES.size()):

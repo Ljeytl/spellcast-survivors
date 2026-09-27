@@ -56,7 +56,8 @@ func _process(delta):
 		publish("state", state())
 
 func state() -> Dictionary:
-	return {"id": selected, "time": fixture.elapsed, "duration": fixture.duration, "playing": playing, "busy": busy, "settings": fixture.settings, "speed": time_scale}
+	var hits = fixture.targets.filter(func(target): return is_instance_valid(target) and target.current_health < 10000).size()
+	return {"targets_hit": hits, "active_effects": get_tree().get_nodes_in_group("effect_bursts").size(), "id": selected, "time": fixture.elapsed, "duration": fixture.duration, "playing": playing, "busy": busy, "settings": fixture.settings, "speed": time_scale}
 
 func command(arguments: Array):
 	if arguments.is_empty():

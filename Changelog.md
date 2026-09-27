@@ -5,6 +5,7 @@
 - Add a transparent four-stamp particle sheet for impact, smoke, embers and ice; retain procedural spell boundaries and paths.
 - Replace sparse gallery playback with complete native 30fps casts, frame inspection and downloadable GIF loops. Add a browser workshop using the actual Godot renderer, independent size controls, all regular enemy variants, pause/replay/speed, reset and preview configuration export.
 - Add a brief red health-damage overlay for wizard/enemies that preserves status tint and transparency; repeated hits restart it, blocked/zero/shield-only hits do not flash.
+- Execute preview learning/casting outside debug assertions so manual spells work in release browser exports as well as native captures.
 - Selecting an effect or Replay starts playback explicitly, fixing short effects appearing broken after a paused preview.
 - Future: animate slimes with reviewed pixel keyframes; introduce 10–15% tree/bush size variation in the game after baseline sizing, plus saved per-variant presets and optional boss lineups.
 

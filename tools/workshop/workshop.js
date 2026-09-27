@@ -16,7 +16,7 @@ window.addEventListener('message',event=>{
   if(event.source!==frame.contentWindow||event.origin!==location.origin||event.data?.source!=='spellcast-workshop')return;
   const {kind,payload}=event.data;
   if(kind==='ready'){catalog=payload.catalog;settings={...payload.settings};ready=true;options();$('effect').value='bolt';for(const [id,value] of Object.entries(payload.variants)){$('variant').add(new Option(value.name,id));}document.querySelectorAll('[disabled]').forEach(e=>e.disabled=false);syncSizes();$('status').textContent='Ready. These are the actual game effects.';}
-  if(kind==='state'){activeId=payload.id;playing=payload.playing;$('play').textContent=playing?'Pause':'Play';$('clock').textContent=payload.busy?'Preparing…':payload.time.toFixed(2)+' / '+payload.duration.toFixed(2)+' s';$('title').textContent=catalog.find(e=>e.id===payload.id)?.name||'Bolt';}
+  if(kind==='state'){frame.dataset.targetsHit=payload.targets_hit;frame.dataset.activeEffects=payload.active_effects;activeId=payload.id;playing=payload.playing;$('play').textContent=playing?'Pause':'Play';$('clock').textContent=payload.busy?'Preparing…':payload.time.toFixed(2)+' / '+payload.duration.toFixed(2)+' s';$('title').textContent=catalog.find(e=>e.id===payload.id)?.name||'Bolt';}
 });
 $('effect').onchange=()=>send('select',{id:$('effect').value});$('search').oninput=options;
 $('variant').onchange=()=>{settings.variant=$('variant').value;settings.enemy=settings.enemy_sizes[settings.variant]??1;syncSizes();send('settings',{values:{variant:settings.variant}});};
