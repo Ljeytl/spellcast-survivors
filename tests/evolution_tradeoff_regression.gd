@@ -186,7 +186,7 @@ func compare_soul():
 		var enemy = target(Vector2(100, 0))
 		game.player.health = 50
 		var spell = effect(info, enemy)
-		spell.advance(0.5)
+		spell.advance(1.0)
 		damage.append(10000 - enemy.current_health)
 		check(game.player.health > 50 if evolved else game.player.health == 50, "Soul Bloom trades infection damage for actual healing")
 		game.player.health = 100

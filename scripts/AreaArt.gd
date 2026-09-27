@@ -71,7 +71,7 @@ static func steam_circle(canvas: CanvasItem, center: Vector2, radius: float, age
 		var chevron = PackedVector2Array([point + Vector2(-6, -3), point + Vector2(0, 3), point + Vector2(6, -3)])
 		canvas.draw_polyline(chevron, Color("a3e1e4"), 3)
 
-static func meteor_warning(canvas: CanvasItem, radius: float, progress: float):
+static func meteor_warning(canvas: CanvasItem, radius: float, progress: float, projectile_scale: float = 1.0):
 	var art = preload("res://scripts/EffectArt.gd")
 	circle(canvas, Vector2.ZERO, radius, Color("e88d52"), 1, clampf(progress, 0, 1))
 	for index in range(8):
@@ -82,16 +82,17 @@ static func meteor_warning(canvas: CanvasItem, radius: float, progress: float):
 		return
 	var descent = clampf((progress - 0.3) / 0.7, 0, 1)
 	var point = Vector2(70, -190) * (1 - descent)
+	canvas.draw_set_transform(point.round(), 0, Vector2.ONE * projectile_scale)
 	for index in range(3, 0, -1):
-		art.stamp(canvas, "ember", point + Vector2(index * 8, -index * 20), Vector2.ONE * (38 - index * 5))
+		art.stamp(canvas, "ember", Vector2(index * 8, -index * 20), Vector2.ONE * (38 - index * 5))
 	var rock = PackedVector2Array([Vector2(-16, -8), Vector2(-8, -8), Vector2(-8, -16), Vector2(10, -16), Vector2(10, -8), Vector2(17, -8), Vector2(17, 10), Vector2(9, 10), Vector2(9, 17), Vector2(-10, 17), Vector2(-10, 10), Vector2(-16, 10)])
-	for index in range(rock.size()):
-		rock[index] += point.round()
 	canvas.draw_colored_polygon(rock, Color("e88d52"))
 	rock.append(rock[0])
 	canvas.draw_polyline(rock, art.INK, 3)
-	canvas.draw_rect(Rect2(point.round() + Vector2(-9, -6), Vector2(19, 17)), Color("82705d"))
-	canvas.draw_rect(Rect2(point.round() + Vector2(-9, -6), Vector2(10, 5)), Color("c7ad80"))
+	canvas.draw_rect(Rect2(Vector2(-9, -6), Vector2(19, 17)), Color("82705d"))
+	canvas.draw_rect(Rect2(Vector2(-9, -6), Vector2(10, 5)), Color("c7ad80"))
+
+	canvas.draw_set_transform(Vector2.ZERO)
 
 static func meteor_impact(canvas: CanvasItem, radius: float, progress: float):
 	var art = preload("res://scripts/EffectArt.gd")

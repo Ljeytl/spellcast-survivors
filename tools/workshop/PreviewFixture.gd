@@ -91,6 +91,7 @@ func setup(parent: Node, id: String):
 	await tree.process_frame
 	apply_sizes()
 	cast()
+	apply_sizes()
 
 func cast():
 	var manager = game.spell_manager
@@ -155,6 +156,7 @@ func scaled(node: Node2D, multiplier: float):
 	node.scale = node.get_meta("preview_original_scale") * multiplier
 
 func apply_sizes():
+	tree.root.set_meta("projectile_preview_scale", settings.projectile)
 	game.camera.zoom = Vector2.ONE * settings.zoom
 	scaled(game.player.get_node("Sprite2D"), settings.wizard)
 	for enemy in targets:
@@ -163,10 +165,8 @@ func apply_sizes():
 	scenery.visible = settings.scenery
 	scaled(scenery.get_node("Tree"), settings.tree)
 	scaled(scenery.get_node("Bush"), settings.bush)
-	for projectile in tree.get_nodes_in_group("spell_projectiles"):
-		scaled(projectile, settings.projectile)
-		for shape in projectile.find_children("*", "CollisionShape2D", true, false):
-			shape.scale = Vector2.ONE / settings.projectile
+	for projectile in tree.get_nodes_in_group("projectile_visuals"):
+		preload("res://scripts/ProjectileVisual.gd").apply(projectile, settings.projectile)
 	for effect in tree.get_nodes_in_group("effect_bursts"):
 		if not effect.has_meta("preview_original_particle"):
 			effect.set_meta("preview_original_particle", effect.particle_size)

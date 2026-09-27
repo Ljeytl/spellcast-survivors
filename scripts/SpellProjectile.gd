@@ -31,6 +31,7 @@ var is_pooled: bool = false            # Whether this projectile came from objec
 
 func _ready():
 	add_to_group("spell_projectiles")
+	preload("res://scripts/ProjectileVisual.gd").register(self)
 	
 	# Set up collision detection - Area2D can only detect other Area2D nodes
 	area_entered.connect(_on_area_entered)
@@ -214,7 +215,7 @@ func _draw():
 		"lightning":
 			art.lightning(self, Vector2.ZERO, to_local(get_meta("end_pos", global_position)), 6)
 		"warning":
-			preload("res://scripts/AreaArt.gd").meteor_warning(self, effect_radius, 1 - lifetime_timer / maxf(lifetime, 0.01))
+			preload("res://scripts/AreaArt.gd").meteor_warning(self, effect_radius, 1 - lifetime_timer / maxf(lifetime, 0.01), preload("res://scripts/ProjectileVisual.gd").factor(self))
 		"meteor":
 			preload("res://scripts/AreaArt.gd").meteor_impact(self, effect_radius, 1 - lifetime_timer / maxf(lifetime, 0.01))
 		"ice":
@@ -225,11 +226,12 @@ func _draw():
 		"heal":
 			art.wreath(self, "heal", Vector2.ZERO, 24, 0)
 		"mana_bolt":
-			art.stamp(self, "mana", Vector2.ZERO, Vector2(40, 34))
+			art.stamp(self, "mana", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Vector2(40, 34)))
 		"bolt", "life_bolt":
-			art.stamp(self, "bolt", Vector2.ZERO, Vector2(42, 36), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
+			art.stamp(self, "bolt", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Vector2(42, 36)), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
 		"lightning_bolt":
-			art.lightning(self, Vector2(-24, 0), Vector2(14, 0), 8)
+			var visual_scale = preload("res://scripts/ProjectileVisual.gd").factor(self)
+			art.lightning(self, Vector2(-24, 0) * visual_scale, Vector2(14, 0) * visual_scale, 8 * visual_scale)
 		_:
 			art.stamp(self, "impact", Vector2.ZERO, Vector2.ONE * 18)
 
@@ -287,6 +289,7 @@ func reset_for_pool():
 	target = null
 	is_homing = false
 	projectile_type = "basic"
+	preload("res://scripts/ProjectileVisual.gd").apply(self, 1.0)
 	effect_color = Color.WHITE
 	effect_radius = 0.0
 	lifetime = 3.0

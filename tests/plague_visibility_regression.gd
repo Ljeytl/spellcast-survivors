@@ -40,10 +40,11 @@ func run():
 	check(game.spell_manager.cast_freeform_spell("plague seed"), "Owned typed Plague Seed casts on a real visible enemy")
 	var effect = get_nodes_in_group("build_spell_effects").back()
 	effect.set_physics_process(false)
+	effect.advance(0.25)
 	targets[0].take_damage(1000, game.player.position)
 	await process_frame
 	await process_frame
-	effect.advance(0.5)
+	effect.advance(0.75)
 	check(targets[1].current_health == 91, "Infection survives external host death before first tick and damages real neighbor")
 	check(targets[2].current_health == 100, "Death transfer respects spread distance")
 	check(effect.infections.size() == 2, "Death transfers only once to a nearby host")
@@ -84,14 +85,14 @@ func run():
 		enemy.current_health = 1
 		group.append(enemy)
 	var chain = load("res://scripts/BuildSpellEffect.gd").new()
-	chain.configure({"type": "plague", "duration": 5.0}, 9, game.player, group[0])
+	chain.configure({"type": "plague", "duration": 12.0}, 9, game.player, group[0])
 	game.add_child(chain)
 	chain.set_physics_process(false)
-	chain.advance(0.5)
-	check(chain.infections.size() == 2, "Plague's own killing tick transfers immediately")
+	chain.advance(1.25)
+	check(chain.infections.size() == 2, "Plague killing tick launches spore which transfers on arrival")
 	await process_frame
 	check(chain.infections.size() == 2, "Deferred death signal does not transfer twice")
-	for index in range(8):
+	for index in range(16):
 		chain.advance(0.5)
 		await process_frame
 	check(chain.infections.size() == 8, "Death chains retain eight-host cap")

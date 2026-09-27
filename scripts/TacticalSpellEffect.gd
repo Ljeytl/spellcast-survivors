@@ -211,7 +211,7 @@ func _draw():
 			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, color, minf(remaining * 4, 1) if triggered else 1.0, clampf(age / float(info.get("arm_delay", 0.8)), 0, 1))
 			art.stamp(self, "rune", Vector2.ZERO, Vector2.ONE * 48)
 		"spirit":
-			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Vector2.ONE * 28, Color(0.8, 1, 1))
+			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Visual.size(self, Vector2.ONE * 28), Color(0.8, 1, 1))
 		"trail":
 			var points = PackedVector2Array()
 			for point in trail_points:
@@ -219,4 +219,4 @@ func _draw():
 			preload("res://scripts/AreaArt.gd").fire_path(self, points, float(info.get("trail_radius", 65.0)), age)
 		"returning":
 			var radius = float(info.get("blade_radius", 42.0))
-			art.stamp(self, "blade", Vector2.ZERO, Vector2.ONE * radius * 2, Color.WHITE, age * 12)
+			art.stamp(self, "blade", Vector2.ZERO, Visual.size(self, Vector2.ONE * radius * 2), Color.WHITE, age * 12)

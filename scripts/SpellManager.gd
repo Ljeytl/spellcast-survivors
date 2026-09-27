@@ -795,23 +795,9 @@ func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6):
 	var target = get_closest_enemy()
 	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
-	var half_angle = deg_to_rad(45.0)
-	var particles = get_parent().get("particle_manager")
-	if is_instance_valid(particles) and particles.has_method("create_directional_effect"):
-		particles.create_directional_effect(pos, direction, "ice", radius, half_angle)
-	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if not _live_spell_target(enemy):
-			continue
-		var offset: Vector2 = enemy.global_position - pos
-		var distance = offset.length()
-		if distance > radius or (distance > 0.001 and direction.dot(offset.normalized()) < cos(half_angle)):
-			continue
-		enemy.take_damage(damage)
-		if enemy.has_method("apply_knockback"):
-			var strength = knockback_base * (1.2 + (1.0 - distance / radius) * 0.8)
-			enemy.apply_knockback(offset.normalized(), strength)
-		if enemy.has_method("apply_slow"):
-			enemy.apply_slow(slow_strength, slow_duration)
+	var effect = preload("res://scripts/IceBlast.gd").new()
+	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, player.projectile_speed_multiplier)
+	get_parent().add_child(effect)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
 	if not _live_spell_target(target) or remaining_chains <= 0:

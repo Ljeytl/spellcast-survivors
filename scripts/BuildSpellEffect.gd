@@ -15,6 +15,8 @@ var infection_links: Array = []
 var death_transfers: Dictionary = {}
 var orbit_hit_times: Dictionary = {}
 var elapsed_time = 0.0
+var infected_at: Dictionary = {}
+const Visual = preload("res://scripts/ProjectileVisual.gd")
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	info = data.duplicate(true)
@@ -28,7 +30,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 		if info.type == "field":
 			global_position = target.global_position
 		if info.type == "plague":
-			infect(target, player.global_position)
+			infect(target, player.global_position, float(info.get("cast_range", 600.0)))
 	if info.type == "piercing":
 		remaining = 1.5
 	if info.type == "plague":
@@ -39,21 +41,33 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	if info.get("slow", 0.0) > 0:
 		color = Color.LIGHT_CYAN
 	add_to_group("build_spell_effects")
+	if info.type in ["piercing", "orbit", "plague", "spirit", "returning"]:
+		Visual.register(self)
+
+func _ready():
+	if is_in_group("projectile_visuals"):
+		Visual.register(self)
 
 func _physics_process(delta):
 	advance(delta)
 
 func advance(delta: float):
+	if info.type == "plague" and delta > 0.025:
+		var budget = delta
+		while budget > 0.000001 and remaining > 0.0:
+			var step = minf(budget, 0.025)
+			advance(step)
+			budget -= step
+		return
 	var player = caster.get_ref() if caster else null
 	if not is_instance_valid(player) or remaining <= 0.0:
 		queue_free()
 		return
 	var elapsed = minf(delta, remaining)
-	for link in infection_links:
-		link.age += elapsed
-	infection_links = infection_links.filter(func(link): return link.age < 0.35)
 	remaining -= elapsed
 	elapsed_time += elapsed
+	if info.type == "plague":
+		advance_spores(elapsed)
 	if info.type == "piercing":
 		var start = global_position
 		global_position += direction * 700.0 * float(info.get("projectile_speed_multiplier", 1.0)) * elapsed
@@ -71,7 +85,7 @@ func advance(delta: float):
 			global_position = player.global_position
 			advance_orbit(elapsed)
 		tick_remaining -= elapsed
-		while tick_remaining <= 0.0:
+		while tick_remaining <= 0.000001:
 			tick_remaining += float(info.get("tick_interval", 0.5))
 			match info.type:
 				"field": pulse(global_position, float(info.get("radius", 150.0)), damage)
@@ -131,21 +145,45 @@ func show_area(center: Vector2, radius: float, tint: Color):
 	get_parent().add_child(effect)
 	effect.global_position = center
 
-func infect(enemy, source: Vector2 = Vector2.INF):
-	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or infections.size() >= 8:
+func infect(enemy, source: Vector2 = Vector2.INF, search_range: float = 130.0):
+	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or infections.size() + infection_links.size() >= 8:
 		return
 	hit_ids[enemy.get_instance_id()] = true
-	infections.append(weakref(enemy))
-	if enemy.has_signal("enemy_died"):
-		enemy.connect("enemy_died", _on_infected_host_died, CONNECT_ONE_SHOT)
-	if source != Vector2.INF:
-		infection_links.append({"from": source, "to": enemy.global_position, "age": 0.0})
+	var origin = global_position if source == Vector2.INF else source
+	infection_links.append({"from": origin, "position": origin, "target": weakref(enemy), "target_id": enemy.get_instance_id(), "range": search_range})
+
+func advance_spores(delta: float):
+	for link in infection_links.duplicate():
+		var enemy = link.target.get_ref()
+		if not valid_target(enemy):
+			hit_ids.erase(link.target_id)
+			enemy = null
+			var nearest = INF
+			for candidate in get_tree().get_nodes_in_group("enemies"):
+				if valid_target(candidate) and not hit_ids.has(candidate.get_instance_id()) and link.from.distance_to(candidate.global_position) <= link.range:
+					var distance = link.position.distance_squared_to(candidate.global_position)
+					if distance < nearest:
+						nearest = distance
+						enemy = candidate
+			if not enemy:
+				infection_links.erase(link)
+				continue
+			link.target = weakref(enemy)
+			link.target_id = enemy.get_instance_id()
+			hit_ids[link.target_id] = true
+		link.position = link.position.move_toward(enemy.global_position, 460.0 * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
+		if link.position.distance_to(enemy.global_position) <= 0.001:
+			infections.append(weakref(enemy))
+			infected_at[enemy.get_instance_id()] = elapsed_time
+			if enemy.has_signal("enemy_died"):
+				enemy.connect("enemy_died", _on_infected_host_died, CONNECT_ONE_SHOT)
+			infection_links.erase(link)
 
 func tick_infections():
 	healing_remaining = 2.0
 	for reference in infections.duplicate():
 		var enemy = reference.get_ref()
-		if not valid_target(enemy):
+		if not valid_target(enemy) or elapsed_time - float(infected_at.get(enemy.get_instance_id(), elapsed_time)) + 0.000001 < float(info.get("tick_interval", 0.5)):
 			continue
 		var center = enemy.global_position
 		deal_damage(enemy, damage)
@@ -161,7 +199,7 @@ func _on_infected_host_died(enemy):
 		spread_from(enemy.global_position)
 
 func spread_from(center: Vector2):
-	if infections.size() >= 8:
+	if infections.size() + infection_links.size() >= 8:
 		return
 	for other in get_tree().get_nodes_in_group("enemies"):
 		if valid_target(other) and center.distance_to(other.global_position) <= 130.0 and not hit_ids.has(other.get_instance_id()):
@@ -172,7 +210,7 @@ func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	match info.type:
 		"piercing":
-			art.stamp(self, "lance", Vector2.ZERO, Vector2(56, 24), Color.WHITE, direction.angle())
+			art.stamp(self, "lance", Vector2.ZERO, Visual.size(self, Vector2(56, 24)), Color.WHITE, direction.angle())
 		"field":
 			var radius = float(info.get("radius", 150.0))
 			if info.get("slow", 0.0) > 0:
@@ -184,18 +222,15 @@ func _draw():
 			var body_radius = float(info.get("body_radius", 42.0))
 			for i in range(count):
 				var center = Vector2.from_angle(angle + TAU * i / count) * float(info.get("orbit_radius", 130.0))
-				preload("res://scripts/AreaArt.gd").circle(self, center, body_radius, Color("b49bea"), 0.8)
-				art.stamp(self, "mana", center, Vector2.ONE * body_radius * 2, Color.WHITE, angle + TAU * i / count + PI / 2)
+				preload("res://scripts/AreaArt.gd").circle(self, center, body_radius * Visual.factor(self), Color("b49bea"), 0.8)
+				art.stamp(self, "mana", center, Visual.size(self, Vector2.ONE * body_radius * 2), Color.WHITE, angle + TAU * i / count + PI / 2)
 		"plague":
 			for link in infection_links:
 				var from = to_local(link.from)
-				var to = to_local(link.to)
-				var opacity = 1 - link.age / 0.35
-				draw_line(from, to, Color(art.INK, opacity), 8)
-				draw_line(from, to, Color("c4ce79", opacity), 4)
-				for index in range(3):
-					var progress = clampf(link.age / 0.35 - index * 0.16, 0, 1)
-					art.stamp(self, "plague", from.lerp(to, progress), Vector2.ONE * (32 - index * 6))
+				var point = to_local(link.position)
+				var heading = from.direction_to(point)
+				for index in range(2, -1, -1):
+					art.stamp(self, "plague", point - heading * index * 10, Visual.size(self, Vector2.ONE * (32 - index * 6)))
 			for reference in infections:
 				var enemy = reference.get_ref()
 				if valid_target(enemy):
