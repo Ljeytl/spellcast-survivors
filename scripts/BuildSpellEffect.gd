@@ -135,6 +135,13 @@ func deal_damage(enemy, amount: float) -> float:
 		var healing = minf(healing_remaining, lost * float(info.lifesteal))
 		healing_remaining -= healing
 		player.heal(healing)
+		if healing > 0:
+			var bloom = preload("res://scripts/EffectBurst.gd").new()
+			bloom.kind = "heal"
+			bloom.radius = 22
+			bloom.duration = 0.3
+			get_parent().add_child(bloom)
+			bloom.global_position = player.global_position
 	return lost
 
 func pulse(center: Vector2, radius: float, amount: float, excluded = null):
@@ -267,7 +274,9 @@ func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	match info.type:
 		"piercing":
-			art.stamp(self, "lance", Vector2.ZERO, Visual.size(self, Geometry.stamp_dimensions("lance", Geometry.LANCE_RADIUS * float(info.spell_size_multiplier))), Color.WHITE, direction.angle())
+			art.stamp(self, "lance", direction * Geometry.stamp_offset("lance", Geometry.LANCE_RADIUS * float(info.spell_size_multiplier)).x, Visual.size(self, Geometry.stamp_dimensions("lance", Geometry.LANCE_RADIUS * float(info.spell_size_multiplier))), Color.WHITE, direction.angle())
+			if info.get("explosive", false):
+				art.stamp(self, "meteor", -direction * 18, Visual.size(self, Vector2.ONE * 24 * float(info.spell_size_multiplier)))
 		"field":
 			var radius = float(info.get("radius", 150.0))
 			if info.get("slow", 0.0) > 0:
@@ -279,12 +288,12 @@ func _draw():
 			var body_radius = float(info.get("body_radius", 42.0))
 			for i in range(count):
 				var center = Vector2.from_angle(angle + TAU * i / count) * float(info.get("orbit_radius", 130.0))
-				preload("res://scripts/AreaArt.gd").circle(self, center, body_radius * Visual.factor(self), Color("b49bea"), 0.8)
-				art.stamp(self, "mana", center, Visual.size(self, Vector2.ONE * body_radius * 2), Color.WHITE, angle + TAU * i / count + PI / 2)
+				preload("res://scripts/AreaArt.gd").circle(self, center, body_radius * Visual.factor(self), Color("b49bea"), 0.35)
+				art.stamp(self, "orbit", center, Visual.size(self, Geometry.stamp_dimensions("orbit", body_radius)), Color.WHITE, angle + TAU * i / count)
 		"plague":
 			for spore in resting_spores:
 				var pulse_size = 30.0 + sin(elapsed_time * 5.0) * 3.0
-				art.stamp(self, "plague", to_local(spore.position), Visual.size(self, Vector2.ONE * pulse_size * float(info.spell_size_multiplier)), Color(0.75, 1, 0.5))
+				art.stamp(self, "plague", to_local(spore.position), Visual.size(self, Vector2.ONE * pulse_size * float(info.spell_size_multiplier)), Color.WHITE)
 			for link in infection_links:
 				var from = to_local(link.from)
 				var point = to_local(link.position)
