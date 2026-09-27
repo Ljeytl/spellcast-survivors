@@ -4,6 +4,7 @@ const BOLT_RADIUS = 17.0
 const LANCE_RADIUS = 24.0
 const BEAM_RADIUS = 20.0
 const SPIRIT_RADIUS = 24.0
+const Art = preload("res://scripts/EffectArt.gd")
 
 static func multiplier(player: Node) -> float:
 	if not is_instance_valid(player):
@@ -25,9 +26,22 @@ static func scaled_data(data: Dictionary, player: Node) -> Dictionary:
 	return result
 
 static func stamp_dimensions(kind: String, radius: float) -> Vector2:
+	if Art.MOTIF_BODIES.has(kind):
+		var crop: Rect2 = Art.motif_region(kind)
+		var body: Rect2 = Art.MOTIF_BODIES[kind]
+		return Vector2(radius * 2 * crop.size.x / body.size.x, radius * 2 * crop.size.y / body.size.y)
 	match kind:
-		"lance": return Vector2(radius * 3.0, radius * 2.0 * 24.0 / 10.0)
-		"spirit": return Vector2.ONE * radius * 2.0 * 24.0 / 12.0
-		"bolt", "mana": return Vector2.ONE * radius * 2.0 * 24.0 / 16.0
-		"blade": return Vector2.ONE * radius * 2.0 * 24.0 / 22.0
+		"lance": return Vector2(radius * 3.0, radius * 2.0)
+		"blade", "orbit": return Vector2.ONE * radius * 2.0
 	return Vector2.ONE * radius * 2.0
+
+static func stamp_offset(kind: String, radius: float) -> Vector2:
+	if Art.MOTIF_BODIES.has(kind):
+		var crop: Rect2 = Art.motif_region(kind)
+		var body: Rect2 = Art.MOTIF_BODIES[kind]
+		var size = stamp_dimensions(kind, radius)
+		var relative = (body.get_center() - crop.get_center()) / crop.size * size
+		return Vector2(relative.x if kind in ["mana", "bolt"] else -relative.x, -relative.y)
+	if kind == "lance":
+		return Vector2(radius - stamp_dimensions(kind, radius).x * 0.5, 0)
+	return Vector2.ZERO

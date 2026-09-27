@@ -230,9 +230,11 @@ func _draw():
 		"heal":
 			art.wreath(self, "heal", Vector2.ZERO, 24, 0)
 		"mana_bolt":
-			art.stamp(self, "mana", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Geometry.stamp_dimensions("mana", Geometry.BOLT_RADIUS * spell_size)))
+			art.stamp(self, "mana", Geometry.stamp_offset("mana", Geometry.BOLT_RADIUS * spell_size), preload("res://scripts/ProjectileVisual.gd").size(self, Geometry.stamp_dimensions("mana", Geometry.BOLT_RADIUS * spell_size)))
 		"bolt", "life_bolt":
-			art.stamp(self, "bolt", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Geometry.stamp_dimensions("bolt", Geometry.BOLT_RADIUS * spell_size)), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
+			art.stamp(self, "bolt", Geometry.stamp_offset("bolt", Geometry.BOLT_RADIUS * spell_size), preload("res://scripts/ProjectileVisual.gd").size(self, Geometry.stamp_dimensions("bolt", Geometry.BOLT_RADIUS * spell_size)), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
+			if projectile_type == "life_bolt":
+				art.stamp(self, "heal", Vector2(-6, -7) * spell_size, Vector2.ONE * 12 * spell_size)
 		"lightning_bolt":
 			var visual_scale = preload("res://scripts/ProjectileVisual.gd").factor(self) * spell_size
 			art.lightning(self, Vector2(-24, 0) * visual_scale, Vector2(14, 0) * visual_scale, Geometry.BOLT_RADIUS * 2 * visual_scale)

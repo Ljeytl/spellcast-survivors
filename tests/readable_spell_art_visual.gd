@@ -82,7 +82,7 @@ func run():
 	var plague = preload("res://scripts/BuildSpellEffect.gd").new()
 	stage.add_child(plague)
 	plague.configure({"type": "plague"}, 0, player, null)
-	plague.infection_links = [{"from": Vector2(860, 640), "to": Vector2(980, 585), "age": 0.18}, {"from": Vector2(980, 585), "to": Vector2(1100, 670), "age": 0.12}]
+	plague.infection_links = [{"from": Vector2(860, 640), "position": Vector2(980, 585)}, {"from": Vector2(980, 585), "position": Vector2(1100, 670)}]
 	plague.set_physics_process(false)
 	for point in [Vector2(100, 172), Vector2(480, 260), Vector2(910, 280), Vector2(860, 650), Vector2(980, 595), Vector2(1100, 680)]:
 		var wizard = Sprite2D.new()

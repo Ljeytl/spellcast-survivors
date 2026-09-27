@@ -205,13 +205,15 @@ func _draw():
 		art.burst(self, 3, to_local(burst_position), 200 * float(info.spell_size_multiplier), 1 - burst_remaining / 0.25)
 	match info.type:
 		"beam":
-			art.beam(self, Vector2.ZERO, beam_end, Geometry.BEAM_RADIUS * 2 * float(info.spell_size_multiplier), 0.85)
+			art.beam(self, Vector2.ZERO, beam_end, Geometry.BEAM_RADIUS * 2 * float(info.spell_size_multiplier), 0.85, int(info.get("beam_targets", 1)) > 1)
 		"trap":
 			var radius = float(info.get("trap_radius", 130)) if triggered else float(info.get("trigger_radius", 70))
 			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, color, minf(remaining * 4, 1) if triggered else 1.0, clampf(age / float(info.get("arm_delay", 0.8)), 0, 1))
 			art.stamp(self, "rune", Vector2.ZERO, Vector2.ONE * 48)
+			if info.get("frost", false):
+				art.stamp(self, "shard", Vector2.ZERO, Vector2.ONE * 25, Color(1, 1, 1, 0.75))
 		"spirit":
-			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Visual.size(self, Geometry.stamp_dimensions("spirit", Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier))), Color(0.8, 1, 1))
+			art.stamp(self, "spirit", Geometry.stamp_offset("spirit", Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier)) + Vector2(0, sin(age * 5) * 3), Visual.size(self, Geometry.stamp_dimensions("spirit", Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier))), Color(0.8, 1, 1))
 		"trail":
 			var points = PackedVector2Array()
 			for point in trail_points:

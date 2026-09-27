@@ -7,17 +7,20 @@ static func circle(canvas: CanvasItem, center: Vector2, radius: float, color: Co
 		canvas.draw_arc(center, maxf(2, radius * fill), 0, TAU, 64, Color(color, opacity), 3.0)
 
 static func fire_circle(canvas: CanvasItem, center: Vector2, radius: float, age: float, opacity: float = 1.0):
+	var art = preload("res://scripts/EffectArt.gd")
 	canvas.draw_circle(center, radius, Color("f15c32", 0.60 * opacity))
 	canvas.draw_arc(center, radius, 0, TAU, 64, Color("ffab68", opacity), 4)
 	for index in range(12):
 		var angle = index * 2.39996
 		var point = center + Vector2.from_angle(angle) * radius * sqrt((index + 0.5) / 12.0) * 0.85
 		var flicker = 0.65 + 0.2 * sin(age * 9 + index)
-		canvas.draw_rect(Rect2(point - Vector2(6, 3), Vector2(12, 6)), Color("ffc76a", opacity * flicker))
-		if index % 3 == 0:
-			flame(canvas, point, opacity)
+		if index % 2 == 0:
+			art.stamp(canvas, "flame", point, Vector2(20, 26), Color(1, 1, 1, opacity * flicker))
+		else:
+			art.stamp(canvas, "ember", point, Vector2.ONE * 12, Color(1, 1, 1, opacity * flicker))
 
 static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: float, age: float):
+	var art = preload("res://scripts/EffectArt.gd")
 	if points.is_empty():
 		return
 	if points.size() == 1:
@@ -35,9 +38,8 @@ static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: fl
 	for index in range(points.size()):
 		var point = points[index]
 		var offset = Vector2(0, sin(index * 2.4) * radius * 0.5)
-		canvas.draw_rect(Rect2(point + offset - Vector2(7, 4), Vector2(14, 8)), Color("ffd079", 0.7 + 0.2 * sin(age * 9 + index)))
 		if index % maxi(1, ceili(points.size() / 8.0)) == 0:
-			flame(canvas, point + offset)
+			art.stamp(canvas, "flame", point + offset, Vector2(20, 26), Color(1, 1, 1, 0.7 + 0.2 * sin(age * 9 + index)))
 
 static func cone(canvas: CanvasItem, radius: float, angle: float, half_angle: float, color: Color, opacity: float):
 	var points = PackedVector2Array([Vector2.ZERO])
@@ -64,8 +66,7 @@ static func steam_circle(canvas: CanvasItem, center: Vector2, radius: float, age
 	for index in range(11):
 		var point = center + Vector2.from_angle(index * 2.39996) * radius * sqrt((index + 0.5) / 11.0) * 0.82
 		var phase = fmod(age * 0.7 + index * 0.37, 1.0)
-		art.stamp(canvas, "ember", point, Vector2(20, 18), Color(1, 1, 1, 0.8))
-		art.stamp(canvas, "smoke", point + Vector2(0, -phase * 22 - 8), Vector2(34, 38), Color(1, 1, 1, 0.95 - phase * 0.45))
+		art.stamp(canvas, "steam", point + Vector2(0, -phase * 22 - 8), Vector2(34, 38), Color(1, 1, 1, 0.8 - phase * 0.45))
 	for index in range(6):
 		var point = center + Vector2.from_angle(index * TAU / 6) * radius * 0.92
 		var chevron = PackedVector2Array([point + Vector2(-6, -3), point + Vector2(0, 3), point + Vector2(6, -3)])
@@ -84,22 +85,14 @@ static func meteor_warning(canvas: CanvasItem, radius: float, progress: float, p
 	var point = Vector2(70, -190) * (1 - descent)
 	for index in range(3, 0, -1):
 		art.stamp(canvas, "ember", point + Vector2(index * 8, -index * 20) * projectile_scale, Vector2.ONE * (38 - index * 5) * projectile_scale)
-	canvas.draw_set_transform(point.round(), 0, Vector2.ONE * projectile_scale)
-	var rock = PackedVector2Array([Vector2(-16, -8), Vector2(-8, -8), Vector2(-8, -16), Vector2(10, -16), Vector2(10, -8), Vector2(17, -8), Vector2(17, 10), Vector2(9, 10), Vector2(9, 17), Vector2(-10, 17), Vector2(-10, 10), Vector2(-16, 10)])
-	canvas.draw_colored_polygon(rock, Color("e88d52"))
-	rock.append(rock[0])
-	canvas.draw_polyline(rock, art.INK, 3)
-	canvas.draw_rect(Rect2(Vector2(-9, -6), Vector2(19, 17)), Color("82705d"))
-	canvas.draw_rect(Rect2(Vector2(-9, -6), Vector2(10, 5)), Color("c7ad80"))
-
-	canvas.draw_set_transform(Vector2.ZERO)
+	art.stamp(canvas, "meteor", point, Vector2.ONE * 38 * projectile_scale)
 
 static func meteor_impact(canvas: CanvasItem, radius: float, progress: float):
 	var art = preload("res://scripts/EffectArt.gd")
 	var opacity = clampf((1 - progress) * 2, 0, 1)
 	canvas.draw_circle(Vector2.ZERO, radius, Color("e88d52", opacity * 0.25))
 	canvas.draw_arc(Vector2.ZERO, maxf(4, radius * progress), 0, TAU, 48, Color("f1dfaf", opacity), 6)
-	art.stamp(canvas, "impact", Vector2.ZERO, Vector2.ONE * lerpf(90, 130, progress), Color(1, 1, 1, opacity))
+	art.stamp(canvas, "meteor", Vector2.ZERO, Vector2.ONE * lerpf(40, 56, progress), Color(1, 1, 1, opacity))
 	for index in range(10):
 		var point = Vector2.from_angle(index * TAU / 10) * radius * progress * 0.85
 		art.stamp(canvas, "ember" if index % 2 else "smoke", point, Vector2.ONE * 34, Color(1, 1, 1, opacity))

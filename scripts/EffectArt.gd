@@ -1,7 +1,11 @@
 extends RefCounted
 
 const PARTICLE_STAMPS = preload("res://assets/effects/particle-stamps.png")
+const SPELL_MOTIFS = preload("res://assets/effects/spell-motifs.png")
 const STAMP_REGIONS = {"impact": Rect2(132, 148, 400, 408), "smoke": Rect2(784, 120, 360, 440), "ember": Rect2(208, 768, 272, 352), "shard": Rect2(792, 744, 328, 392)}
+const MOTIF_CELLS = {"mana": 0, "bolt": 1, "lance": 2, "ice": 3, "plague": 4, "spirit": 5, "orbit": 6, "blade": 7, "flame": 8, "steam": 9, "meteor": 10, "stone": 11, "heal": 12, "shard": 13, "ember": 14, "prism": 15}
+const MOTIF_BOUNDS = [Rect2(67, 108, 223, 146), Rect2(383, 114, 229, 132), Rect2(650, 122, 285, 131), Rect2(994, 108, 218, 145), Rect2(79, 366, 147, 209), Rect2(367, 375, 212, 200), Rect2(673, 364, 228, 228), Rect2(986, 355, 243, 238), Rect2(88, 658, 153, 239), Rect2(371, 689, 216, 194), Rect2(686, 676, 209, 228), Rect2(996, 696, 208, 193), Rect2(68, 1001, 191, 173), Rect2(377, 1006, 187, 175), Rect2(711, 1034, 167, 122), Rect2(1038, 973, 127, 208)]
+const MOTIF_BODIES = {"mana": Rect2(67, 108, 150, 146), "bolt": Rect2(383, 114, 144, 132), "spirit": Rect2(420, 375, 158, 169)}
 
 const INK = Color("202334")
 const PALETTE = {"mana": Color("69c5ce"), "bolt": Color("f5d779"), "lance": Color("e88d52"), "ice": Color("a3e1e4"), "lightning": Color("b5a3df"), "heal": Color("a9ca79"), "stone": Color("a8a18b"), "spirit": Color("b3c7df"), "flame": Color("e88d52"), "impact": Color("f1dfaf"), "xp": Color("83cbd0"), "smoke": Color("898a94"), "plague": Color("83a35d"), "blade": Color("d6d4eb"), "rune": Color("d2b57a"), "hostile": Color("f27367")}
@@ -11,64 +15,52 @@ static func pixel(canvas: CanvasItem, rect: Rect2, color: Color):
 	canvas.draw_rect(rect, color)
 
 static func stamp(canvas: CanvasItem, kind: String, center: Vector2, size: Vector2, tint: Color = Color.WHITE, angle: float = 0.0):
+	if MOTIF_CELLS.has(kind):
+		canvas.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var facing = -1.0 if kind in ["mana", "bolt"] else 1.0
+		canvas.draw_set_transform(center.round(), angle, Vector2(size.x * facing, size.y) / 24.0)
+		canvas.draw_texture_rect_region(SPELL_MOTIFS, Rect2(-12, -12, 24, 24), motif_region(kind), tint)
+		canvas.draw_set_transform(Vector2.ZERO)
+		return
 	canvas.draw_set_transform(center.round(), angle, size / 24.0)
 	var color: Color = PALETTE.get(kind, PALETTE.impact) * tint
 	match kind:
-		"impact", "smoke", "ember", "shard", "ice":
+		"impact", "smoke":
 			canvas.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			var region: Rect2 = STAMP_REGIONS["shard" if kind == "ice" else kind]
+			var region: Rect2 = STAMP_REGIONS[kind]
 			var ratio = PARTICLE_STAMPS.get_width() / 1280.0
 			canvas.draw_texture_rect_region(PARTICLE_STAMPS, Rect2(-12, -12, 24, 24), Rect2(region.position * ratio, region.size * ratio), tint)
-		"mana", "bolt":
-			pixel(canvas, Rect2(-9, -4, 17, 8), color.darkened(0.18))
-			pixel(canvas, Rect2(-5, -7, 11, 14), color)
-			canvas.draw_rect(Rect2(-3, -4, 8, 7), Color("fff1d1") * tint)
-			canvas.draw_rect(Rect2(-13, -2, 4, 4), color)
 		"lightning":
 			var points = PackedVector2Array([Vector2(-8, -10), Vector2(5, -10), Vector2(0, -2), Vector2(8, -2), Vector2(-5, 11), Vector2(-1, 2), Vector2(-8, 2)])
 			canvas.draw_colored_polygon(points, color)
 			points.append(points[0])
 			canvas.draw_polyline(points, INK, 1.5)
-		"lance":
-			pixel(canvas, Rect2(-9, -2, 14, 4), color)
-			pixel(canvas, Rect2(4, -4, 5, 8), color)
-			canvas.draw_rect(Rect2(4, -1, 3, 2), Color("fff1d1") * tint)
-		"plague":
-			pixel(canvas, Rect2(-7, -6, 14, 12), Color("626a40") * tint)
-			pixel(canvas, Rect2(-5, -8, 10, 14), color)
-			canvas.draw_rect(Rect2(-3, -4, 3, 3), Color("d2df8a") * tint)
-			canvas.draw_rect(Rect2(2, 1, 3, 3), INK)
-			pixel(canvas, Rect2(-10, 1, 3, 3), color)
-			pixel(canvas, Rect2(7, -8, 3, 3), color)
-		"stone":
-			pixel(canvas, Rect2(-6, -5, 12, 10), color)
-			canvas.draw_rect(Rect2(-4, -4, 7, 2), color.lightened(0.25))
-		"spirit", "flame":
-			pixel(canvas, Rect2(-5, -5, 10, 11), color)
-			pixel(canvas, Rect2(-2, -9, 4, 4), color)
-			if kind == "spirit":
-				canvas.draw_rect(Rect2(-3, -2, 2, 2), INK)
-				canvas.draw_rect(Rect2(2, -2, 2, 2), INK)
-		"blade":
-			pixel(canvas, Rect2(-10, -2, 20, 4), color)
-			pixel(canvas, Rect2(-2, -10, 4, 20), color)
 		"rune":
 			canvas.draw_rect(Rect2(-9, -9, 18, 18), INK, false, 4)
 			canvas.draw_rect(Rect2(-9, -9, 18, 18), color, false, 2)
 			pixel(canvas, Rect2(-1, -5, 2, 10), color)
 		"hostile":
 			pixel(canvas, Rect2(-5, -5, 10, 10), color)
-		"heal":
-			pixel(canvas, Rect2(-7, -2, 14, 4), color)
-			pixel(canvas, Rect2(-2, -7, 4, 14), color)
 		_:
 			pixel(canvas, Rect2(-4, -4, 8, 8), color)
 	canvas.draw_set_transform(Vector2.ZERO)
 
-static func beam(canvas: CanvasItem, start: Vector2, end: Vector2, width: float, opacity: float = 1.0):
-	canvas.draw_line(start, end, Color(INK, opacity), width + 2)
-	canvas.draw_line(start, end, Color(PALETTE.lightning, opacity), width)
-	canvas.draw_line(start, end, Color("f0e8eb", opacity), maxf(1, width / 3))
+static func motif_region(kind: String) -> Rect2:
+	return MOTIF_BOUNDS[MOTIF_CELLS[kind]]
+
+static func beam(canvas: CanvasItem, start: Vector2, end: Vector2, width: float, opacity: float = 1.0, prism: bool = false):
+	var hue = Color("cbb5fa") if prism else Color("a5eaff")
+	var normal = (end - start).normalized().orthogonal() * width * 0.5
+	canvas.draw_line(start, end, Color(hue.darkened(0.25), opacity * 0.42), width)
+	canvas.draw_line(start + normal, end + normal, Color(hue, opacity * 0.8), 2)
+	canvas.draw_line(start - normal, end - normal, Color(hue, opacity * 0.8), 2)
+	canvas.draw_line(start, end, Color(hue, opacity * 0.85), maxf(3, width * 0.22))
+	canvas.draw_line(start, end, Color("f4f3e9", opacity), maxf(2, width * 0.09))
+	if prism:
+		var length = start.distance_to(end)
+		var direction = (end - start).normalized()
+		for index in range(1, int(length / 80.0) + 1):
+			stamp(canvas, "prism", start + direction * minf(index * 80.0, length - 12.0), Vector2.ONE * minf(22.0, width * 0.58), Color(1, 1, 1, opacity))
 
 static func wreath(canvas: CanvasItem, kind: String, center: Vector2, radius: float, phase: float, opacity: float = 0.8, count: int = 8, particle_size: float = 14.0):
 	for index in range(count):

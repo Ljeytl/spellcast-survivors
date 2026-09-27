@@ -1,3 +1,9 @@
+## 2026-09-27 — Simple pixel spell motif atlas
+
+- Add one transparent 4 × 4 motif atlas for current spell projectiles, hunters, orbit bodies, shield stones and supporting particles. Preserve supplied Typecast artwork and draw hit boundaries, warnings, beams and paths from their existing gameplay geometry.
+- Give Mana Bolt, Bolt, lances, ice shards, plague spores, Cross Blade, Firewalk/Cinder, Steam, Meteor, healing and Prism Ray distinct restrained silhouettes; keep impact, healing and infection timing tied to existing combat behavior.
+- Record the image prompt, source, cell map and geometry contract in `docs/SPELL_PIXEL_ART_PASS.md`; add an atlas and Spell Size contract check. Audio remains outside this visual change.
+
 ## 2026-09-27 — Spell geometry and persistent plague spores
 
 - Add Spell Size as a six-slot passive family: +12% projectile/body width, beam width and area/trail/trap radii, with matching artwork. Preserve travel distance, orbit path, piercing and stop-on-contact behavior. Shared authored dimensions account for stamp padding; Focus Ray keeps its existing damaging width and now shows it.
