@@ -214,8 +214,9 @@ func _draw():
 		"lightning":
 			art.beam(self, Vector2.ZERO, to_local(get_meta("end_pos", global_position)), 3)
 		"warning":
-			draw_arc(Vector2.ZERO, effect_radius, 0, TAU, 48, Color("e88d52"), 2)
+			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, effect_radius, Color("ee6257"), 1.0, 1 - lifetime_timer / maxf(lifetime, 0.01))
 		"ice", "meteor":
+			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, effect_radius, Color("9fe9ee") if projectile_type == "ice" else Color("ee6257"), clampf(lifetime_timer * 3, 0, 1))
 			art.burst(self, 1 if projectile_type == "ice" else 0, Vector2.ZERO, effect_radius * 2, 1 - lifetime_timer / maxf(lifetime, 0.01))
 		"shield":
 			art.wreath(self, "stone", Vector2.ZERO, 30, 0)

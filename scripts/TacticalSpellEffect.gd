@@ -37,6 +37,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 		"returning":
 			outbound_distance = float(info.get("travel_distance", 350.0))
 			linger_remaining = float(info.get("linger_duration", 0.9))
+			linger_tick = float(info.get("linger_interval", 0.3))
 			color = Color("d7e5ff")
 
 func advance(delta: float):
