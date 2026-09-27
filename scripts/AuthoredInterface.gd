@@ -27,6 +27,8 @@ static func menu_button_style(fill: Color, border: Color = Color.TRANSPARENT) ->
 
 static func apply_buttons(theme: Theme):
 	theme.set_font("font", "Button", MENU_FONT)
+	theme.set_font("font", "CheckBox", MENU_FONT)
+	theme.set_font_size("font_size", "CheckBox", 24)
 	theme.set_font_size("font_size", "Button", 32)
 	theme.set_stylebox("normal", "Button", menu_button_style(Color.TRANSPARENT))
 	theme.set_stylebox("hover", "Button", menu_button_style(Color("314b38"), Color("dfbd76")))
@@ -56,7 +58,7 @@ static func decorate_menu(control: Control):
 static func apply_shortcut(label: Label):
 	label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.custom_minimum_size = Vector2(36, 36)
+	label.custom_minimum_size = Vector2(28, 28)
 	label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

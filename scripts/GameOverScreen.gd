@@ -34,6 +34,7 @@ func _ready():
 		print("ERROR: main_menu_button is null or not a Button, type: ", type_string(typeof(main_menu_button)) if main_menu_button else "null")
 	
 	play_again_button.text = "RETRY"
+	main_menu_button.text = "MENU"
 	setup_run_summary()
 	# Setup button hover effects
 	setup_button_effects()

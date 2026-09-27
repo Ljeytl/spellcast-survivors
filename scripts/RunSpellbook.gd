@@ -8,6 +8,7 @@ var panel: PanelContainer
 var entries: VBoxContainer
 var spell_buttons: Dictionary = {}
 var close_button: Button
+var notice: Label
 const COPY = preload("res://scripts/UpgradeCopy.gd")
 const ART = preload("res://scripts/AuthoredInterface.gd")
 const READABILITY = preload("res://scripts/GameplayReadability.gd")
@@ -30,8 +31,16 @@ func _ready():
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ART.apply_heading(title, 36)
 	column.add_child(title)
+	notice = Label.new()
+	notice.name = "CastNotice"
+	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	notice.add_theme_color_override("font_color", READABILITY.GOLD)
+	notice.hide()
+	column.add_child(notice)
 	var scroll = ScrollContainer.new()
 	scroll.name = "BuildScroll"
+	scroll.follow_focus = true
+	scroll.focus_mode = Control.FOCUS_ALL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)
@@ -73,22 +82,23 @@ func populate():
 		child.queue_free()
 	spell_buttons.clear()
 	var manager = game.spell_manager
-	section("Spells · %d / 6" % manager.spells.size())
-	text_row("Choose an owned spell to return to the game and type it.", READABILITY.MUTED)
+	section("Active spells · %d / 6" % manager.spells.size())
+	text_row("Choose a spell to start typing.", READABILITY.MUTED)
 	add_spell_rows(manager.spells)
-	section("Bonus spells")
+	section("Bonus spells · no slots")
 	if manager.bonus_spells.is_empty():
 		text_row("Discover combinations as you level up.", READABILITY.MUTED)
 	else:
 		add_spell_rows(manager.bonus_spells)
 	section("Passives · %d / 6" % game.player.passive_ranks.size())
-	text_row("Mana Bolt fires automatically · Rank %d" % manager.get_spell_rank("mana_bolt"))
 	var families = game.player.passive_ranks.keys()
 	families.sort()
 	for family in families:
 		text_row("%s · Rank %d" % [passive_name(family), game.player.passive_ranks[family]])
 	if families.is_empty():
 		text_row("No passive upgrades yet.", READABILITY.MUTED)
+	section("Automatic attack")
+	text_row("Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt"))
 
 func add_spell_rows(spells: Dictionary):
 	var slots = spells.keys()
@@ -123,3 +133,7 @@ func _unhandled_input(event):
 func close():
 	closed.emit()
 	queue_free()
+
+func show_notice(message: String):
+	notice.text = message
+	notice.show()

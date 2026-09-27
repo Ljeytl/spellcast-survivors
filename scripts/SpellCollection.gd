@@ -16,7 +16,7 @@ func _ready():
 	READABILITY.apply_theme(self)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var background = ColorRect.new()
-	background.color = Color("111c2b")
+	background.color = READABILITY.INK
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 	var margin = MarginContainer.new()
@@ -40,6 +40,8 @@ func _ready():
 	column.add_child(summary)
 	var scroll = ScrollContainer.new()
 	scroll.name = "CatalogScroll"
+	scroll.focus_mode = Control.FOCUS_ALL
+	scroll.follow_focus = true
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)
@@ -54,7 +56,7 @@ func _ready():
 	back.custom_minimum_size.y = 50
 	back.pressed.connect(close_collection)
 	column.add_child(back)
-	back.grab_focus()
+	scroll.grab_focus.call_deferred()
 	get_window().size_changed.connect(update_typography)
 	update_typography.call_deferred()
 
@@ -105,6 +107,19 @@ func add_entry(id: String, spell_name: String, incantation: String, description:
 		text.add_child(label)
 
 func _unhandled_input(event):
+	if event is InputEventKey and event.pressed:
+		var scroll = find_child("CatalogScroll", true, false) as ScrollContainer
+		var amount = 0
+		match event.keycode:
+			KEY_DOWN: amount = 60
+			KEY_UP: amount = -60
+			KEY_PAGEDOWN: amount = int(scroll.size.y * 0.85)
+			KEY_PAGEUP: amount = -int(scroll.size.y * 0.85)
+			KEY_HOME: amount = -int(scroll.get_v_scroll_bar().max_value)
+			KEY_END: amount = int(scroll.get_v_scroll_bar().max_value)
+		if amount != 0:
+			scroll.scroll_vertical += amount
+			get_viewport().set_input_as_handled()
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		close_collection()

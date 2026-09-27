@@ -4,6 +4,7 @@ extends Node
 
 # Reference to the currently active scene
 var current_scene = null
+var menu_focus_name = "PlayButton"
 
 # Called when SceneManager autoload is initialized
 func _ready():
@@ -12,7 +13,8 @@ func _ready():
 	current_scene = root.get_child(root.get_child_count() - 1)
 
 # Switch to a different scene by file path
-func goto_scene(path):
+func goto_scene(path, menu_focus: String = "PlayButton"):
+	menu_focus_name = menu_focus
 	# Critical: Ensure game is not paused before scene transition
 	get_tree().paused = false
 	Engine.time_scale = 1.0

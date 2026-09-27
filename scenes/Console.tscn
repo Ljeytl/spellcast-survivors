@@ -20,7 +20,7 @@ offset_top = -300.0
 offset_bottom = 0.0
 grow_horizontal = 2
 mouse_filter = 0
-modulate = Color(0, 0, 0, 0.7)
+modulate = Color(1, 1, 1, 1)
 visible = false
 
 [node name="VBox" type="VBoxContainer" parent="ConsolePanel"]
