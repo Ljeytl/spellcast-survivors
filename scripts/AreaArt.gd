@@ -15,7 +15,7 @@ static func fire_circle(canvas: CanvasItem, center: Vector2, radius: float, age:
 		var flicker = 0.65 + 0.2 * sin(age * 9 + index)
 		canvas.draw_rect(Rect2(point - Vector2(6, 3), Vector2(12, 6)), Color("ffc76a", opacity * flicker))
 		if index % 3 == 0:
-			preload("res://scripts/EffectArt.gd").stamp(canvas, "flame", point + Vector2(0, -6), Vector2(24, 30), Color(1, 1, 1, opacity))
+			flame(canvas, point, opacity)
 
 static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: float, age: float):
 	if points.is_empty():
@@ -37,7 +37,7 @@ static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: fl
 		var offset = Vector2(0, sin(index * 2.4) * radius * 0.5)
 		canvas.draw_rect(Rect2(point + offset - Vector2(7, 4), Vector2(14, 8)), Color("ffd079", 0.7 + 0.2 * sin(age * 9 + index)))
 		if index % maxi(1, ceili(points.size() / 8.0)) == 0:
-			preload("res://scripts/EffectArt.gd").stamp(canvas, "flame", point + offset + Vector2(0, -6), Vector2(24, 30))
+			flame(canvas, point + offset)
 
 static func cone(canvas: CanvasItem, radius: float, angle: float, half_angle: float, color: Color, opacity: float):
 	var points = PackedVector2Array([Vector2.ZERO])
@@ -46,3 +46,13 @@ static func cone(canvas: CanvasItem, radius: float, angle: float, half_angle: fl
 	canvas.draw_colored_polygon(points, Color(color.darkened(0.4), opacity * 0.2))
 	points.append(Vector2.ZERO)
 	canvas.draw_polyline(points, Color(color, opacity), 3)
+
+static func flame(canvas: CanvasItem, point: Vector2, opacity: float = 1.0):
+	var outer = PackedVector2Array([Vector2(-8, 7), Vector2(-9, -2), Vector2(-3, -7), Vector2(0, -18), Vector2(4, -7), Vector2(8, -2), Vector2(7, 7)])
+	var inner = PackedVector2Array([Vector2(-4, 7), Vector2(-3, 0), Vector2(1, -9), Vector2(4, 1), Vector2(3, 7)])
+	for index in range(outer.size()):
+		outer[index] += point
+	for index in range(inner.size()):
+		inner[index] += point
+	canvas.draw_colored_polygon(outer, Color("ff7b38", opacity))
+	canvas.draw_colored_polygon(inner, Color("ffde83", opacity))
