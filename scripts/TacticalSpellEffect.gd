@@ -14,6 +14,7 @@ var outbound_distance = 350.0
 var linger_remaining = 0.4
 var burst_remaining = 0.0
 var burst_position = Vector2.ZERO
+var linger_tick = 0.0
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	if not valid_target(target):
@@ -34,6 +35,8 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 			last_trail_position = global_position
 			trail_points.append({"position": global_position, "age": 0.0})
 		"returning":
+			outbound_distance = float(info.get("travel_distance", 350.0))
+			linger_remaining = float(info.get("linger_duration", 0.9))
 			color = Color("d7e5ff")
 
 func advance(delta: float):
@@ -111,7 +114,7 @@ func advance_beam(delta: float, player: Node2D):
 func advance_trap():
 	if triggered or age + 0.000001 < float(info.get("arm_delay", 0.8)):
 		return
-	if not closest_target(global_position, 70):
+	if not closest_target(global_position, float(info.get("trigger_radius", 70))):
 		return
 	triggered = true
 	var radius = float(info.get("trap_radius", 130))
@@ -138,46 +141,56 @@ func advance_spirit(delta: float, player: Node2D):
 			burst_remaining = 0.25
 
 func advance_trail(delta: float, player: Node2D):
+	var lifetime = float(info.get("patch_duration", 6.0))
+	var radius = float(info.get("trail_radius", 65.0))
 	for point in trail_points:
 		point.age += delta
-	trail_points = trail_points.filter(func(point): return point.age < 2.0)
+	trail_points = trail_points.filter(func(point): return point.age < lifetime)
 	trail_sample -= delta
-	if age <= 5.0 and trail_sample <= 0.000001:
-		trail_sample = 0.2
-		if last_trail_position.distance_to(player.global_position) >= 32:
+	if age <= float(info.get("emission_duration", 5.0)) and trail_sample <= 0.000001:
+		trail_sample = 0.1
+		var distance = last_trail_position.distance_to(player.global_position)
+		if distance >= 24:
+			var count = maxi(1, ceili(distance / radius))
+			for index in range(count):
+				trail_points.append({"position": last_trail_position.lerp(player.global_position, float(index + 1) / count), "age": 0.0})
 			last_trail_position = player.global_position
-			trail_points.append({"position": player.global_position, "age": 0.0})
-			if trail_points.size() > 24:
-				trail_points.pop_front()
 	tick_remaining -= delta
 	if tick_remaining > 0.000001:
 		return
-	tick_remaining += 0.5
+	tick_remaining += float(info.get("tick_interval", 0.5))
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if valid_target(enemy):
-			for point in trail_points:
-				if point.position.distance_to(enemy.global_position) <= 40:
-					deal_damage(enemy, damage)
-					break
+		if valid_target(enemy) and trail_contains(enemy.global_position):
+			deal_damage(enemy, damage)
+
+func trail_contains(point: Vector2) -> bool:
+	var radius = float(info.get("trail_radius", 65.0))
+	for index in range(trail_points.size()):
+		var start: Vector2 = trail_points[index].position
+		var end: Vector2 = trail_points[index + 1].position if index + 1 < trail_points.size() else start
+		if Geometry2D.get_closest_point_to_segment(point, start, end).distance_to(point) <= radius:
+			return true
+	return false
 
 func advance_returning(delta: float, player: Node2D):
 	var start = global_position
-	var movement = 500 * float(info.get("projectile_speed_multiplier", 1.0)) * delta
+	var radius = float(info.get("blade_radius", 42.0))
+	var movement = float(info.get("speed", 500.0)) * float(info.get("projectile_speed_multiplier", 1.0)) * delta
 	if leg == 0:
 		var distance = minf(outbound_distance, movement)
 		global_position += direction * distance
 		outbound_distance -= distance
 	elif linger_remaining > 0:
 		linger_remaining -= delta
-		for enemy in get_tree().get_nodes_in_group("enemies"):
-			if valid_target(enemy) and not leg_hits[0].has(enemy.get_instance_id()) and global_position.distance_to(enemy.global_position) <= 24:
-				leg_hits[0][enemy.get_instance_id()] = true
-				deal_damage(enemy, damage)
+		linger_tick -= delta
+		if linger_tick <= 0.000001:
+			linger_tick += float(info.get("linger_interval", 0.3))
+			pulse(global_position, radius, damage * float(info.get("linger_damage_multiplier", 0.5)))
 		return
 	else:
 		global_position = global_position.move_toward(player.global_position, movement)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if valid_target(enemy) and not leg_hits[leg].has(enemy.get_instance_id()) and Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= 24:
+		if valid_target(enemy) and not leg_hits[leg].has(enemy.get_instance_id()) and Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= radius:
 			leg_hits[leg][enemy.get_instance_id()] = true
 			deal_damage(enemy, damage)
 	if leg == 0 and outbound_distance <= 0.000001:
@@ -193,16 +206,20 @@ func _draw():
 		"beam":
 			art.beam(self, Vector2.ZERO, beam_end, 4, 0.85)
 		"trap":
-			var radius = float(info.get("trap_radius", 130)) if triggered else 32.0
-			if triggered:
-				art.burst(self, 1 if info.get("frost", false) else 3, Vector2.ZERO, radius * 2, 0.5, minf(remaining * 4, 0.8))
-			else:
-				art.stamp(self, "rune", Vector2.ZERO, Vector2.ONE * 40, Color(1, 1, 1, 0.9))
-				draw_arc(Vector2.ZERO, radius, -PI / 2, -PI / 2 + TAU * clampf(age / float(info.get("arm_delay", 0.8)), 0.001, 1), 32, color, 2)
+			var radius = float(info.get("trap_radius", 130)) if triggered else float(info.get("trigger_radius", 70))
+			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, color, minf(remaining * 4, 1) if triggered else 1.0, clampf(age / float(info.get("arm_delay", 0.8)), 0, 1))
+			art.stamp(self, "rune", Vector2.ZERO, Vector2.ONE * 48)
 		"spirit":
 			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Vector2.ONE * 28, Color(0.8, 1, 1))
 		"trail":
-			for point in trail_points:
-				art.stamp(self, "flame", to_local(point.position), Vector2.ONE * 30, Color(1, 1, 1, 0.65 * (1 - point.age / 2)))
+			var radius = float(info.get("trail_radius", 65.0))
+			for index in range(trail_points.size()):
+				var point = trail_points[index]
+				var start = to_local(point.position)
+				var opacity = clampf((float(info.get("patch_duration", 6.0)) - point.age) * 2, 0, 1)
+				if index + 1 < trail_points.size():
+					preload("res://scripts/AreaArt.gd").fire_segment(self, start, to_local(trail_points[index + 1].position), radius, age, opacity)
+				preload("res://scripts/AreaArt.gd").fire_circle(self, start, radius, age, opacity)
 		"returning":
-			art.stamp(self, "blade", Vector2.ZERO, Vector2.ONE * 30, Color.WHITE, age * 12)
+			var radius = float(info.get("blade_radius", 42.0))
+			art.stamp(self, "blade", Vector2.ZERO, Vector2.ONE * radius * 2, Color.WHITE, age * 12)

@@ -13,6 +13,8 @@ var healing_remaining = 2.0
 var color = Color.ORANGE_RED
 var infection_links: Array = []
 var death_transfers: Dictionary = {}
+var orbit_hit_times: Dictionary = {}
+var elapsed_time = 0.0
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	info = data.duplicate(true)
@@ -20,6 +22,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	caster = weakref(player)
 	global_position = player.global_position
 	remaining = float(info.get("duration", 5.0))
+	tick_remaining = float(info.get("tick_interval", 0.5))
 	if is_instance_valid(target):
 		direction = (target.global_position - global_position).normalized()
 		if info.type == "field":
@@ -50,6 +53,7 @@ func advance(delta: float):
 		link.age += elapsed
 	infection_links = infection_links.filter(func(link): return link.age < 0.35)
 	remaining -= elapsed
+	elapsed_time += elapsed
 	if info.type == "piercing":
 		var start = global_position
 		global_position += direction * 700.0 * float(info.get("projectile_speed_multiplier", 1.0)) * elapsed
@@ -64,19 +68,34 @@ func advance(delta: float):
 	else:
 		if info.type == "orbit":
 			global_position = player.global_position
-			angle += elapsed * 4.0
+			advance_orbit(elapsed)
 		tick_remaining -= elapsed
 		while tick_remaining <= 0.0:
-			tick_remaining += 0.5
+			tick_remaining += float(info.get("tick_interval", 0.5))
 			match info.type:
-				"field": pulse(global_position, 150.0, damage)
-				"orbit":
-					for i in range(3):
-						pulse(global_position + Vector2.from_angle(angle + TAU * i / 3.0) * 65.0, 38.0, damage)
+				"field": pulse(global_position, float(info.get("radius", 150.0)), damage)
 				"plague": tick_infections()
 	queue_redraw()
 	if remaining <= 0.0:
 		queue_free()
+
+func advance_orbit(delta: float):
+	var radius = float(info.get("orbit_radius", 130.0))
+	var body_radius = float(info.get("body_radius", 42.0))
+	var count = int(info.get("orb_count", 3))
+	var steps = maxi(1, ceili(delta / 0.025))
+	for step in range(steps):
+		angle += delta / steps * float(info.get("angular_speed", 4.0))
+		var time = elapsed_time - delta + delta * (step + 1) / steps
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if not valid_target(enemy) or time < float(orbit_hit_times.get(enemy.get_instance_id(), -INF)):
+				continue
+			for index in range(count):
+				var center = global_position + Vector2.from_angle(angle + TAU * index / count) * radius
+				if center.distance_to(enemy.global_position) <= body_radius:
+					orbit_hit_times[enemy.get_instance_id()] = time + float(info.get("tick_interval", 0.5))
+					deal_damage(enemy, damage)
+					break
 
 func valid_target(enemy) -> bool:
 	return is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and not enemy.get("dying") and float(enemy.get("current_health")) > 0.0
@@ -145,14 +164,18 @@ func _draw():
 		"piercing":
 			art.stamp(self, "lance", Vector2.ZERO, Vector2(56, 24), Color.WHITE, direction.angle())
 		"field":
-			for x in range(-3, 4):
-				for y in range(-3, 4):
-					var point = Vector2(x, y) * 40
-					if point.length() <= 140:
-						art.stamp(self, "smoke" if info.get("slow", 0.0) > 0 else "flame", point, Vector2.ONE * 20, Color(1, 1, 1, minf(remaining, 0.7)))
+			var radius = float(info.get("radius", 150.0))
+			if info.get("slow", 0.0) > 0:
+				preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, Color("9fe9ee"))
+			else:
+				preload("res://scripts/AreaArt.gd").fire_circle(self, Vector2.ZERO, radius, elapsed_time)
 		"orbit":
-			for i in range(3):
-				art.stamp(self, "mana", Vector2.from_angle(angle + TAU * i / 3.0) * 65.0, Vector2.ONE * 24, Color.WHITE, angle + TAU * i / 3.0 + PI / 2)
+			var count = int(info.get("orb_count", 3))
+			var body_radius = float(info.get("body_radius", 42.0))
+			for i in range(count):
+				var center = Vector2.from_angle(angle + TAU * i / count) * float(info.get("orbit_radius", 130.0))
+				preload("res://scripts/AreaArt.gd").circle(self, center, body_radius, Color("b49bea"), 0.8)
+				art.stamp(self, "mana", center, Vector2.ONE * body_radius * 2, Color.WHITE, angle + TAU * i / count + PI / 2)
 		"plague":
 			for link in infection_links:
 				var from = to_local(link.from)
