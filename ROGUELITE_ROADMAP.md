@@ -561,3 +561,9 @@ The opening now uses a short pressure wave followed by recovery and later brief 
 - Future slime animation: generate a small set of keyframes in the existing artist's simple pixel style, then test in-betweens/interpolation with nearest-neighbor rendering. Preserve crisp silhouettes and review each variant before expanding to all slimes; avoid blurred pixel transitions.
 - Spellbook proposal: show spells discovered during the current run. A separate comprehensive Necronomicon contains the full catalog. Decide spoiler visibility and persistent-discovery presentation before implementation.
 - Spell-art direction: simple, readable pixel art matching the supplied wizard/slime/environment assets; modest handmade detail is welcome. Prioritize distinct shapes, visible projectiles and clear damage/healing cues over polish. Steam Field's preview currently reads as healing to the player; audit its cue before any art overhaul.
+
+### Visual workshop delivery — September 27, 2026
+
+The approved pass implements the run-only Spellbook/full implemented Necronomicon split, focused readable spell art and a generated impact/smoke/ember/ice stamp sheet. The workshop uses the actual renderer and exports preview settings without applying changes to game files. Complete native clips and GIFs replace sparse gallery playback.
+
+Remaining: after choosing baseline sizes, vary in-game tree and bush sizes by approximately 10–15%; keep preview reference sizes exact. Slime keyframe animation, persistent per-variant sizing presets, optional boss comparisons and shaders remain later work. Interpolation must preserve crisp pixels before adoption.

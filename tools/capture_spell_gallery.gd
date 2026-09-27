@@ -1,6 +1,6 @@
 extends SceneTree
 
-const OUT = "res://builds/spell-gallery/"
+const OUT = "res://builds/spell-stills/"
 const TIMES = [0.04, 0.10, 0.18, 0.3, 0.5, 0.65, 0.85, 1.0, 1.5, 2.0]
 var entries: Array = []
 var game
