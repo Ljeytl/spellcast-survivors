@@ -151,6 +151,28 @@ func run():
 		await physics_frame
 		player.position = original_player
 		break
+	var tested_variants: Dictionary = {}
+	for body in get_nodes_in_group("tree_obstacles"):
+		var canopy = body.get_node("Canopy")
+		var variant = canopy.texture.resource_path
+		if tested_variants.has(variant):
+			continue
+		tested_variants[variant] = true
+		var art_trunk = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2)
+		for side in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+			player.position = art_trunk + side * 130
+			var collision = player.move_and_collide(-side * 180)
+			check(collision != null, "All-side approach contacts visible trunk: " + variant)
+			check(absf((player.position - art_trunk).dot(side) - 43.0) < 1.0, "Player reaches visible trunk edge without distant barrier: " + variant)
+		var correct_position = canopy.position
+		canopy.position = Vector2(0, 20 - canopy.texture.get_height())
+		var wrong_anchor = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2)
+		check(not wrong_anchor.is_equal_approx(body.global_position), "Known-bad texture-center anchor fails visible-trunk alignment")
+		canopy.position = correct_position
+		if tested_variants.size() == 2:
+			break
+	check(tested_variants.size() == 2, "Both supplied fir variants receive all-side collision checks")
+	player.position = original_player
 	var boss_shape = RectangleShape2D.new()
 	boss_shape.size = Vector2.ONE * 64 * 1.25 * 1.7
 	var query = PhysicsShapeQueryParameters2D.new()
