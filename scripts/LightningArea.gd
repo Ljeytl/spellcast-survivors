@@ -43,8 +43,10 @@ func advance(delta: float):
 	queue_redraw()
 
 func _draw():
-	preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, Color("65b9ff"))
+	var art = preload("res://scripts/EffectArt.gd")
+	var opacity = clampf((duration - age) / maxf(duration * 0.3, 0.01), 0, 1)
+	preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, Color("b5a3df"), opacity)
 	for index in range(7):
-		var point = Vector2.from_angle(index * TAU / 7 + age * 4) * radius * 0.75
-		var vertices = PackedVector2Array([point + Vector2(-8, -56), point + Vector2(6, -28), point + Vector2(-6, -18), point])
-		draw_polyline(vertices, Color("d4efff"), 5)
+		var point = Vector2.from_angle(index * TAU / 7) * radius * 0.72
+		art.lightning(self, point + Vector2(-18, -90), point, 7, opacity)
+		art.stamp(self, "impact", point, Vector2.ONE * 28, Color(0.85, 0.9, 1, opacity))
