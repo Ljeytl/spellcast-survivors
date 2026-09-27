@@ -33,7 +33,7 @@ func _ready():
 		add_to_group("bosses")
 		var label = Label.new()
 		label.text = encounter_name
-		label.position = Vector2(-70, -65)
+		label.position = Vector2(-70, -90)
 		label.add_theme_font_size_override("font_size", 16)
 		add_child(label)
 

@@ -47,10 +47,10 @@ static func beam(canvas: CanvasItem, start: Vector2, end: Vector2, width: float,
 	canvas.draw_line(start, end, Color(PALETTE.lightning, opacity), width)
 	canvas.draw_line(start, end, Color("f0e8eb", opacity), maxf(1, width / 3))
 
-static func wreath(canvas: CanvasItem, kind: String, center: Vector2, radius: float, phase: float, opacity: float = 0.8, count: int = 8):
+static func wreath(canvas: CanvasItem, kind: String, center: Vector2, radius: float, phase: float, opacity: float = 0.8, count: int = 8, particle_size: float = 14.0):
 	for index in range(count):
 		var angle = TAU * index / count + phase
-		stamp(canvas, kind, center + Vector2.from_angle(angle) * radius, Vector2.ONE * 14, Color(1, 1, 1, opacity))
+		stamp(canvas, kind, center + Vector2.from_angle(angle) * radius, Vector2.ONE * particle_size, Color(1, 1, 1, opacity))
 
 static func burst(canvas: CanvasItem, row: int, center: Vector2, diameter: float, progress: float, opacity: float = 0.8):
 	var kind = ["flame", "ice", "heal", "impact"][clampi(row, 0, 3)]

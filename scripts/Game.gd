@@ -1060,7 +1060,7 @@ func update_typing_slowdown(remaining: float, _capacity: float):
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	box.size.x = minf(900.0 if $UI/HUD.size.y <= 600 else 620.0, $UI/HUD.size.x - 36.0)
+	box.size.x = minf(1000.0, $UI/HUD.size.x - 36.0)
 	box.size.y = minf(maxf(typing_label.get_minimum_size().y + 44.0, 148.0), maxf(132.0, $UI/HUD.size.y * 0.5 - 180.0))
 	position_typing_ui_upper_screen()
 	_scroll_typing_to_end.call_deferred()
