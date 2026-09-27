@@ -118,6 +118,7 @@ func _process(_delta):
 	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Mana Bolt fires automatically\nClick a spell or press 1–6, then type · Space chooses any learned spell"
 	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing and (game.interface_debug or feedback_remaining > 0)
 	var spells_panel = game.get_node("UI/HUD/SpellSlotsPanel")
+	spells_panel.visible = not (typing.visible and game.get_node("UI/HUD").size.y <= 600)
 	guidance.size = Vector2(spells_panel.size.x, maxf(48, guidance.get_minimum_size().y))
 	guidance.position = Vector2(spells_panel.position.x, spells_panel.position.y - guidance.size.y - 8)
 	passive_label.text = "AUTO · Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt")

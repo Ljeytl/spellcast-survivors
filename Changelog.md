@@ -1,3 +1,9 @@
+## 2026-09-26 — Integrated casting and compact-window verification
+
+- Integrate owned bonus spells, per-cast slowdown, simple effects and provisional encounter pressure. Correct bonus hints and hide unavailable discoveries.
+- Keep enlarged typing keys fully visible in short windows; use the lower casting area and temporarily hide the spell bar while the prompt is visible. Preserve health, timer and player visibility.
+- Update UI regression expectations for additive bonuses and per-cast windows; include Regeneration in healing metadata.
+
 ## 2026-09-26 — Readable keys and ordinary run spellbook
 
 - Enlarge typed keys and stone menu headings, preserving original artwork and wrapping. Add a pause spellbook with owned active/bonus casting, passive ranks and discovered recipes; keep technical diagnostics separate.

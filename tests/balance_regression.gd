@@ -76,7 +76,7 @@ func run():
 		check(enemies[0].current_health <= 45.0, "Spawned enemy retains opening health after ready")
 		enemies[0].queue_free()
 	player.health = 20.0
-	spells.learn_spell("life")
+	spells.learn_spell("regeneration")
 	spells.cast_spell_by_type(2)
 	check(spells.active_healing_effects.size() == 1, "Numbered Regeneration creates healing")
 	spells.process_healing_effects(1.0)
@@ -85,7 +85,7 @@ func run():
 	check(is_equal_approx(player.health, 60.0), "Final healing tick is clamped to five second lifetime")
 	check(spells.active_healing_effects.is_empty(), "Healing expires")
 	player.health = 95.0
-	spells.cast_freeform_spell_by_type("life", spells.freeform_spells["life"])
+	spells.cast_freeform_spell_by_type("regeneration", spells.freeform_spells["regeneration"])
 	check(spells.active_healing_effects.size() == 1, "Freeform Regeneration creates healing")
 	spells.process_healing_effects(5.0)
 	check(player.health == player.max_health, "Healing cannot exceed max health")

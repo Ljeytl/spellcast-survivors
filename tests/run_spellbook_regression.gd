@@ -79,6 +79,6 @@ func run():
 		if player is AudioStreamPlayer:
 			player.stop()
 			player.stream = null
-	await settle()
+	await create_timer(0.25, true, false, true).timeout
 	print("Run spellbook: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

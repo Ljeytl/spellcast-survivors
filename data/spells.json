@@ -870,7 +870,7 @@
     "offensive": ["bolt", "ice_blast", "lightning_arc", "meteor_shower", "fire_storm", "frost_nova", "arcane_missiles"],
     "defensive": ["earth_shield", "chain_heal", "divine_aura"],
     "utility": ["time_warp"],
-    "healing": ["life", "chain_heal", "divine_aura"],
+    "healing": ["life", "regeneration", "chain_heal", "divine_aura"],
     "auto_attack": ["mana_bolt"],
     "summons": ["skeleton_warrior", "arcane_turret", "flame_elemental"]
   },
