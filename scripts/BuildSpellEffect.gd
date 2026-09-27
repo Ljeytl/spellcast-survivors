@@ -176,7 +176,7 @@ func _draw():
 		"field":
 			var radius = float(info.get("radius", 150.0))
 			if info.get("slow", 0.0) > 0:
-				preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, Color("9fe9ee"))
+				preload("res://scripts/AreaArt.gd").steam_circle(self, Vector2.ZERO, radius, elapsed_time)
 			else:
 				preload("res://scripts/AreaArt.gd").fire_circle(self, Vector2.ZERO, radius, elapsed_time)
 		"orbit":
@@ -190,9 +190,17 @@ func _draw():
 			for link in infection_links:
 				var from = to_local(link.from)
 				var to = to_local(link.to)
-				draw_line(from, to, Color("c4ee79", 1 - link.age / 0.35), 4)
-				art.stamp(self, "plague", from.lerp(to, link.age / 0.35), Vector2.ONE * 26)
+				var opacity = 1 - link.age / 0.35
+				draw_line(from, to, Color(art.INK, opacity), 8)
+				draw_line(from, to, Color("c4ce79", opacity), 4)
+				for index in range(3):
+					var progress = clampf(link.age / 0.35 - index * 0.16, 0, 1)
+					art.stamp(self, "plague", from.lerp(to, progress), Vector2.ONE * (32 - index * 6))
 			for reference in infections:
 				var enemy = reference.get_ref()
 				if valid_target(enemy):
-					art.stamp(self, "plague", to_local(enemy.global_position) + Vector2(0, -58), Vector2.ONE * 40)
+					var center = to_local(enemy.global_position)
+					art.stamp(self, "plague", center + Vector2(0, -58), Vector2.ONE * 34)
+					for index in range(3):
+						var phase = fmod(elapsed_time * 0.8 + index / 3.0, 1.0)
+						art.stamp(self, "plague", center + Vector2((index - 1) * 17, -12 - phase * 30), Vector2.ONE * 12, Color(1, 1, 1, 1 - phase * 0.65))

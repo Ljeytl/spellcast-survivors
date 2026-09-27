@@ -212,20 +212,24 @@ func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	match projectile_type:
 		"lightning":
-			art.beam(self, Vector2.ZERO, to_local(get_meta("end_pos", global_position)), 3)
+			art.lightning(self, Vector2.ZERO, to_local(get_meta("end_pos", global_position)), 6)
 		"warning":
-			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, effect_radius, Color("ee6257"), 1.0, 1 - lifetime_timer / maxf(lifetime, 0.01))
-		"ice", "meteor":
-			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, effect_radius, Color("9fe9ee") if projectile_type == "ice" else Color("ee6257"), clampf(lifetime_timer * 3, 0, 1))
-			art.burst(self, 1 if projectile_type == "ice" else 0, Vector2.ZERO, effect_radius * 2, 1 - lifetime_timer / maxf(lifetime, 0.01))
+			preload("res://scripts/AreaArt.gd").meteor_warning(self, effect_radius, 1 - lifetime_timer / maxf(lifetime, 0.01))
+		"meteor":
+			preload("res://scripts/AreaArt.gd").meteor_impact(self, effect_radius, 1 - lifetime_timer / maxf(lifetime, 0.01))
+		"ice":
+			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, effect_radius, Color("9fe9ee"), clampf(lifetime_timer * 3, 0, 1))
+			art.burst(self, 1, Vector2.ZERO, effect_radius * 2, 1 - lifetime_timer / maxf(lifetime, 0.01))
 		"shield":
 			art.wreath(self, "stone", Vector2.ZERO, 30, 0)
 		"heal":
 			art.wreath(self, "heal", Vector2.ZERO, 24, 0)
 		"mana_bolt":
-			art.stamp(self, "mana", Vector2.ZERO, Vector2(22, 18))
-		"bolt", "life_bolt", "lightning_bolt":
-			art.stamp(self, "bolt", Vector2.ZERO, Vector2(30, 24), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
+			art.stamp(self, "mana", Vector2.ZERO, Vector2(40, 34))
+		"bolt", "life_bolt":
+			art.stamp(self, "bolt", Vector2.ZERO, Vector2(42, 36), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
+		"lightning_bolt":
+			art.lightning(self, Vector2(-24, 0), Vector2(14, 0), 8)
 		_:
 			art.stamp(self, "impact", Vector2.ZERO, Vector2.ONE * 18)
 

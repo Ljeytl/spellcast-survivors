@@ -1,5 +1,8 @@
 extends RefCounted
 
+const PARTICLE_STAMPS = preload("res://assets/effects/particle-stamps.png")
+const STAMP_REGIONS = {"impact": Rect2(132, 148, 400, 408), "smoke": Rect2(784, 120, 360, 440), "ember": Rect2(208, 768, 272, 352), "shard": Rect2(792, 744, 328, 392)}
+
 const INK = Color("202334")
 const PALETTE = {"mana": Color("69c5ce"), "bolt": Color("f5d779"), "lance": Color("e88d52"), "ice": Color("a3e1e4"), "lightning": Color("b5a3df"), "heal": Color("a9ca79"), "stone": Color("a8a18b"), "spirit": Color("b3c7df"), "flame": Color("e88d52"), "impact": Color("f1dfaf"), "xp": Color("83cbd0"), "smoke": Color("898a94"), "plague": Color("83a35d"), "blade": Color("d6d4eb"), "rune": Color("d2b57a"), "hostile": Color("f27367")}
 
@@ -11,14 +14,32 @@ static func stamp(canvas: CanvasItem, kind: String, center: Vector2, size: Vecto
 	canvas.draw_set_transform(center.round(), angle, size / 24.0)
 	var color: Color = PALETTE.get(kind, PALETTE.impact) * tint
 	match kind:
-		"mana", "bolt", "lance", "ice":
+		"impact", "smoke", "ember", "shard", "ice":
+			canvas.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			var region: Rect2 = STAMP_REGIONS["shard" if kind == "ice" else kind]
+			var ratio = PARTICLE_STAMPS.get_width() / 1280.0
+			canvas.draw_texture_rect_region(PARTICLE_STAMPS, Rect2(-12, -12, 24, 24), Rect2(region.position * ratio, region.size * ratio), tint)
+		"mana", "bolt":
+			pixel(canvas, Rect2(-9, -4, 17, 8), color.darkened(0.18))
+			pixel(canvas, Rect2(-5, -7, 11, 14), color)
+			canvas.draw_rect(Rect2(-3, -4, 8, 7), Color("fff1d1") * tint)
+			canvas.draw_rect(Rect2(-13, -2, 4, 4), color)
+		"lightning":
+			var points = PackedVector2Array([Vector2(-8, -10), Vector2(5, -10), Vector2(0, -2), Vector2(8, -2), Vector2(-5, 11), Vector2(-1, 2), Vector2(-8, 2)])
+			canvas.draw_colored_polygon(points, color)
+			points.append(points[0])
+			canvas.draw_polyline(points, INK, 1.5)
+		"lance":
 			pixel(canvas, Rect2(-9, -2, 14, 4), color)
 			pixel(canvas, Rect2(4, -4, 5, 8), color)
 			canvas.draw_rect(Rect2(4, -1, 3, 2), Color("fff1d1") * tint)
 		"plague":
-			pixel(canvas, Rect2(-1, -2, 2, 10), color)
-			pixel(canvas, Rect2(-7, -5, 6, 4), color)
-			pixel(canvas, Rect2(1, -8, 6, 4), color)
+			pixel(canvas, Rect2(-7, -6, 14, 12), Color("626a40") * tint)
+			pixel(canvas, Rect2(-5, -8, 10, 14), color)
+			canvas.draw_rect(Rect2(-3, -4, 3, 3), Color("d2df8a") * tint)
+			canvas.draw_rect(Rect2(2, 1, 3, 3), INK)
+			pixel(canvas, Rect2(-10, 1, 3, 3), color)
+			pixel(canvas, Rect2(7, -8, 3, 3), color)
 		"stone":
 			pixel(canvas, Rect2(-6, -5, 12, 10), color)
 			canvas.draw_rect(Rect2(-4, -4, 7, 2), color.lightened(0.25))
@@ -35,11 +56,13 @@ static func stamp(canvas: CanvasItem, kind: String, center: Vector2, size: Vecto
 			canvas.draw_rect(Rect2(-9, -9, 18, 18), INK, false, 4)
 			canvas.draw_rect(Rect2(-9, -9, 18, 18), color, false, 2)
 			pixel(canvas, Rect2(-1, -5, 2, 10), color)
-		"smoke", "hostile":
+		"hostile":
 			pixel(canvas, Rect2(-5, -5, 10, 10), color)
+		"heal":
+			pixel(canvas, Rect2(-7, -2, 14, 4), color)
+			pixel(canvas, Rect2(-2, -7, 4, 14), color)
 		_:
-			pixel(canvas, Rect2(-7, -1, 14, 2), color)
-			pixel(canvas, Rect2(-1, -7, 2, 14), color)
+			pixel(canvas, Rect2(-4, -4, 8, 8), color)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 static func beam(canvas: CanvasItem, start: Vector2, end: Vector2, width: float, opacity: float = 1.0):
@@ -62,3 +85,15 @@ static func row_for_color(color: Color) -> int:
 	if color.b > 0.6 and color.g > color.r * 1.2:
 		return 1
 	return 0 if color.r > color.b * 1.4 else 3
+
+static func lightning(canvas: CanvasItem, start: Vector2, end: Vector2, width: float = 6.0, opacity: float = 1.0):
+	var axis = end - start
+	var normal = axis.normalized().orthogonal()
+	var count = maxi(3, ceili(axis.length() / 22.0))
+	var points = PackedVector2Array([start.round()])
+	for index in range(1, count):
+		points.append((start + axis * float(index) / count + normal * (7 if index % 2 else -7)).round())
+	points.append(end.round())
+	canvas.draw_polyline(points, Color(INK, opacity), width + 4)
+	canvas.draw_polyline(points, Color(PALETTE.lightning, opacity), width)
+	canvas.draw_polyline(points, Color("fff1d1", opacity), 2)
