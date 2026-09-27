@@ -1,5 +1,7 @@
 ## 2026-09-27 — Projectile impacts and consistent preview sizing
 
+- Added native before/after render checks for thirteen projectile bodies; caught and fixed meteor particle stamps resetting the rock drawing transform.
+
 - Ice Blast fires a non-homing fan of thirteen ice shards. Damage, slowing, knockback and hit feedback occur on swept contact with enemy hurtboxes; gaps miss and each enemy takes at most one damage application per cast.
 - Plague Seed and Soul Bloom spores travel before infection appears. First damage waits for an infection tick, spread and death transfers travel too, and pending spores reserve the eight-host cap. Spores whose host dies can redirect within the original acquisition range.
 - Apply the workshop projectile size control to bolts, ice shards, lances, Cross Blade, Seeker, orbit bodies, plague spores and descending meteors using drawing-only sizing. Preserve collision, movement, orbit radius and meteor warning/impact areas. Decorative ice fragments respond to the particle control.
