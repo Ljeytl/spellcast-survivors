@@ -1,3 +1,9 @@
+## Forest groves and XP readability — 2026-09-26
+
+- Implemented: irregular deterministic tree/bush groves, occasional lone trees, and empty ground instead of one tree per evenly spaced cell. The starting clearing and connected routes remain open; only tree trunks block movement, with their collision radius reduced from 22 to 11 pixels while canopy art keeps its size.
+- Implemented: mana crystals render at 1.5× their previous size, including their pulse, with unchanged pickup and XP mechanics.
+- Later: human-test crowded combat around groves and canopy readability at the chosen camera scale. Additional terrain types and environmental gameplay remain separate design work.
+
 ## 2026-09-26 — Simple art matched to supplied assets (documentation only)
 
 - Record the user's direction to follow the friend's supplied art style closely, reuse existing assets and keep additions simple placeholders.
