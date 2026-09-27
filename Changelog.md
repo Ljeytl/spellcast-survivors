@@ -1,3 +1,9 @@
+## 2026-09-27 — Encounter rushes and distant enemy recycling
+
+- Preserve distant regular enemies and their health/status by moving them to a new offscreen approach angle; bosses stay in the world. Camera-aware spawn geometry respects zoom, offset and terrain clearance.
+- Add eight modest timed melee rushes between 3:30 and 18:30, staggered from one sector, respecting unlocks and the population cap. Clock jumps skip expired rushes and victory stops encounters. Existing continuous spawn and stat curves remain unchanged.
+- Future: distinct passing formations and human tuning of rush pressure.
+
 ## 2026-09-27 — Existing grass variants in patches
 
 - Group the nine supplied grass tiles into sparse, mixed and leafy patches instead of uniformly scattering every variant. Keep the original art, ground palette, scale and collision unchanged; deterministic world coordinates preserve patches when revisiting.

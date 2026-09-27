@@ -245,5 +245,53 @@
     "speed": 320.0,
     "heavy_multiplier": 0.6,
     "boss_multiplier": 0.35
-  }
+  },
+  "recycling": {
+    "entry_margin": 160,
+    "distance_beyond_view": 600,
+    "maximum_per_check": 2
+  },
+  "wave_spacing": 0.35,
+  "waves": [
+    {
+      "time": 210,
+      "variant": "skirmisher",
+      "count": 8
+    },
+    {
+      "time": 255,
+      "variant": "swarmer",
+      "count": 12
+    },
+    {
+      "time": 390,
+      "variant": "swarmer",
+      "count": 14
+    },
+    {
+      "time": 480,
+      "variant": "flanker",
+      "count": 10
+    },
+    {
+      "time": 690,
+      "variant": "swarmer",
+      "count": 16
+    },
+    {
+      "time": 810,
+      "variant": "charger",
+      "count": 10
+    },
+    {
+      "time": 990,
+      "variant": "swarmer",
+      "count": 18
+    },
+    {
+      "time": 1110,
+      "variant": "skirmisher",
+      "count": 12
+    }
+  ]
 }

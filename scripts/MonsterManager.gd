@@ -17,11 +17,13 @@ var spawned_bosses: Dictionary = {}
 var spawn_attempts = 0
 var actual_spawns = 0
 var cap_rejections = 0
+var encounter_director
 @onready var player: CharacterBody2D = get_parent().get_node("Player")
 
 func _ready():
 	encounter_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/encounters.json"))
 	max_monsters = int(encounter_config.scaling.maximum_enemies)
+	encounter_director = preload("res://scripts/EncounterDirector.gd").new(self)
 	add_to_group("monster_manager")
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = calculate_spawn_interval()
@@ -72,7 +74,7 @@ func _on_spawn_timer_timeout():
 	spawn_monster()
 	spawn_timer.wait_time = calculate_spawn_interval()
 
-func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D:
+func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN) -> Node2D:
 	if run_finished:
 		return null
 	spawn_attempts += 1
@@ -84,13 +86,9 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D
 		definition = select_monster()
 	if definition.is_empty():
 		return null
-	var count = 3 if definition.id == "swarmer" and not is_boss else 1
+	var count = 3 if definition.id == "swarmer" and not is_boss and not single else 1
 	var first: Node2D = null
-	var angle = randf() * TAU
-	var viewport = get_viewport_rect().size
-	var direction = Vector2.from_angle(angle)
-	var half_size = viewport * 0.5
-	var distance = minf(half_size.x / maxf(absf(direction.x), 0.01), half_size.y / maxf(absf(direction.y), 0.01)) + 80.0
+	var angle = randf() * TAU if is_nan(entry_angle) else entry_angle
 	for index in range(count):
 		if monsters_alive >= max_monsters and not is_boss:
 			break
@@ -101,10 +99,11 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false) -> Node2D
 			stats.damage *= 1.5
 			stats.xp *= 12.0
 		monster.configure(definition, stats, is_boss)
-		monster.position = player.global_position + Vector2.from_angle(angle) * distance + Vector2(index * 38, 0)
-		var terrain = get_parent().get_node_or_null("Background")
-		if terrain and terrain.has_method("clear_spawn"):
-			monster.position = terrain.clear_spawn(monster.position, 29.0 * monster.scale.x)
+		var point = encounter_director.entry_position(angle + index * 0.06, 29.0 * monster.scale.x)
+		if not point.is_finite():
+			monster.free()
+			continue
+		monster.position = get_parent().to_local(point)
 		monster.enemy_died.connect(_on_monster_died)
 		var damage_manager = get_parent().get_node_or_null("DamageManager")
 		if damage_manager:
@@ -191,8 +190,10 @@ func advance_time(delta: float):
 	if game_time >= float(encounter_config.run_duration):
 		run_finished = true
 		spawn_timer.stop()
+		encounter_director.update(delta)
 		run_completed.emit()
 		return
 	if not is_equal_approx(previous_phase, spawn_phase_interval(game_time)) and not spawn_timer.is_stopped():
 		spawn_timer.start(calculate_spawn_interval())
 	check_boss_milestones()
+	encounter_director.update(delta)
