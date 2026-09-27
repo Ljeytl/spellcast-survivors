@@ -5,6 +5,9 @@
 - Learn authored bonus spells separately at rank 1 while preserving both ingredients and their ranks. Add unified owned-spell lookup/library APIs, reject unowned casts, and keep discovery memory separate from run ownership.
 - Separate quick Life from Regeneration and Bolt from Lightning. Reserve Lightning Bolt's bouncing-projectile contract and Life Bolt's collectable healing-seed contract for the effects integration; defer Reaping Spirit acquisition.
 - Future: integrate the effects contracts and player spellbook, audit remaining passive families, and validate the combined candidate before delivery.
+## 2026-09-26 — Simple combat feedback foundation
+
+- Add bounded pixel-shaped spell, healing, pickup and impact helpers, with directional cone/link feedback and readable hazard telegraphs. Preserve supplied art and pause behavior; no shader or audio additions.
 
 ## 2026-09-26 — Implementation authorized
 
