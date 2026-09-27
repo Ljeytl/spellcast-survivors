@@ -92,15 +92,10 @@ func create_collection_effects():
 	var game = get_tree().get_first_node_in_group("game")
 	if game:
 		match chest_type:
-			ChestType.HEALTH:
-				if game.has_method("create_heal_effect"):
-					game.create_heal_effect(global_position)
 			ChestType.XP:
 				if game.has_method("create_xp_collect_effect"):
 					game.create_xp_collect_effect(global_position)
 			ChestType.MIXED:
-				if game.has_method("create_heal_effect"):
-					game.create_heal_effect(global_position)
 				if game.has_method("create_xp_collect_effect"):
 					game.create_xp_collect_effect(global_position + Vector2(10, 0))
 

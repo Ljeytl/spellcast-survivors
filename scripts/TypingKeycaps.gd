@@ -148,7 +148,7 @@ func visible_caption() -> String:
 		return "Cast!"
 	if not manager.is_typing:
 		return label.text
-	var caption = "Cast: " + manager.target_spell if not manager.target_spell.is_empty() else "Type a learned spell · Enter casts"
+	var caption = "Cast: " + manager.target_spell if not manager.target_spell.is_empty() else "Type a learned spell"
 	if " · " in feedback:
 		var status = feedback.substr(feedback.find(" · ") + 3)
 		caption = caption + " · " + status if not manager.target_spell.is_empty() else status

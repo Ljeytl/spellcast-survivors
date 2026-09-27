@@ -1,3 +1,18 @@
+## 2026-09-27 — Compact moving spell bodies
+
+- Reduced Mana Bolt and Life Bolt to 80%, Lightning Bolt to 75%, Ember Lance to 70%, and Meteor Lance to 85% of their previous body sizes; Bolt keeps its approved 75% baseline.
+- Ember and Meteor Lance preserve the original generated sprite's proportions instead of squashing it. Lightning Bolt uses the original mana motif with a thin blue-white electrical tail instead of a thick purple block.
+- Visual body and hit geometry use the same per-spell factor. Decorative particles, spell damage, timing, bounce mechanics, and Meteor Lance explosion area remain unchanged.
+- Workshop camera framing stays correct when paused and resized.
+
+## 2026-09-27 — Healing readability and individual spell previews
+
+- Regeneration has a loose orbit of leaves; actual healing shows rising green pluses only when health increases.
+- Bolt body and collision reduced by 25%; camera zoom reduced by 7.5%. Other spells retain their sizes.
+- Workshop remembers size, artwork, and particle adjustments per effect; schema 2 exports separate those from world settings.
+- Corrected Lightning area and six-slot copy; removed the repeated casting instruction.
+- Regenerating enemy design remains tabled; wider spell art polish is future work.
+
 ## 2026-09-27 — Sample-based gameplay audio
 
 - Replace active keyboard-like SFX mappings with 23 licensed CC0 samples for spells, material impacts, enemy damage/death, XP, typing, menus, player damage, level-ups and chests. Add source credits and conservative normalization.

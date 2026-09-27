@@ -70,8 +70,11 @@ func command(arguments: Array):
 			for entry in fixture.catalog():
 				if entry.id == request.get("id"):
 					selected = entry.id
+					fixture.select_effect(selected)
 					playing = true
-					if not busy:
+					if busy:
+						rebuild_requested = true
+					else:
 						replay()
 					break
 		"settings":
@@ -81,9 +84,19 @@ func command(arguments: Array):
 				for id in values.enemy_sizes:
 					if fixture.game.get_node("MonsterManager").encounter_config.variants.has(id):
 						fixture.settings.enemy_sizes[id] = clampf(float(values.enemy_sizes[id]), 0.5, 3.0)
+			if values.has("effect_settings") and values.effect_settings is Dictionary:
+				fixture.settings.effect_settings.clear()
+				for entry in fixture.catalog():
+					var saved = values.effect_settings.get(entry.id, {})
+					if saved is Dictionary and not saved.is_empty():
+						fixture.settings.effect_settings[entry.id] = {}
+						for key in ["spell_size", "projectile", "particle"]:
+							fixture.settings.effect_settings[entry.id][key] = clampf(float(saved.get(key, 1)), 0.5, 3)
+				fixture.select_effect(selected)
 			for key in ["wizard", "enemy", "tree", "bush", "spell_size", "projectile", "particle", "zoom"]:
 				if values.has(key):
 					fixture.settings[key] = clampf(float(values[key]), 0.5, 3.0)
+			fixture.remember_effect()
 			for key in ["comparison", "scenery"]:
 				if values.has(key):
 					fixture.settings[key] = bool(values[key])
@@ -92,10 +105,10 @@ func command(arguments: Array):
 				fixture.settings.enemy = fixture.settings.enemy_sizes.get(values.variant, 1.0)
 			if values.has("enemy"):
 				fixture.settings.enemy_sizes[fixture.settings.variant] = fixture.settings.enemy
-			if busy and (values.has("variant") or values.has("comparison") or values.has("spell_size")):
+			if busy and (values.has("variant") or values.has("comparison") or values.has("spell_size") or values.has("effect_settings")):
 				rebuild_requested = true
 			if not busy:
-				if values.has("variant") or values.has("comparison") or values.has("spell_size"):
+				if values.has("variant") or values.has("comparison") or values.has("spell_size") or values.has("effect_settings"):
 					replay()
 				else:
 					fixture.apply_sizes()

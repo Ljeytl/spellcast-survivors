@@ -83,7 +83,7 @@ func advance(delta: float):
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()):
 				continue
-			if Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= Geometry.LANCE_RADIUS * float(info.spell_size_multiplier):
+			if Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= Geometry.LANCE_RADIUS * float(info.projectile_size_multiplier):
 				hit_ids[enemy.get_instance_id()] = true
 				deal_damage(enemy, damage)
 				if info.get("explosive", false):
@@ -274,7 +274,7 @@ func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	match info.type:
 		"piercing":
-			art.stamp(self, "lance", direction * Geometry.stamp_offset("lance", Geometry.LANCE_RADIUS * float(info.spell_size_multiplier)).x, Visual.size(self, Geometry.stamp_dimensions("lance", Geometry.LANCE_RADIUS * float(info.spell_size_multiplier))), Color.WHITE, direction.angle())
+			art.stamp(self, "lance", direction * Geometry.stamp_offset("lance", Geometry.LANCE_RADIUS * float(info.projectile_size_multiplier)).x, Visual.size(self, Geometry.stamp_dimensions("lance", Geometry.LANCE_RADIUS * float(info.projectile_size_multiplier))), Color.WHITE, direction.angle())
 			if info.get("explosive", false):
 				art.stamp(self, "meteor", -direction * 18, Visual.size(self, Vector2.ONE * 24 * float(info.spell_size_multiplier)))
 		"field":

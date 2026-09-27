@@ -72,7 +72,15 @@ func follow_effect(target: Node2D, duration: float, kind: String, radius: float)
 	return effect
 
 func create_persistent_life_circle(target: Node2D, duration: float):
-	return follow_effect(target, duration, "heal", 24)
+	for effect in get_children():
+		if effect is Burst and effect.mode == "regeneration" and effect.followed and effect.followed.get_ref() == target and not effect.is_queued_for_deletion():
+			effect.duration = maxf(effect.duration, effect.age + duration)
+			return effect
+	var effect = follow_effect(target, duration, "heal", 34)
+	if effect:
+		effect.mode = "regeneration"
+		effect.particle_size = 18
+	return effect
 
 func create_persistent_shield_circle(target: Node2D, duration: float):
 	for effect in get_children():
@@ -101,7 +109,10 @@ func create_spell_impact_effect(pos: Vector2):
 	return spawn_effect(pos, "impact", 18, 0.3, 20)
 
 func create_heal_effect(pos: Vector2):
-	return spawn_effect(pos, "heal", 20)
+	var effect = spawn_effect(pos, "heal", 20, 0.65, 14)
+	if effect:
+		effect.mode = "healing"
+	return effect
 
 func create_hurt_effect(pos: Vector2):
 	return spawn_effect(pos, "hostile", 20)
@@ -113,7 +124,7 @@ func create_bolt_effect(pos: Vector2):
 	return spawn_effect(pos, "bolt", 16)
 
 func create_life_effect(pos: Vector2):
-	return spawn_effect(pos, "heal", 24)
+	return create_heal_effect(pos)
 
 func create_ice_blast_effect(pos: Vector2):
 	return spawn_effect(pos, "ice", 24)

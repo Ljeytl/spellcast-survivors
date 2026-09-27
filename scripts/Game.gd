@@ -78,6 +78,7 @@ var spells_cast: int = 0     # Total spells successfully cast this session
 
 # Called when the scene is first loaded and ready to run
 func _ready():
+	camera.zoom = Vector2.ONE * preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM
 	
 	# Add to game group for other nodes to find this main game controller
 	add_to_group("game")
@@ -942,7 +943,7 @@ func update_spell_slot_lock_status():
 	for i in range(spell_slots.size()):
 		var info = spell_manager.spells.get(i + 1, {})
 		setup_individual_spell_slot(spell_slots[i], i, info.get("id", ""))
-		spell_slots[i].tooltip_text = ("Click or press %d, then type: %s" % [i + 1, info.display_name]) if not info.is_empty() else "Learn a spell when you level up (five equipped spells maximum)"
+		spell_slots[i].tooltip_text = ("Click or press %d, then type: %s" % [i + 1, info.display_name]) if not info.is_empty() else "Learn a spell when you level up (six equipped spells maximum)"
 
 func _on_spell_slot_input(event: InputEvent, slot: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
