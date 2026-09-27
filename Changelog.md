@@ -1,3 +1,7 @@
+## 2026-09-26 — Implementation authorized
+
+- Begin the approved staged repair of the existing roster, casting/progression, simple matching art, UX/world and integrated balance. Preserve unselected ideas and defer shader/audio polish.
+
 ## 2026-09-26 — Simple art matched to supplied assets (documentation only)
 
 - Record the user's direction to follow the friend's supplied art style closely, reuse existing assets and keep additions simple placeholders.

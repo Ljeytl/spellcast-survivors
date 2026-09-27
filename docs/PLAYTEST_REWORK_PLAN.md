@@ -1,10 +1,10 @@
 # Playtest rework — consolidated design and delivery plan
 
-Status: design review, September 26, 2026. The user authorized design/documentation, not resumed implementation. Three agents performed read-only reviews. This package changes documentation only. Code, generated art, gameplay testing and merges remain paused until design approval.
+Status: implementation authorized September 26, 2026 by the user: “alright do it. yea keep it simple we can polish later art wise.” Execute the staged plan for the existing roster and approved changes. Preserve unrelated work; keep unresolved product choices explicit. New library ideas, shader work and audio remain outside this pass.
 
 ## Latest design acceptance
 
-The user has accepted the overall spell direction and specifically endorsed Frost Nova alongside cone-shaped Ice Blast. This is approval of the spell direction, not selection of every library idea or explicit authorization to resume implementation. Continue the comprehensive design process; preserve open numeric, targeting, recipe and progression decisions.
+The user has accepted the overall spell direction and specifically endorsed Frost Nova alongside cone-shaped Ice Blast. The subsequent explicit go-ahead authorizes the implementation plan, not every library idea. Preserve open product decisions; routine tuning stays testable and adjustable.
 
 ## Deliverables
 

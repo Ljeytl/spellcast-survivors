@@ -1,6 +1,6 @@
 # SpellCast Survivors — Core Game Design v0.4
 
-Status: design review, September 26, 2026. Documentation only. No mechanics, assets, builds or balance changes are authorized by this document. Implementation remains paused until the user approves the reconciled design.
+Status: implementation authorized September 26, 2026 following user approval of the reconciled plan. The existing roster, confirmed mechanics and simple matching placeholder-art pass are in scope; unresolved concepts are not automatically selected.
 
 This document supersedes earlier conflicting decisions about five spell slots, replacement evolutions, a shared slowdown reserve and an opening that allows indefinite inactivity. Historical documents and changelog entries describe their own revisions, not the current intended rules.
 

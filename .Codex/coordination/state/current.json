@@ -1,6 +1,6 @@
 {
-  "phase": "design_review",
-  "implementation_authorized": false,
+  "phase": "implementation_preparation",
+  "implementation_authorized": true,
   "branch": "docs/playtest-design",
   "documentation_writer": "root",
   "reviewers_read_only": [
@@ -13,6 +13,6 @@
     "design_audits": "complete",
     "consolidated_documents": "complete",
     "independent_document_review": "complete; all three reviews, no outstanding blockers",
-    "implementation": "paused"
+    "implementation": "in progress"
   }
 }
