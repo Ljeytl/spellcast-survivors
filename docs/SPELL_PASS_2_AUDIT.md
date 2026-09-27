@@ -4,12 +4,12 @@ This is the runtime behavior reference for pass 2. Historical proposals in the f
 
 ## Shared contracts and tuning
 
-`AreaArt` renders authoritative world-space circle/cone/path geometry. Firewalk's visual path uses round polygon offsets of its sample path; gameplay tests the same path segments with the same radius. Cosmetic particles do not expand hitboxes. Circle warnings show the final affected boundary plus growing inner fill; warnings themselves do no damage. Ground fill and border persist while the area is active. Normal and reduced-effects modes keep gameplay boundaries.
+`AreaArt` renders authoritative world-space circle/cone/path geometry. Firewalk fills the exact round segment capsules used by gameplay; polygon offsets draw only exterior/hole contours. Closed paths retain unburned holes. Cosmetic particles do not expand hitboxes. Circle warnings show the final affected boundary plus growing inner fill; warnings themselves do no damage. Ground fill and border persist while the area is active. Normal and reduced-effects modes keep gameplay boundaries.
 
 | Tuning | Baseline | Candidate |
 |---|---|---|
 | Lightning | One direct target, 80 | Group-centered radius160, 80 per enemy once during a0.2s window |
-| Meteor Shower | Radius hardcoded180 despite data220; first meteor zero delay | Data radius220; first warning0.65s, next impacts spaced0.3s; 4 meteors,20 damage each unchanged |
+| Meteor Shower | Radius hardcoded180 despite data220; first meteor zero delay | Data radius220; first warning0.65s, next impacts spaced0.3s; 4 meteors,20 damage each unchanged; planned damage spreads likely-lethal hits to other groups |
 | Arcane Orbit | Orbit65, small24px stamps, hit radius38 sampled every0.5s,16 damage,5s | Orbit130, bodies42radius/84diameter, continuous substep contacts capped at one28damage hit per enemy per0.5s,6s |
 | Cross Blade | Radius24,38damage each leg,0.4s linger with no repeat payoff | Radius42,60damage each leg,0.9s linger with30damage every0.3s;350travel preserved,4s hard expiry |
 | Firewalk | 40radius,2s patches,15damage/0.5s,5s emission | 65radius,6s patches,24damage/0.5s,5s emission/11s total; connected ground; one hit per enemy per trail tick |
@@ -55,5 +55,7 @@ All entries below are implemented and available through their existing ownership
 `spell_areas_regression.gd` uses real EncounterEnemy instances, an owned typed Lightning cast, an actual boss instance following a controlled chase path, and explicit geometry/time stepping. Negative controls restore a small Orbit and short-lived Firewalk; both must fail their specific useful-coverage assertions. Controlled boss movement isolates trail timing; it is not a full autonomous boss-fight balance claim.
 
 Existing foundation, magic-variety, spell-build, simple-art, Plague, and delayed-cast suites cover sibling contracts. Legacy expectations changed only where the approved geometry/lifetime changed. `spell_areas_visual.gd` captures a crowded native-rendered fixture at1280x720 and800x600 with reduced cosmetic effects. It verifies that areas and markers render at candidate scale; the final integrated player-input/long-run review belongs to the integration gate. Native fixtures are not reported as completed human game-feel testing.
+
+A native pixel test compares a closed Firewalk loop center with unburned ground; the old polygon-fill implementation is a discriminating failing control.
 
 Final exact revision, assertion counts, logs and captures are recorded in the handoff to the integration owner. The pass2 spec remains the controlling requirement register.

@@ -692,10 +692,14 @@ func cast_meteor_shower_spell(slot: int):
 	var damage = calculate_spell_damage(info)
 	var count = int(info["meteor_count"]) + int(info["level"]) - 1
 	var radius = float(info.get("radius", 220.0))
+	var planned_damage: Dictionary = {}
 	for index in range(count):
 		var delay = float(info.get("warning_duration", 0.65)) + index * float(info.get("delay_interval", 0.3))
-		var target = Targeting.select_area(get_tree(), player.global_position, radius)
+		var target = Targeting.select_area(get_tree(), player.global_position, radius, INF, planned_damage)
 		var center = target.global_position if _live_spell_target(target) else player.global_position
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
+				planned_damage[enemy.get_instance_id()] = float(planned_damage.get(enemy.get_instance_id(), 0)) + damage * 0.8
 		create_meteor_warning(center, delay, radius)
 		get_tree().create_timer(delay).timeout.connect(create_meteor_strike.bind(center, damage * 0.8, radius))
 

@@ -22,8 +22,11 @@ static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: fl
 		fire_circle(canvas, points[0], radius, age)
 		return
 	var polygons = Geometry2D.offset_polyline(points, radius, Geometry2D.JOIN_ROUND, Geometry2D.END_ROUND)
+	for index in range(points.size()):
+		canvas.draw_circle(points[index], radius, Color("d44b35", 0.32))
+		if index + 1 < points.size():
+			canvas.draw_line(points[index], points[index + 1], Color("d44b35", 0.32), radius * 2)
 	for polygon in polygons:
-		canvas.draw_colored_polygon(polygon, Color("d44b35", 0.48))
 		var border = polygon.duplicate()
 		border.append(polygon[0])
 		canvas.draw_polyline(border, Color("ffab68"), 4)
