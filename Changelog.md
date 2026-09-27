@@ -1,3 +1,10 @@
+## 2026-09-27 — Shareable playtest exports
+
+- Added a repeatable Windows ZIP and universal Mac DMG export command, with controls, sound credits, source revision and artifact hashes.
+- Export refuses dirty source, preserves separate build attempts, and avoids the optional Windows resource-editor dependency (custom executable branding remains a later release task).
+- The Mac image includes an Applications shortcut. Both packages include all game data and require no Godot installation.
+- Future release work: publisher signing/notarization and a real Windows launch check.
+
 ## 2026-09-27 — UI, HUD and menu usability
 
 - Compact health/level/XP and timer panels, moss-colored spell cards, balanced narrow-window spell grid, and fitted spell names keep combat readable without debug clutter.
