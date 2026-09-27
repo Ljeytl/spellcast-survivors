@@ -89,23 +89,6 @@ func populate():
 		text_row("%s · Rank %d" % [passive_name(family), game.player.passive_ranks[family]])
 	if families.is_empty():
 		text_row("No passive upgrades yet.", READABILITY.MUTED)
-	section("Discovered recipes")
-	var discoveries = get_tree().root.get_node("CharacterManager").discovered_synergies
-	var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
-	var available_count = 0
-	for id in discoveries:
-		if not recipes.has(id):
-			continue
-		var recipe = recipes[id]
-		if not recipe.get("enabled", true):
-			continue
-		available_count += 1
-		var ingredients: Array[String] = []
-		for ingredient in recipe.ingredients:
-			ingredients.append(spell_name(ingredient))
-		text_row("%s = %s" % [recipe.name, " + ".join(ingredients)])
-	if available_count == 0:
-		text_row("No discoveries yet.", READABILITY.MUTED)
 
 func add_spell_rows(spells: Dictionary):
 	var slots = spells.keys()
@@ -123,7 +106,7 @@ func add_spell_rows(spells: Dictionary):
 		entries.add_child(button)
 		spell_buttons[slot] = button
 		var description = COPY.EVOLUTIONS.get(info.id, COPY.SPELLS.get(info.id, ""))
-		text_row("Rank %d · %s" % [game.spell_manager.get_spell_rank(info.id), description])
+		text_row("Type: %s · Rank %d\n%s" % [info.display_name, game.spell_manager.get_spell_rank(info.id), description])
 
 func spell_name(id: String) -> String:
 	var info = get_tree().root.get_node("DataManager").get_spell_data(id)
