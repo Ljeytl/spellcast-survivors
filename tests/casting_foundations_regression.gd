@@ -170,6 +170,81 @@ func run():
 	manager.cast_freeform_spell("bolt")
 	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("is_homing") != null and not node.is_queued_for_deletion())
 	check(bolts.any(func(node): return not node.is_homing and node.get("damage") > 0), "Typed Bolt travels straight")
+	fresh()
+	root.size = Vector2i(1280, 720)
+	game.get_node("Camera2D").global_position = game.player.global_position
+	game.get_node("Camera2D").force_update_scroll()
+	manager.learn_spell("plague_seed")
+	var plague_slot = manager.find_spell_slot("plague_seed")
+	var plague_info = manager.get_spell_info(plague_slot)
+	var corpse = target_at(Vector2(10, 0))
+	corpse.dying = true
+	var hidden = target_at(Vector2(20, 0))
+	hidden.hide()
+	var offscreen = target_at(Vector2(5000, 0))
+	check(manager.get_visible_plague_host(plague_info) == null, "Plague excludes dying, hidden and offscreen hosts")
+	var cast_count = game.spells_cast
+	var feedback_count = game.particle_manager.get_child_count()
+	check(not manager.cast_freeform_spell("plague seed"), "Empty host selection reports cast failure")
+	check(game.spells_cast == cast_count and game.particle_manager.get_child_count() == feedback_count, "Failed Plague produces no success count or flash")
+	check(get_nodes_in_group("build_spell_effects").is_empty(), "Failed Plague creates no empty infection effect")
+	manager.cancel_typing()
+	manager.queue_spell(plague_slot)
+	manager.start_typing()
+	manager.current_typing_text = "plague seed"
+	manager.advance_typing_slowdown(1.0)
+	manager.attempt_cast()
+	check(manager.is_typing and manager.current_typing_text == "plague seed" and manager.spell_queue.size() == 1, "Numbered no-target cast remains editable and retryable")
+	check("No target in range" in game.typing_label.text and game.typing_keycaps.completion_remaining == 0, "Numbered failure displays no-target instead of successful completion")
+	check(manager.typing_slowdown_remaining == 2, "Failed retry does not reset slowdown")
+	manager.cancel_typing()
+	manager.space_casting = true
+	manager.start_freeform_typing()
+	manager.current_typing_text = "plague seed"
+	manager.attempt_freeform_cast()
+	check(manager.is_typing and "No target in range" in game.typing_label.text, "Space failure preserves input and displays targeting reason")
+	var visible = target_at(Vector2(80, 0))
+	var farther = target_at(Vector2(160, 0))
+	check(manager.get_visible_plague_host(plague_info) == visible, "Nearest valid visible host selected past invalid nearer targets")
+	var ranged = plague_info.duplicate(true)
+	ranged.cast_range = 79
+	check(manager.get_visible_plague_host(ranged) == null, "Authored initial cast range is distinct from spread radius")
+	ranged.cast_range = 80
+	check(manager.get_visible_plague_host(ranged) == visible, "Authored cast range includes its boundary")
+	manager.attempt_freeform_cast()
+	check(not manager.is_typing and game.spells_cast == cast_count + 1, "Same typed cast succeeds when a valid host enters")
+	var infection = get_nodes_in_group("build_spell_effects").back()
+	check(infection.infections.size() == 1, "Successful Plague starts one real host infection")
+	visible.dying = true
+	check(manager.get_visible_plague_host(plague_info) == farther, "Host acquisition excludes newly dying target")
+	farther.queue_free()
+	check(manager.get_visible_plague_host(plague_info) == null, "Queued host is excluded immediately")
+	var effects_before = get_nodes_in_group("build_spell_effects").size()
+	check(not manager.cast_spell_by_type(plague_slot) and get_nodes_in_group("build_spell_effects").size() == effects_before and not infection.is_queued_for_deletion(), "Failed direct dispatch preserves existing infections")
+	manager.learn_spell("regeneration")
+	manager.learn_spell("soul_bloom")
+	check(not manager.cast_freeform_spell("soul bloom"), "Bonus infection uses the same visible living-host contract")
+	check(manager.cast_freeform_spell("bolt"), "Unrelated projectile spell still casts without a visible host")
+	fresh()
+	game.player.is_invincible = false
+	game.player.health = 100
+	game.player.overheal = 10
+	game.player.take_damage(5)
+	var feedback = game.particle_manager.get_children()
+	check(feedback.filter(func(node): return node.get("kind") == "stone").size() == 1 and not feedback.any(func(node): return node.get("kind") == "hostile"), "Shield-only damage emits stone feedback without red hurt")
+	check(game.player.health == 100 and game.player.overheal == 5 and not game.player.is_flashing, "Shield-only absorption preserves health and avoids red player flash")
+	check(game.player.last_damage_context.health_loss == 0 and game.player.last_damage_context.overheal_loss == 5, "Shield telemetry records actual absorption")
+	for node in feedback:
+		node.free()
+	game.player.take_damage(8)
+	feedback = game.particle_manager.get_children()
+	check(feedback.any(func(node): return node.get("kind") == "stone") and feedback.any(func(node): return node.get("kind") == "hostile"), "Overflow emits both shield and health feedback")
+	check(game.player.health == 97 and game.player.last_damage_context.health_loss == 3 and game.player.last_damage_context.overheal_loss == 5, "Overflow preserves actual health and shield loss telemetry")
+	for node in feedback:
+		node.free()
+	game.player.take_damage(2)
+	feedback = game.particle_manager.get_children()
+	check(feedback.any(func(node): return node.get("kind") == "hostile") and not feedback.any(func(node): return node.get("kind") == "stone"), "Unshielded damage emits only red hurt feedback")
 	manager.cancel_typing()
 	game.queue_free()
 	await process_frame

@@ -298,3 +298,5 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 - Integrated healing seeds and bouncing-projectile effect contracts for regression validation. Migrated old replacement/shared-reserve tests to additive bonuses and fresh per-cast timing; coalesce healing feedback to one burst per 150 ms while preserving all health restoration.
 
 - Migrated seeded magic, acquisition and typing-presentation fixtures to six active slots, separate Life/Regeneration, additive bonus spells and distinct Bolt identities. Preserve real input, reroll/banish, effect-cap and deferred-recipe coverage.
+
+- Plague Seed and Soul Bloom acquire only visible living hosts, optionally respecting an authored initial cast range. No-target attempts remain editable with “No target in range,” preserve the current slowdown allowance, and do not count or flash as successful casts. Shield-only absorption emits stone feedback; health loss emits red feedback, with both on overflow.
