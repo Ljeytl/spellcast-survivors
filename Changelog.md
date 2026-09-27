@@ -1,5 +1,7 @@
 ## 2026-09-27 — Integrated second playtest pass
 
+- Release closeout: PR38 merged; exported pack passed97 checks and replaced the canonical current build. Coordination state now reflects verified delivery.
+
 - Integrate targeting, readable spell areas, stronger Orbit/Cross Blade/Firewalk, larger characters and stable XP tiers, single-line incantations, boss rewards, contact recoil and the Pursuer dash.
 - Raise spawn pressure only through the previously flat middle stretch, tapering back to existing nine-minute parameters. Preserve Focus Ray and passive power.
 - Verify actual input, reward acquisition, trunk collisions, XP conservation, real projectile pooling, geometry, natural bot runs and the full timed run lifecycle. Record measured tuning and remaining human judgments in `docs/PLAYTEST_PASS_2_RESULTS.md`.
