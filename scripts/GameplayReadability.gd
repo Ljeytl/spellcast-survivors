@@ -119,6 +119,11 @@ func _process(_delta):
 	if current_size != last_size:
 		layout()
 	var typing = game.get_node("UI/HUD/TypingPanel")
+	var timer = game.get_node("UI/HUD/TimerPanel")
+	var diagnostics_top = maxf(138, timer.get_rect().end.y + 12) if timer.position.y > 18 else 138.0
+	passive_label.position.y = diagnostics_top
+	focus_label.position.y = diagnostics_top + 25
+	focus_bar.position.y = diagnostics_top + 54
 	for supplemental in [passive_label, focus_label, focus_bar]:
 		supplemental.visible = game.interface_debug and not (typing.visible and typing.get_global_rect().intersects(supplemental.get_global_rect()))
 	var manager = game.spell_manager

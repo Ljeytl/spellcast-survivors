@@ -190,6 +190,8 @@ func run():
 		await key(KEY_F3)
 		await settle()
 		check(not hud.get_node("StatsPanel").get_global_rect().intersects(hud.get_node("TimerPanel").get_global_rect()), "Debug HUD panels do not overlap %s" % geometry)
+		for name in ["PassiveSpell", "FocusStatus", "FocusBar"]:
+			check(not hud.get_node(name).get_global_rect().intersects(hud.get_node("TimerPanel").get_global_rect()), "Debug %s clears timer at %s" % [name, geometry])
 		await screenshot("debug-hud-%d" % geometry.x)
 		await key(KEY_F3)
 		boss.queue_free()
