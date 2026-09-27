@@ -47,6 +47,10 @@ All runtime dispositions below remain pending implementation/review unless expli
 | F25 | Debug and ordinary game should feel substantially different. | UX + diagnostics | Fresh normal run has no diagnostic UI; ordinary spellbook remains sufficient; opt-in debug exposes technical tools and marks gameplay-changing commands. |
 | F26 | Ice Blast is a cone; every spell needs explicit hit geometry and aiming. | Spell behavior + art | Inside/outside/behind/boundary and obstacle cases; moving shapes, impact areas, size/Multicast changes, normal visual clarity and debug overlays agree with real hits. |
 
+## Art execution constraint
+
+Match the friend’s supplied asset style and keep new art intentionally simple and placeholder-quality. Reuse available assets and add only the minimal missing sprites/frames needed for the current roster’s truthful geometry and feedback. The lifecycle matrix defines communication requirements, not a production-animation quota. The large idea library does not authorize generating art for every concept. Inspect references and compare at gameplay scale before approving new samples. Shaders and audio remain deferred.
+
 ## Deferred rendering scope
 
 User decision: shader work is deferred. No implementation agent should add shader development or shader-based polish to this pass; revisit it separately after the baseline is settled.

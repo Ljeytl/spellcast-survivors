@@ -4,6 +4,18 @@ Status: design proposal, no new art generation or runtime edits. Match the suppl
 
 The [full spell library](SPELL_LIBRARY.md) adds preliminary visual identities for future concepts, including water. The lifecycle tables here cover current content and its proposed migrations; they do not mark future concept art as complete.
 
+## Current art scope — simple placeholders matching supplied art
+
+User direction: match the friend’s supplied artwork as closely as practical while keeping this pass as simple as possible. Existing project assets are the reference for palette, pixel scale, outlines, contrast, silhouettes and stone/forest materials. This is a readable placeholder pass, not final production art or a new art direction.
+
+Reuse existing assets first. For missing effects, prefer small sprite sets, simple frames and clear motion/timing. Shared supporting sparks, fragments and trails are appropriate; each spell still needs a recognisable shape and truthful hit feedback. Do not interpret the lifecycle matrix as a demand for bespoke elaborate animation for every row.
+
+Create only the assets required for the current repaired roster and explicitly selected additions. The full idea library is not an asset-generation queue. Future concepts can keep their written visual descriptions until selected. No shader development, extensive cinematic effects, elaborate new character animation or audio production in this pass.
+
+Acceptance: the wizard, enemies, terrain, keys and new effects look compatible at the actual gameplay scale; player and hostile attacks remain legible; spells communicate their real geometry; effects do not obscure hits or imply nonexistent mechanics. Use restrained motion and brief impact feedback. For Meteor Shower, simple readable falling meteors and impacts come before optional bounded shake.
+
+Before making new art, inspect the actual supplied assets and adjacent in-game visuals. Compare placeholder samples at the same camera scale; do not judge them only as enlarged isolated images. Preserve original art and use it directly wherever it already works.
+
 ## Asset audit
 
 Supplied Typecast assets cover the wizard/staff, slimes/kings, wisps, world vegetation/tiles, health UI, keys/branding and mana crystal. They do not constitute complete spell lifecycle sheets.

@@ -1,3 +1,8 @@
+## 2026-09-26 — Simple art matched to supplied assets (documentation only)
+
+- Record the user's direction to follow the friend's supplied art style closely, reuse existing assets and keep additions simple placeholders.
+- Limit art work to the repaired current roster and selected additions. Treat effect lifecycles as readability requirements, not demands for elaborate bespoke animation. Shaders and audio remain deferred.
+
 ## 2026-09-26 — Table coverage audit (documentation only)
 
 - Move remaining modifier phrases and broader saved concepts into explicit status/source tables in the [spell library](docs/SPELL_LIBRARY.md); preserve the full discussion notes as supporting detail.
