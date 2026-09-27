@@ -49,8 +49,11 @@ func _ready():
 		add_to_group("bosses")
 		var label = Label.new()
 		label.text = encounter_name
-		label.position = Vector2(-70, body_top - 28.0)
+		label.name = "BossLabel"
 		label.add_theme_font_size_override("font_size", 16)
+		label.scale = Vector2.ONE / scale
+		var label_size = label.get_minimum_size()
+		label.position = Vector2(-label_size.x * label.scale.x / 2.0, bar.offset_top - (label_size.y + 6.0) * label.scale.y)
 		add_child(label)
 
 func _physics_process(delta):

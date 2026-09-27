@@ -48,6 +48,9 @@ func run():
 		var width = sprite.texture.get_image().get_used_rect().size.x * sprite.scale.x * enemy.scale.x
 		check(absf(width - {"juggernaut":140,"charger":125,"shieldbearer":155}[id]) < 0.1, "Boss has deliberate silhouette: " + id)
 		check(is_equal_approx(enemy.scale.x, definition.size * 1.7) and enemy.current_health == definition.health * 12, "Boss gameplay size/HP unchanged: " + id)
+		var label = enemy.get_node("BossLabel")
+		check(label.get_global_transform().get_scale().is_equal_approx(Vector2.ONE) and label.get_theme_font_size("font_size") == 16, "Boss names have consistent effective text size: " + id)
+		check(absf(label.position.x + label.get_minimum_size().x * label.scale.x / 2) < 0.01 and label.position.y + label.get_minimum_size().y * label.scale.y < enemy.get_node("HealthBar").offset_top, "Boss name centered above bar: " + id)
 		enemy.queue_free()
 	var particles = game.particle_manager
 	var hit = particles.create_spell_impact_effect(Vector2.ZERO)
