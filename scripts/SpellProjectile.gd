@@ -2,6 +2,10 @@
 # Supports multiple spell types with different visuals and behaviors
 extends Area2D
 
+const Targeting = preload("res://scripts/SpellTargeting.gd")
+var reservation_remaining = 0.0
+var retarget_range = 600.0
+
 var healing_owner: WeakRef
 var heal_on_hit = 0.0
 var hit_ids: Dictionary = {}
@@ -40,6 +44,13 @@ func _ready():
 func _process(delta):
 	if despawning:
 		return
+	reservation_remaining -= delta
+	if is_homing and not Targeting.alive(target):
+		assign_target(Targeting.select(get_tree(), global_position, retarget_range, hit_ids, self))
+	if not is_homing and Targeting.alive(target):
+		var offset = target.global_position - global_position
+		if offset.dot(direction) < -24 or absf(offset.cross(direction)) > 60:
+			reservation_remaining = 0.0
 	queue_redraw()
 	# Handle lifetime
 	lifetime_timer -= delta
@@ -56,9 +67,7 @@ func _process(delta):
 	
 	global_position += direction * speed * delta
 	
-	# Remove if target is destroyed
-	if is_homing and not is_instance_valid(target):
-		despawn()
+
 
 func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: Color = Color.WHITE, type: String = "basic"):
 	# Ensure we have valid parameters
@@ -73,6 +82,7 @@ func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: 
 	effect_color = color
 	projectile_type = type
 	is_homing = false
+	assign_target(null)
 	
 	# Rotate visual to match direction
 	rotation = direction.angle()
@@ -87,6 +97,7 @@ func setup_homing(start_pos: Vector2, homing_target: Node2D, spell_damage: float
 	effect_color = color
 	projectile_type = type
 	is_homing = true
+	assign_target(homing_target)
 	
 	# Initial direction towards target
 	if is_instance_valid(target):
@@ -172,6 +183,7 @@ func _on_area_entered(area):
 			if enemy.has_method("take_damage"):
 				if hit_ids.has(enemy.get_instance_id()) or enemy.get("dying") or enemy.current_health <= 0:
 					return
+				reservation_remaining = 0.0
 				hit_ids[enemy.get_instance_id()] = true
 				var health_before = enemy.current_health
 				enemy.take_damage(damage, global_position)
@@ -222,20 +234,12 @@ func bounce_from(enemy) -> bool:
 	var bounces = int(get_meta("bounce_count", 0))
 	if bounces <= 0:
 		return false
-	var nearest = null
-	var distance = float(get_meta("bounce_range", 240.0))
-	for candidate in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(candidate) or candidate.is_queued_for_deletion() or candidate == enemy or hit_ids.has(candidate.get_instance_id()) or candidate.get("dying") or float(candidate.current_health) <= 0:
-			continue
-		var separation = global_position.distance_to(candidate.global_position)
-		if separation <= distance:
-			distance = separation
-			nearest = candidate
+	var nearest = Targeting.select(get_tree(), global_position, float(get_meta("bounce_range", 240.0)), hit_ids, self)
 	if not nearest:
 		return false
 	set_meta("bounce_count", bounces - 1)
-	target = nearest
 	is_homing = true
+	assign_target(nearest)
 	direction = global_position.direction_to(nearest.global_position)
 	rotation = direction.angle()
 	return true
@@ -260,6 +264,7 @@ func setup_for_pool():
 	is_pooled = true
 
 func reset_for_pool():
+	reservation_remaining = 0.0
 	monitoring = true
 	hit_ids.clear()
 	remove_meta("bounce_count")
@@ -299,6 +304,7 @@ func despawn():
 	if despawning:
 		return
 	despawning = true
+	reservation_remaining = 0.0
 	# Remove projectile from scene (return to pool or queue_free)
 	if is_pooled:
 		pool_return_requested.emit()
@@ -308,3 +314,14 @@ func despawn():
 func _on_lifetime_timer_timeout():
 	# Called by the LifetimeTimer node in the scene
 	despawn()
+
+func assign_target(enemy):
+	target = enemy
+	reservation_remaining = 0.0
+	if Targeting.alive(target):
+		reservation_remaining = minf(lifetime_timer if lifetime_timer > 0 else lifetime, global_position.distance_to(target.global_position) / maxf(speed, 1.0) + 0.25)
+
+func reserved_damage(enemy) -> float:
+	if despawning or is_queued_for_deletion() or not visible or reservation_remaining <= 0 or not Targeting.alive(target):
+		return 0.0
+	return damage if enemy == target else 0.0
