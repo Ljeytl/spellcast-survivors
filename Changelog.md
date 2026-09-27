@@ -1,3 +1,11 @@
+## 2026-09-26 — Spell area payoff and visible geometry
+
+- Make Lightning a160-radius blue burst lasting0.2s, with once-per-enemy damage and group selection; reuse its existing electrical sound. Give Meteor Shower data-driven220-radius growing telegraphs before every impact.
+- Enlarge Arcane Orbit to130orbit/42body radius with bounded contact damage. Strengthen Cross Blade to60damage per pass,42radius and0.9s of controlled lingering damage. Preserve Focus Ray.
+- Extend Firewalk patches from2s to6s, widen them to65radius, and draw continuous burning ground using the same path geometry as damage. Shared circle/cone boundaries also cover fields, traps, Meteor Lance splash and Ice Blast.
+- Fit infection markers above enlarged enemies; retain existing host-death spread repair. Audit all24implemented spells including passive and bonuses in docs/SPELL_PASS_2_AUDIT.md.
+- Add real-enemy geometry/cadence/boss-chase tests and native crowded/narrow fixtures. Future: player judgment of integrated balance and crowded visibility; Plague death-ground redesign remains deferred.
+
 ## 2026-09-26 — Shared spell targeting
 
 - Select useful targets for rapid and delayed Bolt, Mana Bolt, Life Bolt and Lightning Bolt attacks using expiring in-flight damage estimates. Homing attacks reacquire after target death; straight attacks retain their trajectory.

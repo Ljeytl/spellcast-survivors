@@ -65,6 +65,7 @@ func advance(delta: float):
 				deal_damage(enemy, damage)
 				if info.get("explosive", false):
 					pulse(enemy.global_position, 90.0, damage * 0.5, enemy)
+					show_area(enemy.global_position, 90.0, Color("ee6257"))
 	else:
 		if info.type == "orbit":
 			global_position = player.global_position
@@ -120,6 +121,15 @@ func pulse(center: Vector2, radius: float, amount: float, excluded = null):
 		deal_damage(enemy, amount)
 		if info.get("slow", 0.0) > 0.0 and enemy.has_method("apply_slow"):
 			enemy.apply_slow(1.0 - float(info.slow), 0.7)
+
+func show_area(center: Vector2, radius: float, tint: Color):
+	var effect = preload("res://scripts/EffectBurst.gd").new()
+	effect.mode = "area"
+	effect.radius = radius
+	effect.tint = tint
+	effect.duration = 0.25
+	get_parent().add_child(effect)
+	effect.global_position = center
 
 func infect(enemy, source: Vector2 = Vector2.INF):
 	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or infections.size() >= 8:
@@ -185,4 +195,4 @@ func _draw():
 			for reference in infections:
 				var enemy = reference.get_ref()
 				if valid_target(enemy):
-					art.stamp(self, "plague", to_local(enemy.global_position) + Vector2(0, -32), Vector2.ONE * 32)
+					art.stamp(self, "plague", to_local(enemy.global_position) + Vector2(0, -58), Vector2.ONE * 40)

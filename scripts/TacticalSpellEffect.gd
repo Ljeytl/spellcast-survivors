@@ -213,14 +213,10 @@ func _draw():
 		"spirit":
 			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Vector2.ONE * 28, Color(0.8, 1, 1))
 		"trail":
-			var radius = float(info.get("trail_radius", 65.0))
-			for index in range(trail_points.size()):
-				var point = trail_points[index]
-				var start = to_local(point.position)
-				var opacity = clampf((float(info.get("patch_duration", 6.0)) - point.age) * 2, 0, 1)
-				if index + 1 < trail_points.size():
-					preload("res://scripts/AreaArt.gd").fire_segment(self, start, to_local(trail_points[index + 1].position), radius, age, opacity)
-				preload("res://scripts/AreaArt.gd").fire_circle(self, start, radius, age, opacity)
+			var points = PackedVector2Array()
+			for point in trail_points:
+				points.append(to_local(point.position))
+			preload("res://scripts/AreaArt.gd").fire_path(self, points, float(info.get("trail_radius", 65.0)), age)
 		"returning":
 			var radius = float(info.get("blade_radius", 42.0))
 			art.stamp(self, "blade", Vector2.ZERO, Vector2.ONE * radius * 2, Color.WHITE, age * 12)
