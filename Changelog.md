@@ -4,11 +4,21 @@
 - Make successful contact hits briefly recoil enemies with weight-scaled movement and collision. The Pursuer boss dash is faster and longer with its existing windup; ordinary chargers retain their values.
 - Consolidate stationary distant offscreen XP locally without losing value or collecting moving pickups.
 - Record implementation approval and resolved choices in the shared specification.
+## 2026-09-26 — Spell area payoff and visible geometry
+
+- Make Lightning a160-radius blue burst lasting0.2s, with once-per-enemy damage and group selection; reuse its existing electrical sound. Give Meteor Shower data-driven220-radius growing telegraphs before every impact.
+- Enlarge Arcane Orbit to130orbit/42body radius with bounded contact damage. Strengthen Cross Blade to60damage per pass,42radius and0.9s of controlled lingering damage. Preserve Focus Ray.
+- Extend Firewalk patches from2s to6s, widen them to65radius, and draw continuous burning ground using the same path geometry as damage. Shared circle/cone boundaries also cover fields, traps, Meteor Lance splash and Ice Blast.
+- Fit infection markers above enlarged enemies; retain existing host-death spread repair. Audit all24implemented spells including passive and bonuses in docs/SPELL_PASS_2_AUDIT.md.
+- Distribute Meteor Shower impacts using per-cast expected damage; preserve full telegraphs and healthy-boss concentration. Preserve unburned holes when Firewalk loops back on itself.
+- Add real-enemy geometry/cadence/boss-chase tests and native crowded/narrow fixtures plus a rendered closed-path negative control. Future: player judgment of integrated balance and crowded visibility; Plague death-ground redesign remains deferred.
+
 ## 2026-09-26 — Shared spell targeting
 
 - Select useful targets for rapid and delayed Bolt, Mana Bolt, Life Bolt and Lightning Bolt attacks using expiring in-flight damage estimates. Homing attacks reacquire after target death; straight attacks retain their trajectory.
 - Release estimates on misses, impact, expiry, despawn and pooled reuse. Add reusable group-coverage selection for downstream area spells and document the entire implemented library targeting policy.
 - Verify real enemies and typed casts with a reservation-disabled negative control. Future: integrate ground-area selection and judge crowded-scene gameplay with the effects pass.
+
 ## 2026-09-26 — Readability and world scale candidate
 
 - Enlarge player/enemy sprites 1.75x and camera zoom 1.2x; preserve background world sizes and collision footprints. Fit staff orbit and enemy health bars to the larger bodies.

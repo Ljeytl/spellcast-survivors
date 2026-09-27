@@ -1,5 +1,6 @@
 # Art and feedback specification
 
+Current pass-2 runtime values and complete implemented-spell audit: [SPELL_PASS_2_AUDIT.md](SPELL_PASS_2_AUDIT.md). Earlier proposals below remain historical where superseded.
 Status: design proposal, no new art generation or runtime edits. Match the supplied ancient stone/pixel-world art. Read with the [spell catalog](SPELL_AND_UPGRADE_CATALOG.md); visuals must reflect its approved behavior, not invent mechanics.
 
 The [full spell library](SPELL_LIBRARY.md) adds preliminary visual identities for future concepts, including water. The lifecycle tables here cover current content and its proposed migrations; they do not mark future concept art as complete.

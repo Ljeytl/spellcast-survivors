@@ -30,11 +30,11 @@ static func select(tree: SceneTree, origin: Vector2, maximum_range: float = INF,
 			useful_distance = distance
 	return useful if useful != null else fallback
 
-static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum_range: float = INF):
+static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum_range: float = INF, planned_damage: Dictionary = {}):
 	var enemies = tree.get_nodes_in_group("enemies").filter(alive)
 	var weights = {}
 	for enemy in enemies:
-		weights[enemy.get_instance_id()] = 1.0 if incoming(tree, enemy) < enemy.current_health else 0.1
+		weights[enemy.get_instance_id()] = 1.0 if incoming(tree, enemy) + float(planned_damage.get(enemy.get_instance_id(), 0)) < enemy.current_health else 0.1
 	var selected = null
 	var best_score = -1.0
 	var nearest = INF

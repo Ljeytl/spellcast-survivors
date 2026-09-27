@@ -207,7 +207,7 @@
       }
     },
     "lightning_arc": {
-      "role": "Strike the nearest enemy with lightning.",
+      "role": "Strike a group with a brief circle of lightning.",
       "id": "lightning_arc",
       "name": "Lightning",
       "slot": 5,
@@ -253,7 +253,9 @@
           "range_bonus": 0.02
         }
       },
-      "incantation": "lightning"
+      "incantation": "lightning",
+      "radius": 160,
+      "active_duration": 0.2
     },
     "meteor_shower": {
       "role": "Bombard enemies with delayed area attacks.",
@@ -300,7 +302,8 @@
           "damage_bonus": 0.025,
           "radius_bonus": 0.015
         }
-      }
+      },
+      "warning_duration": 0.65
     },
     "ember_lance": {
       "id": "ember_lance",
@@ -333,18 +336,25 @@
       "role": "Burn a stationary area for 5 seconds.",
       "unlock_condition": {
         "type": "default"
-      }
+      },
+      "radius": 150,
+      "tick_interval": 0.5
     },
     "arcane_orbit": {
       "id": "arcane_orbit",
       "name": "Arcane Orbit",
       "type": "orbit",
-      "damage": 16,
-      "duration": 5.0,
-      "role": "Orbiting sparks protect you at close range for 5 seconds.",
+      "damage": 28,
+      "duration": 6.0,
+      "role": "Large arcane sparks circle you for 6 seconds.",
       "unlock_condition": {
         "type": "default"
-      }
+      },
+      "orbit_radius": 130,
+      "body_radius": 42,
+      "orb_count": 3,
+      "angular_speed": 4,
+      "tick_interval": 0.5
     },
     "fire_storm": {
       "id": "fire_storm",
@@ -824,7 +834,9 @@
       "role": "Place a trap that waits until triggered; up to three traps, oldest replaced.",
       "unlock_condition": {
         "type": "default"
-      }
+      },
+      "trigger_radius": 70,
+      "trap_radius": 130
     },
     "seeking_spirit": {
       "id": "seeking_spirit",
@@ -843,27 +855,37 @@
       "id": "ember_trail",
       "name": "Firewalk",
       "type": "trail",
-      "damage": 15,
-      "duration": 7.0,
+      "damage": 24,
+      "duration": 11.0,
       "active_limit": 3,
-      "role": "For 5 seconds, leave burning tracks as you move. Tracks last 2 seconds and damage pursuers every 0.5 seconds; overlapping tracks hit once per trail tick. Up to 3 trails.",
+      "role": "Leave a wide burning trail that lasts long enough to catch pursuers.",
       "unlock_condition": {
         "type": "default"
       },
-      "incantation": "firewalk"
+      "incantation": "firewalk",
+      "emission_duration": 5.0,
+      "patch_duration": 6.0,
+      "trail_radius": 65,
+      "tick_interval": 0.5
     },
     "returning_blade": {
       "id": "returning_blade",
       "name": "Cross Blade",
       "type": "returning",
-      "damage": 38,
-      "duration": 3.0,
+      "damage": 60,
+      "duration": 4.0,
       "active_limit": 3,
-      "role": "A blade flies 350 ahead, then returns to you. Each enemy can be hit once on each leg. Expires after 3 seconds; up to 3 blades.",
+      "role": "Carve through a crowd, linger, then slice back to you.",
       "unlock_condition": {
         "type": "default"
       },
-      "incantation": "cross blade"
+      "incantation": "cross blade",
+      "blade_radius": 42,
+      "travel_distance": 350,
+      "linger_duration": 0.9,
+      "linger_interval": 0.3,
+      "linger_damage_multiplier": 0.5,
+      "speed": 500
     }
   },
   "spell_categories": {

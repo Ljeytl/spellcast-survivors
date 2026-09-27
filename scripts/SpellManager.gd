@@ -667,12 +667,13 @@ func cast_earthshield_spell(slot: int):
 	create_shield_effect()
 
 func cast_lightning_arc_spell(slot: int):
-	var target = get_closest_enemy()
+	var info = get_spell_info(slot)
+	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)))
 	if not _live_spell_target(target):
 		return
-	var damage = calculate_spell_damage(get_spell_info(slot))
-	create_lightning_arc_visual(player.global_position, target.global_position, target)
-	target.take_damage(damage, player.global_position)
+	var effect = preload("res://scripts/LightningArea.gd").new()
+	effect.configure(target.global_position, info, calculate_spell_damage(info), player)
+	get_parent().add_child(effect)
 
 func cast_bouncing_bolt(slot: int):
 	var info = get_spell_info(slot)
@@ -687,31 +688,20 @@ func cast_bouncing_bolt(slot: int):
 	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
 
 func cast_meteor_shower_spell(slot: int):
-	var spell_info = get_spell_info(slot)
-	var damage = calculate_spell_damage(spell_info)
-	var meteor_count = spell_info["meteor_count"] + spell_info["level"] - 1  # More meteors at higher levels
-	
-	# Create multiple delayed meteors targeting enemy-dense areas
-	for i in meteor_count:
-		var delay = i * 0.3  # Faster intervals for more impact
-		var target_pos: Vector2
-		
-		# Try to target areas with enemies, fallback to random positions around player
-		var enemies = get_tree().get_nodes_in_group("enemies")
-		if enemies.size() > 0:
-			var random_enemy = enemies[randi() % enemies.size()]
-			# Target near random enemy with some spread
-			target_pos = random_enemy.global_position + Vector2(randf_range(-150, 150), randf_range(-150, 150))
-		else:
-			# No enemies, target around player
-			target_pos = player.global_position + Vector2(randf_range(-200, 200), randf_range(-200, 200))
-		
-		# Create delayed meteor with larger radius and warning indicator
-		var tree = get_tree()
-		if tree:
-			# Show warning indicator first
-			create_meteor_warning(target_pos, delay, 180.0)
-			tree.create_timer(delay).timeout.connect(func(): create_meteor_strike(target_pos, damage * 0.8))
+	var info = get_spell_info(slot)
+	var damage = calculate_spell_damage(info)
+	var count = int(info["meteor_count"]) + int(info["level"]) - 1
+	var radius = float(info.get("radius", 220.0))
+	var planned_damage: Dictionary = {}
+	for index in range(count):
+		var delay = float(info.get("warning_duration", 0.65)) + index * float(info.get("delay_interval", 0.3))
+		var target = Targeting.select_area(get_tree(), player.global_position, radius, INF, planned_damage)
+		var center = target.global_position if _live_spell_target(target) else player.global_position
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
+				planned_damage[enemy.get_instance_id()] = float(planned_damage.get(enemy.get_instance_id(), 0)) + damage * 0.8
+		create_meteor_warning(center, delay, radius)
+		get_tree().create_timer(delay).timeout.connect(create_meteor_strike.bind(center, damage * 0.8, radius))
 
 # Helper functions
 func get_closest_enemy():
@@ -785,15 +775,15 @@ func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Col
 	var enemies = scene_tree.get_nodes_in_group("enemies")
 	for enemy in enemies:
 		var distance = pos.distance_to(enemy.global_position)
-		if distance <= radius:
+		if _live_spell_target(enemy) and distance <= radius:
 			enemy.take_damage(damage)
 			# Apply slow effect for ice blast
 			if effect_type == "ice" and enemy.has_method("apply_slow"):
 				enemy.apply_slow(0.5, 3.0)  # 50% slow for 3 seconds
 
-func create_meteor_strike(pos: Vector2, damage: float):
+func create_meteor_strike(pos: Vector2, damage: float, radius: float = 220.0):
 	# Larger radius and higher damage for meteors with big explosion
-	create_aoe_explosion(pos, 180, damage, Color.RED, "meteor")
+	create_aoe_explosion(pos, radius, damage, Color.RED, "meteor")
 
 func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 	# Create a warning indicator at the target position showing the impact radius
@@ -1206,6 +1196,8 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 func cast_build_spell(slot: int) -> bool:
 	var info = get_spell_info(slot).duplicate(true)
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
+	if info.type == "field":
+		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)))
 	if info.type == "plague" and target == null:
 		last_cast_failure = "No target in range"
 		return false
