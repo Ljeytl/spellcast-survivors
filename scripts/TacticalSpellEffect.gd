@@ -98,7 +98,7 @@ func advance_beam(delta: float, player: Node2D):
 	var reach = global_position + direction * 450
 	var targets: Array = []
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if valid_target(enemy) and Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach).distance_to(enemy.global_position) <= 20:
+		if valid_target(enemy) and Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach).distance_to(enemy.global_position) <= Geometry.BEAM_RADIUS * float(info.spell_size_multiplier):
 			targets.append(enemy)
 	targets.sort_custom(func(a, b): return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position))
 	var hits = targets.slice(0, int(info.get("beam_targets", 1)))
@@ -131,13 +131,13 @@ func advance_spirit(delta: float, player: Node2D):
 	var destination = target.global_position if target else player.global_position
 	global_position = global_position.move_toward(destination, 320 * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
 	strike_ready = maxf(0, strike_ready - delta)
-	if target and valid_target(target) and global_position.distance_to(target.global_position) <= 24 and strike_ready <= 0.000001:
+	if target and valid_target(target) and global_position.distance_to(target.global_position) <= Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier) and strike_ready <= 0.000001:
 		var center = target.global_position
 		var before = float(target.current_health)
 		deal_damage(target, damage)
 		strike_ready = 0.5
 		if info.get("reaping", false) and before > 0 and is_instance_valid(target) and float(target.current_health) <= 0:
-			pulse(center, 100, damage * 0.5, target)
+			pulse(center, 100 * float(info.spell_size_multiplier), damage * 0.5, target)
 			burst_position = center
 			burst_remaining = 0.25
 
@@ -202,16 +202,16 @@ func advance_returning(delta: float, player: Node2D):
 func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	if burst_remaining > 0:
-		art.burst(self, 3, to_local(burst_position), 200, 1 - burst_remaining / 0.25)
+		art.burst(self, 3, to_local(burst_position), 200 * float(info.spell_size_multiplier), 1 - burst_remaining / 0.25)
 	match info.type:
 		"beam":
-			art.beam(self, Vector2.ZERO, beam_end, 4, 0.85)
+			art.beam(self, Vector2.ZERO, beam_end, Geometry.BEAM_RADIUS * 2 * float(info.spell_size_multiplier), 0.85)
 		"trap":
 			var radius = float(info.get("trap_radius", 130)) if triggered else float(info.get("trigger_radius", 70))
 			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, color, minf(remaining * 4, 1) if triggered else 1.0, clampf(age / float(info.get("arm_delay", 0.8)), 0, 1))
 			art.stamp(self, "rune", Vector2.ZERO, Vector2.ONE * 48)
 		"spirit":
-			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Visual.size(self, Vector2.ONE * 28), Color(0.8, 1, 1))
+			art.stamp(self, "spirit", Vector2(0, sin(age * 5) * 3), Visual.size(self, Geometry.stamp_dimensions("spirit", Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier))), Color(0.8, 1, 1))
 		"trail":
 			var points = PackedVector2Array()
 			for point in trail_points:
@@ -219,4 +219,4 @@ func _draw():
 			preload("res://scripts/AreaArt.gd").fire_path(self, points, float(info.get("trail_radius", 65.0)), age)
 		"returning":
 			var radius = float(info.get("blade_radius", 42.0))
-			art.stamp(self, "blade", Vector2.ZERO, Visual.size(self, Vector2.ONE * radius * 2), Color.WHITE, age * 12)
+			art.stamp(self, "blade", Vector2.ZERO, Visual.size(self, Geometry.stamp_dimensions("blade", radius)), Color.WHITE, age * 12)

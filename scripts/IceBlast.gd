@@ -12,7 +12,8 @@ var slow_duration = 2.0
 var slow_strength = 0.6
 var shard_radius = 12.0
 
-func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, push: float, slow_time: float, slow: float, speed_multiplier: float):
+func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, push: float, slow_time: float, slow: float, speed_multiplier: float, size_multiplier: float = 1.0):
+	shard_radius = 12.0 * size_multiplier
 	position = origin
 	reach = radius
 	damage = amount
@@ -103,4 +104,4 @@ func contact_fraction(enemy: Node2D, start: Vector2, end: Vector2) -> float:
 func _draw():
 	for shard in shards:
 		if shard.active:
-			preload("res://scripts/EffectArt.gd").stamp(self, "ice", shard.position, Visual.size(self, Vector2(32, 24)), Color.WHITE, shard.direction.angle())
+			preload("res://scripts/EffectArt.gd").stamp(self, "ice", shard.position, Visual.size(self, Vector2(32, 24) * shard_radius / 12.0), Color.WHITE, shard.direction.angle())

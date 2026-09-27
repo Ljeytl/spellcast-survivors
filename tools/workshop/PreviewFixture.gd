@@ -9,7 +9,7 @@ var elapsed = 0.0
 var duration = 2.0
 var scenery: Node2D
 var targets: Array = []
-var settings = {"wizard": 1.0, "enemy": 1.0, "enemy_sizes": {}, "tree": 1.0, "bush": 1.0, "projectile": 1.0, "particle": 1.0, "zoom": 1.5, "variant": "pursuer", "comparison": false, "scenery": true}
+var settings = {"wizard": 1.0, "enemy": 1.0, "enemy_sizes": {}, "tree": 1.0, "bush": 1.0, "spell_size": 1.0, "projectile": 1.0, "particle": 1.0, "zoom": 1.5, "variant": "pursuer", "comparison": false, "scenery": true}
 
 func catalog() -> Array:
 	var result = [{"id": "mana_bolt", "name": "Mana Bolt", "group": "Spells", "bonus": false}]
@@ -44,6 +44,7 @@ func setup(parent: Node, id: String):
 	game.player.set_physics_process(false)
 	game.player.is_invincible = true
 	game.player.health = 30
+	game.player.spell_size_multiplier = settings.spell_size
 	game.camera_shake.set_process(false)
 	game.camera.position = game.player.position + Vector2(160, 0)
 	game.camera.reset_smoothing()

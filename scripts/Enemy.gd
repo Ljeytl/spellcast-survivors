@@ -433,12 +433,6 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF):
 	current_health -= final_damage
 	current_health = max(0, current_health)
 	
-	if final_damage > 0 and Time.get_ticks_msec() - last_hit_feedback >= 80:
-		last_hit_feedback = Time.get_ticks_msec()
-		var game = get_tree().get_first_node_in_group("game")
-		if game and game.has_method("create_spell_impact_effect"):
-			game.create_spell_impact_effect(global_position)
-
 	# Show floating damage number
 	enemy_damaged.emit(damage_amount, global_position)
 	
@@ -693,6 +687,7 @@ func shoot_at_player():
 	# Add to scene
 	var parent = get_parent()
 	if parent:
+		projectile.add_to_group("enemy_projectiles")
 		parent.add_child(projectile)
 		
 		# Setup enemy projectile (different from player spells)

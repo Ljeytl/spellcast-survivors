@@ -2,6 +2,7 @@
 # Supports multiple spell types with different visuals and behaviors
 extends Area2D
 
+const Geometry = preload("res://scripts/SpellGeometry.gd")
 const Targeting = preload("res://scripts/SpellTargeting.gd")
 var reservation_remaining = 0.0
 var retarget_range = 600.0
@@ -10,6 +11,7 @@ var healing_owner: WeakRef
 var heal_on_hit = 0.0
 var hit_ids: Dictionary = {}
 
+var spell_size = 1.0
 var despawning: bool = false
 
 # Movement and damage properties
@@ -33,6 +35,7 @@ func _ready():
 	add_to_group("spell_projectiles")
 	preload("res://scripts/ProjectileVisual.gd").register(self)
 	
+	refresh_geometry()
 	# Set up collision detection - Area2D can only detect other Area2D nodes
 	area_entered.connect(_on_area_entered)
 	
@@ -41,6 +44,17 @@ func _ready():
 	
 	# Update visual based on type
 	call_deferred("update_visual")
+
+func refresh_geometry():
+	if not is_inside_tree():
+		return
+	var hostile = is_in_group("enemy_projectiles")
+	spell_size = 1.0 if hostile else Geometry.multiplier(get_tree().get_first_node_in_group("player"))
+	var collision = get_node_or_null("CollisionShape2D")
+	if collision and collision.shape is CircleShape2D:
+		collision.shape = collision.shape.duplicate()
+		collision.shape.radius = 8.0 if hostile else Geometry.BOLT_RADIUS * spell_size
+	queue_redraw()
 
 func _process(delta):
 	if despawning:
@@ -71,6 +85,7 @@ func _process(delta):
 
 
 func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: Color = Color.WHITE, type: String = "basic"):
+	refresh_geometry()
 	# Ensure we have valid parameters
 	if target_dir == Vector2.ZERO:
 		print("⚠️  Warning: setup() called with zero direction, using Vector2.RIGHT")
@@ -92,6 +107,7 @@ func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: 
 	call_deferred("update_visual")
 
 func setup_homing(start_pos: Vector2, homing_target: Node2D, spell_damage: float, color: Color = Color.WHITE, type: String = "homing"):
+	refresh_geometry()
 	global_position = start_pos
 	target = homing_target
 	damage = spell_damage
@@ -169,12 +185,6 @@ func _on_area_entered(area):
 			if player.has_method("take_damage"):
 				player.take_damage(damage)
 				
-				# Create impact effect
-				var scene_tree = get_tree()
-				if scene_tree:
-					var game_node = scene_tree.get_first_node_in_group("game")
-					if game_node and game_node.has_method("create_spell_impact_effect"):
-						game_node.create_spell_impact_effect(global_position)
 				
 				despawn()
 	else:
@@ -192,12 +202,6 @@ func _on_area_entered(area):
 				if projectile_type == "life_bolt" and dealt > 0:
 					spawn_healing_seed()
 
-				# Create particle effect on impact
-				var scene_tree = get_tree()
-				if scene_tree:
-					var game_node = scene_tree.get_first_node_in_group("game")
-					if game_node and game_node.has_method("create_spell_impact_effect"):
-						game_node.create_spell_impact_effect(global_position)
 				
 				# Create damage number
 				var parent = get_parent()
@@ -226,12 +230,12 @@ func _draw():
 		"heal":
 			art.wreath(self, "heal", Vector2.ZERO, 24, 0)
 		"mana_bolt":
-			art.stamp(self, "mana", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Vector2(40, 34)))
+			art.stamp(self, "mana", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Geometry.stamp_dimensions("mana", Geometry.BOLT_RADIUS * spell_size)))
 		"bolt", "life_bolt":
-			art.stamp(self, "bolt", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Vector2(42, 36)), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
+			art.stamp(self, "bolt", Vector2.ZERO, preload("res://scripts/ProjectileVisual.gd").size(self, Geometry.stamp_dimensions("bolt", Geometry.BOLT_RADIUS * spell_size)), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
 		"lightning_bolt":
-			var visual_scale = preload("res://scripts/ProjectileVisual.gd").factor(self)
-			art.lightning(self, Vector2(-24, 0) * visual_scale, Vector2(14, 0) * visual_scale, 8 * visual_scale)
+			var visual_scale = preload("res://scripts/ProjectileVisual.gd").factor(self) * spell_size
+			art.lightning(self, Vector2(-24, 0) * visual_scale, Vector2(14, 0) * visual_scale, Geometry.BOLT_RADIUS * 2 * visual_scale)
 		_:
 			art.stamp(self, "impact", Vector2.ZERO, Vector2.ONE * 18)
 

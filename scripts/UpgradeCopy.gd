@@ -44,6 +44,8 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 			return "Gain %s%% spell power." % number(value * 100)
 		"cast_speed":
 			return "Gain %s%% Mana Bolt attack speed." % number(value * 100)
+		"spell_area":
+			return "Gain %s%% spell size." % number(value * 100)
 		"projectile_speed":
 			return "Gain %s%% projectile speed." % number(value * 100)
 		"slowdown_duration":

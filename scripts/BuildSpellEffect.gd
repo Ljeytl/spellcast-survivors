@@ -16,14 +16,22 @@ var death_transfers: Dictionary = {}
 var orbit_hit_times: Dictionary = {}
 var elapsed_time = 0.0
 var infected_at: Dictionary = {}
+var infection_expires: Dictionary = {}
+var resting_spores: Array = []
+var infection_duration = 5.0
+var hosts_started = 0
+const SPORE_LINGER = 3.0
+const HOST_LIMIT = 8
+const Geometry = preload("res://scripts/SpellGeometry.gd")
 const Visual = preload("res://scripts/ProjectileVisual.gd")
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
-	info = data.duplicate(true)
+	info = preload("res://scripts/SpellGeometry.gd").scaled_data(data, player)
 	damage = amount
 	caster = weakref(player)
 	global_position = player.global_position
 	remaining = float(info.get("duration", 5.0))
+	infection_duration = remaining
 	tick_remaining = float(info.get("tick_interval", 0.5))
 	if is_instance_valid(target):
 		direction = (target.global_position - global_position).normalized()
@@ -54,7 +62,7 @@ func _physics_process(delta):
 func advance(delta: float):
 	if info.type == "plague" and delta > 0.025:
 		var budget = delta
-		while budget > 0.000001 and remaining > 0.0:
+		while budget > 0.000001 and not is_queued_for_deletion():
 			var step = minf(budget, 0.025)
 			advance(step)
 			budget -= step
@@ -68,18 +76,19 @@ func advance(delta: float):
 	elapsed_time += elapsed
 	if info.type == "plague":
 		advance_spores(elapsed)
+		refresh_plague_lifetime()
 	if info.type == "piercing":
 		var start = global_position
 		global_position += direction * 700.0 * float(info.get("projectile_speed_multiplier", 1.0)) * elapsed
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()):
 				continue
-			if Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= 24.0:
+			if Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= Geometry.LANCE_RADIUS * float(info.spell_size_multiplier):
 				hit_ids[enemy.get_instance_id()] = true
 				deal_damage(enemy, damage)
 				if info.get("explosive", false):
-					pulse(enemy.global_position, 90.0, damage * 0.5, enemy)
-					show_area(enemy.global_position, 90.0, Color("ee6257"))
+					pulse(enemy.global_position, 90.0 * float(info.spell_size_multiplier), damage * 0.5, enemy)
+					show_area(enemy.global_position, 90.0 * float(info.spell_size_multiplier), Color("ee6257"))
 	else:
 		if info.type == "orbit":
 			global_position = player.global_position
@@ -145,36 +154,79 @@ func show_area(center: Vector2, radius: float, tint: Color):
 	get_parent().add_child(effect)
 	effect.global_position = center
 
-func infect(enemy, source: Vector2 = Vector2.INF, search_range: float = 130.0):
-	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or infections.size() + infection_links.size() >= 8:
+func infect(enemy, source: Vector2 = Vector2.INF, search_range: float = 130.0, expires: float = -1.0):
+	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or hosts_started + infection_links.size() >= HOST_LIMIT:
 		return
 	hit_ids[enemy.get_instance_id()] = true
 	var origin = global_position if source == Vector2.INF else source
-	infection_links.append({"from": origin, "position": origin, "target": weakref(enemy), "target_id": enemy.get_instance_id(), "range": search_range})
+	infection_links.append({"from": origin, "position": origin, "target": weakref(enemy), "target_id": enemy.get_instance_id(), "range": search_range, "expires": elapsed_time + SPORE_LINGER if expires < 0 else expires})
+	refresh_plague_lifetime()
+
+func nearest_host(center: Vector2, search_range: float):
+	var nearest = null
+	var distance = search_range
+	for candidate in get_tree().get_nodes_in_group("enemies"):
+		if valid_target(candidate) and not hit_ids.has(candidate.get_instance_id()):
+			var candidate_distance = center.distance_to(candidate.global_position)
+			if candidate_distance <= distance:
+				distance = candidate_distance
+				nearest = candidate
+	return nearest
+
+func rest_spore(center: Vector2, expires: float = -1.0):
+	if hosts_started >= HOST_LIMIT or infections.size() + infection_links.size() + resting_spores.size() >= HOST_LIMIT:
+		return
+	resting_spores.append({"position": center, "expires": elapsed_time + SPORE_LINGER if expires < 0 else expires, "fresh": expires < 0})
+	refresh_plague_lifetime()
+
+func refresh_plague_lifetime():
+	var end = elapsed_time
+	for id in infection_expires:
+		end = maxf(end, float(infection_expires[id]))
+	for link in infection_links:
+		end = maxf(end, float(link.expires))
+	for spore in resting_spores:
+		end = maxf(end, float(spore.expires))
+	if end > elapsed_time:
+		remaining = maxf(remaining, end - elapsed_time + 0.025)
 
 func advance_spores(delta: float):
+	for reference in infections.duplicate():
+		var host = reference.get_ref()
+		if not is_instance_valid(host):
+			infections.erase(reference)
+		elif not valid_target(host):
+			_on_infected_host_died(host)
+		elif elapsed_time >= float(infection_expires.get(host.get_instance_id(), INF)):
+			infections.erase(reference)
+			infection_expires.erase(host.get_instance_id())
+	for spore in resting_spores.duplicate():
+		if elapsed_time >= spore.expires:
+			resting_spores.erase(spore)
+			continue
+		var host = nearest_host(spore.position, 130.0 * float(info.spell_size_multiplier))
+		if host:
+			resting_spores.erase(spore)
+			infect(host, spore.position, 130.0 * float(info.spell_size_multiplier), elapsed_time + SPORE_LINGER if spore.fresh else spore.expires)
 	for link in infection_links.duplicate():
+		if elapsed_time >= link.expires:
+			infection_links.erase(link)
+			continue
 		var enemy = link.target.get_ref()
 		if not valid_target(enemy):
-			hit_ids.erase(link.target_id)
-			enemy = null
-			var nearest = INF
-			for candidate in get_tree().get_nodes_in_group("enemies"):
-				if valid_target(candidate) and not hit_ids.has(candidate.get_instance_id()) and link.from.distance_to(candidate.global_position) <= link.range:
-					var distance = link.position.distance_squared_to(candidate.global_position)
-					if distance < nearest:
-						nearest = distance
-						enemy = candidate
-			if not enemy:
-				infection_links.erase(link)
-				continue
-			link.target = weakref(enemy)
-			link.target_id = enemy.get_instance_id()
-			hit_ids[link.target_id] = true
+			infection_links.erase(link)
+			var replacement = nearest_host(link.position, float(link.range))
+			if replacement:
+				infect(replacement, link.position, float(link.range), link.expires)
+			else:
+				rest_spore(link.position, link.expires)
+			continue
 		link.position = link.position.move_toward(enemy.global_position, 460.0 * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
 		if link.position.distance_to(enemy.global_position) <= 0.001:
+			hosts_started += 1
 			infections.append(weakref(enemy))
 			infected_at[enemy.get_instance_id()] = elapsed_time
+			infection_expires[enemy.get_instance_id()] = elapsed_time + infection_duration
 			if enemy.has_signal("enemy_died"):
 				enemy.connect("enemy_died", _on_infected_host_died, CONNECT_ONE_SHOT)
 			infection_links.erase(link)
@@ -194,23 +246,28 @@ func tick_infections():
 
 func _on_infected_host_died(enemy):
 	var id = enemy.get_instance_id()
-	if remaining > 0.0 and not is_queued_for_deletion() and not death_transfers.has(id):
-		death_transfers[id] = true
-		spread_from(enemy.global_position)
-
-func spread_from(center: Vector2):
-	if infections.size() + infection_links.size() >= 8:
+	if remaining <= 0 or is_queued_for_deletion() or death_transfers.has(id) or not infection_expires.has(id):
 		return
-	for other in get_tree().get_nodes_in_group("enemies"):
-		if valid_target(other) and center.distance_to(other.global_position) <= 130.0 and not hit_ids.has(other.get_instance_id()):
-			infect(other, center)
-			break
+	death_transfers[id] = true
+	infections = infections.filter(func(reference): return reference.get_ref() != enemy)
+	infection_expires.erase(id)
+	if not spread_from(enemy.global_position):
+		rest_spore(enemy.global_position)
+
+func spread_from(center: Vector2) -> bool:
+	if hosts_started >= HOST_LIMIT:
+		return false
+	var other = nearest_host(center, 130.0 * float(info.spell_size_multiplier))
+	if other:
+		infect(other, center)
+		return true
+	return false
 
 func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	match info.type:
 		"piercing":
-			art.stamp(self, "lance", Vector2.ZERO, Visual.size(self, Vector2(56, 24)), Color.WHITE, direction.angle())
+			art.stamp(self, "lance", Vector2.ZERO, Visual.size(self, Geometry.stamp_dimensions("lance", Geometry.LANCE_RADIUS * float(info.spell_size_multiplier))), Color.WHITE, direction.angle())
 		"field":
 			var radius = float(info.get("radius", 150.0))
 			if info.get("slow", 0.0) > 0:
@@ -225,12 +282,15 @@ func _draw():
 				preload("res://scripts/AreaArt.gd").circle(self, center, body_radius * Visual.factor(self), Color("b49bea"), 0.8)
 				art.stamp(self, "mana", center, Visual.size(self, Vector2.ONE * body_radius * 2), Color.WHITE, angle + TAU * i / count + PI / 2)
 		"plague":
+			for spore in resting_spores:
+				var pulse_size = 30.0 + sin(elapsed_time * 5.0) * 3.0
+				art.stamp(self, "plague", to_local(spore.position), Visual.size(self, Vector2.ONE * pulse_size * float(info.spell_size_multiplier)), Color(0.75, 1, 0.5))
 			for link in infection_links:
 				var from = to_local(link.from)
 				var point = to_local(link.position)
 				var heading = from.direction_to(point)
 				for index in range(2, -1, -1):
-					art.stamp(self, "plague", point - heading * index * 10, Visual.size(self, Vector2.ONE * (32 - index * 6)))
+					art.stamp(self, "plague", point - heading * index * 10, Visual.size(self, Vector2.ONE * (32 - index * 6) * float(info.spell_size_multiplier)))
 			for reference in infections:
 				var enemy = reference.get_ref()
 				if valid_target(enemy):
