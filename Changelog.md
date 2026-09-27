@@ -5,6 +5,53 @@
 - Enlarge mana-crystal visuals and their pulse by 1.5× without changing XP values, magnet range, collection shapes, or movement.
 - Future: evaluate grove density and canopy fading during crowded human playtests before adding new terrain types or obstacles.
 
+## 2026-09-26 — Implementation authorized
+
+- Begin the approved staged repair of the existing roster, casting/progression, simple matching art, UX/world and integrated balance. Preserve unselected ideas and defer shader/audio polish.
+
+## 2026-09-26 — Simple art matched to supplied assets (documentation only)
+
+- Record the user's direction to follow the friend's supplied art style closely, reuse existing assets and keep additions simple placeholders.
+- Limit art work to the repaired current roster and selected additions. Treat effect lifecycles as readability requirements, not demands for elaborate bespoke animation. Shaders and audio remain deferred.
+
+## 2026-09-26 — Table coverage audit (documentation only)
+
+- Move remaining modifier phrases and broader saved concepts into explicit status/source tables in the [spell library](docs/SPELL_LIBRARY.md); preserve the full discussion notes as supporting detail.
+- Record alternate-name references and unnamed Whip variants without counting them as implemented spells. Correct the historical notes' stale equipped-slot reference to the superseding six-slot rule.
+
+## 2026-09-26 — Spell direction accepted (documentation only)
+
+- Record user acceptance of the spell direction and endorsement of circular Frost Nova alongside cone-shaped Ice Blast. Keep concept endorsement separate from playable status, expansion selection and implementation authorization.
+
+## 2026-09-26 — Defer shaders (documentation only)
+
+- Record shader work as a later roadmap item, explicitly outside the current design and implementation scope. No runtime or asset changes.
+
+## 2026-09-26 — Spell geometry contracts (documentation only)
+
+- Correct Ice Blast to the user-confirmed directional cone and retain radial Frost Nova as a distinct idea.
+- Add geometry and targeting to the full library, plus detailed origin, dimensions, timing, collision and upgrade requirements for current spell families.
+- Require ordinary VFX to communicate the real affected shape; reserve exact hitbox overlays for opt-in debug. Keep unapproved shape and aim choices explicitly proposed.
+
+## 2026-09-26 — Preserve the baseline and separate debug from play (documentation only)
+
+- Keep and repair the implemented roster; select library expansions separately instead of silently replacing existing spells.
+- Define normal play, ordinary spellbook and opt-in debug as distinct information surfaces. Keep technical overlays and test controls out of normal runs.
+- Record Earth Wall/Earth Walls separately from Earth Shield, retain Thunderwave as a user concept, and leave protective versus terrain behavior explicit for design selection.
+
+## 2026-09-26 — Complete spell library and naming feedback (documentation only)
+
+- Add the [full spell library](docs/SPELL_LIBRARY.md) with individual status, source, letter count, fantasy and visual identity rows. Preserve user concepts, inactive drafts and name alternatives; add clearly labelled water, sun, earth and arcane suggestions. Rows are not a promised playable spell count.
+- Separate quick Life (about 4 HP) from stronger Regeneration, specify straight non-homing Bolt, document Seeker versus stronger Seeking Spirit, recommend Firewalk as a working trail name, and revise Earth Shield toward damageable terrain which decays.
+- Reopen affected recipes explicitly rather than silently mapping Life Bolt or Reaping Spirit to new ingredients. Keep implementation, generated art and merges paused for design review.
+
+## 2026-09-26 — Playtest design package (documentation only)
+
+- Consolidate playtest feedback into [core design v0.4](docs/CORE_GAME_DESIGN.md), the [spell/passive catalog](docs/SPELL_AND_UPGRADE_CATALOG.md), [art and feedback matrix](docs/ART_AND_FEEDBACK_PLAN.md), and [agent delivery plan](docs/PLAYTEST_REWORK_PLAN.md).
+- Record six active/six passive slots, additional slot-free combinations, distinct Bolt/Lightning/Lightning Bolt, per-cast slowdown, useful long-incantation payoff, readable effects and revised opening pressure. These are intended rules, not completed runtime changes.
+- Preserve frozen implementation branches and distinguish canonical build, remote UI changes and candidate evidence. Resume implementation only after design approval.
+- Keep Moonfall, Tree of Life, Grasping Hand, modifier words, alternate starters, map challenges, typed menus and audio separately scoped or deferred; do not silently add them to this pass.
+
 ## 2026-09-26 — Minimal player interface and retained diagnostics
 
 - Hide tier labels, advance boss schedules, passive/rank/refill telemetry, permanent control paragraphs and empty spell slots during normal play. Show active boss health only after arrival; retain health, XP/level, clock, equipped spells and casting feedback.
