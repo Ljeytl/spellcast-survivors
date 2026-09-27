@@ -13,6 +13,7 @@ var player: CharacterBody2D
 var clearing_center = Vector2.ZERO
 var initialized = false
 var floor_textures: Array[Texture2D] = []
+var grass_density = FastNoiseLite.new()
 var decorations: Dictionary = {}
 var layouts: Dictionary = {}
 var last_cell = Vector2i(2147483647, 2147483647)
@@ -21,6 +22,9 @@ var last_view = Vector2.ZERO
 func _ready():
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	z_index = -100
+	grass_density.seed = 7319
+	grass_density.frequency = 0.16
+	grass_density.fractal_octaves = 2
 	for i in range(1, 10):
 		floor_textures.append(load(ART + "Level Tiles/Grass Tile %d.png" % i))
 	initialize.call_deferred()
@@ -189,6 +193,11 @@ func _process(_delta):
 					canopy.modulate.a = 0.35
 	queue_redraw()
 
+func floor_variant(cell: Vector2i) -> int:
+	var density = grass_density.get_noise_2d(cell.x, cell.y)
+	var variants = [1, 7] if density < -0.12 else ([0, 3, 4, 5] if density > 0.12 else [2, 6, 8])
+	return variants[posmod(hash("grass:%d:%d" % [cell.x, cell.y]), variants.size())]
+
 func _draw():
 	if not initialized:
 		return
@@ -196,5 +205,5 @@ func _draw():
 	var center = camera.get_screen_center_position()
 	for y in range(floori((center.y - half_view.y) / TILE_SIZE), ceili((center.y + half_view.y) / TILE_SIZE)):
 		for x in range(floori((center.x - half_view.x) / TILE_SIZE), ceili((center.x + half_view.x) / TILE_SIZE)):
-			var index = posmod(hash("grass:%d:%d" % [x, y]), floor_textures.size())
+			var index = floor_variant(Vector2i(x, y))
 			draw_texture_rect(floor_textures[index], Rect2(Vector2(x, y) * TILE_SIZE, Vector2.ONE * TILE_SIZE), false, Color(0.72, 0.78, 0.72))

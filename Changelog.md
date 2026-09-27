@@ -1,3 +1,8 @@
+## 2026-09-27 — Existing grass variants in patches
+
+- Group the nine supplied grass tiles into sparse, mixed and leafy patches instead of uniformly scattering every variant. Keep the original art, ground palette, scale and collision unchanged; deterministic world coordinates preserve patches when revisiting.
+- Future: additional authored ground families can extend the same selection without adding visual noise to combat.
+
 ## 2026-09-27 — Integrated second playtest pass
 
 - Release closeout: PR38 merged; exported pack passed97 checks and replaced the canonical current build. Coordination state now reflects verified delivery.
