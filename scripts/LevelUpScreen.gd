@@ -152,7 +152,7 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		var upgrade = generic_upgrades[key].duplicate(true)
 		# Update descriptions with current values
 		var effect = upgrade.get("effect", {})
-		if effect.get("type", "") not in ["spell_damage", "cast_speed", "movement_speed", "max_health", "xp_range"]:
+		if not get_tree().get_first_node_in_group("game").player.can_acquire_passive(effect.get("type", "")):
 			continue
 		match effect.get("type", ""):
 			"spell_damage":
@@ -175,8 +175,10 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 	
 	var manager = get_tree().get_first_node_in_group("game").get_node("SpellManager")
 	for spell_name in unlocked_spells:
+		if spell_name == "mana_bolt":
+			continue
 		var slot = manager.find_spell_slot(spell_name)
-		var title = "Mana Bolt" if spell_name == "mana_bolt" else manager.spells[slot].name
+		var title = "Mana Bolt" if spell_name == "mana_bolt" else manager.get_spell_info(slot).name
 		all_upgrades.append({"key": "rank:" + spell_name, "name": title + "+", "icon": "⭐",
 			"description": manager.get_rank_upgrade_description(spell_name),
 			"effect": {"type": "spell_upgrade", "spell": spell_name}})

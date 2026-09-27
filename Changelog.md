@@ -1,3 +1,11 @@
+## 2026-09-27 — Casting and acquisition foundations
+
+- Give each cast a fresh finite real-time slowdown window; remove idle refill dependency and add the Focus duration passive at fixed slowdown strength.
+- Support six primary spells and six passive families. Passive ranks stay in their family slot; Mana Mastery bundles automatic Mana Bolt rank and attack rate. Only passives with working effects enter the offer pool.
+- Learn authored bonus spells separately at rank 1 while preserving both ingredients and their ranks. Add unified owned-spell lookup/library APIs, reject unowned casts, and keep discovery memory separate from run ownership.
+- Separate quick Life from Regeneration and Bolt from Lightning. Reserve Lightning Bolt's bouncing-projectile contract and Life Bolt's collectable healing-seed contract for the effects integration; defer Reaping Spirit acquisition.
+- Future: integrate the effects contracts and player spellbook, audit remaining passive families, and validate the combined candidate before delivery.
+
 ## 2026-09-26 — Implementation authorized
 
 - Begin the approved staged repair of the existing roster, casting/progression, simple matching art, UX/world and integrated balance. Preserve unselected ideas and defer shader/audio polish.

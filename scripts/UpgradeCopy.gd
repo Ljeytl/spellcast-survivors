@@ -2,7 +2,8 @@ extends RefCounted
 
 const SPELLS = {
 	"bolt": "Fire a bolt at a nearby enemy.",
-	"life": "Restore health over time.",
+	"life": "Restore a little health immediately.",
+	"regeneration": "Restore health over time.",
 	"ice_blast": "Blast nearby enemies with ice and push them back.",
 	"earth_shield": "Gain temporary bonus health.",
 	"lightning_arc": "Chain lightning through nearby enemies.",
@@ -13,19 +14,20 @@ const SPELLS = {
 	"arcane_orbit": "Surround yourself with damaging orbiting magic.",
 	"focus_ray": "Track a nearby enemy with a damaging beam.",
 	"rune_trap": "Place an explosive trap ahead of you.",
-	"seeking_spirit": "Summon a spirit that hunts nearby enemies.",
+	"seeking_spirit": "Summon a hunter that pursues nearby enemies.",
 	"ember_trail": "Leave burning tracks as you move.",
 	"returning_blade": "Throw a blade that strikes again on its return."
 }
 
 const EVOLUTIONS = {
-	"life_bolt": "Replace Bolt with a healing bolt that loses extra projectiles.",
-	"meteor_lance": "Replace Ember Lance with explosive hits but 40% less direct damage.",
-	"soul_bloom": "Replace Plague Seed with healing infection but 25% less damage.",
-	"steam_field": "Replace Cinder Field with slowing steam that lasts 2 seconds less.",
-	"prism_ray": "Replace Focus Ray with a piercing beam but 40% less damage per target.",
-	"frost_sigil": "Replace Rune Trap with a larger slowing burst that arms 0.6 seconds slower.",
-	"reaping_spirit": "Replace Seeking Spirit with explosive kills but 25% less contact damage."
+	"lightning_bolt": "Fire a bolt that bounces between nearby enemies.",
+	"life_bolt": "Hits plant a healing seed you can collect.",
+	"meteor_lance": "Pierce enemies with explosive hits and 40% less direct damage.",
+	"soul_bloom": "Spread healing infection with 25% less damage.",
+	"steam_field": "Create slowing steam that lasts 3 seconds.",
+	"prism_ray": "Pierce aligned enemies with 40% less damage per target.",
+	"frost_sigil": "Place a larger slowing trap that arms after 1.4 seconds.",
+	"reaping_spirit": "Summon a hunter with explosive kills and 25% less contact damage."
 }
 
 static func number(value: float) -> String:
@@ -42,6 +44,12 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 			return "Gain %s%% spell power." % number(value * 100)
 		"cast_speed":
 			return "Gain %s%% Mana Bolt attack speed." % number(value * 100)
+		"projectile_speed":
+			return "Gain %s%% projectile speed." % number(value * 100)
+		"slowdown_duration":
+			return "Gain %s seconds of slowdown per cast." % number(value)
+		"mana_bolt_mastery":
+			return "Strengthen your automatic Mana Bolt and fire it faster."
 		"movement_speed":
 			return "Gain %s%% movement speed." % number(value * 100)
 		"max_health":
@@ -55,8 +63,10 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 static func rank_description(id: String, manager: Node) -> String:
 	var rank = manager.get_spell_rank(id)
 	var slot = manager.find_spell_slot(id)
-	var info = manager.spells.get(slot, {})
+	var info = manager.get_spell_info(slot)
 	if id == "life":
+		return "Restore %s more health per cast." % number(float(info.heal_amount) * 0.15)
+	if id == "regeneration":
 		return "Restore %s more health each second." % number(float(info.heal_amount) * 0.15)
 	if id == "earth_shield":
 		return "Gain %s more bonus health per cast." % number(float(info.shield_hp) * 0.15)

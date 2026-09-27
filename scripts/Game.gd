@@ -670,6 +670,8 @@ func show_next_level_up():
 		level_up_screen.show_level_up(next_level, {
 			"spell_damage_multiplier": player.spell_damage_multiplier,
 			"cast_speed_multiplier": player.cast_speed_multiplier,
+			"projectile_speed_multiplier": player.projectile_speed_multiplier,
+			"passive_ranks": player.passive_ranks.duplicate(),
 			"movement_speed_multiplier": player.movement_speed_multiplier,
 			"max_health": player.max_health,
 			"xp_range_multiplier": player.xp_range_multiplier
@@ -680,24 +682,30 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 		return
 	# Apply upgrade to player
 	if player:
-		player.apply_upgrade(upgrade_data)
+		if not player.apply_upgrade(upgrade_data):
+			return
 	
 	# Apply spell upgrades to spell manager if needed
 	var effect = upgrade_data.get("effect", {})
+	if effect.get("type") == "slowdown_duration":
+		spell_manager.typing_slowdown_capacity += float(effect.value)
+	if effect.get("type") == "mana_bolt_mastery":
+		spell_manager.upgrade_spell("mana_bolt")
 	if effect.get("type") == "spell_upgrade":
 		if spell_manager and spell_manager.has_method("upgrade_spell"):
 			var spell_name = effect.get("spell", "")
 			spell_manager.upgrade_spell(spell_name)
 	
 	if effect.get("type") == "learn_spell":
-		spell_manager.learn_spell(effect.get("spell", ""))
+		if not spell_manager.learn_spell(effect.get("spell", "")):
+			return
 	update_spell_slot_lock_status()
 	var acknowledgement = upgrade_data.get("name", "Upgrade applied")
 	if effect.get("type") == "learn_spell":
 		var slot = spell_manager.find_spell_slot(effect.get("spell", ""))
 		if slot > 0:
-			var action = "evolved" if effect.get("spell", "") in preload("res://scripts/SynergyCatalog.gd").RECIPES else "learned"
-			acknowledgement = spell_manager.spells[slot].name + " " + action + " · Press %d, then type %s" % [slot, spell_manager.spells[slot].display_name]
+			var action = "learned"
+			acknowledgement = spell_manager.get_spell_info(slot).name + " " + action + " · Press %d, then type %s" % [slot, spell_manager.get_spell_info(slot).display_name]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
 	else:
@@ -730,7 +738,7 @@ func show_game_over_screen():
 			"level": player.level if player else 1,
 			"enemies_killed": enemies_killed,
 			"spells_cast": spells_cast,
-			"final_kit": spell_manager.spells.values().map(func(info): return "%s · Rank %d" % [info.name, spell_manager.get_spell_rank(info.id)]),
+			"final_kit": spell_manager.get_all_spells().values().map(func(info): return "%s · Rank %d" % [info.name, spell_manager.get_spell_rank(info.id)]),
 			"mana_bolt_rank": spell_manager.get_spell_rank("mana_bolt"),
 			"discoveries": CharacterManager.discovered_synergies.filter(func(id): return id not in discoveries_at_start).map(func(id): return preload("res://scripts/SynergyCatalog.gd").RECIPES[id].name)
 		}
@@ -1200,7 +1208,7 @@ func set_interface_debug(enabled: bool):
 
 func interface_debug_report() -> String:
 	update_difficulty_tooltip_content()
-	var lines: Array[String] = [difficulty_tooltip_label.text, "PLAYER STATS", JSON.stringify({"spell_damage": player.spell_damage_multiplier, "attack_speed": player.cast_speed_multiplier, "move_speed": player.movement_speed_multiplier, "max_health": player.max_health, "pickup_range": player.xp_range_multiplier}, "  ")]
+	var lines: Array[String] = [difficulty_tooltip_label.text, "PLAYER STATS", JSON.stringify({"spell_damage": player.spell_damage_multiplier, "attack_speed": player.cast_speed_multiplier, "projectile_speed": player.projectile_speed_multiplier, "passives": player.passive_ranks, "move_speed": player.movement_speed_multiplier, "max_health": player.max_health, "pickup_range": player.xp_range_multiplier}, "  ")]
 	lines.append("UPGRADE DETAILS")
 	for card in level_up_screen.current_upgrade_pool:
 		lines.append(str(card.name) + ": " + str(card.description))

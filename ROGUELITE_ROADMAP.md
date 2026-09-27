@@ -1,3 +1,10 @@
+## Casting foundations — 2026-09-27
+
+- Implemented foundation: fresh per-cast slowdown, six primary slots, six distinct passive families, independently ranked bonus ownership and current-run casting gates.
+- Supported offers: spell power, movement, health, pickup range, projectile speed, Focus duration and bundled Mana Mastery. Other catalog families remain unavailable until their effects are implemented.
+- Integration pending: bouncing Lightning Bolt, collectable Life Bolt healing seeds, effect-side projectile speed, bonus access in the player spellbook and complete geometry/feedback review.
+- Working acquisition policy: bonus choices begin at rank 1; ingredients retain their slots/ranks. Innate automatic Mana Bolt is free; its first mastery upgrade occupies a passive family.
+
 ## 2026-09-26 — Simple art matched to supplied assets (documentation only)
 
 - Record the user's direction to follow the friend's supplied art style closely, reuse existing assets and keep additions simple placeholders.
