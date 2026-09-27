@@ -85,6 +85,14 @@ func run():
 	game.level_up_screen._on_upgrade_button_pressed(0)
 	await create_timer(0.4, true, false, true).timeout
 	check(game.current_state == game.GameState.PLAYING and not paused, "Selecting reward returns to gameplay")
+	game._on_player_level_up(game.player.level + 1, {})
+	check(game.queue_boss_reward() and game.pending_level_ups.size() == 1, "Boss reward queues behind an existing XP level-up")
+	game.level_up_screen._on_upgrade_button_pressed(0)
+	await create_timer(0.4, true, false, true).timeout
+	check(game.level_up_screen.title_label.text == "BOSS REWARD", "Queued chest follows XP choice")
+	game.level_up_screen._on_upgrade_button_pressed(0)
+	await create_timer(0.4, true, false, true).timeout
+	check(game.current_state == game.GameState.PLAYING, "Both queued choices finish before resuming")
 	var screen = game.level_up_screen
 	screen.generate_upgrade_options({}, level)
 	for card in screen.current_upgrade_pool:

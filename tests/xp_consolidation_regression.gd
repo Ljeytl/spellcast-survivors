@@ -4,6 +4,10 @@ var checks = 0
 var failures = 0
 var game
 
+class DisabledConsolidation extends "res://scripts/XPConsolidation.gd":
+	func consolidate():
+		pass
+
 func _initialize():
 	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
 		quit(2)
@@ -43,6 +47,8 @@ func run():
 	game.spell_manager.set_process(false)
 	game.player.set_physics_process(false)
 	var system = game.get_node("XPConsolidation")
+	if "--known-bad" in OS.get_cmdline_user_args():
+		system.set_script(DisabledConsolidation)
 	var near = orb(game.player.position, 3.25)
 	var near2 = orb(game.player.position + Vector2(10, 0), 4.75)
 	var far = Vector2(10000, 10000)

@@ -691,7 +691,7 @@ func show_next_level_up():
 
 		if next_level == 0:
 			level_up_screen.title_label.text = "BOSS REWARD"
-			level_up_screen.level_label.text = "Choose an upgrade"
+			level_up_screen.level_label.text = ""
 
 func _on_upgrade_selected(upgrade_data: Dictionary):
 	if current_state == GameState.GAME_OVER:

@@ -17,8 +17,8 @@ func check(ok: bool, message: String):
 		printerr("FAIL: ", message)
 
 func settle():
-	for frame in range(10):
-		await process_frame
+	await create_timer(0.4, true, false, true).timeout
+	await process_frame
 
 func run():
 	if visual:
