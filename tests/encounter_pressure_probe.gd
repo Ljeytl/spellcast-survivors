@@ -3,6 +3,7 @@ extends SceneTree
 var rows = []
 var game
 var seed_value = 44
+var extended = "--extended" in OS.get_cmdline_user_args()
 
 func _initialize():
 	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
@@ -12,15 +13,15 @@ func _initialize():
 
 func run():
 	root.get_node("AudioManager").quitting = true
-	for mode in ["stationary", "moving", "casting"]:
+	for mode in (["stationary"] if extended else ["stationary", "moving", "casting"]):
 		for baseline in [true, false]:
-			for seconds in [0, 120, 180, 300, 420, 480, 540, 660]:
+			for seconds in ([480] if extended else [0, 120, 180, 300, 420, 480, 540, 660]):
 				await sample(mode, baseline, seconds)
 	DirAccess.make_dir_recursive_absolute("res://builds/pass2-evidence")
-	var output = FileAccess.open("res://builds/pass2-evidence/pressure-probe.json", FileAccess.WRITE)
-	output.store_string(JSON.stringify({"seed": seed_value, "window_seconds": 30, "mana_rank": 4, "health_pool": 50000, "notes": "Controlled encounter windows; prior bosses suppressed; high health prevents early stop; fixed build and same seed; not a natural survival result", "samples": rows}, "\t"))
+	var output = FileAccess.open("res://builds/pass2-evidence/pressure-probe-extended.json" if extended else "res://builds/pass2-evidence/pressure-probe.json", FileAccess.WRITE)
+	output.store_string(JSON.stringify({"seed": seed_value, "window_seconds": 120 if extended else 30, "mana_rank": 4, "health_pool": 50000, "notes": "Controlled encounter windows; prior bosses suppressed; high health prevents early stop; fixed build and same seed; not a natural survival result", "samples": rows}, "\t"))
 	print("PRESSURE_PROBE samples=", rows.size())
-	quit(0 if rows.size() == 48 else 1)
+	quit(0 if rows.size() == (2 if extended else 48) else 1)
 
 func sample(mode, baseline, seconds):
 	seed(seed_value)
@@ -44,7 +45,7 @@ func sample(mode, baseline, seconds):
 	game.spell_manager.mana_bolt_level = 4
 	game.player.cast_speed_multiplier = 1.3
 	var highest_population = 0
-	for frame in range(1800):
+	for frame in range(7200 if extended else 1800):
 		if mode == "moving":
 			var target = game.spell_manager.get_closest_enemy()
 			if is_instance_valid(target):
