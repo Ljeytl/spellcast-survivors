@@ -100,3 +100,10 @@ static func healing_plus(canvas: CanvasItem, center: Vector2, size: float, opaci
 	canvas.draw_rect(Rect2(-6, -2, 12, 4), green)
 	canvas.draw_rect(Rect2(-1, -5, 2, 6), Color("e7ffd0", opacity))
 	canvas.draw_set_transform(Vector2.ZERO)
+
+static func electric_tail(canvas: CanvasItem, factor: float):
+	var points = PackedVector2Array([Vector2(-12, 0), Vector2(-23, -4), Vector2(-28, 4), Vector2(-39, 0)])
+	for index in range(points.size()):
+		points[index] *= factor
+	canvas.draw_polyline(points, Color("477d96"), 3 * factor)
+	canvas.draw_polyline(points, Color("c5f4ff"), 1.5 * factor)

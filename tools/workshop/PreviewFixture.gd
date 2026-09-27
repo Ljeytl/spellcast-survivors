@@ -55,6 +55,7 @@ func setup(parent: Node, id: String):
 	game.player.health = 30
 	game.player.spell_size_multiplier = settings.spell_size
 	game.camera_shake.set_process(false)
+	game.camera.process_mode = Node.PROCESS_MODE_ALWAYS
 	game.camera.position = game.player.position + Vector2(160, 0)
 	game.camera.reset_smoothing()
 	game.camera.force_update_scroll()

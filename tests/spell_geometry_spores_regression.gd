@@ -170,11 +170,11 @@ func run():
 	root.add_child(projectile)
 	projectile.set_process(false)
 	projectile.setup(Vector2.ZERO, Vector2.RIGHT, 10, Color.WHITE, "bolt")
-	check(is_equal_approx(projectile.get_node("CollisionShape2D").shape.radius, 17), "Bolt base collision follows visible width")
+	check(is_equal_approx(projectile.get_node("CollisionShape2D").shape.radius, 12.75), "Bolt base collision follows visible width")
 	caster.spell_size_multiplier = 2
 	projectile.reset_for_pool()
 	projectile.setup(Vector2.ZERO, Vector2.RIGHT, 10, Color.WHITE, "bolt")
-	check(is_equal_approx(projectile.get_node("CollisionShape2D").shape.radius, 34) and projectile.spell_size == 2, "Pooled bolt refreshes collision and artwork after upgrade")
+	check(is_equal_approx(projectile.get_node("CollisionShape2D").shape.radius, 25.5) and projectile.spell_size == 1.5, "Pooled bolt refreshes collision and artwork after upgrade")
 	projectile.free()
 	projectile = load("res://scenes/SpellProjectile.tscn").instantiate()
 	projectile.add_to_group("enemy_projectiles")
@@ -185,7 +185,7 @@ func run():
 	for size in [1.0, 2.0]:
 		caster.spell_size_multiplier = size
 		for inside in [true, false]:
-			var victim = host(Vector2(0, 17 * size + (0.5 if inside else 2.0)))
+			var victim = host(Vector2(0, 12.75 * size + (0.5 if inside else 2.0)))
 			var hurtbox = Area2D.new()
 			hurtbox.name = "HurtBox"
 			hurtbox.collision_layer = 4

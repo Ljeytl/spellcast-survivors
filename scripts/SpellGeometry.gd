@@ -23,6 +23,7 @@ static func scaled_data(data: Dictionary, player: Node) -> Dictionary:
 		if result.has(key):
 			result[key] = float(result[key]) * factor
 	result.spell_size_multiplier = factor
+	result.projectile_size_multiplier = factor * float(preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get(str(result.get("id", "")), 1.0))
 	return result
 
 static func stamp_dimensions(kind: String, radius: float) -> Vector2:
@@ -31,7 +32,7 @@ static func stamp_dimensions(kind: String, radius: float) -> Vector2:
 		var body: Rect2 = Art.MOTIF_BODIES[kind]
 		return Vector2(radius * 2 * crop.size.x / body.size.x, radius * 2 * crop.size.y / body.size.y)
 	match kind:
-		"lance": return Vector2(radius * 3.0, radius * 2.0)
+		"lance": return Vector2(radius * 2.0 * Art.motif_region("lance").size.aspect(), radius * 2.0)
 		"blade", "orbit": return Vector2.ONE * radius * 2.0
 	return Vector2.ONE * radius * 2.0
 

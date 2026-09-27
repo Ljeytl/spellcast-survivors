@@ -1,3 +1,10 @@
+## 2026-09-27 — Compact moving spell bodies
+
+- Reduced Mana Bolt and Life Bolt to 80%, Lightning Bolt to 75%, Ember Lance to 70%, and Meteor Lance to 85% of their previous body sizes; Bolt keeps its approved 75% baseline.
+- Ember and Meteor Lance preserve the original generated sprite's proportions instead of squashing it. Lightning Bolt uses the original mana motif with a thin blue-white electrical tail instead of a thick purple block.
+- Visual body and hit geometry use the same per-spell factor. Decorative particles, spell damage, timing, bounce mechanics, and Meteor Lance explosion area remain unchanged.
+- Workshop camera framing stays correct when paused and resized.
+
 ## 2026-09-27 — Healing readability and individual spell previews
 
 - Regeneration has a loose orbit of leaves; actual healing shows rising green pluses only when health increases.

@@ -21,6 +21,7 @@ var last_view = Vector2.ZERO
 
 func _ready():
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	get_viewport().size_changed.connect(queue_redraw)
 	z_index = -100
 	grass_density.seed = 7319
 	grass_density.frequency = 0.16
@@ -201,9 +202,8 @@ func floor_variant(cell: Vector2i) -> int:
 func _draw():
 	if not initialized:
 		return
-	var half_view = get_viewport_rect().size / camera.zoom / 2 + Vector2.ONE * TILE_SIZE
-	var center = camera.get_screen_center_position()
-	for y in range(floori((center.y - half_view.y) / TILE_SIZE), ceili((center.y + half_view.y) / TILE_SIZE)):
-		for x in range(floori((center.x - half_view.x) / TILE_SIZE), ceili((center.x + half_view.x) / TILE_SIZE)):
+	var visible = (get_global_transform_with_canvas().affine_inverse() * get_viewport_rect()).grow(TILE_SIZE)
+	for y in range(floori(visible.position.y / TILE_SIZE), ceili(visible.end.y / TILE_SIZE)):
+		for x in range(floori(visible.position.x / TILE_SIZE), ceili(visible.end.x / TILE_SIZE)):
 			var index = floor_variant(Vector2i(x, y))
 			draw_texture_rect(floor_textures[index], Rect2(Vector2(x, y) * TILE_SIZE, Vector2.ONE * TILE_SIZE), false, Color(0.72, 0.78, 0.72))

@@ -50,8 +50,8 @@ func refresh_geometry():
 		return
 	var hostile = is_in_group("enemy_projectiles")
 	spell_size = 1.0 if hostile else Geometry.multiplier(get_tree().get_first_node_in_group("player"))
-	if not hostile and projectile_type == "bolt":
-		spell_size *= preload("res://scripts/VisualDefaults.gd").BOLT_SCALE
+	if not hostile:
+		spell_size *= preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get(projectile_type, 1.0)
 	var collision = get_node_or_null("CollisionShape2D")
 	if collision and collision.shape is CircleShape2D:
 		collision.shape = collision.shape.duplicate()
@@ -239,7 +239,8 @@ func _draw():
 				art.stamp(self, "heal", Vector2(-6, -7) * spell_size, Vector2.ONE * 12 * spell_size)
 		"lightning_bolt":
 			var visual_scale = preload("res://scripts/ProjectileVisual.gd").factor(self) * spell_size
-			art.lightning(self, Vector2(-24, 0) * visual_scale, Vector2(14, 0) * visual_scale, Geometry.BOLT_RADIUS * 2 * visual_scale)
+			art.electric_tail(self, visual_scale)
+			art.stamp(self, "mana", Geometry.stamp_offset("mana", Geometry.BOLT_RADIUS * spell_size), preload("res://scripts/ProjectileVisual.gd").size(self, Geometry.stamp_dimensions("mana", Geometry.BOLT_RADIUS * spell_size)), Color("c5f4ff"))
 		_:
 			art.stamp(self, "impact", Vector2.ZERO, Vector2.ONE * 18)
 
