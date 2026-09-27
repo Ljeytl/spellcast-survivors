@@ -7,13 +7,15 @@ static func circle(canvas: CanvasItem, center: Vector2, radius: float, color: Co
 		canvas.draw_arc(center, maxf(2, radius * fill), 0, TAU, 64, Color(color, opacity), 3.0)
 
 static func fire_circle(canvas: CanvasItem, center: Vector2, radius: float, age: float, opacity: float = 1.0):
-	canvas.draw_circle(center, radius, Color("d44b35", 0.48 * opacity))
+	canvas.draw_circle(center, radius, Color("f15c32", 0.60 * opacity))
 	canvas.draw_arc(center, radius, 0, TAU, 64, Color("ffab68", opacity), 4)
 	for index in range(12):
 		var angle = index * 2.39996
 		var point = center + Vector2.from_angle(angle) * radius * sqrt((index + 0.5) / 12.0) * 0.85
 		var flicker = 0.65 + 0.2 * sin(age * 9 + index)
 		canvas.draw_rect(Rect2(point - Vector2(6, 3), Vector2(12, 6)), Color("ffc76a", opacity * flicker))
+		if index % 3 == 0:
+			preload("res://scripts/EffectArt.gd").stamp(canvas, "flame", point + Vector2(0, -6), Vector2(24, 30), Color(1, 1, 1, opacity))
 
 static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: float, age: float):
 	if points.is_empty():
@@ -23,9 +25,9 @@ static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: fl
 		return
 	var polygons = Geometry2D.offset_polyline(points, radius, Geometry2D.JOIN_ROUND, Geometry2D.END_ROUND)
 	for index in range(points.size()):
-		canvas.draw_circle(points[index], radius, Color("d44b35", 0.32))
+		canvas.draw_circle(points[index], radius, Color("f15c32", 0.45))
 		if index + 1 < points.size():
-			canvas.draw_line(points[index], points[index + 1], Color("d44b35", 0.32), radius * 2)
+			canvas.draw_line(points[index], points[index + 1], Color("f15c32", 0.45), radius * 2)
 	for polygon in polygons:
 		var border = polygon.duplicate()
 		border.append(polygon[0])
@@ -34,6 +36,8 @@ static func fire_path(canvas: CanvasItem, points: PackedVector2Array, radius: fl
 		var point = points[index]
 		var offset = Vector2(0, sin(index * 2.4) * radius * 0.5)
 		canvas.draw_rect(Rect2(point + offset - Vector2(7, 4), Vector2(14, 8)), Color("ffd079", 0.7 + 0.2 * sin(age * 9 + index)))
+		if index % maxi(1, ceili(points.size() / 8.0)) == 0:
+			preload("res://scripts/EffectArt.gd").stamp(canvas, "flame", point + offset + Vector2(0, -6), Vector2(24, 30))
 
 static func cone(canvas: CanvasItem, radius: float, angle: float, half_angle: float, color: Color, opacity: float):
 	var points = PackedVector2Array([Vector2.ZERO])
