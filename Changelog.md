@@ -1,7 +1,7 @@
 ## 2026-09-27 — Spell and particle visual atlas
 
 - Add a repeatable isolated-save capture tool and searchable comparison page for all 24 implemented spells and 28 particle factories. Every native-rendered panel uses the same wizard and camera scale; captured phases can be stepped through or played. Gameplay remains unchanged.
-- Future: use this atlas to judge minimum projectile body size against the wizard head before resizing effects.
+- Future: use this atlas to judge minimum projectile body size against the wizard head before resizing effects. Record smooth animation exports, a browser sizing sandbox, slime animation, run-local Spellbook versus full Necronomicon, and simple matching pixel-art direction in the roadmap.
 
 ## 2026-09-27 — Enemy visibility adjustment
 

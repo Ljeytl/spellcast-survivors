@@ -92,6 +92,7 @@ func run():
 		for index in range(TIMES.size()):
 			while elapsed < TIMES[index]:
 				await physics_frame
+				await process_frame
 				var delta = 1.0 / Engine.physics_ticks_per_second
 				elapsed += delta
 				manager.process_healing_effects(delta)

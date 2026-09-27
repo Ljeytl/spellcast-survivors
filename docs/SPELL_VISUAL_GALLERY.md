@@ -8,7 +8,7 @@ To regenerate from an isolated task checkout:
 
 1. Add an ignored `override.cfg` setting `[application]` `config/name="SpellCast Survivors Synergy Test"` and `[display]` `window/size/mode=0`. The capture tool refuses the normal user profile.
 2. Import with Godot's `--headless --editor --path . --import`.
-3. Run Godot with `--path . --script tools/capture_spell_gallery.gd` using a native renderer.
+3. Run Godot with `--fixed-fps 60 --path . --script tools/capture_spell_gallery.gd` using a native renderer.
 4. Run `python3 tools/build_spell_gallery.py`.
 5. Open `builds/spell-gallery/index.html`, or serve that directory using a loopback HTTP server.
 
