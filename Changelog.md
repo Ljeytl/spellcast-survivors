@@ -1,3 +1,10 @@
+## 2026-09-27 — Integrated second playtest pass
+
+- Integrate targeting, readable spell areas, stronger Orbit/Cross Blade/Firewalk, larger characters and stable XP tiers, single-line incantations, boss rewards, contact recoil and the Pursuer dash.
+- Raise spawn pressure only through the previously flat middle stretch, tapering back to existing nine-minute parameters. Preserve Focus Ray and passive power.
+- Verify actual input, reward acquisition, trunk collisions, XP conservation, real projectile pooling, geometry, natural bot runs and the full timed run lifecycle. Record measured tuning and remaining human judgments in `docs/PLAYTEST_PASS_2_RESULTS.md`.
+- Future: tune the candidate from human feedback; narrow-window HUD polish, shaders and a Plague death-ground redesign remain outside this pass.
+
 ## 2026-09-27 — Pass two rewards and encounter interactions
 
 - Add one upgrade-choice chest on boss defeat, reusing the existing slot-aware upgrade flow without granting a player level; exhausted offer filters fall back to recovery without restoring banished upgrades.

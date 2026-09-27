@@ -9,6 +9,8 @@ func _initialize():
 	run.call_deferred()
 
 func run():
+	root.set_flag(Window.FLAG_NO_FOCUS, true)
+	root.position = Vector2i(5000, 5000)
 	root.get_node("AudioManager").quitting = true
 	game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child(game)

@@ -218,11 +218,6 @@ For each P2 ID record: agreed behavior, reproduction journey, baseline observati
 
 ## Progress ledger
 
-| Requirements | Current disposition | Evidence / next step |
-|---|---|---|
-| P2-01–06, P2-08–12, P2-15 | Implementation running | This specification; baseline recorded; targeting and readability workers assigned |
-| P2-07 | Previous fix merged; new readability/real-game verification planned | PR33 / baseline9588205; do not treat as full visual sign-off |
-| P2-13 | Recoil and farther/faster boss dash planned | Boss-specific dash tuning and collision checks |
-| P2-14 | Upgrade chest confirmed; planned | Implement real boss-drop acquisition journey |
+Implementation is integrated. Per-requirement dispositions, measured tuning, verification evidence and explicit human-review limits are recorded in [PLAYTEST_PASS_2_RESULTS.md](PLAYTEST_PASS_2_RESULTS.md). The full implemented spell table is [SPELL_PASS_2_AUDIT.md](SPELL_PASS_2_AUDIT.md).
 
-Update this ledger and the individual requirement evidence as work proceeds. Do not overwrite the historical baseline or silently remove a user obligation.
+All P2 requirements have an implementation and evidence disposition. The two product choices are resolved: farther/faster Pursuer boss dash and upgrade-choice boss chest. Balance and final scale preference remain human playtest judgments rather than automated pass claims. Deferred ideas remain deferred.

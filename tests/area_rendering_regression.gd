@@ -18,6 +18,8 @@ func _initialize():
 	run.call_deferred()
 
 func run():
+	root.set_flag(Window.FLAG_NO_FOCUS, true)
+	root.position = Vector2i(5000, 5000)
 	root.size = Vector2i(640, 480)
 	root.content_scale_size = Vector2i(640, 480)
 	var canvas = AreaCanvas.new()
