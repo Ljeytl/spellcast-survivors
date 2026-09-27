@@ -1,3 +1,8 @@
+## Encounter pressure — September 27, 2026
+
+- Implemented: camera-aware regular spawns, distant normal enemies reentering from a different offscreen angle with health/status intact, and eight timed staggered melee rushes. Rush enemies chase normally and recycle like other normal enemies; these are not passing formations. Bosses never recycle.
+- Next: tune rush size/spacing and recycled pressure through human playtests; distinct passing hordes remain a later design option.
+
 ## Integrated baseline — September 26, 2026
 
 - Implemented: per-cast focus, six active/six passive slots, additive bonus spells, Life/Regeneration separation, healing-seed Life Bolt, simple readable effects, cone Ice Blast, personal Earth Shield, clustered forest and reduced-effects preference.
