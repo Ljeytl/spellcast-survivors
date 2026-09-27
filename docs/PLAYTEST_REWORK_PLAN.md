@@ -1,5 +1,7 @@
 # Playtest rework — consolidated design and delivery plan
 
+Current follow-up: [Playtest pass 2 specification](PLAYTEST_PASS_2_SPEC.md) controls the newly collected feedback. Its implementation is pending approval; the authorization below applies only to the earlier pass.
+
 Status: implementation authorized September 26, 2026 by the user: “alright do it. yea keep it simple we can polish later art wise.” Execute the staged plan for the existing roster and approved changes. Preserve unrelated work; keep unresolved product choices explicit. New library ideas, shader work and audio remain outside this pass.
 
 ## Latest design acceptance

@@ -1,3 +1,8 @@
+## 2026-09-26 — Second playtest pass specification
+
+- Consolidate targeting, spell payoff, shared AoE/fire visuals, scale, typing, particles, XP consolidation, minutes 3–8 pressure, contact recoil and boss rewards in `docs/PLAYTEST_PASS_2_SPEC.md`.
+- Separate agreed outcomes, tuning proposals, open decisions, deferred ideas, agent ownership and acceptance evidence. Gameplay implementation remains pending approval.
+
 ## 2026-09-26 — Plague host deaths and canopy visibility
 
 - Only the player fades tree canopies; nearby enemies no longer make scenery transparent.
