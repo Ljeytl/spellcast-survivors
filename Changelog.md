@@ -1,3 +1,7 @@
+## 2026-09-26 — Simple combat feedback foundation
+
+- Add bounded pixel-shaped spell, healing, pickup and impact helpers, with directional cone/link feedback and readable hazard telegraphs. Preserve supplied art and pause behavior; no shader or audio additions.
+
 ## 2026-09-26 — Implementation authorized
 
 - Begin the approved staged repair of the existing roster, casting/progression, simple matching art, UX/world and integrated balance. Preserve unselected ideas and defer shader/audio polish.
