@@ -1,3 +1,8 @@
+## 2026-09-26 — Table coverage audit (documentation only)
+
+- Move remaining modifier phrases and broader saved concepts into explicit status/source tables in the [spell library](docs/SPELL_LIBRARY.md); preserve the full discussion notes as supporting detail.
+- Record alternate-name references and unnamed Whip variants without counting them as implemented spells. Correct the historical notes' stale equipped-slot reference to the superseding six-slot rule.
+
 ## 2026-09-26 — Spell direction accepted (documentation only)
 
 - Record user acceptance of the spell direction and endorsement of circular Frost Nova alongside cone-shaped Ice Blast. Keep concept endorsement separate from playable status, expansion selection and implementation authorization.

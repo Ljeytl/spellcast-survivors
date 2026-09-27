@@ -129,7 +129,7 @@ Open decisions: what is unlocked or awarded; how locations are discovered; what 
 - **Fro:** make the computer mouse the final boss.
 - **The Floorman:** contrast a mouse boss with unrestricted movement direction and only two kinds of attacks against a keyboard-controlled player with four directional inputs and many attacks.
 - The four-direction comparison is the friend’s conceptual framing, not a request to remove diagonal movement or change current controls. The two mouse attacks are not yet specified.
-- **The Floorman:** possible keyboard Easter egg—have as many spells as there are keys on a normal keyboard. The keyboard layout, number of spells, and whether this means the total catalog remain undecided; this does not alter the five-equipped-spell limit.
+- **The Floorman:** possible keyboard Easter egg—have as many spells as there are keys on a normal keyboard. The keyboard layout, number of spells, and whether this means the total catalog remain undecided; this does not alter the equipped-spell limit (now six under the superseding core design).
 - **Fro:** use the matchup as a skill-versus-speed motif: keyboard/player as skill, mouse/boss as speed. The protagonist ultimately wins through skill, while the faster mouse puts up a strong fight. Preserve this as proposed lore, not a guarantee of player victory or a claim about real input devices.
 
 The boss’s appearance, movement, attacks, unlock conditions, and placement are all open. This idea does not replace the current twenty-minute immediate victory or commit the game to a final-boss implementation.

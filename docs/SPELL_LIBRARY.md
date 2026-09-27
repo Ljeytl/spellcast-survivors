@@ -185,6 +185,45 @@ These are reviewable design relationships, not final damage ratios. A longer tit
 - Yggdrasil stays in the library. Tune its landmark role, unlock route and commitment deliberately. “Tree of Life” is an alternative name; longer ritual/map versions are possible later, not a requirement imposed now.
 - Similar ideas (Homing Bolt/Magic Missile, Gravity Well/Maelstrom, Moon Slash/Crescent Slash) remain visible until deliberately combined or differentiated. Do not inflate the promised playable count with synonyms.
 
-## Saved word and expansion ideas
+## Saved modifier and alternate-name ideas
 
-“Mega Bolt,” “Mega Lightning Bolt,” “Giant Bolt,” “Giant Lightning Bolt” and “super extreme meteor shower deluxe” are saved modifier/power-fantasy examples. No arbitrary phrase casting or modifier system is approved. Alternate Slash/Whip starters, timed map rituals/leylines, tower-defense/siege/alchemy alternatives and the mouse-boss idea remain in the [casting fantasy notes](CASTING_FANTASY_NOTES.md). Audio and typed menu navigation stay deferred.
+These are individually recorded examples, not approved arbitrary phrase casting, extra playable spells or interchangeable aliases. The source distinguishes user ideas from older assistant suggestions.
+
+| Idea / phrase | Source | Status | Intended direction / unresolved detail |
+|---|---|---|---|
+| Mega Bolt | User modifier example | Deferred | Stronger Bolt through an authored modifier; scaling and valid syntax undecided. |
+| Mega Lightning Bolt | User modifier example | Deferred | Stronger bouncing spell; no recursive/free modifier system approved. |
+| Giant Bolt | User modifier example | Deferred | Larger projectile concept; visual size versus actual hit geometry must be specified. |
+| Giant Lightning Bolt | User modifier example | Deferred | Larger bouncing projectile concept; exact effect undecided. |
+| Super Extreme Meteor Shower Deluxe | User power-fantasy example | Saved example, not selected name | An unusually long commitment should earn a spectacular, potentially board-clearing payoff. |
+| Wide Bolt | Earlier assistant example | Deferred | Coverage modifier; distinguish width from projectile count and fan angle. |
+| Piercing Bolt | Earlier assistant example | Deferred | Reach targets behind the first; penetration and repeat-hit rules undecided. |
+| Rain of Lightning | User wording | Naming alternative | Same family of concept as Lightning Rain; choose name/behavior rather than silently accepting different-cost aliases. |
+| Plague Nut | User informal name reference | Naming alternative, not a selected spell | Preserved as a naming reference for the plant-themed plague concept; not an additional approved mechanic. |
+
+## Other saved ideas — separate from the spell roster
+
+Full explanations remain in [casting fantasy notes](CASTING_FANTASY_NOTES.md) and the [roadmap](../ROGUELITE_ROADMAP.md). This table makes them visible without representing them as spells or current implementation work.
+
+| Idea | Source | Status | Saved intent |
+|---|---|---|---|
+| Alternate Slash / Whip starters and characters | User | Deferred | Distinct starting weapons/characters and potentially floating weapon focuses. |
+| More Whip variations | User | Unnamed concepts | Preserve room for variants; no specific names or effects were settled. |
+| Discoverable map reward locations | User and friends | Future concept | Reach a location, perform a specific typed challenge and unlock a reward. |
+| Timed difficult-word sequence / leylines | Friends, saved by user | Future concept | Roughly five difficult words under a time limit; proposed leyline creation. |
+| Long challenge words | Friends, saved by user | Examples | Incomprehensible, photosynthesis, circumstantial, electromagnetism, misinterpretation and antidisestablishmentarianism; not ordinary unlocked combat spells. |
+| XP risk for map challenges | Friends, saved by user | Undecided alternatives | Delayed XP or XP loss; amount and triggering condition unresolved. |
+| Mouse final boss | Friends, saved by user | Future concept | Freely moving mouse boss with two attack types; does not override current 20-minute immediate win. |
+| Keyboard skill versus mouse speed | Friends, saved by user | Lore idea | Preserve the proposed skill/speed contrast without changing current movement controls. |
+| Keyboard-key-count spell Easter egg | Friends, saved by user | Future concept | A library related to keyboard key count; layout/count undecided, no slot-cap change. |
+| Typed menu navigation and level-up selection | User | Deferred | Type to choose; existing navigation remains for now. |
+| Map-found slot overflow | User | Future concept | Potentially exceed normal build limits through map finds; currently six active/six passive families. |
+| Wizard body-part animation | User | Later | Preserve layered assets for future animation. |
+| Shaders | User | Explicitly deferred | Visual polish after gameplay/readability baseline. |
+| Audio pass | User | Deferred | Later sound work, not part of the current design pass. |
+| Siege / tower-defense version | User | Saved alternative; no pivot | Explore the typing-pressure loop through defense if revisited later. |
+| Wizard defending a gate | Earlier assistant suggestion | Saved alternative; no pivot | Compact defense experiment with approaching threats. |
+| Alchemist defending a tower | User | Saved alternative; no pivot | Roughly ten ingredients, four or five per potion; preparation time versus potency. |
+| Authored language / spell composition | User direction, assistant examples | Deferred | Potential phrase vocabulary; ownership, syntax and valid combinations require separate design. |
+
+The school tables preserve the named spell concepts; this section preserves modifiers and broader ideas. A status of idea, alternative or deferred does not mean selected for implementation. Unnamed variants are recorded as unnamed rather than invented and attributed to the user.
