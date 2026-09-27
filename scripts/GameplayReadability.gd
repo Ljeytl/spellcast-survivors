@@ -8,6 +8,8 @@ const GOLD = Color("dfbd76")
 const CYAN = Color("79d9e8")
 const CORAL = Color("ff8175")
 
+static var body_font: FontFile
+
 var game: Node
 var passive_label: Label
 var focus_label: Label
@@ -17,7 +19,7 @@ var guidance: Label
 var feedback_remaining = 0.0
 var feedback_copy = ""
 
-static func panel_style(accent: Color = Color("394e68"), fill: Color = PANEL) -> StyleBoxFlat:
+static func panel_style(accent: Color = Color("66705b"), fill: Color = PANEL) -> StyleBoxFlat:
 	var style = StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = accent
@@ -32,6 +34,10 @@ static func panel_style(accent: Color = Color("394e68"), fill: Color = PANEL) ->
 static func apply_theme(control: Control):
 	var theme = preload("res://themes/medieval_theme.tres").duplicate()
 	theme.default_font_size = 18
+	if body_font == null:
+		body_font = ThemeDB.fallback_font.duplicate()
+		body_font.multichannel_signed_distance_field = true
+	theme.default_font = body_font
 	for type_name in ["Label", "Button", "CheckBox"]:
 		theme.set_font_size("font_size", type_name, 18)
 	theme.set_font_size("normal_font_size", "RichTextLabel", 18)
@@ -44,6 +50,7 @@ static func apply_theme(control: Control):
 	theme.set_stylebox("hover", "Button", panel_style(GOLD, Color("24374c")))
 	theme.set_stylebox("pressed", "Button", panel_style(CYAN, INK))
 	theme.set_stylebox("focus", "Button", panel_style(CYAN, Color.TRANSPARENT))
+	theme.set_stylebox("focus", "HSlider", panel_style(CYAN, Color.TRANSPARENT))
 	preload("res://scripts/AuthoredInterface.gd").apply_buttons(theme)
 	control.theme = theme
 	preload("res://scripts/AuthoredInterface.gd").decorate_menu(control)
@@ -51,6 +58,8 @@ static func apply_theme(control: Control):
 static func fit_root(control: Control):
 	var viewport_size = control.get_viewport_rect().size
 	var window_size = Vector2(control.get_window().size)
+	if OS.has_feature("web"):
+		window_size = Vector2(float(JavaScriptBridge.eval("window.innerWidth")), float(JavaScriptBridge.eval("window.innerHeight")))
 	if DisplayServer.get_name() == "headless" and window_size == Vector2(64, 64):
 		window_size = Vector2(1280, 720)
 	var factor = maxf(1.0, minf(viewport_size.x / maxf(window_size.x, 1), viewport_size.y / maxf(window_size.y, 1)))
@@ -66,7 +75,7 @@ func _ready():
 		if root_control is Control:
 			apply_theme(root_control)
 	for node_name in ["StatsPanel", "TimerPanel", "SpellSlotsPanel", "TypingPanel"]:
-		hud.get_node(node_name).add_theme_stylebox_override("panel", panel_style(CYAN if node_name == "TypingPanel" else Color("394e68")))
+		hud.get_node(node_name).add_theme_stylebox_override("panel", panel_style(CYAN if node_name == "TypingPanel" else Color("66705b")))
 	for bar_name in ["HealthBar", "XPBar"]:
 		var bar = hud.get_node("StatsPanel/" + bar_name)
 		bar.add_theme_stylebox_override("background", panel_style(Color.TRANSPARENT, INK))
@@ -110,6 +119,11 @@ func _process(_delta):
 	if current_size != last_size:
 		layout()
 	var typing = game.get_node("UI/HUD/TypingPanel")
+	var timer = game.get_node("UI/HUD/TimerPanel")
+	var diagnostics_top = maxf(138, timer.get_rect().end.y + 12) if timer.position.y > 18 else 138.0
+	passive_label.position.y = diagnostics_top
+	focus_label.position.y = diagnostics_top + 25
+	focus_bar.position.y = diagnostics_top + 54
 	for supplemental in [passive_label, focus_label, focus_bar]:
 		supplemental.visible = game.interface_debug and not (typing.visible and typing.get_global_rect().intersects(supplemental.get_global_rect()))
 	var manager = game.spell_manager
@@ -119,8 +133,8 @@ func _process(_delta):
 	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing and (game.interface_debug or feedback_remaining > 0)
 	var spells_panel = game.get_node("UI/HUD/SpellSlotsPanel")
 	spells_panel.visible = not (typing.visible and game.get_node("UI/HUD").size.y <= 600)
-	guidance.size = Vector2(spells_panel.size.x, maxf(48, guidance.get_minimum_size().y))
-	guidance.position = Vector2(spells_panel.position.x, spells_panel.position.y - guidance.size.y - 8)
+	guidance.size = Vector2(minf(560, game.get_node("UI/HUD").size.x - 36), maxf(32, guidance.get_minimum_size().y))
+	guidance.position = Vector2((game.get_node("UI/HUD").size.x - guidance.size.x) / 2, spells_panel.position.y - guidance.size.y - 8)
 	passive_label.text = "AUTO · Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt")
 	var remaining = manager.typing_slowdown_remaining
 	var capacity = manager.typing_slowdown_capacity
@@ -146,15 +160,21 @@ func layout():
 	var stats = hud.get_node("StatsPanel")
 	stats.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	stats.position = Vector2(18, 18)
-	stats.size = Vector2(minf(310, width * 0.43), 112)
+	stats.size = Vector2(minf(280 if game.interface_debug else 240, width * 0.55), 92 if game.interface_debug else 84)
+	for spec in [["HealthLabel", 6, 27], ["HealthBar", 30, 45], ["XPLabel", 46, 68], ["XPBar", 69, 75]]:
+		var item = stats.get_node(spec[0])
+		item.offset_top = spec[1]
+		item.offset_bottom = spec[2]
+		if item is Label:
+			item.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var timer = hud.get_node("TimerPanel")
 	timer.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	timer.position = Vector2(width - minf(340, width * 0.48) - 18, 18)
-	timer.size = Vector2(minf(340, width * 0.48), 92)
+	timer.size = Vector2(minf(340, width * 0.48), 92) if game.interface_debug else Vector2(112, 48)
+	timer.position = Vector2(width - timer.size.x - 18, 18)
 	var clock = timer.get_node("TimerLabel")
 	clock.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	clock.offset_top = 8
-	clock.offset_bottom = 44
+	clock.offset_top = 4
+	clock.offset_bottom = 40
 	clock.add_theme_font_size_override("font_size", 28)
 	var difficulty = timer.get_node("DifficultyLabel")
 	difficulty.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

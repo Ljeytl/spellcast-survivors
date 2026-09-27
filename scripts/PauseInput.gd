@@ -38,6 +38,10 @@ func cast_from_book(slot: int):
 	var game = get_parent()
 	if game.spell_manager.get_spell_info(slot).is_empty():
 		return
+	if game.spell_manager.casting_clock - game.spell_manager.last_spell_cast_time < game.spell_manager.SPELL_CAST_COOLDOWN:
+		if is_instance_valid(spellbook):
+			spellbook.show_notice("Spell recovering. Resume briefly, then cast.")
+		return
 	if is_instance_valid(spellbook):
 		spellbook.queue_free()
 	spellbook = null
@@ -45,7 +49,10 @@ func cast_from_book(slot: int):
 	game.spell_manager.activate_spell_slot(slot)
 
 func _unhandled_input(event):
-	if is_instance_valid(spellbook):
+	var console = get_parent().console_instance
+	if is_instance_valid(console) and console.visible:
+		return
+	if is_instance_valid(spellbook) or get_parent().get_node("UI").has_node("Options"):
 		return
 	if event.is_action_pressed("ui_cancel") and not event.is_echo():
 		get_parent().toggle_pause()

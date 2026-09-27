@@ -309,9 +309,6 @@ func set_music_volume(volume: float):
 	if music_idx != -1:
 		AudioServer.set_bus_volume_db(music_idx, db)
 	
-	# Update current music player volume if playing
-	if current_music_player and is_music_playing:
-		current_music_player.volume_db = db
 
 # SPELL-SPECIFIC FUNCTIONS
 

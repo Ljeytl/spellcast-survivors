@@ -204,23 +204,37 @@ func update_spell_level_display(level_label: Label, spell_name: String):
 	level_label.modulate = Color.GOLD if rank > 0 else Color.GRAY
 
 func _resize_spell_hud():
-	var height = 112.0 if interface_debug else 88.0
+	var panel = $UI/HUD/SpellSlotsPanel
+	var grid = panel.get_node("SpellSlots") as GridContainer
+	var count = 6 if interface_debug else maxi(1, spell_manager.spells.size())
+	var width = minf(count * 124 + 20, $UI/HUD.size.x - 36)
+	grid.columns = mini(count, maxi(1, int((width - 14) / 116)))
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	var height = 100.0 if interface_debug else 76.0
 	for card in spell_slots:
 		if not card.visible:
 			continue
 		var name_label = card.get_node_or_null("VBox/SpellName")
 		if not name_label:
 			continue
+		var available_width = (width - 20 - (grid.columns - 1) * 6) / grid.columns - 12
+		var longest_word = 1.0
+		for word in name_label.text.split(" "):
+			longest_word = maxf(longest_word, name_label.get_theme_font("font").get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x)
+		var name_size = clampi(floori(18 * available_width / longest_word), 14, 18)
+		if name_label.get_theme_font_size("font_size") != name_size:
+			name_label.add_theme_font_size_override("font_size", name_size)
 		var rank_height = card.get_node("LevelLabel").get_minimum_size().y if interface_debug else 0.0
 		var key_height = card.get_node("VBox/KeyLabel").get_minimum_size().y
-		height = maxf(height, name_label.get_minimum_size().y + key_height + rank_height + 24.0)
-		card.get_node("VBox").offset_bottom = -rank_height - 10.0
-		card.get_node("LevelLabel").offset_top = -rank_height - 6.0
+		height = maxf(height, name_label.get_minimum_size().y + key_height + rank_height + 18)
+		card.get_node("VBox").offset_bottom = -rank_height - 6
+		card.get_node("LevelLabel").offset_top = -rank_height - 6
 	for card in spell_slots:
-		card.custom_minimum_size.y = height
-	var panel = get_node("UI/HUD/SpellSlotsPanel")
-	panel.offset_top = -height - 35.0
-	var width = minf(680 if interface_debug else maxf(150, spell_manager.spells.size() * 132 + 20), $UI/HUD.size.x - 36)
+		card.custom_minimum_size = Vector2(90, height)
+	var rows = ceili(float(count) / grid.columns)
+	panel.offset_top = -(height * rows + (rows - 1) * 6 + 32)
+	panel.offset_bottom = -12
 	panel.offset_left = -width / 2
 	panel.offset_right = width / 2
 
@@ -269,8 +283,10 @@ func update_difficulty_display():
 		difficulty_label.text = "%s • %d HP" % [bosses[0].encounter_name, ceili(bosses[0].current_health)]
 	difficulty_label.modulate = Color("ff8175") if not bosses.is_empty() else Color("dfbd76")
 	difficulty_label.visible = interface_debug or not bosses.is_empty()
-	timer_panel.size = Vector2(minf(340 if difficulty_label.visible else 160, hud.size.x * 0.48), 92 if difficulty_label.visible else 54)
-	timer_panel.position.x = hud.size.x - timer_panel.size.x - 18
+	timer_panel.size = Vector2(minf(340 if difficulty_label.visible else 112, hud.size.x * 0.48), 92 if difficulty_label.visible else 48)
+	timer_panel.position = Vector2(hud.size.x - timer_panel.size.x - 18, 18)
+	if timer_panel.position.x < hud.get_node("StatsPanel").get_rect().end.x + 18:
+		timer_panel.position.y = hud.get_node("StatsPanel").get_rect().end.y + 12
 
 func setup_difficulty_tooltip():
 	if difficulty_tooltip:
@@ -456,7 +472,7 @@ func _on_player_health_changed(new_health: float, max_health: float, overheal_am
 			var time_remaining = player.get_overheal_time_remaining() if player and player.has_method("get_overheal_time_remaining") else 0.0
 			health_label.text = "Health · {0}/{1} (+{2}) [{3}s]".format([int(new_health), int(max_health), int(overheal_amount), int(time_remaining)])
 		else:
-			health_label.text = "Health · {0}/{1}".format([int(new_health), int(max_health)])
+			health_label.text = "Health · {0}/{1}".format([int(new_health), int(max_health)]) if interface_debug else "{0} / {1}".format([int(new_health), int(max_health)])
 
 func animate_progress_bar(progress_bar: ProgressBar, value: float, duration: float):
 	var previous_tween = progress_bar.get_meta("value_tween") if progress_bar.has_meta("value_tween") else null
@@ -546,7 +562,7 @@ func _on_player_xp_changed(current_xp: float, xp_needed: float):
 	
 	# Update XP text label
 	if xp_label:
-		xp_label.text = "Level %d · XP %d/%d" % [player.level, int(current_xp), int(xp_needed)]
+		xp_label.text = "Level %d · XP %d/%d" % [player.level, int(current_xp), int(xp_needed)] if interface_debug else "Level %d" % player.level
 
 func update_xp_bar_effects(xp_percent: float):
 	var xp_bar_fill = get_or_create_progress_bar_style(xp_bar)
@@ -590,19 +606,32 @@ func change_state(new_state: GameState):
 	
 	match current_state:
 		GameState.PLAYING:
+			get_viewport().gui_release_focus()
 			get_tree().paused = false
 			if pause_overlay:
 				pause_overlay.visible = false
 		GameState.PAUSED:
+			if not spell_manager.is_typing and is_instance_valid(typing_keycaps):
+				typing_keycaps.completion_remaining = 0
+				typing_keycaps.clear_keys()
+				hide_typing_ui()
 			get_tree().paused = true
 			if pause_overlay:
 				pause_overlay.visible = true
+				$UI/PauseOverlay/PauseMenu/VBoxContainer/ResumeButton.grab_focus.call_deferred()
 		GameState.GAME_OVER:
 			get_tree().paused = true
 		GameState.LEVEL_UP:
 			get_tree().paused = true
 			if level_up_screen:
 				level_up_screen.visible = true
+
+	if current_state == GameState.PLAYING and not pending_level_ups.is_empty():
+		show_next_level_up()
+	sync_pause_state()
+
+func sync_pause_state():
+	get_tree().paused = current_state != GameState.PLAYING or (is_instance_valid(console_instance) and console_instance.visible)
 
 func toggle_pause():
 	if current_state == GameState.PLAYING:
@@ -662,14 +691,14 @@ func _on_player_level_up(new_level: int, _player_stats: Dictionary):
 	if current_state == GameState.GAME_OVER:
 		return
 	pending_level_ups.append(new_level)
-	if current_state != GameState.LEVEL_UP:
+	if current_state == GameState.PLAYING:
 		show_next_level_up()
 
 func queue_boss_reward() -> bool:
 	if current_state == GameState.GAME_OVER:
 		return false
 	pending_level_ups.append(0)
-	if current_state != GameState.LEVEL_UP:
+	if current_state == GameState.PLAYING:
 		show_next_level_up()
 	return true
 
@@ -922,17 +951,17 @@ func setup_spell_slot_styling(slot_container: Node, is_locked: bool = false):
 		normal_style.bg_color = Color("111c2b")  # Darker background for locked spells
 		normal_style.border_color = Color("26384c")  # Gray border for locked spells
 	else:
-		normal_style.bg_color = Color("17263a")  # Normal background
-		normal_style.border_color = Color("58728b")  # White border for unlocked spells
+		normal_style.bg_color = Color("25382b")  # Normal background
+		normal_style.border_color = Color("66705b")  # White border for unlocked spells
 	
 	normal_style.border_width_top = 2
 	normal_style.border_width_bottom = 2
 	normal_style.border_width_left = 2
 	normal_style.border_width_right = 2
-	normal_style.corner_radius_top_left = 5
-	normal_style.corner_radius_top_right = 5
-	normal_style.corner_radius_bottom_left = 5
-	normal_style.corner_radius_bottom_right = 5
+	normal_style.corner_radius_top_left = 0
+	normal_style.corner_radius_top_right = 0
+	normal_style.corner_radius_bottom_left = 0
+	normal_style.corner_radius_bottom_right = 0
 	
 	background.set("theme_override_styles/panel", normal_style)
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -960,8 +989,8 @@ func highlight_spell_slot(slot_index: int):
 		var background = spell_slots[i].get_node_or_null("SlotBackground")
 		if background:
 			var style = background.get_theme_stylebox("panel")
-			style.bg_color = Color("244350") if i == slot_index else (Color("17263a") if spell_manager.is_spell_unlocked(i + 1) else Color("111c2b"))
-			style.border_color = Color("79d9e8") if i == slot_index else (Color("58728b") if spell_manager.is_spell_unlocked(i + 1) else Color("26384c"))
+			style.bg_color = Color("244350") if i == slot_index else (Color("25382b") if spell_manager.is_spell_unlocked(i + 1) else Color("111c2b"))
+			style.border_color = Color("79d9e8") if i == slot_index else (Color("66705b") if spell_manager.is_spell_unlocked(i + 1) else Color("26384c"))
 
 func clear_spell_slot_highlights():
 	highlight_spell_slot(-1)
@@ -1134,6 +1163,8 @@ func _on_pause_resume_pressed():
 	toggle_pause()  # Resume the game
 
 func _on_pause_options_pressed():
+	if $UI.has_node("Options"):
+		return
 	# Open the options screen while keeping the game paused
 	var options_scene = preload("res://scenes/Options.tscn")
 	var options_instance = options_scene.instantiate()
@@ -1161,9 +1192,9 @@ func _on_pause_main_menu_pressed():
 	_on_return_to_menu()
 
 func _on_options_closed():
-	# Show pause menu again when options are closed
 	if current_state == GameState.PAUSED:
 		pause_overlay.visible = true
+		$UI/PauseOverlay/PauseMenu/VBoxContainer/OptionsButton.grab_focus.call_deferred()
 
 # Increase difficulty level (cheat command)
 func increase_difficulty_level():
@@ -1219,6 +1250,8 @@ func set_interface_debug(enabled: bool):
 	interface_debug = enabled
 	difficulty_tooltip.visible = false
 	update_difficulty_display()
+	_on_player_health_changed(player.health, player.max_health, player.overheal)
+	_on_player_xp_changed(player.xp, player.xp_to_next_level)
 	update_spell_slot_lock_status()
 	if is_instance_valid(level_up_screen):
 		level_up_screen.update_upgrade_displays()

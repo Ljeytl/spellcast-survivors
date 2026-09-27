@@ -9,6 +9,8 @@ extends Control
 @onready var suggestions_list: ItemList = $ConsolePanel/VBox/SuggestionsList
 
 var is_console_open: bool = false
+var console_tween: Tween
+var previous_focus: WeakRef
 var command_history: Array[String] = []
 var history_index: int = -1
 var game_node: Node2D = null
@@ -26,7 +28,7 @@ var commands: Dictionary = {
 		"usage": "invincibility [on/off/toggle]"
 	},
 	"unlock_spells": {
-		"description": "Fill empty manual spell slots (maximum five)",
+		"description": "Fill empty manual spell slots (maximum six)",
 		"usage": "unlock_spells"
 	},
 	"level_up": {
@@ -228,6 +230,7 @@ var commands: Dictionary = {
 }
 
 func _ready():
+	console_panel.add_theme_stylebox_override("panel", preload("res://scripts/GameplayReadability.gd").panel_style(Color("79d9e8"), Color("17231c")))
 	# Hide console initially and position it off-screen
 	visible = false
 	console_panel.visible = false
@@ -259,7 +262,10 @@ func _input(event):
 		elif event.keycode == KEY_QUOTELEFT:  # Backtick/Tilde key (`/~)
 			toggle_console()
 			get_viewport().set_input_as_handled()
-		elif is_console_open:
+		elif visible:
+			if not is_console_open:
+				get_viewport().set_input_as_handled()
+				return
 			if event.keycode == KEY_ESCAPE:
 				close_console()
 				get_viewport().set_input_as_handled()
@@ -280,20 +286,27 @@ func toggle_console():
 		open_console()
 
 func open_console():
+	get_parent().move_child(self, -1)
+	if console_tween:
+		console_tween.kill()
+	var focused = get_viewport().gui_get_focus_owner()
+	if focused != input_field:
+		previous_focus = weakref(focused) if focused else null
 	is_console_open = true
 	visible = true
 	console_panel.visible = true
+	input_field.grab_focus()
 	
 	# Pause game (like Minecraft)
 	get_tree().paused = true
 	
 	# Smooth slide-down animation (Minecraft style)
 	console_panel.position.y = -300.0  # Start off-screen
-	var tween = create_tween()
-	tween.tween_property(console_panel, "position:y", 0.0, 0.15)
+	console_tween = create_tween()
+	console_tween.tween_property(console_panel, "position:y", 0.0, 0.15)
 	
 	# Focus input field after animation
-	tween.tween_callback(func(): input_field.grab_focus())
+	console_tween.tween_callback(func(): input_field.grab_focus())
 	
 	# Show minimal welcome message (Minecraft style)
 	if output_label.text.is_empty():
@@ -301,18 +314,25 @@ func open_console():
 		add_output("")
 
 func close_console():
+	if console_tween:
+		console_tween.kill()
 	is_console_open = false
 	suggestions_list.visible = false
 	
 	# Smooth slide-up animation (Minecraft style)
-	var tween = create_tween()
-	tween.tween_property(console_panel, "position:y", -300.0, 0.15)
+	console_tween = create_tween()
+	console_tween.tween_property(console_panel, "position:y", -300.0, 0.15)
 	
 	# Hide console completely after animation and unpause game
-	tween.tween_callback(func():
+	console_tween.tween_callback(func():
 		visible = false
 		console_panel.visible = false
-		get_tree().paused = false
+		game_node.sync_pause_state()
+		var focused = previous_focus.get_ref() if previous_focus else null
+		if is_instance_valid(focused) and focused.is_visible_in_tree():
+			focused.grab_focus()
+		elif game_node.current_state == game_node.GameState.LEVEL_UP:
+			game_node.level_up_screen.focus_first_choice()
 	)
 
 func _on_command_submitted(command_text: String):
@@ -482,13 +502,13 @@ func unlock_all_spells():
 		
 	if spell_manager and spell_manager.has_method("unlock_all_spells"):
 		spell_manager.unlock_all_spells()
-		add_output("[color=green]Manual loadout: %d/5 slots equipped. Existing spells and evolutions preserved.[/color]" % spell_manager.spells.size())
+		add_output("[color=green]Manual loadout: %d/6 slots equipped. Existing spells and evolutions preserved.[/color]" % spell_manager.spells.size())
 	else:
 		add_output("[color=red]Could not unlock spells[/color]")
 
 func trigger_level_up():
-	if game_node and game_node.has_method("trigger_level_up"):
-		game_node.trigger_level_up()
+	if game_node and game_node.current_state != game_node.GameState.GAME_OVER:
+		game_node.player.add_xp(game_node.player.xp_to_next_level - game_node.player.xp)
 		add_output("[color=green]Level up triggered![/color]")
 		close_console()  # Close console since level up pauses game
 	else:

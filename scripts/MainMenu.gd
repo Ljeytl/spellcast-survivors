@@ -4,8 +4,11 @@ extends Control
 
 # Called when the main menu scene loads
 func _ready():
+	$MenuPanel/VBoxContainer/QuitButton.visible = not OS.has_feature("web")
+	$MenuPanel/VBoxContainer.get_node(SceneManager.menu_focus_name).grab_focus.call_deferred()
 	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "MenuPanel")
 	preload("res://scripts/AuthoredInterface.gd").add_menu_art(self)
+	_layout_readable_menu()
 	# Start playing the menu background music
 	if AudioManager:
 		AudioManager.play_music(AudioManager.SoundType.MUSIC_MENU, true, 1.0)
@@ -46,3 +49,4 @@ func _on_collection_pressed():
 
 func _layout_readable_menu():
 	preload("res://scripts/GameplayReadability.gd").layout_menu(self, "MenuPanel")
+	$MenuPanel/VBoxContainer/CollectionButton.add_theme_font_size_override("font_size", 28 if size.x < 600 else 32)

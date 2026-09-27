@@ -27,6 +27,8 @@ static func menu_button_style(fill: Color, border: Color = Color.TRANSPARENT) ->
 
 static func apply_buttons(theme: Theme):
 	theme.set_font("font", "Button", MENU_FONT)
+	theme.set_font("font", "CheckBox", MENU_FONT)
+	theme.set_font_size("font_size", "CheckBox", 24)
 	theme.set_font_size("font_size", "Button", 32)
 	theme.set_stylebox("normal", "Button", menu_button_style(Color.TRANSPARENT))
 	theme.set_stylebox("hover", "Button", menu_button_style(Color("314b38"), Color("dfbd76")))
@@ -56,7 +58,7 @@ static func decorate_menu(control: Control):
 static func apply_shortcut(label: Label):
 	label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.custom_minimum_size = Vector2(36, 36)
+	label.custom_minimum_size = Vector2(28, 28)
 	label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -90,3 +92,11 @@ static func add_menu_art(control: Control):
 	mascot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mascot.custom_minimum_size = Vector2(0, 38)
 	control.get_node("MenuPanel/VBoxContainer").add_child(mascot)
+
+static func fit_words(control: Control, available_width: float, preferred_size: int = 32):
+	var longest = 1.0
+	for word in str(control.get("text")).split(" "):
+		longest = maxf(longest, MENU_FONT.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, preferred_size).x)
+	var fitted = clampi(floori(preferred_size * available_width / longest), 20, preferred_size)
+	if control.get_theme_font_size("font_size") != fitted:
+		control.add_theme_font_size_override("font_size", fitted)

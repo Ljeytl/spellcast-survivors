@@ -60,9 +60,9 @@ size_flags_vertical = 3
 bbcode_enabled = true
 text = "[b]Move[/b] with WASD or the arrow keys.
 
-[b]Cast[/b] by pressing 1–5 and typing the spell shown, or press Space, type a learned spell and press Enter.
+[b]Cast[/b] by pressing 1–6 and typing the spell shown, or press Space, type a learned spell and press Enter.
 
-Movement stops while typing, and slowdown is limited.
+Movement stops while typing. Each cast gets a fresh, limited slowdown window.
 
 Backspace corrects a mistake; Escape cancels a cast or pauses.
 

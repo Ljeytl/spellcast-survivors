@@ -1,3 +1,14 @@
+## 2026-09-27 — UI, HUD and menu usability
+
+- Compact health/level/XP and timer panels, moss-colored spell cards, balanced narrow-window spell grid, and fitted spell names keep combat readable without debug clutter.
+- Crisp scalable body text complements the existing stone keycap headings; web layouts account for browser CSS pixels on high-density displays.
+- Main menus, help, pause, Options, collection and run spellbook have consistent keyboard focus/return paths. Collection keyboard scrolling and spellbook focus-follow scrolling reach the full contents.
+- Run spellbook separates six active slots, slot-free bonus spells, six passive families and the automatic attack. Recovering spells stay in the book with an explanation.
+- Console transitions preserve the current pause owner, cancel stale animations and block input leakage. XP/rewards queued from paused menus appear when play resumes. Cast completion clears when pausing.
+- Audio/display preferences save across launches, Options reflects actual values and displays percentages, and music preference gain is applied once. Reduced-effects settings share the config safely.
+- Console text no longer inherits a black tint; controls explain six spell shortcuts. Workshop export uses a durable download handoff and truthful status.
+- Added operated keyboard journeys, fresh-process settings checks, narrow-window captures and a known-bad pause control. Full verification details are in docs/UI_UX_PASS.md.
+
 ## 2026-09-27 — Compact moving spell bodies
 
 - Reduced Mana Bolt and Life Bolt to 80%, Lightning Bolt to 75%, Ember Lance to 70%, and Meteor Lance to 85% of their previous body sizes; Bolt keeps its approved 75% baseline.

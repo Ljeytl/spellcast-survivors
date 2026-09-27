@@ -570,3 +570,8 @@ Remaining: after choosing baseline sizes, vary in-game tree and bush sizes by ap
 
 - Tabled: regenerating enemy archetype. Keep ongoing regeneration leaves separate from actual health-gain feedback when revisiting.
 - Later: individual spell artwork polish after the current readability and playtest pass.
+
+### Later interface polish
+- Keep typed-menu navigation deferred; retain ordinary keyboard/pointer navigation for this release.
+- Add accessibility preferences for independently scaling interface text and remapping shortcuts after the current readability baseline.
+- Revisit spellbook layout/art alongside the spell-specific artwork pass; keep combat HUD minimal.
