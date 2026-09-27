@@ -1,1 +1,15 @@
-{"status":"running","baseline":"cbf629b","integration_owner":"root","targeting":"targeting_pass2","readability":"readability_pass2","boss_reward":"upgrade_chest","pursuer":"boss_dash_farther_faster","implementation_authorized":true}
+{
+  "status": "implemented_and_verified",
+  "baseline": "cbf629b",
+  "integration_owner": "root",
+  "targeting": "targeting_pass2",
+  "readability": "readability_pass2",
+  "boss_reward": "upgrade_chest",
+  "pursuer": "boss_dash_farther_faster",
+  "implementation_authorized": true,
+  "integration_merge": "6d9276b",
+  "gameplay_tested_revision": "2003331",
+  "pack_assertions": 97,
+  "results": "docs/PLAYTEST_PASS_2_RESULTS.md",
+  "human_balance_judgment": "pending_playtest"
+}

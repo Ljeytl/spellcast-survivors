@@ -68,6 +68,6 @@ Native evidence uses no-focus offscreen test windows and real key events/button 
 
 ## Release and follow-up
 
-One canonical pack/launcher is refreshed only after source review and merge. The running older user game is not interrupted; relaunch is required to use the new build. Preserve user-owned untracked artwork. Archive completed isolated worktrees after evidence is copied; retain any checkout still used by a live game.
+Integrated in PR38 at6d9276b. The exported pack passed97 additional checks across targeting, spell areas, rewards and XP consolidation. The canonical pack/launcher has been refreshed after source review and merge. The running older user game is not interrupted; relaunch is required to use the new build. Preserve user-owned untracked artwork. Archive completed isolated worktrees after evidence is copied; retain any checkout still used by a live game.
 
 Next human playtest: judge character size/sight range, whether Firewalk/Orbit/Cross Blade now feel worth typing, and whether the3–8-minute pressure blends well into the later game. Tune values from those observations. Keep shader work, comprehensive audio, Plague death-ground rework and new-spell expansion deferred.
