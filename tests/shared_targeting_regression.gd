@@ -86,6 +86,21 @@ func run():
 	weak_bolts[1].reset_for_pool()
 	weak_bolts[1].setup_homing(game.player.position, enemies[2], 4, Color.WHITE, "mana_bolt")
 	check(weak_bolts[1].reserved_damage(enemies[2]) == 4, "Reused projectile reserves only its new damage")
+	var pooled = game.object_pool.get_object("SpellProjectile")
+	game.add_child(pooled)
+	pooled.setup_homing(game.player.position, enemies[2], 7, Color.WHITE, "mana_bolt")
+	pooled.set_process(false)
+	check(pooled.reserved_damage(enemies[2]) == 7, "Checked-out pooled projectile commits its impact")
+	pooled.despawn()
+	await process_frame
+	await process_frame
+	check(pooled.get_parent() == null and pooled.reservation_remaining == 0, "Deferred pool return detaches and clears reservation")
+	var reused = game.object_pool.get_object("SpellProjectile")
+	check(reused == pooled and reused.target == null, "Actual pool checkout reuses clean object")
+	game.add_child(reused)
+	reused.setup_homing(game.player.position, enemies[2], 3, Color.WHITE, "mana_bolt")
+	reused.set_process(false)
+	check(reused.reserved_damage(enemies[2]) == 3, "Reattached pool object contributes only current shot")
 	for enemy in enemies:
 		if Targeting.alive(enemy):
 			enemy.current_health = 0
