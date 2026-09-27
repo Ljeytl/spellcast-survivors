@@ -1,5 +1,7 @@
 ## 2026-09-27 — Visual workshop and clearer spell feedback
 
+- Preview server supports HTTP byte ranges so browser video seeking and frame stepping work.
+
 - Separate current-run Spellbook from the full implemented Necronomicon, with exact incantations, simple previews, recipes and discovery labels. Browsing grants no spells.
 - Improve Bolt/Mana body visibility; distinguish warm damage flashes, gray steam/cyan slowing, and green healing. Add simple lightning, meteor descent and plague transfer drawings while preserving combat rules.
 - Add a transparent four-stamp particle sheet for impact, smoke, embers and ice; retain procedural spell boundaries and paths.

@@ -10,7 +10,7 @@ From an isolated checkout, run:
 
     python3 tools/build_visual_workshop.py
 
-This creates an ignored staging project with its own application/save identity, compatibility renderer and workshop main scene. Normal project settings and saves are untouched. Requires Godot 4.4.1 export templates. Serve builds with a loopback HTTP server and open /visual-workshop/.
+This creates an ignored staging project with its own application/save identity, compatibility renderer and workshop main scene. Normal project settings and saves are untouched. Requires Godot 4.4.1 export templates. Run `python3 tools/serve_previews.py --directory builds --port 8766` and open /visual-workshop/. This loopback server supports byte ranges required for video seeking and frame stepping in the browser.
 
 The workshop casts real rank-one spells against stationary durable enemies. Firewalk moves the caster. Pause, Step, Replay, speed and loops control the preview. Selecting an effect or Replay starts playback even after a pause, so short effects do not appear broken on an empty first frame.
 
