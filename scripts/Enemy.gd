@@ -424,6 +424,7 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF):
 	if dying:
 		return
 	# Apply armor reduction for armored elites
+	var previous_health = current_health
 	var final_damage = damage_amount
 	if is_elite and elite_type == EliteType.ARMORED:
 		final_damage = damage_amount * (1.0 - damage_reduction)
@@ -445,7 +446,8 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF):
 	update_health_bar()
 	
 	# Flash red visual feedback when hit
-	flash_damage()
+	if current_health < previous_health:
+		flash_damage()
 	
 	# Check if enemy should die
 	if current_health <= 0:
@@ -462,8 +464,7 @@ func update_health_bar():
 func flash_damage():
 	var visual = $Sprite2D
 	if visual:
-		visual.modulate = Color(1.5, 0.5, 0.5)
-		create_tween().tween_property(visual, "modulate", Color.WHITE, 0.15)
+		preload("res://scripts/DamageFlash.gd").trigger(visual)
 
 func die():
 	if dying:

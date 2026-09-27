@@ -86,10 +86,7 @@ func _physics_process(delta):
 	if is_flashing:
 		flash_timer -= delta
 		if flash_timer <= 0:
-			# Flash is over, return sprite to normal color
 			is_flashing = false
-			if sprite:
-				sprite.modulate = Color.WHITE
 
 # Process WASD movement input and set player velocity
 func handle_movement():
@@ -180,7 +177,7 @@ func flash_damage():
 	if sprite:
 		is_flashing = true              # Start the flash effect
 		flash_timer = flash_duration    # Reset the timer
-		sprite.modulate = Color.RED     # Turn sprite red
+		preload("res://scripts/DamageFlash.gd").trigger(sprite, flash_duration)
 
 # Add experience points to the player, potentially triggering level up
 func add_xp(amount: float):
