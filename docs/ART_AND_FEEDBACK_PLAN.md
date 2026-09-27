@@ -100,3 +100,7 @@ Audio production is outside this pass. Moonfall, Yggdrasil and Grasping Hand req
 ## Deferred shader work
 
 Shader development and shader-based polish are later work, not part of the current spell, feedback, art or UX pass. This does not request removing existing rendering behavior. Settle the gameplay/readability baseline first, then scope shader work separately.
+
+### Playtest correction: infection and foliage (2026-09-26)
+
+Tree fading is player-only. Plague Seed uses a 32-pixel plant marker and a brighter four-pixel transfer trail above canopy art. Real host deaths transfer infection once to another living enemy within 130 pixels, including deaths caused by automatic Mana Bolt before the first half-second tick. The existing eight-host cap and five-second effect lifetime remain. Crowded native readability still needs human review; mechanical lifecycle coverage is separate from that judgment.

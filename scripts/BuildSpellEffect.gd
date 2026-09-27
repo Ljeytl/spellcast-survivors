@@ -12,6 +12,7 @@ var angle = 0.0
 var healing_remaining = 2.0
 var color = Color.ORANGE_RED
 var infection_links: Array = []
+var death_transfers: Dictionary = {}
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	info = data.duplicate(true)
@@ -29,6 +30,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 		remaining = 1.5
 	if info.type == "plague":
 		color = Color.GREEN_YELLOW
+		z_index = 3
 	if info.type == "orbit":
 		color = Color.MEDIUM_PURPLE
 	if info.get("slow", 0.0) > 0:
@@ -105,24 +107,37 @@ func infect(enemy, source: Vector2 = Vector2.INF):
 		return
 	hit_ids[enemy.get_instance_id()] = true
 	infections.append(weakref(enemy))
+	if enemy.has_signal("enemy_died"):
+		enemy.connect("enemy_died", _on_infected_host_died, CONNECT_ONE_SHOT)
 	if source != Vector2.INF:
 		infection_links.append({"from": source, "to": enemy.global_position, "age": 0.0})
 
 func tick_infections():
 	healing_remaining = 2.0
-	var enemies = get_tree().get_nodes_in_group("enemies")
 	for reference in infections.duplicate():
 		var enemy = reference.get_ref()
 		if not valid_target(enemy):
 			continue
 		var center = enemy.global_position
 		deal_damage(enemy, damage)
-		if infections.size() >= 8:
-			continue
-		for other in enemies:
-			if valid_target(other) and center.distance_to(other.global_position) <= 130.0 and not hit_ids.has(other.get_instance_id()):
-				infect(other, center)
-				break
+		if valid_target(enemy):
+			spread_from(center)
+		else:
+			_on_infected_host_died(enemy)
+
+func _on_infected_host_died(enemy):
+	var id = enemy.get_instance_id()
+	if remaining > 0.0 and not is_queued_for_deletion() and not death_transfers.has(id):
+		death_transfers[id] = true
+		spread_from(enemy.global_position)
+
+func spread_from(center: Vector2):
+	if infections.size() >= 8:
+		return
+	for other in get_tree().get_nodes_in_group("enemies"):
+		if valid_target(other) and center.distance_to(other.global_position) <= 130.0 and not hit_ids.has(other.get_instance_id()):
+			infect(other, center)
+			break
 
 func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
@@ -142,9 +157,9 @@ func _draw():
 			for link in infection_links:
 				var from = to_local(link.from)
 				var to = to_local(link.to)
-				draw_line(from, to, Color("83a35d", 1 - link.age / 0.35), 2)
-				art.stamp(self, "plague", from.lerp(to, link.age / 0.35), Vector2.ONE * 16)
+				draw_line(from, to, Color("c4ee79", 1 - link.age / 0.35), 4)
+				art.stamp(self, "plague", from.lerp(to, link.age / 0.35), Vector2.ONE * 26)
 			for reference in infections:
 				var enemy = reference.get_ref()
 				if valid_target(enemy):
-					art.stamp(self, "plague", to_local(enemy.global_position) + Vector2(0, -22), Vector2.ONE * 18)
+					art.stamp(self, "plague", to_local(enemy.global_position) + Vector2(0, -32), Vector2.ONE * 32)

@@ -179,18 +179,14 @@ func _process(_delta):
 	if not initialized:
 		return
 	refresh_decorations()
-	var actors: Array = get_tree().get_nodes_in_group("enemies")
-	actors.append(player)
 	for holder in decorations.values():
 		for body in holder.get_children():
 			var canopy = body.get_node_or_null("Canopy")
 			if canopy:
 				canopy.modulate.a = 1.0
-				for actor in actors:
-					var offset = actor.global_position - body.global_position
-					if absf(offset.x) < 100 and offset.y > -265 and offset.y < 40:
-						canopy.modulate.a = 0.35
-						break
+				var offset = player.global_position - body.global_position
+				if absf(offset.x) < 100 and offset.y > -265 and offset.y < 40:
+					canopy.modulate.a = 0.35
 	queue_redraw()
 
 func _draw():
