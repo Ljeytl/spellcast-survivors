@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SpellCast · Spells in motion</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#202925;color:#e5e6ca;font:16px/1.5 Verdana,sans-serif}header{max-width:1500px;padding:24px 4vw;margin:auto}h1{font:36px Georgia,serif;margin:0}p{color:#c3cdbf;max-width:78ch}a{color:#dcbe76}nav{position:sticky;top:0;background:#333f35;z-index:2;display:flex;gap:10px;padding:14px 4vw;flex-wrap:wrap;border-block:2px solid #68736b}button,input,select{font:inherit}button,input[type=search],select{border:2px solid #68736b;border-radius:2px;background:#333f35;color:#e5e6ca;padding:8px 12px}button{cursor:pointer}button[aria-pressed=true]{background:#dcbe76;color:#202925}input[type=search]{flex:1;min-width:180px}main{max-width:1600px;margin:auto;padding:24px 4vw;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}article{border:2px solid #68736b;background:#253d2a;min-width:0}h2{margin:0;font:22px Georgia,serif}.meta,.caption{padding:12px 16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.caption{font-size:13px}video{display:block;width:100%;image-rendering:pixelated;background:#4b713b;aspect-ratio:8/5}small{color:#c3cdbf}dialog{width:min(1300px,96vw);max-height:96vh;padding:0;background:#202925;color:#e5e6ca;border:2px solid #68736b}dialog::backdrop{background:#000c}.bar{display:flex;gap:10px;padding:12px;align-items:center;flex-wrap:wrap}.bar h2{flex:1}dialog video{max-height:68vh;object-fit:contain}dialog input[type=range]{flex:1;min-width:100px;accent-color:#dcbe76}#empty{padding:20px 4vw}button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #dcbe76;outline-offset:3px}@media(max-width:700px){main{grid-template-columns:1fr;padding:15px}h1{font-size:28px}.meta{padding:10px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<header><h1>Spells in motion</h1><p>Complete casts from the actual game: the same wizard, camera and rank-one spells. Play the loops, inspect a frame, or save a GIF.</p><a href="../visual-workshop/index.html">Open the live sizing workshop</a></header>
+<nav aria-label="Gallery controls"><button data-filter="All" aria-pressed="true">All</button><button data-filter="Spells" aria-pressed="false">Spells</button><button data-filter="Particles" aria-pressed="false">Particles</button><input type="search" aria-label="Find spell or effect" placeholder="Find a spell or effect…"><button id="motion" aria-pressed="false">Play loops</button><span id="count" role="status"></span></nav>
+<main></main><p id="empty" hidden>No matching effects.</p>
+<dialog aria-label="Effect viewer"><div class="bar"><h2></h2><button id="close">Close</button></div><video muted loop playsinline></video><div class="bar"><button id="play">Play</button><button id="prev" aria-label="Previous frame">−1 frame</button><button id="next" aria-label="Next frame">+1 frame</button><input type="range" min="0" step="0.033333" aria-label="Effect time"><span id="phase"></span><select aria-label="Playback speed"><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option></select><a id="gif" download>Save GIF</a></div></dialog>
+<script>
+const entries=__DATA__;
+const main=document.querySelector('main'),dialog=document.querySelector('dialog'),video=dialog.querySelector('video'),slider=dialog.querySelector('input');
+let filter='All',query='',playing=false;
+const visible=new Set();
+const observer=new IntersectionObserver(items=>{for(const item of items){const v=item.target;if(item.isIntersecting){visible.add(v);if(playing)v.play().catch(()=>{});}else{visible.delete(v);v.pause();}}},{rootMargin:'0px'});
+function motion(value){playing=value;document.querySelector('#motion').textContent=value?'Pause loops':'Play loops';document.querySelector('#motion').setAttribute('aria-pressed',value);for(const v of visible){if(value)v.play().catch(()=>{});else v.pause();}}
+function render(){observer.disconnect();visible.clear();for(const v of main.querySelectorAll('video'))v.pause();main.replaceChildren();const found=entries.filter(e=>(filter==='All'||e.group===filter)&&(e.name+' '+e.id).toLowerCase().includes(query));for(const e of found){const a=document.createElement('article');a.innerHTML='<div class="meta"><h2></h2><small></small></div><video muted loop playsinline preload="none"></video><div class="caption"><button>Inspect</button><span></span><a download>Save GIF</a></div>';a.querySelector('h2').textContent=e.name;a.querySelector('small').textContent=e.bonus?'Combination':e.group;const v=a.querySelector('video');v.muted=true;v.src=e.video;v.poster=e.poster;v.setAttribute('aria-label',e.name+' animation beside wizard');a.querySelector('button').setAttribute('aria-label','Inspect '+e.name);a.querySelector('button').onclick=()=>open(e);a.querySelector('a').href=e.gif;a.querySelector('span').textContent=e.duration.toFixed(1)+' s · 30 fps';main.append(a);observer.observe(v)}document.querySelector('#count').textContent=found.length+' / '+entries.length+' effects';document.querySelector('#empty').hidden=!!found.length;}
+function clock(){slider.value=video.currentTime;document.querySelector('#phase').textContent=video.currentTime.toFixed(2)+' s';document.querySelector('#play').textContent=video.paused?'Play':'Pause';}
+function open(e){motion(false);video.pause();video.src=e.video;video.poster=e.poster;slider.max=e.duration;dialog.querySelector('h2').textContent=e.name;document.querySelector('#gif').href=e.gif;video.load();dialog.showModal();clock();}
+for(const button of document.querySelectorAll('[data-filter]'))button.onclick=()=>{filter=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',b===button));render();};
+document.querySelector('[type=search]').oninput=e=>{query=e.target.value.toLowerCase();render();};
+document.querySelector('#motion').onclick=()=>motion(!playing);
+document.querySelector('#close').onclick=()=>dialog.close();dialog.onclose=()=>video.pause();
+document.querySelector('#play').onclick=()=>{if(video.paused)video.play().catch(()=>{});else video.pause();clock();};
+for(const [id,delta] of [['prev',-1],['next',1]])document.querySelector('#'+id).onclick=()=>{video.pause();video.currentTime=Math.min(Number(slider.max),Math.max(0,video.currentTime+delta/30));clock();};
+slider.oninput=()=>{video.pause();video.currentTime=Number(slider.value);clock();};
+dialog.querySelector('select').onchange=e=>video.playbackRate=Number(e.target.value);
+video.ontimeupdate=clock;video.onplay=clock;video.onpause=clock;video.onloadedmetadata=()=>{slider.max=video.duration;clock();};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){motion(false);video.pause();}});
+render();
+</script>
+</html>

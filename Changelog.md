@@ -1,3 +1,16 @@
+## 2026-09-27 — Visual workshop and clearer spell feedback
+
+- Preview server supports HTTP byte ranges so browser video seeking and frame stepping work.
+
+- Separate current-run Spellbook from the full implemented Necronomicon, with exact incantations, simple previews, recipes and discovery labels. Browsing grants no spells.
+- Improve Bolt/Mana body visibility; distinguish warm damage flashes, gray steam/cyan slowing, and green healing. Add simple lightning, meteor descent and plague transfer drawings while preserving combat rules.
+- Add a transparent four-stamp particle sheet for impact, smoke, embers and ice; retain procedural spell boundaries and paths.
+- Replace sparse gallery playback with complete native 30fps casts, frame inspection and downloadable GIF loops. Add a browser workshop using the actual Godot renderer, independent size controls, all regular enemy variants, pause/replay/speed, reset and preview configuration export.
+- Add a brief red health-damage overlay for wizard/enemies that preserves status tint and transparency; repeated hits restart it, blocked/zero/shield-only hits do not flash.
+- Execute preview learning/casting outside debug assertions so manual spells work in release browser exports as well as native captures.
+- Selecting an effect or Replay starts playback explicitly, fixing short effects appearing broken after a paused preview.
+- Future: animate slimes with reviewed pixel keyframes; introduce 10–15% tree/bush size variation in the game after baseline sizing, plus saved per-variant presets and optional boss lineups.
+
 ## 2026-09-27 — Spell and particle visual atlas
 
 - Add a repeatable isolated-save capture tool and searchable comparison page for all 24 implemented spells and 28 particle factories. Every native-rendered panel uses the same wizard and camera scale; captured phases can be stepped through or played. Gameplay remains unchanged.

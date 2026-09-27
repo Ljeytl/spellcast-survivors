@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SpellCast · Visual workshop</title>
+<link rel="stylesheet" href="workshop.css">
+<header><div><h1>Visual workshop</h1><p>A clearing for trying things out.</p></div><a href="../spell-gallery/index.html">Spell & particle gallery</a></header>
+<main>
+<section class="stage" aria-label="Live game preview">
+<div class="stagebar"><strong id="title">Bolt</strong><output id="clock">Loading renderer…</output></div>
+<iframe title="Live SpellCast renderer" src="engine.html"></iframe>
+<div class="transport"><button id="play" disabled>Pause</button><button id="step" disabled>Step</button><button id="replay" disabled>Replay</button><label>Speed <select id="speed" disabled><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label><label><input id="loop" type="checkbox" checked disabled> Loop</label></div>
+<p id="status" role="status">Loading the game renderer. This may take a moment.</p>
+</section>
+<aside>
+<h2>Try a spell or effect</h2>
+<label for="search">Find</label><input id="search" type="search" placeholder="Meteor, steam, impact…" disabled>
+<label for="effect">Effect</label><select id="effect" disabled></select>
+<label for="variant">Target</label><select id="variant" disabled></select>
+<div class="checks"><label><input type="checkbox" id="comparison" disabled> Compare enemy variants</label><label><input type="checkbox" id="scenery" checked disabled> Trees and bushes</label></div>
+<h2>Size & framing</h2><div id="sizes"></div>
+<div class="actions"><button id="reset" disabled>Reset sizes</button><button id="export" disabled>Export settings</button></div>
+<p class="note">1× means the current game size. Changes are local previews; exporting downloads a settings file for review. Combat areas are not balance controls.</p>
+</aside>
+</main>
+<footer>Actual game spells and particles. Stationary targets; Firewalk moves the wizard. Use the gallery for complete loops and GIF downloads.</footer>
+<script src="workshop.js"></script>
+</html>
