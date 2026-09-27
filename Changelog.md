@@ -2,6 +2,12 @@
 
 - Enlarge typed keys and stone menu headings, preserving original artwork and wrapping. Add a pause spellbook with owned active/bonus casting, passive ranks and discovered recipes; keep technical diagnostics separate.
 - Replace shared-meter debug copy with per-cast duration language. Verify menus and spellbook flows at desktop and narrow sizes after foundation integration.
+## 2026-09-26 — Forest groves and clearer XP crystals
+
+- Replace evenly scattered single trees with deterministic groves of varied sizes, occasional isolated trees, empty stretches, and clustered decorative bushes using the existing art.
+- Preserve the starting clearing and broad connected routes between groves. Halve physical trunk radius from 22 to 11 pixels without shrinking canopies, anchor both tree variants on their visible lower trunk, keep bushes nonblocking, and scenery, collision, enemy/chest spawn clearance consistent when cells stream out and return. Spawn clearance checks square enemy footprints so boss corners stay outside trunks.
+- Enlarge mana-crystal visuals and their pulse by 1.5× without changing XP values, magnet range, collection shapes, or movement.
+- Future: evaluate grove density and canopy fading during crowded human playtests before adding new terrain types or obstacles.
 
 ## 2026-09-26 — Implementation authorized
 
