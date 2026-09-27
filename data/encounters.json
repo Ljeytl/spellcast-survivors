@@ -95,7 +95,8 @@
       "xp": 10,
       "weight": 100,
       "size": 0.85,
-      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1.png"
+      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1.png",
+      "visual_scale": 1.991
     },
     "sprinter": {
       "name": "Sprinter",
@@ -107,7 +108,8 @@
       "xp": 6,
       "weight": 50,
       "size": 0.65,
-      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 2.png"
+      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 2.png",
+      "visual_scale": 1.8935
     },
     "flanker": {
       "name": "Flanker",
@@ -119,7 +121,8 @@
       "xp": 7,
       "weight": 22,
       "size": 0.85,
-      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1 sprout.png"
+      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1 sprout.png",
+      "visual_scale": 2.1719
     },
     "skirmisher": {
       "name": "Skirmisher",
@@ -131,7 +134,8 @@
       "xp": 7,
       "weight": 18,
       "size": 0.85,
-      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1 flower.png"
+      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1 flower.png",
+      "visual_scale": 2.2624
     },
     "swarmer": {
       "name": "Swarmer",
@@ -143,7 +147,8 @@
       "xp": 3,
       "weight": 20,
       "size": 0.65,
-      "sprite": "res://assets/typecast/Slime Enemies/Slime girl 1.png"
+      "sprite": "res://assets/typecast/Slime Enemies/Slime girl 1.png",
+      "visual_scale": 1.4201
     },
     "juggernaut": {
       "name": "Juggernaut",
@@ -156,7 +161,9 @@
       "weight": 12,
       "size": 1.25,
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 4.png",
-      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime.png"
+      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime.png",
+      "visual_scale": 2.4,
+      "boss_visual_scale": 1.4973
     },
     "charger": {
       "name": "Charger",
@@ -176,7 +183,9 @@
         "trigger_range": 700.0,
         "warning": 0.9,
         "cooldown": 3.5
-      }
+      },
+      "visual_scale": 2.3669,
+      "boss_visual_scale": 2.571
     },
     "shieldbearer": {
       "name": "Shieldbearer",
@@ -189,7 +198,9 @@
       "weight": 12,
       "size": 1.25,
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 6 tophat.png",
-      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime 2.png"
+      "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime 2.png",
+      "visual_scale": 2.5846,
+      "boss_visual_scale": 1.6578
     },
     "slammer": {
       "name": "Slammer",
@@ -201,7 +212,8 @@
       "xp": 18,
       "weight": 10,
       "size": 1.25,
-      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 5.png"
+      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 5.png",
+      "visual_scale": 2.7692
     },
     "marksman": {
       "name": "Marksman",
@@ -213,7 +225,8 @@
       "xp": 12,
       "weight": 12,
       "size": 0.85,
-      "sprite": "res://assets/typecast/Wisp Enemies/will-o-wisp 1.png"
+      "sprite": "res://assets/typecast/Wisp Enemies/will-o-wisp 1.png",
+      "visual_scale": 3.3987
     },
     "fan_caster": {
       "name": "Fan Caster",
@@ -225,7 +238,8 @@
       "xp": 14,
       "weight": 10,
       "size": 0.85,
-      "sprite": "res://assets/typecast/Wisp Enemies/forest spirit.png"
+      "sprite": "res://assets/typecast/Wisp Enemies/forest spirit.png",
+      "visual_scale": 3.5294
     },
     "mortar": {
       "name": "Mortar",
@@ -237,7 +251,8 @@
       "xp": 16,
       "weight": 8,
       "size": 0.85,
-      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 6 tophat.png"
+      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 6 tophat.png",
+      "visual_scale": 2.6244
     }
   },
   "contact_recoil": {
