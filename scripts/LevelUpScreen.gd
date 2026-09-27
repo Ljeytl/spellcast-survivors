@@ -131,10 +131,6 @@ func show_level_up(player_level: int, player_stats: Dictionary = {}):
 	available_upgrades = generate_upgrade_options(player_stats, player_level)
 	update_ui(player_level, player_stats)
 	
-	# Play level up sound effect
-	if is_instance_valid(AudioManager):
-		AudioManager.play_sound(AudioManager.SoundType.LEVEL_UP)
-	
 	update_reroll_button_texts()
 	for i in range(upgrade_cards.size()):
 		update_upgrade_visual_state(i)

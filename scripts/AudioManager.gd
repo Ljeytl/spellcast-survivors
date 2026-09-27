@@ -12,9 +12,7 @@ const MUSIC_BUS = "Music"
 
 # Audio pool settings
 const MAX_CONCURRENT_SOUNDS = 20
-const MAX_POOL_SIZE_PER_TYPE = 10
-const PITCH_VARIATION_RANGE = 0.15  # ±15% pitch variation
-const VOLUME_VARIATION_RANGE = 0.1  # ±10% volume variation
+const MAX_POOL_SIZE_PER_TYPE = 3
 const FADE_START_VOLUME = 0.01  # Starting volume for fade-in
 const MUTED_VOLUME_DB = -80.0  # Volume for muted audio
 
@@ -67,13 +65,16 @@ enum SoundType {
 	
 	# Environment
 	MUSIC_GAMEPLAY,
-	MUSIC_MENU
+	MUSIC_MENU,
+	ENEMY_HIT
 }
 
 # Audio pools - grouped by type for performance
 var audio_pools: Dictionary = {}
 var active_audio_players: Array[AudioStreamPlayer] = []
 var audio_resources: Dictionary = {}
+var last_played_ms: Dictionary = {}
+const PLACEHOLDER_MUSIC_ENABLED = false
 
 # Current music player
 var current_music_player: AudioStreamPlayer
@@ -159,111 +160,111 @@ func initialize_audio_pools():
 			audio_pools[sound_type].append(player)
 
 func load_audio_resources():
-	"""Load all audio files into memory for quick access"""
-	# NOTE: For a complete implementation, you would load actual audio files
-	# For now, we'll create placeholder entries that can be replaced with real audio
-	
-	# Spell sounds - using generated WAV files with more variations
-	audio_resources[SoundType.SPELL_BOLT] = [SFX_PATH + "spell_bolt_1.wav", SFX_PATH + "spell_bolt_2.wav"]
-	audio_resources[SoundType.SPELL_LIFE] = [SFX_PATH + "spell_life_1.wav", SFX_PATH + "spell_life_2.wav"]
-	audio_resources[SoundType.SPELL_ICE_BLAST] = [SFX_PATH + "spell_ice_blast_1.wav", SFX_PATH + "spell_ice_blast_2.wav"]
-	audio_resources[SoundType.SPELL_EARTHSHIELD] = [SFX_PATH + "spell_earthshield_1.wav", SFX_PATH + "spell_earthshield_2.wav"]
-	audio_resources[SoundType.SPELL_LIGHTNING_ARC] = [SFX_PATH + "spell_lightning_arc_1.wav", SFX_PATH + "spell_lightning_arc_2.wav"]
-	audio_resources[SoundType.SPELL_LIGHTNING] = [SFX_PATH + "spell_lightning_arc_1.wav", SFX_PATH + "spell_lightning_arc_2.wav"]
-	audio_resources[SoundType.SPELL_METEOR_SHOWER] = [SFX_PATH + "spell_meteor_shower_1.wav", SFX_PATH + "spell_meteor_shower_2.wav"]
-	audio_resources[SoundType.SPELL_METEOR] = [SFX_PATH + "spell_meteor_shower_1.wav", SFX_PATH + "spell_meteor_shower_2.wav"]
-	audio_resources[SoundType.SPELL_MANA_BOLT] = [SFX_PATH + "spell_mana_bolt_1.wav", SFX_PATH + "spell_mana_bolt_2.wav"]
-	
-	# Spell impact and charging sounds (reuse existing sounds with different processing)
-	audio_resources[SoundType.SPELL_IMPACT_FIRE] = [SFX_PATH + "spell_bolt_1.wav", SFX_PATH + "spell_meteor_shower_1.wav"]
-	audio_resources[SoundType.SPELL_IMPACT_ICE] = [SFX_PATH + "spell_ice_blast_1.wav", SFX_PATH + "spell_ice_blast_2.wav"]
-	audio_resources[SoundType.SPELL_IMPACT_LIGHTNING] = [SFX_PATH + "spell_lightning_arc_1.wav", SFX_PATH + "spell_lightning_arc_2.wav"]
-	audio_resources[SoundType.SPELL_IMPACT_EARTH] = [SFX_PATH + "spell_earthshield_1.wav", SFX_PATH + "spell_earthshield_2.wav"]
-	audio_resources[SoundType.SPELL_CHARGING] = [SFX_PATH + "spell_life_1.wav"]  # Soft charging sound
-	
-	# UI sounds
-	audio_resources[SoundType.UI_BUTTON_CLICK] = [SFX_PATH + "ui_button_click_1.wav", SFX_PATH + "ui_button_click_2.wav"]
-	audio_resources[SoundType.UI_BUTTON_HOVER] = [SFX_PATH + "ui_button_hover.wav"]
-	audio_resources[SoundType.UI_MENU_OPEN] = [SFX_PATH + "ui_menu_open.wav"]
-	audio_resources[SoundType.UI_MENU_CLOSE] = [SFX_PATH + "ui_menu_close.wav"]
-	audio_resources[SoundType.UI_LEVEL_SELECT] = [SFX_PATH + "ui_level_select.wav"]
-	
-	# Game sounds
-	audio_resources[SoundType.ENEMY_DEATH] = [SFX_PATH + "enemy_death_1.wav", SFX_PATH + "enemy_death_2.wav", SFX_PATH + "enemy_death_3.wav"]
-	audio_resources[SoundType.XP_COLLECT] = [SFX_PATH + "xp_collect_1.wav", SFX_PATH + "xp_collect_2.wav"]
-	audio_resources[SoundType.LEVEL_UP] = [SFX_PATH + "level_up.wav"]
-	audio_resources[SoundType.DAMAGE_TAKEN] = [SFX_PATH + "damage_taken_1.wav", SFX_PATH + "damage_taken_2.wav"]
-	audio_resources[SoundType.CHEST_OPEN] = [SFX_PATH + "chest_open.wav"]
-	audio_resources[SoundType.PICKUP_ITEM] = [SFX_PATH + "pickup_item.wav"]
-	audio_resources[SoundType.ELITE_SPAWN] = [SFX_PATH + "enemy_death_1.wav"]  # Reuse enemy death sound for elite spawn
-	
-	# Typing sounds
-	audio_resources[SoundType.TYPING_KEYSTROKE] = [SFX_PATH + "stone_key_thud.wav"]
-	audio_resources[SoundType.TYPING_BACKSPACE] = [SFX_PATH + "stone_key_crumble.wav"]
-	audio_resources[SoundType.TYPING_COMPLETE] = [SFX_PATH + "typing_complete.wav"]
-	audio_resources[SoundType.TYPING_ERROR] = [SFX_PATH + "typing_error.wav"]
-	
-	# Music
-	audio_resources[SoundType.MUSIC_GAMEPLAY] = [MUSIC_PATH + "gameplay_music.wav"]
-	audio_resources[SoundType.MUSIC_MENU] = [MUSIC_PATH + "menu_music.wav"]
+	audio_resources.clear()
+	audio_resources[SoundType.SPELL_BOLT] = ["res://audio/tactile/blade_01.wav", "res://audio/tactile/blade_02.wav"]
+	audio_resources[SoundType.SPELL_MANA_BOLT] = ["res://audio/tactile/blade_01.wav", "res://audio/tactile/blade_02.wav"]
+	audio_resources[SoundType.SPELL_LIFE] = ["res://audio/tactile/spell_02.wav"]
+	audio_resources[SoundType.SPELL_ICE_BLAST] = ["res://audio/tactile/stones_02.wav", "res://audio/tactile/stones_03.wav"]
+	audio_resources[SoundType.SPELL_EARTHSHIELD] = ["res://audio/tactile/stones_01.wav"]
+	audio_resources[SoundType.SPELL_LIGHTNING_ARC] = ["res://audio/tactile/spell_01.wav"]
+	audio_resources[SoundType.SPELL_LIGHTNING] = ["res://audio/tactile/spell_01.wav"]
+	audio_resources[SoundType.SPELL_METEOR_SHOWER] = ["res://audio/tactile/spell_fire_07.wav"]
+	audio_resources[SoundType.SPELL_METEOR] = ["res://audio/tactile/spell_fire_07.wav"]
+	audio_resources[SoundType.SPELL_IMPACT_FIRE] = ["res://audio/tactile/spell_fire_01.wav", "res://audio/tactile/spell_fire_04.wav"]
+	audio_resources[SoundType.SPELL_IMPACT_ICE] = ["res://audio/tactile/stones_02.wav"]
+	audio_resources[SoundType.SPELL_IMPACT_LIGHTNING] = ["res://audio/tactile/spell_01.wav"]
+	audio_resources[SoundType.SPELL_IMPACT_EARTH] = ["res://audio/tactile/stones_01.wav"]
+	audio_resources[SoundType.SPELL_CHARGING] = ["res://audio/tactile/book_01.wav"]
+	audio_resources[SoundType.UI_BUTTON_CLICK] = ["res://audio/tactile/item_stone_01.wav"]
+	audio_resources[SoundType.UI_BUTTON_HOVER] = ["res://audio/tactile/book_02.wav"]
+	audio_resources[SoundType.UI_MENU_OPEN] = ["res://audio/tactile/book_01.wav"]
+	audio_resources[SoundType.UI_MENU_CLOSE] = ["res://audio/tactile/book_02.wav"]
+	audio_resources[SoundType.UI_LEVEL_SELECT] = ["res://audio/tactile/item_gem_03.wav"]
+	audio_resources[SoundType.ENEMY_DEATH] = ["res://audio/tactile/creature_slime_02.wav", "res://audio/tactile/creature_slime_03.wav"]
+	audio_resources[SoundType.ENEMY_HIT] = ["res://audio/tactile/creature_slime_01.wav"]
+	audio_resources[SoundType.XP_COLLECT] = ["res://audio/tactile/item_gem_01.wav", "res://audio/tactile/item_gem_02.wav"]
+	audio_resources[SoundType.LEVEL_UP] = ["res://audio/tactile/item_gem_03.wav"]
+	audio_resources[SoundType.DAMAGE_TAKEN] = ["res://audio/tactile/creature_hurt_01.wav"]
+	audio_resources[SoundType.CHEST_OPEN] = ["res://audio/tactile/lock_01.wav"]
+	audio_resources[SoundType.PICKUP_ITEM] = ["res://audio/tactile/item_gem_02.wav"]
+	audio_resources[SoundType.ELITE_SPAWN] = ["res://audio/tactile/stones_01.wav"]
+	audio_resources[SoundType.TYPING_KEYSTROKE] = ["res://audio/tactile/item_stone_01.wav", "res://audio/tactile/item_stone_02.wav"]
+	audio_resources[SoundType.TYPING_BACKSPACE] = ["res://audio/tactile/stones_03.wav"]
+	audio_resources[SoundType.TYPING_COMPLETE] = ["res://audio/tactile/book_01.wav"]
+	audio_resources[SoundType.TYPING_ERROR] = ["res://audio/tactile/wood_01.wav"]
 
 func setup_music_player():
 	"""Setup dedicated music player"""
 	current_music_player = AudioStreamPlayer.new()
-	current_music_player.bus = SFX_BUS  # Use working SFX bus
+	current_music_player.bus = MUSIC_BUS
 	current_music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(current_music_player)
 
 # PUBLIC API FUNCTIONS
 
+func sound_profile(sound_type: SoundType) -> Dictionary:
+	match sound_type:
+		SoundType.ENEMY_HIT: return {"gain": 0.20, "interval": 100}
+		SoundType.ENEMY_DEATH: return {"gain": 0.30, "interval": 100}
+		SoundType.XP_COLLECT: return {"gain": 0.22, "interval": 90}
+		SoundType.SPELL_MANA_BOLT: return {"gain": 0.20, "interval": 110}
+		SoundType.TYPING_KEYSTROKE: return {"gain": 0.20, "interval": 35}
+		SoundType.UI_BUTTON_HOVER: return {"gain": 0.12, "interval": 100}
+		SoundType.DAMAGE_TAKEN: return {"gain": 0.55, "interval": 100}
+		SoundType.LEVEL_UP, SoundType.CHEST_OPEN: return {"gain": 0.55, "interval": 150}
+		_: return {"gain": 0.40, "interval": 60}
+
+func is_priority_sound(sound_type: SoundType) -> bool:
+	return sound_type in [SoundType.DAMAGE_TAKEN, SoundType.LEVEL_UP, SoundType.CHEST_OPEN, SoundType.UI_BUTTON_CLICK, SoundType.TYPING_ERROR]
+
 func play_sound(sound_type: SoundType, volume_override: float = -1.0, pitch_override: float = -1.0):
-	"""Play a sound effect with optional volume and pitch override"""
-	if quitting or active_audio_players.size() >= MAX_CONCURRENT_SOUNDS:
-		# Limit concurrent sounds to prevent audio overload
+	if quitting:
 		return
-	
-	var player = get_available_player(sound_type)
-	if not player:
+	var profile = sound_profile(sound_type)
+	var now = Time.get_ticks_msec()
+	if now - int(last_played_ms.get(sound_type, -100000)) < int(profile.interval):
 		return
-	
 	var audio_files = audio_resources.get(sound_type, [])
 	if audio_files.is_empty():
 		return
-	
-	# Pick random variation
-	var audio_file = audio_files[randi() % audio_files.size()]
-	var audio_stream = load_audio_file(audio_file)
-	
-	if not audio_stream:
+	active_audio_players = active_audio_players.filter(func(voice): return is_instance_valid(voice) and voice.playing)
+	if active_audio_players.size() >= MAX_CONCURRENT_SOUNDS:
+		if not is_priority_sound(sound_type):
+			return
+		var victim = active_audio_players.filter(func(voice): return not voice.get_meta("priority", false))
+		if victim.is_empty():
+			return
+		victim[0].stop()
+		active_audio_players.erase(victim[0])
+	var player = get_available_player(sound_type)
+	if not player:
 		return
-	
-	# Configure player
-	player.stream = audio_stream
+	var stream = load_audio_file(audio_files.pick_random())
+	if not stream:
+		return
+	active_audio_players.erase(player)
+	player.stream = stream
 	player.bus = get_bus_for_sound_type(sound_type)
-	
-	# Apply volume (with optional randomization)
-	var final_volume = volume_override if volume_override >= 0 else 1.0
-	if volume_override < 0:
-		final_volume += randf_range(-VOLUME_VARIATION_RANGE, VOLUME_VARIATION_RANGE)
-	player.volume_db = linear_to_db(clamp(final_volume, 0.1, 1.0))
-	
-	# Apply pitch (with optional randomization)
-	var final_pitch = pitch_override if pitch_override >= 0 else 1.0
-	if pitch_override < 0:
-		final_pitch += randf_range(-PITCH_VARIATION_RANGE, PITCH_VARIATION_RANGE)
-	player.pitch_scale = clamp(final_pitch, 0.5, 2.0)
-	
-	# Play sound
+	var gain = float(profile.gain) * (volume_override if volume_override >= 0 else randf_range(0.94, 1.0))
+	player.volume_db = linear_to_db(clampf(gain, 0.001, 1.0))
+	player.pitch_scale = clampf(pitch_override if pitch_override >= 0 else randf_range(0.96, 1.04), 0.75, 1.25)
+	player.set_meta("priority", is_priority_sound(sound_type))
 	player.play()
 	active_audio_players.append(player)
-	
-	# Emit signal for debugging/analytics
+	last_played_ms[sound_type] = now
 	audio_event_triggered.emit(str(sound_type))
 
 func play_music(music_type: SoundType, loop: bool = true, fade_in_duration: float = 0.0):
-	"""Play background music using the same system as SFX"""
-	# Just use the regular SFX system for music
-	play_sound(music_type, 1.0, 1.0)  # Full volume, normal pitch
+	if not PLACEHOLDER_MUSIC_ENABLED or quitting:
+		return
+	var paths = audio_resources.get(music_type, [])
+	if paths.is_empty():
+		return
+	current_music_player.stop()
+	current_music_player.stream = load_audio_file(paths[0])
+	current_music_player.bus = MUSIC_BUS
+	current_music_player.play()
+	is_music_playing = true
 
 func stop_music(fade_out_duration: float = 0.0):
 	"""Stop background music with optional fade-out"""
@@ -314,33 +315,20 @@ func set_music_volume(volume: float):
 
 # SPELL-SPECIFIC FUNCTIONS
 
-func play_spell_sound(spell_name: String, level: int = 1):
-	"""Play sound for a specific spell by name with level-based variations"""
-	var pitch_variation = 1.0 + (level - 1) * 0.05  # Higher levels sound slightly higher pitched
-	var volume_variation = 1.0 + min(level - 1, 5) * 0.1  # Higher levels slightly louder (cap at level 6)
-	
-	match spell_name.to_lower():
-		"bolt":
-			play_sound(SoundType.SPELL_BOLT, volume_variation, pitch_variation)
-		"life":
-			# Life spell gets softer, more ethereal sound at higher levels
-			play_sound(SoundType.SPELL_LIFE, volume_variation, max(0.8, 1.0 - (level - 1) * 0.03))
-		"ice blast":
-			# Ice blast gets deeper/more menacing at higher levels
-			play_sound(SoundType.SPELL_ICE_BLAST, volume_variation, max(0.7, 1.0 - (level - 1) * 0.04))
-		"earth shield":
-			# Earth shield gets more resonant at higher levels
-			play_sound(SoundType.SPELL_EARTHSHIELD, volume_variation, max(0.8, 1.0 - (level - 1) * 0.02))
-		"lightning arc", "lightning":
-			# Lightning gets more crackling/higher pitched at higher levels
-			play_sound(SoundType.SPELL_LIGHTNING_ARC, volume_variation, min(1.3, 1.0 + (level - 1) * 0.06))
-		"meteor shower":
-			# Meteor shower gets more dramatic at higher levels
-			play_sound(SoundType.SPELL_METEOR_SHOWER, volume_variation, max(0.9, 1.0 - (level - 1) * 0.01))
-		"mana_bolt":
-			play_sound(SoundType.SPELL_MANA_BOLT, volume_variation, pitch_variation)
-		_:
-			print("Unknown spell sound: ", spell_name)
+func spell_sound_type(spell_name: String) -> SoundType:
+	match spell_name.to_lower().replace(" ", "_"):
+		"mana_bolt": return SoundType.SPELL_MANA_BOLT
+		"life", "regeneration", "life_bolt", "soul_bloom": return SoundType.SPELL_LIFE
+		"ice_blast", "frost_sigil": return SoundType.SPELL_ICE_BLAST
+		"earth_shield", "earthshield", "rune_trap": return SoundType.SPELL_EARTHSHIELD
+		"lightning_arc", "lightning", "lightning_bolt", "focus_ray", "prism_ray": return SoundType.SPELL_LIGHTNING
+		"meteor_shower", "meteor_lance": return SoundType.SPELL_METEOR
+		"ember_lance", "ember_trail", "firewalk", "cinder_field", "steam_field": return SoundType.SPELL_IMPACT_FIRE
+		"plague_seed", "seeking_spirit", "seeker", "arcane_orbit": return SoundType.SPELL_LIFE
+		_: return SoundType.SPELL_BOLT
+
+func play_spell_sound(spell_name: String, _level: int = 1):
+	play_sound(spell_sound_type(spell_name))
 
 func play_spell_impact_sound(spell_name: String, level: int = 1):
 	"""Play impact sound when spells hit enemies"""
@@ -402,37 +390,10 @@ func get_bus_for_sound_type(sound_type: SoundType) -> String:
 			return SFX_BUS
 
 func load_audio_file(file_path: String) -> AudioStream:
-	"""Load an audio file, with fallback to procedural generation"""
-	print("DEBUG: Attempting to load audio file: ", file_path)
-	
-	# Try to load the actual file first
 	if ResourceLoader.exists(file_path):
-		var stream = load(file_path)
-		if stream:
-			return stream
-		else:
-			print("ERROR: Failed to load existing audio file: ", file_path)
-	else:
-		print("ERROR: Audio file does not exist: ", file_path)
-	
-	# If file doesn't exist, generate a simple procedural sound
-	return generate_procedural_audio(file_path)
-
-func generate_procedural_audio(file_path: String) -> AudioStream:
-	"""Generate simple procedural audio as fallback"""
-	print("WARNING: Audio file not found, generating procedural audio for: ", file_path)
-	
-	# For music, create a longer stream or return null to avoid short audio
-	if "music" in file_path:
-		print("ERROR: Music file missing! Cannot generate procedural music.")
-		return null
-	
-	# Create a simple sine wave audio stream for SFX only
-	var audio_stream = AudioStreamGenerator.new()
-	audio_stream.mix_rate = 22050
-	audio_stream.buffer_length = 0.1  # 100ms samples
-	
-	return audio_stream
+		return load(file_path) as AudioStream
+	push_error("Missing audio asset: " + file_path)
+	return null
 
 func _on_audio_finished(player: AudioStreamPlayer):
 	"""Handle audio player finishing playback"""

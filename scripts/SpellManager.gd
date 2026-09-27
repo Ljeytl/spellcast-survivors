@@ -276,8 +276,6 @@ func cast_spell() -> bool:
 		return false
 	spell_queue.pop_front()
 	last_spell_cast_time = casting_clock
-	if AudioManager:
-		AudioManager.play_spell_sound(spell_name)
 	spell_cast.emit(spell_name)
 	if game_manager and game_manager.has_method("increment_spells_cast"):
 		game_manager.increment_spells_cast()
@@ -427,7 +425,8 @@ func cast_spell_by_type(slot: int) -> bool:
 		"life_bolt":
 			cast_life_bolt(slot)
 		"piercing", "plague", "field", "orbit", "beam", "trap", "spirit", "trail", "returning":
-			return cast_build_spell(slot)
+			if not cast_build_spell(slot):
+				return false
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
 		"heal":
@@ -444,6 +443,7 @@ func cast_spell_by_type(slot: int) -> bool:
 			cast_bouncing_bolt(slot)
 		"multi_aoe":
 			cast_meteor_shower_spell(slot)
+	AudioManager.play_spell_sound(str(spell_info.id))
 	return true
 
 # Individual spell implementations

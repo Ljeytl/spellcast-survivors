@@ -442,6 +442,8 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF):
 	# Flash red visual feedback when hit
 	if current_health < previous_health:
 		flash_damage()
+		if current_health > 0:
+			AudioManager.play_sound(AudioManager.SoundType.ENEMY_HIT)
 	
 	# Check if enemy should die
 	if current_health <= 0:
