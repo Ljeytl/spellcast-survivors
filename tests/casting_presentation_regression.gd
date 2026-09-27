@@ -87,9 +87,9 @@ func run():
 	manager.update_freeform_typing_display()
 	var old_height = game.typing_label.custom_minimum_size.y
 	manager.handle_freeform_typing_input(key(0, KEY_BACKSPACE))
-	check(game.typing_label.custom_minimum_size.y >= old_height, "Wrapped-row removal retains room for its fragments")
+	check(game.typing_label.custom_minimum_size.y == old_height, "Backspace preserves single-row height")
 	await create_timer(0.4, true, false, true).timeout
-	check(game.typing_label.custom_minimum_size.y < old_height, "Empty row shrinks after its fragments dissolve")
+	check(game.typing_label.custom_minimum_size.y == old_height, "Dissolving fragments do not resize the prompt")
 	manager.current_typing_text = "meteor shower"
 	manager.update_freeform_typing_display()
 	manager.attempt_freeform_cast()
@@ -100,8 +100,8 @@ func run():
 		manager.current_typing_text = "long incantation ".repeat(8)
 		manager.update_freeform_typing_display()
 		await settle()
-		check(caps.key_position(caps.letters.length() - 1).y > caps.key_position(0).y, "Long incantations wrap")
-		check(game.typing_label.get_parent().get_v_scroll_bar().max_value > 0, "Long text remains scrollable")
+		check(caps.key_position(caps.letters.length() - 1).y == caps.key_position(0).y, "Long incantations stay on one line")
+		check(caps.key_position(caps.letters.length() - 1).x + caps.KEY_SIZE <= caps.size.x, "Horizontal overflow reveals the newest key")
 		check(game.get_node("UI/HUD").get_global_rect().encloses(game.get_node("UI/HUD/TypingPanel").get_global_rect()), "Typing panel stays in viewport")
 	manager.cancel_typing()
 	check(caps.letters.is_empty() and caps.fragments.is_empty(), "Cancellation clears keys and fragments")

@@ -200,7 +200,7 @@ func run():
 	var orb = load("res://scenes/XPOrb.tscn").instantiate()
 	orb.position = player.position + Vector2(110, 0)
 	game.add_child(orb)
-	check(orb.scale == Vector2.ONE and orb.get_node("Visual").scale == Vector2.ONE * 1.5, "Crystal starts 1.5 times larger without scaling root")
+	check(orb.scale == Vector2.ONE and orb.get_node("Visual").scale == Vector2.ONE * 2.5, "Crystal starts at stable scale accounting for camera growth")
 	check(orb.get_node("CollisionShape2D").shape.radius == 8 and orb.get_node("CollectionArea/CollectionShape").scale == Vector2.ONE * 3, "Pickup collision shapes remain unchanged")
 	check(orb.collection_distance == 100 and orb.move_speed == 200 and orb.xp_value == 10, "Pickup gameplay values remain unchanged")
 	orb.set_process(false)
@@ -212,7 +212,7 @@ func run():
 		var scale_value = orb.get_node("Visual").scale.x
 		pulse_min = minf(pulse_min, scale_value)
 		pulse_max = maxf(pulse_max, scale_value)
-	check(pulse_min >= 1.499 and pulse_min < 1.53 and pulse_max > 1.77 and pulse_max <= 1.801, "Entire pulse remains 1.5 times the prior 1.0–1.2 range")
+	check(is_equal_approx(pulse_min, 2.5) and is_equal_approx(pulse_max, 2.5), "Crystal has no scale pulse")
 	orb._process(0)
 	check(not orb.is_moving_to_player, "Larger crystal does not expand magnet range")
 	orb.position = player.position + Vector2(90, 0)
