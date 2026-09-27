@@ -1,3 +1,10 @@
+## 2026-09-26 — Plague host deaths and canopy visibility
+
+- Only the player fades tree canopies; nearby enemies no longer make scenery transparent.
+- Preserve Plague Seed propagation when another attack kills its infected host before or between ticks. Each death transfers once within the existing 130-pixel range, eight-host cap and five-second duration.
+- Enlarge plant infection markers and brighten transfer trails above the canopy layer.
+- Add real EncounterEnemy regression coverage through an owned typed cast, external deaths, damage, expiry, own-kill deduplication, chain limits and player-only fading. Future: judge infection readability during a crowded human run.
+
 ## 2026-09-26 — Clean native quit
 
 - Drain active audio streams before menu quit or window close so the native playtest no longer reports audio resources still in use at shutdown. Both routes share an idempotent quit path.
