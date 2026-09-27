@@ -5,6 +5,22 @@ var failures = 0
 var game
 var manager
 
+class Target extends Node2D:
+	var current_health = 1000.0
+	var dying = false
+	var slowed = false
+	func take_damage(amount, _source = Vector2.ZERO):
+		current_health -= amount
+	func apply_slow(_strength, _duration):
+		slowed = true
+
+func target_at(offset: Vector2):
+	var target = Target.new()
+	game.add_child(target)
+	target.global_position = game.player.global_position + offset
+	target.add_to_group("enemies")
+	return target
+
 func _initialize():
 	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
 		quit(2)
@@ -123,7 +139,32 @@ func run():
 	check(game.player.health == 41.5, "Healing seed API ticks only actual elapsed duration")
 	manager.process_healing_effects(5)
 	check(game.player.health == 46, "Healing seed API clamps finaltick andtotal")
+	fresh()
+	var front = target_at(Vector2(30, 0))
+	var inside = target_at(Vector2(200, 100))
+	var behind = target_at(Vector2(-70, 0))
+	var side = target_at(Vector2(30, 100))
+	var beyond = target_at(Vector2(401, 0))
+	var boundary = target_at(Vector2(400, 0))
+	manager.learn_spell("ice_blast")
+	manager.cast_freeform_spell("ice blast")
+	check(front.current_health < 1000 and inside.current_health < 1000 and boundary.current_health < 1000, "Ice cone hits forward interior and reach boundary")
+	check(behind.current_health == 1000 and side.current_health == 1000 and beyond.current_health == 1000, "Ice cone excludes behind, outside angle and beyond reach")
+	check(front.slowed and inside.slowed and not behind.slowed, "Ice control follows the same cone as damage")
+	manager.learn_spell("lightning_arc")
+	var before_lightning = front.current_health
+	var neighbor_health = inside.current_health
+	manager.cast_freeform_spell("lightning")
+	check(front.current_health < before_lightning and inside.current_health == neighbor_health, "Lightning directly strikes one target without chain damage")
+	manager.cast_freeform_spell("bolt")
+	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("is_homing") != null and not node.is_queued_for_deletion())
+	check(bolts.any(func(node): return not node.is_homing and node.get("damage") > 0), "Typed Bolt travels straight")
+	manager.cancel_typing()
 	game.queue_free()
 	await process_frame
+	for child in root.get_node("AudioManager").get_children():
+		if child is AudioStreamPlayer:
+			child.stop()
+	await create_timer(0.25).timeout
 	print("Casting foundations: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

@@ -526,3 +526,5 @@ See [typed magic discussion notes](docs/CASTING_FANTASY_NOTES.md) for the moveme
 ### Alchemist concept — September 26
 
 Preserve the creator’s alternative of defending a tower by assembling and throwing potions: approximately ten ingredients available, up to four or five per potion, with greater preparation time buying greater potency. The desired emotional swing is from being overwhelmed to clearing the horde through a strong combination. Input method, recipe rules, resources, movement and progression remain open; see [the expanded concept notes](docs/CASTING_FANTASY_NOTES.md#alchemist-defending-a-tower). No pivot or prototype implementation has been approved.
+
+- Casting foundation follow-up: cone geometry, direct Lightning, additive recipe tests and per-cast timing gates are implemented. Area, multicast, XP, luck, critical stats and population still need supported gameplay contracts before entering the passive offer pool.

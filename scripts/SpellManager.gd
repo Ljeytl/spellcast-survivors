@@ -435,7 +435,6 @@ func cast_spell_by_type(slot: int):
 			cast_enhanced_bolt_spell(slot)
 		"heal":
 			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)))
-			create_healing_effect()
 		"heal_over_time":
 			cast_life_spell(slot)
 		"aoe":
@@ -638,8 +637,6 @@ func cast_life_spell(slot: int):
 	}
 	active_healing_effects.append(healing_effect)
 	
-	# Create healing visual effect
-	create_healing_effect()
 
 func cast_ice_blast_spell(slot: int):
 	print("🧊 cast_ice_blast_spell called!")
@@ -651,7 +648,6 @@ func cast_ice_blast_spell(slot: int):
 	var slow_strength = spell_info.get("slow_effect", 0.3)
 	
 	print("🧊 Ice blast: radius=", radius, " damage=", damage, " player_pos=", player.global_position)
-	# Create player-centered ice explosion with proper radius visualization
 	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength)
 
 func cast_earthshield_spell(slot: int):
@@ -767,17 +763,10 @@ func create_simple_spell_flash(pos: Vector2, color: Color):
 		flash.scale = Vector2(0.5, 0.5)  # Make it smaller than AoE effects
 		get_parent().add_child(flash)
 
-func create_healing_effect():
-	# Create healing effect around player
-	var effect = spell_projectile_scene.instantiate()
-	effect.setup_effect(player.global_position, Color.GREEN, "heal", 2.0)
-	get_parent().add_child(effect)
-
 func create_shield_effect():
-	# Create shield effect around player
-	var effect = spell_projectile_scene.instantiate()
-	effect.setup_effect(player.global_position, Color.ORANGE, "shield", 3.0)
-	get_parent().add_child(effect)
+	var particles = get_parent().get("particle_manager")
+	if is_instance_valid(particles) and particles.has_method("create_persistent_shield_circle"):
+		particles.create_persistent_shield_circle(player, player.overheal_duration)
 
 func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String):
 	# Create satisfying area effect explosion
@@ -810,37 +799,25 @@ func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 	get_parent().add_child(warning)
 
 func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6):
-	# Create expanding ice blast visual effect - this should be a big satisfying explosion
-	print("🧊 Creating ice explosion at ", pos, " with radius ", radius)
-	var effect = spell_projectile_scene.instantiate()
-	if not effect:
-		print("❌ Failed to instantiate spell projectile for ice explosion")
-		return
-	effect.setup_aoe_effect(pos, radius, Color.LIGHT_BLUE, "ice")
-	get_parent().add_child(effect)
-	print("✅ Ice explosion effect created and added to scene")
-	
-	# Deal damage and apply enhanced knockback to enemies in range
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var enemies = scene_tree.get_nodes_in_group("enemies")
-	for enemy in enemies:
-		var distance = pos.distance_to(enemy.global_position)
-		if distance <= radius:
-			# Deal damage
-			enemy.take_damage(damage)
-			
-			# Apply stronger knockback - push enemies away from center
-			if enemy.has_method("apply_knockback"):
-				var knockback_direction = (enemy.global_position - pos).normalized()
-				var distance_factor = 1.0 - (distance / radius)  # Closer = stronger knockback
-				var knockback_strength = knockback_base * (1.2 + distance_factor * 0.8)  # 1.2x to 2.0x base knockback
-				enemy.apply_knockback(knockback_direction, knockback_strength)
-			
-			# Apply stronger slow effect
-			if enemy.has_method("apply_slow"):
-				enemy.apply_slow(slow_strength, slow_duration)
+	var target = get_closest_enemy()
+	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
+	var half_angle = deg_to_rad(45.0)
+	var particles = get_parent().get("particle_manager")
+	if is_instance_valid(particles) and particles.has_method("create_directional_effect"):
+		particles.create_directional_effect(pos, direction, "ice", radius, half_angle)
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not _live_spell_target(enemy):
+			continue
+		var offset: Vector2 = enemy.global_position - pos
+		var distance = offset.length()
+		if distance > radius or (distance > 0.001 and direction.dot(offset.normalized()) < cos(half_angle)):
+			continue
+		enemy.take_damage(damage)
+		if enemy.has_method("apply_knockback"):
+			var strength = knockback_base * (1.2 + (1.0 - distance / radius) * 0.8)
+			enemy.apply_knockback(offset.normalized(), strength)
+		if enemy.has_method("apply_slow"):
+			enemy.apply_slow(slow_strength, slow_duration)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
 	if not _live_spell_target(target) or remaining_chains <= 0:
