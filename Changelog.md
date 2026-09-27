@@ -1,3 +1,11 @@
+## 2026-09-27 — Sample-based gameplay audio
+
+- Replace active keyboard-like SFX mappings with 23 licensed CC0 samples for spells, material impacts, enemy damage/death, XP, typing, menus, player damage, level-ups and chests. Add source credits and conservative normalization.
+- Emit spell cues from the shared successful cast path, covering direct/bot casts and newer spells without duplicating typed casts; tie enemy hit cues to actual health loss and remove duplicate level-up menu audio.
+- Add per-event repetition limits, quiet passive/pickup/hit gains, bounded unique voices and priority admission under horde saturation. Missing assets no longer produce procedural fallback tones.
+- Disable placeholder music autoplay pending a proper soundtrack. Preserve its files/settings; future music uses the dedicated music player.
+- Add isolated-profile audio regression and actual-engine WAV capture harness. Dedicated elemental sound design, human listening/mix judgment and optional workshop audio remain follow-up work.
+
 ## 2026-09-27 — Simple pixel spell motif atlas
 
 - Visual workshop: redraw the floor after preview camera/size updates so spell replay and zoom do not leave uncovered gray regions.

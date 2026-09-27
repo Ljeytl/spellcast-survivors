@@ -158,7 +158,7 @@ func take_damage(damage: float, source: Dictionary = {}):
 		last_damage_context["overheal_loss"] = maxf(0, previous_overheal - overheal)
 
 	# Play damage sound effect
-	if is_instance_valid(AudioManager):
+	if actual_damage > 0 and is_instance_valid(AudioManager):
 		AudioManager.on_damage_taken()
 
 	# Update the health bar UI
