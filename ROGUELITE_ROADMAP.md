@@ -7,6 +7,12 @@
 - Implemented: irregular deterministic tree/bush groves, occasional lone trees, and empty ground instead of one tree per evenly spaced cell. The starting clearing and connected routes remain open; only tree trunks block movement, with their collision radius reduced from 22 to 11 pixels while canopy art keeps its size.
 - Implemented: mana crystals render at 1.5× their previous size, including their pulse, with unchanged pickup and XP mechanics.
 - Later: human-test crowded combat around groves and canopy readability at the chosen camera scale. Additional terrain types and environmental gameplay remain separate design work.
+## Casting foundations — 2026-09-27
+
+- Implemented foundation: fresh per-cast slowdown, six primary slots, six distinct passive families, independently ranked bonus ownership and current-run casting gates.
+- Supported offers: spell power, movement, health, pickup range, projectile speed, Focus duration and bundled Mana Mastery. Other catalog families remain unavailable until their effects are implemented.
+- Integration pending: bouncing Lightning Bolt, collectable Life Bolt healing seeds, effect-side projectile speed, bonus access in the player spellbook and complete geometry/feedback review.
+- Working acquisition policy: bonus choices begin at rank 1; ingredients retain their slots/ranks. Innate automatic Mana Bolt is free; its first mastery upgrade occupies a passive family.
 
 ## 2026-09-26 — Simple art matched to supplied assets (documentation only)
 

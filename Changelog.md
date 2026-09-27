@@ -8,6 +8,13 @@
 - Preserve the starting clearing and broad connected routes between groves. Halve physical trunk radius from 22 to 11 pixels without shrinking canopies, anchor both tree variants on their visible lower trunk, keep bushes nonblocking, and scenery, collision, enemy/chest spawn clearance consistent when cells stream out and return. Spawn clearance checks square enemy footprints so boss corners stay outside trunks.
 - Enlarge mana-crystal visuals and their pulse by 1.5× without changing XP values, magnet range, collection shapes, or movement.
 - Future: evaluate grove density and canopy fading during crowded human playtests before adding new terrain types or obstacles.
+## 2026-09-27 — Casting and acquisition foundations
+
+- Give each cast a fresh finite real-time slowdown window; remove idle refill dependency and add the Focus duration passive at fixed slowdown strength.
+- Support six primary spells and six passive families. Passive ranks stay in their family slot; Mana Mastery bundles automatic Mana Bolt rank and attack rate. Only passives with working effects enter the offer pool.
+- Learn authored bonus spells separately at rank 1 while preserving both ingredients and their ranks. Add unified owned-spell lookup/library APIs, reject unowned casts, and keep discovery memory separate from run ownership.
+- Separate quick Life from Regeneration and Bolt from Lightning. Reserve Lightning Bolt's bouncing-projectile contract and Life Bolt's collectable healing-seed contract for the effects integration; defer Reaping Spirit acquisition.
+- Future: integrate the effects contracts and player spellbook, audit remaining passive families, and validate the combined candidate before delivery.
 
 ## 2026-09-26 — Implementation authorized
 
