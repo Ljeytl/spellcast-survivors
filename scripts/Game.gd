@@ -704,8 +704,9 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 	if effect.get("type") == "learn_spell":
 		var slot = spell_manager.find_spell_slot(effect.get("spell", ""))
 		if slot > 0:
-			var action = "learned"
-			acknowledgement = spell_manager.get_spell_info(slot).name + " " + action + " · Press %d, then type %s" % [slot, spell_manager.get_spell_info(slot).display_name]
+			var learned = spell_manager.get_spell_info(slot)
+			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)
+			acknowledgement = learned.name + " learned · Press %s, then type %s" % [cast_hint, learned.display_name]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
 	else:

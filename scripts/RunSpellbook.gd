@@ -97,7 +97,7 @@ func populate():
 		if not recipes.has(id):
 			continue
 		var recipe = recipes[id]
-		if recipe.get("deferred", false):
+		if not recipe.get("enabled", true):
 			continue
 		available_count += 1
 		var ingredients: Array[String] = []

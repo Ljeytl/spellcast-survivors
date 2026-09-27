@@ -42,7 +42,7 @@ func _ready():
 			continue
 		count += 1
 		var recipe = preload("res://scripts/SynergyCatalog.gd").RECIPES[id]
-		if recipe.get("deferred", false):
+		if not recipe.get("enabled", true):
 			count -= 1
 			continue
 		var heading = Label.new()
