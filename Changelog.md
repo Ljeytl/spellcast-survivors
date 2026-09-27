@@ -1,3 +1,8 @@
+## 2026-09-26 — Readable keys and ordinary run spellbook
+
+- Enlarge typed keys and stone menu headings, preserving original artwork and wrapping. Add a pause spellbook with owned active/bonus casting, passive ranks and discovered recipes; keep technical diagnostics separate.
+- Replace shared-meter debug copy with per-cast duration language. Verify menus and spellbook flows at desktop and narrow sizes after foundation integration.
+
 ## 2026-09-26 — Implementation authorized
 
 - Begin the approved staged repair of the existing roster, casting/progression, simple matching art, UX/world and integrated balance. Preserve unselected ideas and defer shader/audio polish.

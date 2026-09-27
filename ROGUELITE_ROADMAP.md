@@ -1,3 +1,8 @@
+## Current pass — ordinary build inspection
+
+- Expose owned spells, slot-free bonuses, passive ranks and discoveries in the pause spellbook. Larger existing key art improves readability without an art-production expansion.
+- Typed menu navigation, elaborate art, shaders and audio redesign remain deferred.
+
 ## 2026-09-26 — Simple art matched to supplied assets (documentation only)
 
 - Record the user's direction to follow the friend's supplied art style closely, reuse existing assets and keep additions simple placeholders.

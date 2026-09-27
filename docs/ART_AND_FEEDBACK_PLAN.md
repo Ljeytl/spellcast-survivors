@@ -51,7 +51,7 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 
 | Identity | Intended visible sequence | Distinction / constraint |
 |---|---|---|
-| Life Bolt | Restorative cast accent → projectile → real damage contact → return healing mote only when earned → player pulse. | Do not show healing on a miss or imply a volley that did not occur. |
+| Life Bolt | Seed-accented projectile → actual impact plants small healing seed → persistent collectable seed → pickup bloom → brief actual healing pulses. | Physical collection is required. No automatic healing return; distinguish plant seed from XP crystal. |
 | Meteor Lance | Dense ignition → molten piercing spear → compact explosion on each qualifying hit → brief debris → cooling. | Composite spear/local explosion, not another full Meteor Shower. |
 | Soul Bloom | Seed → planting → flowering infection → visible spread and earned healing motes → wither. | Distinguish infection from its healing reward. |
 | Steam Field | Heat/frost meet → low rolling vapor → contact ticks → transparent steam → rapid thinning. | Steam silhouette, not a blue flame field or opaque cloud. |

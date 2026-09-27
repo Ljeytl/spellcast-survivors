@@ -131,14 +131,14 @@ No statement here means the user is already playing the intended design. Do not 
 | Automatic Mana Bolt and passive slots | Innate attack free; choosing mastery occupies one of six passive slots. | Proposed. |
 | Bonus acquisition and ranks | Eligible level-up reward, rank 1, independent upgrades; discovery persists separately. | Proposed; additive/no-slot/keep-ingredients rule already confirmed. |
 | Persistent trap cap | Three active traps, oldest replaced on overflow; define shared versus separate Frost Sigil cap. | Proposed, not an agreed cap. |
-| Earth Shield / Earth Wall | Keep and repair the existing shield. Separately consider placed walls; damage/decay and caster protection versus route control need distinct contracts. | User distinction; exact implementations open. |
+| Earth Shield / Earth Wall | Personal stone protection now; placed Earth Walls stay on the idea list. | User confirmed during implementation. |
 | Plague empty-target handling | Visible bounded living-host selection; explain no-target without silently wasting a cast. | Exact range and input behavior open. |
 | Cross Blade input spelling | Display/type “Cross Blade”; retire Returning Blade alias if it bypasses intended identity. | Name direction accepted; exact canonical phrase/alias policy proposed. |
 | Slowdown clock | Real elapsed typing seconds; pause/menu time excluded. Negligible debounce, no reserve. | Timing detail proposed; per-cast rule confirmed. |
 | Difficulty target | Keep idle 30–45s target; judge moving-only by sustained pressure, not guaranteed unavoidable death. | Needs user judgment on strict no-casting target. |
 | New spell concepts | Maintain the full individual library, including Moonfall/Yggdrasil/Hand and water proposals. Choose implementation scope separately; adding a documented row does not approve code. | User requested comprehensive library. |
-| Healing recipe migration | Recommend Life Bolt = Bolt + Life; preserve stronger Regeneration as distinct and retain Soul Bloom relationship pending review. | New proposal after user-confirmed healing split. |
-| Seeker / Seeking Spirit | Short Seeker for one hunter; stronger Seeking Spirit potentially separate. Revisit Reaping Spirit ingredients. | User naming suggestion; exact coexistence and recipes open. |
+| Healing recipe migration | Life Bolt = Bolt + Life; impact plants a healing seed which the player physically collects for a brief heal. No automatic life-steal. Regeneration remains a separate stronger self-heal. | Latest user-confirmed Life Bolt fantasy, implemented in this pass. |
+| Seeker / Seeking Spirit | Seeker now; Seeking Spirit remains an idea and Reaping Spirit is explicitly deferred. | User confirmed during implementation. |
 | Fire trail name | Recommend Firewalk for movement-laid fire; keep Fire Trail and Ember Trail as alternatives/history. | Working proposal. |
 
 Numeric spell ranks, Luck outcomes, crit eligibility, health-on-max-HP increase, Multicast edge cases and exact ranges need authored tables before their implementation. These are not invitations for agents to invent independent policies.
