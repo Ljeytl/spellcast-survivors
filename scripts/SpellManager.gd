@@ -640,6 +640,9 @@ func cast_life_spell(slot: int):
 		"remaining_time": duration
 	}
 	active_healing_effects.append(healing_effect)
+	var particles = get_parent().get("particle_manager")
+	if is_instance_valid(particles):
+		particles.create_persistent_life_circle(player, duration)
 	
 
 func cast_ice_blast_spell(slot: int):

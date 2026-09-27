@@ -567,3 +567,6 @@ The opening now uses a short pressure wave followed by recovery and later brief 
 The approved pass implements the run-only Spellbook/full implemented Necronomicon split, focused readable spell art and a generated impact/smoke/ember/ice stamp sheet. The workshop uses the actual renderer and exports preview settings without applying changes to game files. Complete native clips and GIFs replace sparse gallery playback.
 
 Remaining: after choosing baseline sizes, vary in-game tree and bush sizes by approximately 10–15%; keep preview reference sizes exact. Slime keyframe animation, persistent per-variant sizing presets, optional boss comparisons and shaders remain later work. Interpolation must preserve crisp pixels before adoption.
+
+- Tabled: regenerating enemy archetype. Keep ongoing regeneration leaves separate from actual health-gain feedback when revisiting.
+- Later: individual spell artwork polish after the current readability and playtest pass.

@@ -50,6 +50,8 @@ func refresh_geometry():
 		return
 	var hostile = is_in_group("enemy_projectiles")
 	spell_size = 1.0 if hostile else Geometry.multiplier(get_tree().get_first_node_in_group("player"))
+	if not hostile and projectile_type == "bolt":
+		spell_size *= preload("res://scripts/VisualDefaults.gd").BOLT_SCALE
 	var collision = get_node_or_null("CollisionShape2D")
 	if collision and collision.shape is CircleShape2D:
 		collision.shape = collision.shape.duplicate()
@@ -85,7 +87,6 @@ func _process(delta):
 
 
 func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: Color = Color.WHITE, type: String = "basic"):
-	refresh_geometry()
 	# Ensure we have valid parameters
 	if target_dir == Vector2.ZERO:
 		print("⚠️  Warning: setup() called with zero direction, using Vector2.RIGHT")
@@ -97,6 +98,7 @@ func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: 
 	damage = spell_damage
 	effect_color = color
 	projectile_type = type
+	refresh_geometry()
 	is_homing = false
 	assign_target(null)
 	
@@ -107,12 +109,12 @@ func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: 
 	call_deferred("update_visual")
 
 func setup_homing(start_pos: Vector2, homing_target: Node2D, spell_damage: float, color: Color = Color.WHITE, type: String = "homing"):
-	refresh_geometry()
 	global_position = start_pos
 	target = homing_target
 	damage = spell_damage
 	effect_color = color
 	projectile_type = type
+	refresh_geometry()
 	is_homing = true
 	assign_target(homing_target)
 	

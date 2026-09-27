@@ -1,3 +1,11 @@
+## 2026-09-27 — Healing readability and individual spell previews
+
+- Regeneration has a loose orbit of leaves; actual healing shows rising green pluses only when health increases.
+- Bolt body and collision reduced by 25%; camera zoom reduced by 7.5%. Other spells retain their sizes.
+- Workshop remembers size, artwork, and particle adjustments per effect; schema 2 exports separate those from world settings.
+- Corrected Lightning area and six-slot copy; removed the repeated casting instruction.
+- Regenerating enemy design remains tabled; wider spell art polish is future work.
+
 ## 2026-09-27 — Sample-based gameplay audio
 
 - Replace active keyboard-like SFX mappings with 23 licensed CC0 samples for spells, material impacts, enemy damage/death, XP, typing, menus, player damage, level-ups and chests. Add source credits and conservative normalization.

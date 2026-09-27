@@ -9,7 +9,16 @@ var elapsed = 0.0
 var duration = 2.0
 var scenery: Node2D
 var targets: Array = []
-var settings = {"wizard": 1.0, "enemy": 1.0, "enemy_sizes": {}, "tree": 1.0, "bush": 1.0, "spell_size": 1.0, "projectile": 1.0, "particle": 1.0, "zoom": 1.5, "variant": "pursuer", "comparison": false, "scenery": true}
+var settings = {"wizard": 1.0, "enemy": 1.0, "enemy_sizes": {}, "tree": 1.0, "bush": 1.0, "effect_settings": {}, "spell_size": 1.0, "projectile": 1.0, "particle": 1.0, "zoom": preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM, "variant": "pursuer", "comparison": false, "scenery": true}
+
+
+func select_effect(id: String):
+	selected = id
+	for key in ["spell_size", "projectile", "particle"]:
+		settings[key] = settings.effect_settings.get(id, {}).get(key, 1.0)
+
+func remember_effect():
+	settings.effect_settings[selected] = {"spell_size": settings.spell_size, "projectile": settings.projectile, "particle": settings.particle}
 
 func catalog() -> Array:
 	var result = [{"id": "mana_bolt", "name": "Mana Bolt", "group": "Spells", "bonus": false}]

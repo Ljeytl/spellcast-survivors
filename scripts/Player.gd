@@ -222,7 +222,7 @@ func heal(amount: float):
 	var previous_health = health
 	health = min(max_health, health + amount)
 	if health > previous_health and Time.get_ticks_msec() >= next_heal_feedback_msec:
-		next_heal_feedback_msec = Time.get_ticks_msec() + 150
+		next_heal_feedback_msec = Time.get_ticks_msec() + 350
 		var particles = get_parent().get("particle_manager")
 		if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
 			particles.create_heal_effect(global_position)

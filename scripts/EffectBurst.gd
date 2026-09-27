@@ -23,6 +23,9 @@ func _process(delta):
 		if not is_instance_valid(target) or target.is_queued_for_deletion():
 			queue_free()
 			return
+		if target.get("health") != null and float(target.health) <= 0:
+			queue_free()
+			return
 		if kind == "stone" and target.get("overheal") != null and float(target.overheal) <= 0:
 			queue_free()
 			return
@@ -51,6 +54,15 @@ func _draw():
 					art.stamp(self, kind, heading * radius * progress, Vector2.ONE * particle_size, Color(1, 1, 1, opacity), heading.angle())
 			else:
 				art.beam(self, Vector2.ZERO, direction * radius, 3, opacity)
+		"regeneration":
+			for index in range(4):
+				var angle = age * 0.8 + TAU * index / 4.0
+				var point = Vector2(cos(angle) * radius, sin(angle) * radius * 0.62 - 8)
+				art.stamp(self, "heal", point, Vector2.ONE * particle_size, Color(1, 1, 1, opacity), sin(angle) * 0.3)
+		"healing":
+			for index in range(2):
+				var point = Vector2((index - 0.5) * 24, -12 - progress * 34 - (index % 2) * 10)
+				art.healing_plus(self, point, particle_size * (0.9 + sin(progress * PI) * 0.1), opacity)
 		"follow":
 			art.wreath(self, kind, Vector2.ZERO, radius, 0, opacity, 6, particle_size)
 		"warning":

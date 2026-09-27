@@ -6,7 +6,7 @@ const SPELLS = {
 	"regeneration": "Restore health over time.",
 	"ice_blast": "Blast a cone of enemies with ice and push them back.",
 	"earth_shield": "Gain temporary bonus health.",
-	"lightning_arc": "Strike one nearby enemy with lightning.",
+	"lightning_arc": "Strike nearby enemies with an area of lightning.",
 	"meteor_shower": "Rain explosive meteors onto nearby enemies.",
 	"ember_lance": "Pierce a line of enemies with fire.",
 	"plague_seed": "Infect a nearby enemy with lingering damage.",

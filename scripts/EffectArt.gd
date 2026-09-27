@@ -89,3 +89,14 @@ static func lightning(canvas: CanvasItem, start: Vector2, end: Vector2, width: f
 	canvas.draw_polyline(points, Color(INK, opacity), width + 4)
 	canvas.draw_polyline(points, Color(PALETTE.lightning, opacity), width)
 	canvas.draw_polyline(points, Color("fff1d1", opacity), 2)
+
+static func healing_plus(canvas: CanvasItem, center: Vector2, size: float, opacity: float):
+	canvas.draw_set_transform(center.round(), 0, Vector2.ONE * size / 12.0)
+	var outline = Color("315a3a", opacity)
+	var green = Color("86ed8a", opacity)
+	canvas.draw_rect(Rect2(-3, -7, 6, 14), outline)
+	canvas.draw_rect(Rect2(-7, -3, 14, 6), outline)
+	canvas.draw_rect(Rect2(-2, -6, 4, 12), green)
+	canvas.draw_rect(Rect2(-6, -2, 12, 4), green)
+	canvas.draw_rect(Rect2(-1, -5, 2, 6), Color("e7ffd0", opacity))
+	canvas.draw_set_transform(Vector2.ZERO)
