@@ -4,6 +4,7 @@ extends Area2D
 
 var healing_owner: WeakRef
 var heal_on_hit = 0.0
+var hit_ids: Dictionary = {}
 
 var despawning: bool = false
 
@@ -16,7 +17,7 @@ var is_homing: bool = false            # Whether this projectile homes toward ta
 var projectile_type: String = "basic" # Type determines visual and behavior
 var effect_color: Color = Color.WHITE # Color tint for the projectile sprite
 var effect_radius: float = 0.0        # Radius for area-of-effect spells
-var lifetime: float = 5.0             # How long projectile exists before despawning
+var lifetime: float = 3.0             # How long projectile exists before despawning
 var homing_strength: float = 5.0      # How quickly homing projectiles turn toward target
 
 # Object pooling support to improve performance
@@ -37,13 +38,16 @@ func _ready():
 	call_deferred("update_visual")
 
 func _process(delta):
+	if despawning:
+		return
+	queue_redraw()
 	# Handle lifetime
 	lifetime_timer -= delta
 	if lifetime_timer <= 0:
 		despawn()
 		return
 	
-	if is_homing and target and is_instance_valid(target):
+	if is_homing and is_instance_valid(target):
 		# Homing behavior
 		var target_direction = (target.global_position - global_position).normalized()
 		direction = direction.lerp(target_direction, homing_strength * delta).normalized()
@@ -53,7 +57,7 @@ func _process(delta):
 	global_position += direction * speed * delta
 	
 	# Remove if target is destroyed
-	if is_homing and target and not is_instance_valid(target):
+	if is_homing and not is_instance_valid(target):
 		despawn()
 
 func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: Color = Color.WHITE, type: String = "basic"):
@@ -85,38 +89,44 @@ func setup_homing(start_pos: Vector2, homing_target: Node2D, spell_damage: float
 	is_homing = true
 	
 	# Initial direction towards target
-	if target:
+	if is_instance_valid(target):
 		direction = (target.global_position - global_position).normalized()
 		rotation = direction.angle()
 	
 	call_deferred("update_visual")
 
 func setup_effect(pos: Vector2, color: Color, type: String, duration: float):
+	monitoring = false
 	global_position = pos
 	effect_color = color
 	projectile_type = type
 	lifetime = duration
+	lifetime_timer = duration
 	speed = 0.0  # Stationary effect
 	
 	call_deferred("update_visual")
 
 func setup_aoe_effect(pos: Vector2, radius: float, color: Color, type: String):
+	monitoring = false
 	print("🎯 SpellProjectile setup_aoe_effect: type=", type, " radius=", radius, " pos=", pos)
 	global_position = pos
 	effect_color = color
 	projectile_type = type
 	effect_radius = radius
 	speed = 0.0  # Stationary effect
-	lifetime = 1.0  # Short visual effect
+	lifetime = 0.5
+	lifetime_timer = lifetime
 	
 	call_deferred("update_visual")
 
 func setup_lightning_arc(from_pos: Vector2, to_pos: Vector2, color: Color):
+	monitoring = false
 	global_position = from_pos
 	effect_color = color
 	projectile_type = "lightning"
 	speed = 0.0
 	lifetime = 0.3
+	lifetime_timer = lifetime
 	
 	# Store end position for drawing
 	set_meta("end_pos", to_pos)
@@ -124,184 +134,20 @@ func setup_lightning_arc(from_pos: Vector2, to_pos: Vector2, color: Color):
 	call_deferred("update_visual")
 
 func update_visual():
-	# Update sprite/visual based on projectile type and color
-	print("🎨 update_visual called: type=", projectile_type, " color=", effect_color, " radius=", effect_radius)
-	
-	# Stop any running animations that might interfere
-	var anim_player = get_node_or_null("AnimationPlayer")
-	if anim_player and projectile_type in ["ice", "meteor", "warning", "heal", "shield", "flash"]:
-		anim_player.stop()
-		print("🛑 Stopped AnimationPlayer for effect type: ", projectile_type)
-	
+	var animation = get_node_or_null("AnimationPlayer")
+	if animation:
+		animation.stop()
 	var sprite = get_node_or_null("ProjectileSprite")
-	if not sprite:
-		print("❌ ProjectileSprite node not found in SpellProjectile")
-		return
-	print("✅ Found ProjectileSprite node")
-	
-	# Set the color modulation
-	sprite.modulate = effect_color
-	print("🎨 Set sprite color to ", effect_color)
-	
-	# Scale based on type
-	match projectile_type:
-		"mana_bolt":
-			# Enhanced mana bolt with energy trail
-			sprite.scale = Vector2(0.8, 0.8)
-			z_index = 10
-			sprite.modulate = Color(0.4, 0.8, 1.0)  # Bright blue energy
-			
-			# Pulsing energy effect
-			var tween = create_tween()
-			tween.set_loops()
-			tween.tween_property(sprite, "modulate", Color(0.8, 1.0, 1.0), 0.3)
-			tween.tween_property(sprite, "modulate", Color(0.4, 0.8, 1.0), 0.3)
-			
-		"bolt", "life_bolt":
-			# Enhanced bolt with crackling energy
-			sprite.scale = Vector2(1.0, 1.0)
-			z_index = 10
-			sprite.modulate = effect_color * 1.2
-			
-			# Crackling animation
-			var tween = create_tween()
-			tween.set_loops()
-			tween.tween_property(sprite, "scale", Vector2(1.1, 1.1), 0.1)
-			tween.tween_property(sprite, "scale", Vector2(0.9, 0.9), 0.1)
-			tween.tween_property(sprite, "modulate", Color.WHITE, 0.05)
-			tween.tween_property(sprite, "modulate", effect_color * 1.2, 0.15)
-			
-		"heal":
-			# Radiant healing with golden glow
-			sprite.scale = Vector2(2.0, 2.0)
-			z_index = 15
-			sprite.modulate = Color(1.0, 0.9, 0.3, 0.8)  # Golden glow
-			
-			# Gentle radial pulsing with sparkle effect
-			var tween = create_tween()
-			tween.set_parallel(true)
-			tween.set_loops()
-			
-			# Scale pulsing
-			tween.tween_property(sprite, "scale", Vector2(2.4, 2.4), 1.0)
-			tween.tween_property(sprite, "scale", Vector2(2.0, 2.0), 1.0)
-			
-			# Color intensity pulsing
-			tween.tween_property(sprite, "modulate", Color(1.0, 1.0, 0.6, 0.9), 0.5)
-			tween.tween_property(sprite, "modulate", Color(1.0, 0.9, 0.3, 0.7), 0.5)
-			
-		"shield":
-			# Protective energy barrier with hexagonal shimmer
-			sprite.scale = Vector2(2.5, 2.5)
-			z_index = 20
-			sprite.modulate = Color(0.3, 0.6, 1.0, 0.7)  # Blue energy shield
-			
-			# Barrier fluctuation animation
-			var tween = create_tween()
-			tween.set_parallel(true)
-			tween.set_loops()
-			
-			# Defensive pulsing
-			tween.tween_property(sprite, "scale", Vector2(2.8, 2.8), 0.4)
-			tween.tween_property(sprite, "scale", Vector2(2.2, 2.2), 0.6)
-			
-			# Shield energy fluctuation
-			tween.tween_property(sprite, "modulate", Color(0.5, 0.8, 1.0, 0.8), 0.3)
-			tween.tween_property(sprite, "modulate", Color(0.3, 0.6, 1.0, 0.6), 0.7)
-		"ice", "meteor":
-			print("🧊 Processing ice/meteor visual with radius ", effect_radius)
-			if effect_radius > 0:
-				sprite.visible = false  # Hide the projectile sprite
-				z_index = 50  # Very high to ensure visibility
-				
-				# Store enhanced circle info for custom drawing
-				set_meta("circle_radius", effect_radius)
-				set_meta("circle_color", effect_color)
-				set_meta("effect_type", projectile_type)
-				set_meta("animation_time", 0.0)
-				
-				print("🔄 Created enhanced circle with radius ", effect_radius)
-				print("✨ Set z_index=", z_index)
-				
-				# Fast 2-phase animation
-				var tween = create_tween()
-				tween.set_parallel(true)
-				
-				# Phase 1: Explosive expansion (0.15s)
-				tween.tween_method(
-					func(progress): 
-						set_meta("animation_time", progress * 0.15)
-						queue_redraw(),
-					0.0, 1.0, 0.15
-				)
-				
-				# Phase 2: Quick fade out (0.25s)
-				tween.tween_method(
-					func(progress): 
-						set_meta("animation_time", 0.15 + (progress * 0.25))
-						modulate.a = 1.0 - progress
-						queue_redraw(),
-					0.0, 1.0, 0.25
-				).set_delay(0.15)
-				
-				print("🎬 Started enhanced 3-phase animation")
-			else:
-				print("❌ effect_radius is 0 or negative: ", effect_radius)
-		"warning":
-			# Warning indicator for incoming attacks - scale to show actual radius
-			if effect_radius > 0:
-				var radius_scale = effect_radius / 100.0
-				sprite.scale = Vector2(radius_scale, radius_scale)
-			else:
-				sprite.scale = Vector2(2.0, 2.0)  # Default size
-			
-			z_index = -5  # Behind player but visible
-			sprite.modulate.a = 0.5  # Semi-transparent
-			
-			# Pulsing warning animation
-			var tween = create_tween()
-			tween.set_loops()
-			tween.tween_property(sprite, "modulate:a", 0.8, 0.3)
-			tween.tween_property(sprite, "modulate:a", 0.3, 0.3)
-		"lightning":
-			# Epic purple lightning arc with multiple bolts
-			sprite.visible = false
-			z_index = 25  # Above almost everything
-			
-			# Store enhanced lightning data
-			set_meta("lightning_intensity", 1.5)
-			set_meta("branch_count", 1 + randi() % 2)  # 1-2 bolts only
-			set_meta("flicker_time", 0.0)
-			
-			# Lightning flicker animation
-			var tween = create_tween()
-			tween.set_loops()
-			tween.tween_method(
-				func(flicker):
-					set_meta("flicker_time", flicker)
-					queue_redraw(),
-				0.0, 1.0, 0.05
-			)
-		"flash":
-			# Explosive flash effect with impact burst
-			sprite.scale = Vector2(0.5, 0.5)
-			z_index = 30  # Above almost everything
-			sprite.modulate = Color.WHITE * 1.5  # Bright flash
-			
-			# Multi-stage flash animation
-			var tween = create_tween()
-			tween.set_parallel(true)
-			
-			# Explosive expansion
-			tween.tween_property(sprite, "scale", Vector2(2.0, 2.0), 0.15)
-			tween.tween_property(sprite, "modulate", Color(1.2, 1.2, 0.8, 0.8), 0.1)
-			
-			# Quick fade with color shift
-			tween.tween_property(sprite, "modulate:a", 0.0, 0.25).set_delay(0.1)
-			tween.tween_callback(func(): queue_free()).set_delay(0.35)
+	if sprite:
+		sprite.visible = false
+	var particles = get_node_or_null("TrailParticles")
+	if particles:
+		particles.emitting = false
+	z_index = 10
+	queue_redraw()
 
 func _on_area_entered(area):
-	if despawning:
+	if despawning or projectile_type in ["heal", "shield", "ice", "meteor", "warning", "lightning", "flash"]:
 		return
 	# Handle different projectile types
 	if is_in_group("enemy_projectiles"):
@@ -324,14 +170,15 @@ func _on_area_entered(area):
 		if area.name == "HurtBox" and area.get_parent().is_in_group("enemies"):
 			var enemy = area.get_parent()
 			if enemy.has_method("take_damage"):
+				if hit_ids.has(enemy.get_instance_id()) or enemy.get("dying") or enemy.current_health <= 0:
+					return
+				hit_ids[enemy.get_instance_id()] = true
 				var health_before = enemy.current_health
 				enemy.take_damage(damage, global_position)
 				var dealt = maxf(0.0, health_before - enemy.current_health)
-				if heal_on_hit > 0.0 and dealt > 0.0 and healing_owner:
-					var owner_player = healing_owner.get_ref()
-					if is_instance_valid(owner_player) and owner_player.health > 0:
-						owner_player.heal(minf(heal_on_hit, dealt))
-				
+				if projectile_type == "life_bolt" and dealt > 0:
+					spawn_healing_seed()
+
 				# Create particle effect on impact
 				var scene_tree = get_tree()
 				if scene_tree:
@@ -345,137 +192,67 @@ func _on_area_entered(area):
 					parent.show_damage_number(enemy.global_position, damage)
 				
 				# Remove projectile after hit (unless it's a piercing type)
-				if projectile_type != "lightning_arc":
+				if not bounce_from(enemy) and projectile_type != "lightning_arc":
 					despawn()
 
 # Custom drawing for special effects like lightning and area effects
 func _draw():
-	if projectile_type == "lightning":
-		var end_pos = get_meta("end_pos", global_position)
-		var local_end = to_local(end_pos)
-		var intensity = get_meta("lightning_intensity", 1.0)
-		var branch_count = get_meta("branch_count", 1)
-		var flicker = get_meta("flicker_time", 0.0)
-		
-		# Epic purple lightning colors
-		var primary_color = Color.MAGENTA * (1.2 + sin(flicker * 20.0) * 0.3)
-		var secondary_color = Color(0.8, 0.4, 1.0) * intensity
-		var core_color = Color.WHITE * (0.8 + sin(flicker * 15.0) * 0.2)
-		
-		# Draw multiple lightning branches
-		for branch in range(branch_count):
-			var branch_offset = Vector2(randf_range(-30, 30), randf_range(-30, 30))
-			var branch_end = local_end + branch_offset
-			
-			# Main lightning bolt segments
-			var segments = 8 + randi() % 4
-			var points = [Vector2.ZERO]
-			
-			# Generate jagged lightning path
-			for i in range(1, segments):
-				var t = float(i) / segments
-				var base_point = Vector2.ZERO.lerp(branch_end, t)
-				var chaos = 40.0 * (1.0 - abs(t - 0.5) * 2.0)  # More chaos in middle
-				var offset = Vector2(
-					randf_range(-chaos, chaos),
-					randf_range(-chaos, chaos)
-				)
-				points.append(base_point + offset)
-			
-			points.append(branch_end)
-			
-			# Draw lightning with multiple layers for glow effect
-			for layer in range(3):
-				var layer_width = [8.0, 4.0, 2.0][layer]
-				var layer_color = [secondary_color, primary_color, core_color][layer]
-				var layer_alpha = [0.4, 0.7, 1.0][layer] * modulate.a
-				
-				layer_color.a = layer_alpha
-				
-				# Draw segments
-				for i in range(points.size() - 1):
-					draw_line(points[i], points[i + 1], layer_color, layer_width)
-			
-			# Add crackling sparks
-			if branch == 0:  # Only on main branch
-				for spark in range(6):
-					var spark_t = randf()
-					var spark_pos = Vector2.ZERO.lerp(branch_end, spark_t)
-					var spark_offset = Vector2(randf_range(-15, 15), randf_range(-15, 15))
-					var spark_end = spark_pos + spark_offset
-					
-					draw_line(spark_pos, spark_end, core_color * 0.6, 1.5)
-		
-		# Add electric aura around start and end points
-		var aura_radius = 8.0 + sin(flicker * 12.0) * 3.0
-		draw_circle(Vector2.ZERO, aura_radius, Color(primary_color.r, primary_color.g, primary_color.b, 0.3))
-		draw_circle(local_end, aura_radius * 0.7, Color(primary_color.r, primary_color.g, primary_color.b, 0.2))
-	
-	elif projectile_type in ["ice", "meteor"]:
-		var base_radius = get_meta("circle_radius", 0.0)
-		var base_color = get_meta("circle_color", Color.WHITE)
-		var effect_type = get_meta("effect_type", "ice")
-		var anim_time = get_meta("animation_time", 0.0)
-		
-		if base_radius > 0:
-			print("🎨 Drawing enhanced effect: radius=", base_radius, " time=", anim_time)
-			
-			# Fast 2-phase animation
-			var expansion_factor = 1.0
-			var pulse_intensity = 1.0
-			var outer_rings = 2
-			
-			if anim_time <= 0.15:  # Phase 1: Explosive expansion
-				var phase_progress = anim_time / 0.15
-				var eased_progress = 1.0 - pow(1.0 - phase_progress, 3.0)  # Cubic ease-out
-				expansion_factor = lerp(0.2, 1.1, eased_progress)
-				pulse_intensity = 1.8 - (phase_progress * 0.4)
-				outer_rings = 3
-			else:  # Phase 2: Quick fade
-				var phase_progress = (anim_time - 0.15) / 0.25
-				expansion_factor = lerp(1.1, 1.2, phase_progress)
-				pulse_intensity = lerp(1.4, 0.6, phase_progress)
-				outer_rings = 2
-			
-			var current_radius = base_radius * expansion_factor
-			
-			# Color variations based on effect type
-			var primary_color = base_color
-			var secondary_color = base_color
-			
-			if effect_type == "ice":
-				primary_color = Color.CYAN * pulse_intensity
-				secondary_color = Color(0.4, 0.8, 1.0) * pulse_intensity
-			else:  # meteor
-				primary_color = Color.ORANGE_RED * pulse_intensity
-				secondary_color = Color.YELLOW * pulse_intensity
-			
-			# Draw multiple concentric circles for depth
-			for i in range(outer_rings):
-				var ring_radius = current_radius * (1.0 - (i * 0.3))
-				var ring_alpha = (1.0 - (i * 0.4)) * modulate.a
-				
-				# Filled circle with gradient effect
-				var fill_alpha = ring_alpha * 0.25
-				draw_circle(Vector2.ZERO, ring_radius, Color(primary_color.r, primary_color.g, primary_color.b, fill_alpha))
-				
-				# Outer ring with stronger color
-				var ring_width = 4.0 + (i * 2.0)
-				draw_arc(Vector2.ZERO, ring_radius, 0, TAU, 128, Color(secondary_color.r, secondary_color.g, secondary_color.b, ring_alpha), ring_width)
-			
-			# Add sparkling edge effect (only during expansion)
-			if anim_time <= 0.15:
-				var sparkle_count = 8
-				for j in range(sparkle_count):
-					var angle = (TAU / sparkle_count) * j + (anim_time * 6.0)  # Fast rotating sparkles
-					var sparkle_pos = Vector2(cos(angle), sin(angle)) * current_radius
-					var sparkle_size = 2.0 + sin(anim_time * 12.0 + j) * 1.5
-					draw_circle(sparkle_pos, sparkle_size, Color.WHITE * modulate.a * 0.9)
-			
-			# Center burst effect during expansion
-			if anim_time <= 0.15:
-				var burst_radius = current_radius * 0.12 * (anim_time / 0.15)
-				draw_circle(Vector2.ZERO, burst_radius, Color.WHITE * modulate.a)
+	var art = preload("res://scripts/EffectArt.gd")
+	match projectile_type:
+		"lightning":
+			art.beam(self, Vector2.ZERO, to_local(get_meta("end_pos", global_position)), 3)
+		"warning":
+			draw_arc(Vector2.ZERO, effect_radius, 0, TAU, 48, Color("e88d52"), 2)
+		"ice", "meteor":
+			art.burst(self, 1 if projectile_type == "ice" else 0, Vector2.ZERO, effect_radius * 2, 1 - lifetime_timer / maxf(lifetime, 0.01))
+		"shield":
+			art.wreath(self, "stone", Vector2.ZERO, 30, 0)
+		"heal":
+			art.wreath(self, "heal", Vector2.ZERO, 24, 0)
+		"mana_bolt":
+			art.stamp(self, "mana", Vector2.ZERO, Vector2(22, 18))
+		"bolt", "life_bolt", "lightning_bolt":
+			art.stamp(self, "bolt", Vector2.ZERO, Vector2(30, 24), Color("b3d899") if projectile_type == "life_bolt" else Color.WHITE)
+		_:
+			art.stamp(self, "impact", Vector2.ZERO, Vector2.ONE * 18)
+
+func bounce_from(enemy) -> bool:
+	if projectile_type != "lightning_bolt":
+		return false
+	var bounces = int(get_meta("bounce_count", 0))
+	if bounces <= 0:
+		return false
+	var nearest = null
+	var distance = float(get_meta("bounce_range", 240.0))
+	for candidate in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(candidate) or candidate.is_queued_for_deletion() or candidate == enemy or hit_ids.has(candidate.get_instance_id()) or candidate.get("dying") or float(candidate.current_health) <= 0:
+			continue
+		var separation = global_position.distance_to(candidate.global_position)
+		if separation <= distance:
+			distance = separation
+			nearest = candidate
+	if not nearest:
+		return false
+	set_meta("bounce_count", bounces - 1)
+	target = nearest
+	is_homing = true
+	direction = global_position.direction_to(nearest.global_position)
+	rotation = direction.angle()
+	return true
+
+func spawn_healing_seed():
+	var owner_reference = get_meta("healing_seed_owner") if has_meta("healing_seed_owner") else healing_owner
+	var player = owner_reference.get_ref() if owner_reference else get_tree().get_first_node_in_group("player")
+	if not is_instance_valid(player):
+		return
+	var seed = preload("res://scripts/HealingSeed.gd").new()
+	seed.player_ref = weakref(player)
+	seed.healing_amount = float(get_meta("healing_seed_amount", 6.0))
+	seed.healing_duration = float(get_meta("healing_seed_duration", 2.0))
+	seed.remaining = float(get_meta("healing_seed_lifetime", 10.0))
+	seed.cap = maxi(1, int(get_meta("healing_seed_cap", 6)))
+	seed.position = get_parent().to_local(global_position)
+	get_parent().add_child(seed)
 
 # Object pooling methods
 func setup_for_pool():
@@ -483,6 +260,12 @@ func setup_for_pool():
 	is_pooled = true
 
 func reset_for_pool():
+	monitoring = true
+	hit_ids.clear()
+	remove_meta("bounce_count")
+	remove_meta("bounce_range")
+	for key in ["healing_seed_owner", "healing_seed_amount", "healing_seed_duration", "healing_seed_lifetime", "healing_seed_cap"]:
+		remove_meta(key)
 	healing_owner = null
 	heal_on_hit = 0.0
 	despawning = false
@@ -496,7 +279,7 @@ func reset_for_pool():
 	projectile_type = "basic"
 	effect_color = Color.WHITE
 	effect_radius = 0.0
-	lifetime = 5.0
+	lifetime = 3.0
 	lifetime_timer = lifetime
 	homing_strength = 5.0
 	

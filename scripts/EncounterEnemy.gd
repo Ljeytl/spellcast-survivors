@@ -132,10 +132,12 @@ func take_damage(damage_amount: float, source_position: Vector2 = Vector2.INF):
 	super.take_damage(amount, source_position)
 
 func _draw():
+	var debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")
 	var colors = {"grunt": Color(0.8, 0.85, 0.65), "runner": Color(1, 0.8, 0.2), "brute": Color(0.9, 0.5, 0.25), "shooter": Color(1, 0.25, 0.3)}
-	draw_arc(Vector2.ZERO, 25, 0, TAU, 24, Color("0b1320"), 6.0)
-	draw_arc(Vector2.ZERO, 25, 0, TAU, 24, colors.get(family, Color.WHITE), 2.5)
-	if boss:
+	if debug_archetypes:
+		draw_arc(Vector2.ZERO, 25, 0, TAU, 24, Color("0b1320"), 6.0)
+		draw_arc(Vector2.ZERO, 25, 0, TAU, 24, colors.get(family, Color.WHITE), 2.5)
+	if boss and debug_archetypes:
 		draw_arc(Vector2.ZERO, 30, 0, TAU, 32, Color.GOLD, 3.0)
 	if variant == "shieldbearer":
 		draw_arc(Vector2.ZERO, 32, facing.angle() - 0.95, facing.angle() + 0.95, 16, Color(0.7, 0.85, 1), 5.0)
