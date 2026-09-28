@@ -1,6 +1,6 @@
 ## Post-0.1.25 feedback to address
 
-See [F41–F43 in the feedback tracker](docs/PLAYER_FEEDBACK.md#post-0125-playtest-feedback--2026-09-28): Firewalk obscuring the wizard; remove bottom instructional messages while retaining spell names/numbers/durations; upgraded Bolt strength deferred for later. Logged only, not implemented.
+See [F41–F43 in the feedback tracker](docs/PLAYER_FEEDBACK.md#post-0125-playtest-feedback--2026-09-28): Firewalk obscuring the wizard; remove bottom instructional messages while retaining spell names/numbers/durations; upgraded Bolt strength deferred for later. F41–F42 implemented in the ground-effect/HUD pass; F43 remains deferred.
 
 ## Lasting spell recasts — 0.1.25
 
