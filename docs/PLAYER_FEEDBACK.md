@@ -60,6 +60,12 @@ The player asked how many casts boss one's 1,879.2 HP represents. Source-derived
 
 Meteor damage uses the runtime 0.8 multiplier. These are idealized arithmetic counts, not average time-to-kill: nearby enemies split targeting, moving bosses can leave warning circles, blade passes can miss, while passive Mana Bolt and other damage reduce required manual casts. Measure real boss fight duration with representative five-minute builds before assigning a final HP budget.
 
+### Rune Trap and boss target refinement — 2026-09-28
+
+- **F40 — Rune Trap balance (Open):** player asks whether damage, knockback and indefinite persistence together make it too strong. Source audit at `b8b2e55`: base damage 60 in a radius-130 explosion, arms after 0.8 seconds, trigger radius 70; no knockback is applied by its damage path. It waits indefinitely while untriggered, fires once, then expires after about 0.25 seconds. At most three active traps; another replaces the oldest. The authored six-second duration does not expire an untriggered trap. This is persistent placement, not repeated permanent damage. Review damage/radius and pre-placement strength before changing the earlier requested persistence; no nerf selected yet.
+- **F39 — proposed boss budgets:** player suggests boss one approximately **1,200 HP** and boss two approximately **1,800 HP**, with boss two faster. These are intended final health values at their scheduled spawn times, not ordinary-enemy base HP to multiply again. Relative to current source-derived values, this is about 36% less HP for boss one and six times boss two's HP. Boss two currently has base movement speed 110 and charge multiplier 3.8 (418 before slow effects); decide chase versus charge speed explicitly, preserving readable warning and dodge opportunity. Exact speed adjustment remains open. Proposed for testing, not implemented.
+- At 1,200 HP, illustrative Bolt-only requirement is 30 rank-one casts or 8 rank-three casts if all three projectiles land, before passive damage and other spells. At 1,800 HP those counts are 45 and 12. These are arithmetic comparisons, not representative five-/ten-minute time-to-kill measurements.
+
 ## Earlier playtest concerns — retain and verify
 
 These rows point into existing detailed plans/results. They are not all known current failures: verify before changing working behavior.

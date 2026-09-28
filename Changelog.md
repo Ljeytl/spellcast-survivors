@@ -1,3 +1,8 @@
+## 2026-09-28 — Capture Rune Trap and boss tuning refinement
+
+- Record Rune Trap balance concern F40 and distinguish indefinite untriggered placement from its single damage burst; no knockback found in its damage path.
+- Preserve proposed final boss health of approximately 1,200 / 1,800 and a faster second boss, with speed details unresolved. Documentation only; no gameplay changes.
+
 ## 2026-09-28 — Refine deferred spell balance proposals
 
 - Preserve four-way returning Cross Blade, Regeneration at 10–15 total HP over five seconds, visible proximity/threat-weighted meteor targeting, and a substantially stronger second boss.
