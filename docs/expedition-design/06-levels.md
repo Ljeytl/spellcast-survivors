@@ -123,3 +123,11 @@ Guardian stats are realm-fixed and do not multiply by time HP; early completion 
 ## Variant gate precedence
 
 All variant introduction times apply to ambient and authored encounters. Before 2:00, replace Dart with Swarmer; before 3:00, replace Pursuer with two Swarmers; before 4:00, use Rootback instead of Crusher; before 6:00, use Rootback instead of Brood. A generic runner slot means Swarmer until Dart unlocks; a generic brute slot means Rootback until other variants unlock. Ranged substitutions use the realm-specific time. These substitutions keep objective routes open without introducing attacks before their tutorial/timing gate. Tutorial enemies use their explicit authored rules instead.
+
+## Deferred boss idea — The Disruptor (2026-09-28)
+
+**Player concept, not implemented and not assigned to a current boss slot or realm.** The Disruptor corrupts spell incantations: the required string keeps the same length, but its letters are scrambled/randomized. The intended encounter twists the game's typing mechanic rather than just increasing enemy health. Casting still invokes the underlying owned spell; it does not unlock otherwise unavailable magic.
+
+Preserve all proposed timing alternatives: scramble once for the encounter, periodically, or after each cast. The user has not selected one. Also unresolved: shuffle the existing letters versus replace them, affect one spell versus the whole available kit, treatment of spaces/punctuation, whether the corruption expires before the boss dies, and interaction with pause/menus and typed spell selection.
+
+Suggested first test, not a user decision: show the corrupted incantation beside the recognizable spell name/icon, keep that string stable once the player begins typing, and change it only after cast completion or a clearly signaled phase. Keep randomization deterministic for a given encounter state and restore normal incantations when the effect ends. Preserve typed length and current-run ownership gates. The encounter should read as hostile magical interference; whether arbitrary strings remain enjoyable rather than merely error-prone requires playtesting. No damage, frequency, countermeasure or accessibility rule is selected yet.

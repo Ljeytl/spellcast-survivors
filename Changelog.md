@@ -1,3 +1,9 @@
+## 2026-09-28 — Magical names and Disruptor concept
+
+- Preserve Shillelagh as the player's chosen name and separate magical public names from functional internal descriptions.
+- Record The Disruptor boss idea, same-length corrupted incantations and unresolved scrambling cadence; link it from feedback and roadmap.
+- Record local-play-first delivery preference. Documentation only; no runtime renames, boss implementation or new exports.
+
 ## 2026-09-28 — Preserve storm, nature and movement spell ideas
 
 - Add the personal dwell-triggered lightning aura, directional root wave, immediate-versus-stored Dash and Swiftness to the spell catalog and feedback tracker (I13–I16).
