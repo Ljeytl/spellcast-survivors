@@ -1,3 +1,8 @@
+## 2026-09-28 — Refine deferred spell balance proposals
+
+- Preserve four-way returning Cross Blade, Regeneration at 10–15 total HP over five seconds, visible proximity/threat-weighted meteor targeting, and a substantially stronger second boss.
+- Add illustrative source-derived boss-one cast counts, distinguishing ideal hits from measured fight duration. Exact tuning and implementation remain pending.
+
 ## 2026-09-28 — Record healing, meteor, blade and boss feedback
 
 - Add F36–F39 to the player feedback tracker and link them from the roadmap, preserving observations, current source-derived values and open tuning decisions.

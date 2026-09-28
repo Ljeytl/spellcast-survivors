@@ -43,6 +43,23 @@ Recorded from player feedback; source audit at `8123a81732e4c78c0585636d5aed09dd
 
 Source locations: `data/spells.json`, `scripts/SpellManager.gd` (`cast_life_spell`, `cast_meteor_shower_spell`, `calculate_spell_damage`), `scripts/SpellTargeting.gd` (`select_area`), `data/encounters.json`, and `scripts/MonsterManager.gd` (`calculate_monster_stats`, `spawn_monster`).
 
+### Follow-up proposals and boss damage context
+
+- **F36 — Regeneration:** player proposes roughly **10–15 total HP over 5 seconds** (2–3 HP/second), rather than 40. Exact choice and overlapping-cast policy remain open. This is total healing per cast, not healing per tick.
+- **F37 — Meteor Shower:** target on-screen enemies only, favoring enemies that are closer and stronger. Consider weighted random selection rather than a fixed nearest-first list; nearer/more threatening enemies should be more likely, not guaranteed every strike. Suggested design: visible candidates, bounded proximity/threat weights, then lower weights for areas already covered by this cast. Define strength (current HP, archetype threat, boss priority) and weight limits before coding. Retain warning positions once shown. Prior proposal of 2–3 starting meteors and count-or-damage rank growth still applies.
+- **F38 / I12 — Cross Blade:** new candidate is **four smaller, individually weaker spinning blades**, launched in a cross and returning to the caster. Fantasy: returning ninja stars with useful coverage around the wizard. Not four copies at current damage. Preserve this as an alternative to the stronger-return-only idea; orientation, damage budget, linger, and overlapping hits on large enemies are undecided. Check both crowd coverage and maximum single-target damage before selecting values. Player is concerned it could be too strong; no implementation approved.
+- **F39 — Boss two:** explicit direction is to make the second boss substantially stronger. Its current ~303 HP versus boss one's ~1,879 is not the intended progression. Choose its health and threat deliberately rather than simply increasing all enemies.
+
+The player asked how many casts boss one's 1,879.2 HP represents. Source-derived examples at baseline `7be9209`, with no passive damage, damage upgrades, other spells or missed hits; ranks are illustrative, not measured five-minute loadouts:
+
+| Spell / hit assumption | Rank 1 damage per cast | Rank 1 casts | Rank 3 damage per cast | Rank 3 casts |
+|---|---:|---:|---:|---:|
+| Bolt, all projectiles hit boss | 40 (1 bolt) | 47 | 156 (3 × 52) | 13 |
+| Cross Blade, outbound + return, no linger ticks | 120 | 16 | 156 | 13 |
+| Meteor Shower, every meteor hits boss | 80 (4 × 20) | 24 | 156 (6 × 26) | 13 |
+
+Meteor damage uses the runtime 0.8 multiplier. These are idealized arithmetic counts, not average time-to-kill: nearby enemies split targeting, moving bosses can leave warning circles, blade passes can miss, while passive Mana Bolt and other damage reduce required manual casts. Measure real boss fight duration with representative five-minute builds before assigning a final HP budget.
+
 ## Earlier playtest concerns — retain and verify
 
 These rows point into existing detailed plans/results. They are not all known current failures: verify before changing working behavior.

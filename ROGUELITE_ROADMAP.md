@@ -16,6 +16,7 @@ See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified i
 
 ## Deferred — Cross Blade return-hit identity (2026-09-28)
 
+- Alternative proposed in follow-up: four smaller, weaker spinning blades launched in a cross and returning to the caster. Budget total damage and large-enemy overlap before selecting values; orientation and linger remain undecided. See [follow-up details](docs/PLAYER_FEEDBACK.md#follow-up-proposals-and-boss-damage-context).
 - Intent: make the returning blade the payoff, rewarding positioning to catch enemies on its way back and giving Cross Blade a distinct reason to use.
 - Tentative options from playtesting: double damage on return; alternatively reduce overall/base damage by 25% and increase return damage by 50%. These are alternatives to test, not approved balance values.
 - Open: whether the 50% return increase is relative to the reduced base or the current return damage. Resolve that reference before tuning; compare outbound-only hits, both passes and total damage per cast.
