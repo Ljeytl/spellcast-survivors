@@ -1,3 +1,9 @@
+## 2026-09-28 — Playtest 0.1.26
+
+- Package the Firewalk layering and normal-HUD instruction fixes with the 20-minute extraction/endless choice.
+- Extract records victory; Continue resumes the same run with increasing enemy pressure and no victory banked in advance.
+- Set menu, gameplay and result version labels through the shared v0.1.26 project setting.
+
 ## 2026-09-28 — Ground-effect layering and minimal HUD
 
 - Fix F41: draw Firewalk and other ground fields/traps beneath the wizard without changing damage or lifetime.

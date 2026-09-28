@@ -117,7 +117,7 @@ func run():
 	check(not Status.collect(manager).has("ember_trail"), "No ground timer after last patch expires")
 	orbit.remaining = 0
 	check(not Status.collect(manager).has("arcane_orbit"), "Expired timer removed")
-	check(preload("res://scripts/BuildVersion.gd").text() == "v0.1.25 · Playtest", "Requested version")
+	check(preload("res://scripts/BuildVersion.gd").text() == "v0.1.26 · Playtest", "Requested version")
 	game.queue_free()
 	await process_frame
 	print("LASTING_RECASTS: %d checks, %d failures" % [checks, failures])
