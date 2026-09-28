@@ -15,7 +15,7 @@ Append new feedback as it arrives. Preserve the original observation and date; a
 
 ## Current slate
 
-**Keep the current roguelike alpha and random spell/build progression. Difficulty scaling is the next priority.** First reproduce the current pacing before changing numbers. Keyword composition is a deferred experiment, not the next approved implementation. The expedition package describes a possible fuller game, not a mandatory current backlog. No new balance changes are authorized merely by logging this feedback.
+**Approved playtest fixes — 2026-09-28:** health potion drops, tree depth ordering, four XP value colors, beam recasts/turning/piercing, Cross Blade return piercing, ingredient-driven combination growth, a modest Seeker nerf, compact inventory including combinations/ranks, casting/learning guidance, level-up deferral during casting, boss direction and version labels. Keep Swarmers and all spawn/difficulty curves unchanged. No rocks or full keyboard-menu overhaul. Web packaging follows verification.
 
 | ID | Feedback / expected result | Status | Priority / evidence needed |
 |---|---|---|---|
@@ -24,7 +24,7 @@ Append new feedback as it arrives. Preserve the original observation and date; a
 | F03 | Around minute 9 escalation felt good and minute 11 was hard in a good way | Decision recorded | Preserve as comparison points; this is player-reported historical feel, not current timing verification |
 | F04 | Enemies should spawn in increasing numbers/pressure over time, not appear flat around minute 7 | Open | Now: verify emitted spawns, alive caps, offscreen population and enemies reaching player before tuning |
 | F05 | Use bot runs plus ordinary and stationary builds; luck/build strength affects survival | Decision recorded | Compare repeated runs; bot survival alone does not establish fun or difficulty |
-| F06 | Enemies could randomly drop health potions | Deferred | Gameplay experiment after baseline pacing; chance, heal amount, pickup rules and interaction with healing spells undecided |
+| F06 | Enemy health potion drops enable recovery without owning a healing spell | Implemented; tuning remains open | PR71: 2% drops, 10 HP, full-health preservation and distant-drop replacement; full natural-run tuning remains open |
 | F07 | No rocks in current version; consider adding rocks | Deferred | User observation; obstacle versus decoration and collision remain undecided |
 | F08 | Add forest paths and more environmental structure | Deferred | Environment work later; do not bundle graphics overhaul into balance |
 | F09 | Keep current roguelike progression and random spells; current game is fun | Decision recorded | Preserve during difficulty work; full expedition design is future scope |
@@ -158,3 +158,37 @@ Supersedes the provisional decisions and historical arithmetic above. Runtime ch
 - Both authored spell progressions cap at rank8; upgrade cards stop offering them and use the same data as gameplay. Other spell rank behavior is unchanged.
 - Pacing intent: mechanics familiar by5min, established by10, ramp from13, crowding by17. Spawn multipliers at minutes0/3/5/10/13/17/20 are1/1/1.2/1.65/2/3.3333/4.5, interpolated smoothly. The existing two-minute breathing phases, enemy-health curve, tier unlocks, waves and160-alive cap remain. Minute17 phase intervals are0.9/0.6/0.3s; batches remain one normal roll (Swarmer packs still three bodies).
 - Two fixed60fps bot runs died at567.2s/388.4s, without runtime errors; casting failures were0/1. They do not validate late-game crowding or boss-two fight feel. Numeric curve checks cover all1200 seconds; human playtesting remains required.
+
+## Approved playtest follow-up — 2026-09-28
+
+This section supersedes broader suggestions from the conversation. Implementation is approved. PR71 covers world/pickups, PR72 casting/progression and PR73 UX. Candidate-bound logs and captures are published under `builds/current/evidence/playtest-followup/`; automated correctness, visual checks and full-run balance remain separate.
+
+| Concern | Acceptance / scope | Initial disposition |
+|---|---|---|
+| Tree overlap | Lower trunk base draws in front, across neighboring scenery chunks and after movement | Implemented; regression and native evidence recorded |
+| XP colors | Four readable value tiers, preserving total XP through consolidation | Implemented; regression and native evidence recorded |
+| Health potions | Actual enemy drops allow non-healing builds to recover; bounded count and no wasted full-HP collection | Implemented; regression and native evidence recorded |
+| Cross Blade | Return leg pierces and damages multiple enemies; stronger return damage remains a separate deferred idea | Implemented; regression and native evidence recorded |
+| Prism Ray / Focus Ray | Recasting creates another visible cast; Prism pierces, Focus turns smoothly with thinner matching damage geometry | Implemented; regression and native evidence recorded |
+| Combination progression | Upgrading either ingredient strengthens its combination; retain ingredients and slot-free combinations | Implemented; regression and native evidence recorded |
+| Seeker | Modest targeted nerf, retain targeting and fantasy | Implemented; regression and native evidence recorded |
+| Inventory | Visible active, passive and combination icons with ranks, clear switching and exact incantations | Implemented; regression and native evidence recorded |
+| Level-up while typing | Finish or cancel current incantation before pending choice; no lost choices on pause/resume, no choice after death | Implemented; regression and native evidence recorded |
+| Space on level-up | Avoid unexplained accidental choice/typing interaction; no full keyboard overhaul required | Implemented; regression and native evidence recorded |
+| Boss direction | Small indicator for living offscreen boss, hidden for visible/dead boss | Implemented; regression and native evidence recorded |
+| Version | Shared v0.1.0 Playtest label on menu, pause/results and bottom-right gameplay | Implemented; regression and native evidence recorded |
+| Windows flicker | Investigate available evidence; Windows-specific reproduction requires Windows runtime | Open |
+| Web / itch | Real gameplay HTML export, browser verification and upload-ready package; hosting/account setup separate | Export pipeline implemented; local browser verification recorded with each build |
+
+Deferred: rocks, movement spells, more lightning spells, landmarks, structured/procedural map changes, mouse aiming, distance-keeping enemy, clickable menu slime and fully keyboard-operated menus. Preserve non-typist difficulty feedback for future study. Pink enemies were a positive panic moment, not a nerf request. Swarmers and opening/post-1:30 pressure changes explicitly excluded from this pass. Focus Ray and typing audio were praised; one reported run lasted 7:36, and another player started a second run. ZIP confusion is onboarding feedback, not a confirmed launch defect.
+
+### Implementation and verification boundaries
+
+- Potions start at 2% per kill and restore 10 HP. Up to 12 remain in the world; a successful drop can replace a distant offscreen potion beyond 2,000 units. Full HP never consumes one. These are initial tuning values, not a claim of final balance.
+- XP thresholds are 25 / 100 / 500 for green / purple / gold; smaller values remain blue.
+- Cross Blade already pierced enemies on both legs; regression now explicitly covers multiple return hits without duplicate same-leg damage. No return-damage bonus added.
+- Focus/Prism support three independent active casts each, distinct emission lanes and smooth rotation; Prism pierces the full line. Seeker contact damage is 18, previously 22.
+- Each ingredient rank above one adds 7.5% of combination base damage, additive with its own rank bonus. Life also improves seed healing, Ice improves Steam Field/Frost Sigil area and Regeneration improves Soul Bloom recovery. Player damage modifiers apply once.
+- Inventory distinguishes base spells, slot-free combinations and passives with own ranks; ingredient ranks appear in combination tooltips. No full keyboard-navigation overhaul was performed.
+- Windows-specific flickering remains open: macOS/native and browser evidence cannot verify that report. Mobile/touch support and a full natural 20-minute balance verdict are not included.
+- Browser package creation and local playtesting do not publish an itch page. Account/page access and final visibility are still separate steps.

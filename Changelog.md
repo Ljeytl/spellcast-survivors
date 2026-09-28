@@ -1,3 +1,8 @@
+## 2026-09-28 — Playtest follow-up scope and web packaging
+
+- Consolidate approved fixes and explicit exclusions in the feedback tracker and roadmap.
+- Add a repeatable HTML export command with revision manifest and itch-ready ZIP; runtime verification is reported separately from export success.
+
 ## 2026-09-28 — Playtest inventory and casting UX
 
 - Display active spells, slot-free combinations, and passive ranks with compact themed icons; click spells to start their actual incantation, with acquisition feedback explaining the binding.
