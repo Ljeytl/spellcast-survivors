@@ -59,13 +59,13 @@ offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Title" type="TextureRect" parent="MenuPanel/VBoxContainer"]
+[node name="Title" type="Label" parent="MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 texture_filter = 1
-texture = ExtResource("3_logo")
-expand_mode = 1
-stretch_mode = 5
+text = "SHOULDA JOINED
+A PARTY"
+horizontal_alignment = 1
 mouse_filter = 2
 
 [node name="Spacer" type="Control" parent="MenuPanel/VBoxContainer"]

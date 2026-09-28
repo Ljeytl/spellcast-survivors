@@ -64,7 +64,7 @@ func run():
 	var manager = game.spell_manager
 	var player = game.player
 	var interface = game.get_node("GameplayReadability")
-	check(not interface.guidance.visible, "Fresh run keeps persistent instructions out of the HUD")
+	check(interface.feedback_remaining > 0, "Fresh run briefly explains how to invoke spells")
 	key(KEY_1)
 	key(KEY_B, 98)
 	key(KEY_O, 111)
@@ -93,7 +93,7 @@ func run():
 	manager.casting_clock += 1
 	key(KEY_1, 0, true)
 	check(not manager.is_typing, "Repeated activation key cannot reopen typing")
-	click(game.spell_slots[0])
+	click(game.hud.get_node("RunInventory").cards["bolt"])
 	check(manager.is_typing and manager.target_spell == "bolt", "Actual owned-slot mouse click starts guarded numbered casting")
 	manager.cancel_typing()
 	check(not game.spell_slots[1].visible, "Unlearned slots stay out of player HUD")
@@ -160,6 +160,8 @@ func run():
 	check(not interface.guidance.visible, "Acknowledgement stays hidden beneath next queued offer")
 	check(root.gui_get_focus_owner() == choices.upgrade_buttons[0], "Next queued offer restores first-card focus")
 	key(KEY_SPACE)
+	check(game.current_state == game.GameState.LEVEL_UP, "Space does not choose an upgrade")
+	key(KEY_ENTER)
 	await wait_for_state(func(): return game.current_state == game.GameState.PLAYING and not paused)
 	await settle()
 	check(not manager.is_typing, "Offer selection does not leak Space into casting")
@@ -172,7 +174,7 @@ func run():
 		interface.layout()
 		await settle()
 		check(game.get_node("UI/HUD").get_global_rect().encloses(interface.guidance.get_global_rect()), "Guidance stays in viewport")
-		check(not interface.guidance.get_global_rect().intersects(game.get_node("UI/HUD/SpellSlotsPanel").get_global_rect()), "Guidance stays above spell slots")
+		check(not interface.guidance.get_global_rect().intersects(game.hud.get_node("RunInventory").get_global_rect()), "Guidance stays separate from compact inventory")
 	root.size = Vector2i(1280, 720)
 	interface.layout()
 	player.health = 20

@@ -19,6 +19,7 @@ var last_stats: Dictionary = {}
 var defeat_label: Label
 
 func _ready():
+	preload("res://scripts/BuildVersion.gd").attach(self)
 	# Allow processing when game is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	

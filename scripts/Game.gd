@@ -99,6 +99,15 @@ func _ready():
 	var readability = preload("res://scripts/GameplayReadability.gd").new()
 	readability.name = "GameplayReadability"
 	add_child(readability)
+	var inventory = preload("res://scripts/RunInventory.gd").new()
+	inventory.game = self
+	hud.add_child(inventory)
+	var direction = preload("res://scripts/BossDirection.gd").new()
+	direction.game = self
+	hud.add_child(direction)
+	preload("res://scripts/BuildVersion.gd").attach(hud)
+	preload("res://scripts/BuildVersion.gd").attach(pause_overlay)
+	show_gameplay_feedback("Click a spell or press 1–6, then type its name. Space: any learned spell.")
 	var xp_consolidation = preload("res://scripts/XPConsolidation.gd").new()
 	xp_consolidation.name = "XPConsolidation"
 	add_child(xp_consolidation)
@@ -604,6 +613,8 @@ func _on_upgrade_selected_stub(upgrade_data: Dictionary):
 func change_state(new_state: GameState):
 	current_state = new_state
 	
+	if hud.has_node("BuildVersion"):
+		hud.get_node("BuildVersion").visible = current_state == GameState.PLAYING
 	match current_state:
 		GameState.PLAYING:
 			get_viewport().gui_release_focus()
@@ -703,8 +714,9 @@ func queue_boss_reward() -> bool:
 	return true
 
 func show_next_level_up():
-	if current_state == GameState.GAME_OVER or pending_level_ups.is_empty():
+	if current_state == GameState.GAME_OVER or pending_level_ups.is_empty() or spell_manager.is_typing:
 		return
+	hide_typing_ui()
 	var next_level = pending_level_ups.pop_front()
 	update_spell_slot_lock_status()
 	change_state(GameState.LEVEL_UP)
@@ -757,7 +769,7 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
 	else:
 		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (Currently:")[0]
-	show_gameplay_feedback(acknowledgement if interface_debug else str(upgrade_data.get("name", "Upgrade applied")))
+	show_gameplay_feedback(acknowledgement if interface_debug or effect.get("type") == "learn_spell" else str(upgrade_data.get("name", "Upgrade applied")))
 	
 	if pending_level_ups.is_empty():
 		change_state(GameState.PLAYING)
@@ -1007,6 +1019,8 @@ func _on_typing_started():
 func _on_typing_ended():
 	# Handle typing mode ending
 	clear_spell_slot_highlights()
+	if current_state == GameState.PLAYING and not pending_level_ups.is_empty():
+		show_next_level_up.call_deferred()
 
 func _on_spell_locked_error(spell_name: String, required_level: int, current_level: int):
 	# Show error message when player tries to use locked spell

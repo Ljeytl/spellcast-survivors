@@ -177,8 +177,8 @@ func run():
 		await settle()
 		var hud = game.get_node("UI/HUD")
 		check(hud.get_node("SpellSlotsPanel/SpellSlots").columns == (6 if geometry.x >= 800 else 3), "Spell grid uses available width %s" % geometry)
-		for card in game.spell_slots:
-			check(hud.get_global_rect().encloses(card.get_global_rect()), "Equipped spell fits %s" % geometry)
+		for card in hud.get_node("RunInventory").cards.values():
+			check(hud.get_global_rect().encloses(card.get_global_rect()), "Inventory item fits %s" % geometry)
 		check(not hud.get_node("StatsPanel").get_global_rect().intersects(hud.get_node("TimerPanel").get_global_rect()), "HUD top panels do not overlap %s" % geometry)
 		await screenshot("full-hud-%d" % geometry.x)
 		var boss = BossProbe.new()

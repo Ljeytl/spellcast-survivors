@@ -116,7 +116,7 @@ func load_upgrades_from_data():
 		}
 
 func _input(event):
-	if visible and event is InputEventKey and event.pressed and event.echo and event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+	if visible and event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or (event.echo and event.keycode in [KEY_ENTER, KEY_KP_ENTER])):
 		get_viewport().set_input_as_handled()
 
 func show_level_up(player_level: int, player_stats: Dictionary = {}):
@@ -689,7 +689,7 @@ func update_choice_prompt():
 			prompt.text = "Choose a card to banish from this run"
 			prompt.modulate = Color("ff8175")
 		_:
-			prompt.text = "Choose an upgrade"
+			prompt.text = "Click an upgrade · Enter selects"
 			prompt.modulate = Color.WHITE
 
 func update_upgrade_visual_state(index: int):

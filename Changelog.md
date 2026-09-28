@@ -1,3 +1,10 @@
+## 2026-09-28 — Playtest inventory and casting UX
+
+- Display active spells, slot-free combinations, and passive ranks with compact themed icons; click spells to start their actual incantation, with acquisition feedback explaining the binding.
+- Queue level-up and boss choices until the current incantation completes or cancels; prevent Space from silently selecting a focused upgrade.
+- Add the off-screen living-boss arrow and a shared v0.1.0 Playtest label on main menu, gameplay, pause, and results. Use Shoulda Joined a Party as the visible title while preserving the legacy save-directory identifier.
+- Verify desktop/narrow actual input journeys and rendered states; Windows-specific flicker remains unverified on macOS. Full keyboard-menu overhaul remains deferred.
+
 ## 2026-09-28 — Preserve multi-stage incantation idea
 
 - Record the long-chant Explosion concept, intended payoff, per-cast slowdown constraint, and open movement/interruption decisions; index as I20 and link the spell catalog/roadmap. Documentation only.
