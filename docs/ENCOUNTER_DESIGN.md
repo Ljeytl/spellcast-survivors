@@ -37,7 +37,9 @@ Health stays flat for three minutes and then grows by a factor of 1.16 per two m
 
 ## Run ending
 
-Reaching 20:00 awards immediate victory, regardless of living enemies or bosses. The clock clamps to twenty minutes and combat stops. Reaching zero health before that is a loss. Both outcomes show the result screen and record progression once; restart and return-to-menu remain available. There is no boss at 20:00. A narrative explanation is deferred.
+Reaching 20:00 pauses combat and offers Extract or Continue, regardless of living enemies or bosses. Extract ends the run with victory and records progression once. Continue resumes the same run in endless mode, preserving enemies, spells, health and queued upgrades; no reward is banked at the choice. Dying afterward is a loss and records the full elapsed survival time once. The choice never appears again in that run. Held casting keys cannot select a choice; use a button or navigate to it with Tab before confirming. There is no boss at 20:00 and no repeating boss schedule.
+
+Endless mode extends the existing health and damage curves. Spawn pressure extrapolates the last authored log-linear segment (17:00=3.3333 to 20:00=4.5), retaining the 120-second rhythm, minimum 0.1-second interval, existing spawn batches and 160-enemy limit. The pressure multiplier stops growing when even the light phase reaches the interval floor; enemy health and damage continue increasing. This is a continuity rule, not evidence that arbitrarily long runs are balanced.
 
 ## Follow-on gameplay work
 
@@ -48,7 +50,7 @@ Reaching 20:00 awards immediate victory, regardless of living enemies or bosses.
 
 ## Verification scope
 
-Automated tests exercise all twelve variants, spawn gates, all three boss milestones and the twenty-minute victory cutoff, overlapping bosses, shield angles, warnings and damage timing, duplicate death protection, regeneration and multiple earned level-up choices. Opening simulations use the actual player/enemy/projectile/XP scenes with passive attacks and movement toward XP; these support tuning but do not replace human playtesting. Controlled late-stage visual fixtures are identified separately from ordinary runs.
+Automated tests exercise all twelve variants, spawn gates, all three boss milestones and the twenty-minute extraction boundary, overlapping bosses, shield angles, warnings and damage timing, duplicate death protection, regeneration and multiple earned level-up choices. Opening simulations use the actual player/enemy/projectile/XP scenes with passive attacks and movement toward XP; these support tuning but do not replace human playtesting. Controlled late-stage visual fixtures are identified separately from ordinary runs.
 
 Shutdown regression checks now exit cleanly: damage-number completion uses a node-bound signal connection, and particle cleanup uses a resettable child timer that pauses with the effect and is destroyed with it. Test evidence under `builds/` is excluded from Godot imports. Full release lifecycle and platform qualification remain follow-on work.
 
