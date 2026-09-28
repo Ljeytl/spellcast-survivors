@@ -165,20 +165,20 @@ This section supersedes broader suggestions from the conversation. Implementatio
 
 | Concern | Acceptance / scope | Initial disposition |
 |---|---|---|
-| Tree overlap | Lower trunk base draws in front, across neighboring scenery chunks and after movement | In progress |
-| XP colors | Four readable value tiers, preserving total XP through consolidation | In progress |
-| Health potions | Actual enemy drops allow non-healing builds to recover; bounded count and no wasted full-HP collection | In progress |
-| Cross Blade | Return leg pierces and damages multiple enemies; stronger return damage remains a separate deferred idea | In progress |
-| Prism Ray / Focus Ray | Recasting creates another visible cast; Prism pierces, Focus turns smoothly with thinner matching damage geometry | In progress |
-| Combination progression | Upgrading either ingredient strengthens its combination; retain ingredients and slot-free combinations | In progress |
-| Seeker | Modest targeted nerf, retain targeting and fantasy | In progress |
-| Inventory | Visible active, passive and combination icons with ranks, clear switching and exact incantations | In progress |
-| Level-up while typing | Finish or cancel current incantation before pending choice; no lost choices on pause/resume, no choice after death | In progress |
-| Space on level-up | Avoid unexplained accidental choice/typing interaction; no full keyboard overhaul required | In progress |
-| Boss direction | Small indicator for living offscreen boss, hidden for visible/dead boss | In progress |
-| Version | Shared v0.1.0 Playtest label on menu, pause/results and bottom-right gameplay | In progress |
+| Tree overlap | Lower trunk base draws in front, across neighboring scenery chunks and after movement | Implemented; regression and native evidence recorded |
+| XP colors | Four readable value tiers, preserving total XP through consolidation | Implemented; regression and native evidence recorded |
+| Health potions | Actual enemy drops allow non-healing builds to recover; bounded count and no wasted full-HP collection | Implemented; regression and native evidence recorded |
+| Cross Blade | Return leg pierces and damages multiple enemies; stronger return damage remains a separate deferred idea | Implemented; regression and native evidence recorded |
+| Prism Ray / Focus Ray | Recasting creates another visible cast; Prism pierces, Focus turns smoothly with thinner matching damage geometry | Implemented; regression and native evidence recorded |
+| Combination progression | Upgrading either ingredient strengthens its combination; retain ingredients and slot-free combinations | Implemented; regression and native evidence recorded |
+| Seeker | Modest targeted nerf, retain targeting and fantasy | Implemented; regression and native evidence recorded |
+| Inventory | Visible active, passive and combination icons with ranks, clear switching and exact incantations | Implemented; regression and native evidence recorded |
+| Level-up while typing | Finish or cancel current incantation before pending choice; no lost choices on pause/resume, no choice after death | Implemented; regression and native evidence recorded |
+| Space on level-up | Avoid unexplained accidental choice/typing interaction; no full keyboard overhaul required | Implemented; regression and native evidence recorded |
+| Boss direction | Small indicator for living offscreen boss, hidden for visible/dead boss | Implemented; regression and native evidence recorded |
+| Version | Shared v0.1.0 Playtest label on menu, pause/results and bottom-right gameplay | Implemented; regression and native evidence recorded |
 | Windows flicker | Investigate available evidence; Windows-specific reproduction requires Windows runtime | Open |
-| Web / itch | Real gameplay HTML export, browser verification and upload-ready package; hosting/account setup separate | Pending integrated build |
+| Web / itch | Real gameplay HTML export, browser verification and upload-ready package; hosting/account setup separate | Export pipeline implemented; local browser verification recorded with each build |
 
 Deferred: rocks, movement spells, more lightning spells, landmarks, structured/procedural map changes, mouse aiming, distance-keeping enemy, clickable menu slime and fully keyboard-operated menus. Preserve non-typist difficulty feedback for future study. Pink enemies were a positive panic moment, not a nerf request. Swarmers and opening/post-1:30 pressure changes explicitly excluded from this pass. Focus Ray and typing audio were praised; one reported run lasted 7:36, and another player started a second run. ZIP confusion is onboarding feedback, not a confirmed launch defect.
 

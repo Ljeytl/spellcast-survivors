@@ -2,10 +2,10 @@
   "baseline": "6f25bea9d02e9d26f7afaa6a85cd0b8019a2e726",
   "approved": true,
   "tasks": {
-    "casting": "merged PR72",
-    "world": "merged PR71",
-    "ux": "PR73 final review",
-    "integration": "combined regression and browser export pending"
+    "casting": "merged PR72; independently reviewed",
+    "world": "merged PR71; independently reviewed",
+    "ux": "merged PR73; independently reviewed",
+    "integration": "17 combined suites passed at4a7e6b8; browser package verification follows"
   },
   "merge_order": [
     "world",
