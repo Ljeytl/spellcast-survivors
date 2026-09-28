@@ -7,9 +7,16 @@ func _draw():
 	if passive:
 		var glyph = {"spell_damage": "DM", "movement_speed": "MV", "max_health": "HP", "xp_range": "PK", "projectile_speed": "SP", "slowdown_duration": "TM", "mana_bolt_mastery": "MB", "spell_area": "SZ", "multicast": "×2", "xp_gain": "XP", "luck": "LK", "crit_chance": "CR", "crit_damage": "CD", "enemy_population": "EN"}.get(item_id, "+")
 		draw_circle(size / 2, 12, Color("dfbd76"), false, 2)
-		var font = ThemeDB.fallback_font
-		var width = font.get_string_size(glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
-		draw_string(font, Vector2((size.x - width) / 2, size.y / 2 + 4), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("eee8d8"))
+		if not has_node("Glyph"):
+			var label = Label.new()
+			label.name = "Glyph"
+			label.text = glyph
+			label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			label.add_theme_font_size_override("font_size", 12)
+			add_child(label)
+			label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		return
 	var kind = "rune"
 	for entry in [["cinder", "flame"], ["soul", "heal"], ["meteor", "meteor"], ["lightning", "lightning"], ["prism", "prism"], ["focus", "mana"], ["blade", "blade"], ["bolt", "bolt"], ["life", "heal"], ["regeneration", "heal"], ["health", "heal"], ["ice", "ice"], ["frost", "ice"], ["fire", "flame"], ["ember", "lance"], ["plague", "plague"], ["spirit", "spirit"], ["seeker", "spirit"], ["shield", "stone"], ["orbit", "orbit"], ["steam", "steam"]]:
