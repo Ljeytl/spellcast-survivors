@@ -1,3 +1,11 @@
+## 2026-09-27 — Expedition design and implementation specification (documentation only)
+
+- Added `docs/expedition-design/` as a separate researched proposal for permanent spell/keyword knowledge, prepared expeditions, four ley lines and 20-minute extraction.
+- Audited the current spell runtime; specified a proposed 36-spell campaign, 14 keywords, per-spell compatibility, four realms, tutorial, enemy budgets, progression, visual language, impact timing, UI, save contracts and staged delivery gates.
+- Preserved unselected spell ideas and explicitly separated user decisions, current implementation, proposed numbers and unresolved choices. Existing gameplay, art and exports are unchanged.
+- Added documentation checks for roster/recipe/keyword coverage, local links, JSON examples, table structure and worked arithmetic; gameplay balance remains untested.
+- Next: review the decision register, then build and playtest the tutorial/one-realm slice before expanding content. Art production, shader work and release asset replacement remain separate decisions.
+
 ## 2026-09-27 — Shareable playtest exports
 
 - Added a repeatable Windows ZIP and universal Mac DMG export command, with controls, sound credits, source revision and artifact hashes.
