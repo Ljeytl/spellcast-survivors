@@ -131,7 +131,7 @@ A **school** describes fantasy; a **damage element** participates in damage reso
 
 | Element ID | Suggested typed conversion | Intrinsic operation | Separate optional status |
 |---|---|---|---|
-| Arcane | Arcane | Change eligible damage to arcane | No mandatory status |
+| Arcane | Arcane | Change eligible damage to arcane; candidate increased critical-hit chance, amount and eligibility open | No mandatory status; critical-hit bonus is a separate damage-resolution property |
 | Fire | Fiery | Change damage to fire | Burning is separate |
 | Ice | Icy | Change damage to ice | Slow/freeze are separate |
 | Water | Watery or Tidal — name open | Change damage to water | Push/pull are separate |

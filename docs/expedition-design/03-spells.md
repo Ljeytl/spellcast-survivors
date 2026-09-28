@@ -18,21 +18,21 @@ There are 26 JSON entries, but only 16 learnable manual spells, one automatic at
 | Regeneration |8 HP/s × 5 s; current multiple effects stack | Active; proposed stack policy differs |
 | Ice Blast |13 contact shards across 90°; 18 per unique enemy/cast; 400 reach; 620 speed; radius 12; slow 0.3 × 2 s | Active |
 | Earth Shield |60 overheal; runtime 5 s | Active |
-| Lightning |80 damage; radius 160; 0.2 s active, each enemy once; internal ID lightning_arc | Active |
+| Lightning |Lightning strikes the ground in an area, dealing 80 damage once per enemy within radius 160, then ends; 0.2 s active; no travelling bolt, chaining or lingering damage; internal ID lightning_arc | Active |
 | Meteor Shower |4 impacts; actual 20 each; radius 220; warnings 0.65 + 0.3 × index | Active |
 | Ember Lance |45 per unique enemy; 700 speed; 1.5 s; piercing; nominal radius 24 with visual-default factor | Active |
 | Plague Seed |9/tick every 0.5 s; 5 s/host; spread 130; spore 460 speed; 8 hosts; orphan spore 3 s | Active |
 | Cinder Field |12/0.5 s for 5 s; radius 150 | Active |
 | Arcane Orbit |3 bodies radius 42 on orbit 130; 28/contact/0.5 s; 6 s | Active |
-| Focus Ray |12/0.25 s for 2 s; 450 reach; half-width 20; tracks first aligned target | Active |
+| Focus Ray |12/0.25 s for 2 s; 450 reach; half-width 20; tracks first aligned target; proposed presentation: a continuous laser aimed toward the nearest enemy, visibly rotating and sweeping between targets rather than snapping or warping into a new line | Active; smooth tracking proposed; a separate laser that rotates in a full circle is a deferred spell idea |
 | Rune Trap |60; arms 0.8 s; trigger 70/explosion 130; placement 160; persists; shared max 3 | Active |
 | Seeker |22/contact/0.5 s; 5 s; 320 speed; radius 24; reacquire 600 from caster; max 3 | Active; ID seeking_spirit |
 | Firewalk |24/0.5 s; emits 5 s, patches 6 s; radius 65 | Active; ID ember_trail |
 | Cross Blade |60 per leg; 350 outbound; 0.9 s linger 30/0.3 s; 500 speed; radius 42; 4 s lifetime | Active; ID returning_blade |
 | Lightning Bolt |Bolt + Lightning; 60 damage; 550 speed; 2 extra bounces within 240 | Enabled bonus |
 | Life Bolt |Bolt + Life; 40 damage; seed 6 HP/2 s, lasts 10 s; max 6 | Enabled bonus |
-| Meteor Lance |Ember Lance + Meteor Shower; 27 direct +13.5 area excluding direct victim, radius 90 | Enabled bonus |
-| Soul Bloom |Plague Seed + Regeneration; 6.75 infection/tick; actual damage leech 10%, cap 2 HP/0.5 s | Enabled bonus |
+| Meteor Lance |Ember Lance + Meteor Shower; current: 27 direct +13.5 area excluding direct victim, radius 90; proposed identity options: a lance that explodes like a meteor on impact, a lance that explodes on the second enemy hit, or a thrown lance followed roughly 1 s later by small damaging meteorites falling along its path; choice and tuning open | Enabled bonus |
+| Soul Bloom |Plague Seed + Regeneration; current: 6.75 infection/tick; actual damage leech 10%, cap 2 HP/0.5 s; clarified proposed identity: Plague Seed that can also infect the player, healing rather than damaging them while infected and letting them carry and spread the infection as they move; replaces damage leech, healing tuning open. Proposed rule for both Soul Bloom and Plague Seed: each new infection or reinfection resets the recipient's infection duration to its full duration rather than stacking it; remove the arbitrary 18 s root lifetime ceiling so continued spread or reinfection can sustain the chain. Individual host infections still expire when their duration runs out without reinfection, and ground/orphan spores expire after their own finite lifetime if they do not infect a target; neither persists indefinitely on its own | Enabled bonus |
 | Steam Field |Cinder Field + Ice Blast; 12/0.5 s, 3 s, radius 150; 40% slow | Enabled bonus |
 | Prism Ray |Focus Ray + Ember Lance; 7.2/0.25 s for 2 s; up to 3 aligned targets; shares beam cap | Enabled bonus |
 | Frost Sigil |Rune Trap + Ice Blast; 60 burst, radius 170; arm 1.4 s; 40% slow 2 s; persistent | Enabled bonus |

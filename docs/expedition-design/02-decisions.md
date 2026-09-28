@@ -45,7 +45,7 @@ All entries below have a complete proposed default so a future implementation ca
 
 | Old rule | New proposal | Preserved intention |
 |---|---|---|
-| Random XP level-up choices and six passive families | Mana activates prepared pages; discovery at ley lines | Growth during a run, choices between runs |
+| Random XP level-up choices and six passive families | XP remains useful for in-run spell upgrades and potentially wizard upgrades, without necessarily retaining the old passive-item system; mana activates prepared pages; discovery at ley lines | XP-driven growth throughout a run, meaningful upgrades, choices between runs |
 | Every run discovers a fresh randomized build | Permanent library, deliberate preparation | Replay variety through routes, loadouts and vocabulary |
 | Boss every five minutes | Realm guardian after four objectives; timed elite patrols, no automatic five-minute boss | Escalation and milestones |
 | 20-minute immediate victory | 20-minute extraction success; guardian provides optional stronger completion | Definite run endpoint |

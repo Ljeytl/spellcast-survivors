@@ -1,3 +1,9 @@
+## 2026-09-28 — Consolidate local work into main
+
+- Preserve and reconcile five local design edits with the documentation updates.
+- Track the original Typecast source archive and artwork; no runtime art replacement.
+- Consolidate historical playtest exports into the main checkout before retiring task worktrees.
+
 ## 2026-09-28 — Central player feedback and current slate
 
 - Added a feedback tracker with stable IDs, open/verification/deferred statuses and evidence requirements for marking fixes.
