@@ -118,7 +118,7 @@
       "slot": 3,
       "chars": 9,
       "type": "aoe",
-      "damage": 18,
+      "damage": 11,
       "radius": 400,
       "knockback": 400,
       "slow_effect": 0.3,

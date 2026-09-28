@@ -1,3 +1,9 @@
+## 2026-09-28 — Playtest 1.1
+
+- Stamp menus and gameplay with v1.1 using the shared project version.
+- Reduce Ice Blast base damage from 18 to 11 (39%); retain its existing movement, control, geometry and visual behavior.
+- Clarify itch fullscreen setup in the web export instructions.
+
 ## 2026-09-28 — Playtest follow-up scope and web packaging
 
 - Consolidate approved fixes and explicit exclusions in the feedback tracker and roadmap.
