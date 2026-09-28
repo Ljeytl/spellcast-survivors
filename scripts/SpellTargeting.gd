@@ -51,3 +51,24 @@ static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum
 			best_score = score
 			nearest = distance
 	return selected
+
+static func meteor_weight(distance: float, health: float, coverage: float) -> float:
+	return (1.0 / (1.0 + maxf(0.0, distance) / 300.0)) * clampf(sqrt(maxf(1.0, health) / 30.0), 1.0, 3.0) / (1.0 + maxf(0.0, coverage) * 3.0)
+
+static func select_meteor(tree: SceneTree, origin: Vector2, viewport: Rect2, coverage: Dictionary = {}):
+	var candidates = []
+	var total = 0.0
+	for enemy in tree.get_nodes_in_group("enemies"):
+		if not alive(enemy) or not enemy.is_visible_in_tree() or not viewport.has_point(enemy.get_global_transform_with_canvas().origin):
+			continue
+		var weight = meteor_weight(origin.distance_to(enemy.global_position), float(enemy.current_health), float(coverage.get(enemy.get_instance_id(), 0.0)))
+		candidates.append({"enemy": enemy, "weight": weight})
+		total += weight
+	if candidates.is_empty():
+		return null
+	var roll = randf() * total
+	for candidate in candidates:
+		roll -= candidate.weight
+		if roll <= 0.0:
+			return candidate.enemy
+	return candidates.back().enemy

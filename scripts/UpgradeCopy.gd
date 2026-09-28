@@ -16,7 +16,7 @@ const SPELLS = {
 	"rune_trap": "Place an explosive trap ahead of you.",
 	"seeking_spirit": "Summon a hunter that pursues nearby enemies.",
 	"ember_trail": "Leave burning tracks as you move.",
-	"returning_blade": "Throw a blade that strikes again on its return."
+	"returning_blade": "Throw spinning blades around you that return to strike again."
 }
 
 const EVOLUTIONS = {
@@ -66,6 +66,8 @@ static func rank_description(id: String, manager: Node) -> String:
 	var rank = manager.get_spell_rank(id)
 	var slot = manager.find_spell_slot(id)
 	var info = manager.get_spell_info(slot)
+	if info.has("rank_steps"):
+		return preload("res://scripts/SpellProgression.gd").next_description(info)
 	if id == "life":
 		return "Restore %s more health per cast." % number(float(info.heal_amount) * 0.15)
 	if id == "regeneration":

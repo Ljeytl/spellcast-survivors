@@ -691,18 +691,20 @@ func cast_bouncing_bolt(slot: int):
 	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
 
 func cast_meteor_shower_spell(slot: int):
-	var info = get_spell_info(slot)
+	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
 	var damage = calculate_spell_damage(info)
-	var count = int(info["meteor_count"]) + int(info["level"]) - 1
+	var count = int(info["meteor_count"])
 	var radius = float(info.get("radius", 220.0)) * preload("res://scripts/SpellGeometry.gd").multiplier(player)
-	var planned_damage: Dictionary = {}
+	var coverage: Dictionary = {}
 	for index in range(count):
 		var delay = float(info.get("warning_duration", 0.65)) + index * float(info.get("delay_interval", 0.3))
-		var target = Targeting.select_area(get_tree(), player.global_position, radius, INF, planned_damage)
-		var center = target.global_position if _live_spell_target(target) else player.global_position
+		var target = Targeting.select_meteor(get_tree(), player.global_position, get_viewport().get_visible_rect(), coverage)
+		if not _live_spell_target(target):
+			break
+		var center = target.global_position
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
-				planned_damage[enemy.get_instance_id()] = float(planned_damage.get(enemy.get_instance_id(), 0)) + damage * 0.8
+				coverage[enemy.get_instance_id()] = float(coverage.get(enemy.get_instance_id(), 0)) + 1.0
 		create_meteor_warning(center, delay, radius)
 		get_tree().create_timer(delay).timeout.connect(create_meteor_strike.bind(center, damage * 0.8, radius))
 
@@ -731,7 +733,8 @@ func get_closest_enemy():
 func calculate_spell_damage(spell_info: Dictionary) -> float:
 	var base_damage = spell_info["damage"]
 	var spell_level = spell_info["level"]
-	var level_multiplier = 1.0 + 0.15 * (spell_level - 1)
+	var damage_ranks = 0.0 if spell_info.has("rank_steps") else float(spell_level - 1)
+	var level_multiplier = 1.0 + 0.15 * damage_ranks
 	var damage = base_damage * level_multiplier
 	
 	if player:
@@ -872,7 +875,7 @@ func upgrade_spell(spell_name: String):
 		mana_bolt_level += 1
 		return
 	var slot = find_spell_slot(spell_name)
-	if is_spell_unlocked(slot):
+	if is_spell_unlocked(slot) and preload("res://scripts/SpellProgression.gd").can_upgrade(get_spell_info(slot)):
 		get_spell_info(slot).level += 1
 
 func get_mana_bolt_damage() -> float:
@@ -1162,6 +1165,9 @@ func synergy_eligible(id: String) -> bool:
 func get_rank_upgrade_description(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)
 	var prefix = "Rank %d → %d: " % [rank, rank + 1]
+	var ranked_info = get_spell_info(find_spell_slot(spell_id))
+	if ranked_info.has("rank_steps"):
+		return prefix + preload("res://scripts/SpellProgression.gd").next_description(ranked_info)
 	var damage = "+15% of evolved base damage" if Synergies.RECIPES.has(spell_id) and float(Synergies.RECIPES[spell_id].overrides.get("damage_multiplier", 1.0)) != 1.0 else "+15% of base damage"
 	match spell_id:
 		"mana_bolt":
@@ -1179,11 +1185,20 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 		"lightning_arc":
 			return prefix + damage
 		"meteor_shower":
-			return prefix + damage + ", +1 meteor"
+			return prefix + ("+1 meteor" if (rank + 1) % 2 == 0 else damage)
 	return prefix + damage
 
 func cast_build_spell(slot: int) -> bool:
-	var info = get_spell_info(slot).duplicate(true)
+	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
+	if info.id == "returning_blade":
+		var volleys = get_tree().get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion())
+		if volleys.size() >= int(info.get("active_limit", 3)):
+			volleys[0].queue_free()
+		info.projectile_speed_multiplier = player.projectile_speed_multiplier
+		var volley = preload("res://scripts/CrossBladeVolley.gd").new()
+		get_parent().add_child(volley)
+		volley.configure(info, calculate_spell_damage(info), player)
+		return true
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
 	if info.type == "field":
 		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)))

@@ -1,6 +1,6 @@
 ## Current balance override — 2026-09-28
 
-The active spawner repeats a 120-second cycle: 0–15 light, 15–45 heavy, 45–60 medium, 60–70 light, 70–80 medium, 80–110 heavy, 110–120 medium. Base intervals: light 3s / medium 2s / heavy 1s. Difficulty is 1.0 through 180 seconds, then 1.28^((time−180)/180); divide every interval by this same factor. The safety minimum is 0.1s and does not flatten the rhythm within a 20-minute run. The former midgame pressure multiplier is removed.
+The active spawner repeats a 120-second cycle: 0–15 light, 15–45 heavy, 45–60 medium, 60–70 light, 70–80 medium, 80–110 heavy, 110–120 medium. Base intervals: light 3s / medium 2s / heavy 1s. Difficulty follows authored time/multiplier anchors: 0:00=1.0, 3:00=1.0, 5:00=1.2, 10:00=1.65, 13:00=2.0, 17:00=3.3333, 20:00=4.5, with smooth exponential interpolation between them. Divide every interval by this same factor. At minute 17 this gives light 0.9s / medium 0.6s / heavy 0.3s. The safety minimum is 0.1s and does not flatten the rhythm within a 20-minute run. The former midgame pressure multiplier is removed.
 
 `scaling.spawn_batches` maps difficulty thresholds to regular spawn-roll counts. It currently contains only 1.0→1; higher batches are supported but not enabled. Swarmer rolls still produce packs of three; waves/bosses use their separate existing schedules, capped regular population stays 160. Blue Sprinters remain 270 speed against 300 base player speed. This section supersedes conflicting older interval tuning below.
 

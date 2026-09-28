@@ -1,3 +1,11 @@
+## Current balance implementation — 2026-09-28
+
+[Current balance details and verification limits](docs/PLAYER_FEEDBACK.md#current-balance-pass--2026-09-28): lower Regeneration/trap damage, explicit boss budgets, faster second-boss dash, radial Cross Blade progression and mixed Meteor Shower count/area ranks. The older proposals below are retained history; this section is current.
+
+- Cross Blade progresses triangle → X → size/range → pentagon → range → hexagon across eight ranks, with weaker individual blades.
+- Meteor Shower progresses from two to eight meteors with separate area ranks and weighted on-screen targeting.
+- Spawn pressure rises gently through minute10, ramps after13, and reaches light0.9s / medium0.6s / heavy0.3s by17. Next human pass: boss difficulty, post-boss recovery, maximum blade overlap, and late-game crowding/performance at the160-enemy cap.
+
 Current playtest tuning (2026-09-28): ambient spawns repeat the approved two-minute light/medium/heavy rhythm. Future batch-size thresholds can increase rolls per tick; scheduled horde waves remain separate.
 
 # Current slate — difficulty scaling first

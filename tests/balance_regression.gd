@@ -81,9 +81,9 @@ func run():
 	spells.cast_spell_by_type(2)
 	check(spells.active_healing_effects.size() == 1, "Numbered Regeneration creates healing")
 	spells.process_healing_effects(1.0)
-	check(is_equal_approx(player.health, 28.0), "Regeneration restores 8 health in one second")
+	check(is_equal_approx(player.health, 23.0), "Regeneration restores 3 health in one second")
 	spells.process_healing_effects(10.0)
-	check(is_equal_approx(player.health, 60.0), "Final healing tick is clamped to five second lifetime")
+	check(is_equal_approx(player.health, 35.0), "Final healing tick is clamped to five second lifetime")
 	check(spells.active_healing_effects.is_empty(), "Healing expires")
 	player.health = 95.0
 	spells.cast_freeform_spell_by_type("regeneration", spells.freeform_spells["regeneration"])

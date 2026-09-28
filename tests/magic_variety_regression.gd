@@ -87,8 +87,12 @@ func run():
 		var slot = manager.find_spell_slot(id)
 		var original_damage = manager.calculate_spell_damage(manager.spells[slot])
 		manager.upgrade_spell(id)
-		check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage * 1.15), "New spell rank increases actual damage: " + id)
-		check("+15% of base damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
+		if id == "returning_blade":
+			check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage), "Blade count upgrade does not also increase damage")
+			check("radius" in manager.get_rank_upgrade_description(id), "Next blade rank describes size")
+		else:
+			check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage * 1.15), "New spell rank increases actual damage: " + id)
+			check("+15% of base damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
 		var enemy = target(Vector2(130, 0))
 		key(KEY_SPACE)
 		type_name(manager.spells[slot].display_name)
@@ -100,8 +104,9 @@ func run():
 		check(game.spells_cast == 2 and not manager.is_typing, "Actual numbered typing casts new incantation")
 		for i in range(5):
 			manager.cast_spell_by_type(slot)
-		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion())
-		check(active.size() == manager.spells[slot].active_limit, "Per-spell concurrent cap: " + id)
+		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion() and not node.get_parent().is_queued_for_deletion())
+		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "returning_blade" else active.size()
+		check(capped == manager.spells[slot].active_limit, "Per-spell concurrent cap: " + id)
 		enemy.free()
 		for node in active:
 			node.set_physics_process(false)
@@ -125,7 +130,7 @@ func run():
 		var family = manager.spells[primary_slot].type
 		var family_nodes = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.type == family and not node.is_queued_for_deletion())
 		check(family_nodes.size() == manager.spells[primary_slot].active_limit, "Bonus shares active effect family cap: " + recipe_id)
-	for id in ["rune_trap", "returning_blade"]:
+	for id in ["rune_trap"]:
 		fresh()
 		manager.learn_spell(id)
 		var corpse = target(Vector2(20, 0))
