@@ -118,3 +118,16 @@ These rows point into existing detailed plans/results. They are not all known cu
 ## Detailed source records
 
 The linked plans, catalogs and reports retain original subrequirements and historical implementation evidence. Read those alongside each row rather than collapsing their entire scope into a single fixed checkbox. New reports should reference these IDs and link the exact candidate evidence. If an older conversational detail has no corresponding source or row, add it explicitly; this index does not claim a line-by-line transcript audit or freshly verified closure of every historical issue.
+
+## Current balance pass — 2026-09-28
+
+Supersedes the provisional decisions and historical arithmetic above. Runtime checks and screenshots are in the playtest-balance build evidence; these do not establish final gameplay balance.
+
+- F36: rank-one Regeneration heals 15 HP total over five seconds; Life stays 4 HP. Repeated regeneration casts still overlap.
+- F39: scheduled bosses use final HP 1,200 / 1,800. Boss two dashes at 600 speed, with unchanged normal speed and warning duration. Warning reach and slows match actual travel.
+- F40: Rune Trap deals 40 base damage; indefinite untriggered placement, single explosion and three-trap cap remain.
+- F37: Meteor Shower counts by rank are 2,3,3,4,5,5,6,8. Radius is 220 at ranks 1–2, 250 at 3–5 and 280 at 6–8. Per-meteor damage is fixed across these ranks (20 before player damage bonuses); count and area each have their own upgrades. Visible target selection is weighted toward nearer and higher-current-HP enemies, with capped health weighting and reduced chance for previously covered areas. Warnings stay fixed after placement.
+- F38/I12: Cross Blade starts with three radial blades in a triangle. Rank 2: four in an X; rank 3: radius22→26; rank 4: travel350→400; rank 5: radius26→29; rank 6: five in a pentagon; rank 7: travel400→460; rank 8: six in a hexagon. Each blade deals20 base damage per outbound/return hit, with existing controlled half-damage lingering ticks. Three active volleys replace three individual blades as the cap. Old stronger-return-only proposal remains a deferred alternative.
+- Both authored spell progressions cap at rank8; upgrade cards stop offering them and use the same data as gameplay. Other spell rank behavior is unchanged.
+- Pacing intent: mechanics familiar by5min, established by10, ramp from13, crowding by17. Spawn multipliers at minutes0/3/5/10/13/17/20 are1/1/1.2/1.65/2/3.3333/4.5, interpolated smoothly. The existing two-minute breathing phases, enemy-health curve, tier unlocks, waves and160-alive cap remain. Minute17 phase intervals are0.9/0.6/0.3s; batches remain one normal roll (Swarmer packs still three bodies).
+- Two fixed60fps bot runs died at567.2s/388.4s, without runtime errors; casting failures were0/1. They do not validate late-game crowding or boss-two fight feel. Numeric curve checks cover all1200 seconds; human playtesting remains required.

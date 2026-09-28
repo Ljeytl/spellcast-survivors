@@ -107,11 +107,11 @@ func run():
 	spells.upgrade_spell("regeneration")
 	spells.cast_freeform_spell("regeneration")
 	check(spells.active_healing_effects.size() == 1, "Learned freeform regeneration casts")
-	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 9.2), "Freeform casting uses the acquired spell's rank")
+	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 3.45), "Freeform casting uses the acquired spell's rank")
 	spells.active_healing_effects.clear()
 	spells.queue_spell(spells.find_spell_slot("regeneration"))
 	spells.cast_spell()
-	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 9.2), "Numbered and freeform healing match")
+	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 3.45), "Numbered and freeform healing match")
 	for id in ["ice_blast", "earth_shield", "lightning_arc"]:
 		check(spells.learn_spell(id), "Each remaining spell can be acquired")
 		spells.upgrade_spell(id)

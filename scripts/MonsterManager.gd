@@ -96,7 +96,7 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 		var monster = EnemyScene.instantiate()
 		var stats = calculate_monster_stats(definition)
 		if is_boss:
-			stats.health *= 12.0
+			stats.health = float(definition.get("boss_health", stats.health * 12.0))
 			stats.damage *= 1.5
 			stats.xp *= 12.0
 		monster.configure(definition, stats, is_boss)
@@ -127,6 +127,8 @@ func check_boss_milestones():
 		var definition = encounter_config.variants[milestone.variant].duplicate(true)
 		definition["id"] = milestone.variant
 		definition["name"] = milestone.name
+		if milestone.has("health"):
+			definition["boss_health"] = milestone.health
 		var boss = spawn_monster(definition, true)
 		if boss:
 			spawned_bosses[at_time] = true
@@ -151,6 +153,18 @@ func spawn_phase_interval(at_time: float) -> float:
 
 func spawn_difficulty_multiplier() -> float:
 	var scaling = encounter_config.get("scaling", {})
+	var points = scaling.get("spawn_difficulty_points", [])
+	if not points.is_empty():
+		var previous = points[0]
+		if game_time <= float(previous.time):
+			return maxf(1.0, float(previous.multiplier))
+		for index in range(1, points.size()):
+			var point = points[index]
+			if game_time <= float(point.time):
+				var weight = clampf((game_time - float(previous.time)) / maxf(0.001, float(point.time) - float(previous.time)), 0.0, 1.0)
+				return exp(lerpf(log(maxf(1.0, float(previous.multiplier))), log(maxf(1.0, float(point.multiplier))), weight))
+			previous = point
+		return maxf(1.0, float(previous.multiplier))
 	var elapsed = maxf(0.0, game_time - float(scaling.get("spawn_growth_start_seconds", 180.0)))
 	return pow(maxf(1.0, float(scaling.get("spawn_growth_factor", 1.28))), elapsed / maxf(1.0, float(scaling.get("spawn_growth_period_seconds", 180.0))))
 

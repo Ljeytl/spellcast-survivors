@@ -115,7 +115,7 @@ func recoil_from_contact(source: Vector2):
 func update_charge(delta: float, toward: Vector2, distance: float):
 	var settings = spawn_data.get("boss_charge", {}) if boss else {}
 	if charge_remaining > 0.0:
-		velocity = action_direction * speed * float(settings.get("speed_multiplier", 2.5)) * slow_multiplier
+		velocity = action_direction * float(settings.get("speed", speed * float(settings.get("speed_multiplier", 2.5)))) * slow_multiplier
 		charge_remaining -= delta
 	elif warning > 0.0:
 		velocity = Vector2.ZERO
@@ -186,5 +186,5 @@ func _draw():
 		var reach = 100.0
 		if variant == "charger" and boss:
 			var settings = spawn_data.get("boss_charge", {})
-			reach = speed * float(settings.get("speed_multiplier", 2.5)) * float(settings.get("duration", 0.65)) / scale.x
+			reach = float(settings.get("speed", speed * float(settings.get("speed_multiplier", 2.5)))) * float(settings.get("duration", 0.65)) * slow_multiplier / scale.x
 		draw_line(Vector2.ZERO, line_direction * reach, Color(1, 0.2, 0.1, 0.8), 4.0)

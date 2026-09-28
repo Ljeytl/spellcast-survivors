@@ -151,10 +151,10 @@ func run():
 		make_target(game, start + Vector2(70 + i, 0))
 	for i in range(8):
 		effect.advance(0.5)
-	check(effect.infections.size() == 8, "Spreading bounded to eight enemies per cast")
+	check(effect.hosts_started == 8 and effect.infections.size() + effect.infection_links.size() + effect.resting_spores.size() <= 8, "Lifetime host budget remains eight even after early hosts expire")
 	var multi_health = game.player.health
 	effect.tick_infections()
-	check(is_equal_approx(game.player.health - multi_health, 2.0), "Eight infected enemies share a two-HP total healing budget per tick")
+	check(is_equal_approx(game.player.health - multi_health, 2.0), "Multiple infected enemies share a two-HP total healing budget per tick")
 	a.current_health = 0.0
 	var hp = game.player.health
 	effect.deal_damage(a, 100.0)

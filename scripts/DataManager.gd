@@ -113,6 +113,10 @@ func get_spell_upgrade_info(spell_id: String, current_level: int) -> Dictionary:
 	if spell.is_empty():
 		return {}
 	
+	if spell.has("rank_steps"):
+		var ranked = spell.duplicate(true)
+		ranked.level = current_level
+		return {"level": mini(current_level + 1, spell.rank_steps.size() + 1), "description": preload("res://scripts/SpellProgression.gd").next_description(ranked), "max_level": spell.rank_steps.size() + 1, "can_upgrade": preload("res://scripts/SpellProgression.gd").can_upgrade(ranked)}
 	var upgrades = spell.get("upgrades", {})
 	var info = {"level": current_level + 1}
 	

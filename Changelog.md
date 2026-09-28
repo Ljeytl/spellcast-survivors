@@ -1,3 +1,11 @@
+## 2026-09-28 — Playtest healing, trap and boss balance
+
+- Reduce rank-one Regeneration to 15 total HP over five seconds and Rune Trap to 40 base damage; preserve trap persistence, single trigger and three-trap cap.
+- Give the first two scheduled bosses explicit final health budgets of 1,200 and 1,800, independent of normal-enemy HP scaling. Boss two dashes at 600 speed, still affected by slows; its warning line matches travel distance while warning duration and normal chase speed stay unchanged.
+- Preserve the repeating spawn rhythm while authoring a gentler early multiplier and steeper ramp after minute13, reaching light0.9s / medium0.6s / heavy0.3s at17. No boss-death reset exists.
+- Cross Blade uses three-to-six radial blades with distinct count, size and range ranks; Meteor Shower uses two-to-eight meteors with separate area ranks, visible weighted targeting and fixed per-meteor damage. Shared rank tables drive mechanics and upgrade descriptions; both cap at rank8.
+- Correct an older infection test to assert lifetime host budget rather than eight simultaneous hosts after the first host expires.
+
 ## 2026-09-28 — Capture Rune Trap and boss tuning refinement
 
 - Record Rune Trap balance concern F40 and distinguish indefinite untriggered placement from its single damage burst; no knockback found in its damage path.

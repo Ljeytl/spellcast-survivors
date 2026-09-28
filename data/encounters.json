@@ -49,6 +49,15 @@
     ],
     "spawn_cycle_seconds": 120,
     "spawn_growth_factor": 1.28,
+    "spawn_difficulty_points": [
+      {"time": 0, "multiplier": 1.0},
+      {"time": 180, "multiplier": 1.0},
+      {"time": 300, "multiplier": 1.2},
+      {"time": 600, "multiplier": 1.65},
+      {"time": 780, "multiplier": 2.0},
+      {"time": 1020, "multiplier": 3.3333333333},
+      {"time": 1200, "multiplier": 4.5}
+    ],
     "spawn_growth_period_seconds": 180,
     "spawn_batches": [
       {
@@ -61,12 +70,14 @@
     {
       "time": 300,
       "variant": "juggernaut",
-      "name": "The Gatekeeper"
+      "name": "The Gatekeeper",
+      "health": 1200
     },
     {
       "time": 600,
       "variant": "charger",
-      "name": "The Pursuer"
+      "name": "The Pursuer",
+      "health": 1800
     },
     {
       "time": 900,
@@ -169,6 +180,7 @@
       "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime 2.png",
       "boss_charge": {
         "speed_multiplier": 3.8,
+        "speed": 600.0,
         "duration": 1.0,
         "trigger_range": 700.0,
         "warning": 0.9,
