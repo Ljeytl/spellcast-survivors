@@ -1,3 +1,8 @@
+## 2026-09-28 — Record post-0.1.25 playtest reports
+
+- Log Firewalk obscuring the wizard and unwanted bottom instructional messages as open feedback (F41–F42).
+- Record weak upgraded Bolt as explicitly deferred feedback (F43). No gameplay or build changes.
+
 ## 2026-09-28 — Playtest 0.1.25: maintained spell recasts
 
 - Add data-driven recast behavior. Arcane Orbit, Firewalk, Regeneration and Earth Shield extend existing duration; independent fields, beams, summons and traps retain separate casts. No new duration cap.
