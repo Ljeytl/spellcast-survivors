@@ -7,6 +7,8 @@ var triggered = false
 var strike_ready = 0.0
 var trail_points: Array = []
 var trail_sample = 0.0
+var emission_deadline = 0.0
+var trail_strip = 0
 var last_trail_position = Vector2.ZERO
 var leg = 0
 var leg_hits = [{}, {}]
@@ -35,14 +37,29 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 		"spirit":
 			color = Color("b6f5d2")
 		"trail":
+			emission_deadline = float(info.get("emission_duration", 5.0))
 			color = Color("efc276")
 			last_trail_position = global_position
-			trail_points.append({"position": global_position, "age": 0.0})
+			trail_points.append({"position": global_position, "age": 0.0, "strip": trail_strip})
 		"returning":
 			outbound_distance = float(info.get("travel_distance", 350.0))
 			linger_remaining = float(info.get("linger_duration", 0.9))
 			linger_tick = float(info.get("linger_interval", 0.3))
 			color = Color("d7e5ff")
+
+func extend_duration(data: Dictionary) -> float:
+	if info.type != "trail":
+		return super.extend_duration(data)
+	var added = float(data.get("emission_duration", 5.0))
+	if age >= emission_deadline:
+		var player = caster.get_ref() if caster else null
+		if is_instance_valid(player):
+			last_trail_position = player.global_position
+			trail_strip += 1
+			trail_points.append({"position": last_trail_position, "age": 0.0, "strip": trail_strip})
+	emission_deadline = maxf(age, emission_deadline) + added
+	remaining = maxf(remaining, emission_deadline - age + float(info.get("patch_duration", 6.0)))
+	return added
 
 func advance(delta: float):
 	var player = caster.get_ref() if caster else null
@@ -153,13 +170,13 @@ func advance_trail(delta: float, player: Node2D):
 		point.age += delta
 	trail_points = trail_points.filter(func(point): return point.age < lifetime)
 	trail_sample -= delta
-	if age <= float(info.get("emission_duration", 5.0)) and trail_sample <= 0.000001:
+	if age <= emission_deadline and trail_sample <= 0.000001:
 		trail_sample = 0.1
 		var distance = last_trail_position.distance_to(player.global_position)
 		if distance >= 24:
 			var count = maxi(1, ceili(distance / radius))
 			for index in range(count):
-				trail_points.append({"position": last_trail_position.lerp(player.global_position, float(index + 1) / count), "age": 0.0})
+				trail_points.append({"position": last_trail_position.lerp(player.global_position, float(index + 1) / count), "age": 0.0, "strip": trail_strip})
 			last_trail_position = player.global_position
 	tick_remaining -= delta
 	if tick_remaining > 0.000001:
@@ -173,7 +190,7 @@ func trail_contains(point: Vector2) -> bool:
 	var radius = float(info.get("trail_radius", 65.0))
 	for index in range(trail_points.size()):
 		var start: Vector2 = trail_points[index].position
-		var end: Vector2 = trail_points[index + 1].position if index + 1 < trail_points.size() else start
+		var end: Vector2 = trail_points[index + 1].position if index + 1 < trail_points.size() and trail_points[index].get("strip", 0) == trail_points[index + 1].get("strip", 0) else start
 		if Geometry2D.get_closest_point_to_segment(point, start, end).distance_to(point) <= radius:
 			return true
 	return false
@@ -220,10 +237,14 @@ func _draw():
 		"spirit":
 			art.stamp(self, "spirit", Geometry.stamp_offset("spirit", Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier)) + Vector2(0, sin(age * 5) * 3), Visual.size(self, Geometry.stamp_dimensions("spirit", Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier))), Color(0.8, 1, 1))
 		"trail":
-			var points = PackedVector2Array()
+			var strips = {}
 			for point in trail_points:
-				points.append(to_local(point.position))
-			preload("res://scripts/AreaArt.gd").fire_path(self, points, float(info.get("trail_radius", 65.0)), age)
+				var strip = point.get("strip", 0)
+				if not strips.has(strip):
+					strips[strip] = PackedVector2Array()
+				strips[strip].append(to_local(point.position))
+			for points in strips.values():
+				preload("res://scripts/AreaArt.gd").fire_path(self, points, float(info.get("trail_radius", 65.0)), age)
 		"returning":
 			var radius = float(info.get("blade_radius", 33.6))
 			art.stamp(self, "blade", Vector2.ZERO, Visual.size(self, Geometry.stamp_dimensions("blade", radius)), Color.WHITE, age * 12)

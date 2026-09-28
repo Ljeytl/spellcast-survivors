@@ -1,3 +1,7 @@
+## Lasting spell recasts — 0.1.25
+
+Maintained spells use `recast_behavior: extend`; independent effects use `stack`. Arcane Orbit preserves its orbit and damage cadence; Firewalk extends emission only, never patch lifetime; Regeneration keeps one healing stream; Earth Shield retains its additive protection and extends expiration. Timed effects expose real remaining state to the bottom casting reference; traps show arming/armed rather than a fake countdown. Duration banking cap remains undecided and is not implemented.
+
 ## Playtester follow-up ideas — 2026-09-28 (deferred)
 
 - Consider boss encounters at minutes 5, 8, 11, 14, 17, 20 instead of the current five-minute cadence. Resolve the minute-20 encounter versus immediate victory before implementation. Timing and difficulty remain unchanged for now.

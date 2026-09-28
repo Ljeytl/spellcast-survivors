@@ -73,6 +73,7 @@
     "regeneration": {
       "role": "Restore health over time.",
       "id": "regeneration",
+      "recast_behavior": "extend",
       "name": "Regeneration",
       "slot": 2,
       "chars": 4,
@@ -163,6 +164,7 @@
     "earth_shield": {
       "role": "Gain temporary overheal for protection.",
       "id": "earth_shield",
+      "recast_behavior": "extend",
       "name": "Earth Shield",
       "slot": 4,
       "chars": 12,
@@ -379,6 +381,7 @@
     },
     "plague_seed": {
       "id": "plague_seed",
+      "recast_behavior": "stack",
       "name": "Plague Seed",
       "type": "plague",
       "damage": 9,
@@ -390,6 +393,7 @@
     },
     "cinder_field": {
       "id": "cinder_field",
+      "recast_behavior": "stack",
       "name": "Cinder Field",
       "type": "field",
       "damage": 12,
@@ -403,6 +407,7 @@
     },
     "arcane_orbit": {
       "id": "arcane_orbit",
+      "recast_behavior": "extend",
       "name": "Arcane Orbit",
       "type": "orbit",
       "damage": 28,
@@ -875,6 +880,7 @@
     },
     "focus_ray": {
       "id": "focus_ray",
+      "recast_behavior": "stack",
       "name": "Focus Ray",
       "type": "beam",
       "damage": 12,
@@ -889,6 +895,7 @@
     },
     "rune_trap": {
       "id": "rune_trap",
+      "recast_behavior": "stack",
       "name": "Rune Trap",
       "type": "trap",
       "damage": 40,
@@ -903,6 +910,7 @@
     },
     "seeking_spirit": {
       "id": "seeking_spirit",
+      "recast_behavior": "stack",
       "name": "Seeker",
       "type": "spirit",
       "damage": 18,
@@ -916,6 +924,7 @@
     },
     "ember_trail": {
       "id": "ember_trail",
+      "recast_behavior": "extend",
       "name": "Firewalk",
       "type": "trail",
       "damage": 24,
