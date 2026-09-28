@@ -1,3 +1,7 @@
+## Idea — elemental vocabulary tiers
+
+- Explore base forms such as Wall combined with increasingly elaborate elemental words. See section 13 of [the spell-system reference](docs/expedition-design/14-spell-system-reference.md#13-idea-base-forms-with-elemental-word-tiers). Idea only; compare against paired incantation tiers before choosing a system.
+
 ## Spell component reference — September 28, 2026 (design only)
 
 - [Reusable components, properties, keyword bindings and spell recipes](docs/expedition-design/14-spell-system-reference.md) now define the proposed data-driven spell foundation.

@@ -1,3 +1,8 @@
+## 2026-09-28 — Elemental word tiers idea
+
+- Recorded an exploratory base-form model: Wall supplies shared behavior, while elemental words such as Fire, Flame, Cinder or Incinerating could select an element and power tier.
+- Kept vocabulary, coefficients, compatibility, stacking and unlock rules undecided. No gameplay or existing spell-definition changes.
+
 ## 2026-09-28 — Composable spell-system reference (documentation only)
 
 - Added a standalone component/property reference before the named spell recipes: origin, geometry, delivery, propagation, targeting, payloads, timing, elements and lifecycle.
