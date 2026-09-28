@@ -1,5 +1,9 @@
 # Spell language and modular composition specification
 
+**Decision precedence:** [Alignment review and open conflicts](13-review-record.md#alignment-review--28-september-2026) supersedes older conflicting proposals below, especially XP/mana, infection/Big and roster counting.
+
+**Development context (28 September):** use [development order](15-development-order.md) for implementation sequencing. Existing gameplay remains the foundation; these target-design tables do not require rebuilding or withholding existing spells. Numeric defaults and unresolved choices remain proposals. Preparation/XP/mana policy and recent spell-identity notes must be reconciled before dependent changes; the first keyword increment retains existing progression.
+
 **All grammar and tuning in this chapter are proposed v0.1, pending D02/D08/D14.** The confirmed requirement is modular properties and meaningful modifiers, not these particular caps.
 
 ## Parser contract

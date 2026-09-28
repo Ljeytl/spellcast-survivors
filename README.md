@@ -1,5 +1,7 @@
 # SpellCast Survivors
 
+> Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](docs/expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
+
 A vampire survivors-style game with a unique twist: **typing-based spell casting mechanics**. Built in Godot 4.x.
 
 ## 🎮 Game Overview

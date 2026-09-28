@@ -1,8 +1,8 @@
-# Spellcast: expedition design package
+# Should Have Joined a Party — design package
 
 **Version 0.1 · 27 September 2026 · design proposal, not a gameplay patch**
 
-This is a separate design for the next iteration of SpellCast Survivors. The playable prototype remains unchanged. The goal is to feel like a wizard learning and preparing an expanding magical vocabulary, then performing increasingly elaborate spells under pressure.
+This package evolves the existing playable SpellCast Survivors game toward the working title **Should Have Joined a Party**. The user finds the current game fun; preserve that foundation while adding permanent vocabulary, prepared spells and expeditions. Typing expresses complex magic; typing-game branding and keycap presentation are being retired in favor of readable magical inscriptions. These documents change no runtime behavior.
 
 For **what to build next**, start with [Development order](15-development-order.md). For **how spells are constructed**, use [Spell system reference](14-spell-system-reference.md). Milestone lists track development inventory; final acquisition and independent-spell versus family-tier counting remain design decisions.
 
@@ -34,13 +34,13 @@ For **what to build next**, start with [Development order](15-development-order.
 
 All new combat distances are **world units (wu)**; all times are seconds. Reference player collision radius is 12 wu. Presentation uses a proposed 640 × 360 logical viewport; asset pixels and world units are not interchangeable. Damage is HP, rates are per simulation second unless stated otherwise. Typing assistance is measured in unpaused real time. Decimal calculations retain precision; labels round for readability.
 
-The proposed initial campaign is **tutorial plus four realms**, with 36 manual spell identities available by its end, including existing bonus spells. That campaign count and its names are design recommendations. Four ley lines per expedition and 20-minute extraction are confirmed direction. The large reserved catalog is an inventory, not a promise to ship every spell.
+The proposed initial campaign is **tutorial plus four realms**, with a current draft catalog of 36 rows (29 bases and seven derived combinations). The desired count of independent spells is under reconciliation; 36 independent bases are not yet documented. That campaign count and its names are design recommendations. Four ley lines per expedition and 20-minute extraction are confirmed direction. The large reserved catalog is an inventory, not a promise to ship every spell.
 
 ## Source of truth and review status
 
 The next design lives here; existing `docs/CORE_GAME_DESIGN.md` continues to describe the playable prototype. Runtime behavior wins over old documentation when describing that prototype. New design values in this package intentionally do not match every existing value.
 
-Central ownership: root integrates all document edits. Research and inventory agents are read-only. No gameplay code, assets, project settings or exports are changed by this package. Validation is document consistency and research review; fun, accessibility and tuning remain unproven until the proposed candidate is built and operated.
+Central ownership: root integrates all document edits. Research and inventory agents are read-only. No gameplay code, assets, project settings or exports are changed by this package. Validation is document consistency and research review; the user reports the current game is fun; new composition/progression, accessibility and tuning still require operated evidence.
 
 See [decision register](02-decisions.md#decisions-to-review-first) before implementing. See [delivery gates](11-validation.md) before claiming a build is ready.
 

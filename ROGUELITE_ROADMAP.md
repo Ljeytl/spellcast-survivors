@@ -1,5 +1,7 @@
 ## Build order — normal-slime Level 1 first
 
+> Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](docs/expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
+
 - Use [Development order](docs/expedition-design/15-development-order.md) for concrete playable milestones, separate from campaign unlock timing. Prove a small normal-slime combat slice, complete its expedition loop, then add later levels and advanced spell systems.
 
 ## Idea — elemental vocabulary tiers

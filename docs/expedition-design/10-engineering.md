@@ -1,6 +1,6 @@
 # Engineering specification and data contracts
 
-This is an implementation specification, **not permission to modify the game during this documentation task**. Build the expedition mode alongside the legacy prototype until its core loop passes testing. Names below are proposed modules, not claims they already exist.
+This is an implementation specification, **not permission to modify the game during this documentation task**. Evolve the existing game incrementally, keeping a reproducible comparison build. First add keyword bindings to existing spell behavior; extract shared responsibilities as required. Do not gate the first playable modifier on building every module below. Names describe proposed responsibilities, not mandatory new files or claims they already exist.
 
 ## Boundaries and responsibilities
 
@@ -96,14 +96,8 @@ Proposed reference budget:60 Hz physics, 60 FPS at 1280 × 720 on a declared min
 
 Debug overlay: source SHA, content version, seed, clocks, remaining assist and assist state, cast root and pending outputs, reservation count, actual hitboxes, damage/heal recipient filters, spawn points per second, banked budget, living enemies by family, encounter phase, mana totals before and after consolidation, objective flags and save-event sequence. Gameplay UI hides these fields. Log structured events with bounded ring buffers and exportable replay scenarios; avoid per-particle log floods.
 
-## Legacy migration and implementation order
+## Incremental implementation order
 
-1. Add content/compiler tests without changing old spell dispatcher.
-2. Build new mode behind an explicit menu option using shared low-level collision/visual components where truthful.
-3. Adapt selected existing spells to plans; compare their workshop effect/hit timing before tuning.
-4. Add knowledge/preparation and tutorial.
-5. Add one realm/director/objectives and terminal states.
-6. Playtest and tune; only then expand to full roster/realms.
-7. Decide whether to retire legacy mode after user review; never migrate away the only working build first.
+Follow document 15: keywords in current combat, preparation, ley-line discoveries, connected expeditions, then level/content expansion. Adapt existing spell dispatch and effect scenes through shared parameter bindings; add a compiler or scheduler boundary only where the increment needs it. Use configuration switches for comparison where useful, not a mandatory separate product mode. Retain a reproducible baseline export/revision for comparison and rollback. Neither retiring the current game nor migrating every spell is a gate for the first modified cast.
 
 No dependency upgrades, engine rewrite, shader pipeline or broad asset regeneration are required merely to compile keywords. Existing Godot architecture should be audited against these contracts before selecting file boundaries.

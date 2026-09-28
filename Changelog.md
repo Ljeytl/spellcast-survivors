@@ -1,3 +1,10 @@
+# 2026-09-28 — Align roadmap with the existing game and wizard fantasy
+
+- Replace fresh-build milestones with keywords in current combat, then preparation, ley lines and connected expeditions.
+- Record reusable runtime systems, distinguish migration from new content, and preserve existing spell inventory.
+- Align art/UX with readable inscriptions and the working title Should Have Joined a Party; mark older plans and unresolved progression decisions explicitly.
+- Documentation only; no runtime or art changes.
+
 ## 2026-09-28 — Playable development milestones
 
 - Added a dedicated development-order page specifying enemies, spells, keywords, mechanics, dependencies and acceptance gates for each playable increment. Level 1 starts with normal slimes; complex systems and experiments come later.

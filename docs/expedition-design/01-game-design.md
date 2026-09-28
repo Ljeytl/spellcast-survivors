@@ -1,5 +1,7 @@
 # Game design: a prepared wizard on an expedition
 
+**Current direction:** working title **Should Have Joined a Party**. Evolve the existing fun game; the next playable change is keyword-modified spells in current combat. Typing is the interface for complex magic, not the product identity. Readable ancient inscriptions replace the keycap art direction. See [development order](15-development-order.md).
+
 **Confirmed foundation; concrete loop below is proposed v0.1.**
 
 ## The promise
@@ -40,9 +42,9 @@ The proposed primary loss state is player death, which ends the expedition. The 
 
 ## Content scope and first playable slice
 
-The full proposed campaign has a tutorial and four realms. Build only the tutorial and one representative realm first. Initial slice: the complete tutorial and Verdant Ruins reward set (11 bases and five derived spells), plus Meteor Shower in a clearly labeled developer test profile: 17 spell identities total. Its eight words are Big, Powerful, Seeking, Lasting, Repulsing, Repeating, Delayed and Charged. The last three words and Meteor Shower are temporary test-profile grants, not changes to campaign acquisition. Ordinary progression tests use the real tutorial/realm rewards; the composition lab tests these later abilities separately. This covers projectile, self-heal, contact fan, area, chaining, persistent field, autonomous summon and rooted delayed artillery.
+The campaign layout is a proposal, not a rebuild sequence. First adapt existing Bolt, Ice Blast and Meteor Shower to Big/Powerful in the current game; preserve other existing content. Then add preparation, ley-line discoveries and connected expeditions. The prior 17-spell replacement slice is superseded by document 15.
 
-The full roster preserves all 16 current learnable spells and seven enabled combinations, and promotes 13 ideas/new identities. See the catalog for all 36. The retained automatic Mana Bolt is a separate open decision; the proposal disables it for this new mode to test whether manually creating openings delivers the intended fantasy. The legacy prototype remains a comparison build.
+The full roster preserves all 16 current learnable spells and seven enabled combinations, and promotes 13 ideas/new identities. See the catalog for all 36. Automatic Mana Bolt is a separate open decision; retain it during the first keyword increment, then compare manual-only play if that experiment is selected. Keep a reproducible comparison build while evolving the current game. Automatic attack removal is not part of the first keyword increment.
 
 No passive stat-slot system, randomized level-up cards, endless mode, monetization, multiplayer, voice casting or new character class is part of this initial design. Ley lines replace the old random-level-up discovery role. Workshop tools remain developer tools. Later scope includes alternate starter weapons, typed menu navigation, numeric spell parameters and additional realms.
 
@@ -56,4 +58,4 @@ These are hypotheses to test, not a guarantee that either loadout is viable. Rea
 
 The new direction does not require throwing away friend-made assets. It requires checking their readability and tone against the new fantasy. A cohesive simple treatment is preferable to more expensive inconsistent detail. Generated assets and existing audio can remain for testing and early promotion; replacement is a later provenance/budget decision. Do not generate a new art library as a side effect of approving this document.
 
-“Complete design” here means specified enough to build a falsifiable prototype: inputs, outputs, numbers, states, content and acceptance criteria. It cannot mean fun has already been proven. The first milestone must test whether players intentionally compose magic under pressure and want another expedition.
+“Complete design” here means specified enough to build a falsifiable prototype: inputs, outputs, numbers, states, content and acceptance criteria. The user reports that the existing game is fun; the proposed additions still require playtesting. The first milestone tests whether composed casts feel worthwhile while preserving existing combat fun. Connected-expedition replay is evaluated when that loop is built.

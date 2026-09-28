@@ -1,5 +1,9 @@
 # Spell system reference: components, properties, words and recipes
 
+**Decision precedence:** [Alignment review and open conflicts](13-review-record.md#alignment-review--28-september-2026) supersedes older conflicting proposals below, especially XP/mana, infection/Big and roster counting.
+
+**Development context (28 September):** use [development order](15-development-order.md) for implementation sequencing. Existing gameplay remains the foundation; these target-design tables do not require rebuilding or withholding existing spells. Numeric defaults and unresolved choices remain proposals. Preparation/XP/mana policy and recent spell-identity notes must be reconciled before dependent changes; the first keyword increment retains existing progression.
+
 **Design reference v0.2 · 28 September 2026 · no gameplay implementation**
 
 This document defines the reusable vocabulary from which spells are built. Its first tables deliberately contain **no named spells**. A spell is a graph of components with parameter values and connections. A player keyword changes explicitly exposed properties or adds a supported component. The game implements those behaviors once; spell definitions configure and combine them.

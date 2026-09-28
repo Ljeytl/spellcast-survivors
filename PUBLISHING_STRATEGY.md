@@ -1,5 +1,7 @@
 # SpellCast Survivors Publishing Strategy
 
+> Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](docs/expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
+
 ## Current Assets Assessment
 ✅ **Game is Complete**: Working executable builds for Windows (.exe), macOS (.dmg), and Web (.html)
 ✅ **Professional README**: Comprehensive documentation with clear value proposition  
