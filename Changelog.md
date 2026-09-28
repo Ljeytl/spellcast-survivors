@@ -3,6 +3,7 @@
 - Package the Firewalk layering and normal-HUD instruction fixes with the 20-minute extraction/endless choice.
 - Extract records victory; Continue resumes the same run with increasing enemy pressure and no victory banked in advance.
 - Set menu, gameplay and result version labels through the shared v0.1.26 project setting.
+- Combined validation: six regression suites, 1,149 checks/assertions passing, plus rendered desktop/narrow extraction and Firewalk evidence.
 
 ## 2026-09-28 — Ground-effect layering and minimal HUD
 
