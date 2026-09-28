@@ -151,7 +151,7 @@ func run():
 		make_target(game, start + Vector2(70 + i, 0))
 	for i in range(8):
 		effect.advance(0.5)
-	check(effect.hosts_started == 8 and effect.infections.size() + effect.infection_links.size() + effect.resting_spores.size() <= 8, "Lifetime host budget remains eight even after early hosts expire")
+	check(effect.hosts_started > 8, "Soul Bloom spreads beyond eight lifetime hosts")
 	var multi_health = game.player.health
 	effect.tick_infections()
 	check(is_equal_approx(game.player.health - multi_health, 2.0), "Multiple infected enemies share a two-HP total healing budget per tick")

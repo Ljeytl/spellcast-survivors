@@ -1,3 +1,10 @@
+## 2026-09-28 — Infection spread and crowd collision
+
+- Disable the eight-host lifetime limit for Plague Seed and Soul Bloom behind a reversible switch; retain active-cast and healing limits.
+- Charging enemies pass through other enemies during their dash; bosses pass through crowds at all times. Trees and obstacles still block both.
+- Record additional bosses at higher/endless difficulties as a future encounter idea.
+- Validate 441 checks across infection geometry/visibility, Soul Bloom healing, crowd physics and encounter rewards.
+
 ## 2026-09-28 — Playtest 0.1.26
 
 - Package the Firewalk layering and normal-HUD instruction fixes with the 20-minute extraction/endless choice.
