@@ -1,3 +1,10 @@
+## Expedition direction — September 27, 2026 (design proposal)
+
+- Separate design package: [Expedition design](docs/expedition-design/README.md). This proposes permanent spell and keyword discovery, prepared spell order, mana activation, authored/procedural realm routes and optional guardians.
+- Review its decision register before implementation. The current playable prototype and historical roadmap below remain unchanged in behavior.
+- First candidate: tutorial plus Verdant Ruins, with a separate composition test profile for later words and Meteor Shower. Expand the remaining realms only after observed player evidence supports the loop.
+- Preserve later ideas: elaborate mastery words, typed menus, numeric delay syntax, alternate characters, slime/wizard animation, shaders and eventual asset replacement. These are not silently included in the first slice.
+
 ## Encounter pressure — September 27, 2026
 
 - Implemented: camera-aware regular spawns, distant normal enemies reentering from a different offscreen angle with health/status intact, and eight timed staggered melee rushes. Rush enemies chase normally and recycle like other normal enemies; these are not passing formations. Bosses never recycle.
