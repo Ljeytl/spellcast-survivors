@@ -1,3 +1,8 @@
+## Spell component reference — September 28, 2026 (design only)
+
+- [Reusable components, properties, keyword bindings and spell recipes](docs/expedition-design/14-spell-system-reference.md) now define the proposed data-driven spell foundation.
+- Review Big's per-recipe meaning, unsupported modifier pairings, expanding-front versus projectile cones, and infection lifecycle before implementation. Future spell data should generate reference tables and workshop controls from the same schema.
+
 ## Expedition direction — September 27, 2026 (design proposal)
 
 - Separate design package: [Expedition design](docs/expedition-design/README.md). This proposes permanent spell and keyword discovery, prepared spell order, mana activation, authored/procedural realm routes and optional guardians.

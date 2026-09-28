@@ -28,6 +28,21 @@ def validate_roster(text):
 
 
 class DocumentationChecks(unittest.TestCase):
+    def test_component_reference_covers_roster(self):
+        reference = content('14-spell-system-reference.md')
+        section = reference.split('## 8. Named spell recipes', 1)[1].split('## 9.', 1)[0]
+        names = re.findall(r'^\|\*\*([^*]+)\*\*\|', section, re.M)
+        self.assertEqual(len(names), 36)
+        self.assertEqual(set(names), set(roster(content('03-spells.md'))))
+
+    def test_component_reference_starts_with_primitives(self):
+        reference = content('14-spell-system-reference.md')
+        section = reference.split('## 2. Foundational component table', 1)[1].split('## 3.', 1)[0]
+        self.assertIn('Expanding front', section)
+        self.assertIn('Infection', section)
+        self.assertNotIn('Bolt', section)
+        self.assertNotIn('Meteor Shower', section)
+
     def test_roster_count(self):
         self.assertEqual(len(validate_roster(content('03-spells.md'))), 36)
 
