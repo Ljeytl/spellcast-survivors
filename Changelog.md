@@ -1,3 +1,8 @@
+## 2026-09-28 — Preserve deferred Cross Blade tuning
+
+- Record the stronger-return-hit idea in the roadmap and player feedback tracker (I12), including tentative alternatives and the unresolved percentage reference.
+- Documentation only; Cross Blade damage and current builds are unchanged.
+
 ## 2026-09-28 — Repeating spawn pressure and spell balance
 
 - Repeat a 120-second spawn rhythm: 15s light, 30s heavy, 15s medium, 10s light, 10s medium, 30s heavy, 10s medium. Base intervals are light 3s, medium 2s and heavy 1s.

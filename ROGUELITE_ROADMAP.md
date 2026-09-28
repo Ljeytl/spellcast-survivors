@@ -8,6 +8,13 @@ See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified i
 
 - Use [Development order](docs/expedition-design/15-development-order.md) for concrete playable milestones, separate from campaign unlock timing. That future sequence does not replace the current difficulty-first slate.
 
+## Deferred — Cross Blade return-hit identity (2026-09-28)
+
+- Intent: make the returning blade the payoff, rewarding positioning to catch enemies on its way back and giving Cross Blade a distinct reason to use.
+- Tentative options from playtesting: double damage on return; alternatively reduce overall/base damage by 25% and increase return damage by 50%. These are alternatives to test, not approved balance values.
+- Open: whether the 50% return increase is relative to the reduced base or the current return damage. Resolve that reference before tuning; compare outbound-only hits, both passes and total damage per cast.
+- Status: explicitly deferred by the player. Keep current gameplay unchanged until a later balance pass. Tracked as [I12](docs/PLAYER_FEEDBACK.md#future-design-and-art-ideas).
+
 ## Idea — elemental vocabulary tiers
 
 - Explore base forms such as Wall combined with increasingly elaborate elemental words. See section 13 of [the spell-system reference](docs/expedition-design/14-spell-system-reference.md#13-idea-base-forms-with-elemental-word-tiers). Idea only; compare against paired incantation tiers before choosing a system.
