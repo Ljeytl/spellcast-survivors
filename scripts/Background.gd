@@ -18,11 +18,18 @@ var decorations: Dictionary = {}
 var layouts: Dictionary = {}
 var last_cell = Vector2i(2147483647, 2147483647)
 var last_view = Vector2.ZERO
+var tree_canopies: Node2D
 
 func _ready():
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	get_viewport().size_changed.connect(queue_redraw)
 	z_index = -100
+	tree_canopies = Node2D.new()
+	tree_canopies.name = "TreeCanopies"
+	tree_canopies.z_as_relative = false
+	tree_canopies.z_index = 2
+	tree_canopies.y_sort_enabled = true
+	add_child(tree_canopies)
 	grass_density.seed = 7319
 	grass_density.frequency = 0.16
 	grass_density.fractal_octaves = 2
@@ -168,10 +175,11 @@ func create_decoration(cell: Vector2i) -> Node2D:
 		tree.name = "Canopy"
 		tree.texture = load(ART + ("Level Tiles/Level Deco/Fir Tree 1 shaded.png" if posmod(cell.x + cell.y + i, 2) == 0 else "Level Tiles/Level Deco/Fir Tree 1.png"))
 		tree.scale = Vector2(2, 2)
-		tree.position = (tree.texture.get_size() / 2 - TREE_TRUNK_PIVOT) * tree.scale
-		tree.z_as_relative = false
-		tree.z_index = 2
-		body.add_child(tree)
+		tree.position = point
+		tree.offset = tree.texture.get_size() / 2 - TREE_TRUNK_PIVOT
+		tree_canopies.add_child(tree)
+		body.set_meta("canopy", tree)
+		body.tree_exiting.connect(tree.queue_free)
 	for i in range(layout.bushes.size()):
 		var bush = Sprite2D.new()
 		bush.texture = load(ART + "Level Tiles/Level Deco/Bush v%d.png" % (1 + posmod(cell.x + cell.y + i, 2)))
@@ -186,7 +194,7 @@ func _process(_delta):
 	refresh_decorations()
 	for holder in decorations.values():
 		for body in holder.get_children():
-			var canopy = body.get_node_or_null("Canopy")
+			var canopy = body.get_meta("canopy") if body.has_meta("canopy") else null
 			if canopy:
 				canopy.modulate.a = 1.0
 				var offset = player.global_position - body.global_position

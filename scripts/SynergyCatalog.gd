@@ -39,9 +39,9 @@ const RECIPES = {
 	"prism_ray": {
 		"name": "Prism Ray", "incantation": "prism ray", "ingredients": ["focus_ray", "ember_lance"],
 		"requirements": "Equip Focus Ray and Ember Lance, then choose Prism Ray. Both ingredients stay equipped.",
-		"description": "Gain: beam hits up to 3 aligned enemies. Cost: 40% less damage per target than Focus Ray. Ticks every 0.25 seconds for 2 seconds; one active beam. Keeps both ingredients and starts at rank 1 without using an active slot.",
-		"card_description": "Gain: pierce up to 3 aligned enemies. Cost: 40% less damage per target.",
-		"overrides": {"beam_targets": 3, "damage_multiplier": 0.6}
+		"description": "Gain: beam pierces aligned enemies. Cost: 40% less damage per target than Focus Ray. Ticks every 0.25 seconds for 2 seconds; up to three active beams. Keeps both ingredients and starts at rank 1 without using an active slot.",
+		"card_description": "Gain: pierce aligned enemies. Cost: 40% less damage per target.",
+		"overrides": {"beam_piercing": true, "beam_radius": 14.0, "active_limit": 3, "damage_multiplier": 0.6}
 	},
 	"frost_sigil": {
 		"name": "Frost Sigil", "incantation": "frost sigil", "ingredients": ["rune_trap", "ice_blast"],

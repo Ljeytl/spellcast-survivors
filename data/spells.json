@@ -879,8 +879,10 @@
       "type": "beam",
       "damage": 12,
       "duration": 2.0,
-      "active_limit": 1,
-      "role": "Track a nearby enemy with a focused beam for 2 seconds. Hits one target every 0.25 seconds; one active beam.",
+      "active_limit": 3,
+      "beam_radius": 12.0,
+      "turn_speed": 4.0,
+      "role": "Track one enemy with a focused beam; recast to sustain up to three beams.",
       "unlock_condition": {
         "type": "default"
       }
@@ -903,7 +905,7 @@
       "id": "seeking_spirit",
       "name": "Seeker",
       "type": "spirit",
-      "damage": 22,
+      "damage": 18,
       "duration": 5.0,
       "active_limit": 3,
       "role": "A spirit pursues nearby enemies for 5 seconds, striking one every 0.5 seconds on contact. Up to 3 spirits.",

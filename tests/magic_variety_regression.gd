@@ -129,7 +129,7 @@ func run():
 			manager.cast_spell_by_type(bonus_slot)
 		var family = manager.spells[primary_slot].type
 		var family_nodes = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.type == family and not node.is_queued_for_deletion())
-		check(family_nodes.size() == manager.spells[primary_slot].active_limit, "Bonus shares active effect family cap: " + recipe_id)
+		check(family_nodes.size() == int(manager.get_spell_info(bonus_slot).active_limit) + 1, "Bonus keeps its own active limit without replacing ingredient: " + recipe_id)
 	for id in ["rune_trap"]:
 		fresh()
 		manager.learn_spell(id)
@@ -202,7 +202,7 @@ func run():
 	check(near.hits == 1 and far.hits == 0 and spirit.burst_remaining == 0, "Reaping spirit survivor hit does not burst or flash")
 	near.current_health = 1
 	spirit.advance(0.5)
-	check(near.hits == 2 and far.hits == 1 and far.current_health == 10000 - 11, "Actual spirit kill bursts half damage once, excluding primary")
+	check(near.hits == 2 and far.hits == 1 and far.current_health == 10000 - 9, "Actual spirit kill bursts half damage once, excluding primary")
 	check(spirit.burst_remaining > 0 and spirit.burst_position == near.global_position, "Only actual kill creates a flash at the damage center")
 	spirit.advance(0.3)
 	check(spirit.burst_remaining == 0, "Burst flash expires within the owning spirit without extra nodes")
