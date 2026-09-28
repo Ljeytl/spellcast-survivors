@@ -116,6 +116,9 @@ func load_upgrades_from_data():
 		}
 
 func _input(event):
+	var game = get_tree().get_first_node_in_group("game")
+	if game and is_instance_valid(game.console_instance) and game.console_instance.visible:
+		return
 	if visible and event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or (event.echo and event.keycode in [KEY_ENTER, KEY_KP_ENTER])):
 		get_viewport().set_input_as_handled()
 

@@ -714,7 +714,7 @@ func queue_boss_reward() -> bool:
 	return true
 
 func show_next_level_up():
-	if current_state == GameState.GAME_OVER or pending_level_ups.is_empty() or spell_manager.is_typing:
+	if current_state not in [GameState.PLAYING, GameState.LEVEL_UP] or pending_level_ups.is_empty() or spell_manager.is_typing:
 		return
 	hide_typing_ui()
 	var next_level = pending_level_ups.pop_front()
@@ -1020,7 +1020,11 @@ func _on_typing_ended():
 	# Handle typing mode ending
 	clear_spell_slot_highlights()
 	if current_state == GameState.PLAYING and not pending_level_ups.is_empty():
-		show_next_level_up.call_deferred()
+		_show_pending_after_typing.call_deferred()
+
+func _show_pending_after_typing():
+	if current_state == GameState.PLAYING:
+		show_next_level_up()
 
 func _on_spell_locked_error(spell_name: String, required_level: int, current_level: int):
 	# Show error message when player tries to use locked spell

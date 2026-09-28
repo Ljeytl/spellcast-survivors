@@ -110,6 +110,15 @@ func run():
 	check(game.current_state == game.GameState.LEVEL_UP and game.spells_cast == 1, "Completed cast opens pending choice once")
 	check(not game.hud.get_node("TypingPanel").visible, "Pending choice has no empty typing panel behind it")
 	check(game.pending_level_ups.size() == 1, "Only one pending reward consumed")
+	game.console_instance.open_console()
+	await create_timer(0.4, true, false, true).timeout
+	game.console_instance.input_field.text = ""
+	for character in "ui_debug off":
+		key(character.to_upper().unicode_at(0), character.unicode_at(0))
+	check(game.console_instance.input_field.text == "ui_debug off", "Console retains spaces while an upgrade is open")
+	game.console_instance.close_console()
+	await create_timer(0.4, true, false, true).timeout
+	game.level_up_screen.upgrade_buttons[0].grab_focus()
 	key(KEY_SPACE)
 	await settle()
 	check(game.current_state == game.GameState.LEVEL_UP and game.pending_level_ups.size() == 1, "Space cannot accidentally select upgrade")
@@ -131,6 +140,19 @@ func run():
 	click(game.level_up_screen.upgrade_buttons[0])
 	await create_timer(0.35, true, false, true).timeout
 	await settle()
+	manager.casting_clock += 1
+	manager.activate_spell_slot(1)
+	game._on_player_level_up(5, {})
+	manager.cancel_typing()
+	game.toggle_pause()
+	await settle()
+	check(game.current_state == game.GameState.PAUSED and game.pending_level_ups.size() == 1, "Deferred reward cannot replace a newly opened pause menu")
+	game.toggle_pause()
+	await settle()
+	check(game.current_state == game.GameState.LEVEL_UP, "Resume releases reward deferred by pause")
+	click(game.level_up_screen.upgrade_buttons[0])
+	await create_timer(0.35, true, false, true).timeout
+	await settle()
 	var boss = Boss.new()
 	game.add_child(boss)
 	boss.add_to_group("bosses")
@@ -146,12 +168,24 @@ func run():
 	boss.dying = true
 	await settle()
 	check(not arrow.has_target, "Defeated boss has no arrow")
-	for geometry in [Vector2i(1280,720), Vector2i(640,480)]:
+	manager.spells.clear()
+	manager.bonus_spells.clear()
+	manager.acquired_spells.clear()
+	for id in ["bolt", "lightning_arc", "life", "focus_ray", "ember_lance", "meteor_shower"]:
+		check(manager.learn_spell(id), "Full-kit fixture learns " + id)
+	for id in ["lightning_bolt", "life_bolt", "prism_ray", "meteor_lance"]:
+		check(manager.learn_spell(id), "Full-kit fixture discovers " + id)
+	game.player.passive_ranks = {"spell_damage": 6, "movement_speed": 2, "max_health": 3, "xp_range": 4, "projectile_speed": 1, "slowdown_duration": 5}
+	boss.dying = false
+	boss.global_position = game.player.global_position + Vector2(50, 0)
+	await settle()
+	check(inventory.cards.size() == 16, "Full kit shows six active, six passive, four combination cards")
+	for geometry in [Vector2i(1280,720), Vector2i(640,480), Vector2i(480,640)]:
 		root.size = geometry
 		game.get_node("GameplayReadability").layout()
 		await settle()
 		for card in inventory.cards.values():
-			check(Rect2(Vector2.ZERO, game.hud.size).encloses(card.get_rect() * card.get_transform()), "Inventory cards remain inside HUD")
+			check(game.hud.get_global_rect().encloses(card.get_global_rect()), "Inventory cards remain inside HUD")
 		check(game.hud.get_node("BuildVersion").text == preload("res://scripts/BuildVersion.gd").text(), "Gameplay shares version")
 		await capture("inventory-" + str(geometry.x))
 	game.toggle_pause()
