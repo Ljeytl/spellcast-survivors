@@ -3,6 +3,12 @@
 - Consolidate approved fixes and explicit exclusions in the feedback tracker and roadmap.
 - Add a repeatable HTML export command with revision manifest and itch-ready ZIP; runtime verification is reported separately from export success.
 
+## 2026-09-28 — Casting feedback and ingredient progression
+
+- Allow three independent Focus Rays and Prism Rays per spell, distribute new beams across targets, smoothly rotate tracking, and narrow matching beam visuals/hit areas. Prism Ray pierces its full line.
+- Ingredient upgrades add 7.5% combination base damage each; Life improves healing seeds, Ice improves combination area, and Regeneration improves Soul Bloom recovery. Player damage buffs apply once.
+- Reduce Seeker contact damage from 22 to 18. Verify Cross Blade pierces multiple enemies on its return without adding a damage bonus.
+
 ## 2026-09-28 — Recovery pickups and world readability
 
 - Sort loaded tree canopies by trunk-base height across scenery chunks while preserving collision and player occlusion fading.
