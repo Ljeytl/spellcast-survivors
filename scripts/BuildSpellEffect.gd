@@ -22,6 +22,7 @@ var infection_duration = 5.0
 var hosts_started = 0
 const SPORE_LINGER = 3.0
 const HOST_LIMIT = 8
+const ENFORCE_HOST_LIMIT = false
 const Geometry = preload("res://scripts/SpellGeometry.gd")
 const Visual = preload("res://scripts/ProjectileVisual.gd")
 
@@ -171,7 +172,7 @@ func show_area(center: Vector2, radius: float, tint: Color):
 	effect.global_position = center
 
 func infect(enemy, source: Vector2 = Vector2.INF, search_range: float = 130.0, expires: float = -1.0):
-	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or hosts_started + infection_links.size() >= HOST_LIMIT:
+	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or (ENFORCE_HOST_LIMIT and hosts_started + infection_links.size() >= HOST_LIMIT):
 		return
 	hit_ids[enemy.get_instance_id()] = true
 	var origin = global_position if source == Vector2.INF else source
@@ -190,7 +191,7 @@ func nearest_host(center: Vector2, search_range: float):
 	return nearest
 
 func rest_spore(center: Vector2, expires: float = -1.0):
-	if hosts_started >= HOST_LIMIT or infections.size() + infection_links.size() + resting_spores.size() >= HOST_LIMIT:
+	if ENFORCE_HOST_LIMIT and (hosts_started >= HOST_LIMIT or infections.size() + infection_links.size() + resting_spores.size() >= HOST_LIMIT):
 		return
 	resting_spores.append({"position": center, "expires": elapsed_time + SPORE_LINGER if expires < 0 else expires, "fresh": expires < 0})
 	refresh_plague_lifetime()
@@ -271,7 +272,7 @@ func _on_infected_host_died(enemy):
 		rest_spore(enemy.global_position)
 
 func spread_from(center: Vector2) -> bool:
-	if hosts_started >= HOST_LIMIT:
+	if ENFORCE_HOST_LIMIT and hosts_started >= HOST_LIMIT:
 		return false
 	var other = nearest_host(center, 130.0 * float(info.spell_size_multiplier))
 	if other:

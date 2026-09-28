@@ -16,6 +16,7 @@ var charge_remaining: float = 0.0
 var recoil_remaining = 0.0
 var recoil_velocity = Vector2.ZERO
 var spawn_data: Dictionary = {}
+var normal_collision_mask = 34
 
 func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false):
 	spawn_data = definition
@@ -28,6 +29,8 @@ func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false)
 	enemy_type = {"grunt": EnemyType.CHASER, "runner": EnemyType.SWARM, "brute": EnemyType.TANK, "shooter": EnemyType.SHOOTER}[family]
 
 func _ready():
+	normal_collision_mask = collision_mask
+	update_crowd_collision(false)
 	player = get_tree().get_first_node_in_group("player")
 	health_bar_fill = $HealthBar/Fill
 	$Sprite2D.texture = load(spawn_data.get("boss_sprite", spawn_data.sprite) if boss else spawn_data.sprite)
@@ -63,6 +66,7 @@ func _physics_process(delta):
 	if recoil_remaining > 0.0:
 		recoil_remaining = maxf(0.0, recoil_remaining - delta)
 		velocity = recoil_velocity
+		update_crowd_collision(false)
 		move_and_slide()
 		return
 	behavior_time += delta
@@ -71,6 +75,7 @@ func _physics_process(delta):
 	var toward = offset.normalized()
 	facing = facing.rotated(clampf(facing.angle_to(toward), -1.8 * delta, 1.8 * delta))
 	velocity = toward * speed * slow_multiplier
+	var charging_this_step = charge_remaining > 0.0
 	match variant:
 		"flanker":
 			var side = 1.0 if get_instance_id() % 2 == 0 else -1.0
@@ -89,13 +94,18 @@ func _physics_process(delta):
 				velocity = Vector2.ZERO
 		"marksman", "fan_caster", "mortar":
 			update_ranged(delta, toward, offset.length())
+	charging_this_step = charging_this_step or charge_remaining > 0.0
+	update_crowd_collision(charging_this_step)
 	var terrain = get_parent().get_node_or_null("Background")
-	if terrain and terrain.has_method("steer") and charge_remaining <= 0.0:
+	if terrain and terrain.has_method("steer") and not charging_this_step:
 		velocity = terrain.steer(global_position, velocity, 29.0 * scale.x)
 	velocity += knockback_velocity
 	move_and_slide()
 	knockback_velocity *= pow(knockback_decay, delta * 60.0)
 	queue_redraw()
+
+func update_crowd_collision(charging: bool):
+	collision_mask = normal_collision_mask & ~2 if boss or charging else normal_collision_mask
 
 func recoil_from_contact(source: Vector2):
 	if dying or recoil_remaining > 0.0:

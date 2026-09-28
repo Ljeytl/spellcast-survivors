@@ -85,19 +85,19 @@ func run():
 		enemy.current_health = 1
 		group.append(enemy)
 	var chain = load("res://scripts/BuildSpellEffect.gd").new()
-	chain.configure({"type": "plague", "duration": 12.0}, 9, game.player, group[0])
+	chain.configure({"id": "plague_seed", "type": "plague", "duration": 12.0}, 9, game.player, group[0])
 	game.add_child(chain)
 	chain.set_physics_process(false)
 	chain.advance(1.25)
 	check(chain.hosts_started == 2, "Plague killing tick launches spore which transfers on arrival")
 	await process_frame
 	check(chain.hosts_started == 2, "Deferred death signal does not transfer twice")
-	for index in range(16):
+	for index in range(20):
 		chain.advance(0.5)
 		await process_frame
-	check(chain.hosts_started == 8, "Death chains retain eight-host cap")
+	check(chain.hosts_started == 10, "Death chain reaches all ten available hosts")
 	var survivors = group.filter(func(enemy): return is_instance_valid(enemy) and not enemy.dying)
-	check(survivors.size() == 2, "Bounded chain leaves two of ten enemies untouched")
+	check(survivors.is_empty(), "No survivors protected by an eight-host cap")
 	game.queue_free()
 	await process_frame
 	print("Plague visibility regression: %d checks, %d failures" % [checks, failures])

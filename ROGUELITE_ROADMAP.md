@@ -1,3 +1,7 @@
+## Further endless encounters — deferred
+
+Increase boss pressure at higher difficulties, including additional or concurrent bosses inspired by Risk of Rain. Design cadence and crowd composition separately; no boss-schedule change in the infection/collision fix.
+
 ## Twenty-minute choice — 0.1.26
 
 At 20:00 pause for Extract (bank victory) or Continue (endless survival with increasing difficulty). Continuing keeps the run active and does not bank a victory. This supersedes the previous immediate 20-minute win; boss-cadence changes remain deferred.
