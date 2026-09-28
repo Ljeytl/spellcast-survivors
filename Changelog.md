@@ -1,3 +1,9 @@
+## 2026-09-28 — Record healing, meteor, blade and boss feedback
+
+- Add F36–F39 to the player feedback tracker and link them from the roadmap, preserving observations, current source-derived values and open tuning decisions.
+- Record Regeneration overlap, Meteor Shower count/damage growth and unrestricted targeting, Cross Blade usefulness concerns, and boss HP inherited from ordinary enemy variants.
+- Documentation only; no runtime changes or new playtest verification claimed.
+
 ## 2026-09-28 — Preserve deferred Cross Blade tuning
 
 - Record the stronger-return-hit idea in the roadmap and player feedback tracker (I12), including tentative alternatives and the unresolved percentage reference.
