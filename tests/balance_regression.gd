@@ -30,16 +30,17 @@ func run():
 	spells.set_process(false)
 	player.set_physics_process(false)
 	check(player.xp_to_next_level == 25.0, "First upgrade requires 25 XP")
+	game.set_interface_debug(true)
 	check(game.xp_label.text.contains("25"), "Initial HUD shows actual XP threshold")
 	for time in [0.0, 60.0, 179.9]:
 		manager.game_time = time
 		check(manager.get_current_difficulty_level() == 1, "Opening stays tier 1 at %s" % time)
 		check(manager.calculate_spawn_interval() <= 3.0, "Opening never falls below initial spawn pressure at %s" % time)
-	for pair in [[0.0, 3.0], [9.9, 3.0], [10.0, 1.0], [44.9, 1.0], [45.0, 3.0], [90.0, 1.35], [105.0, 2.5], [120.0, 1.2], [135.0, 2.5], [180.0, 2.5]]:
+	for pair in [[0.0, 3.0], [14.9, 3.0], [15.0, 1.0], [44.9, 1.0], [45.0, 2.0], [60.0, 3.0], [70.0, 2.0], [80.0, 1.0], [110.0, 2.0], [120.0, 3.0], [135.0, 1.0], [180.0, 3.0]]:
 		manager.game_time = pair[0]
 		check(is_equal_approx(manager.calculate_spawn_interval(), pair[1]), "Opening pressure transition at %s" % pair[0])
 	manager.game_time = 240.0
-	check(manager.calculate_spawn_interval() < 2.5, "Long-term density increases after the opening waves")
+	check(manager.calculate_spawn_interval() < 3.0, "Next light phase is denser as difficulty rises")
 	for pair in [[300.0, 2], [600.0, 3], [900.0, 4]]:
 		manager.game_time = pair[0]
 		check(manager.get_current_difficulty_level() == pair[1], "Tier transition at %s" % pair[0])

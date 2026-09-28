@@ -64,7 +64,7 @@ func run():
 	for scale in [1.0, 2.0]:
 		caster.spell_size_multiplier = 1.0 if "--known-bad-size" in OS.get_cmdline_user_args() else scale
 		for type in ["field", "trail", "trap", "beam", "piercing", "returning", "spirit", "orbit"]:
-			var radius = {"field":150, "trail":65, "trap":130, "beam":20, "piercing":24, "returning":42, "spirit":24, "orbit":42}[type] * scale
+			var radius = {"field":150, "trail":65, "trap":130, "beam":20, "piercing":24, "returning":33.6, "spirit":24, "orbit":42}[type] * scale
 			var center = Vector2.ZERO
 			if type == "trap": center = Vector2(160, 0)
 			if type == "orbit": center = Vector2(130, 0)

@@ -1,3 +1,5 @@
+Current playtest balance note (2026-09-28): Earth Shield protection and visuals now last 16 seconds; Cross Blade radius is 33.6 (20% smaller). These replace the older runtime values below; proposed future expedition mechanics are unchanged.
+
 # Implemented spell audit — playtest pass 2
 
 This is the runtime behavior reference for pass 2. Historical proposals in the full spell library remain ideas unless listed here. Values below are rank-one base values before damage/passive upgrades. Sixteen primary spells, seven enabled bonus spells, and one passive attack are covered. Data-only entries (Fire Storm, Time Warp, Chain Heal, Frost Nova, Arcane Missiles, Divine Aura, Skeleton Warrior, Arcane Turret, Flame Elemental) are unavailable; Reaping Spirit remains disabled. No library expansion occurred.

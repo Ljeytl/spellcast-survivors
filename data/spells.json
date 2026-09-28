@@ -168,7 +168,7 @@
       "chars": 12,
       "type": "shield",
       "shield_hp": 60,
-      "duration": 8,
+      "duration": 16,
       "color": [0.8, 0.6, 0.3, 1],
       "unlock_condition": {"type": "level", "value": 7},
       "visual": {
@@ -880,7 +880,7 @@
         "type": "default"
       },
       "incantation": "cross blade",
-      "blade_radius": 42,
+      "blade_radius": 33.6,
       "travel_distance": 350,
       "linger_duration": 0.9,
       "linger_interval": 0.3,

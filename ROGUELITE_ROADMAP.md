@@ -1,3 +1,5 @@
+Current playtest tuning (2026-09-28): ambient spawns repeat the approved two-minute light/medium/heavy rhythm. Future batch-size thresholds can increase rolls per tick; scheduled horde waves remain separate.
+
 # Current slate — difficulty scaling first
 
 See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified items. Preserve current roguelike progression; validate opening and minutes 3–8 pressure while protecting the liked 9–11 minute escalation. Random health-potion drops, forest paths and rocks are later ideas. Keyword composition and the tower/expedition package remain future experiments.

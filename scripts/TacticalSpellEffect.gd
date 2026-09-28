@@ -175,7 +175,7 @@ func trail_contains(point: Vector2) -> bool:
 
 func advance_returning(delta: float, player: Node2D):
 	var start = global_position
-	var radius = float(info.get("blade_radius", 42.0))
+	var radius = float(info.get("blade_radius", 33.6))
 	var movement = float(info.get("speed", 500.0)) * float(info.get("projectile_speed_multiplier", 1.0)) * delta
 	if leg == 0:
 		var distance = minf(outbound_distance, movement)
@@ -220,5 +220,5 @@ func _draw():
 				points.append(to_local(point.position))
 			preload("res://scripts/AreaArt.gd").fire_path(self, points, float(info.get("trail_radius", 65.0)), age)
 		"returning":
-			var radius = float(info.get("blade_radius", 42.0))
+			var radius = float(info.get("blade_radius", 33.6))
 			art.stamp(self, "blade", Vector2.ZERO, Visual.size(self, Geometry.stamp_dimensions("blade", radius)), Color.WHITE, age * 12)

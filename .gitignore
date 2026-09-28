@@ -41,3 +41,5 @@ Dungeon Crawl Stone Soup Full/
 /override.cfg
 
 __pycache__/
+
+/Actual Art we made/**/*.import

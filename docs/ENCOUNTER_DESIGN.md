@@ -1,3 +1,9 @@
+## Current balance override — 2026-09-28
+
+The active spawner repeats a 120-second cycle: 0–15 light, 15–45 heavy, 45–60 medium, 60–70 light, 70–80 medium, 80–110 heavy, 110–120 medium. Base intervals: light 3s / medium 2s / heavy 1s. Difficulty is 1.0 through 180 seconds, then 1.28^((time−180)/180); divide every interval by this same factor. The safety minimum is 0.1s and does not flatten the rhythm within a 20-minute run. The former midgame pressure multiplier is removed.
+
+`scaling.spawn_batches` maps difficulty thresholds to regular spawn-roll counts. It currently contains only 1.0→1; higher batches are supported but not enabled. Swarmer rolls still produce packs of three; waves/bosses use their separate existing schedules, capped regular population stays 160. Blue Sprinters remain 270 speed against 300 base player speed. This section supersedes conflicting older interval tuning below.
+
 # Enemy encounters and combat direction
 
 ## Agreed direction
@@ -13,7 +19,7 @@ Elements are themes, not mandatory counters. Spell decisions concern timing, cov
 | Family | Variant | Behavior | First appearance |
 |---|---|---|---|
 | Grunt | Pursuer | Direct pursuit, two starting passive hits | 0:00 |
-| Runner | Sprinter | One starting passive hit; 2.54 times grunt speed | 0:45 |
+| Runner | Sprinter | One starting passive hit; 3 times grunt speed | 0:12 |
 | Grunt | Flanker | Angled approach toward the player's side | 2:00 |
 | Grunt | Skirmisher | Alternates approach with short retreats | 3:00 |
 | Runner | Swarmer | Three fragile, fast enemies per spawn | 4:00 |
@@ -49,10 +55,10 @@ Shutdown regression checks now exit cleanly: damage-number completion uses a nod
 
 ## Opening pressure revision — September 26, 2026
 
-The opening is an encounter sequence rather than a three-minute density grace period. Spawns start every three seconds for ten seconds, surge to one second until 45 seconds, then ease to three seconds until 90. Short pressure windows run at 90–105 seconds (1.35-second interval) and 120–135 seconds (1.2-second interval), with 2.5-second intervals between and after them. Exponential density scaling begins at 180 seconds, retaining the existing 0.6-second floor and 160-enemy cap.
+The earlier one-off opening sequence was replaced by the repeating rhythm above on September 28. Health growth and the 160-enemy cap are unchanged.
 
 Pursuers remain 30 HP with four contact damage and now move at 90. Sprinters become eligible at twelve seconds with twelve HP, three contact damage and 270 speed: one passive hit, three times grunt speed, still slower than the player's 300 speed. Early health scaling is unchanged. Bosses remain at 5/10/15 minutes, no shooter is eligible before ten minutes, and surviving twenty minutes immediately wins.
 
 Behavioral evaluation uses ordinary inputs and four modes: idle, movement without typed casts, stationary casting, and the original moving/typing bot. Active bots choose random upgrades and spells and type five characters per second. They measure a deliberately weak policy; surviving a time-limited probe is not a victory or proof that human balance is finished. Movement-only kiting is reported honestly rather than defeated through artificial damage or forced deaths. Paired fast-runner drafts were rejected because they killed every tested active bot within the first minute.
 
-Phase boundaries restart a running spawn timer using the new interval: the ten-second pressure phase schedules its next spawn at eleven seconds. Recovery similarly starts a full new interval. Stopped/debug simulations are not restarted. Phase rows may be unordered; the latest valid nonnegative start with a positive interval wins. Missing phase data falls back to the original three-second opening.
+Phase boundaries restart a running spawn timer using the new interval: the fifteen-second heavy phase schedules its next spawn at sixteen seconds. Recovery similarly starts a full new interval. Stopped/debug simulations are not restarted. Phase rows may be unordered; the latest valid nonnegative start with a positive interval wins. Missing phase data falls back to the original three-second opening.
