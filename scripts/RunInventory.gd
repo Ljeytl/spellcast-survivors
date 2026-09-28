@@ -27,7 +27,9 @@ func _process(_delta):
 		style.set_border_width_all(2 if selected else 1)
 	var hud = game.hud
 	position = Vector2(18, maxf(116, game.timer_panel.get_rect().end.y + 10) if game.timer_panel.position.y > 18 else 116)
-	size.x = minf(420, hud.size.x - 36)
+	size.x = minf(180 if hud.size.x < 700 else 420, hud.size.x - 36)
+	for card in cards.values():
+		card.custom_minimum_size.y = 47 if hud.size.x < 700 else 51
 	visible = not game.interface_debug and game.current_state == game.GameState.PLAYING and not (manager.is_typing and hud.size.x < 700)
 
 func rebuild():

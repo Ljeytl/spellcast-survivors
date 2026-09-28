@@ -135,6 +135,10 @@ func _process(_delta):
 	spells_panel.visible = game.interface_debug
 	guidance.size = Vector2(minf(560, game.get_node("UI/HUD").size.x - 36), maxf(32, guidance.get_minimum_size().y))
 	guidance.position = Vector2((game.get_node("UI/HUD").size.x - guidance.size.x) / 2, game.get_node("UI/HUD").size.y - guidance.size.y - 34)
+	if game.hud.size.x < 700:
+		guidance.size.x = maxf(180, game.hud.size.x - 222)
+		guidance.position.x = 210
+		guidance.position.y = game.hud.size.y - guidance.get_minimum_size().y - 34
 	passive_label.text = "AUTO · Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt")
 	var remaining = manager.typing_slowdown_remaining
 	var capacity = manager.typing_slowdown_capacity

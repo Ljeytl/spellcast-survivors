@@ -184,8 +184,10 @@ func run():
 		root.size = geometry
 		game.get_node("GameplayReadability").layout()
 		await settle()
+		var wizard_screen = game.player.get_global_transform_with_canvas() * Vector2.ZERO
 		for card in inventory.cards.values():
 			check(game.hud.get_global_rect().encloses(card.get_global_rect()), "Inventory cards remain inside HUD")
+			check(not card.get_global_rect().grow(20).has_point(wizard_screen), "Inventory clears wizard and immediate movement space")
 		check(game.hud.get_node("BuildVersion").text == preload("res://scripts/BuildVersion.gd").text(), "Gameplay shares version")
 		await capture("inventory-" + str(geometry.x))
 	game.toggle_pause()
