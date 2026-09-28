@@ -195,6 +195,7 @@ Reserved entries are real recorded ideas, **not fully balanced release content**
 | Daybreak |Radiant damaging burst; cleansing is a new optional proposal | Reserve until status cleansing relevant |
 | Solar Flare |Directional fan of solar energy | Reserve vs Frost Nova role |
 | Divine Aura |Healing/protection aura | Inactive; avoid invalidating Earth Shield and Regen |
+| Explosion — ritual incantation |Long multi-stage chant followed by a final release word and a screen-wide blast | New deferred concept; [ritual casting design](../CASTING_FANTASY_NOTES.md#multi-stage-ritual-casting--2026-09-28-idea); no incantation text, interrupt rules or damage selected |
 | Super Extreme Meteor Shower Deluxe |Aspirational elaborate incantation | Expression/mastery fantasy; not a short-name balance bypass |
 
 All 36 campaign spells need a complete effect definition, preview, icon, readable one-sentence description, damage/heal/filter tests and modifier compatibility tests before shipping. Reserved entries need identity selection first; no implementation team is authorized to fill gaps ad hoc.

@@ -133,3 +133,22 @@ Open decisions: what is unlocked or awarded; how locations are discovered; what 
 - **Fro:** use the matchup as a skill-versus-speed motif: keyboard/player as skill, mouse/boss as speed. The protagonist ultimately wins through skill, while the faster mouse puts up a strong fight. Preserve this as proposed lore, not a guarantee of player victory or a claim about real input devices.
 
 The boss’s appearance, movement, attacks, unlock conditions, and placement are all open. This idea does not replace the current twenty-minute immediate victory or commit the game to a final-boss implementation.
+
+## Multi-stage ritual casting — 2026-09-28 idea
+
+**Status: deferred design exploration; not implemented.** The user proposes “multi-turn casting”: a long incantation leading into a final **Explosion** command, followed by a spectacular screen-wide blast. The user cited Konosuba as the reference for the long-incantation/ultimate-release fantasy. Preserve that premise without copying a show's exact incantation or assuming unrelated reference mechanics. This is a sequence within real-time combat, not a request to convert the game into turns.
+
+### Suggested first experiment, not approved rules
+
+- One rare/advanced spell with an original, fixed incantation broken into a few short clauses and a final release word. Display the next clause so the first use does not require memorization.
+- Treat the entire sequence as one logical cast. Existing finite per-cast slowdown applies across the whole ritual; beginning the next clause must not silently refill it. Focus-duration upgrades can help complete the ritual, but do not introduce the previously rejected shared rechargeable slowdown meter.
+- Compare uninterrupted chanting against checkpointed chanting. In the checkpointed candidate, completing a clause lets the player briefly resume movement and later continue; completed clauses persist only for a bounded window. The exact movement/typing controls, grace duration and decay/reset rules are undecided. Do not make an almost-complete ultimate bankable indefinitely without explicitly choosing that gameplay.
+- Typos use ordinary correction; do not assume one typo or one hit deletes the whole ritual. Cancellation, damage interruption, timeout, death and reopening behavior need explicit decisions before implementation.
+- Each clause builds a visible magical pattern and escalating charge cue. The final word releases a large, readable detonation that convincingly clears ordinary hordes. Damage should coincide with the visible blast; a screen effect alone is not evidence of screen-wide damage.
+- Boss treatment needs separate tuning: a substantial hit is a candidate, not an automatic one-shot or immunity. Preserve a satisfying payoff against elite/boss-only situations as well as crowds.
+
+### Why this fits, and what to test
+
+Typing commitment becomes the source of power: “can I finish this before I must dodge?” is already the core loop. A long ritual should earn qualitatively larger coverage/control/payoff rather than merely a small damage multiplier. Keep basic spells useful while this is being prepared. Test whether learned familiarity makes the ritual satisfying mastery, whether repeated text becomes tedious, and whether short spells remain valuable after the ultimate is unlocked.
+
+The key decision is **continuous vulnerability versus staged commitment with movement between clauses**. Length, clause count, discovery/unlock, slot policy, repeat use, cooldown/resource requirements, aim, exact damage and blast propagation are all open. No mana cost is implied: the latest mana framing is accumulated, non-consumable progression. No once-per-run restriction, exhaustion mechanic or relic requirement has been selected.

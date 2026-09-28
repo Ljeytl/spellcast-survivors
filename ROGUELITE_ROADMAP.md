@@ -1,3 +1,7 @@
+## Ritual incantations — 2026-09-28
+
+- [Multi-stage casting / Explosion](docs/CASTING_FANTASY_NOTES.md#multi-stage-ritual-casting--2026-09-28-idea): preserve the long chant → final word → screen-wide payoff concept. Explore one logical cast with finite slowdown and either continuous or checkpointed commitment; no implementation yet.
+
 ## Mystical names and relic abilities — 2026-09-28
 
 - [Naming and relic proposal](docs/expedition-design/03-spells.md#mystical-vocabulary-and-relic-granted-abilities--follow-up): Boots of Hermes could unlock quick Dash; Yggdrasil exemplifies the desired ultimate-spell fantasy; Meteor Shower may receive a more evocative name later. Names may draw on mythology/familiar media; short reactive commands remain an exception. Design only.
