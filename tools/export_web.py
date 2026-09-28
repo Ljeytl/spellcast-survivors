@@ -1,6 +1,8 @@
 import argparse
 import hashlib
 import json
+import html
+import re
 import shutil
 import subprocess
 from datetime import datetime, timezone
@@ -36,6 +38,11 @@ def export_web(godot, output):
     for name in ["index.html", "index.js", "index.wasm", "index.pck"]:
         if not (web / name).is_file() or (web / name).stat().st_size == 0:
             raise RuntimeError(f"Missing web artifact: {name}")
+    project = (ROOT / "project.godot").read_text()
+    title = re.search(r'^config/display_name="(.*)"$', project, re.MULTILINE)
+    if title:
+        page = web / "index.html"
+        page.write_text(re.sub(r"<title>.*?</title>", lambda _: "<title>" + html.escape(title.group(1)) + "</title>", page.read_text(), count=1))
     shutil.copy2(ROOT / "audio/tactile/CREDITS.md", web / "SOUND-CREDITS.txt")
     artifact = Path(shutil.make_archive(str(output / "Shoulda-Joined-a-Party-Web"), "zip", web))
     current = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
