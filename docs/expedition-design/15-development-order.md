@@ -1,5 +1,7 @@
 # Development order: evolve the game we have
 
+> **Current development slate:** keep the playable roguelike alpha. Difficulty scaling is next; keyword and expedition work are deferred. Track observations, open work and verified fixes in the [player feedback tracker](../PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
+
 **28 September 2026 · documentation only · current direction**
 
 The existing game is fun according to the user's playtest. Preserve that foundation and expand it toward **Should Have Joined a Party**: a wizard expressing complex magic through language. It is not a schedule for when a player unlocks vocabulary. Milestones describe changes to the current game, not a fresh build or a requirement to reimplement every spell.

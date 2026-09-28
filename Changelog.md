@@ -1,3 +1,9 @@
+## 2026-09-28 — Central player feedback and current slate
+
+- Added a feedback tracker with stable IDs, open/verification/deferred statuses and evidence requirements for marking fixes.
+- Logged difficulty priority, health-potion idea, missing rocks and forest paths; indexed earlier playtest concerns and future concepts.
+- Kept current roguelike progression and deferred keyword/expedition work. No gameplay fixes claimed.
+
 ## 2026-09-28 — Record wizard tower hub concept
 
 - Documented rotary room level selection, stained-glass destinations, physical preparation book and automatic tower recall.

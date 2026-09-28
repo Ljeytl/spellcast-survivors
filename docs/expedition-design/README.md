@@ -1,5 +1,7 @@
 # Should Have Joined a Party — design package
 
+> **Current development slate:** keep the playable roguelike alpha. Difficulty scaling is next; keyword and expedition work are deferred. Track observations, open work and verified fixes in the [player feedback tracker](../PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
+
 **Version 0.1 · 27 September 2026 · design proposal, not a gameplay patch**
 
 This package evolves the existing playable SpellCast Survivors game toward the working title **Should Have Joined a Party**. The user finds the current game fun; preserve that foundation while adding permanent vocabulary, prepared spells and expeditions. Typing expresses complex magic; typing-game branding and keycap presentation are being retired in favor of readable magical inscriptions. These documents change no runtime behavior.
