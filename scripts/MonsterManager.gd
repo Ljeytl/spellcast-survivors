@@ -6,6 +6,8 @@ signal boss_arrived(boss_name: String)
 signal run_completed
 
 var run_finished: bool = false
+var awaiting_extraction: bool = false
+var endless_mode: bool = false
 
 const EnemyScene = preload("res://scenes/EncounterEnemy.tscn")
 var encounter_config: Dictionary = {}
@@ -76,7 +78,7 @@ func _on_spawn_timer_timeout():
 	spawn_timer.wait_time = calculate_spawn_interval()
 
 func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN) -> Node2D:
-	if run_finished:
+	if run_finished or awaiting_extraction:
 		return null
 	spawn_attempts += 1
 	if monsters_alive >= max_monsters and not is_boss:
@@ -164,7 +166,16 @@ func spawn_difficulty_multiplier() -> float:
 				var weight = clampf((game_time - float(previous.time)) / maxf(0.001, float(point.time) - float(previous.time)), 0.0, 1.0)
 				return exp(lerpf(log(maxf(1.0, float(previous.multiplier))), log(maxf(1.0, float(point.multiplier))), weight))
 			previous = point
-		return maxf(1.0, float(previous.multiplier))
+		var multiplier = maxf(1.0, float(previous.multiplier))
+		if points.size() > 1:
+			var earlier = points[points.size() - 2]
+			var growth = maxf(0.0, log(multiplier / maxf(1.0, float(earlier.multiplier))))
+			var periods = maxf(0.0, game_time - float(previous.time)) / maxf(1.0, float(previous.time) - float(earlier.time))
+			var cap = 1.0
+			for phase in scaling.get("spawn_phases", []):
+				cap = maxf(cap, float(phase.interval) / maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.1))))
+			return minf(cap, exp(minf(log(cap), log(multiplier) + growth * periods)))
+		return multiplier
 	var elapsed = maxf(0.0, game_time - float(scaling.get("spawn_growth_start_seconds", 180.0)))
 	return pow(maxf(1.0, float(scaling.get("spawn_growth_factor", 1.28))), elapsed / maxf(1.0, float(scaling.get("spawn_growth_period_seconds", 180.0))))
 
@@ -204,15 +215,22 @@ func _on_monster_died(monster: CharacterBody2D):
 func add_game_time(additional_time: float):
 	advance_time(additional_time)
 
+func continue_endless():
+	if run_finished or not awaiting_extraction:
+		return
+	awaiting_extraction = false
+	endless_mode = true
+	spawn_timer.start(calculate_spawn_interval())
+
 func advance_time(delta: float):
-	if run_finished:
+	if run_finished or awaiting_extraction:
 		return
 	var previous_phase = spawn_phase_interval(game_time)
-	game_time = clampf(game_time + delta, 0.0, float(encounter_config.run_duration))
-	if game_time >= float(encounter_config.run_duration):
-		run_finished = true
+	game_time = maxf(0.0, game_time + delta)
+	if not endless_mode and game_time >= float(encounter_config.run_duration):
+		game_time = float(encounter_config.run_duration)
+		awaiting_extraction = true
 		spawn_timer.stop()
-		encounter_director.update(delta)
 		run_completed.emit()
 		return
 	if not is_equal_approx(previous_phase, spawn_phase_interval(game_time)) and not spawn_timer.is_stopped():

@@ -142,11 +142,11 @@ func run():
 	director.wave_remaining = 12
 	manager.game_time = 1199.9
 	manager.advance_time(0.2)
-	check(manager.run_finished and director.wave_remaining == 0, "20 minute victory cancels pending rush")
+	check(manager.awaiting_extraction and not manager.run_finished, "20 minute choice suspends encounter updates")
 	var final_count = manager.actual_spawns
 	manager.advance_time(10)
 	director.recycle_distant()
-	check(manager.actual_spawns == final_count, "No encounters after victory")
+	check(manager.actual_spawns == final_count, "No encounters while choosing extraction")
 	game.queue_free()
 	await process_frame
 	print("Encounter waves: %d checks, %d failures" % [checks, failures])
