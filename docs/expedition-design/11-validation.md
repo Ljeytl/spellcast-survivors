@@ -4,6 +4,8 @@
 
 This package specifies a design. It does not prove its game feel, difficulty, accessibility or performance. Document checks cover roster/reward consistency, formulas, references and conflicting rules. Gameplay gates below are **future requirements**, not passed tests.
 
+For the updated concrete build contents and normal-slime Level 1, use [Development order](15-development-order.md). The older tranche table below describes engineering responsibilities; its earlier slice-size proposal is superseded by that page for development scope. Its validation obligations still apply.
+
 ## Implementation tranches
 
 Each independently releasable tranche gets a dedicated branch/worktree, reviewed PR, exact-revision checks and cleanup after merge. Parallel agents may investigate or own separate isolated tranches; they must not edit the same worktree. Integrate dependent changes in order. Keep a playable comparison build at each stage.

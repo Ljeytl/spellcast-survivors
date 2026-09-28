@@ -1,3 +1,9 @@
+## 2026-09-28 — Playable development milestones
+
+- Added a dedicated development-order page specifying enemies, spells, keywords, mechanics, dependencies and acceptance gates for each playable increment. Level 1 starts with normal slimes; complex systems and experiments come later.
+- Distinguished development order from player acquisition and linked documents 13, 14 and 15 in the README index.
+- Documentation only; existing gameplay and user-owned in-progress design edits are preserved.
+
 ## 2026-09-28 — Elemental word tiers idea
 
 - Recorded an exploratory base-form model: Wall supplies shared behavior, while elemental words such as Fire, Flame, Cinder or Incinerating could select an element and power tier.

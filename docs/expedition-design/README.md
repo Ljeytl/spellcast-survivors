@@ -4,6 +4,8 @@
 
 This is a separate design for the next iteration of SpellCast Survivors. The playable prototype remains unchanged. The goal is to feel like a wizard learning and preparing an expanding magical vocabulary, then performing increasingly elaborate spells under pressure.
 
+For **what to build next**, start with [Development order](15-development-order.md). For **how spells are constructed**, use [Spell system reference](14-spell-system-reference.md). Milestone lists track development inventory; final acquisition and independent-spell versus family-tier counting remain design decisions.
+
 ## Read in this order
 
 1. [Game design](01-game-design.md): the experience, expedition loop and scope.
@@ -18,6 +20,9 @@ This is a separate design for the next iteration of SpellCast Survivors. The pla
 10. [Engineering specification](10-engineering.md): data contracts, responsibilities, persistence and migration boundaries.
 11. [Validation and delivery](11-validation.md): implementation tranches, executable acceptance criteria and playtest worksheet.
 12. [Research](12-research.md): primary sources, evidence limits and design applications.
+13. [Review record](13-review-record.md): completed design checks, remaining decisions and feasibility risks.
+14. [Spell system reference](14-spell-system-reference.md): reusable components, property and keyword tables, spell recipes, and elemental-tier ideas.
+15. [Development order](15-development-order.md): concrete playable milestones, beginning with Level 1 and normal slimes; included enemies, spells, keywords, mechanics and exit gates.
 
 ## How to interpret this package
 

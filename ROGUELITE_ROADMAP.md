@@ -1,3 +1,7 @@
+## Build order — normal-slime Level 1 first
+
+- Use [Development order](docs/expedition-design/15-development-order.md) for concrete playable milestones, separate from campaign unlock timing. Prove a small normal-slime combat slice, complete its expedition loop, then add later levels and advanced spell systems.
+
 ## Idea — elemental vocabulary tiers
 
 - Explore base forms such as Wall combined with increasingly elaborate elemental words. See section 13 of [the spell-system reference](docs/expedition-design/14-spell-system-reference.md#13-idea-base-forms-with-elemental-word-tiers). Idea only; compare against paired incantation tiers before choosing a system.
