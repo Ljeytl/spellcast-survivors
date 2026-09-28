@@ -1,3 +1,7 @@
+## New ideas captured — 2026-09-28
+
+- [Storm aura, root wave, Dash, Swiftness and accumulated mana](docs/expedition-design/03-spells.md#storm-aura-roots-and-wizard-movement--2026-09-28-ideas): design exploration, with explicit geometry, timing, names, categories and unresolved decisions. Tracked as I13–I17 in player feedback. No implementation authorized by recording these ideas.
+
 ## Current balance implementation — 2026-09-28
 
 [Current balance details and verification limits](docs/PLAYER_FEEDBACK.md#current-balance-pass--2026-09-28): lower Regeneration/trap damage, explicit boss budgets, faster second-boss dash, radial Cross Blade progression and mixed Meteor Shower count/area ranks. The older proposals below are retained history; this section is current.

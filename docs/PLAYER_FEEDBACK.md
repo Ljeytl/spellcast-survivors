@@ -115,6 +115,16 @@ These rows point into existing detailed plans/results. They are not all known cu
 | I11 | Eventual generated-art/music replacement; existing assets can remain for current testing | Deferred | [Art direction](expedition-design/08-art-feedback.md); no immediate bulk replacement |
 | I12 | Cross Blade should have a stronger return hit that rewards positioning; tentative double-return damage or base damage −25% with return +50% | Deferred | [Return-hit idea](../ROGUELITE_ROADMAP.md#deferred--cross-blade-return-hit-identity-2026-09-28), recorded 2026-09-28; alternatives and percentage reference unresolved; no gameplay change authorized |
 
+## New spell and progression ideas — 2026-09-28
+
+| ID | Idea | Status | Record |
+|---|---|---|---|
+| I13 | Personal lightning aura with per-enemy 1–1.5-second exposure before an individual direct strike; long incantation appropriate to utility | Deferred design | [Mechanics, names and open decisions](expedition-design/03-spells.md#storm-aura-roots-and-wizard-movement--2026-09-28-ideas); fixed lifetime per cast; level-ups extend duration, kills do not |
+| I14 | Moving directional wave of tree roots; “shillale” working name | Deferred design | Same spell-idea table; physical/nature fantasy, damage timing and trail behavior undecided |
+| I15 | Dash immediately on casting versus a stored dash charge | Deferred design | Same table; separate controls discussion, neither behavior selected |
+| I16 | Swiftness temporary movement-speed spell | Deferred design | Same table; magnitude, duration and stacking open |
+| I17 | Mana represents accumulated unspent magical power that unlocks progression thresholds, rather than a casting fuel pool | Design direction | [Accumulated mana](expedition-design/03-spells.md#accumulated-mana-as-progression); current gameplay unchanged, naming and run persistence open |
+
 ## Detailed source records
 
 The linked plans, catalogs and reports retain original subrequirements and historical implementation evidence. Read those alongside each row rather than collapsing their entire scope into a single fixed checkbox. New reports should reference these IDs and link the exact candidate evidence. If an older conversational detail has no corresponding source or row, add it explicitly; this index does not claim a line-by-line transcript audit or freshly verified closure of every historical issue.
