@@ -130,7 +130,7 @@ func _process(_delta):
 	if game.current_state == game.GameState.PLAYING and not manager.is_typing:
 		feedback_remaining = maxf(0, feedback_remaining - _delta)
 	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Mana Bolt fires automatically\nClick a spell or press 1–6, then type · Space chooses any learned spell"
-	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing and (game.interface_debug or feedback_remaining > 0)
+	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing and game.interface_debug
 	var spells_panel = game.get_node("UI/HUD/SpellSlotsPanel")
 	spells_panel.visible = game.interface_debug
 	guidance.size = Vector2(minf(560, game.get_node("UI/HUD").size.x - 36), maxf(32, guidance.get_minimum_size().y))

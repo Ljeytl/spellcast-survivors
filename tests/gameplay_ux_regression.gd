@@ -64,7 +64,7 @@ func run():
 	var manager = game.spell_manager
 	var player = game.player
 	var interface = game.get_node("GameplayReadability")
-	check(interface.feedback_remaining > 0, "Fresh run briefly explains how to invoke spells")
+	check(not interface.guidance.visible, "Fresh run has no bottom instructions")
 	key(KEY_1)
 	key(KEY_B, 98)
 	key(KEY_O, 111)
@@ -165,8 +165,10 @@ func run():
 	await wait_for_state(func(): return game.current_state == game.GameState.PLAYING and not paused)
 	await settle()
 	check(not manager.is_typing, "Offer selection does not leak Space into casting")
-	check(interface.guidance.visible and not interface.feedback_copy.is_empty(), "Applied choice gets nonmodal acknowledgement")
+	check(interface.guidance.visible and game.interface_debug, "Debug retains choice acknowledgement")
 	game.set_interface_debug(false)
+	await settle()
+	check(not interface.guidance.visible, "Normal gameplay hides choice instructions")
 	game._on_upgrade_selected({"name": "Empowered Spells", "description": "+10% spell damage (Currently: +0%)", "effect": {"type": "spell_damage", "value": 0.1}})
 	check(interface.feedback_copy == "Empowered Spells", "Acknowledgement confirms the selected upgrade without repeating its details")
 	for geometry in [Vector2i(1280, 720), Vector2i(800, 900), Vector2i(960, 540)]:

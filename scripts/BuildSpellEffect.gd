@@ -27,6 +27,9 @@ const Visual = preload("res://scripts/ProjectileVisual.gd")
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	info = preload("res://scripts/SpellGeometry.gd").scaled_data(data, player)
+	if info.type in ["field", "trail", "trap"]:
+		z_as_relative = false
+		z_index = -2
 	damage = amount
 	caster = weakref(player)
 	global_position = player.global_position

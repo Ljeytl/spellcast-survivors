@@ -1,3 +1,9 @@
+## 2026-09-28 — Ground-effect layering and minimal HUD
+
+- Fix F41: draw Firewalk and other ground fields/traps beneath the wizard without changing damage or lifetime.
+- Fix F42: keep bottom instructional messages in debug only; preserve the casting reference and duration indicators.
+- Verify before/after fire overlap, recasting, startup/acquisition guidance and desktop/narrow layouts.
+
 ## 2026-09-28 — Record post-0.1.25 playtest reports
 
 - Log Firewalk obscuring the wizard and unwanted bottom instructional messages as open feedback (F41–F42).
