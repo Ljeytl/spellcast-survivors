@@ -32,6 +32,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	global_position = player.global_position
 	remaining = float(info.get("duration", 5.0))
 	infection_duration = remaining
+	healing_remaining = float(info.get("healing_tick_cap", 2.0))
 	tick_remaining = float(info.get("tick_interval", 0.5))
 	if is_instance_valid(target):
 		direction = (target.global_position - global_position).normalized()
@@ -239,7 +240,7 @@ func advance_spores(delta: float):
 			infection_links.erase(link)
 
 func tick_infections():
-	healing_remaining = 2.0
+	healing_remaining = float(info.get("healing_tick_cap", 2.0))
 	for reference in infections.duplicate():
 		var enemy = reference.get_ref()
 		if not valid_target(enemy) or elapsed_time - float(infected_at.get(enemy.get_instance_id(), elapsed_time)) + 0.000001 < float(info.get("tick_interval", 0.5)):

@@ -1,3 +1,9 @@
+## 2026-09-28 — Casting feedback and ingredient progression
+
+- Allow three independent Focus Rays and Prism Rays per spell, distribute new beams across targets, smoothly rotate tracking, and narrow matching beam visuals/hit areas. Prism Ray pierces its full line.
+- Ingredient upgrades add 7.5% combination base damage each; Life improves healing seeds, Ice improves combination area, and Regeneration improves Soul Bloom recovery. Player damage buffs apply once.
+- Reduce Seeker contact damage from 22 to 18. Verify Cross Blade pierces multiple enemies on its return without adding a damage bonus.
+
 ## 2026-09-28 — Preserve multi-stage incantation idea
 
 - Record the long-chant Explosion concept, intended payoff, per-cast slowdown constraint, and open movement/interruption decisions; index as I20 and link the spell catalog/roadmap. Documentation only.

@@ -735,7 +735,11 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 	var spell_level = spell_info["level"]
 	var damage_ranks = 0.0 if spell_info.has("rank_steps") else float(spell_level - 1)
 	var level_multiplier = 1.0 + 0.15 * damage_ranks
-	var damage = base_damage * level_multiplier
+	var ingredient_ranks = get_combination_ingredient_ranks(str(spell_info.get("id", "")))
+	var inherited_damage = 0.0
+	for rank in ingredient_ranks.values():
+		inherited_damage += 0.075 * maxi(0, int(rank) - 1)
+	var damage = base_damage * (level_multiplier + inherited_damage)
 	
 	if player:
 		damage *= player.spell_damage_multiplier
@@ -1021,7 +1025,7 @@ func cast_freeform_spell(spell_name: String) -> bool:
 func cast_life_bolt(slot: int):
 	var projectile = spell_projectile_scene.instantiate()
 	projectile.speed *= player.projectile_speed_multiplier
-	projectile.set_meta("healing_seed_amount", 6.0)
+	projectile.set_meta("healing_seed_amount", 6.0 * (1.0 + 0.075 * maxi(0, get_spell_rank("life") - 1)))
 	projectile.set_meta("healing_seed_duration", 2.0)
 	projectile.set_meta("healing_seed_lifetime", 10.0)
 	projectile.set_meta("healing_seed_cap", 6)
@@ -1129,6 +1133,27 @@ func get_spell_rank(spell_id: String) -> int:
 	var slot = find_spell_slot(spell_id)
 	return int(get_spell_info(slot).level) if is_spell_unlocked(slot) else 0
 
+func get_combination_ingredient_ranks(spell_id: String) -> Dictionary:
+	var ranks: Dictionary = {}
+	if Synergies.RECIPES.has(spell_id):
+		for ingredient in Synergies.RECIPES[spell_id].ingredients:
+			ranks[ingredient] = get_spell_rank(ingredient)
+	return ranks
+
+func resolve_cast_info(slot: int) -> Dictionary:
+	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
+	var ranks = get_combination_ingredient_ranks(str(info.get("id", "")))
+	var ice_bonus = 12.5 * maxi(0, int(ranks.get("ice_blast", 1)) - 1)
+	if info.id == "steam_field":
+		info.radius = float(info.get("radius", 150.0)) + ice_bonus
+	elif info.id == "frost_sigil":
+		info.trap_radius = float(info.get("trap_radius", 170.0)) + ice_bonus
+	elif info.id == "soul_bloom":
+		var healing_scale = 1.0 + 0.075 * maxi(0, int(ranks.get("regeneration", 1)) - 1)
+		info.lifesteal = float(info.lifesteal) * healing_scale
+		info.healing_tick_cap = 2.0 * healing_scale
+	return info
+
 func rebuild_freeform_library():
 	freeform_spells.clear()
 	for info in get_all_spells().values():
@@ -1189,7 +1214,7 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 	return prefix + damage
 
 func cast_build_spell(slot: int) -> bool:
-	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
+	var info = resolve_cast_info(slot)
 	if info.id == "returning_blade":
 		var volleys = get_tree().get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion())
 		if volleys.size() >= int(info.get("active_limit", 3)):
@@ -1207,16 +1232,37 @@ func cast_build_spell(slot: int) -> bool:
 		return false
 	info.projectile_speed_multiplier = player.projectile_speed_multiplier
 	var tactical = info.type in ["beam", "trap", "spirit", "trail", "returning"]
-	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return (effect.info.type == info.type if tactical else effect.info.id == info.id) and not effect.is_queued_for_deletion())
+	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return effect.info.id == info.id and not effect.is_queued_for_deletion())
 	if active.size() >= int(info.get("active_limit", 3)):
 		active[0].queue_free()
 	if tactical:
 		target = null
 		var distance = INF
+		var occupied_targets: Array = []
+		if info.type == "beam":
+			for beam in active:
+				if not beam.is_queued_for_deletion() and beam.target_ref and is_instance_valid(beam.target_ref.get_ref()):
+					occupied_targets.append(beam.target_ref.get_ref())
 		for enemy in get_tree().get_nodes_in_group("enemies"):
-			if _live_spell_target(enemy) and player.global_position.distance_squared_to(enemy.global_position) < distance:
-				distance = player.global_position.distance_squared_to(enemy.global_position)
+			if not _live_spell_target(enemy):
+				continue
+			if info.type == "beam" and player.global_position.distance_to(enemy.global_position) > 450.0:
+				continue
+			var target_distance = player.global_position.distance_squared_to(enemy.global_position) + (1000000.0 if enemy in occupied_targets else 0.0)
+			if target_distance < distance:
+				distance = target_distance
 				target = enemy
+	if info.type == "beam":
+		var beam_direction = player.global_position.direction_to(target.global_position) if target else Vector2.RIGHT
+		var occupied_lanes: Array = []
+		for beam in active:
+			if not beam.is_queued_for_deletion():
+				occupied_lanes.append(int(beam.info.get("beam_lane", 0)))
+		for lane in [-1, 0, 1]:
+			if lane not in occupied_lanes:
+				info.beam_lane = lane
+				info.beam_origin_offset = beam_direction.orthogonal() * float(lane) * 18.0
+				break
 	var effect = preload("res://scripts/TacticalSpellEffect.gd").new() if tactical else preload("res://scripts/BuildSpellEffect.gd").new()
 	effect.configure(info, calculate_spell_damage(info), player, target)
 	get_parent().add_child(effect)
