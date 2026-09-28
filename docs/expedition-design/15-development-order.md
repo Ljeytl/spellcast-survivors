@@ -66,3 +66,7 @@ Track each feature as existing, adapting, new, deferred or needs verification, s
 Open decisions include XP versus mana terminology and upgrade roles, preparation capacity, automatic Mana Bolt, discovery retention, Big infection geometry/kill-through, Soul Bloom healing carrier, Meteor Lance identity and final roster counting. Preserve local working notes; unresolved proposals must not become silent implementation defaults. Existing game fun is user-reported; the expanded loop remains to be validated.
 
 [Validation](11-validation.md) defines evidence obligations, [components](14-spell-system-reference.md) defines property contracts, and [levels](06-levels.md) proposes player-facing content. Those tables do not supersede this incremental development order. Documentation approval does not itself implement gameplay or replace art.
+
+### Tower concept for the preparation and expedition milestones
+
+See the [rotary destination chamber](09-ui-accessibility.md#wizard-tower-rotary-destination-chamber): walkable circular tower room, rotating stained-glass destinations, top-position portal and a large preparation book. Explore a simple blockout when hub work begins; book placement, capacity and 3D versus 2D remain open. Recall returns the wizard automatically at the level deadline (20 minutes by default); level-specific pacing is later tuning. This does not move hub construction ahead of keyword gameplay.

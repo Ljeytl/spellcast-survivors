@@ -47,3 +47,5 @@ See [decision register](02-decisions.md#decisions-to-review-first) before implem
 ## Documentation checks
 
 Run `python3 docs/expedition-design/validate_documentation.py` from the repository root. It checks 36 unique spell rows, 36 compatibility rows, 14 keywords, seven recipes, acquisition-name coverage, local links, JSON examples, table structure and worked arithmetic. One deliberately missing-spell control verifies that the roster gate fails. These are document checks, not gameplay tests. See [review record](13-review-record.md) for the remaining tuning gates.
+
+The [wizard tower and rotary destination chamber](09-ui-accessibility.md#wizard-tower-rotary-destination-chamber) records the physical level selector, preparation book and automatic recall concept.

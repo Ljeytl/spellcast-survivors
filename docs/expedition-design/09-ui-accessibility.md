@@ -6,6 +6,27 @@ Combat shows health/shield, a small 20-minute expedition timer, six prepared-pag
 
 Body text uses a readable font. Readable, angular inscription lettering accents incantations; plain text carries menus and instructions. Retire keycap blocks and keyboard-themed headings. Rune ornament must not become a substitute alphabet or make text hard to read. Spell names fit one line in menus, with sensible font minimum and dedicated width; long typed expressions use a horizontal viewport centered on caret, never wrap unpredictably into combat. A full expression preview remains available on pause/journal. Avoid illegibly shrinking 80 characters to one row.
 
+## Wizard tower: rotary destination chamber
+
+**Recorded 28 September 2026 — user concept, not implemented.** The home between expeditions is a walkable wizard tower. Level selection and spell preparation happen through physical objects in that space.
+
+| Part | Intended experience |
+|---|---|
+| Circular chamber | A perfectly circular room with roughly twelve stained-glass windows/destination positions around its perimeter. Twelve is a visual concept, not a commitment to twelve playable levels. |
+| Central dial | Operate the dais/dial with left or right, like a rotary telephone selector. The whole room rotates to bring the selected destination to the top; this is more than a selection highlight moving between static icons. |
+| Departure portal | The selected top position opens or reveals a portal the wizard can walk through to enter that level. Exact opening animation and camera treatment are undecided. |
+| Tower exit | One selector position leads back to the rest of the tower. Its relationship to the room's rotating architecture needs a layout experiment. |
+| Physical spellbook | A very large book is the preparation interface. Choosing and ordering prepared spells should feel like assembling a deck; page order determines the intended activation order. Four, five or six slots are possibilities, not a settled capacity. |
+| Return | At the expedition deadline, the tower automatically summons the player home from wherever they are. No return journey or exit interaction is required at timeout. Twenty minutes remains the current default. |
+
+Book placement is open: outside the chamber, beside a destination doorway, or integrated with/near the central dais. Selection order is also open. A proposed flow is destination → preparation → walk through portal, with free revisiting of destination and book; this recommendation is not a mandatory sequence approved by the user. Click-to-select and drag or explicit controls to reorder are interface experiments, not settled designs.
+
+Different levels may eventually have different durations and difficulty curves. A 25-minute run was discussed but not selected; pacing experiments are deferred. The current default remains 20 minutes. The prior optional guardian route remains a separate part of expedition design; this concept does not resolve death retention or every end-state precedence rule.
+
+**Possible art experiment:** a simple 3D blockout of circular walls, stained-glass recesses, dial, portal and book/lectern. 3D, 2D and mixed presentation remain alternatives; no engine/rendering migration or model production is authorized by recording the idea. Keep the wizard/ancient-inscription direction, not keyboard/keycap theming. Test rotation readability and reduced-motion presentation before polishing.
+
+This is future hub work alongside preparation/connected expeditions. It does not block the next milestone of keyword-modified spells in existing combat.
+
 ## Primary surfaces and journeys
 
 | Surface | Main actions | Required states / transitions |

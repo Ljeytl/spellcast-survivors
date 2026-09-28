@@ -1,3 +1,9 @@
+## 2026-09-28 — Record wizard tower hub concept
+
+- Documented rotary room level selection, stained-glass destinations, physical preparation book and automatic tower recall.
+- Kept placement, capacity, presentation medium and future level-specific pacing explicitly open; linked the concept from the design index and roadmaps.
+- Documentation only; no models, assets or gameplay changed.
+
 # 2026-09-28 — Align roadmap with the existing game and wizard fantasy
 
 - Replace fresh-build milestones with keywords in current combat, then preparation, ley lines and connected expeditions.
