@@ -10,6 +10,8 @@ See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified i
 
 ## Next balance review — latest playtest (2026-09-28)
 
+- [Rune Trap and boss targets](docs/PLAYER_FEEDBACK.md#rune-trap-and-boss-target-refinement--2026-09-28): review trap pre-placement strength; proposed final boss HP 1,200 / 1,800 with a faster second boss. Exact speed and trap tuning remain open.
+
 - [F36–F39: Regeneration, Meteor Shower, Cross Blade and boss HP](docs/PLAYER_FEEDBACK.md#latest-balance-playtest--2026-09-28) capture the latest observations and source audit.
 - Set lower/slower rank-one healing; choose two or three starting meteors with count or damage growth per rank and better visible-enemy coverage; investigate Cross Blade utility; give bosses deliberate health budgets rather than inheriting ordinary-enemy disparities.
 - These are recorded tuning directions, not implemented changes or approved exact numbers. Cross Blade's return-damage candidate remains deferred below.
