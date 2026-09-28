@@ -1,3 +1,8 @@
+## 2026-09-28 — Confirm spell naming sources
+
+- Confirm Shillelagh and record its traditional Irish origin separately from its D&D mechanics.
+- Preserve the preference for mystical vocabulary drawn from mythology, folklore or popular fantasy, with source tracing where possible. Documentation only.
+
 ## 2026-09-28 — Mystical vocabulary and relic-granted Dash
 
 - Record Boots of Hermes as a relic that could unlock Dash, retaining open activation and equipment rules.
