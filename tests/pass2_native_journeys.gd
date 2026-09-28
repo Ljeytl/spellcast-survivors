@@ -92,7 +92,7 @@ func run():
 	var trunk = null
 	for holder in terrain.decorations.values():
 		for body in holder.get_children():
-			if body.has_node("Canopy"):
+			if body.has_meta("canopy"):
 				trunk = body
 				break
 		if trunk != null:
