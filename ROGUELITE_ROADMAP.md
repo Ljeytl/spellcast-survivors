@@ -4,7 +4,7 @@
 
 ## Naming and boss idea — 2026-09-28
 
-- Use magical player-facing names; the root-wave spell’s intended mystical name is retained as a naming requirement; Shillelagh remains a reference candidate pending clarification.
+- Use magical player-facing names; the root-wave spell’s intended mystical name is retained as a naming requirement; Shillelagh is confirmed. Trace names to earlier folklore/mythology sources where available; popular fantasy is also acceptable inspiration.
 - Preserve [The Disruptor](docs/expedition-design/06-levels.md#deferred-boss-idea--the-disruptor-2026-09-28), a boss that corrupts incantations without changing their length. Frequency and exact scrambling rules remain undecided; idea only.
 - Prioritize local playable updates; routine shareable packaging is optional.
 
