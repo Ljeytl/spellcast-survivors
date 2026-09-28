@@ -4,6 +4,8 @@ extends Control
 
 # Called when the main menu scene loads
 func _ready():
+	preload("res://scripts/BuildVersion.gd").attach(self)
+	get_window().title = ProjectSettings.get_setting("application/config/display_name")
 	$MenuPanel/VBoxContainer/QuitButton.visible = not OS.has_feature("web")
 	$MenuPanel/VBoxContainer.get_node(SceneManager.menu_focus_name).grab_focus.call_deferred()
 	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "MenuPanel")
