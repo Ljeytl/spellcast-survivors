@@ -61,7 +61,7 @@ func run():
 	root.add_child(menu)
 	await settle()
 	check("SHOULDA" in menu.get_node("MenuPanel/VBoxContainer/Title").text, "Player-facing title is correct")
-	check(menu.get_node("BuildVersion").text == "v0.1.0 · Playtest", "Main menu version comes from project setting")
+	check(menu.get_node("BuildVersion").text == preload("res://scripts/BuildVersion.gd").text(), "Main menu version comes from project setting")
 	await capture("menu")
 	menu.queue_free()
 	await settle()
@@ -74,12 +74,15 @@ func run():
 	game.player.is_invincible = true
 	var manager = game.spell_manager
 	var inventory = game.hud.get_node("RunInventory")
+	var reference = game.hud.get_node("CastingReference")
 	check(inventory.cards.has("bolt"), "Starting Bolt has icon/rank card")
 	manager.learn_spell("lightning_arc")
 	manager.learn_spell("lightning_bolt")
 	manager.upgrade_spell("bolt")
 	game.player.apply_upgrade({"effect": {"type": "spell_damage", "value": 0.1}})
 	await settle()
+	check(reference.entries.bolt.text == "1  bolt", "Bottom reference shows Bolt binding and exact incantation")
+	check(reference.entries.lightning_bolt.text == "lightning bolt", "Combination reference has exact name without shortcut")
 	check(inventory.cards.has("lightning_bolt"), "Unlocked combination appears without occupying active slot")
 	inventory.cards.lightning_bolt.hide()
 	check(not inventory.cards.lightning_bolt.is_visible_in_tree(), "Known-bad hidden-combination control is detected")
@@ -184,6 +187,14 @@ func run():
 		root.size = geometry
 		game.get_node("GameplayReadability").layout()
 		await settle()
+		for entry in reference.entries.values():
+			check(entry.is_visible_in_tree(), "Full-kit incantation visible while planning")
+			check(game.hud.get_global_rect().encloses(entry.get_global_rect()), "Incantation chip inside HUD")
+			check(entry.size.x >= entry.get_minimum_size().x, "Incantation not clipped")
+			for card in inventory.cards.values():
+				check(not entry.get_global_rect().intersects(card.get_global_rect()), "Reference clears inventory")
+			var guidance = game.get_node("GameplayReadability").guidance
+			check(not entry.get_global_rect().intersects(guidance.get_global_rect()), "Reference clears acquisition feedback")
 		var wizard_screen = game.player.get_global_transform_with_canvas() * Vector2.ZERO
 		for card in inventory.cards.values():
 			check(game.hud.get_global_rect().encloses(card.get_global_rect()), "Inventory cards remain inside HUD")

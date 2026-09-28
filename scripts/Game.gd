@@ -102,6 +102,9 @@ func _ready():
 	var inventory = preload("res://scripts/RunInventory.gd").new()
 	inventory.game = self
 	hud.add_child(inventory)
+	var casting_reference = preload("res://scripts/CastingReference.gd").new()
+	casting_reference.game = self
+	hud.add_child(casting_reference)
 	var direction = preload("res://scripts/BossDirection.gd").new()
 	direction.game = self
 	hud.add_child(direction)

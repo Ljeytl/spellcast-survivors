@@ -29,7 +29,17 @@ func _process(_delta):
 	position = Vector2(18, maxf(116, game.timer_panel.get_rect().end.y + 10) if game.timer_panel.position.y > 18 else 116)
 	size.x = minf(180 if hud.size.x < 700 else 420, hud.size.x - 36)
 	for card in cards.values():
-		card.custom_minimum_size.y = 47 if hud.size.x < 700 else 51
+		var compact = hud.size.x < 700
+		card.custom_minimum_size = Vector2(40, 32) if compact else Vector2(57, 51)
+		var icon = card.get_node("Icon")
+		icon.size = Vector2(18, 18) if compact else Vector2(32, 32)
+		icon.position = Vector2(11, 1) if compact else Vector2(3, 1)
+		if icon.has_node("Glyph"):
+			icon.get_node("Glyph").add_theme_font_size_override("font_size", 9 if compact else 12)
+		icon.queue_redraw()
+		var label = card.get_node("Rank")
+		label.position = Vector2(4, 20) if compact else Vector2(11, 30)
+		label.add_theme_font_size_override("font_size", 10 if compact else 12)
 	visible = not game.interface_debug and game.current_state == game.GameState.PLAYING and not (manager.is_typing and hud.size.x < 700)
 
 func rebuild():
@@ -84,6 +94,7 @@ func add_card(row: Control, id: String, title: String, rank: int, slot: int, col
 	button.set_meta("incantation", game.spell_manager.get_spell_info(slot).get("display_name", "") if slot > 0 else "")
 	row.add_child(button)
 	var icon = preload("res://scripts/InventoryIcon.gd").new()
+	icon.name = "Icon"
 	icon.item_id = id
 	icon.passive = slot < 0
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -92,15 +103,9 @@ func add_card(row: Control, id: String, title: String, rank: int, slot: int, col
 	button.add_child(icon)
 	var label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.name = "Rank"
 	label.text = "Lv.%d" % rank
 	label.add_theme_font_size_override("font_size", 12)
 	label.position = Vector2(11, 30)
 	button.add_child(label)
-	if slot > 0 and slot <= 6:
-		var key = Label.new()
-		key.text = str(slot)
-		key.add_theme_font_size_override("font_size", 11)
-		key.position = Vector2(40, 4)
-		key.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		button.add_child(key)
 	cards[id] = button
