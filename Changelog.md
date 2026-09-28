@@ -1,6 +1,6 @@
 ## 2026-09-28 — Magical names and Disruptor concept
 
-- Preserve Shillali as the player's chosen name and separate magical public names from functional internal descriptions.
+- Preserve Shillelagh as the player's chosen name and separate magical public names from functional internal descriptions.
 - Record The Disruptor boss idea, same-length corrupted incantations and unresolved scrambling cadence; link it from feedback and roadmap.
 - Record local-play-first delivery preference. Documentation only; no runtime renames, boss implementation or new exports.
 

@@ -1,6 +1,6 @@
 ## Naming and boss idea — 2026-09-28
 
-- Use magical player-facing names; **Shillali** stays the spell name and root wave describes its effect.
+- Use magical player-facing names; **Shillelagh** stays the spell name and root wave describes its effect.
 - Preserve [The Disruptor](docs/expedition-design/06-levels.md#deferred-boss-idea--the-disruptor-2026-09-28), a boss that corrupts incantations without changing their length. Frequency and exact scrambling rules remain undecided; idea only.
 - Prioritize local playable updates; routine shareable packaging is optional.
 
