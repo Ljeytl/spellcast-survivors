@@ -1,3 +1,8 @@
+## 2026-09-28 — Attributed playtester feedback
+
+- Preserve the full LJ, Dead, Brad and Guer feedback batch in `docs/PLAYER_FEEDBACK.md`, including positive reactions and deferred ideas.
+- Distinguish prior implementations from open reports, explicit deferrals and unapproved design suggestions; no gameplay changes or fresh verification claims.
+
 ## 2026-09-28 — Infection spread and crowd collision
 
 - Disable the eight-host lifetime limit for Plague Seed and Soul Bloom behind a reversible switch; retain active-cast and healing limits.

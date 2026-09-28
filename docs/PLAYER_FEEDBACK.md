@@ -2,6 +2,92 @@
 
 Single entry point for player feedback, fixes and deferred ideas. Updated 28 September 2026. This tracker changes no gameplay. Earlier detailed feedback remains in the linked source records; rows below consolidate concerns without replacing those records or claiming old fixes still pass today.
 
+## Attributed playtest batch — 2026-09-28
+
+Complete supplied batch, grouped by the contributor names supplied by LJ. This is feedback capture, not approval to implement every suggestion. Repeated cooldown requests are retained as a recurring theme. **Prior implementation** below refers to existing records in this tracker, not a fresh retest or proof that the reporter played the latest build. Reports are not automatically reopened without a build/version or reproduction. Existing explicit deferrals (no rocks, no Swarmer tuning, no opening-pressure changes, no full keyboard overhaul) remain in force.
+
+### LJ
+
+| Feedback | Disposition |
+|---|---|
+| Rocks / new scenery | Deferred; explicitly excluded for now (F07). |
+| XP crystal color | Prior implementation: four value tiers; see approved follow-up and thresholds below. |
+| Nerf Swarmers | Recorded suggestion; later instruction explicitly said leave Swarmers unchanged. |
+| Item drops | Health potions and boss upgrade chests have prior implementation; broader item variety remains an idea. |
+| Focus Ray should rotate instead of blinking | Prior implementation: smooth turning. |
+| Movement spells | Deferred spell ideas. |
+| Overlapping trees: lower trunk base must draw in front | Prior implementation: depth ordering across chunks. |
+| Inventory icons for active, passive and mixed/combination spells | Prior implementation; retain all three categories. |
+| Increase scaling after 1:30 | Balance feedback; explicitly excluded from the follow-up fix scope. |
+| Mob waves | Review timed waves and encounter pressure; not a request to silently change pacing. |
+| Landmarks | Deferred world-design idea. |
+| Structured versus procedural map design | Deferred design discussion. |
+| Slight difficulty-zero buff: around 2.1 hits to kill instead of 2, scale onward | Tentative tuning suggestion; opening-pressure changes remain deferred. |
+| Nerf Seeker | Prior implementation: contact damage 22 → 18; feel still subject to playtesting. |
+| What does Space do on the level-up menu? | Prior interaction fix recorded; clarity remains a UX concern. |
+| Fully keyboard-available UI | Deferred; not in the approved current scope. |
+| Difficulty needs a pass | Open balance assessment, not settled by automated checks. |
+| Prism Ray and Focus Ray recasts do not create another cast; Focus should look thinner | Prior implementation: independent visible casts and thinner Focus geometry. |
+| More Lightning Bolt spells | Deferred roster idea. |
+| How are Prism Ray and Focus Ray different? Maybe Prism should pierce | Prism piercing has prior implementation; communicating their distinct utility remains relevant. |
+| Top-left/right spell bar with icons and levels; cannot tell whether Lightning was upgraded six times | Prior inventory/rank implementation and bottom exact-name reference; review legibility with players. |
+
+### Dead
+
+| Feedback | Disposition |
+|---|---|
+| Flickering on Windows? | Open platform-specific report; needs Windows reproduction and build details. |
+| Optional mouse aiming | Deferred control option. |
+| Focus Ray is cool | Positive feedback; preserve its utility/feel. |
+| Difficult for non-typists | Open accessibility/game-feel concern; study typing pressure before tuning. |
+| “Oh shit the pink guys” | Positive panic moment, not a nerf request. |
+| First run: 7 minutes 36 seconds | Playtest observation; build and loadout unspecified. |
+| No HP drops? | Ordinary potions and guaranteed boss potions have prior implementation; natural-run availability still needs evaluation. |
+| Level-up interrupts typing; should finish the cast first | Prior implementation: defer choice until completion/cancellation. |
+| Enemy that runs away or keeps distance | Deferred enemy behavior idea. |
+| Maybe a spell cooldown; repeated “Cooldown” suggestion | Recurring design feedback; no cooldown change approved. |
+| Cannot see combination spells | Prior inventory and exact-name reference implementation; combinations have no numeric casting shortcuts. |
+| Likes Cross Blade v1, one big blade | Preference preserved; not approval to revert the current version. |
+| A lot of fun | Positive feedback. |
+| Small buff for typing speed / style combo meter | Deferred: fast typing and new/different spells increase combo; being hit resets it to zero. |
+| Spells trigger at combo thresholds, e.g. a nuke at S rank | Deferred extension of the combo idea; consider non-typist disadvantage. |
+| Summon lots of flying knives that fly at enemies | Deferred spell idea. |
+| Typed spell → animation/glyphs → spell | Deferred casting-feedback sequence; preserve the sense of magical invocation. |
+
+### Brad
+
+| Feedback | Disposition |
+|---|---|
+| “Can't launch”—actually ZIP files were confusing | Packaging/onboarding friction, not a confirmed launch defect. |
+| Cannot click the menu slime to animate it | Deferred playful menu interaction. |
+| Confused when to type: “learn seeker” versus “seeker” | Prior learning/casting guidance; observe onboarding again before calling confusion resolved. |
+| Typing sound is good | Positive audio feedback. |
+| How does one change spells? | Prior exact-incantation and inventory guidance; onboarding concern retained. |
+| Starting a second run | Positive replay-interest observation. |
+| Second boss spawned while the first remained: nice | Positive overlapping-boss feedback; preserve as input to future encounter design. |
+| At zero HP but did not die? | Open, unverified bug report; inspect rounding, health and death transition with reproduction. |
+| Two-word spells are hard | Open typing/readability concern; retain alongside non-typist feedback. |
+| Better to select a specific spell than use Space? Space does not auto-cast on completion | Open interaction/expectation report; do not assume desired completion behavior without design. |
+| Enter at spell completion makes a sound like taking damage | Open sound-cue confusion; distinguish cast confirmation from damage feedback. |
+
+### Guer
+
+| Feedback | Disposition |
+|---|---|
+| Is mana mana or XP? Slightly confusing | Open terminology concern: progression mana versus a spendable casting resource needs clear communication. |
+| Mana as a way to prevent only spamming AoEs? | Deferred resource-system proposal; no mana-cost system approved. |
+| Can spam Meteor Shower or Arcane Orbit excessively | Open balance observation; evaluate repeated-cast builds before selecting cooldowns, resource costs or another remedy. |
+| Retyping sustained abilities such as Arcane Orbit and Flamewalk should extend duration and display it | Prior implementation: maintained recasts extend duration with timers. Firewalk extends emission time, not existing fire-patch lifetime. |
+| Boss drops unique unlocks, e.g. upgraded “burn the world” / Conflagration from Cinder Field | Deferred boss-reward/spell-upgrade idea; current guaranteed potion/chest is distinct. Name is provisional. |
+| Konosuba line / “cheese for everyone,” Monogatari neko tongue twister, random Easter eggs | Deferred incantation/Easter-egg ideas. Preserve references as supplied; exact phrases and intended usage need clarification before implementation. |
+| Leaderboard | Deferred feature idea; scoring, fairness, persistence and hosting undecided. |
+| Typing window at bottom; opening it raises a spell circle with runes as the casting action | Deferred presentation idea, related to Dead's glyph/animation sequence; avoid obscuring threats or spell reference. |
+
+### Follow-up boundaries
+
+No gameplay, art, audio, balance or export changes are part of this logging pass. Existing fixes, open reports, positive reactions and speculative ideas are deliberately distinct. This section preserves every topic in the supplied batch; earlier feedback remains elsewhere in this tracker and linked design records. Next prioritization should identify the actual build played, reproduce unresolved defects, and select a bounded implementation scope with LJ.
+
+
 ## Post-0.1.25 playtest feedback — 2026-09-28
 
 Originally logged as player reports without implementation. Statuses below record subsequent verified fixes; deferred items remain unchanged.

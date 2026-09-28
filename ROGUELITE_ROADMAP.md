@@ -1,3 +1,7 @@
+## Attributed playtester ideas — 2026-09-28
+
+See the [complete LJ / Dead / Brad / Guer batch](docs/PLAYER_FEEDBACK.md#attributed-playtest-batch--2026-09-28). Preserve for prioritization: style/combo rewards, summoned knives, glyph-to-spell casting presentation and bottom rune circle, unique boss spell unlocks (Cinder Field → Conflagration candidate), incantation Easter eggs, leaderboard, and possible anti-spam resource/cooldown design. These are deferred ideas, not approved implementation. Existing movement, map, control and accessibility feedback remains in the same record.
+
 ## Further endless encounters — deferred
 
 Increase boss pressure at higher difficulties, including additional or concurrent bosses inspired by Risk of Rain. Design cadence and crowd composition separately; no boss-schedule change in the infection/collision fix.
