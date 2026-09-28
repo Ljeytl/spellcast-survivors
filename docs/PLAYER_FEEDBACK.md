@@ -4,7 +4,7 @@ Single entry point for player feedback, fixes and deferred ideas. Updated 28 Sep
 
 ## Post-0.1.25 playtest feedback — 2026-09-28
 
-Documentation only; no fixes or balance changes implemented by this entry. These are player reports, not independently reproduced findings.
+Originally logged as player reports without implementation. Statuses below record subsequent verified fixes; deferred items remain unchanged.
 
 | ID | Feedback | Status | Intended result / next verification |
 |---|---|---|---|
