@@ -485,6 +485,7 @@ func finish_death():
 	
 	# Spawn XP orb for player to collect
 	drop_xp_orb()
+	preload("res://scripts/HealthPotion.gd").try_drop(get_parent(), global_position)
 	
 	# Tell EnemyManager to remove this enemy from tracking
 	enemy_died.emit(self)
