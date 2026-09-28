@@ -1,3 +1,9 @@
+## 2026-09-28 — Casting reference HUD
+
+- Show equipped spell numbers and exact incantations along the bottom; discovered combinations show names without numeric shortcuts.
+- Keep the left inventory focused on icons and levels; distinguish Focus Ray with a narrow beam icon.
+- Wrap complete name chips at narrow widths without splitting spell names; hide the reference only when a compact typing panel overlaps it.
+
 ## 2026-09-28 — Playtest 1.1
 
 - Stamp menus and gameplay with v1.1 using the shared project version.

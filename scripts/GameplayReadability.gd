@@ -139,6 +139,9 @@ func _process(_delta):
 		guidance.size.x = maxf(180, game.hud.size.x - 222)
 		guidance.position.x = 210
 		guidance.position.y = game.hud.size.y - guidance.get_minimum_size().y - 34
+	var reference = game.hud.get_node_or_null("CastingReference")
+	if is_instance_valid(reference) and not game.interface_debug:
+		guidance.position.y = reference.position.y - guidance.size.y - 8
 	passive_label.text = "AUTO · Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt")
 	var remaining = manager.typing_slowdown_remaining
 	var capacity = manager.typing_slowdown_capacity
