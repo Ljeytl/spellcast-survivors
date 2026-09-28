@@ -83,9 +83,9 @@ func populate():
 	spell_buttons.clear()
 	var manager = game.spell_manager
 	section("Active spells · %d / 6" % manager.spells.size())
-	text_row("Choose a spell to start typing.", READABILITY.MUTED)
+	text_row("Choose a spell, then type its incantation to cast.", READABILITY.MUTED)
 	add_spell_rows(manager.spells)
-	section("Bonus spells · no slots")
+	section("Combination spells · no slots")
 	if manager.bonus_spells.is_empty():
 		text_row("Discover combinations as you level up.", READABILITY.MUTED)
 	else:
