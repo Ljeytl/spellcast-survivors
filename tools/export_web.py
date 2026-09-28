@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def export_web(godot, output):
+def require_clean_source():
     if (ROOT / "override.cfg").exists():
         raise RuntimeError("Remove local test overrides before exporting a player build.")
     state = subprocess.check_output(
@@ -19,6 +19,10 @@ def export_web(godot, output):
     )
     if state.strip():
         raise RuntimeError("Commit source changes before exporting a versioned web build.")
+
+
+def export_web(godot, output):
+    require_clean_source()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -47,6 +51,7 @@ def export_web(godot, output):
         page.write_text(re.sub(r"<title>.*?</title>", lambda _: "<title>" + html.escape(title.group(1)) + "</title>", page.read_text(), count=1))
     shutil.copy2(ROOT / "audio/tactile/CREDITS.md", web / "SOUND-CREDITS.txt")
     artifact = Path(shutil.make_archive(str(output / "Shoulda-Joined-a-Party-Web"), "zip", web))
+    require_clean_source()
     current = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     if current != revision:
         raise RuntimeError("Source revision changed during export")
