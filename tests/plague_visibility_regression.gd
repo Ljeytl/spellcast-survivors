@@ -60,7 +60,7 @@ func run():
 	var trunk = null
 	for holder in terrain.decorations.values():
 		for body in holder.get_children():
-			if body.has_node("Canopy"):
+			if body.has_meta("canopy"):
 				trunk = body
 				break
 		if trunk != null:
@@ -70,13 +70,13 @@ func run():
 		var origin = game.player.position
 		targets[2].position = trunk.global_position + Vector2(0, -50)
 		terrain._process(0)
-		check(trunk.get_node("Canopy").modulate.a == 1, "Enemy under tree does not fade canopy")
+		check(trunk.get_meta("canopy").modulate.a == 1, "Enemy under tree does not fade canopy")
 		game.player.position = targets[2].position
 		terrain._process(0)
-		check(is_equal_approx(trunk.get_node("Canopy").modulate.a, 0.35), "Player under tree retains visibility")
+		check(is_equal_approx(trunk.get_meta("canopy").modulate.a, 0.35), "Player under tree retains visibility")
 		game.player.position = origin
 		terrain._process(0)
-		check(trunk.get_node("Canopy").modulate.a == 1, "Canopy restores opacity after player leaves")
+		check(trunk.get_meta("canopy").modulate.a == 1, "Canopy restores opacity after player leaves")
 	var group = []
 	for index in range(10):
 		var enemy = manager.spawn_monster(manager.get_available_variants(0)[0])
