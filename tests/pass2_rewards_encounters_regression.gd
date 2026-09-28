@@ -69,11 +69,23 @@ func run():
 	boss.update_charge(0.02, Vector2.RIGHT, 600)
 	check(boss.charge_remaining > 0.65, "Pursuer boss dash lasts longer")
 	boss.position = game.player.position + Vector2(400, 0)
+	var potion_script = preload("res://scripts/HealthPotion.gd")
+	for index in range(potion_script.MAX_DROPS):
+		potion_script.try_drop(game, game.player.position + Vector2(200, 100), 0.0)
+	var prior_potions = get_nodes_in_group("health_potions").size()
 	boss.take_damage(100000, game.player.position)
 	await process_frame
 	await process_frame
 	var rewards = get_nodes_in_group("boss_rewards")
 	check(rewards.size() == 1, "Real boss defeat drops exactly one reward")
+	var potions = get_nodes_in_group("health_potions")
+	check(potions.size() == prior_potions + 1, "Boss guarantees exactly one potion even at ordinary drop cap")
+	var boss_potion = potions.back()
+	check(boss_potion.global_position.distance_to(rewards[0].global_position) == 48, "Potion visibly separated from boss chest")
+	game.player.health = game.player.max_health
+	check(not boss_potion.collect(), "Boss potion waits while healthy")
+	game.player.health -= 20
+	check(boss_potion.collect() and game.player.health == game.player.max_health - 10, "Boss potion heals 10 HP")
 	var reward = rewards[0]
 	var level = game.player.level
 	check(reward.collect(), "Boss chest opens upgrade selection")

@@ -1,3 +1,11 @@
+## Playtester follow-up ideas — 2026-09-28 (deferred)
+
+- Consider boss encounters at minutes 5, 8, 11, 14, 17, 20 instead of the current five-minute cadence. Resolve the minute-20 encounter versus immediate victory before implementation. Timing and difficulty remain unchanged for now.
+- Recurring suggestion: add spell cooldowns. Evaluate alongside typing commitment before deciding implementation.
+- Style/combo meter: reward quick accurate casting and spell variety; damage could reset rank; high ranks could trigger bonus spells (for example a screen-clearing S-rank reward). Idea only; protect slower typists from compounding disadvantage.
+- Preserve preference for Cross Blade’s original single large blade and positive feedback that the game is fun. Summoned flying knives are a separate spell idea.
+- Investigate Space versus selected-spell completion behavior, Enter sounding like damage, a reported zero-HP survival case, and difficulty typing two-word spells. Reports are unverified, not fixes.
+
 ## Approved playtest follow-up — 2026-09-28
 
 See [bounded scope and deferred feedback](docs/PLAYER_FEEDBACK.md#approved-playtest-follow-up--2026-09-28). Deliver recovery pickups, tree ordering, XP tiers, casting/combination fixes and compact HUD clarity before the browser playtest. Leave rocks, Swarmers and difficulty curves untouched. Preserve movement/landmark/map/relic ideas for later.
