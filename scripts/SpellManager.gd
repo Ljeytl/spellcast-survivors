@@ -664,7 +664,7 @@ func cast_earthshield_spell(slot: int):
 	
 	# Add overheal to player instead of shield
 	if player and player.has_method("add_overheal"):
-		player.add_overheal(overheal_amount)
+		player.add_overheal(overheal_amount, float(spell_info.get("duration", 16.0)))
 	
 	# Create shield visual effect
 	create_shield_effect()

@@ -1,3 +1,5 @@
+Historical results: the middle-game pressure envelope below was superseded on 2026-09-28 by the repeating two-minute rhythm. Recorded measurements remain evidence for their original revision only.
+
 # Playtest pass 2 — implementation and evidence
 
 Controlling specification: [PLAYTEST_PASS_2_SPEC.md](PLAYTEST_PASS_2_SPEC.md).

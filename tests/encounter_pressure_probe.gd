@@ -19,7 +19,7 @@ func run():
 				await sample(mode, baseline, seconds)
 	DirAccess.make_dir_recursive_absolute("res://builds/pass2-evidence")
 	var output = FileAccess.open("res://builds/pass2-evidence/pressure-probe-extended.json" if extended else "res://builds/pass2-evidence/pressure-probe.json", FileAccess.WRITE)
-	output.store_string(JSON.stringify({"seed": seed_value, "window_seconds": 120 if extended else 30, "mana_rank": 4, "health_pool": 50000, "notes": "Controlled encounter windows; prior bosses suppressed; high health prevents early stop; fixed build and same seed; not a natural survival result", "samples": rows}, "\t"))
+	output.store_string(JSON.stringify({"seed": seed_value, "window_seconds": 120 if extended else 30, "mana_rank": 4, "health_pool": 50000, "notes": "Controlled encounter windows; baseline disables time difficulty but retains the same repeating rhythm; prior bosses suppressed; high health prevents early stop; fixed build and same seed; not a natural survival result", "samples": rows}, "\t"))
 	print("PRESSURE_PROBE samples=", rows.size())
 	quit(0 if rows.size() == (2 if extended else 48) else 1)
 
@@ -35,7 +35,7 @@ func sample(mode, baseline, seconds):
 	for milestone in manager.encounter_config.bosses:
 		manager.spawned_bosses[int(milestone.time)] = true
 	if baseline:
-		manager.encounter_config.scaling.midgame_pressure = []
+		manager.encounter_config.scaling.spawn_growth_factor = 1.0
 	manager.spawn_timer.start(manager.calculate_spawn_interval())
 	game.player.health = 50000
 	game.player.max_health = 50000

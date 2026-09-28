@@ -71,7 +71,8 @@ func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1)
 	}
 
 func _on_spawn_timer_timeout():
-	spawn_monster()
+	for index in range(calculate_spawn_batch_size()):
+		spawn_monster()
 	spawn_timer.wait_time = calculate_spawn_interval()
 
 func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN) -> Node2D:
@@ -135,32 +136,38 @@ func check_boss_milestones():
 func spawn_phase_interval(at_time: float) -> float:
 	var scaling = encounter_config.get("scaling", {})
 	var interval = maxf(0.01, float(scaling.get("opening_spawn_interval", 3.0)))
+	var cycle = float(scaling.get("spawn_cycle_seconds", 0.0))
+	var phase_time = fposmod(at_time, cycle) if cycle > 0.0 else at_time
 	var latest_start = -INF
 	for phase in scaling.get("spawn_phases", []):
 		if not phase is Dictionary:
 			continue
 		var start = float(phase.get("start", -1.0))
 		var candidate = float(phase.get("interval", 0.0))
-		if is_finite(start) and is_finite(candidate) and start >= 0.0 and start <= at_time and start > latest_start and candidate > 0.0:
+		if is_finite(start) and is_finite(candidate) and start >= 0.0 and start <= phase_time and start > latest_start and candidate > 0.0:
 			latest_start = start
 			interval = candidate
 	return interval
 
-func calculate_spawn_interval() -> float:
+func spawn_difficulty_multiplier() -> float:
 	var scaling = encounter_config.get("scaling", {})
 	var elapsed = maxf(0.0, game_time - float(scaling.get("spawn_growth_start_seconds", 180.0)))
-	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.6))), spawn_phase_interval(game_time) / pow(1.28, elapsed / 180.0) / midgame_pressure(game_time))
+	return pow(maxf(1.0, float(scaling.get("spawn_growth_factor", 1.28))), elapsed / maxf(1.0, float(scaling.get("spawn_growth_period_seconds", 180.0))))
 
-func midgame_pressure(at_time: float) -> float:
-	var points = encounter_config.scaling.get("midgame_pressure", [])
-	if points.size() < 2 or at_time <= float(points[0].time) or at_time >= float(points[-1].time):
-		return 1.0
-	for index in range(1, points.size()):
-		var right = points[index]
-		var left = points[index - 1]
-		if at_time <= float(right.time):
-			return lerpf(float(left.multiplier), float(right.multiplier), inverse_lerp(float(left.time), float(right.time), at_time))
-	return 1.0
+func calculate_spawn_interval() -> float:
+	var scaling = encounter_config.get("scaling", {})
+	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.1))), spawn_phase_interval(game_time) / spawn_difficulty_multiplier())
+
+func calculate_spawn_batch_size() -> int:
+	var difficulty = spawn_difficulty_multiplier()
+	var count = 1
+	var latest_threshold = -INF
+	for batch in encounter_config.get("scaling", {}).get("spawn_batches", []):
+		var threshold = float(batch.get("difficulty", 1.0))
+		if threshold <= difficulty and threshold > latest_threshold:
+			latest_threshold = threshold
+			count = clampi(int(batch.get("count", 1)), 1, max_monsters)
+	return count
 
 func get_current_difficulty_level() -> int:
 	return mini(4, int(game_time / 300.0) + 1)

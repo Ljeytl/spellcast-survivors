@@ -15,7 +15,7 @@ var health: float = BASE_MAX_HEALTH          # Current health points
 var max_health: float = BASE_MAX_HEALTH      # Maximum health (can be upgraded)
 var overheal: float = 0.0                    # Temporary health above max (from earth shield)
 var overheal_timer: float = 0.0              # Time remaining for overheal effect
-var overheal_duration: float = 5.0           # How long earth shield overheal lasts (seconds)
+var overheal_duration: float = 16.0           # How long earth shield overheal lasts (seconds)
 var xp: float = 0.0                          # Current experience points
 var level: int = 1                           # Current player level
 var xp_to_next_level: float = BASE_XP_REQUIREMENT  # XP needed for next level
@@ -245,7 +245,8 @@ func gain_xp(amount: float):
 	add_xp(amount)
 
 # Add temporary overheal (from earth shield spell)
-func add_overheal(amount: float):
+func add_overheal(amount: float, duration: float = 16.0):
+	overheal_duration = maxf(0.0, duration)
 	# Add to existing overheal
 	overheal += amount
 	# Reset or extend the timer

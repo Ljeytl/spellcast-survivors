@@ -24,15 +24,31 @@ func run():
 	manager.set_process(false)
 	manager.spawn_timer.stop()
 	var rows = []
-	for seconds in [0, 120, 180, 300, 420, 480, 540, 660]:
+	var previous_difficulty = 1.0
+	for seconds in range(1200):
 		manager.game_time = seconds
-		var base = maxf(0.6, manager.spawn_phase_interval(seconds) / pow(1.28, maxf(0, seconds - 180) / 180.0))
-		var candidate = manager.calculate_spawn_interval()
-		check(is_equal_approx(candidate, base) if seconds <= 120 or seconds >= 540 else candidate < base, "Only middle minutes have increased spawn pressure: %s" % seconds)
-		rows.append({"seconds": seconds, "baseline_interval": base, "candidate_interval": candidate, "population_cap": manager.max_monsters, "pressure_multiplier": manager.midgame_pressure(seconds)})
+		var difficulty = manager.spawn_difficulty_multiplier()
+		check(difficulty >= previous_difficulty, "Difficulty never reverses at %s" % seconds)
+		previous_difficulty = difficulty
+		check(is_equal_approx(manager.calculate_spawn_interval() * difficulty, manager.spawn_phase_interval(seconds)), "Every phase shares the same difficulty factor")
+		check(manager.calculate_spawn_batch_size() == 1, "Current tuning keeps one regular roll per tick")
+		if seconds % 120 == 0:
+			rows.append({"seconds": seconds, "interval": manager.calculate_spawn_interval(), "difficulty": difficulty})
 		check(manager.get_available_variants(seconds).all(func(item): return seconds >= 600 or item.family != "shooter"), "Ranged timing preserved")
-	for second in range(119, 541):
-		check(absf(manager.midgame_pressure(second + 0.01) - manager.midgame_pressure(second)) < 0.001, "Pressure envelope continuous")
+	manager.encounter_config.scaling.spawn_batches = [{"difficulty": 2.0, "count": 3}, {"difficulty": 1.0, "count": 1}]
+	manager.game_time = 0
+	check(manager.calculate_spawn_batch_size() == 1, "Future batch configuration does not affect opening")
+	manager.game_time = 900
+	check(manager.calculate_spawn_batch_size() == 3, "Later difficulty can choose larger batch")
+	manager.encounter_config.variants = {"pursuer": manager.encounter_config.variants.pursuer}
+	manager.monsters_alive = 0
+	var spawned_before = manager.actual_spawns
+	manager._on_spawn_timer_timeout()
+	check(manager.actual_spawns - spawned_before == 3, "Real timer callback dispatches the configured batch")
+	manager.monsters_alive = manager.max_monsters - 1
+	spawned_before = manager.actual_spawns
+	manager._on_spawn_timer_timeout()
+	check(manager.actual_spawns - spawned_before == 1, "Multi-spawn tick respects remaining population capacity")
 	manager.monsters_alive = manager.max_monsters
 	var attempted = manager.spawn_attempts
 	var blocked = manager.cap_rejections

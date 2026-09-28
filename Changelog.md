@@ -1,3 +1,10 @@
+## 2026-09-28 — Repeating spawn pressure and spell balance
+
+- Repeat a 120-second spawn rhythm: 15s light, 30s heavy, 15s medium, 10s light, 10s medium, 30s heavy, 10s medium. Base intervals are light 3s, medium 2s and heavy 1s.
+- Apply one monotonic difficulty multiplier to all phases; remove the temporary midgame pressure boost/reversal. Configurable difficulty thresholds support future multi-spawn ticks; current regular batches stay at one roll (Swarmer packs unchanged).
+- Earth Shield now uses its configured 16-second duration for actual protection and visuals instead of a separate five-second timer. Cross Blade body and damage radius shrink 20%; its damage/travel stay unchanged. Blue Sprinter speed stays270 versus player300.
+- Future tuning: larger batches can be enabled in encounters.json after playtesting the repeating rhythm.
+
 ## 2026-09-28 — Consolidate local work into main
 
 - Preserve and reconcile five local design edits with the documentation updates.

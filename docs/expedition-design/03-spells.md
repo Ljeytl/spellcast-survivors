@@ -1,3 +1,5 @@
+Current playtest balance note (2026-09-28): Earth Shield protection and visuals now last 16 seconds; Cross Blade radius is 33.6 (20% smaller). These replace the older runtime values below; proposed future expedition mechanics are unchanged.
+
 # Spell catalog: current truth, proposed roster, preserved ideas
 
 **Decision precedence:** [Alignment review and open conflicts](13-review-record.md#alignment-review--28-september-2026) supersedes older conflicting proposals below, especially XP/mana, infection/Big and roster counting.
