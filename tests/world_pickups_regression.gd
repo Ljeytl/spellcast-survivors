@@ -42,8 +42,12 @@ func run():
 	check(game.player.health == 100, "healing caps at maximum")
 	await process_frame
 	for i in range(potion_script.MAX_DROPS):
-		potion_script.try_drop(game, Vector2(9000, 9000), 0.0)
+		potion_script.try_drop(game, game.player.position + Vector2(200, 0), 0.0)
 	check(potion_script.try_drop(game, Vector2.ZERO, 0.0) == null, "outstanding potion limit")
+	for pickup in get_nodes_in_group("health_potions"):
+		pickup.position += Vector2(10000, 10000)
+	check(potion_script.try_drop(game, game.player.position + Vector2(200, 0), 0.0) != null, "distant old drops do not block future recovery")
+	check(get_nodes_in_group("health_potions").size() == potion_script.MAX_DROPS, "distant replacement preserves cap")
 	for pickup in get_nodes_in_group("health_potions"):
 		pickup.free()
 	var xp_script = load("res://scripts/XPOrb.gd")
