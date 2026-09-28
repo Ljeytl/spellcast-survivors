@@ -23,8 +23,12 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	target_ref = weakref(target) if is_instance_valid(target) else null
 	match info.type:
 		"beam":
+			global_position += info.get("beam_origin_offset", Vector2.ZERO)
+			if target:
+				direction = global_position.direction_to(target.global_position)
 			color = Color("a5eaff")
 			tick_remaining = 0.25
+			beam_end = direction * 450
 		"trap":
 			color = Color("b7a0ff") if not info.get("frost", false) else Color("9fe9ee")
 			global_position += direction * minf(160, player.global_position.distance_to(target.global_position) if is_instance_valid(target) else 160)
@@ -91,19 +95,20 @@ func tracking_target(center: Vector2, radius: float):
 	return target
 
 func advance_beam(delta: float, player: Node2D):
-	global_position = player.global_position
+	global_position = player.global_position + info.get("beam_origin_offset", Vector2.ZERO)
 	var target = tracking_target(global_position, 450)
 	if target:
-		direction = global_position.direction_to(target.global_position)
+		var desired = global_position.direction_to(target.global_position).angle()
+		direction = Vector2.from_angle(rotate_toward(direction.angle(), desired, float(info.get("turn_speed", 4.0)) * delta))
 	var reach = global_position + direction * 450
 	var targets: Array = []
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if valid_target(enemy) and Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach).distance_to(enemy.global_position) <= Geometry.BEAM_RADIUS * float(info.spell_size_multiplier):
+		if valid_target(enemy) and Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach).distance_to(enemy.global_position) <= float(info.get("beam_radius", Geometry.BEAM_RADIUS)) * float(info.spell_size_multiplier):
 			targets.append(enemy)
 	targets.sort_custom(func(a, b): return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position))
-	var hits = targets.slice(0, int(info.get("beam_targets", 1)))
+	var hits = targets if info.get("beam_piercing", false) else targets.slice(0, int(info.get("beam_targets", 1)))
 	beam_end = direction * 450
-	if not hits.is_empty():
+	if not info.get("beam_piercing", false) and not hits.is_empty():
 		beam_end = direction * minf(450, (hits[-1].global_position - global_position).dot(direction) + 8)
 	tick_remaining -= delta
 	if tick_remaining > 0.000001:
@@ -205,7 +210,7 @@ func _draw():
 		art.burst(self, 3, to_local(burst_position), 200 * float(info.spell_size_multiplier), 1 - burst_remaining / 0.25)
 	match info.type:
 		"beam":
-			art.beam(self, Vector2.ZERO, beam_end, Geometry.BEAM_RADIUS * 2 * float(info.spell_size_multiplier), 0.85, int(info.get("beam_targets", 1)) > 1)
+			art.beam(self, Vector2.ZERO, beam_end, float(info.get("beam_radius", Geometry.BEAM_RADIUS)) * 2 * float(info.spell_size_multiplier), 0.85, info.get("beam_piercing", false))
 		"trap":
 			var radius = float(info.get("trap_radius", 130)) if triggered else float(info.get("trigger_radius", 70))
 			preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, color, minf(remaining * 4, 1) if triggered else 1.0, clampf(age / float(info.get("arm_delay", 0.8)), 0, 1))
