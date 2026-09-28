@@ -1,3 +1,9 @@
+## 2026-09-28 — Mystical vocabulary and relic-granted Dash
+
+- Record Boots of Hermes as a relic that could unlock Dash, retaining open activation and equipment rules.
+- Expand naming direction: evocative mystical words, short reactive exceptions, and Yggdrasil as the existing ultimate-healing-tree reference. No current spells renamed.
+- Reopen the earlier root-spell reference rather than treating the first search match as confirmed intent. Documentation only.
+
 ## 2026-09-28 — Magical names and Disruptor concept
 
 - Preserve Shillelagh as the player's chosen name and separate magical public names from functional internal descriptions.

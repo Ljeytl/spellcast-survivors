@@ -1,6 +1,10 @@
+## Mystical names and relic abilities — 2026-09-28
+
+- [Naming and relic proposal](docs/expedition-design/03-spells.md#mystical-vocabulary-and-relic-granted-abilities--follow-up): Boots of Hermes could unlock quick Dash; Yggdrasil exemplifies the desired ultimate-spell fantasy; Meteor Shower may receive a more evocative name later. Names may draw on mythology/familiar media; short reactive commands remain an exception. Design only.
+
 ## Naming and boss idea — 2026-09-28
 
-- Use magical player-facing names; **Shillelagh** stays the spell name and root wave describes its effect.
+- Use magical player-facing names; the root-wave spell’s intended mystical name is retained as a naming requirement; Shillelagh remains a reference candidate pending clarification.
 - Preserve [The Disruptor](docs/expedition-design/06-levels.md#deferred-boss-idea--the-disruptor-2026-09-28), a boss that corrupts incantations without changing their length. Frequency and exact scrambling rules remain undecided; idea only.
 - Prioritize local playable updates; routine shareable packaging is optional.
 

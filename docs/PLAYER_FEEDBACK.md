@@ -120,7 +120,7 @@ These rows point into existing detailed plans/results. They are not all known cu
 | ID | Idea | Status | Record |
 |---|---|---|---|
 | I13 | Personal lightning aura with per-enemy 1–1.5-second exposure before an individual direct strike; long incantation appropriate to utility | Deferred design | [Mechanics, names and open decisions](expedition-design/03-spells.md#storm-aura-roots-and-wizard-movement--2026-09-28-ideas); fixed lifetime per cast; level-ups extend duration, kills do not |
-| I14 | **Shillelagh**, the user-selected name for a moving directional wave of tree roots | Deferred design | Same spell-idea table; physical/nature fantasy, damage timing and trail behavior undecided |
+| I14 | **Shillelagh** as a researched but unconfirmed reference for a moving directional wave of tree roots | Deferred design | Same spell-idea table; physical/nature fantasy, damage timing and trail behavior undecided |
 | I15 | Dash immediately on casting versus a stored dash charge | Deferred design | Same table; separate controls discussion, neither behavior selected |
 | I16 | Swiftness temporary movement-speed spell | Deferred design | Same table; magnitude, duration and stacking open |
 | I17 | Mana represents accumulated unspent magical power that unlocks progression thresholds, rather than a casting fuel pool | Design direction | [Accumulated mana](expedition-design/03-spells.md#accumulated-mana-as-progression); current gameplay unchanged, naming and run persistence open |
@@ -128,8 +128,15 @@ These rows point into existing detailed plans/results. They are not all known cu
 ## Naming, local play and Disruptor follow-up — 2026-09-28
 
 - **I18 — The Disruptor (deferred):** boss scrambles/randomizes spell letters while preserving incantation length. Once, periodically or after each cast are alternatives, not a chosen cadence. [Full boss idea and open decisions](expedition-design/06-levels.md#deferred-boss-idea--the-disruptor-2026-09-28).
-- **Decision:** prefer evocative magical player-facing names. Functional labels belong in internal documentation; preserve Shillelagh as the name rather than replacing it with Root Wave. [Naming rule](expedition-design/03-spells.md#player-facing-spell-naming-rule--2026-09-28).
+- **Decision:** prefer evocative magical player-facing names. Functional labels belong in internal documentation; preserve the intended mystical name rather than replacing it with Root Wave; Shillelagh is a spelling candidate until the intended reference is confirmed. [Naming rule](expedition-design/03-spells.md#player-facing-spell-naming-rule--2026-09-28).
 - **Workflow preference:** prioritize updating the local playable game. Shareable DMG/ZIP packaging is optional, not a gate for ordinary local iteration; build it when requested or useful and inexpensive, rather than routinely delaying delivery.
+
+## Mystical naming and relic follow-up — 2026-09-28
+
+- **I19 — Boots of Hermes (deferred):** an item/relic unlocks the short Dash action. Relics may grant abilities; slot rules, cooldown/charges, acquisition and persistence are not selected. [Full proposal](expedition-design/03-spells.md#mystical-vocabulary-and-relic-granted-abilities--follow-up).
+- **Naming preference:** choose evocative magical vocabulary across the roster, potentially drawing on mythology or familiar media. Fast reaction words such as Dash may stay short. Meteor Shower could receive a cooler name later; no replacement selected.
+- **Yggdrasil / World Tree:** reaffirm the existing ultimate-healing-tree idea and mystical spelling as part of its appeal. This does not approve the old provisional numeric defaults.
+- **Reference uncertainty:** searching established that Shillelagh is a real spell reference, but the user says the intended name may be different. Do not insist on that match; await a source while retaining the root-wave mechanics.
 
 ## Detailed source records
 
