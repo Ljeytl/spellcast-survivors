@@ -2,6 +2,16 @@
 
 Single entry point for player feedback, fixes and deferred ideas. Updated 28 September 2026. This tracker changes no gameplay. Earlier detailed feedback remains in the linked source records; rows below consolidate concerns without replacing those records or claiming old fixes still pass today.
 
+## Post-0.1.25 playtest feedback — 2026-09-28
+
+Documentation only; no fixes or balance changes implemented by this entry. These are player reports, not independently reproduced findings.
+
+| ID | Feedback | Status | Intended result / next verification |
+|---|---|---|---|
+| F41 | Firewalk appears in front of the wizard, obscuring the character | Open | Burning ground should render beneath the wizard, keeping the character visible. Reproduce walking through fresh and overlapping fire, including after recasting; inspect draw order and check other ground effects for the same issue. Preserve fire collision and lifetime behavior. |
+| F42 | Unwanted explanatory text remains at the bottom of the screen | Open | Remove normal-game instructional messages such as “Click a spell or press 1–6…” and acquisition messages explaining which key to press. Retain the bottom casting reference: slot numbers, exact incantations, combination names without shortcuts, and active durations. Instructions belong in How to Play. Check startup and spell acquisition; not yet fixed. |
+| F43 | Bolt is not powerful enough when upgraded | Deferred | Player explicitly wants this saved for later. Evaluate upgraded Bolt's usefulness across ranks; no damage values, opening-strength changes, or progression redesign approved. |
+
 ## Status and update rules
 
 - **Open:** recorded, unresolved.

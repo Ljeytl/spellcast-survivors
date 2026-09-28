@@ -1,3 +1,7 @@
+## Post-0.1.25 feedback to address
+
+See [F41–F43 in the feedback tracker](docs/PLAYER_FEEDBACK.md#post-0125-playtest-feedback--2026-09-28): Firewalk obscuring the wizard; remove bottom instructional messages while retaining spell names/numbers/durations; upgraded Bolt strength deferred for later. Logged only, not implemented.
+
 ## Lasting spell recasts — 0.1.25
 
 Maintained spells use `recast_behavior: extend`; independent effects use `stack`. Arcane Orbit preserves its orbit and damage cadence; Firewalk extends emission only, never patch lifetime; Regeneration keeps one healing stream; Earth Shield retains its additive protection and extends expiration. Timed effects expose real remaining state to the bottom casting reference; traps show arming/armed rather than a fake countdown. Duration banking cap remains undecided and is not implemented.
