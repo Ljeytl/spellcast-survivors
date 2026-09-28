@@ -104,6 +104,27 @@ These complete the generic shape matrix; unsupported combinations must be reject
 - Focus Ray, Frost Ray and Prism Ray allow Big, Powerful, Lasting, Repulsing, element and Venomous. Lasting 2.8 s channels are intentional extra commitment, first tick 0.25. Venomous applies only on first target contact/root, computed from one tick, not entire future channel. Max one player channel at once.
 - Seeker: Big, Powerful, Swift, Lasting, Duplicating and conversion; native seeking makes Seeking redundant. Golem: Big, Powerful, Lasting, Duplicating, conversion; no Swift. Native summons have 20 s duration; the generic 8 s field ceiling does not apply to creatures.
 
+## Storm aura, roots and wizard movement — 2026-09-28 ideas
+
+**Status: design exploration only; no new spells implemented.** Preserve these as individual spell ideas rather than silently collapsing them into elemental modifiers. The user wants names whose typing commitment fits their utility.
+
+| Idea / working names | Fantasy, geometry and targeting | Intended effect / scaling | Open decisions |
+|---|---|---|---|
+| Personal storm aura — Static Field, Lightning Shield, Static Shield, Lightning Tower, Channel Lightning, Channel the Storm; suggested name Lightning Crown | A circle around the wizard. Proposed following aura; whether it follows or stays where cast is not explicitly settled. The circle itself does no contact damage. Track each enemy's continuous time inside; after about 1–1.5 seconds that enemy is individually struck by lightning, with no travelling projectile. Both defensive deterrence and offensive area control. | Fixed lifetime per cast, extended by spell level-ups; kills do not extend duration. Area upgrades grow the visible circle and eligibility radius together; damage upgrades strengthen individual strikes. Each enemy needs its own exposure timer, not one shared global tick. Suggested visual: readable circle plus charge cue on eligible enemies, then a clear direct zap exactly when damage occurs. No shield absorption, stun or chaining implied by the name. | Select name, following versus stationary field, exact dwell time, whether strikes repeat, how exit/re-entry affects exposure, and the duration gained at each upgrade. The user clarified that level-ups extend the spell duration, not kills. Stationary lightning-tower fantasy is an analogy, not approval to immobilize the player or add a tower object. Suggested rule for testing: leaving resets exposure; staying begins another exposure interval after each strike. These are proposals, not decisions. |
+| Root wave — user said “shillale”; Shillelagh is a spelling/name candidate, not a locked name | A directional moving wave of tree roots, with a finite lifetime. Plants physically erupt/move along the ground; visible root front defines where contact damage occurs. | Damage and size/range/duration are potential tuning axes. A physical/nature fantasy; it does not automatically heal, poison, immobilize or make impassable terrain. | Exact name, school, width/speed/reach, hit frequency, and whether roots leave a damaging trail or only the moving front hurts. Do not automatically interpret “roots” as an immobilizing status. |
+| Dash | Spell acts on the wizard: either casting immediately dashes, or casting grants a charge that can be spent later. | Distinct mobility tool. | Explicitly a separate control-design discussion: immediate versus stored activation, direction, activation key, charge capacity/expiry, invulnerability and collision rules are all undecided. |
+| Swiftness | Temporary movement-speed enhancement on the wizard. | Increase movement speed for a period; amount and duration not specified. | Refresh versus stacking, magnitude, duration and upgrade progression. Keep distinct from permanent movement-speed passive upgrades. |
+
+Naming counts include spaces as typed keystrokes: **Lightning Crown = 15**, **Tempest Mantle = 14** (additional suggestion), **Lightning Tower = 15**, **Channel Lightning = 17**, **Channel the Storm = 17** (15 letters plus two spaces). The user is aiming roughly at a 14–15-character commitment; retain longer candidates for comparison rather than silently shortening them. “Shield” may imply absorption, which this aura does not currently promise.
+
+Category context: the current design reference separates Life, Plague, Earth and Metal; the game already has healing, infection and earth protection. A broader Life/Nature fantasy could contain healing, poisonous growth and physical roots, but this is a proposed thematic grouping, not a decision to merge damage types or impose elemental counters. Earth remains useful for stone, terrain and earthquake identities. See [school versus damage/status distinction](14-spell-system-reference.md#4-element-and-timing-keyword-families).
+
+### Accumulated mana as progression
+
+The user proposes mana as **accumulated magical power, not a consumable casting pool**: gathering it reaches thresholds that unlock the next tier or upgrade the wizard. It can mechanically serve the role of XP while expressing the wizard fantasy. Casting should not subtract this resource under this proposal. A level-up need not narratively “spend” acquired power; total accumulated mana and progress toward the next threshold can be shown separately if useful.
+
+Do not implement a second mana bar, cast costs, or remove random level-up choices on the basis of this idea. Naming, threshold behavior, tiers versus ordinary upgrades, whether any resource carries between runs, and reconciliation with the future expedition/preparation proposal remain open. This refines the earlier XP/mana conflict without changing the current roguelike game.
+
 ## Preserved spell ideas and naming inventory
 
 Reserved entries are real recorded ideas, **not fully balanced release content**. For ideas without an agreed identity, inventing precise damage would create false completeness; the prototype requirement is instead a defined experiment before promotion. Their missing numbers are an explicit gate, not an implementation placeholder to silently choose.
@@ -146,7 +167,7 @@ Reserved entries are real recorded ideas, **not fully balanced release content**
 | Lightning Rain / Rain of Lightning |Distributed lightning impacts | Reserve; compare Mana Storm elemental conversion |
 | Chain Lightning |Immediate chain vs travelling Lightning Bolt | Reserve only if arrival distinction earns a spell |
 | Thunder Spear |Delayed piercing discharge | Reserve; distinguish from converted lance |
-| Static Field |Stationary lightning zone | Reserve; native proximity behavior needed |
+| Static Field |Stationary lightning zone; also a naming candidate for the newer personal storm aura | Reserve; see [storm aura idea](#storm-aura-roots-and-wizard-movement--2026-09-28-ideas) before treating these as the same spell |
 | Tempest |Large moving weather effect | Reserve major combined control/damage identity |
 | Earth Bolt |Earth projectile | Prefer Earthen Bolt unless distinct terrain interaction |
 | Stone |Short thrown stone | Reserve starter alternative |

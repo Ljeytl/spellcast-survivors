@@ -46,3 +46,7 @@ Explicit reconciliation queue before dependent implementation:
 | Art | Inscription direction confirmed; exact font, palette, floor layout and animation require a small visual sample/user sketch. No requirement to replace all assets now. |
 
 Local uncommitted working notes were read as context, not copied into or overwritten by this branch. Where they contain unresolved alternatives, this record keeps the conflict visible instead of treating the older numeric draft as settled.
+
+### Mana framing clarification — 2026-09-28
+
+The latest [accumulated mana proposal](03-spells.md#accumulated-mana-as-progression) frames mana as unspent magical power gained toward upgrade/tier thresholds, not casting fuel. This narrows the XP/mana question above; do not introduce cast costs or an extra resource bar. Presentation, threshold details, run persistence and future expedition reconciliation are still open. No current progression behavior changed.

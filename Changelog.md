@@ -1,3 +1,9 @@
+## 2026-09-28 — Preserve storm, nature and movement spell ideas
+
+- Add the personal dwell-triggered lightning aura, directional root wave, immediate-versus-stored Dash and Swiftness to the spell catalog and feedback tracker (I13–I16).
+- Record accumulated, non-consumable mana as a progression framing proposal (I17), retaining unresolved threshold and persistence decisions.
+- Clarify aura duration: fixed per cast, increased by level-ups; kills do not extend it. Preserve naming candidates, character counts, visual/mechanical intent and category questions. Documentation only; no new spell or progression implementation.
+
 ## 2026-09-28 — Playtest healing, trap and boss balance
 
 - Reduce rank-one Regeneration to 15 total HP over five seconds and Rune Trap to 40 base damage; preserve trap persistence, single trigger and three-trap cap.
