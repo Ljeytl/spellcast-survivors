@@ -30,6 +30,19 @@ Append new feedback as it arrives. Preserve the original observation and date; a
 | F09 | Keep current roguelike progression and random spells; current game is fun | Decision recorded | Preserve during difficulty work; full expedition design is future scope |
 | F10 | Clean development slate before new features; distinguish current bugs, approved work and future design | Open | Reconcile branches/build status and open issues before implementation; no claim this audit is complete |
 
+## Latest balance playtest — 2026-09-28
+
+Recorded from player feedback; source audit at `8123a81732e4c78c0585636d5aed09ddab325e81`. Values below are calculated from current source, not a newly operated runtime test. No balance changes implemented in this documentation pass.
+
+| ID | Feedback / expected result | Status | Findings and next decision |
+|---|---|---|---|
+| F36 | Rank-one Regeneration heals too much and too quickly | Open | Base 8 HP/second for 5 seconds = 40 HP per cast before missing-health cap. Each cast appends an independent healing effect, allowing overlap. Reduce both total healing and rate; exact amount/duration and repeat-cast policy need a tuning decision. Preserve its stronger sustained-healing identity versus Life. |
+| F37 | Meteor Shower should cover more enemies on screen; observed opening count of five is too much; start with two or three; ranks should increase count or damage rather than both | Open | Authored base count is 4; runtime adds rank minus 1, so rank two has 5. Damage also gains 15% of base per rank. Reproduce the observed starting count and inspect acquired rank before calling it a rank-one bug. Targeting scores clusters across all living enemies with no screen/range limit; planned lethal damage lowers weights but does not prevent repeated overlap. Prioritize visible groups and wider useful coverage while keeping committed warning circles truthful. Choose starting count and a single benefit per rank before implementation. |
+| F38 | Cross Blade never feels like the right choice for its typing effort; player rarely reaches for it | Open | Preserve the observation as a usefulness/identity problem, not automatically a damage buff. Incantation has 10 letters plus a space. Compare its outbound, linger and return payoff against alternative casts. Stronger return hit remains a deferred candidate under I12, not an approved solution. |
+| F39 | Boss two has much less HP than boss one; boss one feels very tanky | Open | Scheduled source-derived HP: Gatekeeper at 5:00 = 1,879.2; Pursuer at 10:00 ≈ 302.6. Both use ordinary variant HP × time scaling × 12; base HP is 135 versus 15. Set deliberate boss-specific health budgets and judge alongside attack danger and player growth. Later boss difficulty need not be raw HP alone; exact budgets await tuning. |
+
+Source locations: `data/spells.json`, `scripts/SpellManager.gd` (`cast_life_spell`, `cast_meteor_shower_spell`, `calculate_spell_damage`), `scripts/SpellTargeting.gd` (`select_area`), `data/encounters.json`, and `scripts/MonsterManager.gd` (`calculate_monster_stats`, `spawn_monster`).
+
 ## Earlier playtest concerns — retain and verify
 
 These rows point into existing detailed plans/results. They are not all known current failures: verify before changing working behavior.

@@ -8,6 +8,12 @@ See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified i
 
 - Use [Development order](docs/expedition-design/15-development-order.md) for concrete playable milestones, separate from campaign unlock timing. That future sequence does not replace the current difficulty-first slate.
 
+## Next balance review — latest playtest (2026-09-28)
+
+- [F36–F39: Regeneration, Meteor Shower, Cross Blade and boss HP](docs/PLAYER_FEEDBACK.md#latest-balance-playtest--2026-09-28) capture the latest observations and source audit.
+- Set lower/slower rank-one healing; choose two or three starting meteors with count or damage growth per rank and better visible-enemy coverage; investigate Cross Blade utility; give bosses deliberate health budgets rather than inheriting ordinary-enemy disparities.
+- These are recorded tuning directions, not implemented changes or approved exact numbers. Cross Blade's return-damage candidate remains deferred below.
+
 ## Deferred — Cross Blade return-hit identity (2026-09-28)
 
 - Intent: make the returning blade the payoff, rewarding positioning to catch enemies on its way back and giving Cross Blade a distinct reason to use.
