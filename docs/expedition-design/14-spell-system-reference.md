@@ -197,7 +197,7 @@ A halo, tail or glow is cosmetic, not another collision radius. If the user deci
 
 ### Big on infection
 
-Plague Seed's defining mechanic is infection; an initial travelling seed is optional delivery. ****Recommended mapping: Big targets infection spread radius****, regardless of whether we retain that initial projectile. With a proposed 120 wu spread radius, Big gives 162 wu. A target 150 wu away becomes a valid spread candidate, whereas one 170 wu away does not. That is measurable utility without adding damage, hosts or lifespan.
+Plague Seed's defining mechanic is infection; an initial travelling seed is optional delivery. **Superseded candidate, not approved: Big targets infection spread radius**, regardless of whether we retain that initial projectile. With a proposed 120 wu spread radius, Big gives 162 wu. A target 150 wu away becomes a valid spread candidate, whereas one 170 wu away does not. That is measurable utility without adding damage, hosts or lifespan.
 
 Recommendation: leave initial seed body unchanged for this meaning of Big. Show the enlarged spread reach in inspection/target selection and a brief pulse when a transfer is sought; do not clutter every infected enemy with a permanent circle. A target within range does not necessarily receive infection instantly: the transfer still follows its declared carrier/contact rule.
 
