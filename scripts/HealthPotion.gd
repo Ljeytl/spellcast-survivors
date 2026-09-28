@@ -8,14 +8,14 @@ const RECLAIM_DISTANCE = 2000.0
 var collected = false
 var player: Node2D
 
-static func try_drop(parent: Node, point: Vector2, roll: float = -1.0):
+static func try_drop(parent: Node, point: Vector2, roll: float = -1.0, guaranteed: bool = false):
 	if not is_instance_valid(parent) or not parent.is_inside_tree():
 		return null
 	var chance = randf() if roll < 0.0 else roll
-	if chance >= DROP_CHANCE:
+	if not guaranteed and chance >= DROP_CHANCE:
 		return null
 	var drops = parent.get_tree().get_nodes_in_group("health_potions")
-	if drops.size() >= MAX_DROPS:
+	if not guaranteed and drops.size() >= MAX_DROPS:
 		var target = parent.get_tree().get_first_node_in_group("player")
 		var oldest_distant = null
 		var farthest = RECLAIM_DISTANCE

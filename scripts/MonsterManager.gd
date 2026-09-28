@@ -198,6 +198,7 @@ func _on_monster_died(monster: CharacterBody2D):
 		var reward = preload("res://scripts/BossReward.gd").new()
 		reward.position = monster.global_position
 		get_parent().add_child(reward)
+		preload("res://scripts/HealthPotion.gd").try_drop(get_parent(), monster.global_position + Vector2(48, 0), -1.0, true)
 	monster_died.emit({"variant": monster.variant, "boss": monster.boss})
 
 func add_game_time(additional_time: float):

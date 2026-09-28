@@ -1,3 +1,9 @@
+## 2026-09-28 — Guaranteed boss recovery
+
+- Each defeated boss drops exactly one 10-HP potion beside its upgrade chest, bypassing the ordinary random-drop roll and potion cap. Full-health players can leave it for later.
+- Ordinary enemies retain their 2% drop chance; bosses no longer also roll a random potion.
+- Preserve boss cadence and other playtester ideas in the roadmap; no timing or difficulty changes in this pass.
+
 ## 2026-09-28 — Casting reference HUD
 
 - Show equipped spell numbers and exact incantations along the bottom; discovered combinations show names without numeric shortcuts.
