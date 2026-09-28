@@ -1,3 +1,7 @@
+## Twenty-minute choice — 0.1.26
+
+At 20:00 pause for Extract (bank victory) or Continue (endless survival with increasing difficulty). Continuing keeps the run active and does not bank a victory. This supersedes the previous immediate 20-minute win; boss-cadence changes remain deferred.
+
 ## Post-0.1.25 feedback to address
 
 See [F41–F43 in the feedback tracker](docs/PLAYER_FEEDBACK.md#post-0125-playtest-feedback--2026-09-28): Firewalk obscuring the wizard; remove bottom instructional messages while retaining spell names/numbers/durations; upgraded Bolt strength deferred for later. F41–F42 implemented in the ground-effect/HUD pass; F43 remains deferred.
