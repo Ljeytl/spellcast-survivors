@@ -128,9 +128,9 @@ func run():
 				if child is StaticBody2D:
 					rendered.append(child.global_position)
 					check(child.collision_layer == 32 and child.get_child(0).shape.radius == 11, "Trees retain physical trunk geometry")
-					check(child.has_node("Canopy"), "Rendered canopy and collision share one trunk position")
-					var canopy = child.get_node("Canopy")
-					var art_trunk = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2)
+					check(child.has_meta("canopy"), "Rendered canopy and collision share one trunk position")
+					var canopy = child.get_meta("canopy")
+					var art_trunk = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2 + canopy.offset)
 					check(art_trunk.is_equal_approx(child.global_position), "Both art variants anchor the visible lower trunk at the collider center")
 				else:
 					check(child is Sprite2D and child.get_child_count() == 0, "Bushes remain decorative and nonblocking")
@@ -153,12 +153,12 @@ func run():
 		break
 	var tested_variants: Dictionary = {}
 	for body in get_nodes_in_group("tree_obstacles"):
-		var canopy = body.get_node("Canopy")
+		var canopy = body.get_meta("canopy")
 		var variant = canopy.texture.resource_path
 		if tested_variants.has(variant):
 			continue
 		tested_variants[variant] = true
-		var art_trunk = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2)
+		var art_trunk = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2 + canopy.offset)
 		for side in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
 			player.position = art_trunk + side * 130
 			var collision = player.move_and_collide(-side * 180)
@@ -166,7 +166,7 @@ func run():
 			check(absf((player.position - art_trunk).dot(side) - 43.0) < 1.0, "Player reaches visible trunk edge without distant barrier: " + variant)
 		var correct_position = canopy.position
 		canopy.position = Vector2(0, 20 - canopy.texture.get_height())
-		var wrong_anchor = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2)
+		var wrong_anchor = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2 + canopy.offset)
 		check(not wrong_anchor.is_equal_approx(body.global_position), "Known-bad texture-center anchor fails visible-trunk alignment")
 		canopy.position = correct_position
 		if tested_variants.size() == 2:
@@ -192,11 +192,11 @@ func run():
 	player.position = canopy_body.position + Vector2(0, -80)
 	await process_frame
 	await process_frame
-	check(canopy_body.get_node("Canopy").modulate.a < 0.4, "Grove canopy fades over an obscured player")
+	check(canopy_body.get_meta("canopy").modulate.a < 0.4, "Grove canopy fades over an obscured player")
 	player.position = original_player
 	await process_frame
 	await process_frame
-	check(canopy_body.get_node("Canopy").modulate.a == 1.0, "Canopy restores opacity after actor leaves")
+	check(canopy_body.get_meta("canopy").modulate.a == 1.0, "Canopy restores opacity after actor leaves")
 	var orb = load("res://scenes/XPOrb.tscn").instantiate()
 	orb.position = player.position + Vector2(110, 0)
 	game.add_child(orb)

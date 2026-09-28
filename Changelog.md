@@ -4,6 +4,12 @@
 - Ingredient upgrades add 7.5% combination base damage each; Life improves healing seeds, Ice improves combination area, and Regeneration improves Soul Bloom recovery. Player damage buffs apply once.
 - Reduce Seeker contact damage from 22 to 18. Verify Cross Blade pierces multiple enemies on its return without adding a damage bonus.
 
+## 2026-09-28 — Recovery pickups and world readability
+
+- Sort loaded tree canopies by trunk-base height across scenery chunks while preserving collision and player occlusion fading.
+- Add red health potion drops with initial tunable values: 2% per defeated enemy, 10 HP on contact, up to 12 waiting pickups. Full-health players leave potions available for later; drops do not depend on owning healing spells. At the cap, a successful roll replaces the farthest off-screen potion beyond 2,000 units so abandoned pickups cannot stop future drops.
+- Extend XP crystals to four value tiers: blue below 25, green from 25, purple from 100, gold from 500. Consolidation retains all XP and refreshes the resulting gem tier.
+
 ## 2026-09-28 — Preserve multi-stage incantation idea
 
 - Record the long-chant Explosion concept, intended payoff, per-cast slowdown constraint, and open movement/interruption decisions; index as I20 and link the spell catalog/roadmap. Documentation only.

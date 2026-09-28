@@ -3,6 +3,7 @@ extends Area2D
 const VISUAL_SCALE = 1.5
 const GREEN_THRESHOLD = 25.0
 const PURPLE_THRESHOLD = 100.0
+const GOLD_THRESHOLD = 500.0
 
 static var visual_textures: Array[Texture2D] = []
 
@@ -86,15 +87,22 @@ func set_xp_value(value: float):
 	xp_value = value
 
 func update_visual():
-	var tier = 2 if xp_value >= PURPLE_THRESHOLD else (1 if xp_value >= GREEN_THRESHOLD else 0)
-	$Visual.scale = Vector2.ONE * VISUAL_SCALE * [1.0, 1.08, 1.16][tier]
+	var tier = value_tier(xp_value)
+	$Visual.scale = Vector2.ONE * VISUAL_SCALE * [1.0, 1.08, 1.16, 1.24][tier]
 	$Visual.texture = crystal_textures()[tier]
+
+static func value_tier(value: float) -> int:
+	if value >= GOLD_THRESHOLD:
+		return 3
+	if value >= PURPLE_THRESHOLD:
+		return 2
+	return 1 if value >= GREEN_THRESHOLD else 0
 
 static func crystal_textures() -> Array:
 	if visual_textures.is_empty():
 		var original = preload("res://assets/typecast/Pickups/Mana Crystal.png")
 		visual_textures.append(original)
-		for hue in [0.32, 0.76]:
+		for hue in [0.32, 0.76, 0.13]:
 			var image = original.get_image()
 			image.convert(Image.FORMAT_RGBA8)
 			for y in range(image.get_height()):
