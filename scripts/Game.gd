@@ -7,6 +7,7 @@ enum GameState {
 	PLAYING,     # Active gameplay with movement, combat, and spell casting
 	LEVEL_UP,    # Player is selecting upgrades, game is paused
 	GAME_OVER,   # Player has died, showing game over screen
+	EXTRACTION,
 	PAUSED       # Game is temporarily suspended via ESC key
 }
 
@@ -25,6 +26,7 @@ const ICON_SIZE = Vector2(32, 32)          # Standard size for spell slot icons
 var current_state: GameState = GameState.PLAYING
 var run_won: bool = false
 var result_recorded: bool = false
+var extraction_screen: Control
 # Total time spent in this game session (used for survival scoring)
 var game_time: float = 0.0
 var pending_level_ups: Array[int] = []
@@ -90,7 +92,11 @@ func _ready():
 	
 	# Initialize all game systems in the correct order
 	setup_all_systems()
-	$MonsterManager.run_completed.connect(func(): finish_run(true))
+	$MonsterManager.run_completed.connect(show_extraction_choice)
+	extraction_screen = preload("res://scripts/ExtractionChoice.gd").new()
+	extraction_screen.extract_requested.connect(extract_run)
+	extraction_screen.continue_requested.connect(continue_endless)
+	$UI.add_child(extraction_screen)
 	# Configure the spell slot UI with icons and labels
 	setup_spell_slots()
 	update_spell_slot_lock_status()
@@ -288,7 +294,9 @@ func update_difficulty_display():
 		return
 	var tier = manager.get_current_difficulty_level()
 	difficulty_label.text = "Tier %d • Boss %02d:00" % [tier, mini(15, tier * 5)]
-	if tier == 4:
+	if manager.endless_mode:
+		difficulty_label.text = "Endless • %.1f× pressure" % manager.spawn_difficulty_multiplier()
+	elif tier == 4:
 		difficulty_label.text = "Tier 4 • Survive to 20:00"
 	var bosses = get_tree().get_nodes_in_group("bosses").filter(func(enemy): return not enemy.dying)
 	if not bosses.is_empty():
@@ -339,7 +347,7 @@ func update_difficulty_tooltip_content():
 	content += "Monster tier: %d\n" % manager.get_current_difficulty_level()
 	content += "Spawn interval: %.2fs\n\n" % manager.calculate_spawn_interval()
 	content += "Normal and fast melee form the opening.\n"
-	content += "Bosses arrive at 5, 10 and 15 minutes; win at 20.\n"
+	content += "Bosses arrive at 5, 10 and 15 minutes; extract or continue at 20.\n"
 	content += "Ranged enemies join after ten minutes."
 	difficulty_tooltip_label.text = content
 
@@ -593,6 +601,30 @@ func create_xp_glow_effect(style: StyleBoxFlat):
 func _on_player_died():
 	finish_run(false)
 
+func show_extraction_choice():
+	if current_state != GameState.PLAYING or player.health <= 0 or result_recorded:
+		return
+	if not $MonsterManager.awaiting_extraction:
+		return
+	change_state(GameState.EXTRACTION)
+	spell_manager.cancel_typing()
+	typing_keycaps.completion_remaining = 0
+	hide_typing_ui()
+	game_time = $MonsterManager.game_time
+	update_timer_display()
+	extraction_screen.open()
+
+func extract_run():
+	if current_state == GameState.EXTRACTION and player.health > 0:
+		finish_run(true)
+
+func continue_endless():
+	if current_state != GameState.EXTRACTION or player.health <= 0:
+		return
+	extraction_screen.hide()
+	$MonsterManager.continue_endless()
+	change_state(GameState.PLAYING)
+
 func finish_run(won: bool):
 	if current_state == GameState.GAME_OVER:
 		return
@@ -605,6 +637,8 @@ func finish_run(won: bool):
 	pending_level_ups.clear()
 	level_up_screen.hide()
 	pause_overlay.hide()
+	if is_instance_valid(extraction_screen):
+		extraction_screen.hide()
 	change_state(GameState.GAME_OVER)
 	update_timer_display()
 	show_game_over_screen()
@@ -614,6 +648,8 @@ func _on_upgrade_selected_stub(upgrade_data: Dictionary):
 	pass
 
 func change_state(new_state: GameState):
+	if current_state == GameState.GAME_OVER:
+		return
 	current_state = new_state
 	
 	if hud.has_node("BuildVersion"):
@@ -640,7 +676,9 @@ func change_state(new_state: GameState):
 			if level_up_screen:
 				level_up_screen.visible = true
 
-	if current_state == GameState.PLAYING and not pending_level_ups.is_empty():
+	if current_state == GameState.PLAYING and $MonsterManager.awaiting_extraction:
+		show_extraction_choice()
+	elif current_state == GameState.PLAYING and not pending_level_ups.is_empty():
 		show_next_level_up()
 	sync_pause_state()
 
@@ -739,7 +777,7 @@ func show_next_level_up():
 			level_up_screen.level_label.text = ""
 
 func _on_upgrade_selected(upgrade_data: Dictionary):
-	if current_state == GameState.GAME_OVER:
+	if current_state in [GameState.GAME_OVER, GameState.EXTRACTION, GameState.PAUSED]:
 		return
 	# Apply upgrade to player
 	if player:
