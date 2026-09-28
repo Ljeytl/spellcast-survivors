@@ -4,21 +4,21 @@
 
 This package specifies a design. It does not prove its game feel, difficulty, accessibility or performance. Document checks cover roster/reward consistency, formulas, references and conflicting rules. Gameplay gates below are **future requirements**, not passed tests.
 
+For the updated concrete build contents and normal-slime Level 1, use [Development order](15-development-order.md). The following evidence gates follow that incremental order; the old 17-spell replacement slice is superseded.
+
 ## Implementation tranches
 
 Each independently releasable tranche gets a dedicated branch/worktree, reviewed PR, exact-revision checks and cleanup after merge. Parallel agents may investigate or own separate isolated tranches; they must not edit the same worktree. Integrate dependent changes in order. Keep a playable comparison build at each stage.
 
-| Stage | Deliverable / ownership | Exit gate |
-|---|---|---|
-|0: Design review|Root integrates decisions; user judges D01–D14; read-only agents challenge combat/content/presentation|No unresolved implementation-blocking rule silently assumed; roster and grammar frozen for slice|
-|1: Spell foundation|Systems engineer: parser, capabilities, compiler, clocks, scheduler; independent reviewer reads contracts|Property/order/cap/lifecycle tests; no invisible damage; legacy build intact|
-|2: Representative effects|Combat engineer adapts 17 slice spells; art owner works in separate dependent branch after geometry contract lands|All 17 previews/game contacts match; Big/Repeat/Charge cases operated|
-|3: Knowledge and preparation|Progression/UI owner: ordered pages, recipes, saves, menu journeys|Unlock/activation/death/crash tests and keyboard/narrow-layout review|
-|4: Tutorial and one realm|Level owner: graph, generator, objectives, director, guardian, extraction|Seed gates, all tutorial steps, 20-minute terminal paths, meaningful cast openings|
-|5: Feedback and feel|Presentation owner: coherent placeholder art board, impact/audio hooks, workshop exports|Real-scale art approval; reduced effects retains mechanics; performance stress pass|
-|6: External playtest|Test coordinator observes fresh players; no coaching except blockers|Evidence sheet below; decide iterate/pivot/expand|
-|7: Content expansion|Separate realm/content tranches after shared contracts are stable|Remaining 19 spells and three realms meet same gates, not a bulk unchecked drop|
-|8: Release preparation|Packaging/save compatibility/accessibility/art provenance/signing where applicable|Operated target-platform packages and complete concerns ledger|
+| Increment | Evidence required |
+|---|---|
+| Keywords in current combat | Existing spell behavior preserved; modifier geometry/payload, unavailable casts and workshop parity checked |
+| Preparation and activation | Ordered selection, knowledge/active distinction, save and compatibility journeys |
+| Ley lines | Existing world navigation, challenge states, idempotent discoveries |
+| Connected expeditions | Guardian, extraction, death/retention and next-run preparation operated |
+| Expansion and presentation | Existing spells retained, new content tested individually, inscription readability and reduced effects |
+| Release | Exact-revision packages, accessibility, performance and complete issue disposition |
+
 
 Suggested agent roles when implementation is approved: architecture reviewer for compiler/data boundaries; gameplay worker for effects; level-design/research worker for generator/content; UI worker for preparation/journals; test specialist for deterministic scenarios and operated workflows. Root owns integration and decision register. Use at most three active specialist agents alongside root; technical tasks wait on explicit contracts rather than racing shared files.
 
@@ -33,11 +33,11 @@ Suggested agent roles when implementation is approved: architecture reviewer for
 |T05|Big geometry|Core and collision change together; beam/fan mappings correct; Big rejects healing without area|Visual-only scaling must fail|
 |T06|Ice Blast contact|No hit before arrival; untouched targets safe; one hit per target/generation|Cone-query damage must fail|
 |T07|Dead target/release reservation|New outputs select valid targets; straight bodies do not home; guided expiry unchanged|Resetting lifetime on reacquisition must fail|
-|T08|Plague host death|Orphan visible for 3 seconds and can infect; six-host and 18-second root caps|Deleting infection on host death must fail|
+|T08|Plague host death|Orphan visible for 3 seconds and can infect; selected host/concurrency policy, refresh and finite orphan expiry; no arbitrary root lifetime assumed|Deleting infection on host death must fail|
 |T09|Heal filters and caps|Steam does not heal; seed consumed once; Regeneration does not stack; healing caps enforced|An all-entities recipient mask must fail|
 |T10|Assist cancel/backspace/pause|Finite assist; empty toggles do not refill; pause preserves state; hit-stop does not extend assist|Resetting assist on text clearing must fail|
 |T11|Prepared order/mana/recipes|Exact thresholds; both recipe ingredients active; originals remain|A bonus replacing a prepared slot must fail|
-|T12|Discovery/save interruption|Atomic grant once; death retains knowledge; backup recovers; legacy untouched|Crash between event recording and save must not duplicate rewards|
+|T12|Discovery/save interruption|Atomic grant once; selected death-retention policy; backup recovers; baseline profile preserved|Crash between event recording and save must not duplicate rewards|
 |T13|Generation|Four objectives reachable; independent routes and widths validated; seed reproducible|A blocker that disconnects an objective must fail|
 |T14|Director|Ranged gates, caps and encounter suppression work; no banked-budget burst|Ambient peak during guardian must fail|
 |T15|Terminal race|Extraction at 20:00; no post-terminal damage; death tie and one-time reward policy|A queued hit after extraction must fail|

@@ -1,5 +1,9 @@
 # Spell catalog: current truth, proposed roster, preserved ideas
 
+**Decision precedence:** [Alignment review and open conflicts](13-review-record.md#alignment-review--28-september-2026) supersedes older conflicting proposals below, especially XP/mana, infection/Big and roster counting.
+
+**Development context (28 September):** use [development order](15-development-order.md) for implementation sequencing. Existing gameplay remains the foundation; these target-design tables do not require rebuilding or withholding existing spells. Numeric defaults and unresolved choices remain proposals. Preparation/XP/mana policy and recent spell-identity notes must be reconciled before dependent changes; the first keyword increment retains existing progression.
+
 ## Verified prototype baseline
 
 Audited at `0cb22e90f4d4a2e8416c1d3e2dfe5c73d1c1ca6c`. Source: `data/spells.json`, `scripts/SpellManager.gd`, `scripts/SynergyCatalog.gd`, `scripts/BuildSpellEffect.gd`, `scripts/TacticalSpellEffect.gd`, `scripts/IceBlast.gd`, `scripts/LightningArea.gd`, `scripts/SpellTargeting.gd`, `scripts/SpellGeometry.gd`, `scripts/Player.gd` (paths relative to repository root).
@@ -14,21 +18,21 @@ There are 26 JSON entries, but only 16 learnable manual spells, one automatic at
 | Regeneration |8 HP/s × 5 s; current multiple effects stack | Active; proposed stack policy differs |
 | Ice Blast |13 contact shards across 90°; 18 per unique enemy/cast; 400 reach; 620 speed; radius 12; slow 0.3 × 2 s | Active |
 | Earth Shield |60 overheal; runtime 5 s | Active |
-| Lightning |80 damage; radius 160; 0.2 s active, each enemy once; internal ID lightning_arc | Active |
+| Lightning |Lightning strikes the ground in an area, dealing 80 damage once per enemy within radius 160, then ends; 0.2 s active; no travelling bolt, chaining or lingering damage; internal ID lightning_arc | Active |
 | Meteor Shower |4 impacts; actual 20 each; radius 220; warnings 0.65 + 0.3 × index | Active |
 | Ember Lance |45 per unique enemy; 700 speed; 1.5 s; piercing; nominal radius 24 with visual-default factor | Active |
 | Plague Seed |9/tick every 0.5 s; 5 s/host; spread 130; spore 460 speed; 8 hosts; orphan spore 3 s | Active |
 | Cinder Field |12/0.5 s for 5 s; radius 150 | Active |
 | Arcane Orbit |3 bodies radius 42 on orbit 130; 28/contact/0.5 s; 6 s | Active |
-| Focus Ray |12/0.25 s for 2 s; 450 reach; half-width 20; tracks first aligned target | Active |
+| Focus Ray |12/0.25 s for 2 s; 450 reach; half-width 20; tracks first aligned target; proposed presentation: a continuous laser aimed toward the nearest enemy, visibly rotating and sweeping between targets rather than snapping or warping into a new line | Active; smooth tracking proposed; a separate laser that rotates in a full circle is a deferred spell idea |
 | Rune Trap |60; arms 0.8 s; trigger 70/explosion 130; placement 160; persists; shared max 3 | Active |
 | Seeker |22/contact/0.5 s; 5 s; 320 speed; radius 24; reacquire 600 from caster; max 3 | Active; ID seeking_spirit |
 | Firewalk |24/0.5 s; emits 5 s, patches 6 s; radius 65 | Active; ID ember_trail |
 | Cross Blade |60 per leg; 350 outbound; 0.9 s linger 30/0.3 s; 500 speed; radius 42; 4 s lifetime | Active; ID returning_blade |
 | Lightning Bolt |Bolt + Lightning; 60 damage; 550 speed; 2 extra bounces within 240 | Enabled bonus |
 | Life Bolt |Bolt + Life; 40 damage; seed 6 HP/2 s, lasts 10 s; max 6 | Enabled bonus |
-| Meteor Lance |Ember Lance + Meteor Shower; 27 direct +13.5 area excluding direct victim, radius 90 | Enabled bonus |
-| Soul Bloom |Plague Seed + Regeneration; 6.75 infection/tick; actual damage leech 10%, cap 2 HP/0.5 s | Enabled bonus |
+| Meteor Lance |Ember Lance + Meteor Shower; current: 27 direct +13.5 area excluding direct victim, radius 90; proposed identity options: a lance that explodes like a meteor on impact, a lance that explodes on the second enemy hit, or a thrown lance followed roughly 1 s later by small damaging meteorites falling along its path; choice and tuning open | Enabled bonus |
+| Soul Bloom |Plague Seed + Regeneration; current: 6.75 infection/tick; actual damage leech 10%, cap 2 HP/0.5 s; clarified proposed identity: Plague Seed that can also infect the player, healing rather than damaging them while infected and letting them carry and spread the infection as they move; replaces damage leech, healing tuning open. Proposed rule for both Soul Bloom and Plague Seed: each new infection or reinfection resets the recipient's infection duration to its full duration rather than stacking it; remove the arbitrary 18 s root lifetime ceiling so continued spread or reinfection can sustain the chain. Individual host infections still expire when their duration runs out without reinfection, and ground/orphan spores expire after their own finite lifetime if they do not infect a target; neither persists indefinitely on its own | Enabled bonus |
 | Steam Field |Cinder Field + Ice Blast; 12/0.5 s, 3 s, radius 150; 40% slow | Enabled bonus |
 | Prism Ray |Focus Ray + Ember Lance; 7.2/0.25 s for 2 s; up to 3 aligned targets; shares beam cap | Enabled bonus |
 | Frost Sigil |Rune Trap + Ice Blast; 60 burst, radius 170; arm 1.4 s; 40% slow 2 s; persistent | Enabled bonus |
@@ -53,7 +57,7 @@ Current general rank scaling is base × (1 + 0.15 × (rank − 1)) × player mul
 | **Earth Shield** / personal protection / earth |50 absorption, 6 s; recovery 8; replace only if incoming absorption ≥ remaining absorption; otherwise reject; no addition |“Surround yourself with protective stone.” Five stone segments break with absorbed damage. No impassable terrain. |
 | **Meteor Shower** / multi-area / fire |4 × 60 damage; impact radius 80; range 420; warnings 0.65 + 0.25 i; area active 0.1; recovery 6 |“Rain meteors across a marked area.” Growing red warnings, descending rocks, ground impact. Formation breaker, not instant panic button. |
 | **Ember Lance** / piercing / fire |65 per unique contact; r 9; speed 700; range 650; max 8 contacts; recovery 2.5 |“Pierce a line of enemies with an ember lance.” Long ember tip and restrained trailing sparks. Aimed lane damage. |
-| **Plague Seed** / infecting / plague |Seed speed 460, r 7, range 360; 6/0.5 s × 4 s = 48/host; spread 120; max 6 hosts; max 18 s root; orphan 3 s; recovery 5 |“Infect an enemy and spread spores nearby.” Green-purple seed, lesions, travelling links and visible orphan. Crowded staggered packs. |
+| **Plague Seed** / infecting / plague |Seed speed 460, r 7, range 360; 6/0.5 s × 4 s = 48/host; spread 120; max 6 hosts; root lifetime policy under revision; orphan 3 s; recovery 5 |“Infect an enemy and spread spores nearby.” Green-purple seed, lesions, travelling links and visible orphan. Crowded staggered packs. |
 | **Cinder Field** / field / fire |12/0.5 s × 5 s = 120/enemy at full dwell; r 95; range 320; warning 0.25; recovery 5 |“Set a patch of ground ablaze.” Connected red-orange ground with bold border. Holds a lane; no candle tiles. |
 | **Arcane Orbit** / orbit / arcane |3 bodies r 12, path radius 70; 28 contact, 0.5 s per-target gate; 6 s; angular speed 4 rad/s; recovery 7 |“Orbit with three damaging arcane motes.” Actual motes collide; orbit disk does not. Close defense rewards moving. |
 | **Focus Ray** / channel / arcane |16/0.25 s × 2 s = 128; reach 360; w 8; tracking 3 rad/s; first aligned target; recovery 3 |“Track one enemy with a focused beam.” Stable thin bright beam; clear endpoint. Reliable elite damage. |
@@ -77,7 +81,7 @@ Current general rank scaling is base × (1 + 0.15 × (rank − 1)) × player mul
 | **Lightning Bolt** / chain / lightning |60/contact; 2 additional distinct targets; speed 550; r 8; bounce 180; total range 720; recovery 3 |“Send lightning bouncing between enemies.” Visible curved links after contact. Recipe Bolt + Lightning. |
 | **Life Bolt** / projectile + pickup / life |30 damage; r 7; speed 450; range 450; impactseed 6 HP over 2 s, expires 10 s, max 6; recovery 2.5 |“Plant a healing seed where your bolt hits.” Seed has plus/leaf marker; approach to collect; no lifesteal. Recipe Bolt + Life. |
 | **Meteor Lance** / piercing + burst / fire |45 direct; 25 area r 45 excludes direct victim; max 6 contacts; r 9; speed 650; range 600; recovery 4 |“Pierce enemies with an exploding meteor lance.” Ember point plus distinct contact craters. Recipe Ember Lance + Meteor Shower. |
-| **Soul Bloom** / infection + heal / plague-life |4/0.5 s × 4 s; spread 120, max 6 hosts, 18 s root lifetime; actual damage healed 10%, max 6 HP/root; recovery 6 |“Spread a life-draining infection through a group.” Plague links plus thin return motes only on actual healing. Recipe Plague Seed + Regeneration. |
+| **Soul Bloom** / infection + heal / plague-life |4/0.5 s × 4 s; spread 120, max 6 hosts (draft); healing-carrier proposal replaces leech; heal amount, refresh and capacity policies open; recovery 6 (draft) |“Carry a spreading infection that heals you and harms enemies.” Player carrier has distinct healing feedback; enemy infections show damage. Recipe Plague Seed + Regeneration. |
 | **Steam Field** / field / water-fire |10/0.5 s × 4 s; r 110; range 320; slow 0.6; warning 0.25; recovery 5 |“Scald and slow enemies in a cloud of steam.” Pale blue-gray boiling boundary; no green pluses. Recipe Cinder Field + Ice Blast. |
 | **Prism Ray** / channel / arcane-fire |10/0.25 s × 2 s per target; max 3 aligned; reach 400; w 9; recovery 3.5 |“Burn through a line with a prismatic beam.” Three readable contact nodes; not three arbitrary aim locks. Recipe Focus Ray + Ember Lance. |
 | **Frost Sigil** / trap / ice |75 damage; trigger radius 50/blast radius 110; arm 1.2; slow 0.5 × 2 s; persistent; max 3 shared; recovery 4 |“Lay a lasting frost rune that slows a group.” Blue ring, armed center, clear burst. Recipe Rune Trap + Ice Blast. |
@@ -87,7 +91,7 @@ Current general rank scaling is base × (1 + 0.15 × (rank − 1)) × player mul
 These complete the generic shape matrix; unsupported combinations must be rejected visibly.
 
 - Lightning Bolt has native guidance and bounces; Seeking is redundant and rejected. Swift applies to travel; Big changes its body, not bounce range. Duplicating adds a second chain with a separate hit ledger.
-- Plague Seed and Soul Bloom support Powerful, Swift, Big, Delayed, Lasting, Fiery/Icy/Earthen only. Big changes spore collision and visible spread radius together. Lasting increases host infection duration to 5.6 s but root ceiling remains 18 s. Element conversion changes ticks, not infection identity. No Duplicating/Repeating until spread workload and multiple-root stacking are proven.
+- Plague Seed and Soul Bloom support Powerful, Swift, Big, Delayed, Lasting, Fiery/Icy/Earthen only. Big mapping is unresolved: prefer an actual visible AoE if the chosen recipe has one; otherwise reject the word. Do not assume spread-radius scaling. Lasting scales host duration; the prior 18 s root ceiling is superseded by the refreshable-host working proposal, with finite host/orphan lifetimes and reinfection/workload policy still to settle. Element conversion changes ticks, not infection identity. No Duplicating/Repeating until spread workload and multiple-root stacking are proven.
 - Water Jet uses projectile-line behavior. Wave and Thunderwave support Big, Powerful, Repulsing, Repeating, Delayed, Charged and element conversion, but not Swift until warning/advancing-front timing is tested. Big scales width and travel distance together, unlike Ice Blast.
 - Earthquake supports Big, Powerful, Delayed, Charged, element conversion and Repulsing; no Repeat because its native pulses already supply that role in v0.1.
 - Mana Storm uses Meteor Shower mapping; Duplicating adds one strike. Its repeated strike pattern reserves 18 bodies maximum.

@@ -1,8 +1,12 @@
-# Spellcast: expedition design package
+# Should Have Joined a Party — design package
+
+> **Current development slate:** keep the playable roguelike alpha. Difficulty scaling is next; keyword and expedition work are deferred. Track observations, open work and verified fixes in the [player feedback tracker](../PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
 
 **Version 0.1 · 27 September 2026 · design proposal, not a gameplay patch**
 
-This is a separate design for the next iteration of SpellCast Survivors. The playable prototype remains unchanged. The goal is to feel like a wizard learning and preparing an expanding magical vocabulary, then performing increasingly elaborate spells under pressure.
+This package evolves the existing playable SpellCast Survivors game toward the working title **Should Have Joined a Party**. The user finds the current game fun; preserve that foundation while adding permanent vocabulary, prepared spells and expeditions. Typing expresses complex magic; typing-game branding and keycap presentation are being retired in favor of readable magical inscriptions. These documents change no runtime behavior.
+
+For **what to build next**, start with [Development order](15-development-order.md). For **how spells are constructed**, use [Spell system reference](14-spell-system-reference.md). Milestone lists track development inventory; final acquisition and independent-spell versus family-tier counting remain design decisions.
 
 ## Read in this order
 
@@ -18,6 +22,9 @@ This is a separate design for the next iteration of SpellCast Survivors. The pla
 10. [Engineering specification](10-engineering.md): data contracts, responsibilities, persistence and migration boundaries.
 11. [Validation and delivery](11-validation.md): implementation tranches, executable acceptance criteria and playtest worksheet.
 12. [Research](12-research.md): primary sources, evidence limits and design applications.
+13. [Review record](13-review-record.md): completed design checks, remaining decisions and feasibility risks.
+14. [Spell system reference](14-spell-system-reference.md): reusable components, property and keyword tables, spell recipes, and elemental-tier ideas.
+15. [Development order](15-development-order.md): concrete playable milestones, beginning with Level 1 and normal slimes; included enemies, spells, keywords, mechanics and exit gates.
 
 ## How to interpret this package
 
@@ -27,18 +34,21 @@ This is a separate design for the next iteration of SpellCast Survivors. The pla
 - **Reserved** means an idea is recorded but excluded from the initial implementation scope.
 - **Unresolved decision** means a proposed default is supplied so the design is reviewable; it is not silently promoted to user approval.
 
-All new combat distances are **world units (wu)**; all times are seconds. Reference player collision radius is 12 wu. Presentation uses a proposed 640 × 360 logical viewport; asset pixels and world units are not interchangeable. Damage is HP, rates are per simulation second unless stated otherwise. Typing assistance is measured in unpaused real time. Decimal calculations retain precision; labels round for readability.
+All new combat distances are **world units (wu)**; all times are seconds. Reference player collision radius is 12 wu. Presentation uses a proposed 640 × 360 logical viewport: a compact 16:9 reference that scales evenly to 1280 × 720 (2×), 1920 × 1080 (3×) and 2560 × 1440 (4×), making it a useful starting point for crisp pixel-art presentation. It is not a required display resolution or a confirmed constraint; typing readability, UI space and combat visibility still need validation, and may justify a larger logical viewport or independently scaled UI. Asset pixels and world units are not interchangeable. Damage is HP, rates are per simulation second unless stated otherwise. Typing assistance is measured in unpaused real time. Decimal calculations retain precision; labels round for readability.
 
-The proposed initial campaign is **tutorial plus four realms**, with 36 manual spell identities available by its end, including existing bonus spells. That campaign count and its names are design recommendations. Four ley lines per expedition and 20-minute extraction are confirmed direction. The large reserved catalog is an inventory, not a promise to ship every spell.
+The proposed initial campaign is **tutorial plus four realms**. The intended roster goal is **36 independent spells, with combinations additional**. The current tables contain only 29 base rows plus seven derived rows (36 total); the independent roster needs reconciliation before implementation. Four ley lines and a 20-minute default recall remain the expedition direction. The reserved catalog records ideas, not a promise to ship every entry.
+
 
 ## Source of truth and review status
 
-The next design lives here; existing `docs/CORE_GAME_DESIGN.md` continues to describe the playable prototype. Runtime behavior wins over old documentation when describing that prototype. New design values in this package intentionally do not match every existing value.
+This package takes the playable prototype’s core gameplay loop to the next level through extensive expansion, not a departure from or merely a list of changes to the prototype. The prototype remains the foundation; this package develops that foundation into a fuller experience. Existing `docs/CORE_GAME_DESIGN.md` continues to describe the playable prototype, with runtime behavior taking precedence over old documentation. Proposed systems and tuning values here extend that foundation and are not claims about what is already implemented.
 
-Central ownership: root integrates all document edits. Research and inventory agents are read-only. No gameplay code, assets, project settings or exports are changed by this package. Validation is document consistency and research review; fun, accessibility and tuning remain unproven until the proposed candidate is built and operated.
+Central ownership: root integrates all document edits. Research and inventory agents are read-only. No gameplay code, assets, project settings or exports are changed by this package. Validation is document consistency and research review; the user reports the current game is fun; new composition/progression, accessibility and tuning still require operated evidence.
 
 See [decision register](02-decisions.md#decisions-to-review-first) before implementing. See [delivery gates](11-validation.md) before claiming a build is ready.
 
 ## Documentation checks
 
 Run `python3 docs/expedition-design/validate_documentation.py` from the repository root. It checks 36 unique spell rows, 36 compatibility rows, 14 keywords, seven recipes, acquisition-name coverage, local links, JSON examples, table structure and worked arithmetic. One deliberately missing-spell control verifies that the roster gate fails. These are document checks, not gameplay tests. See [review record](13-review-record.md) for the remaining tuning gates.
+
+The [wizard tower and rotary destination chamber](09-ui-accessibility.md#wizard-tower-rotary-destination-chamber) records the physical level selector, preparation book and automatic recall concept.

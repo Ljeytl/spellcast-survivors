@@ -1,3 +1,11 @@
+# Current slate — difficulty scaling first
+
+See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified items. Preserve current roguelike progression; validate opening and minutes 3–8 pressure while protecting the liked 9–11 minute escalation. Random health-potion drops, forest paths and rocks are later ideas. Keyword composition and the tower/expedition package remain future experiments.
+
+> Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](docs/expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
+
+- Use [Development order](docs/expedition-design/15-development-order.md) for concrete playable milestones, separate from campaign unlock timing. That future sequence does not replace the current difficulty-first slate.
+
 ## Idea — elemental vocabulary tiers
 
 - Explore base forms such as Wall combined with increasingly elaborate elemental words. See section 13 of [the spell-system reference](docs/expedition-design/14-spell-system-reference.md#13-idea-base-forms-with-elemental-word-tiers). Idea only; compare against paired incantation tiers before choosing a system.
@@ -591,3 +599,7 @@ Remaining: after choosing baseline sizes, vary in-game tree and bush sizes by ap
 - Keep typed-menu navigation deferred; retain ordinary keyboard/pointer navigation for this release.
 - Add accessibility preferences for independently scaling interface text and remapping shortcuts after the current readability baseline.
 - Revisit spellbook layout/art alongside the spell-specific artwork pass; keep combat HUD minimal.
+
+## Tower hub concept — 28 September 2026
+
+Recorded the [rotary tower chamber and preparation book](docs/expedition-design/09-ui-accessibility.md#wizard-tower-rotary-destination-chamber): rotating room with roughly twelve stained-glass positions, top portal, tower-exit position, deck-like spell preparation and automatic deadline recall. Twenty minutes is the default; per-level curves/durations, book placement and possible 3D blockout are future exploration.

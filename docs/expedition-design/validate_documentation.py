@@ -43,6 +43,20 @@ class DocumentationChecks(unittest.TestCase):
         self.assertNotIn('Bolt', section)
         self.assertNotIn('Meteor Shower', section)
 
+    def test_numbered_documents_are_indexed(self):
+        index = content('README.md')
+        documents = sorted(ROOT.glob('[0-9][0-9]-*.md'))
+        self.assertEqual(len(documents), 15)
+        for document in documents:
+            self.assertIn(f']({document.name})', index, document.name)
+
+    def test_development_plan_covers_named_roster(self):
+        plan = content('15-development-order.md')
+        for name in roster(content('03-spells.md')):
+            self.assertIn(name, plan, name)
+        self.assertIn('Level 1 starts with normal slimes', plan)
+        self.assertIn('It is not a schedule for when a player unlocks', plan)
+
     def test_roster_count(self):
         self.assertEqual(len(validate_roster(content('03-spells.md'))), 36)
 

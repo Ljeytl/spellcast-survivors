@@ -1,5 +1,7 @@
 # Art direction, VFX, impact and audio specification
 
+**Confirmed direction:** wizard fantasy and readable ancient inscriptions, replacing keycap/typing-game identity. Norse-inspired angular rune carving is a reference for form, not a requirement to copy a particular game or replace readable letters. Palette, environment treatment and animation timing below remain proposals. Explore a user sketch and a simple flat-color ground before commissioning broad replacement art; shaders remain later.
+
 **Direction options and all timing/size values are proposals. No art is generated or replaced by this package.** Existing friend-made art is reference material, not a requirement to preserve the current look unchanged.
 
 ## Direction decision
@@ -93,7 +95,7 @@ This is the art list the spell list depends on. Each campaign spell gets a 36 ×
 |Shared feedback|Damage accent 3, death puff 4, pickup spark 3, knowledge burst 4, plus 3, poison lesion 3|All relevant actors/effects|
 |Enemies|12 variant silhouettes; family motion sets; 4 guardian poses/attack sets; elite overlay|Enemy catalog; no 12 bespoke animation systems initially|
 |Environment|Per realm 3–5 floor variants, 6 edge pieces, 4 obstacles, 4 landmark kits, ley altar 4 states, entry portal 4 frames|Module layouts; reuse structural assets|
-|UI|Plain body font, large keycap alphabet/digits/punctuation, focus highlight, spell shape icons, page activation|HUD, casting, journals, preparation|
+|UI|Plain body font, readable inscription letters and restrained rune ornaments, focus highlight, spell shape icons, page activation|HUD, casting, journals, preparation|
 
 Use particle systems for transient sparks, dust, motes and count scaling; sprite animation for identifiable bodies, contact silhouettes and growth; procedural simple shapes for exact rings and beam geometry. Do not flatten every effect into a generated sheet that cannot scale or match collision. Current generated assets may serve as temporary texture inputs, with provenance recorded.
 

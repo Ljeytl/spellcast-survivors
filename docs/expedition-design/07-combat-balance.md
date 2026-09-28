@@ -1,5 +1,9 @@
 # Combat, clocks and balance model
 
+**Decision precedence:** [Alignment review and open conflicts](13-review-record.md#alignment-review--28-september-2026) supersedes older conflicting proposals below, especially XP/mana, infection/Big and roster counting.
+
+**Development context (28 September):** use [development order](15-development-order.md) for implementation sequencing. Existing gameplay remains the foundation; these target-design tables do not require rebuilding or withholding existing spells. Numeric defaults and unresolved choices remain proposals. Preparation/XP/mana policy and recent spell-identity notes must be reconciled before dependent changes; the first keyword increment retains existing progression.
+
 **Proposed testable tuning, not measured game balance.** Runtime baseline values are only in the spell catalog's first section.
 
 ## Casting state machine and clocks
@@ -80,7 +84,7 @@ Offscreen ordinary enemies remain alive until farther than 1.5 viewport diagonal
 - Burn/plague/poison are damage over time, no critical rolls in v0.1. Multiple roots may coexist up to 3 stacks/target/status; replace the weakest descriptor with a stronger incoming application, otherwise reject that additional application. Settle earned damage before replacement, then use the incoming duration, rate and root ownership; the next tick is one interval later. Same-root repeated contact does not add a stack, reset tick phase or extend expiry; it can only keep an existing eligible exposure active. A new root follows the replacement rule above.
 - Slows take minimum movement factor with floor 0.3, then expire independently. Freeze/root maximum 1.5 s; bosses convert to 0.8 move factor and never lose authored attack timelines. After hardCC expires, normal enemy has 1 s hardCC immunity, visibly brief broken-chain cue if recast denied.
 - Regeneration permits one active descriptor. A new cast first settles earned unpaid healing, then replaces the old descriptor completely with the incoming rate, duration, remaining budget and root ownership; the first new payment is one interval later. Recasting weaker regeneration can therefore reduce its rate, shown in preview. Earth Shield likewise replaces the entire descriptor only if the incoming absorption is at least the remaining absorption; otherwise reject commit as weaker protection. Its new duration and root belong to the incoming cast. Neither system adds old and new budgets. Life has recovery 1.2 s. Healing cannot exceed 100 HP; pluses only on gain.
-- Infection travels before applying damage, never jumps invisibly. Host death emits one orphan spore for 3 s; it searches within 120 wu or scaled Big radius, once every 0.1 s, and flies to a valid uninfected target. Root host count and 18 s expiry remain enforced. No target means it visibly fades.
+- Infection travels before applying damage, never jumps invisibly. Host death emits one orphan spore for 3 s; it searches within the selected spread radius (120 wu draft; Big mapping unresolved), once every 0.1 s, and flies to a valid uninfected target. Host/concurrency limits need tuning; the old arbitrary 18 s root ceiling is superseded by the refreshable-infection working proposal. Host infections and orphan spores still expire individually. Reinfection and overload policy require a bounded workload contract before implementation. No target means it visibly fades.
 - Friendly/hostile recipient masks are mandatory. Steam Field damages enemies and slows them; green life symbols never appear. Moonfall heals only player/friendly allowed targets and damages only enemies. Golem is not a free healing battery for Soul Bloom.
 - Recovery is not typing cooldown: player may type while a spell is recovering, but cannot commit it early. Preview shows ready time; no hidden queue. Derived spells have their own recovery but active-effect family caps still apply.
 
@@ -92,7 +96,7 @@ At 40 WPM, 1.25 s assist consumes 0.25 simulation seconds whiletyping; remaining
 
 Do not demand every long spell's single-target DPS exceed Bolt. Compare effective enemieshit, survival gained, healing, route denial, displaced threats and damage per actual opportunity. The proposed Meteor Shower can deal 240 across four contacts or much more across groups; Focus Ray 128 single target; Cross Blade 170 only under favorable dwell. These are distinct strengths.
 
-Candidate failure thresholds: no-movement/no-cast actor should usually die within 30–60 s after tutorial safety ends; a basic movement bot with simple Bolt should face meaningful failure in 3–8 min rather than idle through 8 min; a deliberate player should find some 1–3 s openings without clearing the entire map. These are design probes, not fairness gates. Test manual-cast mode separately from legacy automatic-cast mode; do not tune difficulty from bot survival alone.
+Candidate failure thresholds: no-movement/no-cast actor should usually die within 30–60 s after tutorial safety ends; a basic movement bot with simple Bolt should face meaningful failure in 3–8 min rather than idle through 8 min; a deliberate player should find some 1–3 s openings without clearing the entire map. These are design probes, not fairness gates. Compare automatic-attack settings in the existing game when that decision is tested; do not tune difficulty from bot survival alone.
 
 ## Periodic settlement and event ordering
 

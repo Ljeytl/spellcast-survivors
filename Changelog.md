@@ -1,3 +1,34 @@
+## 2026-09-28 — Consolidate local work into main
+
+- Preserve and reconcile five local design edits with the documentation updates.
+- Track the original Typecast source archive and artwork; no runtime art replacement.
+- Consolidate historical playtest exports into the main checkout before retiring task worktrees.
+
+## 2026-09-28 — Central player feedback and current slate
+
+- Added a feedback tracker with stable IDs, open/verification/deferred statuses and evidence requirements for marking fixes.
+- Logged difficulty priority, health-potion idea, missing rocks and forest paths; indexed earlier playtest concerns and future concepts.
+- Kept current roguelike progression and deferred keyword/expedition work. No gameplay fixes claimed.
+
+## 2026-09-28 — Record wizard tower hub concept
+
+- Documented rotary room level selection, stained-glass destinations, physical preparation book and automatic tower recall.
+- Kept placement, capacity, presentation medium and future level-specific pacing explicitly open; linked the concept from the design index and roadmaps.
+- Documentation only; no models, assets or gameplay changed.
+
+# 2026-09-28 — Align roadmap with the existing game and wizard fantasy
+
+- Replace fresh-build milestones with keywords in current combat, then preparation, ley lines and connected expeditions.
+- Record reusable runtime systems, distinguish migration from new content, and preserve existing spell inventory.
+- Align art/UX with readable inscriptions and the working title Should Have Joined a Party; mark older plans and unresolved progression decisions explicitly.
+- Documentation only; no runtime or art changes.
+
+## 2026-09-28 — Playable development milestones
+
+- Added a dedicated development-order page specifying enemies, spells, keywords, mechanics, dependencies and acceptance gates for each playable increment. Level 1 starts with normal slimes; complex systems and experiments come later.
+- Distinguished development order from player acquisition and linked documents 13, 14 and 15 in the README index.
+- Documentation only; existing gameplay and user-owned in-progress design edits are preserved.
+
 ## 2026-09-28 — Elemental word tiers idea
 
 - Recorded an exploratory base-form model: Wall supplies shared behavior, while elemental words such as Fire, Flame, Cinder or Incinerating could select an element and power tier.

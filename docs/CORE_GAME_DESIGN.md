@@ -1,5 +1,7 @@
 # SpellCast Survivors — Core Game Design v0.4
 
+> Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
+
 Status: implementation authorized September 26, 2026 following user approval of the reconciled plan. The existing roster, confirmed mechanics and simple matching placeholder-art pass are in scope; unresolved concepts are not automatically selected.
 
 This document supersedes earlier conflicting decisions about five spell slots, replacement evolutions, a shared slowdown reserve and an opening that allows indefinite inactivity. Historical documents and changelog entries describe their own revisions, not the current intended rules.

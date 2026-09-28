@@ -1,5 +1,9 @@
 # Spell system reference: components, properties, words and recipes
 
+**Decision precedence:** [Alignment review and open conflicts](13-review-record.md#alignment-review--28-september-2026) supersedes older conflicting proposals below, especially XP/mana, infection/Big and roster counting.
+
+**Development context (28 September):** use [development order](15-development-order.md) for implementation sequencing. Existing gameplay remains the foundation; these target-design tables do not require rebuilding or withholding existing spells. Numeric defaults and unresolved choices remain proposals. Preparation/XP/mana policy and recent spell-identity notes must be reconciled before dependent changes; the first keyword increment retains existing progression.
+
 **Design reference v0.2 · 28 September 2026 · no gameplay implementation**
 
 This document defines the reusable vocabulary from which spells are built. Its first tables deliberately contain **no named spells**. A spell is a graph of components with parameter values and connections. A player keyword changes explicitly exposed properties or adds a supported component. The game implements those behaviors once; spell definitions configure and combine them.
@@ -127,7 +131,7 @@ A **school** describes fantasy; a **damage element** participates in damage reso
 
 | Element ID | Suggested typed conversion | Intrinsic operation | Separate optional status |
 |---|---|---|---|
-| Arcane | Arcane | Change eligible damage to arcane | No mandatory status |
+| Arcane | Arcane | Change eligible damage to arcane; candidate increased critical-hit chance, amount and eligibility open | No mandatory status; critical-hit bonus is a separate damage-resolution property |
 | Fire | Fiery | Change damage to fire | Burning is separate |
 | Ice | Icy | Change damage to ice | Slow/freeze are separate |
 | Water | Watery or Tidal — name open | Change damage to water | Push/pull are separate |
@@ -193,7 +197,7 @@ A halo, tail or glow is cosmetic, not another collision radius. If the user deci
 
 ### Big on infection
 
-Plague Seed's defining mechanic is infection; an initial travelling seed is optional delivery. ****Recommended mapping: Big targets infection spread radius****, regardless of whether we retain that initial projectile. With a proposed 120 wu spread radius, Big gives 162 wu. A target 150 wu away becomes a valid spread candidate, whereas one 170 wu away does not. That is measurable utility without adding damage, hosts or lifespan.
+Plague Seed's defining mechanic is infection; an initial travelling seed is optional delivery. **Superseded candidate, not approved: Big targets infection spread radius**, regardless of whether we retain that initial projectile. With a proposed 120 wu spread radius, Big gives 162 wu. A target 150 wu away becomes a valid spread candidate, whereas one 170 wu away does not. That is measurable utility without adding damage, hosts or lifespan.
 
 Recommendation: leave initial seed body unchanged for this meaning of Big. Show the enlarged spread reach in inspection/target selection and a brief pulse when a transfer is sought; do not clutter every infected enemy with a permanent circle. A target within range does not necessarily receive infection instantly: the transfer still follows its declared carrier/contact rule.
 
