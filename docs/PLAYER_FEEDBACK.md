@@ -24,7 +24,7 @@ Append new feedback as it arrives. Preserve the original observation and date; a
 | F03 | Around minute 9 escalation felt good and minute 11 was hard in a good way | Decision recorded | Preserve as comparison points; this is player-reported historical feel, not current timing verification |
 | F04 | Enemies should spawn in increasing numbers/pressure over time, not appear flat around minute 7 | Open | Now: verify emitted spawns, alive caps, offscreen population and enemies reaching player before tuning |
 | F05 | Use bot runs plus ordinary and stationary builds; luck/build strength affects survival | Decision recorded | Compare repeated runs; bot survival alone does not establish fun or difficulty |
-| F06 | Enemy health potion drops enable recovery without owning a healing spell | In progress | Approved in this pass; tune modest healing/chance and preserve potion at full HP |
+| F06 | Enemy health potion drops enable recovery without owning a healing spell | Implemented; tuning remains open | PR71: 2% drops, 10 HP, full-health preservation and distant-drop replacement; full natural-run tuning remains open |
 | F07 | No rocks in current version; consider adding rocks | Deferred | User observation; obstacle versus decoration and collision remain undecided |
 | F08 | Add forest paths and more environmental structure | Deferred | Environment work later; do not bundle graphics overhaul into balance |
 | F09 | Keep current roguelike progression and random spells; current game is fun | Decision recorded | Preserve during difficulty work; full expedition design is future scope |
@@ -161,7 +161,7 @@ Supersedes the provisional decisions and historical arithmetic above. Runtime ch
 
 ## Approved playtest follow-up — 2026-09-28
 
-This section supersedes broader suggestions from the conversation. Implementation is approved; verification remains pending until candidate-bound evidence is recorded.
+This section supersedes broader suggestions from the conversation. Implementation is approved. PR71 covers world/pickups, PR72 casting/progression and PR73 UX. Candidate-bound logs and captures are published under `builds/current/evidence/playtest-followup/`; automated correctness, visual checks and full-run balance remain separate.
 
 | Concern | Acceptance / scope | Initial disposition |
 |---|---|---|
@@ -181,3 +181,14 @@ This section supersedes broader suggestions from the conversation. Implementatio
 | Web / itch | Real gameplay HTML export, browser verification and upload-ready package; hosting/account setup separate | Pending integrated build |
 
 Deferred: rocks, movement spells, more lightning spells, landmarks, structured/procedural map changes, mouse aiming, distance-keeping enemy, clickable menu slime and fully keyboard-operated menus. Preserve non-typist difficulty feedback for future study. Pink enemies were a positive panic moment, not a nerf request. Swarmers and opening/post-1:30 pressure changes explicitly excluded from this pass. Focus Ray and typing audio were praised; one reported run lasted 7:36, and another player started a second run. ZIP confusion is onboarding feedback, not a confirmed launch defect.
+
+### Implementation and verification boundaries
+
+- Potions start at 2% per kill and restore 10 HP. Up to 12 remain in the world; a successful drop can replace a distant offscreen potion beyond 2,000 units. Full HP never consumes one. These are initial tuning values, not a claim of final balance.
+- XP thresholds are 25 / 100 / 500 for green / purple / gold; smaller values remain blue.
+- Cross Blade already pierced enemies on both legs; regression now explicitly covers multiple return hits without duplicate same-leg damage. No return-damage bonus added.
+- Focus/Prism support three independent active casts each, distinct emission lanes and smooth rotation; Prism pierces the full line. Seeker contact damage is 18, previously 22.
+- Each ingredient rank above one adds 7.5% of combination base damage, additive with its own rank bonus. Life also improves seed healing, Ice improves Steam Field/Frost Sigil area and Regeneration improves Soul Bloom recovery. Player damage modifiers apply once.
+- Inventory distinguishes base spells, slot-free combinations and passives with own ranks; ingredient ranks appear in combination tooltips. No full keyboard-navigation overhaul was performed.
+- Windows-specific flickering remains open: macOS/native and browser evidence cannot verify that report. Mobile/touch support and a full natural 20-minute balance verdict are not included.
+- Browser package creation and local playtesting do not publish an itch page. Account/page access and final visibility are still separate steps.
