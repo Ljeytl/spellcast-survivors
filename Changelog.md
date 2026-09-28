@@ -1,3 +1,10 @@
+## 2026-09-28 — Composable spell-system reference (documentation only)
+
+- Added a standalone component/property reference before the named spell recipes: origin, geometry, delivery, propagation, targeting, payloads, timing, elements and lifecycle.
+- Defined keyword-to-property bindings, meaningful size behavior for projectiles and infection, all 36 campaign recipe mappings, and the remaining spell ideas and additional reusable components they need.
+- Kept unsupported keyword choices, cone delivery alternatives, infection refresh and draft Soul Bloom/Meteor Lance identities explicit rather than treating them as approved mechanics.
+- Added two document coverage checks. Gameplay and user-owned in-progress design edits remain unchanged; next work is product review of the reference, followed by a small component-based implementation when authorized.
+
 ## 2026-09-27 — Expedition design and implementation specification (documentation only)
 
 - Added `docs/expedition-design/` as a separate researched proposal for permanent spell/keyword knowledge, prepared expeditions, four ley lines and 20-minute extraction.
