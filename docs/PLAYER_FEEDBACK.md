@@ -138,6 +138,10 @@ These rows point into existing detailed plans/results. They are not all known cu
 - **Yggdrasil / World Tree:** reaffirm the existing ultimate-healing-tree idea and mystical spelling as part of its appeal. This does not approve the old provisional numeric defaults.
 - **Reference confirmed:** the user confirmed Shillelagh. Draw names from mythology, folklore or popular fantasy media; trace older origins where possible while retaining our own mechanics.
 
+## Ritual casting idea — 2026-09-28
+
+- **I20 — multi-stage incantation / Explosion (deferred):** long chant ending in a final word that releases a screen-wide blast; user cites Konosuba as the fantasy reference. [Full idea and open decisions](CASTING_FANTASY_NOTES.md#multi-stage-ritual-casting--2026-09-28-idea). Continuous versus checkpointed casting and per-cast slowdown integration require design before code.
+
 ## Detailed source records
 
 The linked plans, catalogs and reports retain original subrequirements and historical implementation evidence. Read those alongside each row rather than collapsing their entire scope into a single fixed checkbox. New reports should reference these IDs and link the exact candidate evidence. If an older conversational detail has no corresponding source or row, add it explicitly; this index does not claim a line-by-line transcript audit or freshly verified closure of every historical issue.

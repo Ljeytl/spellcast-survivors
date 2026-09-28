@@ -1,3 +1,7 @@
+## 2026-09-28 — Preserve multi-stage incantation idea
+
+- Record the long-chant Explosion concept, intended payoff, per-cast slowdown constraint, and open movement/interruption decisions; index as I20 and link the spell catalog/roadmap. Documentation only.
+
 ## 2026-09-28 — Confirm spell naming sources
 
 - Confirm Shillelagh and record its traditional Irish origin separately from its D&D mechanics.
