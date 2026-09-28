@@ -53,6 +53,11 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	if info.type in ["piercing", "orbit", "plague", "spirit", "returning"]:
 		Visual.register(self)
 
+func extend_duration(data: Dictionary) -> float:
+	var added = float(data.get("duration", 0.0))
+	remaining += added
+	return added
+
 func _ready():
 	if is_in_group("projectile_visuals"):
 		Visual.register(self)

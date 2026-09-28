@@ -1,3 +1,10 @@
+## 2026-09-28 — Playtest 0.1.25: maintained spell recasts
+
+- Add data-driven recast behavior. Arcane Orbit, Firewalk, Regeneration and Earth Shield extend existing duration; independent fields, beams, summons and traps retain separate casts. No new duration cap.
+- Firewalk extends only the time spent laying fire; existing patches retain their original linger time. Recasting after emission stops resumes at the player without laying a trail across the intervening gap.
+- Show live duration beneath spell names, active-instance counts, armed trap states, and brief added-time feedback. Firewalk distinguishes emission time from remaining burning ground.
+- Set the shared menu/gameplay version to v0.1.25.
+
 ## 2026-09-28 — Guaranteed boss recovery
 
 - Each defeated boss drops exactly one 10-HP potion beside its upgrade chest, bypassing the ordinary random-drop roll and potion cap. Full-health players can leave it for later.

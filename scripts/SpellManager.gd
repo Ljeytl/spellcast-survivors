@@ -2,6 +2,7 @@ extends Node
 
 signal spell_queued(spell_name: String, slot: int)
 signal spell_cast(spell_name: String)
+signal spell_extended(spell_id: String, seconds: float)
 signal typing_started
 signal typing_ended
 signal spell_locked_error(spell_name: String, required_level: int, current_level: int)
@@ -634,16 +635,23 @@ func cast_life_spell(slot: int):
 	var heal_per_second = spell_info["heal_amount"] * level_multiplier
 	var duration = spell_info["duration"]
 	
-	# Add healing over time effect
-	var healing_effect = {
-		"heal_per_second": heal_per_second,
-		"remaining_time": duration
-	}
-	active_healing_effects.append(healing_effect)
+	var total_remaining = float(duration)
+	var extended = false
+	if spell_info.get("recast_behavior", "stack") == "extend":
+		for effect in active_healing_effects:
+			if effect.get("spell_id", "") == spell_info.id and effect.remaining_time > 0:
+				effect.heal_per_second = heal_per_second
+				effect.remaining_time += duration
+				total_remaining = effect.remaining_time
+				extended = true
+				spell_extended.emit(spell_info.id, duration)
+				break
+	if not extended:
+		active_healing_effects.append({"spell_id": spell_info.id, "heal_per_second": heal_per_second, "remaining_time": duration})
 	var particles = get_parent().get("particle_manager")
 	if is_instance_valid(particles):
-		particles.create_persistent_life_circle(player, duration)
-	
+		particles.create_persistent_life_circle(player, total_remaining)
+
 
 func cast_ice_blast_spell(slot: int):
 	print("🧊 cast_ice_blast_spell called!")
@@ -664,7 +672,12 @@ func cast_earthshield_spell(slot: int):
 	
 	# Add overheal to player instead of shield
 	if player and player.has_method("add_overheal"):
-		player.add_overheal(overheal_amount, float(spell_info.get("duration", 16.0)))
+		var duration = float(spell_info.get("duration", 16.0))
+		var prior = maxf(0, player.overheal_timer) if player.overheal > 0 and spell_info.get("recast_behavior", "stack") == "extend" else 0.0
+		player.add_overheal(overheal_amount, duration)
+		player.overheal_timer += prior
+		if prior > 0:
+			spell_extended.emit(spell_info.id, duration)
 	
 	# Create shield visual effect
 	create_shield_effect()
@@ -770,7 +783,7 @@ func create_simple_spell_flash(pos: Vector2, color: Color):
 func create_shield_effect():
 	var particles = get_parent().get("particle_manager")
 	if is_instance_valid(particles) and particles.has_method("create_persistent_shield_circle"):
-		particles.create_persistent_shield_circle(player, player.overheal_duration)
+		particles.create_persistent_shield_circle(player, player.overheal_timer)
 
 func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String):
 	# Create satisfying area effect explosion
@@ -1233,6 +1246,14 @@ func cast_build_spell(slot: int) -> bool:
 	info.projectile_speed_multiplier = player.projectile_speed_multiplier
 	var tactical = info.type in ["beam", "trap", "spirit", "trail", "returning"]
 	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return effect.info.id == info.id and not effect.is_queued_for_deletion())
+	if info.get("recast_behavior", "stack") == "extend":
+		for existing in active:
+			if existing.remaining > 0 and existing.caster and existing.caster.get_ref() == player:
+				existing.damage = calculate_spell_damage(info)
+				existing.info = preload("res://scripts/SpellGeometry.gd").scaled_data(info, player)
+				var added = existing.extend_duration(info)
+				spell_extended.emit(info.id, added)
+				return true
 	if active.size() >= int(info.get("active_limit", 3)):
 		active[0].queue_free()
 	if tactical:

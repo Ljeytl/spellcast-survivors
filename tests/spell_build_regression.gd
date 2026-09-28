@@ -234,7 +234,7 @@ func run():
 	for i in range(5):
 		manager.cast_freeform_spell("arcane orbit")
 	var active = get_nodes_in_group("build_spell_effects").filter(func(item): return item.info.id == "arcane_orbit" and not item.is_queued_for_deletion())
-	check(active.size() == 3, "Repeated casts retain at most three active effects")
+	check(active.size() == 1 and active[0].remaining >= 30, "Repeated orbit casts extend one maintained effect")
 	manager.spells.clear()
 	manager.bonus_spells.clear()
 	manager.acquired_spells.clear()
