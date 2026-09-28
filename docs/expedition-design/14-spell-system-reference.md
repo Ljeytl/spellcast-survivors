@@ -467,3 +467,25 @@ Review priorities:
 - Which infection refresh/reinfection policy and Meteor Lance identity should become the next authoritative design?
 
 Those decisions can be made against explicit tables now. They are not prerequisites to documenting the system, and they must not be silently answered by whichever component is easiest to code.
+
+## 13. Idea: base forms with elemental word tiers
+
+**Exploratory idea recorded 28 September 2026. Not selected for implementation; does not replace the current spell recipes or keyword rules.**
+
+A base form such as **Wall** could be a castable spell and a reusable behavior. Elemental words could then supply both an element and a potency tier. Instead of authoring every named elemental wall as an unrelated spell, the expression would resolve a shared wall recipe plus the selected elemental word's parameter changes.
+
+| Part | Idea | Still undecided |
+|---|---|---|
+| Base form | `wall` provides the common shape/behavior | Whether the plain wall blocks movement, deals damage, or has another baseline effect |
+| Element vocabulary | Fire, Flame, Cinder, Incinerating are candidate words from the same elemental family | Canonical words, exact effects and their ordering |
+| Word tier | Different words for the same element could produce objectively stronger versions of the same basic effect | Potency coefficients and whether duration, area or another property also changes |
+| Typing commitment | Longer elemental incantations can justify greater power; the short form remains available for faster casting | Exact relationship between length and strength; no universal damage-per-character formula is approved |
+| Shared composition | The elemental word could bind to supported properties of Wall and potentially other base forms | Which forms support it and whether tier behavior transfers consistently across them |
+
+Illustrative phrases only: `fire wall`, `flame wall`, `cinder wall`, `incinerating wall`. These are not an approved progression or parser vocabulary. Their lengths, including the space, are 9, 10, 11 and 17 characters respectively; thematic intensity alone must not decide the tier order. A shorter synonym must not accidentally become a free shortcut to the strongest effect.
+
+This differs from cosmetic aliases: if two elemental words represent different power tiers, they resolve different parameter values. It also differs from stacking several elemental adjectives: whether one word is selected per element, or multiple words can combine, remains open. Unlock requirements, simultaneous access, preparation slots and the relationship to Big/Powerful also remain open.
+
+The preceding Ice Lance/Glacial Lance discussion established the desired experience of accessing a shorter cast and an objectively stronger longer cast together in one prepared family. Elemental word tiers are a possible generalized way to achieve that experience, not a decision to rebuild every named spell around this grammar. Record and compare both approaches before choosing one.
+
+Next design exercise, when revisited: define one Wall recipe, two candidate words from one element, their exact property operations and visible results; then check whether the same word meanings transfer sensibly to a second base form. No gameplay, elemental resistance, collision or spell-unlock changes follow from recording this idea.
