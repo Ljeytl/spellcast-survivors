@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def export_web(godot, output):
+    if (ROOT / "override.cfg").exists():
+        raise RuntimeError("Remove local test overrides before exporting a player build.")
     state = subprocess.check_output(
         ["git", "status", "--porcelain", "--untracked-files=all"], cwd=ROOT, text=True
     )
