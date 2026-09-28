@@ -1,3 +1,7 @@
+## Approved playtest follow-up — 2026-09-28
+
+See [bounded scope and deferred feedback](docs/PLAYER_FEEDBACK.md#approved-playtest-follow-up--2026-09-28). Deliver recovery pickups, tree ordering, XP tiers, casting/combination fixes and compact HUD clarity before the browser playtest. Leave rocks, Swarmers and difficulty curves untouched. Preserve movement/landmark/map/relic ideas for later.
+
 ## Ritual incantations — 2026-09-28
 
 - [Multi-stage casting / Explosion](docs/CASTING_FANTASY_NOTES.md#multi-stage-ritual-casting--2026-09-28-idea): preserve the long chant → final word → screen-wide payoff concept. Explore one logical cast with finite slowdown and either continuous or checkpointed commitment; no implementation yet.

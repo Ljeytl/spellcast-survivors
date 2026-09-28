@@ -1,3 +1,8 @@
+## 2026-09-28 — Playtest follow-up scope and web packaging
+
+- Consolidate approved fixes and explicit exclusions in the feedback tracker and roadmap.
+- Add a repeatable HTML export command with revision manifest and itch-ready ZIP; runtime verification is reported separately from export success.
+
 ## 2026-09-28 — Preserve multi-stage incantation idea
 
 - Record the long-chant Explosion concept, intended payoff, per-cast slowdown constraint, and open movement/interruption decisions; index as I20 and link the spell catalog/roadmap. Documentation only.

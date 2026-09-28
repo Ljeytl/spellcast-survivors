@@ -130,3 +130,13 @@ Spell character counts are carefully balanced - shorter spells (4 chars) are qui
 ---
 
 *Built as a demonstration of game development skills, combining innovative mechanics with solid technical execution.*
+### Browser playtest build
+
+From a clean committed checkout with matching Godot export templates installed:
+
+```sh
+python3 tools/export_web.py
+python3 tools/serve_previews.py --directory builds/web-TIMESTAMP/web --port 8765
+```
+
+Open `http://127.0.0.1:8765/`. The export prints its actual output directory and writes a revision manifest plus `Shoulda-Joined-a-Party-Web.zip`. The ZIP contains `index.html` at its root for an itch.io HTML project. Select the upload as playable in-browser and allow fullscreen; this is a desktop keyboard game. Verify typing, audio, menu transitions and saved settings in the browser before sharing. Re-run after each approved gameplay/balance merge; exported files are ignored by Git. Export success alone does not certify browser gameplay.
