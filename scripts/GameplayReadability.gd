@@ -129,7 +129,7 @@ func _process(_delta):
 	var manager = game.spell_manager
 	if game.current_state == game.GameState.PLAYING and not manager.is_typing:
 		feedback_remaining = maxf(0, feedback_remaining - _delta)
-	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Mana Bolt fires automatically\nClick a spell or press 1–6, then type · Space chooses any learned spell"
+	guidance.text = feedback_copy if feedback_remaining > 0 else "WASD / arrows move · Magic Missile fires automatically\nClick a spell or press 1–6, then type · Space chooses any learned spell"
 	guidance.visible = game.current_state == game.GameState.PLAYING and not manager.is_typing and game.interface_debug
 	var spells_panel = game.get_node("UI/HUD/SpellSlotsPanel")
 	spells_panel.visible = game.interface_debug
@@ -142,7 +142,7 @@ func _process(_delta):
 	var reference = game.hud.get_node_or_null("CastingReference")
 	if is_instance_valid(reference) and not game.interface_debug:
 		guidance.position.y = reference.position.y - guidance.size.y - 8
-	passive_label.text = "AUTO · Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt")
+	passive_label.text = "AUTO · Magic Missile · Rank %d" % manager.get_spell_rank("mana_bolt")
 	var remaining = manager.typing_slowdown_remaining
 	var capacity = manager.typing_slowdown_capacity
 	focus_bar.max_value = capacity

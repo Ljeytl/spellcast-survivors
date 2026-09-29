@@ -64,7 +64,7 @@ var spells = {}
 # Freeform spell library loaded from DataManager
 var freeform_spells: Dictionary = {}
 
-# Mana bolt is the auto-attack spell
+# Magic Missile is the auto-attack spell
 var mana_bolt_damage = 15.0
 var mana_bolt_level = 1
 var mana_bolt_cooldown = MANA_BOLT_COOLDOWN
@@ -127,7 +127,7 @@ func _process(delta):
 	casting_clock += unscaled_delta
 	style_clock_advanced.emit(unscaled_delta)
 	advance_typing_slowdown(unscaled_delta)
-	# Handle auto-attack mana bolt
+	# Handle auto-attack Magic Missile
 	handle_auto_attack(delta)
 	
 	# Process healing over time effects
@@ -332,7 +332,7 @@ func handle_auto_attack(delta):
 	mana_bolt_timer -= delta
 	if mana_bolt_timer <= 0.0:
 		fire_mana_bolt()
-		# Apply cast speed to mana bolt cooldown (faster auto-attacks)
+		# Apply cast speed to Magic Missile cooldown (faster auto-attacks)
 		var cast_speed_bonus = player.cast_speed_multiplier if player else 1.0
 		var adjusted_cooldown = mana_bolt_cooldown / cast_speed_bonus
 		mana_bolt_timer = adjusted_cooldown
@@ -349,30 +349,30 @@ func fire_mana_bolt():
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
 	var damage = mana_bolt_damage * level_multiplier * player.spell_damage_multiplier
 	
-	# Determine number of projectiles based on mana bolt level
+	# Determine number of projectiles based on Magic Missile level
 	var projectile_count = 1
 	if mana_bolt_level >= 3:
-		projectile_count = 2  # Level 3+: 2 mana bolts
+		projectile_count = 2  # Level 3+: 2 Magic Missiles
 	if mana_bolt_level >= 6:
-		projectile_count = 3  # Level 6+: 3 mana bolts
+		projectile_count = 3  # Level 6+: 3 Magic Missiles
 	if mana_bolt_level >= 10:
-		projectile_count = 4  # Level 10+: 4 mana bolts
+		projectile_count = 4  # Level 10+: 4 Magic Missiles
 	
 	# Get multiple targets for higher levels
 	var targets = get_multiple_enemies(projectile_count)
 	if targets.size() == 0:
 		return
 	
-	# Play mana bolt sound
+	# Play Magic Missile sound
 	if AudioManager:
 		AudioManager.play_spell_sound("mana_bolt")
 	
-	# Create mana bolt visual effect (simple flash)
+	# Create Magic Missile visual effect (simple flash)
 	create_simple_spell_flash(player.global_position, Color.CYAN)
 	
-	# Fire multiple mana bolts with slight timing offset
+	# Fire multiple Magic Missiles with slight timing offset
 	for i in range(projectile_count):
-		var delay = i * 0.05  # 50ms delay between each mana bolt for smoother effect
+		var delay = i * 0.05  # 50ms delay between each Magic Missile for smoother effect
 		var target = targets[i % targets.size()]  # Cycle through available targets
 		
 		if delay > 0:
@@ -382,7 +382,7 @@ func fire_mana_bolt():
 		else:
 			create_mana_bolt_projectile(target, damage, i)
 
-# Helper function to create individual mana bolt projectiles
+# Helper function to create individual Magic Missile projectiles
 func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index: int):
 	target = Targeting.select(get_tree(), player.global_position)
 	if not target or not is_instance_valid(target):
@@ -405,7 +405,7 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 	if not projectile or not is_instance_valid(projectile):
 		return
 	
-	# Vary color slightly for multiple mana bolts
+	# Vary color slightly for multiple Magic Missiles
 	var base_color = Color.CYAN
 	var hue_shift = fmod(projectile_index * 0.1, 1.0)
 	var color_variation = Color.from_hsv(0.5 + hue_shift * 0.15, 0.8, 1.0)  # Cyan to blue range
@@ -415,7 +415,7 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 	var speed_variation = 450.0 + (projectile_index * 25.0)
 	projectile.speed = speed_variation * player.projectile_speed_multiplier
 	
-	# Strong homing for mana bolts
+	# Strong homing for Magic Missiles
 	projectile.homing_strength = 6.0
 	
 	projectile.setup_homing(player.global_position, target, damage, projectile_color, "mana_bolt")

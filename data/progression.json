@@ -10,7 +10,7 @@
       },
       "cast_speed": {
         "name": "Mana Tempo",
-        "description": "+10% automatic Mana Bolt attack rate",
+        "description": "+10% automatic Magic Missile attack rate",
         "icon": "⏱️", 
         "effect": {"type": "cast_speed", "value": 0.10},
         "weight": 100
@@ -79,7 +79,7 @@
         "weight": 50
       },
       "slowdown_duration": {"name": "Focus", "description": "+0.5 seconds of slowdown per cast", "icon": "", "effect": {"type": "slowdown_duration", "value": 0.5}, "weight": 80},
-      "mana_bolt_mastery": {"name": "Mana Mastery", "description": "+15% base Mana Bolt damage, +10% attack rate; extra bolts at ranks 3, 6 and 10", "icon": "", "effect": {"type": "mana_bolt_mastery", "value": 1}, "weight": 100}
+      "mana_bolt_mastery": {"name": "Missile Mastery", "description": "+15% base Magic Missile damage, +10% attack rate; extra bolts at ranks 3, 6 and 10", "icon": "", "effect": {"type": "mana_bolt_mastery", "value": 1}, "weight": 100}
     },
     "guaranteed_unlocks": {
       "3": [{"type": "spell_unlock", "spell": "life"}],

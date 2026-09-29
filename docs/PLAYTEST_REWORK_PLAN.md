@@ -12,7 +12,7 @@ The user has accepted the overall spell direction and specifically endorsed Fros
 
 1. [Core design v0.4](CORE_GAME_DESIGN.md): reconciled intended rules and superseded decisions.
 2. [Full spell library](SPELL_LIBRARY.md): individual current, rework, idea, inactive-data and naming-alternative rows, including user concepts and new water/sun/earth proposals.
-3. [Spell and upgrade catalog](SPELL_AND_UPGRADE_CATALOG.md): 15 manual bases, automatic Mana Bolt, eight intended bonus spells, 14 passive families and separate future concepts.
+3. [Spell and upgrade catalog](SPELL_AND_UPGRADE_CATALOG.md): 15 manual bases, automatic Magic Missile, eight intended bonus spells, 14 passive families and separate future concepts.
 4. [Art and feedback specification](ART_AND_FEEDBACK_PLAN.md): every current spell lifecycle, non-spell events, world layout, collision and readability.
 5. This plan: traceable feedback, unresolved decisions, ownership, execution order and evidence requirements.
 
@@ -34,7 +34,7 @@ All runtime dispositions below remain pending implementation/review unless expli
 | F10 | Clean HUD and concise choices. | UX | All upgrade types, full categories, bonuses, long names, help/pause/endings; exact one-sentence copy, no boss forecast or permanent controls. |
 | F11 | Bigger readable keycap letters; text stays in boxes. | UX + art | Desktop and narrow menu/typing journeys; wrapping, repeated backspace, punctuation, long names, focus and next-state transitions. |
 | F12 | Complete hit/death/hurt/XP feedback, not only spells. | Art | Actual event-by-event footage plus crowded overlap; terrain-barrier damage and any real absorption distinct from player HP loss. |
-| F13 | Mana Bolt animation and enemy circles confusing. | Art + UX | Clean 2D trajectory; debug rings absent normally; necessary enemy attack telegraphs retained. |
+| F13 | Magic Missile animation and enemy circles confusing. | Art + UX | Clean 2D trajectory; debug rings absent normally; necessary enemy attack telegraphs retained. |
 | F14 | Bigger XP crystals and understandable pickup. | Art/world | Visual size compared at same zoom, unchanged XP/magnet/radius, readable glint on collection. |
 | F15 | Trees thinner and centered on trunks; clustered vegetation. | World | Reported stuck-left case, all-side trunk approaches, tree variants, paths/clearings/start safety; visible canopy versus collision overlay. |
 | F16 | Difficulty too passive; inactivity dies around 30–45s. | Pacing | Seeded idle, movement-only, stationary-casting and active runs; report each mode honestly, then human play. No forced timeout damage. |
@@ -130,7 +130,7 @@ No statement here means the user is already playing the intended design. Do not 
 
 | Decision | Recommendation | Status |
 |---|---|---|
-| Automatic Mana Bolt and passive slots | Innate attack free; choosing mastery occupies one of six passive slots. | Proposed. |
+| Automatic Magic Missile and passive slots | Innate attack free; choosing mastery occupies one of six passive slots. | Proposed. |
 | Bonus acquisition and ranks | Eligible level-up reward, rank 1, independent upgrades; discovery persists separately. | Proposed; additive/no-slot/keep-ingredients rule already confirmed. |
 | Persistent trap cap | Three active traps, oldest replaced on overflow; define shared versus separate Frost Sigil cap. | Proposed, not an agreed cap. |
 | Earth Shield / Earth Wall | Personal stone protection now; placed Earth Walls stay on the idea list. | User confirmed during implementation. |

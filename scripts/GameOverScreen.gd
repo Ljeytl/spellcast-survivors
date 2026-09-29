@@ -90,7 +90,7 @@ func display_stats(stats: Dictionary):
 	defeat_label.text = describe_final_hit(stats.get("final_hit", {}))
 	title_label.text = "VICTORY!" if won else "GAME OVER"
 	title_label.add_theme_color_override("font_color", Color("dfbd76") if won else Color("ff8175"))
-	kit_label.text = "FINAL SPELL KIT\n" + "\n".join(stats.get("final_kit", [])) + "\nAutomatic Mana Bolt · Rank %d" % stats.get("mana_bolt_rank", 1)
+	kit_label.text = "FINAL SPELL KIT\n" + "\n".join(stats.get("final_kit", [])) + "\nAutomatic Magic Missile · Rank %d" % stats.get("mana_bolt_rank", 1)
 	var discoveries = stats.get("discoveries", [])
 	discovery_label.visible = debug or not discoveries.is_empty()
 	discovery_label.text = "NEW DISCOVERIES\n" + (", ".join(discoveries) if not discoveries.is_empty() else "No new evolutions discovered this run.")

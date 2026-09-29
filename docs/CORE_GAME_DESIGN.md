@@ -26,7 +26,7 @@ Keep the spells already implemented and repair their identities, useful output, 
 | Encounters | Time advances tiers regardless of surviving bosses. Bosses at 5:00, 10:00 and 15:00. Do not forecast their schedule in the ordinary HUD. |
 | Enemy families | Grunts, Runners, Brutes and Shooters, with multiple variants. Skirmisher is a Grunt; Swarmer is a Runner. |
 | Opening | Active movement and casting should matter immediately. Latest target: inactivity should become lethal in roughly 30–45 seconds. Preserve fair escape routes and early growth. The strict moving-without-casting target needs separate tuning discussion. |
-| Early durability | Ordinary fodder takes roughly 2–3 starting automatic Mana Bolt hits. Fragile runners take one, moving roughly 2–3 times as fast as ordinary melee. |
+| Early durability | Ordinary fodder takes roughly 2–3 starting automatic Magic Missile hits. Fragile runners take one, moving roughly 2–3 times as fast as ordinary melee. |
 | Ranged enemies | Introduce around 10–12 minutes; use readable hostile projectiles. |
 | Active slots | Six learned active spells. Start with manual Bolt in slot 1; other active slots are empty. No starting Lightning. |
 | Passive slots | Six distinct passive families. Further ranks occupy the existing family slot. Map-found overflow is deferred. |
@@ -41,7 +41,7 @@ Keep the spells already implemented and repair their identities, useful output, 
 | Multicast | One extra spell-appropriate unit of output after one completed incantation: another projectile, meteor, jump, pulse or other explicitly defined unit. No extra typing. |
 | Presentation | Existing ancient stone/pixel-world direction. Legible large keycaps, concise choices and minimal HUD. Audio work is deferred. |
 
-Automatic Mana Bolt remains a separate automatic attack. Whether its first mastery upgrade consumes a passive slot is an explicit open decision; recommended yes, while the innate attack itself is free.
+Automatic Magic Missile remains a separate automatic attack. Whether its first mastery upgrade consumes a passive slot is an explicit open decision; recommended yes, while the innate attack itself is free.
 
 ## Casting contract
 

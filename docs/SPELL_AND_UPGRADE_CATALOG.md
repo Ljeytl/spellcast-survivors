@@ -7,9 +7,9 @@ The [full spell library](SPELL_LIBRARY.md) is the master list of current identit
 
 ## Inventory and naming
 
-The current acquisition pool has 15 manual base spells, seven replacement recipes, and separate automatic Mana Bolt. The target converts every recipe into an additional slot-free spell and adds the confirmed Bolt + Lightning recipe. Current data identifiers are listed to make migration explicit; retaining an identifier does not approve its old behavior or displayed name.
+The current acquisition pool has 15 manual base spells, seven replacement recipes, and separate automatic Magic Missile. The target converts every recipe into an additional slot-free spell and adds the confirmed Bolt + Lightning recipe. Current data identifiers are listed to make migration explicit; retaining an identifier does not approve its old behavior or displayed name.
 
-The earliest compact roster was six manual spells plus automatic Mana Bolt. Historical drafts differ. Do not silently replace today's roster with an imagined original eight-spell list.
+The earliest compact roster was six manual spells plus automatic Magic Missile. Historical drafts differ. Do not silently replace today's roster with an imagined original eight-spell list.
 
 Proposed readable incantations below use single spaces and case-insensitive letters. Exact accepted aliases and save migration need review; aliases must never let a short phrase invoke a materially stronger long spell. For comparison, count letters separately from spaces and measure actual entry time and errors. “Yggdrasil” has 9 letters; “Regeneration” has 12. Preserve both distinct fantasies and tune useful payoff/commitment honestly; the letter comparison is not grounds to discard the Tree of Life idea.
 
@@ -19,7 +19,7 @@ All identities below require a complete cast/impact/expiration presentation in t
 
 | Current ID → intended name | Fantasy and targeting | Useful payoff / design requirement |
 |---|---|---|
-| `mana_bolt` → Mana Bolt, automatic | Small automatic projectile aimed at a valid nearby threat. | Baseline progression and fodder hits; clean forward 2D motion. No typing cost, no manual active slot. Mastery slot decision remains open. |
+| `mana_bolt` → Magic Missile, automatic | Small automatic projectile aimed at a valid nearby threat. | Baseline progression and fodder hits; clean forward 2D motion. No typing cost, no manual active slot. Mastery slot decision remains open. |
 | `bolt` → Bolt | Quick simple projectile at an acquired living target. | Reliable fast damage; aim once and travel straight, no homing or innate bounce. Homing Bolt is a separate future idea. Starts in slot 1. Remove the misleading current Lightning Bolt label. Rank and Multicast behavior must not erase this identity. |
 | `lightning_arc` → Lightning | Direct strike on an acquired living enemy. | Greater focused payoff than Bolt for more typing. Current chaining behavior must change; a rename alone is insufficient. Chaining belongs to Lightning Bolt. |
 | `life` → Regeneration | Restore the caster over time. | Dependable specialist healing; proposed benchmark stronger than hybrid healing at comparable commitment. Current base is 40 HP over 5 seconds; inspect full-health/recast behavior before setting targets. Life becomes a genuinely separate quick heal, target about 4 HP; it must not remain a short alias for this stronger spell. Separate IDs and recipe migration are required. |
@@ -45,7 +45,7 @@ Ice Blast's cone and Bolt/Lightning/Lightning Bolt identities are confirmed. Oth
 
 | Spell / group | Intended hit geometry | Origin and aim / placement | Parameters and hit rules to settle |
 |---|---|---|---|
-| Bolt / automatic Mana Bolt | Moving projectile collision shape; Bolt does not home. | Launch at wizard/staff toward a sampled valid target. | Collision radius, speed, reach/lifetime, first-hit behavior. Distinguish art bounds from collision. |
+| Bolt / automatic Magic Missile | Moving projectile collision shape; Bolt does not home. | Launch at wizard/staff toward a sampled valid target. | Collision radius, speed, reach/lifetime, first-hit behavior. Distinguish art bounds from collision. |
 | Lightning | Local direct strike on acquired target. | At target position; no projectile travel. | Single-target versus any small impact area must be explicit; no decorative branches implying extra hits. |
 | Lightning Bolt | Moving projectile with discrete bounce legs. | Acquired first target, then eligible next targets. | Projectile collision, bounce reach/count, repeat-target eligibility. No invisible damage along a purely visual link. |
 | Ice Blast | **Cone / circular sector, confirmed.** | Origin at wizard; recommend sampling direction toward a valid threat at release. Exact fallback aim remains open. | Reach, opening angle, boundary inclusion, obstruction rules; hits only inside sector, not behind caster. |
@@ -108,7 +108,7 @@ These categories consolidate user requests. Numeric rank values are proposals to
 | Max health | More maximum HP. | Decide whether gaining a rank also heals; show the actual rule. |
 | Multicast | One additional spell-appropriate output unit. | Author each spell's mapping; no unlimited recursive casts or duplicated bonus triggers. |
 | XP gain | More experience from collected rewards. | Exact multiplier and rounding; distinguish from enemy population. |
-| Mana Bolt mastery | Bundle automatic attack damage, rate and count progression. | One family rather than three separate passive taxes; first-rank slot accounting open. |
+| Magic Missile mastery | Bundle automatic attack damage, rate and count progression. | One family rather than three separate passive taxes; first-rank slot accounting open. |
 | Pickup radius | Collect XP from farther away. | Separate collection reach, magnet onset and visual crystal size. |
 | Luck | Improve explicitly named random outcomes. | Must define affected rolls and caps before offering it; vague “better luck” is insufficient. |
 | Crit chance | More eligible attacks critically hit. | Define damage-over-time and per-target rolls; no misleading universal claim. |

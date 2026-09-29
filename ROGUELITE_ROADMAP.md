@@ -133,7 +133,7 @@ See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified i
 - Implemented foundation: fresh per-cast slowdown, six primary slots, six distinct passive families, independently ranked bonus ownership and current-run casting gates.
 - Supported offers: spell power, movement, health, pickup range, projectile speed, Focus duration and bundled Mana Mastery. Other catalog families remain unavailable until their effects are implemented.
 - Integration pending: bouncing Lightning Bolt, collectable Life Bolt healing seeds, effect-side projectile speed, bonus access in the player spellbook and complete geometry/feedback review.
-- Working acquisition policy: bonus choices begin at rank 1; ingredients retain their slots/ranks. Innate automatic Mana Bolt is free; its first mastery upgrade occupies a passive family.
+- Working acquisition policy: bonus choices begin at rank 1; ingredients retain their slots/ranks. Innate automatic Magic Missile is free; its first mastery upgrade occupies a passive family.
 
 ## 2026-09-26 — Simple art matched to supplied assets (documentation only)
 
@@ -233,7 +233,7 @@ Keep the survivors premise; do not pivot to siege or alchemy now. See [Core Game
 
 - Pending: replace the shared slowdown reserve/refill with a fresh finite window on every cast; fixed strength, upgradeable duration, configurable negligible inter-cast delay.
 - Pending: spell-appropriate Multicast, adding one bolt, meteor, jump, healing pulse, or other defined output after one typed cast rather than duplicating the entire spell.
-- Pending: expand supporting stats and bundle Mana Bolt damage/rate/count. Keep secondary-slot limits, luck outcomes, and global-stat interactions with Mana Bolt explicitly unresolved.
+- Pending: expand supporting stats and bundle Magic Missile damage/rate/count. Keep secondary-slot limits, luck outcomes, and global-stat interactions with Magic Missile explicitly unresolved.
 - Long learned incantations must justify their commitment with major payoff, while quick basic spells remain useful.
 
 Older milestone entries below are historical. Mentions of shared slowdown/refill describe the shipped prototype, not the newly agreed target. This documentation update does not implement these mechanics.
@@ -271,27 +271,27 @@ Transform SpellCast Survivors from a simple vampire survivors clone into a compr
 
 ### Initial Character Classes
 1. **Arcane Scholar** (Default/Tutorial Class)
-   - Starting Spells: Mana Bolt, Bolt
+   - Starting Spells: Magic Missile, Bolt
    - Trait: +15% spell damage, spells unlock 1 level earlier
    - Playstyle: Balanced spellcaster, good for learning
 
 2. **Battle Mage** 
-   - Starting Spells: Mana Bolt, Ice Blast
+   - Starting Spells: Magic Missile, Ice Blast
    - Trait: +25% max health, +10% movement speed
    - Playstyle: Aggressive close-range caster
 
 3. **Life Weaver**
-   - Starting Spells: Mana Bolt, Life
+   - Starting Spells: Magic Missile, Life
    - Trait: +50% healing effectiveness, Life spell also grants movement speed
    - Playstyle: Sustain-focused survival specialist
 
 4. **Storm Caller** (Unlocked via meta-progression)
-   - Starting Spells: Mana Bolt, Lightning Arc
+   - Starting Spells: Magic Missile, Lightning Arc
    - Trait: +20% cast speed, chain spells hit +1 additional target
    - Playstyle: Chain reaction specialist
 
 5. **Meteor Summoner** (Unlocked via meta-progression)
-   - Starting Spells: Mana Bolt, Meteor Shower
+   - Starting Spells: Magic Missile, Meteor Shower
    - Trait: Area spells deal +25% damage, +15% area of effect
    - Playstyle: High-risk, high-reward AoE focused
 
@@ -496,7 +496,7 @@ Move away from infinite procedural arenas to handcrafted, interconnected areas t
 ### Spell Categories & Examples
 
 #### Offensive Spells
-**Current:** Bolt, Ice Blast, Lightning Arc, Meteor Shower, Mana Bolt
+**Current:** Bolt, Ice Blast, Lightning Arc, Meteor Shower, Magic Missile
 **New Additions:**
 - **Fire Ball** (8 letters): Single-target high damage with burning DoT
 - **Chain Lightning** (14 letters): Bounces between enemies, damage increases per bounce  
@@ -620,7 +620,7 @@ Design review: [Core Game Design v0.2](docs/CORE_GAME_DESIGN.md) reconciles the 
 
 ### Spell-acquisition milestone
 
-Run-local acquisition now offers ten base manual spells, five equipped slots, and four authored evolutions. Bolt starts equipped and automatic Mana Bolt remains separate. Level-ups offer learning, owned-spell ranks and passives; at capacity, only eligible evolutions can change spells. Reroll/banish/lock resources remain unchanged. Arbitrary replacement and branching specializations remain future work.
+Run-local acquisition now offers ten base manual spells, five equipped slots, and four authored evolutions. Bolt starts equipped and automatic Magic Missile remains separate. Level-ups offer learning, owned-spell ranks and passives; at capacity, only eligible evolutions can change spells. Reroll/banish/lock resources remain unchanged. Arbitrary replacement and branching specializations remain future work.
 
 Casting usability: keep the player visible and separate Escape cancellation from pausing. Next playtest must verify held movement, XP collection and an ordinary full run; the short stationary UI test does not qualify balance.
 
@@ -637,7 +637,7 @@ Space/Enter casting, movement lock while typing, Life Bolt acquisition and a per
 - Completed: wrapping/content-sized upgrade cards, scrollable offers, bounded casting text, help markup.
 - Next UI pass: make text physically readable at narrow window sizes; current canvas scaling makes menus small even though content is contained.
 - Completed: shared three-second typing slowdown budget, ten-second refill outside typing, in-box countdown, and normal-speed casting after exhaustion.
-- Mana Tempo (formerly Quick Cast) improves automatic Mana Bolt attack rate without weakening the three-second typing slowdown. Duration/refill upgrades remain a future experiment; current enemy difficulty is unchanged.
+- Mana Tempo (formerly Quick Cast) improves automatic Magic Missile attack rate without weakening the three-second typing slowdown. Duration/refill upgrades remain a future experiment; current enemy difficulty is unchanged.
 
 ### Gameplay build expansion — September 26, 2026
 

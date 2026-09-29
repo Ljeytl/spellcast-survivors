@@ -15,7 +15,7 @@ The first command opens a visible bot run. Each run ends at actual death or vict
 
 ## Behavior modes
 
-`--mode active` retains the original moving, typing, randomly upgrading bot. `idle` suppresses movement and typed spells, `movement` suppresses typed spells, and `casting` suppresses movement. Automatic Mana Bolt, enemy behavior, damage, XP and level-up choices stay enabled in every mode. These are behavioral controls, not forced death or invulnerability scenarios. Reports record mode and first damage time; validation rejects typed casts in noncasting modes or movement in stationary modes.
+`--mode active` retains the original moving, typing, randomly upgrading bot. `idle` suppresses movement and typed spells, `movement` suppresses typed spells, and `casting` suppresses movement. Automatic Magic Missile, enemy behavior, damage, XP and level-up choices stay enabled in every mode. These are behavioral controls, not forced death or invulnerability scenarios. Reports record mode and first damage time; validation rejects typed casts in noncasting modes or movement in stationary modes.
 
 ## Policy
 

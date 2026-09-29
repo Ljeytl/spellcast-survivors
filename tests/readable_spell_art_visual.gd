@@ -58,7 +58,7 @@ func run():
 	stage.known_bad = known_bad
 	root.add_child(stage)
 	current_scene = stage
-	label_at("BOLT / MANA BOLT", Vector2(28, 25))
+	label_at("BOLT / Magic Missile", Vector2(28, 25))
 	label_at("Damage       Heal       Slow / ice", Vector2(40, 310))
 	label_at("STEAM FIELD · DAMAGE + SLOW", Vector2(425, 25))
 	label_at("LIGHTNING", Vector2(828, 25))

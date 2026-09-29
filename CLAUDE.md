@@ -23,7 +23,7 @@ Based on the design document, the game will follow this structure:
 ### Core Systems
 - **GameManager**: Main game state and flow control (PLAYING, LEVEL_UP, GAME_OVER, PAUSED)
 - **SpellSystem**: Handles spell queuing, typing input, and casting mechanics with time dilation
-- **Player**: WASD movement, auto-attack (Mana Bolt), and spell casting
+- **Player**: WASD movement, auto-attack (Magic Missile), and spell casting
 - **EnemyManager**: Spawn patterns, difficulty scaling, and enemy behavior
 - **UIManager**: HUD elements, level up screen, and game feedback
 

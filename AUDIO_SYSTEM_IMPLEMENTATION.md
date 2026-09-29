@@ -113,7 +113,7 @@ All audio files were procedurally generated using Python with the `create_placeh
 - Typing sound feedback for every character typed
 - Distinct sounds for backspace, completion, and errors
 - Spell-specific casting sounds for all 6 spell types
-- Mana bolt (auto-attack) audio feedback
+- Magic Missile (auto-attack) audio feedback
 
 ### 2. Player Integration
 **Location**: `/Users/ljeytl/spellcast-survivors/scripts/Player.gd`

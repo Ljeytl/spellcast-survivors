@@ -76,7 +76,7 @@ func run():
 	for id in ids:
 		await setup()
 		var manager = game.spell_manager
-		var title = "Mana Bolt"
+		var title = "Magic Missile"
 		if id == "mana_bolt":
 			manager.fire_mana_bolt()
 		else:

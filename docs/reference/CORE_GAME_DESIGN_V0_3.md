@@ -30,7 +30,7 @@ The narrative reason for the assault and victory can be designed later. A twenty
 | Ranged introductions | Agreed: later pressure, roughly 10–12 minutes; clear hostile projectiles. |
 | Elemental identity | Agreed: primarily theme. Multiple approaches must remain viable; ordinary enemies must not require an element or named spell. Special late elemental interactions are undecided. |
 | Progression | Desired: acquire spells, choose meaningful upgrades and explore combinations during runs. Exact rules remain proposals. |
-| Spell count and slots | Five equipped manual spells; automatic Mana Bolt is separate. Fifteen base spells and seven authored evolutions are implemented. |
+| Spell count and slots | Five equipped manual spells; automatic Magic Missile is separate. Fifteen base spells and seven authored evolutions are implemented. |
 | Core premise | Agreed: retain roaming survivors combat and frantic typed spells; do not pivot now. |
 | Typing slowdown | Agreed design, pending implementation: fresh finite window per cast, fixed slowdown strength, duration upgrades, no shared reserve or meaningful recharge wait. |
 | Multicast | Agreed design, pending implementation: one additional spell-appropriate unit of output per bonus, automatically after one typed cast. |
@@ -72,7 +72,7 @@ First-upgrade target: roughly 15–20 seconds under ordinary competent opening p
 
 The shipped prototype still uses a shared three-second slowdown budget with a ten-second refill outside typing. It slows simulation to 0.2 world speed while budget remains. Per-cast reset and duration upgrades are not implemented by this documentation update. The existing 0.1-second inter-cast delay is a current value, not newly approved tuning.
 
-Numbered slots and equipped spell cards open an owned-spell prompt; correct completion casts automatically. Space accepts an owned incantation and Enter casts. Backspace edits, Escape cancels, and incomplete or mistyped numbered submissions remain editable. Player movement stops while typing. Mana Tempo improves automatic Mana Bolt attack rate without weakening slowdown.
+Numbered slots and equipped spell cards open an owned-spell prompt; correct completion casts automatically. Space accepts an owned incantation and Enter casts. Backspace edits, Escape cancels, and incomplete or mistyped numbered submissions remain editable. Player movement stops while typing. Mana Tempo improves automatic Magic Missile attack rate without weakening slowdown.
 
 Keep the move → choose spell → type → resolve → reposition rhythm. A mistake costs entry time rather than choosing another spell or imposing an extra health penalty. Each spell needs a targeting contract: automatic target, direction, player-centered, placed area or selected enemy.
 
@@ -123,7 +123,7 @@ Desired progression: early choices establish useful tools; later choices develop
 
 Working proposal: offer three choices per level, drawn from eligible new spells, owned-spell upgrades and passives. Improve the chance of seeing a new spell while slots remain open. Define that probability or guarantee explicitly; do not describe a probabilistic offer as guaranteed.
 
-Keep automatic Mana Bolt as basic coverage while manual spells provide meaningful advantages. It is separate from the five equipped manual-spell slots.
+Keep automatic Magic Missile as basic coverage while manual spells provide meaningful advantages. It is separate from the five equipped manual-spell slots.
 
 ### Loadout and replacement
 
@@ -137,12 +137,12 @@ These are the intended categories, not a claim that every stat is implemented. S
 |---|---|
 | Slowdown duration | More protected typing time on each fresh cast, with fixed slowdown strength. |
 | Spell area / size | Larger spell coverage or hitboxes where appropriate. |
-| Spell damage | Greater spell damage; interaction with bundled Mana Bolt damage remains to be settled. |
+| Spell damage | Greater spell damage; interaction with bundled Magic Missile damage remains to be settled. |
 | Movement speed | Faster escape and repositioning. |
 | Max health | More survivability. |
 | Multicast | Additional spell-appropriate output, replacing the proposed projectile-count-only stat. |
 | XP gain | Multiply XP received from collection. |
-| Mana Bolt mastery | One combined automatic-attack upgrade track covering damage, attack speed, and bolt count. Exact per-rank progression is undecided. |
+| Magic Missile mastery | One combined automatic-attack upgrade track covering damage, attack speed, and bolt count. Exact per-rank progression is undecided. |
 | Pickup radius | Collect XP from farther away. |
 | Luck | Improve explicitly defined favorable outcomes; affected systems and odds remain undecided. |
 | Crit chance | More frequent critical hits. |
@@ -151,7 +151,7 @@ These are the intended categories, not a claim that every stat is implemented. S
 
 Enemy population creates additional XP opportunities that still require kills and collection; XP gain increases the reward from the same collected XP. Neither should silently alter the fixed boss milestones or tier unlock times. Population limits, rates, and reward tuning still require design and testing.
 
-The prototype currently offers damage, Mana Tempo attack rate, movement, max health, and pickup-radius passives, plus separate spell/Mana Bolt ranks. The expanded categories and bundled Mana Bolt mastery are pending implementation.
+The prototype currently offers damage, Mana Tempo attack rate, movement, max health, and pickup-radius passives, plus separate spell/Magic Missile ranks. The expanded categories and bundled Magic Missile mastery are pending implementation.
 
 ### Multicast contract — agreed design
 
@@ -169,7 +169,7 @@ One bonus adds one unit appropriate to the spell after a single successful typed
 
 Offer or inspection text should show the concrete effect, such as “5 → 6 meteors” or “3 → 4 jumps,” rather than only an opaque Multicast number. Persistent beams, shields, fields, overlapping effects, and effect caps need explicit per-spell rules so extra output neither overwrites itself nor creates unlimited stacking. Examples such as an extra beam target or shield layer remain proposals.
 
-Whether global Multicast also affects automatic Mana Bolt remains open because bolt count is already part of its bundled mastery. Do not silently choose a double-scaling rule. Values, caps, targeting, spacing, and interactions with existing rank bonuses remain implementation decisions to resolve.
+Whether global Multicast also affects automatic Magic Missile remains open because bolt count is already part of its bundled mastery. Do not silently choose a double-scaling rule. Values, caps, targeting, spacing, and interactions with existing rank bonuses remain implementation decisions to resolve.
 
 ### Upgrade budget
 
@@ -244,7 +244,7 @@ Prioritize audio for player damage, incoming danger, spell success/failure and l
 
 ## 12. Validation and development sequence
 
-Implemented acquisition: start with Bolt and separate automatic Mana Bolt. Choose a five-spell kit from fifteen base spells through level-ups. Ownership and ranks reset each run. Eligible learning or evolution cards appear while available; every owned manual spell, including evolutions, can rank up.
+Implemented acquisition: start with Bolt and separate automatic Magic Missile. Choose a five-spell kit from fifteen base spells through level-ups. Ownership and ranks reset each run. Eligible learning or evolution cards appear while available; every owned manual spell, including evolutions, can rank up.
 
 Next playable slice: develop several useful spell interactions and meaningful behavior changes within the existing timed encounter structure. Select a small representative subset of spells for that slice; the full proposed library remains available for later expansion.
 
@@ -260,7 +260,7 @@ Before publication: test normal and narrow layouts, input correction/cancellatio
 
 | Choice | Recommendation for discussion | Why it matters |
 |---|---|---|
-| Five or six equipped spells; does the passive count? | Approved: five manual spells, automatic Mana Bolt separate. | Slots 1–5 follow acquisition order. |
+| Five or six equipped spells; does the passive count? | Approved: five manual spells, automatic Magic Missile separate. | Slots 1–5 follow acquisition order. |
 | Slowdown and cast-speed meaning while typing | Movement now stops during typing. Preserve current slowdown for this slice; review speed-upgrade meaning separately. | Defines input commitment and avoids upgrades making typing harder. |
 | Twenty minutes of game time or wall time? | Preserve simulation time for now and measure actual session length. | Typing slowdown makes the two different. A future promise of a twenty-minute real session needs a deliberate change. |
 | Broader fusion slot and ingredient rules | Approved: evolve the primary in place, retain rank and keep the catalyst usable. | Named authored recipes and persistent hidden discovery are agreed; arbitrary spell pairs do not combine. |

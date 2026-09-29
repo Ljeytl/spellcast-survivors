@@ -68,7 +68,7 @@ Enhanced versions of base spells with different adjectives indicating power leve
 - Effect: Auto-targets nearest enemy, moderate homing
 - Type: Utility upgrade
 
-**Ultimate Mana Bolt** (16 chars)
+**Ultimate Magic Missile** (16 chars)
 - Requirements: Bolt (Level 8) + 1000 Bolt casts
 - Effect: Massive projectile that splits into 8 seeking bolts on hit
 - Type: Maximum power evolution

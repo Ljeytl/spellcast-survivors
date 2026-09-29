@@ -1,6 +1,6 @@
 # Element and spell identity exploration — 29 September 2026
 
-Status: user brainstorming captured after 0.1.36, **documentation only**. This is not approval to implement a new roster, rename runtime spells, impose elemental damage types or remove existing spells. Later corrections below take precedence over earlier suggestions in the conversation and older proposal tables. Current runtime remains 16 learnable bases, seven enabled combinations, automatic Mana Bolt and the special Atomic reward.
+Status: user brainstorming captured after 0.1.36, **documentation only**. This is not approval to implement a new roster, rename runtime spells, impose elemental damage types or remove existing spells. Later corrections below take precedence over earlier suggestions in the conversation and older proposal tables. Current runtime remains 16 learnable bases, seven enabled combinations, automatic Magic Missile and the special Atomic reward.
 
 Use the [populated matrix](16-element-family-matrix.md) for browsing. This page owns details, alternatives and rejections. Labels such as desired, preferred or questioned describe the user's design response, not implementation authorization. Unnamed entries deliberately remain unnamed.
 
@@ -32,7 +32,7 @@ This follow-up supersedes the initial alternatives below. Water/Ice and Earth/Me
 
 | Entry | User concept / response | Status and unresolved details |
 |---|---|---|
-| Bolt / Mana Bolt | Manual Bolt and automatic Mana Bolt already cover ordinary magic projectiles | Implemented; no separate Arcane Bolt needed |
+| Bolt / Magic Missile | Manual Bolt and automatic Magic Missile already cover ordinary magic projectiles | Implemented; no separate Arcane Bolt needed |
 | Arcane Ball / Mana Lance | Generic additions lack a distinct need | Not selected; do not add just to fill cells |
 | Focus Ray | Already expresses concentrated magical energy | Implemented |
 | Arcane modifier | Critical chance was recalled as a possible keyword/property | Candidate only; not a settled elemental rule |
@@ -188,7 +188,7 @@ The following preserves prior ideas and exclusions outside the main browsing mat
 
 | Entry | Status |
 |---|---|
-| Mana Bolt | Implemented automatic attack, separate from manual Bolt |
+| Magic Missile | Implemented automatic attack, separate from manual Bolt |
 | Atomic | Implemented style reward, outside base acquisition pool |
 | Seeking Spirit / Reaping Spirit | Earlier spirit ideas; Reaping Spirit acquisition disabled; preserve despite school discussion |
 | Shillelagh | Now selected as Life Lance; earlier root-wave description is historical |

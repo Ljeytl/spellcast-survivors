@@ -46,7 +46,7 @@ The proposed primary loss state is player death, which ends the expedition. The 
 
 The campaign layout is a proposal, not a rebuild sequence. Earth Shield 0.1.36 is complete; next introduce keywords through a playable tutorial using existing spells; preserve other existing content. Then add preparation, ley-line discoveries and connected expeditions. The prior 17-spell replacement slice is superseded by document 15.
 
-The full roster preserves all 16 current learnable spells and seven enabled combinations, and promotes 13 ideas/new identities. See the catalog for all 36. Automatic Mana Bolt is a separate open decision; retain it during the first keyword increment, then compare manual-only play if that experiment is selected. Keep a reproducible comparison build while evolving the current game. Automatic attack removal is not part of the first keyword increment.
+The full roster preserves all 16 current learnable spells and seven enabled combinations, and promotes 13 ideas/new identities. See the catalog for all 36. Automatic Magic Missile is a separate open decision; retain it during the first keyword increment, then compare manual-only play if that experiment is selected. Keep a reproducible comparison build while evolving the current game. Automatic attack removal is not part of the first keyword increment.
 
 No passive stat-slot system, randomized level-up cards, endless mode, monetization, multiplayer, voice casting or new character class is part of this initial design. Ley lines replace the old random-level-up discovery role. Workshop tools remain developer tools. Later scope includes alternate starter weapons, typed menu navigation, numeric spell parameters and additional realms.
 

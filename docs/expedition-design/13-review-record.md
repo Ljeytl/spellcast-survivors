@@ -15,7 +15,7 @@
 
 ## Not proven or approved by this document
 
-1. D01–D14 remain product-review choices. Most sensitive: automatic Mana Bolt, death retention, six prepared pages, all learned words versus prepared words, the three-second abandoned-attempt fallback, bounded map interpretation and the hard boss deadline.
+1. D01–D14 remain product-review choices. Most sensitive: automatic Magic Missile, death retention, six prepared pages, all learned words versus prepared words, the three-second abandoned-attempt fallback, bounded map interpretation and the hard boss deadline.
 2. The opening mana curve is not feasible at its optimistic target pace for a slow Bolt → Life route. The progression chapter records the arithmetic and requires a comparison of threshold/pickup alternatives before production tuning.
 3. The route-length target requires a substantial detour factor. Validate in a plain blockout and shorten it if it creates filler walking.
 4. Spell coefficients, boss HP, spawn budgets, modifier caps and impact timings are concrete hypotheses. They have not been playtested in the new mode.

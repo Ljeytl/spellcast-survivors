@@ -43,7 +43,7 @@ func run():
 		menu._on_collection_pressed()
 		var book = menu.get_children().filter(func(child): return child.get_script() == preload("res://scripts/SpellCollection.gd"))[0]
 		await settle()
-		check(book.catalog_ids.size() == 24, "All 16 implemented actives, Mana Bolt and seven enabled combinations")
+		check(book.catalog_ids.size() == 24, "All 16 implemented actives, Magic Missile and seven enabled combinations")
 		check(not book.catalog_ids.has("reaping_spirit"), "Disabled combination excluded")
 		check(book.catalog_ids.has("meteor_shower"), "Unlearned active visible")
 		check(book.catalog_ids.has("life_bolt"), "Undiscovered recipe visible")

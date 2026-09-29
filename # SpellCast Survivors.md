@@ -12,7 +12,7 @@ A vampire survivors-style game where the player casts powerful spells by typing 
 
 ### Movement & Basic Combat
 - **Movement**: WASD keys for 8-directional movement
-- **Auto-Attack**: Mana Bolt automatically fires at nearest enemy
+- **Auto-Attack**: Magic Missile automatically fires at nearest enemy
 - **Spell Casting**: Number keys (1-6) queue spells, then type spell name to cast
 - **Time Dilation**: Time slows to 20% while typing spell names
 
@@ -46,7 +46,7 @@ count = base_count + floor((level - 1) / 3)
 area_multiplier = 1 + 0.2 * floor((level - 1) / 2)
 ```
 
-### Mana Bolt (Auto-Attack)
+### Magic Missile (Auto-Attack)
 **Trigger**: Automatic, no input required
 **Behavior**: Homing projectiles that target nearest enemy
 **Base Stats**: 25 damage, 1.5s delay, 1 missile
@@ -134,7 +134,7 @@ enemy_hp = base_hp * (1 + 0.1 * floor(time_survived / 30))
 - XP Pickup Range +50%
 
 **Spell-Specific Upgrades**:
-- "Upgrade Mana Bolt" - advances to next level
+- "Upgrade Magic Missile" - advances to next level
 - "Upgrade Fire" - advances to next level
 - "Upgrade Lightning" - advances to next level
 - "Upgrade Meteor" - advances to next level
@@ -284,7 +284,7 @@ GET /api/player-stats/{player_id}
 - [x] Basic spell casting (fire, lightning)
 
 ### Hour 3: Combat & Progression
-- [x] Mana Bolt auto-attack
+- [x] Magic Missile auto-attack
 - [x] XP system and collection
 - [x] Level up UI and upgrade selection
 - [x] Enemy health/damage system

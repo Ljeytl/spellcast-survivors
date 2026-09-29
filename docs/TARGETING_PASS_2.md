@@ -10,7 +10,7 @@ Homing shots reacquire within 600 world units if their target dies. Reacquisitio
 
 | Spell | Selection and commitment policy |
 |---|---|
-| Passive Mana Bolt | Shared useful target at every launch; homing reacquisition; one-impact reservation. |
+| Passive Magic Missile | Shared useful target at every launch; homing reacquisition; one-impact reservation. |
 | Bolt | Shared useful target for each delayed or rapid cast; straight trajectory; one-impact reservation. With no enemies, existing spread/facing fallback remains. |
 | Lightning Bolt | Shared launch and bounce selection; excludes previously hit enemies; reserves only next impact, not hypothetical future bounces. |
 | Life Bolt | Shared useful launch target; straight projectile; one-impact reservation; healing seed unchanged. |

@@ -64,7 +64,7 @@ func populate():
 	for id in load("res://scripts/SpellManager.gd").BASE_SPELL_IDS:
 		var data = get_tree().root.get_node("DataManager").get_spell_data(id)
 		add_entry(id, data.name, data.get("incantation", id.replace("_", " ")), COPY.SPELLS.get(id, ""), "Starting spell" if id == "bolt" else "Learn during a run")
-	add_entry("mana_bolt", "Mana Bolt", "", "Automatically fires at nearby enemies.", "Automatic · no active slot")
+	add_entry("mana_bolt", "Magic Missile", "", "Automatically fires at nearby enemies.", "Automatic · no active slot")
 	var discoveries = get_tree().root.get_node("CharacterManager").discovered_synergies
 	for id in RECIPES:
 		var recipe = RECIPES[id]

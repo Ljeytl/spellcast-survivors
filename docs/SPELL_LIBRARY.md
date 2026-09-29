@@ -46,7 +46,7 @@ These are reviewable design relationships, not final damage ratios. A longer tit
 
 | Spell | Letters | Status | Source | Intended effect / typing payoff | Hit geometry | Targeting / origin | Visual identity |
 |---|---:|---|---|---|---|---|---|
-| Mana Bolt | 8 | Automatic | Current game | Automatic support projectile; stays separate from typed Bolt. | Projectile; collision size open | Automatic acquired target; audit steering | Tiny staff spark, flat cyan projectile. |
+| Magic Missile | 8 | Automatic | Current game | Automatic support projectile; stays separate from typed Bolt. | Projectile; collision size open | Automatic acquired target; audit steering | Tiny staff spark, flat cyan projectile. |
 | Bolt | 4 | Rework | User decision | Short, straight projectile; aim once at cast, no steering or homing after launch, no bounce. | Straight projectile; no homing | Aim once at release; fallback open | Clean forward bolt and one contact spark. |
 | Homing Bolt | 10 | Idea | User concept | A separate later projectile which steers toward living targets; reliability earns the longer name. Not an alias for Bolt. | Proposed steering projectile | Proposed living-target tracking | Readable curved travel and target changes. |
 | Arcane Orbit | 11 | Current / rework | Current game | Orbiting satellites damage nearby enemies while the wizard moves. | Proposed moving satellite hitboxes | Orbit caster; gaps not damage | Distinct satellites, not spirit creatures. |
