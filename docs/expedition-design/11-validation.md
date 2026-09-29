@@ -1,5 +1,8 @@
 # Validation, delivery plan and playtest evidence
 
+
+Current release gate: Earth Shield 0.1.36 must verify one-hit charges, source-aware retaliation, matching visible damage coverage and combo-safe blocks. Tutorial plus meaningful keywords follows; future expedition journeys below are not claims about the current prototype.
+
 ## Status of this package
 
 This package specifies a design. It does not prove its game feel, difficulty, accessibility or performance. Document checks cover roster/reward consistency, formulas, references and conflicting rules. Gameplay gates below are **future requirements**, not passed tests.

@@ -1,6 +1,6 @@
 # Engineering specification and data contracts
 
-This is an implementation specification, **not permission to modify the game during this documentation task**. Evolve the existing game incrementally, keeping a reproducible comparison build. First add keyword bindings to existing spell behavior; extract shared responsibilities as required. Do not gate the first playable modifier on building every module below. Names describe proposed responsibilities, not mandatory new files or claims they already exist.
+This is an implementation specification, **not permission to modify the game during this documentation task**. Evolve the existing game incrementally, keeping a reproducible comparison build. First implement Earth Shield 0.1.36, then introduce keyword bindings through a tutorial using existing spell behavior; extract shared responsibilities as required. Do not gate the first playable modifier on building every module below. Names describe proposed responsibilities, not mandatory new files or claims they already exist.
 
 ## Boundaries and responsibilities
 
@@ -98,6 +98,6 @@ Debug overlay: source SHA, content version, seed, clocks, remaining assist and a
 
 ## Incremental implementation order
 
-Follow document 15: keywords in current combat, preparation, ley-line discoveries, connected expeditions, then level/content expansion. Adapt existing spell dispatch and effect scenes through shared parameter bindings; add a compiler or scheduler boundary only where the increment needs it. Use configuration switches for comparison where useful, not a mandatory separate product mode. Retain a reproducible baseline export/revision for comparison and rollback. Neither retiring the current game nor migrating every spell is a gate for the first modified cast.
+Follow document 15: Earth Shield 0.1.36, tutorial and keywords in current combat, preparation, ley-line discoveries, connected expeditions, then level/content expansion. Adapt existing spell dispatch and effect scenes through shared parameter bindings; add a compiler or scheduler boundary only where the increment needs it. Use configuration switches for comparison where useful, not a mandatory separate product mode. Retain a reproducible baseline export/revision for comparison and rollback. Neither retiring the current game nor migrating every spell is a gate for the first modified cast.
 
 No dependency upgrades, engine rewrite, shader pipeline or broad asset regeneration are required merely to compile keywords. Existing Godot architecture should be audited against these contracts before selecting file boundaries.

@@ -154,7 +154,7 @@ Reserved entries are real recorded ideas, **not fully balanced release content**
 | Homing Bolt |Seeking Bolt expression | Prefer composition, no separate slot identity |
 | Magic Missile |Possible starter alternative | Resolve overlap with Bolt/Seeker before numbers |
 | Arcane Orb |Slow travelling impact body | Reserve if distinct from Fire Bolt via persistence |
-| Arcane Shield |Arcane protection | Earth Shield overlaps; reserve reflect experiment |
+| Arcane Shield |Historical reserved proposal | Unselected; no agreed behavior; outside current matrix |
 | Pulse |Short radial push | Compare Wave and Frost Nova; reserve cheapest radial emergency |
 | Gravity Well |Pulling field | Reserve: test navigation/stacking before damage |
 | Arcane Missiles |Native multi-bolt volley | Inactive JSON; compare Duplicating Bolt |

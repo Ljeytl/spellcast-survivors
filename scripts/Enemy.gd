@@ -674,7 +674,7 @@ func create_explosion():
 		if distance < explosion_range:
 			var damage_to_player = explosion_damage * (1.0 - distance / explosion_range)
 			if player.has_method("take_damage"):
-				player.take_damage(damage_to_player)
+				player.take_damage(damage_to_player, {"kind": "blast", "source_position": global_position, "attacker": weakref(self)})
 	
 	# Create visual explosion effect
 	var game_node = scene_tree.get_first_node_in_group("game")
@@ -697,6 +697,8 @@ func shoot_at_player():
 		
 		# Setup enemy projectile (different from player spells)
 		projectile.setup(global_position, direction, damage * 0.8, Color.DARK_RED, "enemy_shot")
+		projectile.set_meta("attacker", weakref(self))
+		projectile.set_meta("source_position", global_position)
 		projectile.speed = projectile_speed
 		projectile.add_to_group("enemy_projectiles")  # Different group from player spells
 

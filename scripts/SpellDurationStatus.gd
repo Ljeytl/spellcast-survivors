@@ -30,20 +30,23 @@ static func collect(manager: Node) -> Dictionary:
 	for effect in manager.active_healing_effects:
 		if effect.has("spell_id") and effect.remaining_time > 0:
 			add(states, effect.spell_id, effect.remaining_time)
-	if is_instance_valid(manager.player) and manager.player.overheal > 0 and manager.player.overheal_timer > 0:
-		add(states, "earth_shield", manager.player.overheal_timer)
+	if is_instance_valid(manager.player) and is_instance_valid(manager.player.earth_shield):
+		for charge in manager.player.earth_shield.charges:
+			add(states, "earth_shield", charge.remaining, "charges")
 	return states
 
 static func add(states: Dictionary, id: String, seconds: float, phase: String = "active"):
 	if not states.has(id):
 		states[id] = {"seconds": seconds, "count": 1, "phase": phase}
 	else:
-		states[id].seconds = maxf(states[id].seconds, seconds)
+		states[id].seconds = minf(states[id].seconds, seconds) if phase == "charges" else maxf(states[id].seconds, seconds)
 		states[id].count += 1
 		if phase == "armed":
 			states[id].phase = phase
 
 static func caption(state: Dictionary) -> String:
+	if state.phase == "charges":
+		return "%d charge%s · %ds" % [state.count, "s" if state.count != 1 else "", ceili(state.seconds)]
 	var suffix = " ×%d" % state.count if state.count > 1 else ""
 	if state.phase in ["armed", "arming"]:
 		return str(state.phase) + suffix

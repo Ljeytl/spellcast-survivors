@@ -69,6 +69,10 @@
 | Seeking Spirit | Stronger spirit idea | User idea; separate from current public Seeker name |
 | Reaping Spirit | Spirit combination | Deferred; acquisition disabled |
 | Grasping Hand | Area control by a summoned hand | User idea; theme unresolved |
+| Shillelagh | Physical/nature root wave | User concept; school and implementation open |
+| Dash | Self mobility | User concept; activation design open |
+| Swiftness | Temporary movement boost | User concept |
+| Personal storm aura | Lightning strikes after enemies remain inside | User concept; name and following behavior open |
 | Whip | Alternative basic weapon magic | User idea deferred with alternative characters |
 | Mana Bolt | Automatic attack | Implemented separately from manual Bolt |
 | Atomic | Screen-clearing style reward | Implemented; not part of the 16 base-spell acquisition pool |

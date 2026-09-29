@@ -158,6 +158,8 @@ func update_ranged(delta: float, toward: Vector2, distance: float):
 					shot.direction = action_direction.rotated(angle)
 					shot.damage = damage
 					shot.damage_source = encounter_name
+					shot.attacker = weakref(self)
+					shot.source_position = global_position
 					get_parent().add_child(shot)
 			action_time = 3.8 if variant == "mortar" else 2.8
 	elif action_time <= 0.0 and distance < 650.0:
@@ -171,6 +173,8 @@ func place_hazard(location: Vector2, radius: float, delay: float, amount: float)
 	hazard.warning_time = delay
 	hazard.damage = amount
 	hazard.damage_source = encounter_name
+	hazard.attacker = weakref(self)
+	hazard.source_position = global_position
 	get_parent().add_child(hazard)
 
 func take_damage(damage_amount: float, source_position: Vector2 = Vector2.INF):

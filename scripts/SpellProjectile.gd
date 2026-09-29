@@ -188,7 +188,7 @@ func _on_area_entered(area):
 		if area.name == "HurtBox" and area.get_parent().is_in_group("player"):
 			var player = area.get_parent()
 			if player.has_method("take_damage"):
-				player.take_damage(damage)
+				player.take_damage(damage, {"kind": "projectile", "attacker": get_meta("attacker", null), "source_position": get_meta("source_position", global_position), "incoming_direction": direction})
 				
 				
 				despawn()
@@ -315,6 +315,9 @@ func setup_for_pool():
 	is_pooled = true
 
 func reset_for_pool():
+	for key in ["attacker", "source_position"]:
+		if has_meta(key):
+			remove_meta(key)
 	impact_generation += 1
 	impact_pending = false
 	impact_target = null

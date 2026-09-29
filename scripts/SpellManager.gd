@@ -678,21 +678,16 @@ func cast_ice_blast_spell(slot: int):
 	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength)
 
 func cast_earthshield_spell(slot: int):
-	var spell_info = get_spell_info(slot)
-	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
-	var overheal_amount = spell_info["shield_hp"] * level_multiplier * Geometry.power_multiplier(player)
-	
-	# Add overheal to player instead of shield
-	if player and player.has_method("add_overheal"):
-		var duration = float(spell_info.get("duration", 16.0)) * Geometry.duration_multiplier(player)
-		var prior = maxf(0, player.overheal_timer) if player.overheal > 0 and spell_info.get("recast_behavior", "stack") == "extend" else 0.0
-		player.add_overheal(overheal_amount, duration)
-		player.overheal_timer += prior
-		if prior > 0:
-			spell_extended.emit(spell_info.id, duration)
-	
-	# Create shield visual effect
-	create_shield_effect()
+	var info = get_spell_info(slot)
+	var rank_multiplier = 1.0 + 0.15 * (int(info.get("level", 1)) - 1)
+	player.add_earth_shield_charge({
+		"remaining": float(info.get("duration", 16.0)) * Geometry.duration_multiplier(player),
+		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * Geometry.power_multiplier(player),
+		"reach": float(info.get("retaliation_reach", 160.0)) * float(player.spell_size_multiplier),
+		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
+		"knockback": float(info.get("retaliation_knockback", 500.0)),
+		"travel_time": float(info.get("retaliation_travel_time", 0.22))
+	})
 
 func cast_lightning_arc_spell(slot: int):
 	var info = get_spell_info(slot)
@@ -1245,7 +1240,7 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 		"ice_blast":
 			return prefix + damage + ", +25 radius, +50 knockback"
 		"earth_shield":
-			return prefix + "+15% of base overheal"
+			return prefix + "+15% of base retaliation damage"
 		"lightning_bolt":
 			return prefix + damage + ", +1 bounce"
 		"lightning_arc":

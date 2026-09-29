@@ -16,6 +16,7 @@ var max_health: float = BASE_MAX_HEALTH      # Maximum health (can be upgraded)
 var overheal: float = 0.0                    # Temporary health above max (from earth shield)
 var overheal_timer: float = 0.0              # Time remaining for overheal effect
 var overheal_duration: float = 16.0           # How long earth shield overheal lasts (seconds)
+var earth_shield: Node2D
 var xp: float = 0.0                          # Current experience points
 var level: int = 1                           # Current player level
 var xp_to_next_level: float = BASE_XP_REQUIREMENT  # XP needed for next level
@@ -134,6 +135,13 @@ func take_damage(damage: float, source: Dictionary = {}):
 		return
 	# Check invincibility first
 	if is_invincible:
+		return
+
+	if damage <= 0:
+		return
+	if is_instance_valid(earth_shield) and earth_shield.block(source):
+		last_damage_context = source.duplicate(true)
+		last_damage_context.merge({"kind": source.get("kind", "unknown"), "damage": 0.0, "health_loss": 0.0, "overheal_loss": 0.0, "blocked": true}, true)
 		return
 
 	# Apply damage to overheal first, then health
@@ -301,17 +309,23 @@ func process_enemy_contact_damage(delta: float):
 
 			# Apply damage from all touching enemies
 			if touching_enemies.size() > 0:
-				var total_damage = 0.0
-				for enemy in touching_enemies:
-					var damage = enemy.base_damage if enemy.get("base_damage") else 20.0
-					total_damage += damage
-
-				var before = health + overheal
-				take_damage(total_damage, {"kind": "contact", "count": touching_enemies.size()})
-				if health + overheal < before:
-					for enemy in touching_enemies:
-						if is_instance_valid(enemy) and enemy.has_method("recoil_from_contact"):
-							enemy.recoil_from_contact(global_position)
+				var unblocked_damage = 0.0
+				var unblocked_enemies: Array = []
+				for enemy in touching_enemies.duplicate():
+					if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.get("dying"):
+						continue
+					if is_instance_valid(earth_shield) and not earth_shield.charges.is_empty():
+						take_damage(float(enemy.base_damage), {"kind": "contact", "source_position": enemy.global_position, "attacker": weakref(enemy)})
+					else:
+						unblocked_damage += float(enemy.base_damage)
+						unblocked_enemies.append(enemy)
+				if unblocked_damage > 0:
+					var before = health + overheal
+					take_damage(unblocked_damage, {"kind": "contact", "count": unblocked_enemies.size(), "source_position": unblocked_enemies[0].global_position})
+					if health + overheal < before:
+						for enemy in unblocked_enemies:
+							if is_instance_valid(enemy) and enemy.has_method("recoil_from_contact"):
+								enemy.recoil_from_contact(global_position)
 				damage_timer = DAMAGE_INTERVAL  # Reset timer
 
 # Calculate movement slowdown based on number of touching enemies
@@ -386,3 +400,9 @@ func start_healing_over_time(amount: float, duration: float):
 	var game = get_tree().get_first_node_in_group("game")
 	if game != null and health > 0.0:
 		game.spell_manager.add_healing_effect(amount, duration)
+
+func add_earth_shield_charge(info: Dictionary):
+	if not is_instance_valid(earth_shield):
+		earth_shield = preload("res://scripts/EarthShield.gd").new()
+		add_child(earth_shield)
+	earth_shield.add_charge(info)

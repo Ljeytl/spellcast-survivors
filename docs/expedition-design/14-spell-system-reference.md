@@ -259,7 +259,7 @@ The following table applies the component vocabulary to named spell recipes. Row
 
 Abbreviations in the parameter column: `r` = radius, `w` = half-width; distances are wu, speeds wu/s, angles degrees and time seconds. “On contact” means actual collision, not a cosmetic projectile preceding invisible damage. Damage/healing values refer to the appropriate payload, not every component in a graph.
 
-Powerful modifies the listed primary damage/healing/absorption payload by default, not creature health. Element words modify eligible damaging payloads only. Repeating, Duplicating and Lasting still need the per-recipe semantic binding described below; they do not blindly visit every numeric field.
+Powerful modifies the listed primary damage/healing/absorption payload by default, not creature health. The existing conversion-word proposal modifies eligible damaging payloads; additive elemental benefits such as Flaming Restoration require explicitly authored contracts. Repeating, Duplicating and Lasting still need the per-recipe semantic binding described below; they do not blindly visit every numeric field.
 
 | Spell | Component recipe | Starting properties | Big binding and boundary | Other keyword bindings / open decisions |
 |---|---|---|---|---|
@@ -306,7 +306,7 @@ Powerful modifies the listed primary damage/healing/absorption payload by defaul
 - **Wave/Thunderwave:** the old proposal lists angle, front width and reach without declaring which dimension derives from which. Recommend authoring angle + maximum reach + front thickness, deriving endpoint width; alternatively use a fixed-width travelling strip. Do not independently set incompatible cone dimensions.
 - **Frost Nova/Earthquake:** the old catalog describes expanding visuals while also listing instant-area/pulse damage. Decide instant full-area activation with honest simultaneous visuals, or travelling front with explicit speed and near-to-far contact. Recommend travelling fronts for the stated outward fantasy; exact speeds remain tuning inputs.
 - **Meteor Lance:** contact explosion, second-contact explosion and delayed meteorites along a recorded path are three alternative graphs. They need event predicates or trajectory history, not three unrelated projectile implementations.
-- **Big shield/heal:** no spatial meaning exists by default. An area healing aura or intercepting shield could be designed, but accepting Big must not silently transform the spell into a new type without an approved rule.
+- **Big shield/heal:** plain absorption and instant healing have no spatial meaning by default; Earth Shield now exposes retaliation reach without enlarging the player hurtbox. An area healing aura or intercepting shield could be designed, but accepting Big must not silently transform the spell into a new type without an approved rule.
 
 ## 9. Cross-spell keyword binding families
 

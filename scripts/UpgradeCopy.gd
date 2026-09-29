@@ -5,7 +5,7 @@ const SPELLS = {
 	"life": "Restore a little health immediately.",
 	"regeneration": "Restore health over time.",
 	"ice_blast": "Blast a cone of enemies with ice and push them back.",
-	"earth_shield": "Gain temporary bonus health.",
+	"earth_shield": "Block one hit and erupt toward the attacker; recasts add charges.",
 	"lightning_arc": "Strike nearby enemies with an area of lightning.",
 	"meteor_shower": "Rain explosive meteors onto nearby enemies.",
 	"ember_lance": "Pierce a line of enemies with fire.",
@@ -77,7 +77,7 @@ static func rank_description(id: String, manager: Node) -> String:
 	if id == "regeneration":
 		return "Restore %s more health each second." % number(float(info.heal_amount) * 0.15 * manager.player.spell_damage_multiplier)
 	if id == "earth_shield":
-		return "Gain %s more bonus health per cast." % number(float(info.shield_hp) * 0.15 * manager.player.spell_damage_multiplier)
+		return "Deal %s more retaliation damage." % number(float(info.get("retaliation_damage", 60)) * 0.15 * manager.player.spell_damage_multiplier)
 	var base = manager.mana_bolt_damage if id == "mana_bolt" else float(info.get("damage", 0)) * float(info.get("damage_multiplier", 1))
 	var gain = base * 0.15 * manager.player.spell_damage_multiplier
 	var extra = ""

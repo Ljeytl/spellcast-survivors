@@ -1,6 +1,6 @@
 # 0.1.36 — Earth Shield redesign and spell-family documentation
 
-- Specify stacked one-hit Earth Shield charges, combo-safe blocks and attacker-directed damage/knockback; provisional tuning and release gates are in docs/releases/0.1.36-earth-shield.md.
+- Implement stacked one-hit Earth Shield charges, combo-safe blocks and attacker-directed damage/knockback; provisional tuning and release gates are in docs/releases/0.1.36-earth-shield.md.
 - Reconcile current spell behavior and populate element × family matrices with 16 bases, seven combinations and separately labelled user ideas. Keep unselected assistant examples out of the main matrix.
 - Update development order: shield, tutorial/meaningful keywords, then tower/preparation/expeditions; defer art-medium exploration.
 

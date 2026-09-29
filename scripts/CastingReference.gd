@@ -33,7 +33,7 @@ func _process(_delta):
 			if extensions.has(id) and Time.get_ticks_msec() < extensions[id].until:
 				caption += " · +%ds" % ceili(extensions[id].seconds)
 		entry.text = entry.get_meta("incantation") + ("\n" + caption if not caption.is_empty() else "")
-		entry.tooltip_text = "Longest remaining cast; × shows active casts" if states.has(id) and states[id].count > 1 else ""
+		entry.tooltip_text = "Charges ready; time until the next charge expires" if id == "earth_shield" and states.has(id) else ("Longest remaining cast; × shows active casts" if states.has(id) and states[id].count > 1 else "")
 	size.x = minf(1160, game.hud.size.x - 36)
 	size.y = get_combined_minimum_size().y
 	position = Vector2((game.hud.size.x - size.x) / 2, game.hud.size.y - size.y - 34)

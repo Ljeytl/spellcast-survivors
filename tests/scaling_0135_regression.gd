@@ -90,8 +90,8 @@ func run():
 	check(is_equal_approx(manager.active_healing_effects[-1].heal_per_second, 6), "Power doubles regeneration rate")
 	check(is_equal_approx(manager.active_healing_effects[-1].remaining_time, 10), "Duration doubles regeneration lifetime")
 	manager.cast_earthshield_spell(manager.find_spell_slot("earth_shield"))
-	check(is_equal_approx(player.overheal, 120), "Power doubles shield protection")
-	check(is_equal_approx(player.overheal_timer, 32), "Duration doubles shield lifetime")
+	check(is_equal_approx(player.earth_shield.charges[0].damage, 120), "Power doubles shield retaliation")
+	check(is_equal_approx(player.earth_shield.charges[0].remaining, 32), "Duration doubles shield lifetime")
 	player.spell_damage_multiplier = 1.0
 	for kind in ["lightning", "meteor"]:
 		var first = host(origin)
@@ -280,7 +280,7 @@ func run():
 	check(victims[0].current_health==9975 and victims[1].current_health==9975,"Enlarged projectile physics hits simultaneous hurtboxes")
 	check(victims[2].current_health==10000,"Enlarged projectile does not gain line piercing")
 	for enemy in victims: enemy.free()
-	check(preload("res://scripts/BuildVersion.gd").text()=="v0.1.35 · Playtest", "Game version0.1.35")
+	check(preload("res://scripts/BuildVersion.gd").text()=="v0.1.36 · Playtest", "Game version0.1.36")
 	game.queue_free()
 	await process_frame
 	print("SCALING0135: %d checks, %d failures" % [checks,failures])
