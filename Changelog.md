@@ -1,3 +1,10 @@
+# MEGA keyword
+
+- Added `mega` before learned manual spell names: 1.5× Spell Power and Spell Size, including healing and combination effects. Ordinary casts and Magic Missile stay unchanged.
+- Numbered and Space casting accept MEGA; spellbook explains it. Style counts the additional letters while retaining the base spell repetition identity.
+- Delayed and persistent effects retain cast snapshots; mixed recasts queue strength segments rather than creating extra streams. Repeated MEGA and unsupported spell names are rejected.
+- Future tuning: playtest the deliberately strong 50% power/size difference before adding more words.
+
 # Automatic attack rename
 
 - Renamed automatic Mana Bolt to Magic Missile across player-facing labels, workshop previews, upgrade descriptions and documentation. Manual Bolt and automatic attack behavior are unchanged.

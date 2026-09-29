@@ -229,7 +229,7 @@ func do_level_up():
 	level_up.emit(level, player_stats)
 
 # Restore health to the player (from Life spell or chest items)
-func heal(amount: float):
+func heal(amount: float, visual_size: float = 1.0):
 	if health <= 0.0 or amount <= 0.0:
 		return
 	var previous_health = health
@@ -238,7 +238,9 @@ func heal(amount: float):
 		next_heal_feedback_msec = Time.get_ticks_msec() + 350
 		var particles = get_parent().get("particle_manager")
 		if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
-			particles.create_heal_effect(global_position)
+			var effect = particles.create_heal_effect(global_position)
+			if is_instance_valid(effect):
+				effect.scale = Vector2.ONE * visual_size
 	# Update the health bar UI
 	health_changed.emit(health, max_health, overheal)
 

@@ -83,7 +83,7 @@ func populate():
 	spell_buttons.clear()
 	var manager = game.spell_manager
 	section("Active spells · %d / 6" % manager.spells.size())
-	text_row("Choose a spell, then type its incantation to cast.", READABILITY.MUTED)
+	text_row("Type MEGA before any learned spell: +50% power and size. Example: mega bolt.", READABILITY.MUTED)
 	add_spell_rows(manager.spells)
 	section("Combination spells · no slots")
 	if manager.bonus_spells.is_empty():

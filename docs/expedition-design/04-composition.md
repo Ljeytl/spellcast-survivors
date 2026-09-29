@@ -1,3 +1,9 @@
+## Current prototype: MEGA
+
+The first implemented keyword is **MEGA**, available immediately for every learned manual spell and combination. Type `mega bolt`: **1.5× Spell Power and 1.5× Spell Size**, using existing power/size semantics with matching visible geometry and hitboxes. Healing scales too; duration, speed and count do not. One prefix only; repeated MEGA, unknown/unowned spells, Magic Missile and Atomic are unsupported. Both numbered and Space casting support it. Style credits the longer incantation while repetition remains the base spell. Delayed effects snapshot the cast; duration-extending effects queue the new strength behind existing duration, preserving one effect.
+
+Earlier multi-keyword grammar, unlock progression and Big/Powerful examples below are future proposals, not the current parser.
+
 Latest idea authority: [29 September element exploration](17-element-spell-ideas.md) and [populated matrix](16-element-family-matrix.md). This preserves proposals and rejections without approving a new runtime roster. Older 36-row campaign recipes below are historical drafts where they conflict with that exploration.
 
 Current Shield rule: [0.1.36 Earth Shield](../releases/0.1.36-earth-shield.md) supersedes earlier absorption-pool proposals. [Element × family matrix](16-element-family-matrix.md) separates implemented spells, user ideas and unselected examples.
@@ -61,7 +67,7 @@ A spell is a graph of effect components. Example: Meteor Shower owns a volley sc
 | Earthen | Convert eligible native damaging components, including supported periodic damage, to earth | Damaging components | No automatic shield |
 | Venomous | Add poison totaling 0.20 × resolved initial direct hit over 3 s | Direct-hit projectile/area/beam first hit per target/root | No heal conversion; native plague cannot add poison to its own ticks |
 
-For clarity, v0.1 reserves Fast → Swift, Following → Seeking, Rotating → Orbiting and Replicating → Duplicating as **documented naming candidates**, not accepted parser aliases. Orbiting is reserved pending orbit-path ownership rules. Mega/Super/Omega/Giant/Wide/Piercing and Quick Cast are reserved; see below. Only one elemental conversion is allowed. Only one added status package is allowed initially.
+For clarity, v0.1 reserves Fast → Swift, Following → Seeking, Rotating → Orbiting and Replicating → Duplicating as **documented naming candidates**, not accepted parser aliases. Orbiting is reserved pending orbit-path ownership rules. Super/Omega/Giant/Wide/Piercing and Quick Cast are reserved; MEGA now has the implemented contract above; see below. Only one elemental conversion is allowed. Only one added status package is allowed initially.
 
 ## Resolve order and limits
 
@@ -115,7 +121,7 @@ Ground spells lock their selected location at commit. Repeat reuses the location
 | Orbiting / Rotating | Projectile adopts caster-relative orbit, limited contacts | Changes hit opportunities radically; needs own collision/expiry rule |
 | Piercing | +2 unique contacts at decreasing potency | Must not duplicate native lance identity without tradeoff |
 | Wide | Fan angle or beam width without radial-size change | May overlap Big; require useful decision |
-| Mega / Super / Omega | Higher commitment tiers with distinct release patterns | Avoid mandatory synonym stack; aspiration is real but mechanics need testing |
+| Super / Omega (beyond implemented MEGA) | Higher commitment tiers with distinct release patterns | Avoid mandatory synonym stack; aspiration is real but mechanics need testing |
 | Quick Cast | Recognized initials, sharply weaker cast | Undermines typing commitment if too efficient; separate accessibility discussion |
 | Numeric Delayed | Explicit scheduled seconds | Parser/UX complexity and queue abuse; user deferred |
 | Burning / Freezing | Explicit status package separate from element | Native status and stacking interactions need first-slice results |

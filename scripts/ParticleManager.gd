@@ -71,14 +71,16 @@ func follow_effect(target: Node2D, duration: float, kind: String, radius: float)
 		effect.mode = "follow"
 	return effect
 
-func create_persistent_life_circle(target: Node2D, duration: float):
+func create_persistent_life_circle(target: Node2D, duration: float, size_multiplier: float = 1.0):
 	for effect in get_children():
 		if effect is Burst and effect.mode == "regeneration" and effect.followed and effect.followed.get_ref() == target and not effect.is_queued_for_deletion():
 			effect.duration = maxf(effect.duration, effect.age + duration)
+			effect.scale = Vector2.ONE * size_multiplier
 			return effect
 	var effect = follow_effect(target, duration, "heal", 34)
 	if effect:
 		effect.mode = "regeneration"
+		effect.scale = Vector2.ONE * size_multiplier
 		effect.particle_size = 18
 	return effect
 

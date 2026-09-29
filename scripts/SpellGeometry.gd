@@ -26,7 +26,7 @@ static func power_multiplier(player: Node) -> float:
 
 static func scaled_data(data: Dictionary, player: Node) -> Dictionary:
 	var result = data.duplicate(true)
-	var factor = multiplier(player)
+	var factor = multiplier(player) * float(data.get("keyword_size_multiplier", 1.0))
 	var defaults = {"field": {"radius": 150.0}, "orbit": {"body_radius": 42.0, "orbit_radius": 130.0}, "returning": {"blade_radius": 33.6}, "trail": {"trail_radius": 65.0}, "trap": {"trap_radius": 130.0, "trigger_radius": 70.0}}
 	for key in defaults.get(str(result.get("type", "")), {}):
 		if not result.has(key):
