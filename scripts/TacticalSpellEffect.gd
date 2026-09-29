@@ -56,12 +56,27 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 			emission_deadline = float(info.get("emission_duration", 5.0))
 			color = Color("efc276")
 			last_trail_position = global_position
-			trail_points.append({"position": global_position, "age": 0.0, "strip": trail_strip})
+			trail_points.append(trail_point(global_position))
 		"returning":
 			outbound_distance = float(info.get("travel_distance", 350.0))
 			linger_remaining = float(info.get("linger_duration", 0.9))
 			linger_tick = float(info.get("linger_interval", 0.3))
 			color = Color("d7e5ff")
+
+func queue_cast_extension(data: Dictionary, amount: float) -> float:
+	if info.type == "trail" and current_cast_remaining < 0:
+		current_cast_remaining = maxf(0, emission_deadline - age)
+	return super.queue_cast_extension(data, amount)
+
+func trail_point(point: Vector2) -> Dictionary:
+	return {"position": point, "age": 0.0, "strip": trail_strip, "radius": float(info.get("trail_radius", 65.0)), "damage": damage}
+
+func advance_cast_segments(delta: float):
+	var previous = info
+	super.advance_cast_segments(delta)
+	if info.type == "trail" and previous != info:
+		trail_strip += 1
+		trail_points.append(trail_point(last_trail_position))
 
 func extend_duration(data: Dictionary) -> float:
 	if info.type != "trail":
@@ -73,7 +88,7 @@ func extend_duration(data: Dictionary) -> float:
 		if is_instance_valid(player):
 			last_trail_position = player.global_position
 			trail_strip += 1
-			trail_points.append({"position": last_trail_position, "age": 0.0, "strip": trail_strip})
+			trail_points.append(trail_point(last_trail_position))
 	emission_deadline = maxf(age, emission_deadline) + added
 	remaining = maxf(remaining, emission_deadline - age + float(updated.get("patch_duration", 6.0)))
 	info.patch_duration = float(updated.get("patch_duration", 6.0))
@@ -90,6 +105,8 @@ func advance(delta: float):
 	var budget = minf(maxf(delta, 0), remaining)
 	while budget > 0.000001 and remaining > 0.000001:
 		var step = minf(minf(budget, remaining), 0.05)
+		if current_cast_remaining > 0 and not queued_casts.is_empty():
+			step = minf(step, current_cast_remaining)
 		budget -= step
 		remaining -= step
 		age += step
@@ -100,6 +117,7 @@ func advance(delta: float):
 			"spirit": advance_spirit(step, player)
 			"trail": advance_trail(step, player)
 			"returning": advance_returning(step, player)
+		advance_cast_segments(step)
 	queue_redraw()
 	if remaining <= 0.000001:
 		if info.type == "beam":
@@ -264,7 +282,7 @@ func advance_trail(delta: float, player: Node2D):
 		if distance >= 24:
 			var count = maxi(1, ceili(distance / radius))
 			for index in range(count):
-				trail_points.append({"position": last_trail_position.lerp(player.global_position, float(index + 1) / count), "age": 0.0, "strip": trail_strip})
+				trail_points.append(trail_point(last_trail_position.lerp(player.global_position, float(index + 1) / count)))
 			last_trail_position = player.global_position
 	tick_remaining -= delta
 	if tick_remaining > 0.000001:
@@ -272,16 +290,19 @@ func advance_trail(delta: float, player: Node2D):
 	tick_remaining += float(info.get("tick_interval", 0.5))
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if valid_target(enemy) and trail_contains(enemy.global_position):
-			deal_damage(enemy, damage)
+			deal_damage(enemy, trail_damage(enemy.global_position))
 
 func trail_contains(point: Vector2) -> bool:
-	var radius = float(info.get("trail_radius", 65.0))
+	return trail_damage(point) > 0
+
+func trail_damage(point: Vector2) -> float:
+	var amount = 0.0
 	for index in range(trail_points.size()):
 		var start: Vector2 = trail_points[index].position
 		var end: Vector2 = trail_points[index + 1].position if index + 1 < trail_points.size() and trail_points[index].get("strip", 0) == trail_points[index + 1].get("strip", 0) else start
-		if Geometry2D.get_closest_point_to_segment(point, start, end).distance_to(point) <= radius:
-			return true
-	return false
+		if Geometry2D.get_closest_point_to_segment(point, start, end).distance_to(point) <= float(trail_points[index].get("radius", info.get("trail_radius", 65.0))):
+			amount = maxf(amount, float(trail_points[index].get("damage", damage)))
+	return amount
 
 func advance_returning(delta: float, player: Node2D):
 	var start = global_position
@@ -337,10 +358,10 @@ func _draw():
 			for point in trail_points:
 				var strip = point.get("strip", 0)
 				if not strips.has(strip):
-					strips[strip] = PackedVector2Array()
-				strips[strip].append(to_local(point.position))
+					strips[strip] = {"points": PackedVector2Array(), "radius": point.get("radius", info.get("trail_radius", 65.0))}
+				strips[strip].points.append(to_local(point.position))
 			for points in strips.values():
-				preload("res://scripts/AreaArt.gd").fire_path(self, points, float(info.get("trail_radius", 65.0)), age)
+				preload("res://scripts/AreaArt.gd").fire_path(self, points.points, float(points.radius), age)
 		"returning":
 			var radius = float(info.get("blade_radius", 33.6))
 			art.stamp(self, "blade", Vector2.ZERO, Visual.size(self, Geometry.stamp_dimensions("blade", radius)), Color.WHITE, age * 12)

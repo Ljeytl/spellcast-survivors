@@ -26,6 +26,9 @@ const SLOW_EFFECT_DURATION = 3.0
 const SPELL_CAST_COOLDOWN = 0.1  # Minimum time between spell casts
 
 const CombinationScaling = preload("res://scripts/CombinationScaling.gd")
+const MEGA_MULTIPLIER = 1.5
+var cast_keyword_multiplier = 1.0
+
 const Geometry = preload("res://scripts/SpellGeometry.gd")
 
 const Targeting = preload("res://scripts/SpellTargeting.gd")
@@ -261,15 +264,15 @@ func handle_typing_input(event: InputEventKey):
 				AudioManager.play_typing_sound(char)
 			
 			# Auto-cast if we typed the complete spell name
-			if current_typing_text == target_spell:
+			if current_typing_text == target_spell or current_typing_text == "mega " + target_spell:
 				attempt_cast()
 
 func attempt_cast():
-	if current_typing_text == target_spell:
+	if current_typing_text == target_spell or current_typing_text == "mega " + target_spell:
 		if cast_spell() and AudioManager:
 			AudioManager.on_typing_complete()
 	else:
-		var feedback = "Keep typing" if target_spell.begins_with(current_typing_text) else "Mismatch"
+		var feedback = "Keep typing" if (target_spell.begins_with(current_typing_text) or ("mega " + target_spell).begins_with(current_typing_text)) else "Mismatch"
 		game_manager.update_typing_display(target_spell + " › " + current_typing_text + " · " + feedback)
 		# Play error sound for mistyped spell
 		if AudioManager:
@@ -281,12 +284,13 @@ func cast_spell() -> bool:
 		return false
 	var spell_data = spell_queue[0]
 	var spell_name = spell_data["name"]
-	if not cast_spell_by_type(spell_data["slot"]):
+	var mega = spell_data.get("mega", current_typing_text.strip_edges().to_lower().begins_with("mega "))
+	if not cast_spell_by_type(spell_data["slot"], MEGA_MULTIPLIER if mega else 1.0):
 		if not last_cast_failure.is_empty() and game_manager:
 			game_manager.update_typing_display(current_typing_text + " · " + last_cast_failure)
 		return false
 	var released_info = get_spell_info(spell_data["slot"])
-	manual_spell_released.emit(str(released_info.id), str(released_info.display_name), current_typing_text)
+	manual_spell_released.emit(str(released_info.id), ("mega " if mega else "") + str(released_info.display_name), current_typing_text)
 	spell_queue.pop_front()
 	last_spell_cast_time = casting_clock
 	spell_cast.emit(spell_name)
@@ -323,7 +327,7 @@ func update_typing_display():
 		var display_text = ""
 		if is_typing:
 			display_text = target_spell + "  ›  " + (current_typing_text if not current_typing_text.is_empty() else "Start typing…")
-			if not target_spell.begins_with(current_typing_text):
+			if not (target_spell.begins_with(current_typing_text) or ("mega " + target_spell).begins_with(current_typing_text)):
 				display_text += " · Mismatch"
 		game_manager.update_typing_display(display_text)
 
@@ -426,7 +430,14 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 		projectile.queue_free()  # Clean up if we can't add it
 
 # Main spell casting dispatcher
-func cast_spell_by_type(slot: int) -> bool:
+func cast_spell_by_type(slot: int, keyword_multiplier: float = 1.0) -> bool:
+	var previous = cast_keyword_multiplier
+	cast_keyword_multiplier = keyword_multiplier
+	var success = _dispatch_spell(slot)
+	cast_keyword_multiplier = previous
+	return success
+
+func _dispatch_spell(slot: int) -> bool:
 	last_cast_failure = ""
 	if not player or not is_spell_unlocked(slot):
 		return false
@@ -443,7 +454,7 @@ func cast_spell_by_type(slot: int) -> bool:
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
 		"heal":
-			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)) * Geometry.power_multiplier(player))
+			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)) * (Geometry.power_multiplier(player) * cast_keyword_multiplier), cast_keyword_multiplier)
 		"heal_over_time":
 			cast_life_spell(slot)
 		"aoe":
@@ -556,13 +567,13 @@ func cast_enhanced_bolt_spell(slot: int):
 		# Create spread + homing projectile with delay
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i)
+				_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, Geometry.multiplier(player) * cast_keyword_multiplier)
 			)
 		else:
-			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i)
+			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i, Geometry.multiplier(player) * cast_keyword_multiplier)
 
 # Helper function to create individual spread + homing bolt projectiles
-func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle: float, target: Node2D, damage: float, projectile_index: int):
+func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle: float, target: Node2D, damage: float, projectile_index: int, size_snapshot: float = -1.0):
 	target = Targeting.select(get_tree(), player.global_position)
 	if target:
 		base_direction = player.global_position.direction_to(target.global_position)
@@ -607,6 +618,7 @@ func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle:
 	if parent:
 		parent.add_child(projectile)
 		
+		projectile.set_meta("cast_size_snapshot", size_snapshot if size_snapshot > 0 else Geometry.multiplier(player))
 		projectile.setup(player.global_position, initial_direction, damage, projectile_color, "bolt")
 		projectile.is_homing = false
 		projectile.assign_target(target)
@@ -644,25 +656,31 @@ func get_multiple_enemies(count: int) -> Array:
 func cast_life_spell(slot: int):
 	var spell_info = get_spell_info(slot)
 	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
-	var heal_per_second = spell_info["heal_amount"] * level_multiplier * Geometry.power_multiplier(player)
+	var heal_per_second = spell_info["heal_amount"] * level_multiplier * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
 	var duration = float(spell_info["duration"]) * Geometry.duration_multiplier(player)
 	
 	var total_remaining = float(duration)
+	var visual_size = cast_keyword_multiplier
 	var extended = false
 	if spell_info.get("recast_behavior", "stack") == "extend":
 		for effect in active_healing_effects:
 			if effect.get("spell_id", "") == spell_info.id and effect.remaining_time > 0:
-				effect.heal_per_second = heal_per_second
+				if not effect.has("segments"):
+					effect.segments = [{"remaining": effect.remaining_time, "rate": effect.heal_per_second, "size": effect.get("keyword_multiplier", 1.0)}]
+				effect.segments.append({"remaining": duration, "rate": heal_per_second, "size": cast_keyword_multiplier})
 				effect.remaining_time += duration
 				total_remaining = effect.remaining_time
+				visual_size = float(effect.segments[0].size)
 				extended = true
 				spell_extended.emit(spell_info.id, duration)
 				break
 	if not extended:
-		active_healing_effects.append({"spell_id": spell_info.id, "heal_per_second": heal_per_second, "remaining_time": duration})
+		active_healing_effects.append({"spell_id": spell_info.id, "keyword_multiplier": cast_keyword_multiplier, "heal_per_second": heal_per_second, "remaining_time": duration})
 	var particles = get_parent().get("particle_manager")
 	if is_instance_valid(particles):
-		particles.create_persistent_life_circle(player, total_remaining)
+		var visual = particles.create_persistent_life_circle(player, total_remaining, visual_size)
+		if is_instance_valid(visual):
+			visual.scale = Vector2.ONE * visual_size
 
 
 func cast_ice_blast_spell(slot: int):
@@ -682,15 +700,16 @@ func cast_earthshield_spell(slot: int):
 	var rank_multiplier = 1.0 + 0.15 * (int(info.get("level", 1)) - 1)
 	player.add_earth_shield_charge({
 		"remaining": float(info.get("duration", 16.0)) * Geometry.duration_multiplier(player),
-		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * Geometry.power_multiplier(player),
-		"reach": float(info.get("retaliation_reach", 160.0)) * float(player.spell_size_multiplier),
+		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * (Geometry.power_multiplier(player) * cast_keyword_multiplier),
+		"reach": float(info.get("retaliation_reach", 160.0)) * (float(player.spell_size_multiplier) * cast_keyword_multiplier),
 		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
 		"knockback": float(info.get("retaliation_knockback", 500.0)),
 		"travel_time": float(info.get("retaliation_travel_time", 0.22))
 	})
 
 func cast_lightning_arc_spell(slot: int):
-	var info = get_spell_info(slot)
+	var info = get_spell_info(slot).duplicate(true)
+	info.keyword_size_multiplier = cast_keyword_multiplier
 	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)))
 	if not _live_spell_target(target):
 		return
@@ -706,19 +725,20 @@ func cast_bouncing_bolt(slot: int):
 	var projectile = spell_projectile_scene.instantiate()
 	projectile.speed = 550.0 * player.projectile_speed_multiplier
 	projectile.set_meta("splash_damage", info.splash_damage)
-	projectile.set_meta("splash_radius", float(info.splash_radius) * Geometry.multiplier(player))
+	projectile.set_meta("splash_radius", float(info.splash_radius) * (Geometry.multiplier(player) * cast_keyword_multiplier))
 	projectile.set_meta("splash_duration", float(info.splash_duration) * Geometry.duration_multiplier(player))
 	projectile.set_meta("bounce_count", int(info.get("bounce_count", 4)))
 	projectile.set_meta("bounce_range", float(info.get("bounce_range", 240.0)))
 	projectile.lifetime = maxf(3.0, (int(info.get("bounce_count", 4)) + 1) * float(info.get("bounce_range", 240.0)) / projectile.speed + 1.0)
 	get_parent().add_child(projectile)
+	projectile.set_meta("cast_size_snapshot", Geometry.multiplier(player) * cast_keyword_multiplier)
 	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
 
 func cast_meteor_shower_spell(slot: int):
 	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
 	var damage = calculate_spell_damage(info)
 	var count = int(info["meteor_count"])
-	var radius = float(info.get("radius", 220.0)) * preload("res://scripts/SpellGeometry.gd").multiplier(player)
+	var radius = float(info.get("radius", 220.0)) * (Geometry.multiplier(player) * cast_keyword_multiplier)
 	var coverage: Dictionary = {}
 	for index in range(count):
 		var delay = float(info.get("warning_duration", 0.65)) + index * float(info.get("delay_interval", 0.3))
@@ -761,8 +781,8 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 	var level_multiplier = 1.0 + 0.15 * damage_ranks
 	if Synergies.RECIPES.has(str(spell_info.get("id", ""))):
 		var resolved = spell_info if spell_info.get("combination_scaled", false) else CombinationScaling.resolve(spell_info, get_combination_ingredient_ranks(str(spell_info.id)))
-		return float(resolved.damage) * Geometry.power_multiplier(player)
-	return float(base_damage) * level_multiplier * Geometry.power_multiplier(player)
+		return float(resolved.damage) * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
+	return float(base_damage) * level_multiplier * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
 
 func process_healing_effects(delta):
 	for i in range(active_healing_effects.size() - 1, -1, -1):
@@ -771,7 +791,29 @@ func process_healing_effects(delta):
 		effect["remaining_time"] -= elapsed
 		if player:
 			var previous_health = player.health
-			player.heal(effect["heal_per_second"] * elapsed)
+			var budget = elapsed
+			if effect.has("segments"):
+				while budget > 0 and not effect.segments.is_empty():
+					var segment = effect.segments[0]
+					var step = minf(budget, segment.remaining)
+					player.heal(segment.rate * step, segment.size)
+					var particles = get_parent().get("particle_manager")
+					if is_instance_valid(particles):
+						for visual in particles.get_children():
+							if visual.get("mode") == "regeneration":
+								visual.scale = Vector2.ONE * segment.size
+					segment.remaining -= step
+					budget -= step
+					if segment.remaining <= 0:
+						effect.segments.pop_front()
+				if not effect.segments.is_empty():
+					var particles = get_parent().get("particle_manager")
+					if is_instance_valid(particles):
+						for visual in particles.get_children():
+							if visual.get("mode") == "regeneration":
+								visual.scale = Vector2.ONE * effect.segments[0].size
+			else:
+				player.heal(effect["heal_per_second"] * elapsed, effect.get("keyword_multiplier", 1.0))
 			healing_applied.emit(player.health - previous_health)
 		if effect["remaining_time"] <= 0:
 			active_healing_effects.remove_at(i)
@@ -812,7 +854,7 @@ func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_
 	var target = get_closest_enemy()
 	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
 	var effect = preload("res://scripts/IceBlast.gd").new()
-	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, player.projectile_speed_multiplier, preload("res://scripts/SpellGeometry.gd").multiplier(player))
+	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, player.projectile_speed_multiplier, (Geometry.multiplier(player) * cast_keyword_multiplier))
 	get_parent().add_child(effect)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
@@ -1008,7 +1050,7 @@ func handle_freeform_typing_input(event: InputEventKey):
 				AudioManager.play_typing_sound(char)
 			
 			# Check if we have a perfect match with any spell
-			if not space_casting and (current_typing_text in freeform_spells or current_typing_text == "atomic"):
+			if not space_casting and (find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic"):
 				attempt_freeform_cast()
 
 func attempt_freeform_cast():
@@ -1037,6 +1079,7 @@ func cast_freeform_spell(spell_name: String) -> bool:
 		return false
 	spell_queue.clear()
 	queue_spell(slot)
+	spell_queue[0].mega = spell_name.strip_edges().to_lower().begins_with("mega ")
 	return cast_spell()
 
 func cast_life_bolt(slot: int):
@@ -1054,7 +1097,7 @@ func cast_life_bolt(slot: int):
 			if key == "healing_seed_lifetime":
 				value *= Geometry.duration_multiplier(player)
 			elif key == "healing_seed_radius":
-				value *= Geometry.multiplier(player)
+				value *= (Geometry.multiplier(player) * cast_keyword_multiplier)
 			projectile.set_meta(key, value)
 		projectile.set_meta("healing_seed_cap", 6)
 		projectile.set_meta("healing_seed_owner", weakref(player))
@@ -1067,6 +1110,7 @@ func cast_life_bolt(slot: int):
 		if _live_spell_target(target):
 			coverage[target.get_instance_id()] = float(coverage.get(target.get_instance_id(), 0)) + 1.0
 		var direction = player.global_position.direction_to(target.global_position) if _live_spell_target(target) else Vector2.RIGHT.rotated(index * 0.15)
+		projectile.set_meta("cast_size_snapshot", Geometry.multiplier(player) * cast_keyword_multiplier)
 		projectile.setup(player.global_position, direction, calculate_spell_damage(info), Color.GREEN, "life_bolt")
 		projectile.assign_target(target)
 
@@ -1080,6 +1124,7 @@ func get_owned_incantations() -> Array:
 	for slot in get_all_spells():
 		if is_spell_unlocked(slot):
 			names.append(get_spell_info(slot).display_name)
+			names.append("mega " + str(get_spell_info(slot).display_name))
 	return names
 
 func cast_freeform_spell_by_type(spell_name: String, _spell_data: Dictionary):
@@ -1092,13 +1137,11 @@ func update_freeform_typing_display():
 		var display_text = ""
 		if is_typing:
 			var potential_matches = []
-			for info in get_all_spells().values():
-				var normalized = current_typing_text.strip_edges().to_lower().replace("_", " ")
-				for alias in [info.name, info.display_name]:
-					if str(alias).to_lower().replace("_", " ").begins_with(normalized) and not normalized.is_empty():
-						potential_matches.append(info.display_name)
-						break
-			
+			var normalized = current_typing_text.strip_edges().to_lower()
+			for incantation in get_owned_incantations():
+				if str(incantation).begins_with(normalized) and not normalized.is_empty():
+					potential_matches.append(incantation)
+
 			if is_instance_valid(game_manager.style_session) and game_manager.style_session.atomic_available() and "atomic".begins_with(current_typing_text):
 				potential_matches.append("atomic")
 			display_text = current_typing_text if not current_typing_text.is_empty() else "Type an equipped spell…"
@@ -1129,9 +1172,11 @@ func find_spell_slot(spell_name: String) -> int:
 
 func find_cast_spell_slot(spell_name: String) -> int:
 	var normalized = spell_name.strip_edges().to_lower()
+	if normalized.begins_with("mega "):
+		normalized = normalized.substr(5)
 	for slot in get_all_spells():
 		var info = get_spell_info(slot)
-		if normalized == info.display_name or normalized == str(info.name).to_lower():
+		if is_spell_unlocked(slot) and (normalized == info.display_name or normalized == str(info.name).to_lower()):
 			return slot
 	return 0
 
@@ -1180,9 +1225,10 @@ func get_combination_ingredient_ranks(spell_id: String) -> Dictionary:
 func resolve_cast_info(slot: int) -> Dictionary:
 	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
 	info = CombinationScaling.resolve(info, get_combination_ingredient_ranks(str(info.get("id", ""))))
+	info.keyword_size_multiplier = cast_keyword_multiplier
 	for key in ["splash_damage", "explosion_damage", "healing_seed_amount", "healing_bloom_amount"]:
 		if info.has(key):
-			info[key] = float(info[key]) * Geometry.power_multiplier(player)
+			info[key] = float(info[key]) * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
 	return info
 
 func rebuild_freeform_library():
@@ -1272,9 +1318,7 @@ func cast_build_spell(slot: int) -> bool:
 	if info.get("recast_behavior", "stack") == "extend":
 		for existing in active:
 			if existing.remaining > 0 and existing.caster and existing.caster.get_ref() == player:
-				existing.damage = calculate_spell_damage(info)
-				existing.info = preload("res://scripts/SpellGeometry.gd").scaled_data(info, player)
-				var added = existing.extend_duration(info)
+				var added = existing.queue_cast_extension(info, calculate_spell_damage(info))
 				spell_extended.emit(info.id, added)
 				return true
 	if active.size() >= int(info.get("active_limit", 3)):
@@ -1339,13 +1383,13 @@ func _delayed_mana_bolt(reference: WeakRef, damage: float, index: int):
 	var target = reference.get_ref()
 	create_mana_bolt_projectile(target, damage, index)
 
-func _delayed_spread_bolt(direction: Vector2, angle: float, reference: WeakRef, damage: float, index: int):
+func _delayed_spread_bolt(direction: Vector2, angle: float, reference: WeakRef, damage: float, index: int, size_snapshot: float = -1.0):
 	if not is_inside_tree() or not is_instance_valid(player):
 		return
 	var target = Targeting.select(get_tree(), player.global_position)
 	if reference and target == null:
 		return
-	create_spread_homing_bolt_projectile(direction, angle, target, damage, index)
+	create_spread_homing_bolt_projectile(direction, angle, target, damage, index, size_snapshot)
 
 func _delayed_chain(reference: WeakRef, damage: float, remaining: int, hit_ids: Array):
 	if not is_inside_tree() or not is_instance_valid(player):

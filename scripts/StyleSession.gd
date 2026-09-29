@@ -98,12 +98,15 @@ func observe_text(text: String):
 	var manager = game.spell_manager
 	if not manager.target_spell.is_empty():
 		candidates.append(manager.target_spell)
+		candidates.append("mega " + manager.target_spell)
 	else:
 		for slot in manager.get_all_spells():
 			if manager.is_spell_unlocked(slot):
 				var info = manager.get_spell_info(slot)
 				candidates.append(str(info.display_name).to_lower())
+				candidates.append("mega " + str(info.display_name).to_lower())
 				candidates.append(str(info.name).to_lower().replace("_", " "))
+				candidates.append("mega " + str(info.name).to_lower().replace("_", " "))
 	if atomic_available():
 		candidates.append("atomic")
 	var valid_prefix = normalized.is_empty()

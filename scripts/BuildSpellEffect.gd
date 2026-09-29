@@ -1,5 +1,7 @@
 extends Node2D
 
+var queued_casts: Array = []
+var current_cast_remaining = -1.0
 var info: Dictionary
 var damage: float
 var caster: WeakRef
@@ -57,6 +59,23 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	if info.type in ["piercing", "orbit", "plague", "spirit", "returning"]:
 		Visual.register(self)
 
+func queue_cast_extension(data: Dictionary, amount: float) -> float:
+	if current_cast_remaining < 0:
+		current_cast_remaining = remaining
+	var added = extend_duration(data)
+	queued_casts.append({"info": Geometry.scaled_data(data, caster.get_ref()), "damage": amount, "duration": added})
+	return added
+
+func advance_cast_segments(delta: float):
+	if current_cast_remaining < 0:
+		return
+	current_cast_remaining -= delta
+	while current_cast_remaining <= 0 and not queued_casts.is_empty():
+		var next = queued_casts.pop_front()
+		info = next.info
+		damage = next.damage
+		current_cast_remaining += next.duration
+
 func extend_duration(data: Dictionary) -> float:
 	var added = float(Geometry.scaled_data(data, caster.get_ref()).get("duration", 0.0))
 	remaining += added
@@ -70,6 +89,11 @@ func _physics_process(delta):
 	advance(delta)
 
 func advance(delta: float):
+	if current_cast_remaining > 0 and delta > current_cast_remaining and not queued_casts.is_empty():
+		var first = current_cast_remaining
+		advance(first)
+		advance(delta - first)
+		return
 	if info.type == "plague" and delta > 0.025:
 		var budget = delta
 		while budget > 0.000001 and not is_queued_for_deletion():
@@ -110,6 +134,7 @@ func advance(delta: float):
 			match info.type:
 				"field": pulse(global_position, float(info.get("radius", 150.0)), damage)
 				"plague": tick_infections()
+	advance_cast_segments(elapsed)
 	queue_redraw()
 	if remaining <= 0.0:
 		queue_free()
