@@ -1,6 +1,8 @@
+Current Shield rule: [0.1.36 Earth Shield](../releases/0.1.36-earth-shield.md) supersedes earlier absorption-pool proposals. [Element × family matrix](16-element-family-matrix.md) separates implemented spells, user ideas and unselected examples.
+
 Current implementation change: [0.1.35 scaling and combinations](../releases/0.1.35-spell-scaling.md) supersedes older prototype penalties and Soul Bloom leech/carrier proposals. Campaign tuning below remains proposed.
 
-Current playtest balance note (2026-09-28): Earth Shield protection and visuals now last 16 seconds; Cross Blade radius is 33.6 (20% smaller). These replace the older runtime values below; proposed future expedition mechanics are unchanged.
+Current roster and behavior are summarized below; numeric 0.1.35 scaling is in its release specification. Earth Shield changes only with the 0.1.36 implementation.
 
 # Spell catalog: current truth, proposed roster, preserved ideas
 
@@ -10,40 +12,40 @@ Current playtest balance note (2026-09-28): Earth Shield protection and visuals 
 
 ## Verified prototype baseline
 
-Audited at `0cb22e90f4d4a2e8416c1d3e2dfe5c73d1c1ca6c`. Source: `data/spells.json`, `scripts/SpellManager.gd`, `scripts/SynergyCatalog.gd`, `scripts/BuildSpellEffect.gd`, `scripts/TacticalSpellEffect.gd`, `scripts/IceBlast.gd`, `scripts/LightningArea.gd`, `scripts/SpellTargeting.gd`, `scripts/SpellGeometry.gd`, `scripts/Player.gd` (paths relative to repository root).
+Roster reconciled against `4edb268` and the approved 0.1.36 scope. Historical baseline numeric details below have been replaced by behavior summaries where tuning is maintained in release specs. Source: `data/spells.json`, `scripts/SpellManager.gd`, `scripts/SynergyCatalog.gd`, `scripts/BuildSpellEffect.gd`, `scripts/TacticalSpellEffect.gd`, `scripts/IceBlast.gd`, `scripts/LightningArea.gd`, `scripts/SpellTargeting.gd`, `scripts/SpellGeometry.gd`, `scripts/Player.gd` (paths relative to repository root).
 
 There are 26 JSON entries, but only 16 learnable manual spells, one automatic attack and nine inactive data definitions. Seven enabled combinations live separately; Reaping Spirit is disabled. Old library prose is not runtime evidence. Numbers below are rank 1 before player multipliers; many JSON fields are overridden by runtime code.
 
 | Public name | Current behavior | Status |
 |---|---|---|
-| Mana Bolt | Automatic 15 damage/1.5 s, homing, 450 + 25 × projectile-index speed; count increases at ranks 3/6/10 | Automatic; new-mode policy open |
-| Bolt |40 damage; straight 500 + 30 × index speed; count = min(rank, 5), 0.12 s stagger | Active |
-| Life |4 instant HP | Active |
-| Regeneration |8 HP/s × 5 s; current multiple effects stack | Active; proposed stack policy differs |
-| Ice Blast |13 contact shards across 90°; 18 per unique enemy/cast; 400 reach; 620 speed; radius 12; slow 0.3 × 2 s | Active |
-| Earth Shield |60 overheal; runtime 5 s | Active |
-| Lightning |Lightning strikes the ground in an area, dealing 80 damage once per enemy within radius 160, then ends; 0.2 s active; no travelling bolt, chaining or lingering damage; internal ID lightning_arc | Active |
-| Meteor Shower |4 impacts; actual 20 each; radius 220; warnings 0.65 + 0.3 × index | Active |
-| Ember Lance |45 per unique enemy; 700 speed; 1.5 s; piercing; nominal radius 24 with visual-default factor | Active |
-| Plague Seed |9/tick every 0.5 s; 5 s/host; spread 130; spore 460 speed; 8 hosts; orphan spore 3 s | Active |
-| Cinder Field |12/0.5 s for 5 s; radius 150 | Active |
-| Arcane Orbit |3 bodies radius 42 on orbit 130; 28/contact/0.5 s; 6 s | Active |
-| Focus Ray |12/0.25 s for 2 s; 450 reach; half-width 20; tracks first aligned target; proposed presentation: a continuous laser aimed toward the nearest enemy, visibly rotating and sweeping between targets rather than snapping or warping into a new line | Active; smooth tracking proposed; a separate laser that rotates in a full circle is a deferred spell idea |
-| Rune Trap |60; arms 0.8 s; trigger 70/explosion 130; placement 160; persists; shared max 3 | Active |
-| Seeker |22/contact/0.5 s; 5 s; 320 speed; radius 24; reacquire 600 from caster; max 3 | Active; ID seeking_spirit |
-| Firewalk |24/0.5 s; emits 5 s, patches 6 s; radius 65 | Active; ID ember_trail |
-| Cross Blade |60 per leg; 350 outbound; 0.9 s linger 30/0.3 s; 500 speed; radius 42; 4 s lifetime | Active; ID returning_blade |
-| Lightning Bolt |Bolt + Lightning; 60 damage; 550 speed; 2 extra bounces within 240 | Enabled bonus |
-| Life Bolt |Bolt + Life; 40 damage; seed 6 HP/2 s, lasts 10 s; max 6 | Enabled bonus |
-| Meteor Lance |Ember Lance + Meteor Shower; current: 27 direct +13.5 area excluding direct victim, radius 90; proposed identity options: a lance that explodes like a meteor on impact, a lance that explodes on the second enemy hit, or a thrown lance followed roughly 1 s later by small damaging meteorites falling along its path; choice and tuning open | Enabled bonus |
-| Soul Bloom |Plague Seed + Regeneration; current: 6.75 infection/tick; actual damage leech 10%, cap 2 HP/0.5 s; clarified proposed identity: Plague Seed that can also infect the player, healing rather than damaging them while infected and letting them carry and spread the infection as they move; replaces damage leech, healing tuning open. Proposed rule for both Soul Bloom and Plague Seed: each new infection or reinfection resets the recipient's infection duration to its full duration rather than stacking it; remove the arbitrary 18 s root lifetime ceiling so continued spread or reinfection can sustain the chain. Individual host infections still expire when their duration runs out without reinfection, and ground/orphan spores expire after their own finite lifetime if they do not infect a target; neither persists indefinitely on its own | Enabled bonus |
-| Steam Field |Cinder Field + Ice Blast; 12/0.5 s, 3 s, radius 150; 40% slow | Enabled bonus |
-| Prism Ray |Focus Ray + Ember Lance; 7.2/0.25 s for 2 s; up to 3 aligned targets; shares beam cap | Enabled bonus |
-| Frost Sigil |Rune Trap + Ice Blast; 60 burst, radius 170; arm 1.4 s; 40% slow 2 s; persistent | Enabled bonus |
+| Mana Bolt | Automatic homing attack; not the manual Bolt spell | Implemented |
+| Bolt | Straight non-homing projectile; visible-target reservations and simultaneous overlapping impacts | Implemented |
+| Life | Small immediate heal; global Power scales healing | Implemented |
+| Regeneration | Sustained healing; recasts extend one stream; Power and Duration apply | Implemented |
+| Ice Blast | Outward cone of contact shards; Size changes bodies/reach and Velocity changes travel | Implemented |
+| Earth Shield | Stack one charge per cast; each independently expires after provisional 16 s (Duration scales). One hit consumes one charge, blocks all its damage and preserves combo, then sends a damaging knockback eruption toward that attacker. No overheal, shared lifetime refresh or gameplay charge cap. | 0.1.36 approved replacement; implementation tracked in release spec |
+| Lightning | Ground disk, 80 rank-one damage once per enemy; base 0.2 s active window admits late entrants; Duration extends window | Implemented |
+| Meteor Shower | Delayed warned impacts; each creates brief damaging aftermath; Duration does not delay impact | Implemented |
+| Ember Lance | Piercing projectile; Size changes actual body, Velocity changes travel | Implemented |
+| Plague Seed | Spreading infection; visible host transfer and finite orphan spores; no enforced host cap; Size changes spread | Implemented |
+| Cinder Field | Persistent damaging area; Size and Duration apply | Implemented |
+| Arcane Orbit | Orbiting contact bodies; Size changes bodies/path, Velocity angular speed, Duration lifetime | Implemented |
+| Focus Ray | Tracking beam; turns at base 4 radians/s; Velocity improves tracking; Size width, Duration lifetime | Implemented |
+| Rune Trap | Persistent until triggered; then brief once-per-target aftermath; Duration does not slow arming | Implemented |
+| Seeker | Independent pursuing spirit; distinct target reservations; actual body contacts; max three | Implemented |
+| Firewalk | Emits burning ground patches; recast extends emission; Size width, Duration emission and patch lifetime | Implemented |
+| Cross Blade | Returning blades; Size and Velocity affect bodies/travel; extra Duration adds stationary afterimage without delaying return | Implemented |
+| Lightning Bolt | Bolt + Lightning; rank-one 40 impact plus 80 splash,80 splash radius, 4 bounces; ingredient levels and own rank resolve separately | Enabled bonus |
+| Life Bolt | Bolt + Life; 40 impact, 6 healing budget in collectible patch; own ranks alternate added bolts and patch size | Enabled bonus |
+| Meteor Lance | Ember Lance + Meteor Shower; 45 impact plus 25 explosion excluding direct victim; ingredient levels scale respective components | Enabled bonus |
+| Soul Bloom | Plague Seed + Regeneration; infection kills create finite healing ground patches; spores linger; no leech/player-carrier behavior | Enabled bonus |
+| Steam Field | Cinder Field + Ice Blast; damaging slow field; rank-one 12 per tick,5 s,150 radius, 40% slow | Enabled bonus |
+| Prism Ray | Focus Ray + Ember Lance; wide piercing beam; base 18 per tick,32 half-width,0.25 radians/s tracking; Velocity does not speed tracking | Enabled bonus |
+| Frost Sigil | Rune Trap + Ice Blast; rank-one 60 burst,170 radius,1.2 s arming; own ranks reduce arming to 0.4 s floor | Enabled bonus |
 
 Inactive data: Fire Storm(15 damage/0.2 s, 4 s, radius 350), Time Warp(0.3 × 5 s), Chain Heal(40, 2 chains, 0.7 falloff), Frost Nova(25, radius 300, freeze 2 s), Arcane Missiles(18 × 5), Divine Aura(heal 5/s, 20% reduction, 15 s), Skeleton Warrior(80 HP, 15 damage, 30 s), Arcane Turret(40 HP, 25 damage, 20 s), Flame Elemental(120 HP, 20 damage, 25 s, aura 8). These values are historical drafts, not available spells. Reaping Spirit has draft code but acquisition disabled.
 
-Current general rank scaling is base × (1 + 0.15 × (rank − 1)) × player multiplier; acquisition does not follow the old JSON unlock-condition drafts. Current Ice Blast range and knockback also scale with rank; its 0.3 slow is a movement multiplier. Plague Seed selects its first host from visible enemies, and its five seconds are per host, not the whole infection chain. Public casting uses Seeker, Firewalk, Cross Blade and Lightning; internal IDs are not free shorter aliases.
+Many base spells use base × (1 + 0.15 × (rank − 1)) × player multiplier; combinations instead use the explicit component coefficients in the 0.1.35 release specification; acquisition does not follow the old JSON unlock-condition drafts. Current Ice Blast range and knockback also scale with rank; its 0.3 slow is a movement multiplier. Plague Seed selects its first host from visible enemies, and its five seconds are per host, not the whole infection chain. Public casting uses Seeker, Firewalk, Cross Blade and Lightning; internal IDs are not free shorter aliases.
 
 ## Proposed campaign roster: 36 manual identities
 
@@ -58,7 +60,7 @@ Current general rank scaling is base × (1 + 0.15 × (rank − 1)) × player mul
 | **Ice Blast** / fan / ice |9 shards, 90°; 18/unique enemy/generation; r 6; speed 620; range 300; slow 0.5 × 2 s; push 35; recovery 1.8 |“Scatter icy shards to slow nearby enemies.” Visible contacts; pale fan preview never damages. Escape cone. |
 | **Lightning** / area / lightning |80 damage once/enemy; r 80; range 360; warning 0.25; active 0.2; recovery 2.5 |“Strike a small area with lightning.” Blue bounded disk then branching flash. Compact immediate cluster deletion. |
 | **Regeneration** / personal duration / life |4 HP/s, 0.5 s ticks, 6 s, total 24; recovery 8; refresh-not-stack |“Recover health steadily for a short time.” Loose leaves; green plus only on healing tick. Better total heal than Life, slower rescue. |
-| **Earth Shield** / personal protection / earth |50 absorption, 6 s; recovery 8; replace only if incoming absorption ≥ remaining absorption; otherwise reject; no addition |“Surround yourself with protective stone.” Five stone segments break with absorbed damage. No impassable terrain. |
+| **Earth Shield** / retaliatory protection / earth |Stack one charge per cast; each independently expires after provisional 16 s (Duration scales). One hit consumes one charge, blocks all its damage and preserves combo, then sends a damaging knockback eruption toward that attacker. No overheal, shared lifetime refresh or gameplay charge cap. |“Catch a hit and erupt toward your attacker.” Visible charges and a matching outward cone; see 0.1.36 tuning. |
 | **Meteor Shower** / multi-area / fire |4 × 60 damage; impact radius 80; range 420; warnings 0.65 + 0.25 i; area active 0.1; recovery 6 |“Rain meteors across a marked area.” Growing red warnings, descending rocks, ground impact. Formation breaker, not instant panic button. |
 | **Ember Lance** / piercing / fire |65 per unique contact; r 9; speed 700; range 650; max 8 contacts; recovery 2.5 |“Pierce a line of enemies with an ember lance.” Long ember tip and restrained trailing sparks. Aimed lane damage. |
 | **Plague Seed** / infecting / plague |Seed speed 460, r 7, range 360; 6/0.5 s × 4 s = 48/host; spread 120; max 6 hosts; root lifetime policy under revision; orphan 3 s; recovery 5 |“Infect an enemy and spread spores nearby.” Green-purple seed, lesions, travelling links and visible orphan. Crowded staggered packs. |

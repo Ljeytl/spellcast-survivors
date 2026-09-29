@@ -1,6 +1,6 @@
 # Current release scope
 
-[0.1.35 spell scaling](docs/releases/0.1.35-spell-scaling.md) is the approved current pass. Earth Shield redesign and Frost Sigil double placement remain deferred; typed keyword/campaign plans do not replace this playable baseline.
+[0.1.36 Earth Shield](docs/releases/0.1.36-earth-shield.md) is the approved current pass. Then tutorial and meaningful keywords, followed by preparation/tower/expeditions. [Element × family matrix](docs/expedition-design/16-element-family-matrix.md) separates implemented content from ideas.
 
 **0.1.31:** Seeker target distribution/visibility and five-second combo grace implemented. Remaining playtest tuning stays in the feedback tracker.
 
@@ -26,7 +26,7 @@ See [F41–F43 in the feedback tracker](docs/PLAYER_FEEDBACK.md#post-0125-playte
 
 ## Lasting spell recasts — 0.1.25
 
-Maintained spells use `recast_behavior: extend`; independent effects use `stack`. Arcane Orbit preserves its orbit and damage cadence; Firewalk extends emission only, never patch lifetime; Regeneration keeps one healing stream; Earth Shield retains its additive protection and extends expiration. Timed effects expose real remaining state to the bottom casting reference; traps show arming/armed rather than a fake countdown. Duration banking cap remains undecided and is not implemented.
+Maintained spells use `recast_behavior: extend`; independent effects use `stack`. Arcane Orbit preserves its orbit and damage cadence; Firewalk extends emission only, never patch lifetime; Regeneration keeps one healing stream; Earth Shield now follows independent stacked one-hit charge lifetimes and directional retaliation (0.1.36), rather than additive overheal. Timed effects expose real remaining state to the bottom casting reference; traps show arming/armed rather than a fake countdown. Duration banking cap remains undecided and is not implemented.
 
 ## Playtester follow-up ideas — 2026-09-28 (deferred)
 
@@ -168,7 +168,7 @@ See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified i
 ## 2026-09-26 — Complete spell library and naming feedback (documentation only)
 
 - Add the [full spell library](docs/SPELL_LIBRARY.md) with individual status, source, letter count, fantasy and visual identity rows. Preserve user concepts, inactive drafts and name alternatives; add clearly labelled water, sun, earth and arcane suggestions. Rows are not a promised playable spell count.
-- Separate quick Life (about 4 HP) from stronger Regeneration, specify straight non-homing Bolt, document Seeker versus stronger Seeking Spirit, recommend Firewalk as a working trail name, and revise Earth Shield toward damageable terrain which decays.
+- Separate quick Life (about 4 HP) from stronger Regeneration, specify straight non-homing Bolt, document Seeker versus stronger Seeking Spirit, recommend Firewalk as a working trail name, and preserve damageable terrain as Earth Wall; Earth Shield now follows the 0.1.36 reactive-charge design.
 - Reopen affected recipes explicitly rather than silently mapping Life Bolt or Reaping Spirit to new ingredients. Keep implementation, generated art and merges paused for design review.
 
 ## 2026-09-26 — Design reconciliation before implementation

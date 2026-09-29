@@ -1,6 +1,6 @@
 # Should Have Joined a Party — design package
 
-> **Current development slate:** keep the playable roguelike alpha. Difficulty scaling is next; keyword and expedition work are deferred. Track observations, open work and verified fixes in the [player feedback tracker](../PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
+> **Current development slate:** preserve the playable roguelike and style system. Implement the approved Earth Shield redesign for 0.1.36, then build a tutorial introducing meaningful, visibly multiplicative keywords, then preparation/tower/ley-line expeditions. Keyword selection and numeric stacking remain proposals. Keep the friend’s art; 2D, 3D and hybrid art direction are a later exploration.
 
 **Version 0.1 · 27 September 2026 · design proposal, not a gameplay patch**
 
@@ -26,7 +26,8 @@ For **what to build next**, start with [Development order](15-development-order.
 12. [Research](12-research.md): primary sources, evidence limits and design applications.
 13. [Review record](13-review-record.md): completed design checks, remaining decisions and feasibility risks.
 14. [Spell system reference](14-spell-system-reference.md): reusable components, property and keyword tables, spell recipes, and elemental-tier ideas.
-15. [Development order](15-development-order.md): concrete playable milestones, beginning with Level 1 and normal slimes; included enemies, spells, keywords, mechanics and exit gates.
+15. [Development order](15-development-order.md): shield, tutorial/keywords and connected expeditions; concrete playable milestones and exit gates.
+16. [Element × family matrix](16-element-family-matrix.md): implemented spells, user ideas and explicitly unselected proposals.
 
 ## How to interpret this package
 
@@ -51,6 +52,6 @@ See [decision register](02-decisions.md#decisions-to-review-first) before implem
 
 ## Documentation checks
 
-Run `python3 docs/expedition-design/validate_documentation.py` from the repository root. It checks 36 unique spell rows, 36 compatibility rows, 14 keywords, seven recipes, acquisition-name coverage, local links, JSON examples, table structure and worked arithmetic. One deliberately missing-spell control verifies that the roster gate fails. These are document checks, not gameplay tests. See [review record](13-review-record.md) for the remaining tuning gates.
+Run `python3 docs/expedition-design/validate_documentation.py` from the repository root. It checks the current family matrix against the live 16-base roster and explicitly excludes unselected Arcane Seed/Shield examples, plus 36 unique proposed spell rows, 36 compatibility rows, 14 keywords, seven recipes, acquisition-name coverage, local links, JSON examples, table structure and worked arithmetic. One deliberately missing-spell control verifies that the roster gate fails. These are document checks, not gameplay tests. See [review record](13-review-record.md) for the remaining tuning gates.
 
 The [wizard tower and rotary destination chamber](09-ui-accessibility.md#wizard-tower-rotary-destination-chamber) records the physical level selector, preparation book and automatic recall concept.
