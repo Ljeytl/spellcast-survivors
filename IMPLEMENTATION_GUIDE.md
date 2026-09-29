@@ -69,7 +69,7 @@ Create: /scenes/spells/ directory
 ```
 Modify: /scripts/Player.gd
 - Add auto-attack timer
-- Create Mana Bolt projectiles
+- Create Magic Missile projectiles
 - Target nearest enemy
 ```
 

@@ -66,7 +66,7 @@ Use plain readable menu text with restrained grimoire/stone ornament. Ordinary c
 
 Track each feature as existing, adapting, new, deferred or needs verification, separately from player acquisition. Retain a reproducible comparison build and grow the actual game in reviewable increments. Do not implement parallel replacement systems by default or remove a working system before its replacement is playable.
 
-Open decisions include XP versus mana terminology and upgrade roles, preparation capacity, automatic Mana Bolt, discovery retention, Big infection geometry/kill-through, Soul Bloom healing carrier, Meteor Lance identity and final roster counting. Preserve local working notes; unresolved proposals must not become silent implementation defaults. Existing game fun is user-reported; the expanded loop remains to be validated.
+Open decisions include XP versus mana terminology and upgrade roles, preparation capacity, automatic Magic Missile, discovery retention, Big infection geometry/kill-through, Soul Bloom healing carrier, Meteor Lance identity and final roster counting. Preserve local working notes; unresolved proposals must not become silent implementation defaults. Existing game fun is user-reported; the expanded loop remains to be validated.
 
 [Validation](11-validation.md) defines evidence obligations, [components](14-spell-system-reference.md) defines property contracts, and [levels](06-levels.md) proposes player-facing content. Those tables do not supersede this incremental development order. Documentation approval does not itself implement gameplay or replace art.
 

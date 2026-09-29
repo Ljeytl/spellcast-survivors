@@ -98,7 +98,7 @@ func populate():
 	if families.is_empty():
 		text_row("No passive upgrades yet.", READABILITY.MUTED)
 	section("Automatic attack")
-	text_row("Mana Bolt · Rank %d" % manager.get_spell_rank("mana_bolt"))
+	text_row("Magic Missile · Rank %d" % manager.get_spell_rank("mana_bolt"))
 
 func add_spell_rows(spells: Dictionary):
 	var slots = spells.keys()
@@ -124,7 +124,7 @@ func spell_name(id: String) -> String:
 	return str(info.get("name", id.replace("_", " ").capitalize()))
 
 func passive_name(family: String) -> String:
-	return {"spell_duration": "Spell Duration", "spell_damage": "Spell Power", "movement_speed": "Movement speed", "max_health": "Max health", "xp_range": "Pickup radius", "projectile_speed": "Velocity", "slowdown_duration": "Slowdown duration", "mana_bolt": "Mana Bolt mastery", "mana_bolt_mastery": "Mana Bolt mastery", "spell_area": "Spell Size", "multicast": "Multicast", "xp_gain": "XP gain", "luck": "Luck", "crit_chance": "Critical chance", "crit_damage": "Critical damage", "enemy_population": "Enemy population"}.get(family, family.replace("_", " ").capitalize())
+	return {"spell_duration": "Spell Duration", "spell_damage": "Spell Power", "movement_speed": "Movement speed", "max_health": "Max health", "xp_range": "Pickup radius", "projectile_speed": "Velocity", "slowdown_duration": "Slowdown duration", "mana_bolt": "Magic Missile mastery", "mana_bolt_mastery": "Magic Missile mastery", "spell_area": "Spell Size", "multicast": "Multicast", "xp_gain": "XP gain", "luck": "Luck", "crit_chance": "Critical chance", "crit_damage": "Critical damage", "enemy_population": "Enemy population"}.get(family, family.replace("_", " ").capitalize())
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):

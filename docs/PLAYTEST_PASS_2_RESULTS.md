@@ -32,7 +32,7 @@ The middle pressure envelope is data-driven: multiplier1 at120seconds,1.3at180,1
 | 9:00 |1.526|1.526|
 |11:00 |1.294|1.294|
 
-A48-sample controlled probe compares the old/new pressure envelope at0/2/3/5/7/8/9/11 minutes with stationary, moving and casting behavior. Same seed44, rank4 Mana Bolt and30-second windows; high health prevents truncation and prior bosses are suppressed. These are comparable encounter measurements, not natural survival outcomes. No sample hit the population cap. In stationary five-minute windows, actual spawns increased16→33 and peak population4→10; at seven minutes16→28 and4→9; at eight20→26 and5→9.
+A48-sample controlled probe compares the old/new pressure envelope at0/2/3/5/7/8/9/11 minutes with stationary, moving and casting behavior. Same seed44, rank4 Magic Missile and30-second windows; high health prevents truncation and prior bosses are suppressed. These are comparable encounter measurements, not natural survival outcomes. No sample hit the population cap. In stationary five-minute windows, actual spawns increased16→33 and peak population4→10; at seven minutes16→28 and4→9; at eight20→26 and5→9.
 
 A120-second stationary comparison starting at8:00 produced94→110 actual spawns, peak population22→42, and higher received damage. Again, its artificial health pool makes it a pressure probe, not evidence that a player should take thousands of damage. Prior enemies, extra XP and build choices can change later outcomes even though later spawning parameters are preserved. Final human balance judgment remains open; do not call nine/eleven-minute subjective difficulty conclusively preserved from parameter checks alone.
 

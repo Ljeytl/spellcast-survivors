@@ -29,8 +29,8 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 
 | Identity | Intended visible sequence | Player understanding / feeling |
 |---|---|---|
-| Mana Bolt | Tiny staff discharge → flat cyan projectile with aligned tail → small spark → none → disappearance. | Dependable automatic support. No tumbling faux-3D rotation. |
-| Bolt | Sharp cast snap → compact forward projectile → concentrated contact spark → none → tail collapse. | Immediate, reliable bread-and-butter attack. Distinct from automatic Mana Bolt. |
+| Magic Missile | Tiny staff discharge → flat cyan projectile with aligned tail → small spark → none → disappearance. | Dependable automatic support. No tumbling faux-3D rotation. |
+| Bolt | Sharp cast snap → compact forward projectile → concentrated contact spark → none → tail collapse. | Immediate, reliable bread-and-butter attack. Distinct from automatic Magic Missile. |
 | Lightning | Charge cue → decisive vertical strike at actual target → branching contact flash → brief residual flicker → dissipation. | Immediate focused force, not a travelling or bouncing bolt. |
 | Life, new split | Small restorative pulse on actual immediate healing → quick fade. | Fast modest recovery, about 4 HP; distinct from sustained Regeneration. |
 | Regeneration | Restorative bloom → motes drawn inward → pulse on actual healing → restrained repeated restoration → thinning motes. | Recovery that visibly works; distinguish full-health or capped healing. |
@@ -104,4 +104,4 @@ Shader development and shader-based polish are later work, not part of the curre
 
 ### Playtest correction: infection and foliage (2026-09-26)
 
-Tree fading is player-only. Plague Seed uses a 32-pixel plant marker and a brighter four-pixel transfer trail above canopy art. Real host deaths transfer infection once to another living enemy within 130 pixels, including deaths caused by automatic Mana Bolt before the first half-second tick. The existing eight-host cap and five-second effect lifetime remain. Crowded native readability still needs human review; mechanical lifecycle coverage is separate from that judgment.
+Tree fading is player-only. Plague Seed uses a 32-pixel plant marker and a brighter four-pixel transfer trail above canopy art. Real host deaths transfer infection once to another living enemy within 130 pixels, including deaths caused by automatic Magic Missile before the first half-second tick. The existing eight-host cap and five-second effect lifetime remain. Crowded native readability still needs human review; mechanical lifecycle coverage is separate from that judgment.

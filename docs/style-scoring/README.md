@@ -8,7 +8,7 @@ Fight well enough to maximize a stylish casting combo. Long incantations, fast e
 
 - Rank ladder: **F, E, D, C, B, A, S, SS, SSS**.
 - Separate current **combo score** from accumulated **run score**.
-- Manual casting drives combo. Passive Mana Bolt firing/hitting does not sustain it.
+- Manual casting drives combo. Passive Magic Missile firing/hitting does not sustain it.
 - Longer canonical incantations earn more; fast typing earns a bonus relative to their length.
 - Typos reduce that cast's execution bonus, not the entire combo.
 - Repetition has diminishing extra reward. Alternating only two or three spells must not fully restore freshness.
@@ -110,7 +110,7 @@ Approved playtest revision: every rank gap is 800 unmultiplied combo points. The
 
 ### Passive fire and kills
 
-Mana Bolt firing/hitting has no style award and does not reset grace or freshness. The first playable uses cast-only scoring. Kill points remain a possible later comparison. If kill points are enabled, they must be separate from cast awards, credit each death once, and passive kills must not sustain combo. Do not silently introduce per-HP, healing or control-efficiency scoring.
+Magic Missile firing/hitting has no style award and does not reset grace or freshness. The first playable uses cast-only scoring. Kill points remain a possible later comparison. If kill points are enabled, they must be separate from cast awards, credit each death once, and passive kills must not sustain combo. Do not silently introduce per-HP, healing or control-efficiency scoring.
 
 ## S-rank special spell — Atomic
 

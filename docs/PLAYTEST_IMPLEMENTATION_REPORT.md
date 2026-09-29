@@ -16,7 +16,7 @@ This is a playable baseline repair, not production balance certification. The fu
 
 ## Scope limits
 
-There are seven working passive families: spell damage, movement speed, maximum health, pickup radius, projectile speed, slowdown duration, and bundled Mana Bolt mastery. A build can hold six. Area, Multicast, XP gain, Luck, critical stats and enemy population still require authored contracts and implementation; none is offered as an inert upgrade.
+There are seven working passive families: spell damage, movement speed, maximum health, pickup radius, projectile speed, slowdown duration, and bundled Magic Missile mastery. A build can hold six. Area, Multicast, XP gain, Luck, critical stats and enemy population still require authored contracts and implementation; none is offered as an inert upgrade.
 
 Earth Walls, stronger Seeking Spirit/Reaping Spirit, Frost Nova and the larger water/moon/tree/hand library remain separate selection work. Typed menu navigation, shaders and audio polish remain deferred. Native audio shutdown was repaired as a lifecycle defect, without redesigning sounds.
 

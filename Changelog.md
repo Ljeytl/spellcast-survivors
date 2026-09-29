@@ -1,3 +1,8 @@
+# Automatic attack rename
+
+- Renamed automatic Mana Bolt to Magic Missile across player-facing labels, workshop previews, upgrade descriptions and documentation. Manual Bolt and automatic attack behavior are unchanged.
+- Kept internal IDs and asset keys stable for compatibility.
+
 # Documentation: readable spell fantasies
 
 - Added spell fantasies directly to the school/family matrix; moved historical commentary into detailed notes.
@@ -305,7 +310,7 @@
 
 ## 2026-09-27 — Compact moving spell bodies
 
-- Reduced Mana Bolt and Life Bolt to 80%, Lightning Bolt to 75%, Ember Lance to 70%, and Meteor Lance to 85% of their previous body sizes; Bolt keeps its approved 75% baseline.
+- Reduced Magic Missile and Life Bolt to 80%, Lightning Bolt to 75%, Ember Lance to 70%, and Meteor Lance to 85% of their previous body sizes; Bolt keeps its approved 75% baseline.
 - Ember and Meteor Lance preserve the original generated sprite's proportions instead of squashing it. Lightning Bolt uses the original mana motif with a thin blue-white electrical tail instead of a thick purple block.
 - Visual body and hit geometry use the same per-spell factor. Decorative particles, spell damage, timing, bounce mechanics, and Meteor Lance explosion area remain unchanged.
 - Workshop camera framing stays correct when paused and resized.
@@ -331,7 +336,7 @@
 - Visual workshop: redraw the floor after preview camera/size updates so spell replay and zoom do not leave uncovered gray regions.
 
 - Add one transparent 4 × 4 motif atlas for current spell projectiles, hunters, orbit bodies, shield stones and supporting particles. Preserve supplied Typecast artwork and draw hit boundaries, warnings, beams and paths from their existing gameplay geometry.
-- Give Mana Bolt, Bolt, lances, ice shards, plague spores, Cross Blade, Firewalk/Cinder, Steam, Meteor, healing and Prism Ray distinct restrained silhouettes; keep impact, healing and infection timing tied to existing combat behavior.
+- Give Magic Missile, Bolt, lances, ice shards, plague spores, Cross Blade, Firewalk/Cinder, Steam, Meteor, healing and Prism Ray distinct restrained silhouettes; keep impact, healing and infection timing tied to existing combat behavior.
 - Record the image prompt, source, cell map and geometry contract in `docs/SPELL_PIXEL_ART_PASS.md`; add an atlas and Spell Size contract check. Audio remains outside this visual change.
 
 ## 2026-09-27 — Spell geometry and persistent plague spores
@@ -418,7 +423,7 @@
 
 ## 2026-09-26 — Shared spell targeting
 
-- Select useful targets for rapid and delayed Bolt, Mana Bolt, Life Bolt and Lightning Bolt attacks using expiring in-flight damage estimates. Homing attacks reacquire after target death; straight attacks retain their trajectory.
+- Select useful targets for rapid and delayed Bolt, Magic Missile, Life Bolt and Lightning Bolt attacks using expiring in-flight damage estimates. Homing attacks reacquire after target death; straight attacks retain their trajectory.
 - Release estimates on misses, impact, expiry, despawn and pooled reuse. Add reusable group-coverage selection for downstream area spells and document the entire implemented library targeting policy.
 - Verify real enemies and typed casts with a reservation-disabled negative control. Future: integrate ground-area selection and judge crowded-scene gameplay with the effects pass.
 
@@ -470,7 +475,7 @@
 ## 2026-09-27 — Casting and acquisition foundations
 
 - Give each cast a fresh finite real-time slowdown window; remove idle refill dependency and add the Focus duration passive at fixed slowdown strength.
-- Support six primary spells and six passive families. Passive ranks stay in their family slot; Mana Mastery bundles automatic Mana Bolt rank and attack rate. Only passives with working effects enter the offer pool.
+- Support six primary spells and six passive families. Passive ranks stay in their family slot; Mana Mastery bundles automatic Magic Missile rank and attack rate. Only passives with working effects enter the offer pool.
 - Learn authored bonus spells separately at rank 1 while preserving both ingredients and their ranks. Add unified owned-spell lookup/library APIs, reject unowned casts, and keep discovery memory separate from run ownership.
 - Separate quick Life from Regeneration and Bolt from Lightning. Reserve Lightning Bolt's bouncing-projectile contract and Life Bolt's collectable healing-seed contract for the effects integration; defer Reaping Spirit acquisition.
 - Future: integrate the effects contracts and player spellbook, audit remaining passive families, and validate the combined candidate before delivery.
@@ -581,7 +586,7 @@
 ## 2026-09-26 — Casting decisions and branch reconciliation
 
 - Confirm the existing survivors premise, long-incantation power fantasy, and fixed-strength per-cast slowdown with upgradeable duration. Record that the shipped shared budget/refill still needs replacement.
-- Document thirteen supporting upgrade categories, bundled Mana Bolt mastery, enemy population as risk/reward growth, and spell-appropriate Multicast instead of a projectile-only stat. Preserve open Mana Bolt interactions and secondary-slot rules.
+- Document thirteen supporting upgrade categories, bundled Magic Missile mastery, enemy population as risk/reward growth, and spell-appropriate Multicast instead of a projectile-only stat. Preserve open Magic Missile interactions and secondary-slot rules.
 - Refresh stale core-design descriptions of movement, incorrect input, passive slots, and the repaired attack-rate stat. Mark prior pivot discussions and roadmap milestones as historical.
 - Reconcile the original opening-balance branch only after auditing its already-reapplied changes against the recovered and subsequently tested mainline; retain current gameplay behavior.
 
@@ -595,7 +600,7 @@
 
 ## 2026-09-26 — Playtest-driven balance corrections
 
-- Rename Quick Cast to Mana Tempo and describe its actual +10% automatic Mana Bolt attack-rate benefit. Preserve the internal upgrade key and existing attack cadence while keeping typing slowdown at 20% world speed regardless of attack-rate upgrades.
+- Rename Quick Cast to Mana Tempo and describe its actual +10% automatic Magic Missile attack-rate benefit. Preserve the internal upgrade key and existing attack cadence while keeping typing slowdown at 20% world speed regardless of attack-rate upgrades.
 - Ignore dying, zero-health, queued-for-removal, and freed enemies when computing contact damage and its attacker count. Live enemies still deal their normal damage.
 - Extend ordinary bot reports with contact/projectile/blast damage, damage while typing, recent hits, boss arrivals/defeats/surviving health, and uncollected XP. Validate contradictory damage reports rather than infer balance from survival time alone.
 - Add real-time typed-cast and physical-contact regressions with baseline failure evidence. Preserve the three-second typing budget, ten-second recharge, encounter curve, spell damage, and twenty-minute ending.
@@ -629,7 +634,7 @@
 ## 2026-09-26 — Gameplay readability pass
 
 - Give gameplay HUD and menus readable window-relative sizing without changing the world camera or combat scale. Use slate panels, parchment text, cyan casting feedback, gold choices, and coral danger.
-- Show five spell slots with full names, ranks, selected state, and empty-slot guidance; separate automatic Mana Bolt and always-visible slowdown availability/recharge.
+- Show five spell slots with full names, ranks, selected state, and empty-slot guidance; separate automatic Magic Missile and always-visible slowdown availability/recharge.
 - Keep the incantation prompt above the player, report typing mistakes and owned-name matches, and retain bounded scrolling for long input.
 - Label choices as new spells, spell upgrades, passive upgrades, or evolutions; preserve functional descriptions and replacement details.
 - Darken the floor and outline enemies; retain conspicuous square hostile projectiles and outlined area warnings without altering their collision, damage, or timing.
@@ -718,7 +723,7 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 
 ## 2026-09-26 — Learn spells during a run
 
-- Start with manual Bolt and the passive Mana Bolt; learn Regeneration, Ice Blast, Earth Shield, Lightning Arc and Meteor Shower from level-up choices in their existing six numbered slots.
+- Start with manual Bolt and the passive Magic Missile; learn Regeneration, Ice Blast, Earth Shield, Lightning Arc and Meteor Shower from level-up choices in their existing six numbered slots.
 - Offer an eligible learning card while unlearned, unbanished spells remain. Once learned, spells receive rank upgrades instead; ownership and ranks reset each run.
 - Share acquired spell state between numbered and freeform casting. Fix ID/name mismatches that prevented upgrades from applying and remove the ordinary Y unlock cheat.
 - Repair reroll, banish and lock actions to use eligible, unique, applicable cards; prevent changes while a choice resolves. Remove unimplemented passive effects from the offer pool.
@@ -749,7 +754,7 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 
 ## September 26, 2026 — Spell builds and authored evolutions
 
-- Ten base spells compete for five manual slots; automatic Mana Bolt stays separate. Slot keys and HUD names follow actual acquisition order.
+- Ten base spells compete for five manual slots; automatic Magic Missile stays separate. Slot keys and HUD names follow actual acquisition order.
 - Added piercing Ember Lance, spreading Plague Seed, persistent Cinder Field and close-range Arcane Orbit, each with working rank scaling.
 - Added Meteor Lance, Soul Bloom and Steam Field; Life Bolt now evolves Bolt in place. Every evolution retains its primary slot and rank, preserves its catalyst, and remains upgradeable.
 - Full kits still receive eligible evolutions, rank upgrades and passives. Consumed primaries cannot be cast or relearned; invalid evolution requests leave ownership intact.

@@ -117,7 +117,7 @@
   },
   "autocast_spells": {
     "mana_bolt": {
-      "name": "Mana Bolt",
+      "name": "Magic Missile",
       "description": "Basic magical projectile that homes toward enemies",
       "damage": 15,
       "cooldown": 1.5,

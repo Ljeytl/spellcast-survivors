@@ -22,7 +22,7 @@ func remember_effect():
 	settings.effect_settings[selected] = {"spell_size": settings.spell_size, "projectile": settings.projectile, "particle": settings.particle}
 
 func catalog() -> Array:
-	var result = [{"id": "mana_bolt", "name": "Mana Bolt", "group": "Spells", "bonus": false}]
+	var result = [{"id": "mana_bolt", "name": "Magic Missile", "group": "Spells", "bonus": false}]
 	var data = tree.root.get_node("DataManager")
 	for id in game.spell_manager.BASE_SPELL_IDS:
 		result.append({"id": id, "name": data.get_spell_data(id).get("name", id), "group": "Spells", "bonus": false})

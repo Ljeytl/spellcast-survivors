@@ -124,7 +124,7 @@ Append new feedback as it arrives. Preserve the original observation and date; a
 | ID | Feedback / expected result | Status | Priority / evidence needed |
 |---|---|---|---|
 | F01 | Opening approachable, but standing still and ignoring threats should be unsafe; earlier target was death around 30–45 seconds | Open | Now: measure stationary/no-cast behavior in current build; historical target is tunable |
-| F02 | Minutes 3–8 were too easy: around minute 8, four passive Mana Bolt upgrades allowed survival without movement | Open | Now: reproduce this build; inspect actual nearby pressure, spawn throughput, HP and enemy mix |
+| F02 | Minutes 3–8 were too easy: around minute 8, four passive Magic Missile upgrades allowed survival without movement | Open | Now: reproduce this build; inspect actual nearby pressure, spawn throughput, HP and enemy mix |
 | F03 | Around minute 9 escalation felt good and minute 11 was hard in a good way | Decision recorded | Preserve as comparison points; this is player-reported historical feel, not current timing verification |
 | F04 | Enemies should spawn in increasing numbers/pressure over time, not appear flat around minute 7 | Open | Now: verify emitted spawns, alive caps, offscreen population and enemies reaching player before tuning |
 | F05 | Use bot runs plus ordinary and stationary builds; luck/build strength affects survival | Decision recorded | Compare repeated runs; bot survival alone does not establish fun or difficulty |
@@ -162,7 +162,7 @@ The player asked how many casts boss one's 1,879.2 HP represents. Source-derived
 | Cross Blade, outbound + return, no linger ticks | 120 | 16 | 156 | 13 |
 | Meteor Shower, every meteor hits boss | 80 (4 × 20) | 24 | 156 (6 × 26) | 13 |
 
-Meteor damage uses the runtime 0.8 multiplier. These are idealized arithmetic counts, not average time-to-kill: nearby enemies split targeting, moving bosses can leave warning circles, blade passes can miss, while passive Mana Bolt and other damage reduce required manual casts. Measure real boss fight duration with representative five-minute builds before assigning a final HP budget.
+Meteor damage uses the runtime 0.8 multiplier. These are idealized arithmetic counts, not average time-to-kill: nearby enemies split targeting, moving bosses can leave warning circles, blade passes can miss, while passive Magic Missile and other damage reduce required manual casts. Measure real boss fight duration with representative five-minute builds before assigning a final HP budget.
 
 ### Rune Trap and boss target refinement — 2026-09-28
 

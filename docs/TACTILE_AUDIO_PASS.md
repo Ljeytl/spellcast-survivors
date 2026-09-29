@@ -4,7 +4,7 @@
 
 The actual game uses 23 licensed CC0 samples from rubberduck's **80 CC0 RPG SFX** instead of its former generated keyboard-like SFX. Provenance, source names and conversion settings are in [audio/tactile/CREDITS.md](../audio/tactile/CREDITS.md). This is a first shared sound palette, not bespoke sound design for every spell.
 
-- Bolt and passive Mana Bolt use short blade/air releases; passive fire is quieter.
+- Bolt and passive Magic Missile use short blade/air releases; passive fire is quieter.
 - Fire spells use fire samples; stone/ice spells use brittle material samples; healing and spirit spells share magic samples. Dedicated ice, lightning and spirit identities remain future polish.
 - Enemy health loss, enemy deaths, XP, player damage, typing, menus, level-ups and chests have sample-based cues.
 - Successful spell dispatch emits one cast cue for typed, freeform and direct casts. Rejected unlocks and targetless Plague casts remain silent. Existing cast success semantics are preserved.

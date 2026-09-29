@@ -14,13 +14,13 @@ SpellCast Survivors combines the intense action of vampire survivors games with 
 
 ### Core Mechanics
 - **WASD Movement** - Navigate through enemy hordes
-- **Auto-Attack** - Continuous mana bolt projectiles
+- **Auto-Attack** - Continuous Magic Missile projectiles
 - **Spell Queuing** - Press number keys (1-5) to queue equipped spells
 - **Typing System** - Type spell names to cast them
 - **Time Dilation** - Typing has a shared three-second slowdown budget, refilling over ten seconds outside typing
 
 ### Spell System
-Choose five manual spells from fifteen base spells. Automatic Mana Bolt is separate.
+Choose five manual spells from fifteen base spells. Automatic Magic Missile is separate.
 
 - **Bolt** — Focused projectiles
 - **Regeneration** — Healing over time
@@ -70,7 +70,7 @@ Seven hidden authored evolutions can appear when their ingredients are equipped.
 - Choose new spells, equipped-spell ranks, passives, or eligible evolutions.
 - At five equipped spells, new base-spell offers stop; evolutions and upgrades remain available.
 - Damage ranks add 15% of base damage, with spell-specific bonuses on existing spells.
-- Mana Tempo increases automatic Mana Bolt attack rate by 10% per pick. It does not weaken or extend the shared typing slowdown.
+- Mana Tempo increases automatic Magic Missile attack rate by 10% per pick. It does not weaken or extend the shared typing slowdown.
 
 ### Audio System
 - Dynamic background music

@@ -114,7 +114,7 @@ func run():
 	check(is_equal_approx(player.health, 92), "Queued removal is excluded while live contact still counts")
 	check(player.last_damage_context.count == 1, "Contact explanation counts only living attackers")
 	var rate_upgrade = root.get_node("DataManager").get_generic_upgrades().get("mana_bolt_mastery", {})
-	check(rate_upgrade.get("description", "").contains("Mana Bolt"), "Upgrade explains its actual automatic attack benefit")
+	check(rate_upgrade.get("description", "").contains("Magic Missile"), "Upgrade explains its actual automatic attack benefit")
 	game.queue_free()
 	await process_frame
 	await process_frame

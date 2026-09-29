@@ -341,7 +341,7 @@ These rows preserve the unselected ideas. They do not claim every idea is implem
 
 | Concept | Candidate reusable recipe | Big / key modifier implications | Status |
 |---|---|---|---|
-| Mana Bolt | Automatic emitter → guided projectile → damage | Body; emission cadence belongs to automatic controller, not every spell | Existing automatic attack; expedition presence open |
+| Magic Missile | Automatic emitter → guided projectile → damage | Body; emission cadence belongs to automatic controller, not every spell | Existing automatic attack; expedition presence open |
 | Homing Bolt | Projectile + guidance | Body; Seeking may already express this | Separate identity versus expression open |
 | Magic Missile | Projectile/volley + optional guidance | Body or volley coverage must be selected | Starter identity open |
 | Arcane Orb | Slow moving body + repeat-contact gate/expiry | Body; Lasting must preserve range/lifetime tradeoff | Reserved |

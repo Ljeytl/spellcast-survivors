@@ -27,7 +27,7 @@ All entries below are implemented and available through their existing ownership
 
 | Spell / status | Role and targeting | Shape / origin / reach | Duration and hit cadence | Visible lifecycle and disposition | Evidence |
 |---|---|---|---|---|---|
-| Mana Bolt / passive | Automatic support, useful target per launch, homing reacquisition | Traveling projectile from self;450speed; HurtBox contact |15base damage,1.5s baseline cadence; rank volleys | Enlarged cosmetic projectile; incoming commitment releases on impact/miss/expiry. Preserve passive power | shared_targeting |
+| Magic Missile / passive | Automatic support, useful target per launch, homing reacquisition | Traveling projectile from self;450speed; HurtBox contact |15base damage,1.5s baseline cadence; rank volleys | Enlarged cosmetic projectile; incoming commitment releases on impact/miss/expiry. Preserve passive power | shared_targeting |
 | bolt / primary | Quick direct attack; shared useful launch target | Straight projectile from self;600speed; HurtBox |40base per shot; rank adds shots capped5;3s projectile life | Keeps straight trajectory, no accidental homing | shared_targeting, foundations |
 | life / primary | Small emergency heal; self | Personal feedback, no damaging area |4HP immediate | Brief heal particles; distinct from stronger sustained heal | foundations |
 | regeneration / primary | Sustained recovery; self | Personal feedback |8HP/sec for5s,40total base | Heal feedback coalesced; no misleading damage circle | foundations |

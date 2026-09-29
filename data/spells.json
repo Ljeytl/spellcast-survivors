@@ -2,7 +2,7 @@
   "spells": {
     "mana_bolt": {
       "id": "mana_bolt",
-      "name": "Mana Bolt",
+      "name": "Magic Missile",
       "type": "auto_attack",
       "damage": 15,
       "cooldown": 1.5,

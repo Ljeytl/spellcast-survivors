@@ -43,7 +43,7 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 		"spell_damage":
 			return "Gain %s%% spell power." % number(value * 100)
 		"cast_speed":
-			return "Gain %s%% Mana Bolt attack speed." % number(value * 100)
+			return "Gain %s%% Magic Missile attack speed." % number(value * 100)
 		"spell_area":
 			return "Gain %s%% spell size." % number(value * 100)
 		"projectile_speed":
@@ -53,7 +53,7 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 		"slowdown_duration":
 			return "Gain %s seconds of slowdown per cast." % number(value)
 		"mana_bolt_mastery":
-			return "Strengthen your automatic Mana Bolt and fire it faster."
+			return "Strengthen your automatic Magic Missile and fire it faster."
 		"movement_speed":
 			return "Gain %s%% movement speed." % number(value * 100)
 		"max_health":

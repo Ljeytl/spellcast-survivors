@@ -59,7 +59,7 @@ WASD or arrow keys: move.
 1–6 or click a learned spell: select it and type its name to cast.
 Space: type any spell learned in this run; Enter confirms.
 Escape: cancel typing or pause. The spellbook is in the pause menu.
-Mana Bolt fires automatically. Your starting typed spell is Bolt.
+Magic Missile fires automatically. Your starting typed spell is Bolt.
 Choose upgrades at level-up. Survive to 20:00 to win.
 
 Please send feedback with the build ID, your OS, what happened, and a

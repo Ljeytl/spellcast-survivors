@@ -5,7 +5,7 @@ var passive = false
 
 func _ready():
 	if passive:
-		var glyph = {"spell_duration": "DU", "spell_damage": "PW", "movement_speed": "MV", "max_health": "HP", "xp_range": "PK", "projectile_speed": "SP", "slowdown_duration": "TM", "mana_bolt_mastery": "MB", "spell_area": "SZ", "multicast": "×2", "xp_gain": "XP", "luck": "LK", "crit_chance": "CR", "crit_damage": "CD", "enemy_population": "EN"}.get(item_id, "+")
+		var glyph = {"spell_duration": "DU", "spell_damage": "PW", "movement_speed": "MV", "max_health": "HP", "xp_range": "PK", "projectile_speed": "SP", "slowdown_duration": "TM", "mana_bolt_mastery": "MM", "spell_area": "SZ", "multicast": "×2", "xp_gain": "XP", "luck": "LK", "crit_chance": "CR", "crit_damage": "CD", "enemy_population": "EN"}.get(item_id, "+")
 		if not has_node("Glyph"):
 			var label = Label.new()
 			label.name = "Glyph"

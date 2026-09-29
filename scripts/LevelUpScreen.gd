@@ -179,7 +179,7 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		var slot = manager.find_spell_slot(spell_name)
 		if not preload("res://scripts/SpellProgression.gd").can_upgrade(manager.get_spell_info(slot)):
 			continue
-		var title = "Mana Bolt" if spell_name == "mana_bolt" else manager.get_spell_info(slot).name
+		var title = "Magic Missile" if spell_name == "mana_bolt" else manager.get_spell_info(slot).name
 		all_upgrades.append({"key": "rank:" + spell_name, "name": title + "+", "icon": "⭐",
 			"description": manager.get_rank_upgrade_description(spell_name),
 			"effect": {"type": "spell_upgrade", "spell": spell_name}})
@@ -431,14 +431,14 @@ func _on_upgrade_button_mouse_exited(button: Button, panel_container: Panel):
 func get_unlocked_spells() -> Array:
 	var scene_tree = get_tree()
 	if not scene_tree:
-		return ["mana_bolt"]  # Fallback to just mana bolt
+		return ["mana_bolt"]  # Fallback to just Magic Missile
 	
 	var spell_manager = scene_tree.get_first_node_in_group("game")
 	if spell_manager:
 		spell_manager = spell_manager.get_node_or_null("SpellManager")
 	
 	if not spell_manager:
-		return ["mana_bolt"]  # Fallback to just mana bolt
+		return ["mana_bolt"]  # Fallback to just Magic Missile
 	
 	# Get available spells from SpellManager
 	if spell_manager.has_method("get_unlocked_spell_names"):

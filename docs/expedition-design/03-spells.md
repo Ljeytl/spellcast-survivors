@@ -22,7 +22,7 @@ There are 26 JSON entries, but only 16 learnable manual spells, one automatic at
 
 | Public name | Current behavior | Status |
 |---|---|---|
-| Mana Bolt | Automatic homing attack; not the manual Bolt spell | Implemented |
+| Magic Missile | Automatic homing attack; not the manual Bolt spell | Implemented |
 | Bolt | Straight non-homing projectile; visible-target reservations and simultaneous overlapping impacts | Implemented |
 | Life | Small immediate heal; global Power scales healing | Implemented |
 | Regeneration | Sustained healing; recasts extend one stream; Power and Duration apply | Implemented |
@@ -154,7 +154,7 @@ Reserved entries are real recorded ideas, **not fully balanced release content**
 
 | Name(s) | Proposed identity / relation | Status and next decision |
 |---|---|---|
-| Mana Bolt |Current automatic homing attack | Baseline; D04 decides new-mode presence |
+| Magic Missile |Current automatic homing attack | Baseline; D04 decides new-mode presence |
 | Homing Bolt |Seeking Bolt expression | Prefer composition, no separate slot identity |
 | Magic Missile |Possible starter alternative | Resolve overlap with Bolt/Seeker before numbers |
 | Arcane Orb |Slow travelling impact body | Reserve if distinct from Fire Bolt via persistence |

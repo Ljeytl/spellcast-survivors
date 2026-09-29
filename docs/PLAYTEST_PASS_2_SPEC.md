@@ -41,7 +41,7 @@ Confirmed: repeated casts and multiple projectiles should not routinely waste th
 Proposed shared implementation:
 - Track expected incoming damage for targeted attacks and prefer another useful nearby living target when committed damage should be lethal.
 - Keep concentrating attacks when a target needs them, including a healthy lone boss. Fall back sensibly when no alternate target exists; do not refuse to attack just because all targets are reserved.
-- Homing projectiles, including passive Mana Bolts, reacquire a nearby living target if theirs dies. Straight projectiles retain their trajectory after launch; choosing a target does not make Bolt homing.
+- Homing projectiles, including passive Magic Missiles, reacquire a nearby living target if theirs dies. Straight projectiles retain their trajectory after launch; choosing a target does not make Bolt homing.
 - AoE target selection favors useful group coverage. Beam, ground, summon and multi-hit spells retain their own targeting contracts; do not apply projectile reservations blindly to every effect.
 - Reservations end on impact, miss, expiry, despawn, cancellation or retargeting, and survive no projectile-pool reuse. Estimates must not leave enemies permanently ignored or assume uncertain damage is guaranteed.
 
@@ -143,7 +143,7 @@ Confirmed user observations: around two minutes is good; minutes 3–8 are too e
 
 Inspect spawn intervals, batch counts, population caps, archetype composition and approach effectiveness together. More nominal spawns do not help if a cap suppresses them. Preserve timed tiers, approachable opening and delayed ranged enemies.
 
-Rank 4 passive Mana Bolt at eight minutes is a modest build that exposed weak encounter pressure. It is NOT a mandate to nerf Mana Bolt or force every stationary build to die. Use this as one comparison case alongside movement and active casting. Compare at equivalent builds, seeds and elapsed times.
+Rank 4 passive Magic Missile at eight minutes is a modest build that exposed weak encounter pressure. It is NOT a mandate to nerf Magic Missile or force every stationary build to die. Use this as one comparison case alongside movement and active casting. Compare at equivalent builds, seeds and elapsed times.
 
 Acceptance: baseline/candidate data at 0, 2, 3, 5, 7, 8, 9 and 11 minutes: attempted/actual spawns, active population, cap saturation, damage pressure, kills and XP. Bot stationary/moving/actively casting comparisons supplement human play. Verify early/later parameters preserved and observe their outcomes; earlier XP gains can affect later difficulty even when later parameters match. Full-run smoke covers bosses and 20-minute victory. Do final tuning after stronger spells and targeting are integrated.
 
