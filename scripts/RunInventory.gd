@@ -52,7 +52,7 @@ func rebuild():
 	if not game.player.passive_ranks.is_empty():
 		var row = section("PASSIVES", STYLE.MUTED)
 		for family in game.player.passive_ranks:
-			add_card(row, family, family.replace("_", " ").capitalize(), game.player.passive_ranks[family], -1, STYLE.MUTED)
+			add_card(row, family, {"spell_damage": "Spell Power", "spell_area": "Spell Size", "projectile_speed": "Velocity", "spell_duration": "Spell Duration", "slowdown_duration": "Focus", "mana_bolt_mastery": "Mana Mastery"}.get(family, family.replace("_", " ").capitalize()), game.player.passive_ranks[family], -1, STYLE.MUTED)
 
 func section(title: String, color: Color) -> HFlowContainer:
 	var heading = Label.new()

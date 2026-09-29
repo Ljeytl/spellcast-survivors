@@ -773,6 +773,8 @@ func show_next_level_up():
 			"spell_damage_multiplier": player.spell_damage_multiplier,
 			"cast_speed_multiplier": player.cast_speed_multiplier,
 			"projectile_speed_multiplier": player.projectile_speed_multiplier,
+			"spell_size_multiplier": player.spell_size_multiplier,
+			"spell_duration_multiplier": player.spell_duration_multiplier,
 			"passive_ranks": player.passive_ranks.duplicate(),
 			"movement_speed_multiplier": player.movement_speed_multiplier,
 			"max_health": player.max_health,
@@ -1329,7 +1331,7 @@ func set_interface_debug(enabled: bool):
 
 func interface_debug_report() -> String:
 	update_difficulty_tooltip_content()
-	var lines: Array[String] = [difficulty_tooltip_label.text, "PLAYER STATS", JSON.stringify({"spell_damage": player.spell_damage_multiplier, "attack_speed": player.cast_speed_multiplier, "projectile_speed": player.projectile_speed_multiplier, "passives": player.passive_ranks, "move_speed": player.movement_speed_multiplier, "max_health": player.max_health, "pickup_range": player.xp_range_multiplier}, "  ")]
+	var lines: Array[String] = [difficulty_tooltip_label.text, "PLAYER STATS", JSON.stringify({"spell_power": player.spell_damage_multiplier, "spell_size": player.spell_size_multiplier, "spell_duration": player.spell_duration_multiplier, "attack_speed": player.cast_speed_multiplier, "projectile_speed": player.projectile_speed_multiplier, "passives": player.passive_ranks, "move_speed": player.movement_speed_multiplier, "max_health": player.max_health, "pickup_range": player.xp_range_multiplier}, "  ")]
 	lines.append("UPGRADE DETAILS")
 	for card in level_up_screen.current_upgrade_pool:
 		lines.append(str(card.name) + ": " + str(card.description))
@@ -1337,7 +1339,7 @@ func interface_debug_report() -> String:
 	for id in spell_manager.spell_catalog:
 		var info = spell_manager.spell_catalog[id]
 		lines.append(str(info.name) + ": " + str(info.get("role", "")))
-	lines.append("SYNERGY DETAILS")
+	lines.append("SYNERGY DETAILS · Bonus spells retain ingredients and use no active slot")
 	for recipe in preload("res://scripts/SynergyCatalog.gd").RECIPES.values():
 		lines.append(recipe.name + ": " + recipe.requirements + " " + recipe.description)
 	if not game_over_screen.last_stats.is_empty():

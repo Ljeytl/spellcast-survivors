@@ -125,8 +125,9 @@ func run():
 	effect = plague(first)
 	for index in range(12):
 		effect.infect(target(Vector2(200 + index * 5, 20)), Vector2.ZERO, 300)
-	check(effect.infection_links.size() == 8 and effect.infections.is_empty(), "Pending spores reserve the eight-host cap")
+	var expected_hosts = 8 if effect.ENFORCE_HOST_LIMIT else 13
+	check(effect.infection_links.size() == expected_hosts and effect.infections.is_empty(), "Pending spores respect configured host limit policy")
 	effect.advance(0.6)
-	check(effect.infections.size() == 8 and effect.infection_links.is_empty(), "Arrival preserves reserved cap without duplicate infection")
+	check(effect.infections.size() == expected_hosts and effect.infection_links.is_empty(), "Arrival preserves admitted hosts without duplicate infection")
 	print("Spell impacts: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

@@ -1,3 +1,5 @@
+Current implementation change: [0.1.35 scaling and combinations](../releases/0.1.35-spell-scaling.md) supersedes older prototype penalties and Soul Bloom leech/carrier proposals. Campaign tuning below remains proposed.
+
 Current playtest balance note (2026-09-28): Earth Shield protection and visuals now last 16 seconds; Cross Blade radius is 33.6 (20% smaller). These replace the older runtime values below; proposed future expedition mechanics are unchanged.
 
 # Spell catalog: current truth, proposed roster, preserved ideas

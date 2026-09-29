@@ -10,6 +10,8 @@ static func resolve(data: Dictionary) -> Dictionary:
 	return result
 
 static func can_upgrade(data: Dictionary) -> bool:
+	if data.get("id", "") == "frost_sigil" and int(data.get("level", 1)) >= 9:
+		return false
 	return not data.has("rank_steps") or int(data.get("level", 1)) <= data.rank_steps.size()
 
 static func next_description(data: Dictionary) -> String:

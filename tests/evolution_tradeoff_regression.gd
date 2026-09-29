@@ -130,6 +130,7 @@ func compare_life():
 		check(projectiles.size() == (2 if evolved else 3), "Rank-three Life Bolt has two shots; Bolt has three")
 		for projectile in projectiles:
 			projectile._on_area_entered(hurt)
+			projectile.resolve_impact()
 		totals.append(10000 - enemy.current_health)
 		check(game.player.health == 50, "Life Bolt requires seed pickup instead of remote healing")
 	check(totals[0] > totals[1], "Ranked Bolt wins damage against healthy durable enemy")
@@ -149,6 +150,7 @@ func compare_life():
 		check(volley.size() == (3 if evolved else 5), "Rank-five Life Bolt has three shots; Bolt has five")
 		for shot in volley:
 			shot._on_area_entered(hitbox)
+			shot.resolve_impact()
 		rank_five_damage.append(10000 - durable.current_health)
 	check(rank_five_damage[0] > rank_five_damage[1], "Rank-five basic volley retains damage advantage")
 	fresh("life_bolt", true)
@@ -159,6 +161,7 @@ func compare_life():
 	manager.cast_spell_by_type(manager.find_spell_slot("life_bolt"))
 	var projectile = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") == "life_bolt")[0]
 	projectile._on_area_entered(hurt)
+	projectile.resolve_impact()
 	check(game.player.health == game.player.max_health, "Life Bolt provides no overheal at full health")
 
 func compare_meteor():

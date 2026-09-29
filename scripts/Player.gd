@@ -24,11 +24,12 @@ var xp_to_next_level: float = BASE_XP_REQUIREMENT  # XP needed for next level
 var spell_damage_multiplier: float = 1.0     # Increases damage of all spells
 var cast_speed_multiplier: float = 1.0
 var spell_size_multiplier: float = 1.0
+var spell_duration_multiplier: float = 1.0
 var projectile_speed_multiplier: float = 1.0
 var typing_duration_bonus: float = 0.0
 var next_heal_feedback_msec: int = 0
 const MAX_PASSIVE_FAMILIES = 6
-const SUPPORTED_PASSIVES = ["spell_area", "spell_damage", "movement_speed", "max_health", "xp_range", "projectile_speed", "slowdown_duration", "mana_bolt_mastery"]
+const SUPPORTED_PASSIVES = ["spell_area", "spell_duration", "spell_damage", "movement_speed", "max_health", "xp_range", "projectile_speed", "slowdown_duration", "mana_bolt_mastery"]
 var passive_ranks: Dictionary = {}
 var movement_speed_multiplier: float = 1.0   # Increases walking speed
 var xp_range_multiplier: float = 1.0         # Increases XP orb pickup range
@@ -210,6 +211,7 @@ func do_level_up():
 		"spell_damage_multiplier": spell_damage_multiplier,
 		"cast_speed_multiplier": cast_speed_multiplier,
 		"spell_size_multiplier": spell_size_multiplier,
+		"spell_duration_multiplier": spell_duration_multiplier,
 		"projectile_speed_multiplier": projectile_speed_multiplier,
 		"passive_ranks": passive_ranks.duplicate(),
 		"movement_speed_multiplier": movement_speed_multiplier,
@@ -341,6 +343,8 @@ func apply_upgrade(upgrade_data: Dictionary) -> bool:
 			cast_speed_multiplier += value
 		"spell_area":
 			spell_size_multiplier += value
+		"spell_duration":
+			spell_duration_multiplier += value
 		"projectile_speed":
 			projectile_speed_multiplier += value
 		"slowdown_duration":

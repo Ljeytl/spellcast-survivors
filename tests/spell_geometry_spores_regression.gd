@@ -67,7 +67,7 @@ func run():
 			var radius = {"field":150, "trail":65, "trap":130, "beam":20, "piercing":24, "returning":33.6, "spirit":24, "orbit":42}[type] * scale
 			var center = Vector2.ZERO
 			if type == "trap": center = Vector2(160, 0)
-			if type == "orbit": center = Vector2(130, 0)
+			if type == "orbit": center = Vector2(130 * scale, 0)
 			var inside = host(center + Vector2(0, radius - 0.1))
 			var outside = host(center + Vector2(0, radius + 0.1))
 			var node = effect(type, null, {"arm_delay":0.0,"angular_speed":0.0,"orb_count":1})

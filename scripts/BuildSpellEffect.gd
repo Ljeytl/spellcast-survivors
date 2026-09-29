@@ -58,7 +58,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 		Visual.register(self)
 
 func extend_duration(data: Dictionary) -> float:
-	var added = float(data.get("duration", 0.0))
+	var added = float(Geometry.scaled_data(data, caster.get_ref()).get("duration", 0.0))
 	remaining += added
 	return added
 
@@ -97,8 +97,9 @@ func advance(delta: float):
 				hit_ids[enemy.get_instance_id()] = true
 				deal_damage(enemy, damage)
 				if info.get("explosive", false):
-					pulse(enemy.global_position, 90.0 * float(info.spell_size_multiplier), damage * 0.5, enemy)
-					show_area(enemy.global_position, 90.0 * float(info.spell_size_multiplier), Color("ee6257"))
+					var blast = preload("res://scripts/LingeringArea.gd").new()
+					blast.configure(enemy.global_position, float(info.get("explosion_radius", 90.0 * float(info.spell_size_multiplier))), float(info.get("explosion_damage", damage * 0.5)), float(info.get("explosion_duration", 0.2 * float(info.spell_duration_multiplier))), Color("ee6257"), "meteor", {enemy.get_instance_id(): true})
+					get_parent().add_child(blast)
 	else:
 		if info.type == "orbit":
 			global_position = player.global_position
@@ -119,7 +120,7 @@ func advance_orbit(delta: float):
 	var count = int(info.get("orb_count", 3))
 	var steps = maxi(1, ceili(delta / 0.025))
 	for step in range(steps):
-		angle += delta / steps * float(info.get("angular_speed", 4.0))
+		angle += delta / steps * float(info.get("angular_speed", 4.0)) * float(info.get("projectile_speed_multiplier", 1.0))
 		var time = elapsed_time - delta + delta * (step + 1) / steps
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if not valid_target(enemy) or time < float(orbit_hit_times.get(enemy.get_instance_id(), -INF)):
@@ -171,12 +172,15 @@ func show_area(center: Vector2, radius: float, tint: Color):
 	get_parent().add_child(effect)
 	effect.global_position = center
 
+func spore_lifetime() -> float:
+	return float(info.get("orphan_lifetime", SPORE_LINGER * float(info.get("spell_duration_multiplier", 1.0))))
+
 func infect(enemy, source: Vector2 = Vector2.INF, search_range: float = 130.0, expires: float = -1.0):
 	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or (ENFORCE_HOST_LIMIT and hosts_started + infection_links.size() >= HOST_LIMIT):
 		return
 	hit_ids[enemy.get_instance_id()] = true
 	var origin = global_position if source == Vector2.INF else source
-	infection_links.append({"from": origin, "position": origin, "target": weakref(enemy), "target_id": enemy.get_instance_id(), "range": search_range, "expires": elapsed_time + SPORE_LINGER if expires < 0 else expires})
+	infection_links.append({"from": origin, "position": origin, "target": weakref(enemy), "target_id": enemy.get_instance_id(), "range": search_range, "expires": elapsed_time + spore_lifetime() if expires < 0 else expires})
 	refresh_plague_lifetime()
 
 func nearest_host(center: Vector2, search_range: float):
@@ -193,7 +197,7 @@ func nearest_host(center: Vector2, search_range: float):
 func rest_spore(center: Vector2, expires: float = -1.0):
 	if ENFORCE_HOST_LIMIT and (hosts_started >= HOST_LIMIT or infections.size() + infection_links.size() + resting_spores.size() >= HOST_LIMIT):
 		return
-	resting_spores.append({"position": center, "expires": elapsed_time + SPORE_LINGER if expires < 0 else expires, "fresh": expires < 0})
+	resting_spores.append({"position": center, "expires": elapsed_time + spore_lifetime() if expires < 0 else expires, "fresh": expires < 0})
 	refresh_plague_lifetime()
 
 func refresh_plague_lifetime():
@@ -224,7 +228,7 @@ func advance_spores(delta: float):
 		var host = nearest_host(spore.position, 130.0 * float(info.spell_size_multiplier))
 		if host:
 			resting_spores.erase(spore)
-			infect(host, spore.position, 130.0 * float(info.spell_size_multiplier), elapsed_time + SPORE_LINGER if spore.fresh else spore.expires)
+			infect(host, spore.position, 130.0 * float(info.spell_size_multiplier), elapsed_time + spore_lifetime() if spore.fresh else spore.expires)
 	for link in infection_links.duplicate():
 		if elapsed_time >= link.expires:
 			infection_links.erase(link)
@@ -266,6 +270,14 @@ func _on_infected_host_died(enemy):
 	if remaining <= 0 or is_queued_for_deletion() or death_transfers.has(id) or not infection_expires.has(id):
 		return
 	death_transfers[id] = true
+	if float(info.get("healing_bloom_amount", 0.0)) > 0:
+		var bloom = preload("res://scripts/HealingSeed.gd").new()
+		bloom.player_ref = caster
+		bloom.healing_amount = float(info.healing_bloom_amount)
+		bloom.radius = float(info.get("healing_bloom_radius", 48.0))
+		bloom.remaining = float(info.get("healing_bloom_lifetime", 10.0))
+		bloom.position = get_parent().to_local(enemy.global_position)
+		get_parent().add_child(bloom)
 	infections = infections.filter(func(reference): return reference.get_ref() != enemy)
 	infection_expires.erase(id)
 	if not spread_from(enemy.global_position):
@@ -276,7 +288,7 @@ func spread_from(center: Vector2) -> bool:
 		return false
 	var other = nearest_host(center, 130.0 * float(info.spell_size_multiplier))
 	if other:
-		infect(other, center)
+		infect(other, center, 130.0 * float(info.spell_size_multiplier))
 		return true
 	return false
 

@@ -49,6 +49,17 @@ static func motif_region(kind: String) -> Rect2:
 	return MOTIF_BOUNDS[MOTIF_CELLS[kind]]
 
 static func beam(canvas: CanvasItem, start: Vector2, end: Vector2, width: float, opacity: float = 1.0, prism: bool = false):
+	if prism:
+		var direction = (end - start).normalized()
+		var edge = direction.orthogonal() * width * 0.5
+		canvas.draw_line(start, end, Color("8054ce", opacity * 0.85), width)
+		canvas.draw_circle(end, width * 0.5, Color("8054ce", opacity * 0.85))
+		canvas.draw_line(start + edge, end + edge, Color("d7b8ff", opacity), 2)
+		canvas.draw_line(start - edge, end - edge, Color("d7b8ff", opacity), 2)
+		canvas.draw_line(start, end, Color("bd9afa", opacity), width * 0.65)
+		canvas.draw_line(start, end, Color("fff4ff", opacity), width * 0.3)
+		canvas.draw_arc(end, width * 0.5, direction.angle() - PI / 2, direction.angle() + PI / 2, 8, Color("dfc5ff", opacity), 2)
+		return
 	var hue = Color("cbb5fa") if prism else Color("a5eaff")
 	var normal = (end - start).normalized().orthogonal() * width * 0.5
 	canvas.draw_circle(end, width * 0.5, Color(hue.darkened(0.25), opacity * 0.42))
@@ -58,11 +69,6 @@ static func beam(canvas: CanvasItem, start: Vector2, end: Vector2, width: float,
 	canvas.draw_line(start - normal, end - normal, Color(hue, opacity * 0.8), 2)
 	canvas.draw_line(start, end, Color(hue, opacity * 0.85), maxf(3, width * 0.22))
 	canvas.draw_line(start, end, Color("f4f3e9", opacity), maxf(2, width * 0.09))
-	if prism:
-		var length = start.distance_to(end)
-		var direction = (end - start).normalized()
-		for index in range(1, int(length / 80.0) + 1):
-			stamp(canvas, "prism", start + direction * minf(index * 80.0, length - 12.0), Vector2.ONE * minf(22.0, width * 0.58), Color(1, 1, 1, opacity))
 
 static func wreath(canvas: CanvasItem, kind: String, center: Vector2, radius: float, phase: float, opacity: float = 0.8, count: int = 8, particle_size: float = 14.0):
 	for index in range(count):

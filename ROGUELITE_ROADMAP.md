@@ -1,3 +1,7 @@
+# Current release scope
+
+[0.1.35 spell scaling](docs/releases/0.1.35-spell-scaling.md) is the approved current pass. Earth Shield redesign and Frost Sigil double placement remain deferred; typed keyword/campaign plans do not replace this playable baseline.
+
 **0.1.31:** Seeker target distribution/visibility and five-second combo grace implemented. Remaining playtest tuning stays in the feedback tracker.
 
 **2026-09-29 tuning:** Clear-based escalation is disabled, retained behind `adaptive_clear_pressure_strength = 0`. Normal refill and timed progression remain active. Pending playtest adjustments are tracked in `docs/PLAYER_FEEDBACK.md`.

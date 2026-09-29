@@ -1,0 +1,41 @@
+{
+  "task": "0.1.35 spell scaling",
+  "recorded_at": "2026-09-29T05:04:24.936070+00:00",
+  "approval": "User requested documentation then implementation for V1.35",
+  "baseline": "c2d2480a1f887c964fc925f82bc4667ecbe6d201",
+  "root_branch": "feature/spell-scaling-0135",
+  "tranches": [
+    {
+      "agent": "combination_0135",
+      "branch": "feature/combination-0135",
+      "commits": [
+        "baa11bb",
+        "69c5ab4"
+      ],
+      "ownership": "SpellManager,CombinationScaling,SynergyCatalog,combination tests",
+      "status": "integrated into isolated candidate; reviewed"
+    },
+    {
+      "agent": "pickup_0135",
+      "branch": "feature/style-pickup-0135",
+      "commits": [
+        "d12697a"
+      ],
+      "ownership": "Enemy drops,StylePickup,HealthPotion,StyleScore,StyleSession,pickup tests",
+      "status": "integrated into isolated candidate; independently reviewed"
+    },
+    {
+      "agent": "root",
+      "ownership": "effect geometry/duration,Player,UI copy,release docs,integration",
+      "status": "final candidate verification"
+    }
+  ],
+  "gates": [
+    "Godot parse/typecheck",
+    "focused runtime suites",
+    "negative controls fail",
+    "native desktop/narrow effect and selection evidence",
+    "exact revision PR review",
+    "merge then clean all task worktrees"
+  ]
+}

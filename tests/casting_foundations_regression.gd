@@ -128,7 +128,7 @@ func run():
 		chain.global_position = victim.global_position
 		chain._on_area_entered(victim.get_node("HurtBox"))
 	check(chain.hit_ids.size() == 6 and chain.despawning, "Five bounces damage six distinct enemies and terminate")
-	check(chain_targets.filter(func(target): return target.current_health == 1000.0).size() == 1, "Chain limit leaves seventh enemy untouched")
+	check(chain_targets.all(func(target): return target.current_health < 1000.0), "Impact splash can hit the seventh enemy without another direct bounce")
 	for target in chain_targets:
 		target.free()
 	game.level_up_screen.generate_upgrade_options({}, 5)
