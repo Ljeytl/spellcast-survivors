@@ -30,12 +30,22 @@ func _initialize() -> void:
 	check(invalid.award_cast("b", "Bolt", NAN, 0, 1).is_empty(), "Reject invalid timing")
 	check(invalid.award_cast("b", "!!!", 1.0, 0, 2).is_empty(), "Reject empty incantation")
 	var crossing = Model.new()
-	crossing.combo = 790.0
+	crossing.combo = 90.0
 	var crossing_award: Dictionary = crossing.award_cast("b", "Bolt", 0.75, 0, 1)
 	check(crossing_award.banked == 58 and crossing.rank_index() == 1, "Award uses newly reached multiplier")
-	check(crossing.combo == 836.0 and crossing_award.points == 46, "Rank multiplier never multiplies combo gain")
-	for rank in range(1, Model.THRESHOLDS.size()):
-		check(Model.THRESHOLDS[rank] - Model.THRESHOLDS[rank - 1] == 800.0, "Every grade requires 800 raw combo")
+	check(crossing.combo == 136.0 and crossing_award.points == 46, "Rank multiplier never multiplies combo gain")
+	var expected = [0.0, 100.0, 300.0, 700.0, 1300.0, 2100.0, 3100.0, 4300.0, 5700.0]
+	var gaps = [100.0, 200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0]
+	for rank in range(1, expected.size()):
+		check(Model.THRESHOLDS[rank] == expected[rank], "Cumulative threshold %s" % rank)
+		check(Model.THRESHOLDS[rank] - Model.THRESHOLDS[rank - 1] == gaps[rank - 1], "Progressive raw rank cost %s" % rank)
+		var boundary = Model.new()
+		boundary.combo = expected[rank] - 0.01
+		check(boundary.rank_index() == rank - 1, "Below promotion boundary")
+		boundary.combo = expected[rank]
+		check(boundary.rank_index() == rank and is_zero_approx(boundary.progress()), "Promote and reset bar at threshold")
+		boundary.combo = (expected[rank - 1] + expected[rank]) * 0.5
+		check(is_equal_approx(boundary.progress(), 0.5), "Bar reflects current rank gap")
 	var banked_before: int = crossing.run_score
 	crossing.take_hit()
 	crossing.advance(1000.0)
@@ -56,9 +66,9 @@ func _initialize() -> void:
 	check(model.combo == 50.0, "Full five-second grace has no decay")
 	model.advance(2.0)
 	check(model.combo == 40.0, "Grace remainder integrated")
-	model.combo = 5000.0
+	model.combo = 3700.0
 	model.take_hit()
-	check(is_equal_approx(model.combo, 4200.0), "Hit preserves fraction")
+	check(is_equal_approx(model.combo, 2600.0), "Hit preserves fraction")
 	model.combo = Model.CAP
 	model.award_cast("new", "Regeneration", 3.0, 0, 55)
 	check(model.combo == Model.CAP and model.progress() == 1.0 and model.peak_rank == 8, "Cap and peak")

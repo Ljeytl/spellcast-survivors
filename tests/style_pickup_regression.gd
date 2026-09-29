@@ -38,7 +38,7 @@ func run():
 			check(drop != null, "successful boundary roll %s" % roll)
 			drop.free()
 	var score = game.style_session.score
-	score.combo = 750
+	score.combo = 50
 	score.grace_remaining = 1.25
 	score.freshness = {"bolt": 0.5}
 	score.receipts = {12: true}
@@ -57,9 +57,9 @@ func run():
 	game.style_session.updated.connect(func(): reentrant[0] = pickup.collect(), CONNECT_ONE_SHOT)
 	check(pickup.collect(), "full health player can collect style")
 	check(not reentrant[0], "signal callbacks cannot collect the same pickup twice")
-	check(score.combo == 950, "two hundred raw combo across rank boundary")
+	check(score.combo == 250, "two hundred raw combo across rank boundary")
 	check(score.run_score == 200, "pre-promotion multiplier used")
-	check(score.rank_index() == 1 and score.peak_rank == 1 and score.peak_combo == 950, "rank and peak refreshed")
+	check(score.rank_index() == 1 and score.peak_rank == 1 and score.peak_combo == 250, "rank and peak refreshed")
 	check(updates[0] == 1 and promotions[0], "one UI update with promotion feedback")
 	check(not pickup.collect() and score.run_score == 200, "pickup awards exactly once")
 	check(score.manual_casts == 0 and score.clean_casts == 0, "pickup is not a cast")

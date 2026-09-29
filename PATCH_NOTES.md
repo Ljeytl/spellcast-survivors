@@ -1,6 +1,14 @@
 # Patch notes
 
-Player-facing changes, newest first. The current project version is **0.1.4**. A fresh shareable export of 0.1.4 has not yet been built. Older entries describe changes at the time of that version; later entries supersede their balance values.
+Player-facing changes, newest first. The current project version is **0.1.41**. Older entries describe changes at the time of that version; later entries supersede their balance values.
+
+## 0.1.41 — Style-rank hotfix
+
+- Fixed the missed progressive rank curve: each step now costs **100 → 200 → 400 → 600 → 800 → 1,000 → 1,200 → 1,400 raw combo points**, from F through SSS.
+- Cumulative thresholds are **0 / 100 / 300 / 700 / 1,300 / 2,100 / 3,100 / 4,300 / 5,700**. The bar fills against the current rank's gap.
+- Atomic still costs **10,000**, the combo cap stays **12,000**, and cast scoring/multipliers are unchanged.
+- New runs use a separate local leaderboard balance revision; previous score files are preserved.
+- Duration-spell decay changes remain a proposal and are not part of this hotfix.
 
 ## 0.1.4 — Make it MEGA
 

@@ -1,8 +1,8 @@
 extends RefCounted
 
-const VERSION := 2
+const VERSION := 3
 const RANKS := ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"]
-const THRESHOLDS := [0.0, 800.0, 1600.0, 2400.0, 3200.0, 4000.0, 4800.0, 5600.0, 6400.0]
+const THRESHOLDS := [0.0, 100.0, 300.0, 700.0, 1300.0, 2100.0, 3100.0, 4300.0, 5700.0]
 const MULTIPLIERS := [1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0]
 const DECAY := [5.0, 8.0, 12.0, 18.0, 25.0, 35.0, 50.0, 65.0, 80.0]
 const CAP := 12000.0

@@ -90,16 +90,16 @@ On exactly one successful manual release: calculate P; add P to C; derive the ne
 | Rank | C threshold | Run-score multiplier | Decay points/sec |
 |---|---:|---:|---:|
 | F | 0 | 1 | 5 |
-| E | 800 | 1.25 | 8 |
-| D | 1600 | 1.5 | 12 |
-| C | 2400 | 2 | 18 |
-| B | 3200 | 2.5 | 25 |
-| A | 4000 | 3 | 35 |
-| S | 4800 | 4 | 50 |
-| SS | 5600 | 5 | 65 |
-| SSS | 6400 | 6 | 80 |
+| E | 100 | 1.25 | 8 |
+| D | 300 | 1.5 | 12 |
+| C | 700 | 2 | 18 |
+| B | 1300 | 2.5 | 25 |
+| A | 2100 | 3 | 35 |
+| S | 3100 | 4 | 50 |
+| SS | 4300 | 5 | 65 |
+| SSS | 5700 | 6 | 80 |
 
-Approved playtest revision: every rank gap is 800 unmultiplied combo points. The cast formula is unchanged; only banked run score receives the rank multiplier. Combo caps at 12,000 as an initial tunable ceiling, allowing 10,000-point Atomic purchases after reaching SSS. Human playtesting still determines final pacing.
+Approved playtest revision: rank gaps are 100, 200, 400, 600, 800, 1,000, 1,200 and 1,400 unmultiplied combo points (0.1.41). The cast formula is unchanged; only banked run score receives the rank multiplier. Combo caps at 12,000 as an initial tunable ceiling, allowing 10,000-point Atomic purchases after reaching SSS. Human playtesting still determines final pacing.
 
 - Proposed grace: 5 real seconds after successful manual release, then continuous decay at the current rank's rate. Integrate across rank boundaries; do not make results frame-rate dependent.
 - **First playable:** decay continues during typing. Merely opening the editor cannot freeze the bar indefinitely. If long casts feel unfairly punished, compare a bounded typing grace, not infinite stalling.
@@ -170,6 +170,6 @@ See [verification coverage and reproduction](VERIFICATION.md) for the operated r
 
 Next: human playtests of rank cadence, short starter-kit rewards, six-spell rotation, readability and whether Atomic feels worth sacrificing rank. Tune thresholds, decay and boss damage from those sessions. Online leaderboards, stored charges, additional finishers, final VFX/audio and richer score-detail browsing remain later work.
 
-### Scoring revision 2
+### Scoring revision 3
 
-The 800-point ranks and 10,000-point Atomic use `user://style_scores_v2.json`. Prior revision-1 scores remain on disk and are not mixed into the new local board.
+The progressive rank curve and unchanged 10,000-point Atomic use `user://style_scores_v3.json`. Prior revision-1 and revision-2 scores remain on disk and are not mixed into this balance revision.
