@@ -91,3 +91,7 @@ No idea is discarded simply because it does not fit v0.1. The spell catalog reco
 Preserve the current game; shield first, then tutorial/keywords and tower/expeditions.
 
 Families are guiding identities, not rigid one-to-one engine classes. The [populated matrix](16-element-family-matrix.md) is authoritative for idea provenance. Arcane Seed and Arcane Shield were not selected by the user. Earth Shield’s stacked single-hit block and attacker-directed damaging knockback are approved; tuning is provisional. Blocked hits preserve style. Wall remains separate.
+
+## Latest element-by-element exploration — 29 September
+
+The [detailed capture](17-element-spell-ideas.md) and [matrix](16-element-family-matrix.md) preserve the full user brainstorm. This authorizes documentation only. No new spell roster, school merge, keyword values or combination ingredients are approved. Explicit placement: Snowball → Bolt; Water Jet → Ray; Mana Storm → Shower; existing Plague Seed/Soul Bloom remain in Seed. Arcane Seed/Golem rejected; Prismatic Shield is a separate new user concept. Existing 0.1.36 Earth Shield is complete. Next development remains tutorial/meaningful keywords, then preparation/expeditions; selecting candidate spells is a separate decision.

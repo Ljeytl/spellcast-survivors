@@ -1,3 +1,10 @@
+# Design capture — element and family exploration (29 September 2026)
+
+- Populate the family matrix with latest user concepts while preserving 16 implemented bases and seven combinations; separate brainstorms, alternatives and rejected examples.
+- Record Snowball as Bolt, Water Jet as Ray, Mana Storm as Shower, and infection-specific Seed exceptions; preserve school/grouping questions without runtime changes.
+- Record all elemental spell proposals, uncertain names, rejected palette swaps and new Prismatic Shield independently from the old unselected Arcane Shield.
+- Mark 0.1.36 merged and align the active slate to tutorial/keywords, followed by preparation/expeditions. No gameplay or assets changed.
+
 # 0.1.36 — Earth Shield redesign and spell-family documentation
 
 - Implement stacked one-hit Earth Shield charges, combo-safe blocks and attacker-directed damage/knockback; provisional tuning and release gates are in docs/releases/0.1.36-earth-shield.md.

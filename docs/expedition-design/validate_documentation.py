@@ -65,7 +65,7 @@ class DocumentationChecks(unittest.TestCase):
     def test_numbered_documents_are_indexed(self):
         index = content('README.md')
         documents = sorted(ROOT.glob('[0-9][0-9]-*.md'))
-        self.assertEqual(len(documents), 16)
+        self.assertEqual(len(documents), 17)
         for document in documents:
             self.assertIn(f']({document.name})', index, document.name)
 

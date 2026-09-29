@@ -1,6 +1,6 @@
 # Should Have Joined a Party — design package
 
-> **Current development slate:** preserve the playable roguelike and style system. Implement the approved Earth Shield redesign for 0.1.36, then build a tutorial introducing meaningful, visibly multiplicative keywords, then preparation/tower/ley-line expeditions. Keyword selection and numeric stacking remain proposals. Keep the friend’s art; 2D, 3D and hybrid art direction are a later exploration.
+> **Current development slate:** preserve the playable roguelike and style system. Earth Shield 0.1.36 is implemented and merged. Next build a tutorial introducing meaningful, visibly multiplicative keywords, then preparation/tower/ley-line expeditions. Keyword selection and numeric stacking remain proposals. Keep the friend’s art; 2D, 3D and hybrid art direction are a later exploration.
 
 **Version 0.1 · 27 September 2026 · design proposal, not a gameplay patch**
 
@@ -28,6 +28,8 @@ For **what to build next**, start with [Development order](15-development-order.
 14. [Spell system reference](14-spell-system-reference.md): reusable components, property and keyword tables, spell recipes, and elemental-tier ideas.
 15. [Development order](15-development-order.md): shield, tutorial/keywords and connected expeditions; concrete playable milestones and exit gates.
 16. [Element × family matrix](16-element-family-matrix.md): implemented spells, user ideas and explicitly unselected proposals.
+
+17. [Element and spell ideas](17-element-spell-ideas.md): exhaustive latest user concepts, alternatives, rejections and unresolved taxonomy.
 
 ## How to interpret this package
 

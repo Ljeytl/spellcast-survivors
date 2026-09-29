@@ -1,6 +1,6 @@
 # Game design: a prepared wizard on an expedition
 
-**Current direction:** working title **Should Have Joined a Party**. Evolve the existing fun game; the next playable change is Earth Shield 0.1.36, followed by a tutorial introducing meaningful keywords. Typing is the interface for complex magic, not the product identity. Readable ancient inscriptions replace the keycap art direction. See [development order](15-development-order.md).
+**Current direction:** working title **Should Have Joined a Party**. Evolve the existing fun game; Earth Shield 0.1.36 is complete; the next playable change is a tutorial introducing meaningful keywords. Typing is the interface for complex magic, not the product identity. Readable ancient inscriptions replace the keycap art direction. See [development order](15-development-order.md).
 
 **Confirmed foundation; concrete loop below is proposed v0.1.**
 
@@ -44,7 +44,7 @@ The proposed primary loss state is player death, which ends the expedition. The 
 
 ## Content scope and first playable slice
 
-The campaign layout is a proposal, not a rebuild sequence. First implement Earth Shield 0.1.36; then introduce keywords through a playable tutorial using existing spells; preserve other existing content. Then add preparation, ley-line discoveries and connected expeditions. The prior 17-spell replacement slice is superseded by document 15.
+The campaign layout is a proposal, not a rebuild sequence. Earth Shield 0.1.36 is complete; next introduce keywords through a playable tutorial using existing spells; preserve other existing content. Then add preparation, ley-line discoveries and connected expeditions. The prior 17-spell replacement slice is superseded by document 15.
 
 The full roster preserves all 16 current learnable spells and seven enabled combinations, and promotes 13 ideas/new identities. See the catalog for all 36. Automatic Mana Bolt is a separate open decision; retain it during the first keyword increment, then compare manual-only play if that experiment is selected. Keep a reproducible comparison build while evolving the current game. Automatic attack removal is not part of the first keyword increment.
 

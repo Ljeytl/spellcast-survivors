@@ -2,7 +2,7 @@
 
 ## Approved 0.1.35 batch — 29 September 2026
 
-[Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, slowly tracking Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework is now approved for 0.1.36; Frost Sigil double placement remains deferred.
+[Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, slowly tracking Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework is implemented and merged in 0.1.36; Frost Sigil double placement remains deferred.
 
 **Style art:** colored scratched-stone rank glyphs, meter and Atomic seal are integrated. Simple procedural Atomic VFX is placeholder; polish follows feel testing.
 
@@ -333,3 +333,7 @@ Implemented: Seekers distribute among visible targets, release reservations on d
 - Arcane Seed / Arcane Shield were not agreed: mark assistant/historical proposals outside the main matrix. Documentation addressed.
 - Families guide identities; Ball, Seed lifecycle, Golem word, Restoration and additive Flaming Earth Wall recorded. General keywords remain unimplemented.
 - After this shield pass: tutorial, significant modifiers, then an actual preparation/discovery/return loop. Art medium exploration later; retain friend’s assets now.
+
+## Element/family brainstorm capture — documentation addressed
+
+All latest concepts, alternatives and rejections are recorded in [the detailed pass](expedition-design/17-element-spell-ideas.md), with a populated matrix. User requests Seed-column placement for current infection spells; Snowball Bolt, Water Jet Ray and Mana Storm Shower; no invented approved roster or forced school merges. Runtime unchanged by this capture. Next: user selects identities and resolves taxonomy before any new spell implementation.
