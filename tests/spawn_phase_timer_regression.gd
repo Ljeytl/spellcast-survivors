@@ -1,9 +1,5 @@
 extends SceneTree
 
-class TimerOnlyManager extends "res://scripts/MonsterManager.gd":
-	func replenish_population(_delta: float):
-		pass
-
 var checks = 0
 var failures = 0
 var emissions = 0
@@ -23,9 +19,10 @@ func run():
 	player.name = "Player"
 	parent.add_child(player)
 	root.add_child(parent)
-	var manager = TimerOnlyManager.new()
+	var manager = load("res://scripts/MonsterManager.gd").new()
 	parent.add_child(manager)
 	manager.set_process(false)
+	manager.monsters_alive = manager.max_monsters
 	manager.spawn_timer.timeout.disconnect(manager._on_spawn_timer_timeout)
 	manager.spawn_timer.timeout.connect(func(): emissions += 1)
 	manager.game_time = 14.9
