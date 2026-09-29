@@ -8,6 +8,8 @@ var warning_time: float = 0.0
 var blast_radius: float = 0.0
 var detonated: bool = false
 var damage_source: String = ""
+var attacker: WeakRef
+var source_position: Vector2 = Vector2.INF
 var player: Node2D
 
 func _ready():
@@ -25,7 +27,7 @@ func _physics_process(delta):
 			detonated = true
 			remaining = 0.18
 			if global_position.distance_to(player.global_position) <= blast_radius + 16.0:
-				player.take_damage(damage, {"kind": "blast", "source": damage_source})
+				player.take_damage(damage, damage_context("blast"))
 		if detonated:
 			remaining -= delta
 	else:
@@ -33,7 +35,7 @@ func _physics_process(delta):
 		global_position += direction * speed * delta
 		var closest = Geometry2D.get_closest_point_to_segment(player.global_position, start, global_position)
 		if closest.distance_to(player.global_position) <= 24.0:
-			player.take_damage(damage, {"kind": "projectile", "source": damage_source})
+			player.take_damage(damage, damage_context("projectile"))
 			queue_free()
 		remaining -= delta
 	if remaining <= 0.0:
@@ -50,3 +52,6 @@ func _draw():
 		draw_rect(Rect2(-9, -9, 18, 18), Color(0.08, 0.02, 0.02))
 		draw_rect(Rect2(-7, -7, 14, 14), Color("ff6b62"))
 		draw_rect(Rect2(-7, -7, 14, 14), Color("fff0de"), false, 1.5)
+
+func damage_context(kind: String) -> Dictionary:
+	return {"kind": kind, "source": damage_source, "attacker": attacker, "source_position": source_position if source_position.is_finite() else global_position, "incoming_direction": direction}

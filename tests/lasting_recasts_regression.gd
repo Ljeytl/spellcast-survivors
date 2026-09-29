@@ -81,10 +81,10 @@ func run():
 	check(manager.active_healing_effects[0].remaining_time == 8, "Regeneration remaining duration extended")
 	check(manager.active_healing_effects[0].heal_per_second == rate, "Regeneration rate not stacked")
 	manager.cast_spell_by_type(4)
-	game.player.handle_overheal_expiration(3)
+	game.player.earth_shield.advance(3)
 	manager.cast_spell_by_type(4)
-	check(game.player.overheal_timer == 29, "Earth Shield extends expiration")
-	game.player.overheal = 0
+	check(game.player.earth_shield.charges.size() == 2 and game.player.earth_shield.charges[0].remaining == 13 and game.player.earth_shield.charges[1].remaining == 16, "Earth Shield stacks independent charges")
+	game.player.earth_shield.charges.clear()
 	check(not Status.collect(manager).has("earth_shield"), "Depleted shield hides stale timer")
 	manager.cast_spell_by_type(4)
 	manager.cast_spell_by_type(5)
@@ -117,7 +117,7 @@ func run():
 	check(not Status.collect(manager).has("ember_trail"), "No ground timer after last patch expires")
 	orbit.remaining = 0
 	check(not Status.collect(manager).has("arcane_orbit"), "Expired timer removed")
-	check(preload("res://scripts/BuildVersion.gd").text() == "v0.1.35 · Playtest", "Requested version")
+	check(preload("res://scripts/BuildVersion.gd").text() == "v0.1.36 · Playtest", "Requested version")
 	game.queue_free()
 	await process_frame
 	print("LASTING_RECASTS: %d checks, %d failures" % [checks, failures])

@@ -1,6 +1,6 @@
 # Decision register and feedback coverage
 
-**28 September alignment:** preserve the existing fun game and introduce keyword composition first. Working title: **Should Have Joined a Party**. Language controls complex wizardry; use readable inscriptions rather than keycap/typing-game branding. Detailed timing, animation, numeric tuning and the proposal defaults below remain unapproved unless explicitly confirmed. Local XP/mana and spell-identity working notes need reconciliation before their dependent implementation.
+**28 September alignment:** preserve the existing fun game; Earth Shield 0.1.36 first, then tutorial and meaningful keywords, then preparation/expeditions. Working title: **Should Have Joined a Party**. Language controls complex wizardry; use readable inscriptions rather than keycap/typing-game branding. Detailed timing, animation, numeric tuning and the proposal defaults below remain unapproved unless explicitly confirmed. Local XP/mana and spell-identity working notes need reconciliation before their dependent implementation.
 
 ## Confirmed direction
 
@@ -85,3 +85,9 @@ All entries below have a complete proposed default so a future implementation ca
 - **Names:** Super Extreme Meteor Shower Deluxe, Mega Bolt, Mega Lightning Bolt, Giant Bolt, Giant Lightning Bolt, Wide Bolt, Piercing Bolt and Rain of Lightning. These are recorded phrases, not parser shortcuts or promises of distinct spells.
 
 No idea is discarded simply because it does not fit v0.1. The spell catalog records identity overlaps explicitly; duplicate names do not inflate the shipping count.
+
+## 29 September: family vocabulary and current implementation authorization
+
+Preserve the current game; shield first, then tutorial/keywords and tower/expeditions.
+
+Families are guiding identities, not rigid one-to-one engine classes. The [populated matrix](16-element-family-matrix.md) is authoritative for idea provenance. Arcane Seed and Arcane Shield were not selected by the user. Earth Shield’s stacked single-hit block and attacker-directed damaging knockback are approved; tuning is provisional. Blocked hits preserve style. Wall remains separate.

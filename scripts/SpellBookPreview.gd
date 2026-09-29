@@ -22,9 +22,12 @@ func _draw():
 			draw_colored_polygon(PackedVector2Array([Vector2(16, 40), Vector2(64, 14), Vector2(64, 66)]), Color(color, 0.65))
 		"lightning_arc", "lightning_bolt":
 			draw_polyline(PackedVector2Array([Vector2(20, 60), Vector2(36, 32), Vector2(49, 48), Vector2(62, 18)]), color, 5, true)
-		"cinder_field", "steam_field", "rune_trap", "frost_sigil", "earth_shield", "arcane_orbit":
+		"cinder_field", "steam_field", "rune_trap", "frost_sigil", "arcane_orbit":
 			draw_arc(center, 23, 0, TAU, 40, color, 4, true)
 			draw_circle(center, 11, Color(color, 0.5))
+		"earth_shield":
+			draw_colored_polygon(PackedVector2Array([Vector2(18,24),Vector2(34,18),Vector2(38,43),Vector2(26,52),Vector2(16,40)]), Color("9d8253"))
+			draw_colored_polygon(PackedVector2Array([Vector2(38,48),Vector2(66,24),Vector2(68,64)]), Color("d8b979"))
 		"focus_ray", "prism_ray", "ember_lance", "meteor_lance":
 			draw_line(Vector2(12, 62), Vector2(66, 18), Color(color, 0.3), 14, true)
 			draw_line(Vector2(12, 62), Vector2(66, 18), color, 4, true)

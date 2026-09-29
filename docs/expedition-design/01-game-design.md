@@ -1,6 +1,6 @@
 # Game design: a prepared wizard on an expedition
 
-**Current direction:** working title **Should Have Joined a Party**. Evolve the existing fun game; the next playable change is keyword-modified spells in current combat. Typing is the interface for complex magic, not the product identity. Readable ancient inscriptions replace the keycap art direction. See [development order](15-development-order.md).
+**Current direction:** working title **Should Have Joined a Party**. Evolve the existing fun game; the next playable change is Earth Shield 0.1.36, followed by a tutorial introducing meaningful keywords. Typing is the interface for complex magic, not the product identity. Readable ancient inscriptions replace the keycap art direction. See [development order](15-development-order.md).
 
 **Confirmed foundation; concrete loop below is proposed v0.1.**
 
@@ -44,7 +44,7 @@ The proposed primary loss state is player death, which ends the expedition. The 
 
 ## Content scope and first playable slice
 
-The campaign layout is a proposal, not a rebuild sequence. First adapt existing Bolt, Ice Blast and Meteor Shower to Big/Powerful in the current game; preserve other existing content. Then add preparation, ley-line discoveries and connected expeditions. The prior 17-spell replacement slice is superseded by document 15.
+The campaign layout is a proposal, not a rebuild sequence. First implement Earth Shield 0.1.36; then introduce keywords through a playable tutorial using existing spells; preserve other existing content. Then add preparation, ley-line discoveries and connected expeditions. The prior 17-spell replacement slice is superseded by document 15.
 
 The full roster preserves all 16 current learnable spells and seven enabled combinations, and promotes 13 ideas/new identities. See the catalog for all 36. Automatic Mana Bolt is a separate open decision; retain it during the first keyword increment, then compare manual-only play if that experiment is selected. Keep a reproducible comparison build while evolving the current game. Automatic attack removal is not part of the first keyword increment.
 
@@ -58,7 +58,7 @@ These are hypotheses to test, not a guarantee that either loadout is viable. Rea
 
 ## Future-direction commitment
 
-The current development priority is difficulty scaling in the existing roguelike alpha; keyword and expedition work below is deferred. See [feedback tracker](../PLAYER_FEEDBACK.md).
+The current development priority is Earth Shield 0.1.36, then a tutorial and meaningful keywords in the existing roguelike; preparation, ley lines and connected expeditions follow. See [feedback tracker](../PLAYER_FEEDBACK.md).
 
 For now, commit to this direction strongly enough to build and test it. That is a working commitment, not a permanent boundary: the design, art direction and asset library may all need to change substantially, and that is fine. Those decisions can wait until the prototype gives us a reason to revisit them. Existing friend-made assets, generated assets and audio are a practical starting point, not a requirement to preserve the current look or a commitment to replace it.
 

@@ -6,6 +6,7 @@ var game
 var tree: SceneTree
 var selected = "bolt"
 var elapsed = 0.0
+var shield_triggered = false
 var duration = 2.0
 var scenery: Node2D
 var targets: Array = []
@@ -39,6 +40,7 @@ func setup(parent: Node, id: String):
 		game.free()
 	selected = id
 	elapsed = 0.0
+	shield_triggered = false
 	seed(41)
 	game = load("res://scenes/Game.tscn").instantiate()
 	game.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -132,6 +134,9 @@ func cast():
 			duration = 12.8
 		if selected == "life_bolt":
 			duration = 11.0
+		if selected == "earth_shield":
+			duration = 3.0
+			targets[0].global_position = game.player.global_position + Vector2(95,0)
 		if not manager.cast_spell_by_type(slot):
 			push_error("Preview could not cast " + selected)
 
@@ -156,6 +161,11 @@ func particle(method: String):
 
 func advance(delta: float):
 	elapsed += delta
+	if selected == "earth_shield" and elapsed >= 0.8 and not shield_triggered:
+		shield_triggered = true
+		game.player.is_invincible = false
+		game.player.take_damage(10, {"source_position": game.player.global_position + Vector2(100,0)})
+		game.player.is_invincible = true
 	game.spell_manager.process_healing_effects(delta)
 	if selected == "ember_trail" and elapsed < 4.5:
 		game.player.position.x += delta * 50.0

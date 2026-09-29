@@ -90,8 +90,11 @@ func run():
 			title = manager.get_spell_info(slot).get("name", id)
 			var casted = manager.cast_spell_by_type(slot)
 			assert(casted)
+			if id == "earth_shield":
+				get_nodes_in_group("enemies")[0].global_position = game.player.global_position + Vector2(95,0)
 		var frames = []
 		var elapsed = 0.0
+		var shield_triggered = false
 		for index in range(TIMES.size()):
 			while elapsed < TIMES[index]:
 				await physics_frame
@@ -99,6 +102,11 @@ func run():
 				var delta = 1.0 / Engine.physics_ticks_per_second
 				elapsed += delta
 				manager.process_healing_effects(delta)
+				if id == "earth_shield" and elapsed >= 0.8 and not shield_triggered:
+					shield_triggered = true
+					game.player.is_invincible = false
+					game.player.take_damage(10, {"source_position": game.player.global_position + Vector2(100, 0)})
+					game.player.is_invincible = true
 				if id == "ember_trail":
 					game.player.position.x += delta * 85.0
 			frames.append(await capture(id, index))

@@ -1,3 +1,5 @@
+Current Shield rule: [0.1.36 Earth Shield](../releases/0.1.36-earth-shield.md) supersedes earlier absorption-pool proposals. [Element × family matrix](16-element-family-matrix.md) separates implemented spells, user ideas and unselected examples.
+
 Prototype release note: [0.1.35 spell scaling](../releases/0.1.35-spell-scaling.md) defines the implemented passive/combination behavior. The keyword and campaign proposals below remain future design, not the current parser.
 
 # Spell language and modular composition specification
@@ -88,7 +90,7 @@ A pending Delayed release does not block the next cast; it counts toward eight p
 | Trap | Trigger and blast radii | Incompatible | Incompatible | Excluded: persistent trap family owns count |
 | Firewalk | Patch width; path follows actual movement | Incompatible | Incompatible | Excluded |
 | Life / regeneration | Life none; Regen leaf ring cosmetic only, so Big incompatible | Incompatible | Incompatible | Incompatible |
-| Earth Shield | Incompatible: personal absorption has no independent scalable area | Incompatible | Incompatible | Incompatible |
+| Earth Shield | Eruption reach; never enlarge player hurtbox | Incompatible | Incompatible | Incompatible |
 | Seeker / golem | Body/reach; not acquisition or HP | Spirit travel; golem excluded | +1 creature | Excluded |
 | Moonfall / Yggdrasil | Damage/heal zone disk | Incompatible | Incompatible | Moonfall yes, Yggdrasil no |
 
@@ -137,7 +139,7 @@ A scheduled area impact counts as an impact body from reservation through active
 |Ice Blast|Big, Powerful, Swift, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
 |Lightning|Big, Powerful, Repulsing, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
 |Regeneration|Powerful, Lasting|
-|Earth Shield|Powerful, Lasting, Charged|
+|Earth Shield|Big, Powerful, Lasting, Charged|
 |Meteor Shower|Big, Powerful, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
 |Ember Lance|Big, Powerful, Swift, Seeking, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
 |Plague Seed|Big, Powerful, Swift, Delayed, Lasting, Fiery, Icy, Earthen|

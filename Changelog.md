@@ -1,3 +1,9 @@
+# 0.1.36 — Earth Shield redesign and spell-family documentation
+
+- Implement stacked one-hit Earth Shield charges, combo-safe blocks and attacker-directed damage/knockback; provisional tuning and release gates are in docs/releases/0.1.36-earth-shield.md.
+- Reconcile current spell behavior and populate element × family matrices with 16 bases, seven combinations and separately labelled user ideas. Keep unselected assistant examples out of the main matrix.
+- Update development order: shield, tutorial/meaningful keywords, then tower/preparation/expeditions; defer art-medium exploration.
+
 # 0.1.35 — Spell scaling and combination progression
 
 - Reopen Seed as a generalizable plant/grow/bloom family with distinct buff or turret payoffs; record Flame Seed and the possible Infestation rename. Supersede the premature generic-Seed exclusion; design only.

@@ -1,3 +1,5 @@
+Current Shield rule: [0.1.36 Earth Shield](../releases/0.1.36-earth-shield.md) supersedes earlier absorption-pool proposals. [Element × family matrix](16-element-family-matrix.md) separates implemented spells, user ideas and unselected examples.
+
 Prototype release note: [0.1.35 spell scaling](../releases/0.1.35-spell-scaling.md) defines the implemented passive/combination behavior. The keyword and campaign proposals below remain future design, not the current parser.
 
 # Spell system reference: components, properties, words and recipes
@@ -257,7 +259,7 @@ The following table applies the component vocabulary to named spell recipes. Row
 
 Abbreviations in the parameter column: `r` = radius, `w` = half-width; distances are wu, speeds wu/s, angles degrees and time seconds. “On contact” means actual collision, not a cosmetic projectile preceding invisible damage. Damage/healing values refer to the appropriate payload, not every component in a graph.
 
-Powerful modifies the listed primary damage/healing/absorption payload by default, not creature health. Element words modify eligible damaging payloads only. Repeating, Duplicating and Lasting still need the per-recipe semantic binding described below; they do not blindly visit every numeric field.
+Powerful modifies the listed primary damage/healing/absorption payload by default, not creature health. The existing conversion-word proposal modifies eligible damaging payloads; additive elemental benefits such as Flaming Restoration require explicitly authored contracts. Repeating, Duplicating and Lasting still need the per-recipe semantic binding described below; they do not blindly visit every numeric field.
 
 | Spell | Component recipe | Starting properties | Big binding and boundary | Other keyword bindings / open decisions |
 |---|---|---|---|---|
@@ -266,7 +268,7 @@ Powerful modifies the listed primary damage/healing/absorption payload by defaul
 |**Ice Blast**|Self → cone-distributed volley → shard contact → damage + slow + push|9 shards, 90°; 18/unique enemy/generation; r 6; speed 620; range 300; slow 0.5 × 2 s; push 35; recovery 1.8|Shard bodies; cone-volume alternative would bind cone reach/front|Duplicating: one shard; Swift: shard travel; continuous-front alternative must be a different recipe|
 |**Lightning**|Ground point → disk warning → brief volume → one-hit damage|80 damage once/enemy; r 80; range 360; warning 0.25; active 0.2; recovery 2.5|Active disk radius|Repeating: another warned disk; no travelling-projectile guidance|
 |**Regeneration**|Self recipient → periodic healing → finite expiry|4 HP/s, 0.5 s ticks, 6 s, total 24; recovery 8; refresh-not-stack|Not applicable to single-recipient healing|Lasting: healing duration; Powerful: healing rate; no automatic parallel stack|
-|**Earth Shield**|Self recipient → absorption pool → depletion/expiry|50 absorption, 6 s; recovery 8; replace only if incoming absorption ≥ remaining absorption; otherwise reject; no addition|Not applicable without an interception area|Powerful: capacity; Lasting: duration; no enlarged player hurtbox|
+|**Earth Shield**|Self charge → block one hit → attacker-directed eruption|Stack one charge per cast; each independently expires after provisional 16 s (Duration scales). One hit consumes one charge, blocks all its damage and preserves combo, then sends a damaging knockback eruption toward that attacker. No overheal, shared lifetime refresh or gameplay charge cap.|Eruption reach, not player hurtbox|Powerful: retaliation damage; Big: eruption reach; Lasting: individual charge lifetime; future keywords, current passives only|
 |**Meteor Shower**|Ground pattern → scheduled warnings → falling impacts → damage disks|4 × 60 damage; impact radius 80; range 420; warnings 0.65 + 0.25 i; area active 0.1; recovery 6|Impact disks, plus matching falling-rock visual; falling carrier is not a second hit|Duplicating: one meteor; Repeating: another whole pattern; Swift on descent is conditional on honest warnings|
 |**Ember Lance**|Self → straight piercing body → unique-contact damage|65 per unique contact; r 9; speed 700; range 650; max 8 contacts; recovery 2.5|Body width|Swift: travel; Seeking: guided lance candidate; pierce count unchanged by Big|
 |**Plague Seed**|Selected host → optional travelling seed → infection → transfers/orphans|Candidate: seed speed 460/r 7/range 360 if carrier retained; infection 6 HP/0.5 s; host 4 s; spread 120; orphan 3 s. Refresh/concurrency policy open; no whole-chain deadline in working alternative.|Infection spread radius; initial carrier size unchanged in recommended mapping|Lasting: host duration; Swift: transfer speed if visible carriers retained; repeat/duplicate infection policies open|
@@ -304,7 +306,7 @@ Powerful modifies the listed primary damage/healing/absorption payload by defaul
 - **Wave/Thunderwave:** the old proposal lists angle, front width and reach without declaring which dimension derives from which. Recommend authoring angle + maximum reach + front thickness, deriving endpoint width; alternatively use a fixed-width travelling strip. Do not independently set incompatible cone dimensions.
 - **Frost Nova/Earthquake:** the old catalog describes expanding visuals while also listing instant-area/pulse damage. Decide instant full-area activation with honest simultaneous visuals, or travelling front with explicit speed and near-to-far contact. Recommend travelling fronts for the stated outward fantasy; exact speeds remain tuning inputs.
 - **Meteor Lance:** contact explosion, second-contact explosion and delayed meteorites along a recorded path are three alternative graphs. They need event predicates or trajectory history, not three unrelated projectile implementations.
-- **Big shield/heal:** no spatial meaning exists by default. An area healing aura or intercepting shield could be designed, but accepting Big must not silently transform the spell into a new type without an approved rule.
+- **Big shield/heal:** plain absorption and instant healing have no spatial meaning by default; Earth Shield now exposes retaliation reach without enlarging the player hurtbox. An area healing aura or intercepting shield could be designed, but accepting Big must not silently transform the spell into a new type without an approved rule.
 
 ## 9. Cross-spell keyword binding families
 
@@ -339,7 +341,7 @@ These rows preserve the unselected ideas. They do not claim every idea is implem
 | Homing Bolt | Projectile + guidance | Body; Seeking may already express this | Separate identity versus expression open |
 | Magic Missile | Projectile/volley + optional guidance | Body or volley coverage must be selected | Starter identity open |
 | Arcane Orb | Slow moving body + repeat-contact gate/expiry | Body; Lasting must preserve range/lifetime tradeoff | Reserved |
-| Arcane Shield | Absorption; optional projectile-interception/reflect component | No size until interception geometry exists | Reserved; reflection unselected |
+| Arcane Shield | Historical assistant proposal only | No agreed behavior | Unselected; not an approved spell |
 | Pulse | Self disk front + push | Radius/thickness; Repulsing modifies force | Reserved |
 | Gravity Well | Field + radial inward flow | Area; Powerful meaning may be force rather than damage | Reserved; displacement bounds needed |
 | Arcane Missiles | Authored projectile volley | Bodies; Duplicating unit must be explicit | Inactive data concept |
@@ -534,7 +536,8 @@ Next design exercise, when revisited: define one Wall recipe, two candidate word
 | Golem | Independent creature with its own behavior | Confirmed castable word; uses summon components |
 | Seed | Planting, growth and blooming into an authored effect | Generalizable family candidate; buffs and turrets explicitly discussed |
 | Plague Seed / possible Infestation | Host infection, transfer and lingering spores | Existing infection spell; rename to Infestation is an idea, not implemented or finalized |
-| Life / Regeneration | Immediate healing / sustained healing | Named identities; Restoration is a descriptive category, not an approved cast word |
+| Restoration | Healing/recovery with authored elemental touches | Family guiding identity; Life and Regeneration implemented; Flaming Restoration user idea |
+| Ball | Projectile delivery into an impact area | Family guiding identity; Fireball discussed, not implemented |
 
 Storm as a distinct family versus a stronger Shower/Field word remains open. Aura can be implemented as a following Field without requiring a separate engine subsystem. These are structural options, not approved vocabulary unlocks.
 
@@ -552,9 +555,9 @@ The proposed longest-known-base-suffix parser supports this distinction: `flamin
 
 Shared components remain the implementation foundation. Family defaults do not erase per-recipe shape, targeting, collision or payload choices. Any supported modifier must have a visible, mechanical effect; unsupported pairings should be communicated clearly.
 
-### Earth protection discussion remains open
+### Earth Shield decision; Earth Wall remains open
 
-The destructible enclosure idea belongs to Wall exploration rather than an automatic replacement for personal Shield. Walls that collapse when the player leaves or nears the edge were raised as possibilities, not selected rules. Enclosure versus short segment, passage for player/spells, enemy attacks, lifetime and final Shield behavior all still need decisions. No new Earth Shield or Earth Wall behavior is approved for implementation by this note.
+The destructible enclosure idea belongs to Wall exploration rather than an automatic replacement for personal Shield. Walls that collapse when the player leaves or nears the edge were raised as possibilities, not selected rules. Enclosure versus short segment, passage for player/spells, enemy attacks, lifetime and terrain behavior still need decisions. This older exploration is superseded for Earth Shield by the approved 0.1.36 stacked one-hit block and attacker-directed retaliation. Earth Wall remains an idea.
 
 
 ### Seed follow-up: shared lifecycle, distinct mature effects

@@ -25,7 +25,7 @@ Different levels may eventually have different durations and difficulty curves. 
 
 **Possible art experiment:** a simple 3D blockout of circular walls, stained-glass recesses, dial, portal and book/lectern. 3D, 2D and mixed presentation remain alternatives; no engine/rendering migration or model production is authorized by recording the idea. Keep the wizard/ancient-inscription direction, not keyboard/keycap theming. Test rotation readability and reduced-motion presentation before polishing.
 
-This is future hub work alongside preparation/connected expeditions. It does not block the next milestone of keyword-modified spells in existing combat.
+This is future hub work alongside preparation/connected expeditions. Hub work follows Earth Shield 0.1.36 and the tutorial/keyword increments.
 
 ## Primary surfaces and journeys
 

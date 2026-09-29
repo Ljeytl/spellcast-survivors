@@ -1,3 +1,5 @@
+Current roster and ideas: [element × spell-family matrix](expedition-design/16-element-family-matrix.md). Families guide authored behavior; general keyword/campaign systems remain future work.
+
 # SpellCast Survivors — Core Game Design v0.4
 
 > Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
@@ -34,7 +36,7 @@ Keep the spells already implemented and repair their identities, useful output, 
 | Slowdown | Each new cast gets a fresh finite window at fixed slowdown strength. Duration upgrades extend that window. Expiry returns the world to normal while typing may continue. No shared reserve or meaningful recharge wait. |
 | Spell geometry | Ice Blast is a directional cone. Specify hit shape, origin, aim, dimensions and hit rules per spell; visuals must match the affected region. Other undecided shapes remain proposals. |
 | Healing identities | Life is a separate quick small heal (about 4 HP); Regeneration takes longer to type and gives substantially greater healing over time. |
-| Earth Shield concept | Preserve Earth Shield as an existing spell to repair. Damageable, decaying earth protection is a concept; distinguish caster protection from separately placed Earth Wall terrain before deciding geometry and collision. |
+| Earth Shield 0.1.36 | Approved: each cast adds one independently timed single-hit charge; a blocked hit preserves combo and erupts toward its attacker with damage and knockback. Earth Wall remains separate terrain. See [release spec](releases/0.1.36-earth-shield.md). |
 | Spell payoff | Longer incantations earn greater useful output, not merely a larger damage number. Preserve quick basics and situational bonuses. |
 | Multicast | One extra spell-appropriate unit of output after one completed incantation: another projectile, meteor, jump, pulse or other explicitly defined unit. No extra typing. |
 | Presentation | Existing ancient stone/pixel-world direction. Legible large keycaps, concise choices and minimal HUD. Audio work is deferred. |

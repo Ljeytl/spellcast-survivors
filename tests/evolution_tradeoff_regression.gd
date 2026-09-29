@@ -233,7 +233,7 @@ func compare_prism():
 		var spell = effect(info, enemies[0])
 		if evolved:
 			check(spell.beam_radius() >= 32, "Prism has wide laser footprint")
-			check(float(info.get("beam_turn_speed", -1)) == 0, "Prism fixed-direction contract")
+			check(is_equal_approx(float(info.get("beam_turn_speed", -1)), 0.25), "Prism slow-tracking contract")
 		spell.advance(2)
 		solos.append(10000 - enemies[0].current_health)
 		totals.append(enemies.reduce(func(total, node): return total + 10000 - node.current_health, 0.0))
