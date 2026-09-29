@@ -39,7 +39,7 @@ static func resolve(data: Dictionary, ranks: Dictionary) -> Dictionary:
 		"prism_ray":
 			info.damage = 18.0 * (1.0 + 0.15 * (bonus.call("focus_ray") + bonus.call("ember_lance") + own))
 			info.beam_radius = 32.0
-			info.beam_turn_speed = 0.0
+			info.beam_turn_speed = 0.25
 		"frost_sigil":
 			info.damage = 60.0 * (1.0 + 0.15 * bonus.call("rune_trap"))
 			info.trap_radius = 170.0 * (1.0 + 0.05 * (bonus.call("rune_trap") + bonus.call("ice_blast")))

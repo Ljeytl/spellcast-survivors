@@ -44,7 +44,7 @@ func _initialize():
 	check(steam.duration > 5.0, "Steam no duration penalty")
 	var prism = recipe("prism_ray", 3, {"focus_ray": 3, "ember_lance": 3})
 	check(is_equal_approx(prism.damage, 34.2), "Prism rank contributions additive")
-	check(prism.beam_turn_speed == 0.0, "Prism direction fixed")
+	check(prism.beam_turn_speed == 0.25, "Prism tracks at a very slow rate")
 	check(prism.beam_radius == 32.0, "Prism broad footprint")
 	var frost = recipe("frost_sigil", 5, {"rune_trap": 3, "ice_blast": 3})
 	check(is_equal_approx(frost.damage, 78.0), "Rune controls Frost damage")

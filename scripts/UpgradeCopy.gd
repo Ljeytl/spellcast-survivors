@@ -25,7 +25,7 @@ const EVOLUTIONS = {
 	"meteor_lance": "Pierce enemies with explosive meteor hits.",
 	"soul_bloom": "Infect enemies; their deaths leave healing blooms.",
 	"steam_field": "Scald and slow enemies in a lingering steam field.",
-	"prism_ray": "Carve through a line with a broad, fixed-direction laser.",
+	"prism_ray": "Carve through a line with a broad, slowly tracking laser.",
 	"frost_sigil": "Place a persistent frost rune that bursts and slows enemies.",
 	"reaping_spirit": "Summon a hunter with explosive kills and 25% less contact damage."
 }

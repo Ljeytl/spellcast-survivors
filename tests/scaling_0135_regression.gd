@@ -158,8 +158,8 @@ func run():
 	var initial = prism.direction
 	target.global_position = origin + Vector2(0,200)
 	prism.advance(0.3)
-	check(prism.direction.is_equal_approx(initial), "Prism never turns even at high velocity")
-	check(prism.target_ref == null, "Fixed beam does not reserve an off-axis enemy")
+	check(is_equal_approx(absf(initial.angle_to(prism.direction)), 0.075), "Prism tracks slowly even at high velocity")
+	check(prism.target_ref != null and prism.target_ref.get_ref() == target, "Prism keeps tracking its moving target")
 	check(is_equal_approx(prism.beam_radius(),32), "Prism is broad")
 	check(is_equal_approx(prism.remaining,3.7), "Prism duration scales")
 	clear_effects()
