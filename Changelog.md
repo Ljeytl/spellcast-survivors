@@ -1,3 +1,8 @@
+# 0.1.4 web packaging
+
+- Track the MEGA regression script UID and ignore generated import metadata for excluded design-reference art so Godot imports preserve a clean export checkout.
+- Prepare the itch HTML5 ZIP from a committed revision; browser verification recorded with the build manifest.
+
 # 0.1.4 — MEGA and Magic Missile
 
 - Added PATCH_NOTES.md with recent version history and the 0.1.4 notes for MEGA and Magic Missile.
