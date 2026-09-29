@@ -14,6 +14,8 @@ This is the proposed structural successor to the descriptive classifications in 
 
 Some user-owned working notes in the local catalog differ from the committed draft: infection can refresh recipients without an arbitrary whole-chain deadline; Soul Bloom may make the player a healing infection carrier; Meteor Lance has several identity options; a rotating laser is a separate idea. Those alternatives are recorded here as **working design notes**, not verified runtime behavior. The existing documents and local edits are preserved. This reference does not decide XP, loadout or progression policy.
 
+**29 September vocabulary clarification:** [Spell forms, identities and additive modifiers](#14-spell-forms-identities-and-additive-modifiers) supersedes older naming and conversion assumptions where they conflict. Design only; no parser changes.
+
 ## 1. Three kinds of vocabulary
 
 | Vocabulary | Purpose | Who uses it? |
@@ -495,3 +497,60 @@ This differs from cosmetic aliases: if two elemental words represent different p
 The preceding Ice Lance/Glacial Lance discussion established the desired experience of accessing a shorter cast and an objectively stronger longer cast together in one prepared family. Elemental word tiers are a possible generalized way to achieve that experience, not a decision to rebuild every named spell around this grammar. Record and compare both approaches before choosing one.
 
 Next design exercise, when revisited: define one Wall recipe, two candidate words from one element, their exact property operations and visible results; then check whether the same word meanings transfer sensibly to a second base form. No gameplay, elemental resistance, collision or spell-unlock changes follow from recording this idea.
+
+
+## 14. Spell forms, identities and additive modifiers
+
+**29 September 2026 — confirmed distinctions and candidate family inventory. Documentation only.** This section records the discussion; it does not make every form castable, approve every elemental pairing, or implement keywords.
+
+### Confirmed direction
+
+- Bolt, Wall, Shield, Slice and Shower are useful core spell forms. Trail, Blast and Wave were also explicitly endorsed. The wider candidate inventory below preserves the rest of the discussion.
+- **Golem is the player-facing spell word**, not Summon. Summon remains an internal behavior/component category for independent actors. Older catalog rows labelled “Summon Golem” refer to this same proposed spell, not another unlock; the earlier summon-word grammar exception is superseded.
+- Not every named spell must become an interchangeable family. **Plague Seed can remain a unique identity**; Seed is not approved as a universal form that automatically supports Fire Seed, Ice Seed, etc. A unique spell can still expose damage-element conversion or other meaningful properties.
+- Shared forms allow authored differences. Flame Wall and Earth Wall may form different shapes and behave differently; element variants are not required to be identical geometry with recolored damage. Their exact shapes remain undecided.
+- **Flaming Earth Wall is still Earth Wall, with fire added.** Preserve its earthen barrier identity and native behavior. Do not replace it with Flame Wall or silently remove physical blocking/destructibility if those belong to its recipe.
+- Longer incantations should provide meaningfully stronger output or utility. Keywords should be significant and support multiplicative scaling. Exact multipliers, stacking and supported combinations remain to be tuned; older additive formulas are proposals, not approval of weak modifiers.
+
+### Form vocabulary
+
+| Form / identity | Distinguishing behavior | Status |
+|---|---|---|
+| Bolt | Discrete travelling projectile | Core form discussed |
+| Wall | Placed elongated barrier/area; recipe owns shape, blocking and destructibility | Core form discussed; elemental variants may differ |
+| Shield | Protection attached to a recipient | Separate from world-placed Wall; redesign unresolved |
+| Slice | Sweeping cut or crescent | Core form discussed |
+| Shower | Multiple distributed impacts | Core form discussed |
+| Trail | Effect left behind movement | Explicitly endorsed |
+| Blast | Short spreading burst; Ice Blast is a cone | Explicitly endorsed |
+| Wave | Advancing front through an area | Explicitly endorsed |
+| Lance | Narrow penetrating projectile | Candidate family |
+| Ray | Sustained beam | Candidate family; tracking is recipe-specific |
+| Nova | Radial expanding burst | Candidate family |
+| Strike | Targeted impact at a location | Candidate family |
+| Field | Persistent area | Candidate family |
+| Orbit | Bodies following an orbital path | Candidate family |
+| Trap / Sigil | Placed effect awaiting a trigger | Candidate naming/family |
+| Golem | Independent creature with its own behavior | Confirmed castable word; uses summon components |
+| Plague Seed | Host infection, transfer and lingering spores | Unique identity; generic Seed family not approved |
+| Life / Regeneration | Immediate healing / sustained healing | Named identities; Restoration is a descriptive category, not an approved cast word |
+
+Storm as a distinct family versus a stronger Shower/Field word remains open. Aura can be implemented as a following Field without requiring a separate engine subsystem. These are structural options, not approved vocabulary unlocks.
+
+### Distinguish identity, conversion and added behavior
+
+| Layer | Meaning | Example |
+|---|---|---|
+| Named recipe | Owns native geometry, delivery, collision and distinctive mechanics | Earth Wall remains an earthen barrier; Flame Wall may have a separately authored formation |
+| Damage conversion | Changes an exposed damage element, preserving unrelated properties | An eligible unique spell can change damage type without becoming a new generic form |
+| Additive modifier | Adds a declared behavior/payload without replacing the underlying spell | Flaming Earth Wall retains Earth Wall and adds fire |
+
+“Flaming” and the older proposed “Fiery” conversion must not silently be treated as equivalent aliases. Whether to retain both words or revise that vocabulary is unresolved. The precise fire payload (contact damage, periodic burning, status or another effect), its stacking, and its numbers are also unresolved.
+
+The proposed longest-known-base-suffix parser supports this distinction: `flaming earth wall` resolves **Flaming + Earth Wall**, rather than Flaming + Earth + a generic Wall whose identity is lost. `big golem` resolves **Big + Golem**; accepting elemental golem variants still requires an explicit recipe/property contract.
+
+Shared components remain the implementation foundation. Family defaults do not erase per-recipe shape, targeting, collision or payload choices. Any supported modifier must have a visible, mechanical effect; unsupported pairings should be communicated clearly.
+
+### Earth protection discussion remains open
+
+The destructible enclosure idea belongs to Wall exploration rather than an automatic replacement for personal Shield. Walls that collapse when the player leaves or nears the edge were raised as possibilities, not selected rules. Enclosure versus short segment, passage for player/spells, enemy attacks, lifetime and final Shield behavior all still need decisions. No new Earth Shield or Earth Wall behavior is approved for implementation by this note.
