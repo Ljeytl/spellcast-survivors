@@ -1,3 +1,9 @@
+## 2026-09-28 — Prepare colored style-meter sprites
+
+- Generated one transparent scratched-stone/rune sheet, including colored D/C/B/A and high-rank variants.
+- Added 24 named Godot AtlasTexture regions and a manifest for individual use without destructive slicing.
+- No runtime HUD or scoring changes; assembly and small-size legibility remain review steps.
+
 ## 2026-09-28 — Record style-meter color feedback
 
 - Preserve scratched-stone/circle direction and record richer color at all intermediate ranks, including D/C/B/A.

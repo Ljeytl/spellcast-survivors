@@ -681,3 +681,7 @@ Remaining: after choosing baseline sizes, vary in-game tree and bush sizes by ap
 ## Tower hub concept — 28 September 2026
 
 Recorded the [rotary tower chamber and preparation book](docs/expedition-design/09-ui-accessibility.md#wizard-tower-rotary-destination-chamber): rotating room with roughly twelve stained-glass positions, top portal, tower-exit position, deck-like spell preparation and automatic deadline recall. Twenty minutes is the default; per-level curves/durations, book placement and possible 3D blockout are future exploration.
+
+### Style-meter asset preparation
+
+[Transparent sheet and atlas pieces](assets/ui/style-runes/README.md) prepared; next visual step is HUD-scale assembly and letter readability review. Scoring implementation awaits design agreement.

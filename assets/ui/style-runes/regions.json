@@ -1,0 +1,154 @@
+{
+  "sheet": "style-runes-v1.png",
+  "size": [
+    1536,
+    1024
+  ],
+  "regions": {
+    "rank_f": [
+      0,
+      32,
+      256,
+      278
+    ],
+    "rank_e": [
+      256,
+      32,
+      256,
+      278
+    ],
+    "rank_d": [
+      512,
+      32,
+      256,
+      278
+    ],
+    "rank_c": [
+      768,
+      32,
+      256,
+      278
+    ],
+    "rank_b": [
+      1024,
+      32,
+      256,
+      278
+    ],
+    "rank_a": [
+      1280,
+      32,
+      256,
+      278
+    ],
+    "rank_s": [
+      0,
+      310,
+      256,
+      290
+    ],
+    "rank_ss": [
+      256,
+      310,
+      256,
+      290
+    ],
+    "rank_sss": [
+      512,
+      310,
+      256,
+      290
+    ],
+    "rank_stone": [
+      768,
+      310,
+      256,
+      290
+    ],
+    "halo_cyan": [
+      1024,
+      310,
+      256,
+      290
+    ],
+    "halo_gold": [
+      1280,
+      310,
+      256,
+      290
+    ],
+    "meter_left": [
+      16,
+      600,
+      160,
+      190
+    ],
+    "meter_rail": [
+      208,
+      620,
+      336,
+      148
+    ],
+    "meter_right": [
+      592,
+      600,
+      168,
+      190
+    ],
+    "meter_trough": [
+      760,
+      620,
+      264,
+      148
+    ],
+    "fill_teal": [
+      1024,
+      630,
+      256,
+      130
+    ],
+    "fill_cyan": [
+      1280,
+      630,
+      256,
+      130
+    ],
+    "fill_blue_violet": [
+      16,
+      815,
+      232,
+      130
+    ],
+    "fill_violet": [
+      272,
+      815,
+      232,
+      130
+    ],
+    "fill_gold": [
+      528,
+      815,
+      232,
+      130
+    ],
+    "rank_spark": [
+      808,
+      760,
+      176,
+      252
+    ],
+    "spell_sealed": [
+      1024,
+      760,
+      256,
+      252
+    ],
+    "spell_ready": [
+      1280,
+      760,
+      256,
+      252
+    ]
+  },
+  "notes": "Individual region sizes differ. Normalize rank display height in layout; do not assume a uniform grid. Rails are not verified seamless. Preview at gameplay scale before wiring HUD."
+}
