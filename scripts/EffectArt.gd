@@ -51,6 +51,8 @@ static func motif_region(kind: String) -> Rect2:
 static func beam(canvas: CanvasItem, start: Vector2, end: Vector2, width: float, opacity: float = 1.0, prism: bool = false):
 	var hue = Color("cbb5fa") if prism else Color("a5eaff")
 	var normal = (end - start).normalized().orthogonal() * width * 0.5
+	canvas.draw_circle(end, width * 0.5, Color(hue.darkened(0.25), opacity * 0.42))
+	canvas.draw_arc(end, width * 0.5, (end - start).angle() - PI / 2, (end - start).angle() + PI / 2, 8, Color(hue, opacity * 0.8), 2)
 	canvas.draw_line(start, end, Color(hue.darkened(0.25), opacity * 0.42), width)
 	canvas.draw_line(start + normal, end + normal, Color(hue, opacity * 0.8), 2)
 	canvas.draw_line(start - normal, end - normal, Color(hue, opacity * 0.8), 2)

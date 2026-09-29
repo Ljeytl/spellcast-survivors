@@ -1,5 +1,18 @@
 extends "res://scripts/BuildSpellEffect.gd"
 
+class BeamAfterglow extends Node2D:
+	var endpoint = Vector2.ZERO
+	var width = 1.0
+	var prism = false
+	var remaining = 0.12
+	func _process(delta):
+		remaining -= delta
+		if remaining <= 0:
+			queue_free()
+		queue_redraw()
+	func _draw():
+		preload("res://scripts/EffectArt.gd").beam(self, Vector2.ZERO, endpoint, width, 0.35 * maxf(0, remaining / 0.12), prism)
+
 var target_ref: WeakRef
 var age = 0.0
 var beam_end = Vector2.RIGHT * 450
@@ -25,6 +38,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	target_ref = weakref(target) if is_instance_valid(target) else null
 	match info.type:
 		"beam":
+			add_to_group("active_spell_channels")
 			global_position += info.get("beam_origin_offset", Vector2.ZERO)
 			if target:
 				direction = global_position.direction_to(target.global_position)
@@ -84,6 +98,13 @@ func advance(delta: float):
 			"returning": advance_returning(step, player)
 	queue_redraw()
 	if remaining <= 0.000001:
+		if info.type == "beam":
+			var fade = BeamAfterglow.new()
+			fade.position = position
+			fade.endpoint = beam_end
+			fade.width = beam_radius() * 2
+			fade.prism = info.get("beam_piercing", false)
+			get_parent().add_child(fade)
 		queue_free()
 
 func deal_damage(enemy, amount: float) -> float:
@@ -107,9 +128,56 @@ func closest_target(center: Vector2, radius: float):
 func tracking_target(center: Vector2, radius: float):
 	var target = target_ref.get_ref() if target_ref else null
 	if not valid_target(target) or center.distance_to(target.global_position) > radius:
-		target = closest_target(center, radius)
+		if info.type == "beam":
+			var reserved: Array = []
+			for beam in get_tree().get_nodes_in_group("active_spell_channels"):
+				if beam != self and beam.is_style_channel_active() and beam.target_ref:
+					var other = beam.target_ref.get_ref()
+					if valid_target(other):
+						reserved.append(other)
+			target = null
+			var best = INF
+			for enemy in get_tree().get_nodes_in_group("enemies"):
+				if valid_target(enemy) and center.distance_to(enemy.global_position) <= radius:
+					var score = center.distance_to(enemy.global_position) + (radius + 1 if enemy in reserved else 0)
+					if score < best:
+						best = score
+						target = enemy
+		else:
+			target = closest_target(center, radius)
 		target_ref = weakref(target) if target else null
 	return target
+
+func is_style_channel_active() -> bool:
+	var player = caster.get_ref() if caster else null
+	return info.get("type", "") == "beam" and remaining > 0.000001 and not is_queued_for_deletion() and is_instance_valid(player) and not player.is_queued_for_deletion() and (player.get("health") == null or float(player.health) > 0)
+
+func beam_radius() -> float:
+	return float(info.get("beam_radius", Geometry.BEAM_RADIUS)) * float(info.spell_size_multiplier)
+
+func beam_contact(enemy, reach: Vector2) -> float:
+	var collision = enemy.get_node_or_null("HurtBox/HurtBoxShape")
+	if collision is CollisionShape2D and not collision.disabled and collision.shape is RectangleShape2D:
+		var half = collision.shape.size * 0.5
+		var corners = PackedVector2Array()
+		for corner in [Vector2(-half.x, -half.y), Vector2(half.x, -half.y), half, Vector2(-half.x, half.y)]:
+			corners.append(collision.to_global(corner))
+		var touches = Geometry2D.is_point_in_polygon(global_position, corners) or Geometry2D.is_point_in_polygon(reach, corners)
+		var first = 450.0
+		for index in range(4):
+			var start = corners[index]
+			var end = corners[(index + 1) % 4]
+			first = minf(first, (start - global_position).dot(direction))
+			if Geometry2D.segment_intersects_segment(global_position, reach, start, end) != null:
+				touches = true
+			for point in [start, end]:
+				if Geometry2D.get_closest_point_to_segment(point, global_position, reach).distance_to(point) <= beam_radius():
+					touches = true
+			for point in [global_position, reach]:
+				if Geometry2D.get_closest_point_to_segment(point, start, end).distance_to(point) <= beam_radius():
+					touches = true
+		return maxf(0, first) if touches else INF
+	return clampf((enemy.global_position - global_position).dot(direction), 0, 450) if Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach).distance_to(enemy.global_position) <= beam_radius() else INF
 
 func advance_beam(delta: float, player: Node2D):
 	global_position = player.global_position + info.get("beam_origin_offset", Vector2.ZERO)
@@ -120,19 +188,20 @@ func advance_beam(delta: float, player: Node2D):
 	var reach = global_position + direction * 450
 	var targets: Array = []
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if valid_target(enemy) and Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach).distance_to(enemy.global_position) <= float(info.get("beam_radius", Geometry.BEAM_RADIUS)) * float(info.spell_size_multiplier):
-			targets.append(enemy)
-	targets.sort_custom(func(a, b): return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position))
+		if valid_target(enemy):
+			var contact = beam_contact(enemy, reach)
+			if is_finite(contact):
+				targets.append({"enemy": enemy, "contact": contact})
+	targets.sort_custom(func(a, b): return a.contact < b.contact)
 	var hits = targets if info.get("beam_piercing", false) else targets.slice(0, int(info.get("beam_targets", 1)))
 	beam_end = direction * 450
 	if not info.get("beam_piercing", false) and not hits.is_empty():
-		beam_end = direction * minf(450, (hits[-1].global_position - global_position).dot(direction) + 8)
+		beam_end = direction * minf(450, hits[-1].contact + 8)
 	tick_remaining -= delta
-	if tick_remaining > 0.000001:
-		return
-	tick_remaining += 0.25
-	for enemy in hits:
-		deal_damage(enemy, damage)
+	while tick_remaining <= 0.000001:
+		tick_remaining += 0.25
+		for hit in hits:
+			deal_damage(hit.enemy, damage)
 
 func advance_trap():
 	if triggered or age + 0.000001 < float(info.get("arm_delay", 0.8)):

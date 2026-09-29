@@ -1288,8 +1288,8 @@ func cast_build_spell(slot: int) -> bool:
 		var distance = INF
 		var occupied_targets: Array = []
 		if info.type == "beam":
-			for beam in active:
-				if not beam.is_queued_for_deletion() and beam.target_ref and is_instance_valid(beam.target_ref.get_ref()):
+			for beam in get_tree().get_nodes_in_group("active_spell_channels"):
+				if beam.is_style_channel_active() and beam.target_ref and is_instance_valid(beam.target_ref.get_ref()):
 					occupied_targets.append(beam.target_ref.get_ref())
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if not _live_spell_target(enemy):
