@@ -4,6 +4,16 @@ Status: user brainstorming captured after 0.1.36, **documentation only**. This i
 
 Use the [populated matrix](16-element-family-matrix.md) for browsing. This page owns details, alternatives and rejections. Labels such as desired, preferred or questioned describe the user's design response, not implementation authorization. Unnamed entries deliberately remain unnamed.
 
+## Confirmed follow-up consolidation
+
+This follow-up supersedes the initial alternatives below. Water/Ice and Earth/Metal are merged schools; Spirit concepts join Plague/Death. Sun and Moon remain combination themes. Multiple spells per school/family cell are welcome. Final school and spell names remain refinable.
+
+- Nova/Wave is one family and column; Slash/Slice/Whip is one family and column. Geometry and propagation are individual spell properties.
+- Tsunami is Blast: a broad square/rectangular wave starts behind the player and sweeps forward. The earlier radial description is superseded.
+- Shrapnel moves to Blast. Its exact delivery remains open; a grenade is not required.
+- Frost/Ice Ray is dropped from proposals in favor of Water Jet. Snowball remains Bolt.
+- Sunbeam may combine Fire + Life; that recipe is not final.
+
 ## Shared principles and unresolved taxonomy
 
 | Topic | Captured direction | Still open |
@@ -12,10 +22,10 @@ Use the [populated matrix](16-element-family-matrix.md) for browsing. This page 
 | Combinations | Existing combinations remain available and overlap families; separate/de-emphasize them while designing base identities | New recipe ingredients and acquisitions |
 | Name versus delivery | Snowball belongs under Bolt despite its name; Spike can sit in Bolt exploration despite ground delivery | Final player-facing family names |
 | Ball versus Strike | Travelling body and called-down impact are useful distinctions; an individual spell can combine components | Final placement of Whirlpool and the unnamed gravity well |
-| Nova versus Wave | Radial burst versus travelling front is a useful proposed distinction, not a rigid rule | Vine-circle and other overlapping concepts |
+| Nova versus Wave | Merged family; radial/directional geometry is spell-specific | Exact per-spell geometry and control |
 | Shower | A moving cloud can be a Shower with persistent area components | Following versus independently moving storms |
 | Unique existing spells | Keep them visible in the matrix even when they break the default family lifecycle | No forced mechanical conversion for classification |
-| Elements | Arcane/Mana is ordinary magic; schools/themes need not each become a distinct damage type | Water/Ice, Metal/Earth, Spirit and Moon/Sun grouping decisions |
+| Elements | Arcane/Mana is ordinary magic; schools/themes need not each become a distinct damage type | Final school names; mergers settled above |
 | Modifier versus authored spell | Flaming Earth Wall remains Earth Wall plus fire; changing color/damage alone may be a modifier rather than a unique spell | Exact modifiers, numerical strength, compatibility and stacking |
 
 ## Arcane / Mana
@@ -68,7 +78,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 | Snowball | Ordinary ice projectile | Bolt family despite the name; replaces the need for an assistant-invented Frostball concept |
 | Large lobbed ice ball / Frostball | No need identified | Not selected |
 | Ice Lance / Glacial Lance | Push enemies aside or impale with a major debuff; may sacrifice piercing for impalement | Alternatives remain open. Earlier stronger Glacial Lance acquired with Ice Lance remains recorded context, not a new resolved progression decision |
-| Frost Ray | Slowing beam | Payoff for long incantation questioned; needs a stronger identity or utility justification |
+| Frost Ray | Slowing beam | Removed from proposed roster in follow-up; Water Jet takes the Ray slot |
 | Ice Slice / Ice Wave | Palette swaps unnecessary | No selected unique spells |
 | Ice Blast | Current cone is liked | Implemented; retained |
 | Frost Nova | Ice Blast-like effect in all directions | User direction proposal; inactive JSON is not playable implementation |
@@ -81,13 +91,13 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 | Entry | User concept / response | Status and unresolved details |
 |---|---|---|
 | Water Jet | Tracking jet dealing damage and knockback; upgrades add jets | **Ray**, not Lance; no Water Lance selected |
-| Tsunami | Large self-centered outward wave | User concept; name does not force a cone |
+| Tsunami | Broad rectangular front spawns behind the player and travels forward | Blast family; supersedes radial version |
 | Tidal Push | Broad wave originates behind the caster and travels forward | Provisional name; explicitly not a cone |
 | Whirlpool | Lasting vortex | Field is the current candidate placement; earlier Ball/Strike uncertainty preserved |
 | Plain Rain / Water Field | Lacks a distinct identity | Not selected as standalone spells |
 | Water Wall | Uninspiring without another mechanic | Questioned |
-| Water Whip | Distinct whip idea | Later concept, not interchangeable with Slash |
-| Water + Ice | Possible school merge | Not decided; preserve both rows for now |
+| Water Whip | Distinct whip idea | Shares Slice/Whip family; individual motion remains distinct |
+| Water + Ice | Merged school | Water and ice spells coexist |
 
 ## Lightning
 
@@ -133,7 +143,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 | Grasping Hand | Plague area-control magic | Theme explicitly Plague; precise control behavior still open |
 | Plague Seed / Soul Bloom | Keep both visible in the Seed column | Implemented infection-special cases; do not force planted growth or change their runtime mechanics |
 | Seeker | Could be Plague/Death Bolt, or a normal-damage ghost | Classification proposal only; preserve current ghost fantasy and runtime. Separate Spirit damage type is not required |
-| Spirit | Its need as an independent school is questioned | Do not erase all spirit spell ideas or claim reclassification implemented |
+| Spirit | Folded into broader Plague/Death theme | Preserve ghost spells; no runtime damage-type change |
 
 ## Life / Nature
 
@@ -142,8 +152,8 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 | Life Bolt | Existing projectile plus healing pickup/patch | Implemented combination |
 | Unnamed vine ball | Area immobilization and damage, possibly bleed | User concept; final name and bleed undecided |
 | Vine Lance | Sends vines toward nearby enemies and pulls them | Pull destination, shape and interaction open |
-| Vine Whip | Whip rather than Vine Slice | User concept; whip may deserve a separate form |
-| Expanding vine circle | Roiling vines expand, damage and immobilize or slow | Wave/Nova distinction and control choice open |
+| Vine Whip | Whip rather than Vine Slice | User concept in shared Slice/Whip family |
+| Expanding vine circle | Roiling vines expand, damage and immobilize or slow | Shared Nova/Wave family; control choice open |
 | Life Nova | Crushing vines | User direction; may overlap the expanding-circle concept rather than a separate spell |
 | Life Strike / Shower | Poisonous or exploding flowers | Concepts without final delivery or names |
 | Life Trail | Poisonous flowers or roiling vines left behind | Alternatives, not two confirmed spells |
@@ -153,17 +163,17 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 
 | Entry | User concept / response | Status and unresolved details |
 |---|---|---|
-| Moon / Sun | Probably combination themes rather than full independent schools | Not a final deletion of rows or existing ideas |
+| Moon / Sun | Combination themes rather than independent schools | Preserve individual spell ideas |
 | Moonfall / Crescent Slash | Possible combination identities | Ingredients unresolved; speculative Life/Plague/Slash pairings are not recipes |
-| Sunbeam | Possibly another combination | No ingredients selected |
+| Sunbeam | Combination concept | Fire + Life candidate; recipe open |
 | Bullet | Rapid shots | Metal concept |
-| Shrapnel | Grenade-like delivery | Metal concept; exact fragmentation not specified |
-| Metal + Earth | Possible merge | Not confirmed |
+| Shrapnel | Blast-family metal fragments | Earth/Metal school; exact delivery/fragmentation open |
+| Metal + Earth | Merged school | Multiple Earth/Metal spells can share a family |
 | Metal Lance | No finalized new identity | Do not invent one |
 
 ## Decisions to make after this capture
 
-1. Resolve school groupings without deleting working spell identities.
+1. Refine names within the settled school groupings without deleting working spell identities.
 2. Select a small set of authored spells and modifier expressions; leave other cells open.
 3. Define shapes, contact timing, payoff and keyword properties for selected candidates.
 4. Resolve Restoration versus buffs, golem spell ownership and unique infection placement.
