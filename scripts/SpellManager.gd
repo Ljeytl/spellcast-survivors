@@ -701,14 +701,15 @@ func cast_lightning_arc_spell(slot: int):
 	get_parent().add_child(effect)
 
 func cast_bouncing_bolt(slot: int):
-	var info = get_spell_info(slot)
+	var info = resolve_cast_info(slot)
 	var target = Targeting.select(get_tree(), player.global_position)
 	if not _live_spell_target(target):
 		return
 	var projectile = spell_projectile_scene.instantiate()
 	projectile.speed = 550.0 * player.projectile_speed_multiplier
-	projectile.set_meta("bounce_count", int(info.get("bounce_count", 2)))
+	projectile.set_meta("bounce_count", int(info.get("bounce_count", 4)))
 	projectile.set_meta("bounce_range", float(info.get("bounce_range", 240.0)))
+	projectile.lifetime = maxf(3.0, (int(info.get("bounce_count", 4)) + 1) * float(info.get("bounce_range", 240.0)) / projectile.speed + 1.0)
 	get_parent().add_child(projectile)
 	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
 
@@ -1039,7 +1040,7 @@ func cast_freeform_spell(spell_name: String) -> bool:
 	last_cast_failure = ""
 	if spell_name == "atomic" and is_instance_valid(game_manager.style_session):
 		if not game_manager.style_session.cast_atomic():
-			last_cast_failure = "Atomic requires S rank"
+			last_cast_failure = "Atomic requires S rank and 10,000 combo"
 			return false
 		last_spell_cast_time = casting_clock
 		spell_cast.emit("atomic")
@@ -1179,7 +1180,9 @@ func resolve_cast_info(slot: int) -> Dictionary:
 	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
 	var ranks = get_combination_ingredient_ranks(str(info.get("id", "")))
 	var ice_bonus = 12.5 * maxi(0, int(ranks.get("ice_blast", 1)) - 1)
-	if info.id == "steam_field":
+	if info.id == "lightning_bolt":
+		info.bounce_count = int(info.get("bounce_count", 4)) + maxi(0, int(info.get("level", 1)) - 1)
+	elif info.id == "steam_field":
 		info.radius = float(info.get("radius", 150.0)) + ice_bonus
 	elif info.id == "frost_sigil":
 		info.trap_radius = float(info.get("trap_radius", 170.0)) + ice_bonus
@@ -1242,6 +1245,8 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 			return prefix + damage + ", +25 radius, +50 knockback"
 		"earth_shield":
 			return prefix + "+15% of base overheal"
+		"lightning_bolt":
+			return prefix + damage + ", +1 bounce"
 		"lightning_arc":
 			return prefix + damage
 		"meteor_shower":

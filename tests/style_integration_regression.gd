@@ -93,7 +93,7 @@ func run():
 	root.get_node("AudioManager").quitting = true
 	fresh()
 	await process_frame
-	session.score.combo = 2200.0
+	session.score.combo = 5000.0
 	session.score.grace_remaining = 0.0
 	manager.set_process(true)
 	for i in 4:
@@ -159,10 +159,10 @@ func run():
 	manager._process(0.1)
 	check(is_equal_approx(session.clock - clock_before, 0.5), "Slowdown uses real scoring seconds")
 	key(KEY_ESCAPE)
-	session.score.combo = 2200.0
+	session.score.combo = 5000.0
 	game.player.overheal = 10.0
 	game.player.take_damage(5.0)
-	check(session.score.combo == 2200.0, "Fully absorbed damage preserves rank")
+	check(session.score.combo == 5000.0, "Fully absorbed damage preserves rank")
 	game.player.overheal = 0.0
 	game.player.take_damage(1.0)
 	check(session.score.rank_index() == 5, "Health damage drops one grade")
@@ -179,24 +179,27 @@ func run():
 		check(rank_hud.label.text.begins_with(model.RANKS[rank]) and is_equal_approx(rank_hud.meter.value, 0.5), "Rank glyph, label and segment fill agree: " + model.RANKS[rank])
 	check(rank_hud.format_score(2500000) == "2.5M", "Large HUD scores use compact notation")
 	manager.casting_clock += 2.0
-	session.score.combo = 2200.0
+	session.score.combo = 5000.0
 	session.updated.emit()
 	await capture("game-s")
 	key(KEY_SPACE)
 	letters("atomic", 0.1)
-	session.score.combo = 1900.0
+	session.score.combo = 4700.0
 	key(KEY_ENTER)
-	check(manager.is_typing and session.special_casts == 0 and session.score.combo == 1900.0, "Lost S rejects Atomic without spending or clearing text")
-	session.score.combo = 2200.0
+	check(manager.is_typing and session.special_casts == 0 and session.score.combo == 4700.0, "Lost S rejects Atomic without spending or clearing text")
+	session.score.combo = 9999.0
 	key(KEY_ENTER)
-	check(not manager.is_typing and session.special_casts == 1 and session.score.combo == 700.0, "Atomic spends exactly 1500 once")
+	check(manager.is_typing and session.special_casts == 0 and session.score.combo == 9999.0, "SSS alone cannot bypass Atomic cost")
+	session.score.combo = 10000.0
+	key(KEY_ENTER)
+	check(not manager.is_typing and session.special_casts == 1 and session.score.combo == 0.0, "Atomic spends exactly 10000 once")
 	check(session.score.run_score == bank, "Atomic does not repay itself")
 	await capture("atomic-warning")
 	await create_timer(0.8).timeout
 	await capture("atomic-impact")
-	session.score.combo = 3700.0
+	session.score.combo = 6700.0
 	session.score.peak_rank = 8
-	session.score.peak_combo = 3700.0
+	session.score.peak_combo = 6700.0
 	session.updated.emit()
 	await capture("game-sss")
 	root.size = Vector2i(480, 800)

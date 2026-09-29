@@ -17,6 +17,8 @@ var rank_tween: Tween
 var compact = false
 var special: Label
 var seal: TextureRect
+var rail: TextureRect
+var endcap: TextureRect
 
 func _ready():
 	name = "StyleHUD"
@@ -25,16 +27,20 @@ func _ready():
 		glyphs.append(load("res://assets/ui/style-runes/rank_%s.tres" % rank.to_lower()))
 	for fill in ["teal", "cyan", "blue_violet", "violet", "gold"]:
 		fills.append(load("res://assets/ui/style-runes/fill_%s.tres" % fill))
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	badge = TextureRect.new()
 	badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	add_child(badge)
 	meter = TextureProgressBar.new()
-	meter.texture_under = trough
+	meter.texture_under = atlas_region(Rect2(785, 676, 206, 38))
 	meter.max_value = 1.0
 	meter.step = 0.001
 	meter.nine_patch_stretch = true
 	add_child(meter)
+	rail = make_texture(atlas_region(Rect2(233, 642, 284, 110)))
+	endcap = make_texture(atlas_region(Rect2(616, 608, 104, 174)))
+	move_child(badge, get_child_count() - 1)
 	label = make_label(18)
 	score_label = make_label(18)
 	note = make_label(14)
@@ -48,6 +54,20 @@ func _ready():
 	session.feedback.connect(on_feedback)
 	get_parent().resized.connect(refresh)
 	refresh()
+
+func atlas_region(region: Rect2) -> AtlasTexture:
+	var texture = AtlasTexture.new()
+	texture.atlas = preload("res://assets/ui/style-runes/style-runes-v1.png")
+	texture.region = region
+	return texture
+
+func make_texture(texture: Texture2D) -> TextureRect:
+	var sprite = TextureRect.new()
+	sprite.texture = texture
+	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sprite.stretch_mode = TextureRect.STRETCH_SCALE
+	add_child(sprite)
+	return sprite
 
 func make_label(font_size: int) -> Label:
 	var result = Label.new()
@@ -76,35 +96,49 @@ func refresh():
 	if not is_instance_valid(badge):
 		return
 	compact = get_parent().size.x < 700
-	var width = 176.0 if compact else 256.0
-	size = Vector2(width, 138)
+	var width = 208.0 if compact else 316.0
+	size = Vector2(width, 150)
 	position = Vector2(get_parent().size.x - width - 18, session.game.timer_panel.get_rect().end.y + 10)
 	var rank = session.score.rank_index()
+	var badge_size = 76.0 if compact else 104.0
+	var bar_x = badge_size * 0.70
+	var bar_width = width - bar_x - 16.0
+	var bar_y = badge_size * 0.5 - 13.0
 	badge.texture = glyphs[rank]
-	badge.position = Vector2(-4, -5)
-	badge.size = Vector2(72, 78) if compact else Vector2(96, 96)
-	label.position = Vector2(60 if compact else 88, 5)
-	label.size = Vector2(width - label.position.x, 26)
+	badge.position = Vector2(-5, -4)
+	badge.size = Vector2.ONE * badge_size
+	rail.position = Vector2(bar_x, bar_y - 9)
+	rail.size = Vector2(bar_width, 44)
+	endcap.position = Vector2(width - 19, bar_y - 13)
+	endcap.size = Vector2(23, 52)
+	meter.position = Vector2(bar_x, bar_y)
+	meter.size = Vector2(bar_width, 26)
+	var fill_index = 0 if rank < 3 else 1 if rank == 3 else 2 if rank == 4 else 3 if rank < 7 else 4
+	var fill_regions = [Rect2(1062, 678, 176, 27), Rect2(1318, 678, 177, 27), Rect2(53, 869, 176, 27), Rect2(310, 869, 175, 27), Rect2(566, 869, 175, 27)]
+	if meter.get_meta("fill_index", -1) != fill_index:
+		meter.texture_progress = atlas_region(fill_regions[fill_index])
+		meter.set_meta("fill_index", fill_index)
+	meter.tint_progress = Color(0.55, 0.62, 0.6) if rank == 0 else Color(0.65, 0.85, 0.65) if rank == 1 else Color.WHITE
+	meter.value = session.score.progress()
+	label.position = Vector2(bar_x + 8, bar_y - 34)
+	label.size = Vector2(bar_width - 8, 24)
+	label.add_theme_font_size_override("font_size", 14 if compact else 17)
 	label.text = "%s  ×%s" % [MODEL.RANKS[rank], str(session.score.multiplier())]
 	label.modulate = COLORS[rank]
-	score_label.position = Vector2(label.position.x, 32)
-	score_label.size = Vector2(label.size.x, 28)
-	score_label.add_theme_font_size_override("font_size", 16 if compact else 18)
+	score_label.position = Vector2(bar_x, bar_y + 38)
+	score_label.size = Vector2(width - bar_x, 24)
+	score_label.add_theme_font_size_override("font_size", 14 if compact else 17)
 	score_label.text = "SCORE %s" % format_score(session.score.run_score)
-	meter.position = Vector2(0, 70)
-	meter.size = Vector2(width, 28)
-	meter.texture_progress = fills[0 if rank < 3 else 1 if rank == 3 else 2 if rank == 4 else 3 if rank < 7 else 4]
-	meter.value = session.score.progress()
-	note.position = Vector2(0, 103)
-	note.size = Vector2(width, 24)
+	note.position = Vector2(0, badge_size + 4)
+	note.size = Vector2(width, 22)
 	note.text = message if session.clock < message_until else "COMBO %d" % int(session.score.combo) if session.score.combo > 0 else ""
 	note.modulate = COLORS[rank]
-	special.position = Vector2(0, 127)
+	special.position = Vector2(0, badge_size + 30)
 	special.size = Vector2(width, 42)
-	special.text = "ATOMIC\n1,500 combo" if session.atomic_available() else ""
+	special.text = "ATOMIC\n10,000 combo" if session.atomic_available() else ""
 	special.modulate = Color("ffe49b")
 	seal.visible = session.atomic_available()
-	seal.position = Vector2(width - 144, 124)
+	seal.position = Vector2(width - 150, badge_size + 27)
 	seal.size = Vector2(44, 44)
 	for child in get_children():
 		child.mouse_filter = Control.MOUSE_FILTER_IGNORE

@@ -4,9 +4,9 @@ const RECIPES = {
 	"lightning_bolt": {
 		"name": "Lightning Bolt", "incantation": "lightning bolt", "ingredients": ["bolt", "lightning_arc"],
 		"requirements": "Own Bolt and Lightning this run, then learn Lightning Bolt.",
-		"description": "A traveling bolt bounces to two additional living enemies within 240 units; no repeat target.",
+		"description": "A traveling bolt bounces to four additional living enemies within 240 units; no repeat target.",
 		"card_description": "A traveling bolt bounces between nearby enemies.",
-		"overrides": {"type": "bouncing_projectile", "damage": 60, "bounce_count": 2, "bounce_range": 240.0}
+		"overrides": {"type": "bouncing_projectile", "damage": 60, "bounce_count": 4, "bounce_range": 240.0}
 	},
 	"life_bolt": {
 		"name": "Life Bolt", "incantation": "life bolt", "ingredients": ["bolt", "life"],

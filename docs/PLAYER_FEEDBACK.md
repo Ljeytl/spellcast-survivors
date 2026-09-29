@@ -292,3 +292,18 @@ Deferred: rocks, movement spells, more lightning spells, landmarks, structured/p
 - Inventory distinguishes base spells, slot-free combinations and passives with own ranks; ingredient ranks appear in combination tooltips. No full keyboard-navigation overhaul was performed.
 - Windows-specific flickering remains open: macOS/native and browser evidence cannot verify that report. Mobile/touch support and a full natural 20-minute balance verdict are not included.
 - Browser package creation and local playtesting do not publish an itch page. Account/page access and final visibility are still separate steps.
+
+## Style playtest follow-up — 2026-09-28
+
+Approved combined pass; implementation and verification in progress. Earlier ray correctness claims do not close these fresh reports.
+
+| Feedback | Acceptance | Disposition |
+|---|---|---|
+| Atomic too easy; S reached around 2:30 | 800 raw combo per grade; rank multiplier applies only to run score; Atomic costs 10,000, cap supports it | Implementing |
+| Empty casting after repeated wipes | Population-aware offscreen replenishment plus bounded sustained-clear pressure; no special Atomic-only reset and no one-clear difficulty spike | Implementing |
+| Focus/Prism endings look wrong | Inspect both endpoints and expiry; visible beam agrees with damage until it ends | Investigating |
+| Prism second target not damaged | Real multi-target geometry and repeated-tick coverage, including edge-of-body intersections | Investigating |
+| Channel loses combo when target dies | Active finite beam lifetime suspends decay through retarget gaps; normal grace resumes after final channel; no extra cast awards | Implementing |
+| SS–SSS gap felt good | Preserve 800 gap, apply it consistently to earlier grades | Implementing |
+
+Keep current cast scoring, spell damage, timed enemy tiers, later ranged unlocks and 20-minute extraction. Encounter density and feel require human playtesting after mechanical verification.
