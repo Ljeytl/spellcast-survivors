@@ -31,6 +31,7 @@ var extraction_screen: Control
 var game_time: float = 0.0
 var pending_level_ups: Array[int] = []
 var interface_debug = false
+var style_session: Node
 
 # Developer console system
 var console_scene = preload("res://scenes/Console.tscn")
@@ -92,6 +93,12 @@ func _ready():
 	
 	# Initialize all game systems in the correct order
 	setup_all_systems()
+	style_session = preload("res://scripts/StyleSession.gd").new()
+	style_session.game = self
+	add_child(style_session)
+	var style_hud = preload("res://scripts/StyleHUD.gd").new()
+	style_hud.session = style_session
+	hud.add_child(style_hud)
 	$MonsterManager.run_completed.connect(show_extraction_choice)
 	extraction_screen = preload("res://scripts/ExtractionChoice.gd").new()
 	extraction_screen.extract_requested.connect(extract_run)
@@ -842,6 +849,7 @@ func show_game_over_screen():
 			"mana_bolt_rank": spell_manager.get_spell_rank("mana_bolt"),
 			"discoveries": CharacterManager.discovered_synergies.filter(func(id): return id not in discoveries_at_start).map(func(id): return preload("res://scripts/SynergyCatalog.gd").RECIPES[id].name)
 		}
+		stats["style"] = style_session.finish(stats)
 		game_over_screen.show_game_over(stats)
 	else:
 		print("ERROR: game_over_screen is null or invalid")

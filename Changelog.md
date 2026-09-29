@@ -1,3 +1,13 @@
+## 2026-09-28 — Style scoring and Atomic (0.1.27)
+
+- Add F–SSS combo ranks and separately banked run score, with length, relative typing speed, clean execution and spell-variety bonuses.
+- Connect successful manual casts through one attempt receipt; passive effects, duplicate callbacks, locked spells and canceled attempts award nothing. Pauses freeze scoring; per-cast slowdown uses real active time.
+- Add grade loss on actual health damage, rank-scaled idle decay, the colored stone-rune meter, local high scores and result summaries. Bot, invincibility and console-assisted runs do not enter the board.
+- Add Atomic: type it at S, spend 1,500 combo, then nuke the captured screen after a visible warning. Ordinary enemies/projectiles clear; bosses take 60% maximum health. Reduced effects keep the warning without flash/shake.
+- Fix the existing no-argument console heal error discovered while checking score eligibility; use the player’s actual healing API.
+- Update stale regression expectations to the already shipped 15 HP Regeneration and 20-minute extraction choice; no healing or run-length balance change.
+- Keep the existing roguelike, spells, progression, difficulty and 20-minute extraction choice. Follow-up: human tuning of rank cadence/Atomic cost and later art/audio polish; online scores remain deferred.
+
 ## 2026-09-28 — Prepare colored style-meter sprites
 
 - Generated one transparent scratched-stone/rune sheet, including colored D/C/B/A and high-rank variants.

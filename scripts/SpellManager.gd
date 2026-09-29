@@ -1,5 +1,9 @@
 extends Node
 
+signal style_input_changed(text: String)
+signal manual_spell_released(family: String, canonical: String, typed: String)
+signal style_clock_advanced(seconds: float)
+
 signal spell_queued(spell_name: String, slot: int)
 signal spell_cast(spell_name: String)
 signal spell_extended(spell_id: String, seconds: float)
@@ -118,6 +122,7 @@ func _process(delta):
 	var frame_scale = _scale_before_change if _scale_change_frame == Engine.get_process_frames() else Engine.time_scale
 	var unscaled_delta = delta / maxf(frame_scale, 0.01)
 	casting_clock += unscaled_delta
+	style_clock_advanced.emit(unscaled_delta)
 	advance_typing_slowdown(unscaled_delta)
 	# Handle auto-attack mana bolt
 	handle_auto_attack(delta)
@@ -228,6 +233,7 @@ func handle_typing_input(event: InputEventKey):
 	if event.keycode == KEY_BACKSPACE:
 		if current_typing_text.length() > 0:
 			current_typing_text = current_typing_text.substr(0, current_typing_text.length() - 1)
+			style_input_changed.emit(current_typing_text)
 			update_typing_display()
 			# Play backspace sound
 			if AudioManager:
@@ -244,6 +250,7 @@ func handle_typing_input(event: InputEventKey):
 		var char = char(event.unicode)
 		if char.length() > 0 and char.is_valid_identifier() or char == " ":
 			current_typing_text += char.to_lower()
+			style_input_changed.emit(current_typing_text)
 			update_typing_display()
 			
 			# Play typing sound for each character
@@ -275,6 +282,8 @@ func cast_spell() -> bool:
 		if not last_cast_failure.is_empty() and game_manager:
 			game_manager.update_typing_display(current_typing_text + " · " + last_cast_failure)
 		return false
+	var released_info = get_spell_info(spell_data["slot"])
+	manual_spell_released.emit(str(released_info.id), str(released_info.display_name), current_typing_text)
 	spell_queue.pop_front()
 	last_spell_cast_time = casting_clock
 	spell_cast.emit(spell_name)
@@ -990,6 +999,7 @@ func handle_freeform_typing_input(event: InputEventKey):
 	if event.keycode == KEY_BACKSPACE:
 		if current_typing_text.length() > 0:
 			current_typing_text = current_typing_text.substr(0, current_typing_text.length() - 1)
+			style_input_changed.emit(current_typing_text)
 			update_freeform_typing_display()
 			# Play backspace sound
 			if AudioManager:
@@ -1006,6 +1016,7 @@ func handle_freeform_typing_input(event: InputEventKey):
 		var char = char(event.unicode)
 		if char.length() > 0 and (char.is_valid_identifier() or char == " "):
 			current_typing_text += char.to_lower()
+			style_input_changed.emit(current_typing_text)
 			update_freeform_typing_display()
 			
 			# Play typing sound for each character
@@ -1013,7 +1024,7 @@ func handle_freeform_typing_input(event: InputEventKey):
 				AudioManager.play_typing_sound(char)
 			
 			# Check if we have a perfect match with any spell
-			if not space_casting and current_typing_text in freeform_spells:
+			if not space_casting and (current_typing_text in freeform_spells or current_typing_text == "atomic"):
 				attempt_freeform_cast()
 
 func attempt_freeform_cast():
@@ -1026,6 +1037,15 @@ func attempt_freeform_cast():
 
 func cast_freeform_spell(spell_name: String) -> bool:
 	last_cast_failure = ""
+	if spell_name == "atomic" and is_instance_valid(game_manager.style_session):
+		if not game_manager.style_session.cast_atomic():
+			last_cast_failure = "Atomic requires S rank"
+			return false
+		last_spell_cast_time = casting_clock
+		spell_cast.emit("atomic")
+		game_manager.increment_spells_cast()
+		end_typing()
+		return true
 	var slot = find_cast_spell_slot(spell_name)
 	if not is_spell_unlocked(slot):
 		if slot in spells:
@@ -1078,11 +1098,13 @@ func update_freeform_typing_display():
 						potential_matches.append(info.display_name)
 						break
 			
+			if is_instance_valid(game_manager.style_session) and game_manager.style_session.atomic_available() and "atomic".begins_with(current_typing_text):
+				potential_matches.append("atomic")
 			display_text = current_typing_text if not current_typing_text.is_empty() else "Type an equipped spell…"
 			if not current_typing_text.is_empty() and potential_matches.is_empty():
 				display_text += " · No matching spell"
 			if potential_matches.size() > 0:
-				display_text += " · Ready to cast" if find_cast_spell_slot(current_typing_text) != 0 else " · Matches: " + potential_matches[0]
+				display_text += " · Ready to cast" if find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic" else " · Matches: " + potential_matches[0]
 				if potential_matches.size() > 1 and find_cast_spell_slot(current_typing_text) == 0:
 					display_text += " (+%d)" % (potential_matches.size() - 1)
 		game_manager.update_typing_display(display_text)

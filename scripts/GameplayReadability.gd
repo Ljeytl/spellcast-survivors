@@ -235,6 +235,6 @@ static func setup_menu(control: Control, panel_name: String):
 static func layout_menu(control: Control, panel_name: String):
 	fit_root(control)
 	var panel = control.get_node(panel_name)
-	panel.size = Vector2(minf(700 if panel_name == "HowToPlayPanel" else 560, control.size.x - 36), minf(650 if panel_name == "HowToPlayPanel" else 500, control.size.y - 36))
+	panel.size = Vector2(minf(700 if panel_name == "HowToPlayPanel" else 560, control.size.x - 36), minf(650 if panel_name == "HowToPlayPanel" else 560 if panel_name == "MenuPanel" else 500, control.size.y - 36))
 	panel.position = (control.size - panel.size) / 2
 	panel.add_theme_stylebox_override("panel", panel_style(GOLD))

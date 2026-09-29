@@ -1,8 +1,8 @@
 # Player feedback tracker
 
-**Style art feedback — design review:** scratched stone and ritual-circle shapes accepted as direction; restore richer color, including restrained color on D/C/B/A. Exact palette remains proposed. [Art notes](style-scoring/art/README.md). No recolor or gameplay implementation yet; wait for readiness.
+**Style art:** colored scratched-stone rank glyphs, meter and Atomic seal are integrated. Simple procedural Atomic VFX is placeholder; polish follows feel testing.
 
-**Style-system design (28 September):** [scoring spec and segmented art concept](style-scoring/README.md). Combo versus run score, length-relative speed bonuses, clean execution, freshness, decay and S-rank special-spell proposals are recorded for review. Design/art only; implementation waits for agreement.
+**Style scoring — 0.1.27:** [specification](style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Rank cadence and finisher balance still need human feedback.
 
 Single entry point for player feedback, fixes and deferred ideas. Updated 28 September 2026. This tracker changes no gameplay. Earlier detailed feedback remains in the linked source records; rows below consolidate concerns without replacing those records or claiming old fixes still pass today.
 
@@ -53,8 +53,8 @@ Complete supplied batch, grouped by the contributor names supplied by LJ. This i
 | Cannot see combination spells | Prior inventory and exact-name reference implementation; combinations have no numeric casting shortcuts. |
 | Likes Cross Blade v1, one big blade | Preference preserved; not approval to revert the current version. |
 | A lot of fun | Positive feedback. |
-| Small buff for typing speed / style combo meter | Deferred: fast typing and new/different spells increase combo; being hit resets it to zero. |
-| Spells trigger at combo thresholds, e.g. a nuke at S rank | Deferred extension of the combo idea; consider non-typist disadvantage. |
+| Small buff for typing speed / style combo meter | Implemented in 0.1.27; latest design supersedes zero-reset: health damage drops one grade, typos reduce only the cast bonus. |
+| Spells trigger at combo thresholds, e.g. a nuke at S rank | Atomic implemented: current S required, typed manually, costs 1,500 combo. |
 | Summon lots of flying knives that fly at enemies | Deferred spell idea. |
 | Typed spell → animation/glyphs → spell | Deferred casting-feedback sequence; preserve the sense of magical invocation. |
 

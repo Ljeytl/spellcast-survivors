@@ -357,6 +357,8 @@ func execute_command(command_text: String):
 	var parts = command_text.split(" ")
 	var command = parts[0].to_lower()
 	var args = parts.slice(1)
+	if command not in ["help", "ui_debug", "ui_details", "clear"] and is_instance_valid(game_node) and is_instance_valid(game_node.style_session):
+		game_node.style_session.exclude("Console command: " + command)
 	
 	match command:
 		"ui_debug":
@@ -533,21 +535,12 @@ func add_experience(args: Array):
 
 func heal_player(args: Array):
 	var player = get_tree().get_first_node_in_group("player")
-	if not player:
+	if not player or not player.has_method("heal"):
 		add_output("[color=red]Player not found[/color]")
 		return
-		
-	if args.size() > 0:
-		var amount = args[0].to_int()
-		if player.has_method("heal"):
-			player.heal(amount)
-			add_output("[color=green]Healed " + str(amount) + " HP[/color]")
-	else:
-		if player.has_method("heal_to_full"):
-			player.heal_to_full()
-		elif player.has_property("current_health") and player.has_property("max_health"):
-			player.current_health = player.max_health
-		add_output("[color=green]Player healed to full health[/color]")
+	var amount = maxf(0.0, args[0].to_float()) if not args.is_empty() else float(player.max_health)
+	player.heal(amount)
+	add_output("[color=green]Healed " + str(amount) + " HP[/color]")
 
 func change_difficulty(args: Array):
 	if args.size() == 0:

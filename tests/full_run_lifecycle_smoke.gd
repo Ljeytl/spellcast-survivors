@@ -51,7 +51,9 @@ func run():
 				await create_timer(0.3, true, false, true).timeout
 		check(manager.game_time == second, "Clock advances exactly through run")
 	check(boss_count == 3 and collected_count == 3, "All three boss milestones drop collectable rewards")
-	check(game.run_won and game.current_state == game.GameState.GAME_OVER, "Full clock reaches immediate victory")
+	check(game.current_state == game.GameState.EXTRACTION and not game.style_session.finalized, "Full clock offers extraction without banking score")
+	game.extract_run()
+	check(game.run_won and game.current_state == game.GameState.GAME_OVER and game.style_session.finalized, "Extraction finalizes victory and score")
 	check(manager.game_time == 1200 and not manager.spawned_bosses.has(1200), "No additional final boss at cutoff")
 	check(not game.queue_boss_reward(), "No upgrade can reopen the completed run")
 	paused = false

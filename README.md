@@ -1,6 +1,6 @@
 # SpellCast Survivors
 
-**Style-system design (28 September):** [scoring spec and segmented art concept](docs/style-scoring/README.md). Combo versus run score, length-relative speed bonuses, clean execution, freshness, decay and S-rank special-spell proposals are recorded for review. Design/art only; implementation waits for agreement.
+**Style scoring — 0.1.27:** [specification](docs/style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Rank cadence and finisher balance still need human feedback.
 
 > **Current development slate:** keep the playable roguelike alpha. Difficulty scaling is next; keyword and expedition work are deferred. Track observations, open work and verified fixes in the [player feedback tracker](docs/PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
 

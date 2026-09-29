@@ -1,6 +1,6 @@
 # Style rune sprites v1
 
-One generated RGBA sheet and 24 named Godot AtlasTexture resources. No gameplay/HUD integration yet.
+One generated RGBA sheet and 24 named Godot AtlasTexture resources. Integrated into the 0.1.27 style HUD: rank badges, trough, colored fills and Atomic ready seal.
 
 - Sheet: `style-runes-v1.png`, 1536 × 1024, actual alpha transparency (828,125 fully transparent pixels). The viewer may show dark RGB beneath transparent pixels; this is not an opaque background.
 - Rank resources: `rank_f` through `rank_sss`, plus `rank_stone`.
@@ -9,11 +9,11 @@ One generated RGBA sheet and 24 named Godot AtlasTexture resources. No gameplay/
 - Overlays: `halo_cyan`, `halo_gold`, `rank_spark`, `spell_sealed`, `spell_ready`.
 - Exact source rectangles are in `regions.json`. Load named `.tres` files as textures; the original image remains intact. Regions are manually assigned from the generated layout, not a uniform 6×4 grid. Native dimensions differ.
 
-Use nearest-neighbor filtering and normalize display sizes in the eventual HUD. Use container clipping for fill progress, not per-value image assets. Render score digits/multiplier as text. F/E can use a subdued fill modulation; the five colored fill sources cover D upward. The rail's joining edges need an in-game assembly check before assuming seamless tiling. No animation frames are included; animate fill, opacity and overlay accents in code later.
+Use nearest-neighbor filtering and normalize display sizes in the HUD. Use container clipping for fill progress, not per-value image assets. Render score digits/multiplier as text. F/E can use a subdued fill modulation; the five colored fill sources cover D upward. The rail's joining edges need an in-game assembly check before assuming seamless tiling. No animation frames are included; animate fill, opacity and overlay accents in code later.
 
 Visual review: D resembles an angular rune/triangle and C a chevron; those follow the chosen sharp direction but need readability review at HUD size. S/SS/SSS are distinct zigzag counts. Some fill strips have dark framing baked in; compare full-width stretch versus repeat before adopting. Soft glow is included in alpha and region clipping may trim faint tails. This is an asset-preparation delivery, not a claim that the final HUD has been playtested.
 
-Generated with the built-in image tool using `docs/style-scoring/art/style-meter-stone-v2.png` as the shape reference. Original grayscale concept retained separately. Runtime scenes are unchanged.
+Generated with the built-in image tool using `docs/style-scoring/art/style-meter-stone-v2.png` as the shape reference. Original grayscale concept retained separately. Runtime assembly lives in `scripts/StyleHUD.gd`.
 
 ## Generation prompt
 

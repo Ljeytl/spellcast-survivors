@@ -132,7 +132,7 @@ func run():
 	check(game.player.health == 44 and manager.active_healing_effects.is_empty(), "Life heals4HP immediately")
 	manager.cast_spell_by_type(manager.find_spell_slot("regeneration"))
 	manager.process_healing_effects(5)
-	check(game.player.health == 84, "Regeneration provides distinct40HP over5seconds")
+	check(game.player.health == 59, "Regeneration provides distinct15HP over5seconds")
 	game.player.health = 40
 	game.player.start_healing_over_time(6,2)
 	manager.process_healing_effects(0.5)

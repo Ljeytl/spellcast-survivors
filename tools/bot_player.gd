@@ -60,6 +60,7 @@ func start():
 	seed(run_seed)
 	rng.seed = run_seed
 	game = load("res://scenes/Game.tscn").instantiate()
+	game.set_meta("bot_run", true)
 	root.add_child(game)
 	current_scene = game
 	previous_position = game.player.global_position
