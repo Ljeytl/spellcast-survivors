@@ -38,6 +38,7 @@ signal health_changed(new_health: float, max_health: float, overheal_amount: flo
 signal xp_changed(new_xp: float, xp_needed: float)          # Update XP bar UI
 signal player_died                                          # Trigger game over screen
 signal level_up(new_level: int, player_stats: Dictionary)   # Show level up screen
+signal style_health_damaged(health_loss: float)
 signal player_damaged                                       # Trigger screen shake and effects
 
 # Visual feedback system for damage
@@ -156,6 +157,8 @@ func take_damage(damage: float, source: Dictionary = {}):
 		last_damage_context["damage"] = actual_damage
 		last_damage_context["health_loss"] = maxf(0, previous_health - health)
 		last_damage_context["overheal_loss"] = maxf(0, previous_overheal - overheal)
+		if previous_health > health:
+			style_health_damaged.emit(previous_health - health)
 
 	# Play damage sound effect
 	if actual_damage > 0 and is_instance_valid(AudioManager):

@@ -56,6 +56,8 @@ func _initialize() -> void:
 	model.combo = 4500.0
 	model.award_cast("new", "Regeneration", 3.0, 0, 55)
 	check(model.combo == 4500.0 and model.progress() == 1.0 and model.peak_rank == 8, "Cap and peak")
+	model.take_hit()
+	check(model.rank_index() == 7 and model.progress() > 0.999, "Hit at full cap still drops exactly one grade")
 	model.advance(99999.0)
 	check(model.combo == 0.0, "Complete decay")
 	for width in [2, 3, 6]:
@@ -69,6 +71,13 @@ func _initialize() -> void:
 	check(Store.submit(record, path), "Save result")
 	check(not Store.submit(record, path), "Duplicate result")
 	check(Store.list_scores(path).size() == 1, "Load result")
+	var malformed = record.duplicate(true)
+	malformed.run_id = "malformed"
+	malformed.duration = {}
+	check(not Store.submit(malformed, path), "Reject malformed displayed duration")
+	malformed.duration = 1.0
+	malformed.peak_rank = []
+	check(not Store.submit(malformed, path), "Reject malformed displayed rank")
 	record.run_id = "debug"
 	record.eligible = false
 	check(not Store.submit(record, path), "Exclude debug")

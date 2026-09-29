@@ -62,13 +62,17 @@ text = "[b]Move[/b] with WASD or the arrow keys.
 
 [b]Cast[/b] by pressing 1–6 and typing the spell shown, or press Space, type a learned spell and press Enter.
 
+[b]Style[/b] rewards long, quick, clean casts and spell variety. Repeating a spell earns less bonus. Idle combo decays; losing health drops a rank. Your run score stays banked.
+
+[b]Atomic[/b] unlocks at S. Press Space, type atomic, then Enter. Spend 1,500 combo to nuke the screen. Finish a run to enter local high scores.
+
 Movement stops while typing. Each cast gets a fresh, limited slowdown window.
 
 Backspace corrects a mistake; Escape cancels a cast or pauses.
 
 Collect crystals to level up, learn spells and discover combinations.
 
-Survive 20 minutes to win."
+At 20 minutes, extract with a victory or continue into endless survival."
 
 [node name="BackButton" type="Button" parent="HowToPlayPanel/VBoxContainer"]
 layout_mode = 2

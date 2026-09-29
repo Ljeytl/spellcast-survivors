@@ -1,6 +1,6 @@
-# Style, combo and scoring — review draft
+# Style, combo and scoring — first playable specification
 
-28 September 2026. Design and concept art only. No scoring implementation is authorized by this document; review the unresolved choices before coding. Applies to the current roguelike alpha, not the future expedition conversion.
+28 September 2026. Implementation authorized by “alright lets build it baby.” First playable implementation: 0.1.27. Applies to the current roguelike alpha, not the future expedition conversion. Numerical values below are the first-test defaults, still open to playtest tuning.
 
 ## Intent and agreed direction
 
@@ -12,9 +12,9 @@ Fight well enough to maximize a stylish casting combo. Long incantations, fast e
 - Longer canonical incantations earn more; fast typing earns a bonus relative to their length.
 - Typos reduce that cast's execution bonus, not the entire combo.
 - Repetition has diminishing extra reward. Alternating only two or three spells must not fully restore freshness.
-- Inactivity causes decay, stronger at higher ranks. Taking damage can drop a grade; exact treatment is a proposal.
-- S rank provides access to a special spell. Doom, Nuke and Atomic are name ideas, not selected spells.
-- A special-spell cost around **1,000–2,000 points** is desired for exploration. Which resource pays it remains to be agreed; direct combo spending is the latest candidate, replacing the earlier charge proposal unless chosen otherwise.
+- Inactivity causes decay, stronger at higher ranks. Health damage drops one grade while preserving progress inside that grade.
+- S rank provides access to **Atomic**, selected by the user as “a fucking nuke to the screen.”
+- First-test Atomic cost: **1,500 combo points**. No charge meter. Compare 1,000–2,000 after playtesting.
 - V1 leaderboard is local. Online competition and verification are deferred.
 
 These are scoring rules. No ordinary combat-stat changes are part of this feature.
@@ -32,9 +32,9 @@ These are scoring rules. No ordinary combat-stat changes are part of this featur
 
 Do not add a third permanent currency or a charge meter by accident. Charge storage, direct combo cost and run-score cost are alternatives; the proposed first test below uses combo cost only.
 
-## Proposed scoring calculation
+## Scoring calculation — first-test defaults
 
-All coefficients below are tunable candidates, not user-approved balance values.
+All coefficients below are the tunable implementation defaults. They are not a claim of finished balance.
 
 **Length points B = 10 + 2L + 0.5L².** L counts letters in the canonical accepted incantation. Spaces/case, extra whitespace, correction keystrokes and submission keys contribute nothing. Known stronger incantation tiers can have different lengths; convenience aliases use canonical identity. Future modifier words count only when actually accepted and applied.
 
@@ -85,7 +85,7 @@ On exactly one successful manual release: calculate P; add P to C; derive the ne
 | Regeneration, 11/6 s, one error, fresh | 106 | .25 | .10 | .50 | 196 |
 | Repeated Bolt, 0.75 s, clean, no freshness | 26 | 0 | .25 | 0 | 33 |
 
-## Rank, decay and damage — first-test proposal
+## Rank, decay and damage — first-test defaults
 
 | Rank | C threshold | Run-score multiplier | Decay points/sec |
 |---|---:|---:|---:|
@@ -102,22 +102,24 @@ On exactly one successful manual release: calculate P; add P to C; derive the ne
 Candidate cap C=4500. These thresholds replace earlier example numbers and give a 1,000–2,000 point finisher cost a meaningful scale. They must be tested alongside actual cast cadence; they are not an approved difficulty curve.
 
 - Proposed grace: 3 real seconds after successful manual release, then continuous decay at the current rank's rate. Integrate across rank boundaries; do not make results frame-rate dependent.
-- **Open choice:** initially test decay continuing during typing. Merely opening the editor cannot freeze the bar indefinitely. If long casts feel unfairly punished, compare a bounded typing grace, not infinite stalling.
+- **First playable:** decay continues during typing. Merely opening the editor cannot freeze the bar indefinitely. If long casts feel unfairly punished, compare a bounded typing grace, not infinite stalling.
 - Pause, forced upgrade selection and non-combat menus suspend clock and input scoring. Slowdown does not suspend decay. No offline/background elapsed-time decay after a proper pause.
-- Proposed actual damaging hit: drop one grade while preserving fractional within-grade progress. At F clear C. Fully absorbed damage versus any hit is still open; recommendation is no drop for a fully absorbed hit. Invulnerability-rejected contacts are not multiple hits.
+- Proposed actual damaging hit: drop one grade while preserving fractional within-grade progress. At F clear C. Fully absorbed damage does not drop rank. Invulnerability-rejected contacts are not multiple hits.
 - Decay and damage never subtract banked run score. Record reasons so HUD and debug agree.
 
 ### Passive fire and kills
 
-Mana Bolt firing/hitting has no style award and does not reset grace or freshness. Whether kills add ordinary run score remains **open**; the simplest initial comparison has cast-only scoring. If kill points are enabled, they must be separate from cast awards, credit each death once, and passive kills must not sustain combo. Do not silently introduce per-HP, healing or control-efficiency scoring.
+Mana Bolt firing/hitting has no style award and does not reset grace or freshness. The first playable uses cast-only scoring. Kill points remain a possible later comparison. If kill points are enabled, they must be separate from cast awards, credit each death once, and passive kills must not sustain combo. Do not silently introduce per-HP, healing or control-efficiency scoring.
 
-## S-rank special spell — candidate, not finalized
+## S-rank special spell — Atomic
 
 Proposed gate: current rank S or higher; proposed cost **1500 combo points**, test against 1000 and 2000. Run score is not spent. Validate availability on release, spend once, then derive lower rank. If rank drops while typing, reject without spending and preserve entered text. Alternative eligibility locking at cast start requires a deliberate choice.
 
 The special cast cannot directly generate combo points or score that repay its own cost. Any optional kill-score treatment needs its own decision. No free first charge, stored charges or independent charge meter in this candidate. Earlier charge-based discussion is retained as an alternative, not mixed into the same rules.
 
-Name, canonical incantation, effect, timing and visual are open. Doom, Nuke, Atomic are ideas. One special spell is sufficient for the first playable scoring loop. Its production art is not required for scoring validation.
+**Incantation:** `atomic`, through Space → type → Enter (also available in freeform mode). It takes no equipped slot. At release, capture the visible world rectangle. Draw a gold boundary and growing ritual seal for 0.65 game seconds, then clear ordinary enemies and hostile projectiles inside that locked footprint. Bosses take 60% maximum health as an initial tuning choice, which can kill an already wounded boss. Normal death/drop handling remains intact. Enemies outside the footprint survive.
+
+The flash and rectangular shockwave last up to 0.85 seconds; the damage happens once on impact, not as an expanding second damage sweep. Camera movement does not move the damage region. Pause freezes warning/impact. Reduced effects suppress the bright flash and shake while keeping the warning boundary and impact visible. This is simple procedural placeholder VFX.
 
 ## HUD and art assembly
 
@@ -127,13 +129,13 @@ Display one large readable rank, multiplier, combo meter and a separate run-scor
 
 Layer order: stone rail/endcaps → dark trough → clipped luminous incision fill → optional threshold cuts → separate rank glyph → sparse ritual-circle arcs → short event accents. Decorative glow is separate from legible text/fill. Same core meter footprint across ranks; high-rank accents must not occlude combat. Actual score digits and labels are rendered text, not baked into an atlas.
 
-Latest art feedback: retain v2 stone/circle shapes, restore richer color, and give D/C/B/A visible but restrained color too. See the art notes for the proposed palette; the saved image is not yet recolored. Implementation remains pending agreement.
+Art uses the colored transparent [runtime atlas](../../assets/ui/style-runes/README.md): carved rank glyphs, clipped colored meter fill and Atomic seal. D/C/B/A retain color; higher ranks intensify it. Existing menu art is unchanged.
 
 Direction: sharp angular marks scratched/chiseled into rough stone, broken magic-circle arcs, light through incisions. Simple pixel silhouettes and limited shades. Not ornate metallic Nordic bezels, keycaps or generic serif fantasy badges. Rank letters must remain readable; a real rune alphabet is not substituted for game information.
 
 Rank-up and successful cast briefly accent the bar; hit gets a clear down-rank response; typos only affect the current execution-bonus cue. Never label repeated Bolt a punishment. Higher ranks intensify the same motif instead of covering more screen. Reduced motion/flash keeps rank and values immediate. Animation cannot hold up scoring or input.
 
-The sheet is one opaque concept board with isolated parts and assembled examples, not a validated transparent sprite atlas. Components need manual slicing/redrawing and in-game scale review before use. No generated graphics are installed in runtime by this task.
+The original opaque concept board remains design history. The separate transparent runtime atlas supplies named Godot regions; actual rank/score text is rendered dynamically.
 
 ## Local leaderboard and result record
 
@@ -151,13 +153,18 @@ Required cases: fast/slow same spell; typo/correction and ambiguous prefixes; no
 
 Playtest comparison: existing game versus scoring build under comparable seeds/builds. Watch whether players vary casts voluntarily, chase longer casts, understand losses, recover from mistakes and care about their final score. Also test a fresh Bolt-only start: its limited variety must not prevent basic progress or make the opening feel scolded. Do not judge style by bot survival alone.
 
-## Decisions to approve before implementation
+See [verification coverage and reproduction](VERIFICATION.md) for the operated release checks.
 
-1. Additive bonus formula, pace reference/cap and clean-bonus schedule.
-2. Freshness recovery per other cast (proposed depletion .50, recovery .10), and canonical family mapping.
-3. Thresholds, grace, decay during typing and fully absorbed-hit treatment.
-4. Cast-only run score versus separate kill points.
-5. Direct combo cost versus stored charge model; exact special spell identity and cost.
-6. Art legibility, scale and slicing; the revised sheet is not automatically approved.
+## First playable decisions and remaining tuning
 
-All numbers are initial proposals; no runtime scoring is claimed implemented or tested by this document.
+- Additive bonuses, 4-letter/sec reference, 50% speed cap and the documented freshness schedule are implemented.
+- Decay continues during typing after the 3-second grace; game pauses and upgrade selection freeze it.
+- Health loss drops one grade preserving segment progress. Fully absorbed shield damage does not.
+- Cast-only run score; no kill/heal/HP efficiency points.
+- Current S rank is required at Atomic release; spending does not refresh grace or freshness and does not award score.
+- Cancel/restart resets attempt mistakes and timing, but not existing combo decay or freshness.
+- Bot runs, console mutations and invincibility are ineligible for the local board. Cosmetic debug display alone does not change eligibility. Eligibility cannot be restored by toggling cheats back off.
+- The result record includes rules version, build version, outcome, duration, final kit, character level, presentation/gameplay mode settings and cast statistics. A reproducible map seed is not currently available in the game and is not invented for the record.
+- No abandoned-run or crash recovery submission. Local score files are player-owned; online anti-cheat and server verification are deferred.
+
+Next: human playtests of rank cadence, short starter-kit rewards, six-spell rotation, readability and whether Atomic feels worth sacrificing rank. Tune thresholds, decay and boss damage from those sessions. Online leaderboards, stored charges, additional finishers, final VFX/audio and richer score-detail browsing remain later work.

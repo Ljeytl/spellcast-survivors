@@ -16,6 +16,7 @@ var discovery_label: Label
 var action_started = false
 var keyboard_armed_at = 0
 var last_stats: Dictionary = {}
+var style_label: Label
 var defeat_label: Label
 
 func _ready():
@@ -73,6 +74,13 @@ func show_game_over(stats: Dictionary):
 
 func display_stats(stats: Dictionary):
 	last_stats = stats.duplicate(true)
+	var style = stats.get("style", {})
+	var ranks = preload("res://scripts/StyleScore.gd").RANKS
+	style_label.text = "SCORE  %d  ·  BEST RANK  %s" % [style.get("run_score", 0), ranks[clampi(int(style.get("peak_rank", 0)), 0, 8)]]
+	if not style.get("eligible", false):
+		style_label.text += "\nPractice run · not ranked"
+	elif not style.get("saved", false):
+		style_label.text += "\nScore could not be saved"
 	var game = get_tree().get_first_node_in_group("game")
 	var debug = game != null and game.interface_debug
 	var won = stats.get("won", false)
@@ -129,13 +137,15 @@ func setup_run_summary():
 	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	summary.add_theme_constant_override("separation", 16)
 	scroll.add_child(summary)
+	style_label = Label.new()
+	style_label.name = "StyleResult"
 	defeat_label = Label.new()
 	defeat_label.name = "DefeatCause"
 	kit_label = Label.new()
 	kit_label.name = "FinalKit"
 	discovery_label = Label.new()
 	discovery_label.name = "Discoveries"
-	for label in [defeat_label, kit_label, discovery_label]:
+	for label in [style_label, defeat_label, kit_label, discovery_label]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 18)
 		label.add_theme_color_override("font_color", Color("eee8d8"))

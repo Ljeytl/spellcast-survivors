@@ -90,7 +90,7 @@ func take_hit() -> void:
 	if index == 0:
 		combo = 0.0
 		return
-	var fraction := progress()
+	var fraction := minf(progress(), 0.999999)
 	combo = THRESHOLDS[index - 1] + fraction * (THRESHOLDS[index] - THRESHOLDS[index - 1])
 
 func summary() -> Dictionary:

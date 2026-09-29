@@ -2,7 +2,7 @@
 
 ## Sprite preparation delivered
 
-The [colored transparent sprite sheet](../../../assets/ui/style-runes/style-runes-v1.png) and [24 named Godot atlas resources](../../../assets/ui/style-runes/README.md) now provide separate rank, meter, fill and accent pieces. The v2 sheet below remains the original shape concept. This supersedes the earlier note that no recolored sheet exists. Runtime HUD/scoring implementation is still pending. See asset notes for region sizes, transparency, prompt and legibility/assembly review limits.
+The [colored transparent sprite sheet](../../../assets/ui/style-runes/style-runes-v1.png) and [24 named Godot atlas resources](../../../assets/ui/style-runes/README.md) now provide separate rank, meter, fill and accent pieces. The v2 sheet below remains the original shape concept. This supersedes the earlier note that no recolored sheet exists. Runtime HUD/scoring is integrated in 0.1.27; the concept notes below preserve the design history. See asset notes for region sizes, transparency, prompt and legibility/assembly review limits.
 
 ## Latest review — color on the carved stone
 

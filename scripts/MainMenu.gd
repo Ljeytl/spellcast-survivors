@@ -10,6 +10,14 @@ func _ready():
 	$MenuPanel/VBoxContainer.get_node(SceneManager.menu_focus_name).grab_focus.call_deferred()
 	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "MenuPanel")
 	preload("res://scripts/AuthoredInterface.gd").add_menu_art(self)
+	var scores = Button.new()
+	scores.name = "ScoresButton"
+	scores.text = "HIGH SCORES"
+	scores.custom_minimum_size.y = 44
+	scores.pressed.connect(_on_scores_pressed)
+	$MenuPanel/VBoxContainer.add_child(scores)
+	$MenuPanel/VBoxContainer.move_child(scores, $MenuPanel/VBoxContainer/QuitButton.get_index())
+	$MenuPanel/VBoxContainer/Spacer.custom_minimum_size.y = 12
 	_layout_readable_menu()
 	# Start playing the menu background music
 	if AudioManager:
@@ -52,3 +60,12 @@ func _on_collection_pressed():
 func _layout_readable_menu():
 	preload("res://scripts/GameplayReadability.gd").layout_menu(self, "MenuPanel")
 	$MenuPanel/VBoxContainer/CollectionButton.add_theme_font_size_override("font_size", 28 if size.x < 600 else 32)
+
+func _on_scores_pressed():
+	var board = preload("res://scripts/StyleLeaderboard.gd").new()
+	add_child(board)
+	$MenuPanel.hide()
+	board.closed.connect(func():
+		$MenuPanel.show()
+		$MenuPanel/VBoxContainer/ScoresButton.grab_focus()
+	)

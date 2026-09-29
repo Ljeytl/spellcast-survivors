@@ -1,6 +1,6 @@
 extends RefCounted
 
-const VERSION := 1
+const VERSION = preload("res://scripts/StyleScore.gd").VERSION
 const DEFAULT_PATH := "user://style_scores_v1.json"
 const LIMIT := 100
 
@@ -27,6 +27,14 @@ static func _valid(record: Variant) -> bool:
 	if not record.get("run_id") is String or record.run_id.is_empty():
 		return false
 	if record.get("outcome", "") not in ["victory", "death"]:
+		return false
+	for field in ["peak_rank", "duration", "manual_casts", "clean_casts", "special_casts"]:
+		var value = record.get(field, 0)
+		if not (value is int or value is float) or not is_finite(float(value)) or float(value) < 0.0:
+			return false
+		if field != "duration" and floor(float(value)) != float(value):
+			return false
+	if float(record.get("peak_rank", 0)) > 8:
 		return false
 	var score = record.get("run_score")
 	return (score is int or score is float) and is_finite(float(score)) and score >= 0 and floor(float(score)) == float(score)

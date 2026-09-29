@@ -1,6 +1,6 @@
 ## Attributed playtester ideas — 2026-09-28
 
-**Style-system design (28 September):** [scoring spec and segmented art concept](docs/style-scoring/README.md). Combo versus run score, length-relative speed bonuses, clean execution, freshness, decay and S-rank special-spell proposals are recorded for review. Design/art only; implementation waits for agreement.
+**Style scoring — 0.1.27:** [specification](docs/style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Rank cadence and finisher balance still need human feedback.
 
 See the [complete LJ / Dead / Brad / Guer batch](docs/PLAYER_FEEDBACK.md#attributed-playtest-batch--2026-09-28). Preserve for prioritization: style/combo rewards, summoned knives, glyph-to-spell casting presentation and bottom rune circle, unique boss spell unlocks (Cinder Field → Conflagration candidate), incantation Easter eggs, leaderboard, and possible anti-spam resource/cooldown design. These are deferred ideas, not approved implementation. Existing movement, map, control and accessibility feedback remains in the same record.
 
@@ -24,7 +24,7 @@ Maintained spells use `recast_behavior: extend`; independent effects use `stack`
 
 - Consider boss encounters at minutes 5, 8, 11, 14, 17, 20 instead of the current five-minute cadence. Resolve the minute-20 encounter versus immediate victory before implementation. Timing and difficulty remain unchanged for now.
 - Recurring suggestion: add spell cooldowns. Evaluate alongside typing commitment before deciding implementation.
-- Style/combo meter: reward quick accurate casting and spell variety; damage could reset rank; high ranks could trigger bonus spells (for example a screen-clearing S-rank reward). Idea only; protect slower typists from compounding disadvantage.
+- Style/combo follow-up: 0.1.27 implements the agreed rank/score/Atomic loop. Playtest different typing speeds, rank recovery, variety and finisher cost before tuning.
 - Preserve preference for Cross Blade’s original single large blade and positive feedback that the game is fun. Summoned flying knives are a separate spell idea.
 - Investigate Space versus selected-spell completion behavior, Enter sounding like damage, a reported zero-HP survival case, and difficulty typing two-word spells. Reports are unverified, not fixes.
 
