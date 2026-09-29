@@ -1,6 +1,6 @@
 # Style rune sprites v1
 
-One generated RGBA sheet and 24 named Godot AtlasTexture resources. Integrated into the 0.1.27 style HUD: rank badges, trough, colored fills and Atomic ready seal.
+One generated RGBA sheet and 24 named Godot AtlasTexture resources. Integrated into the 0.1.28 style HUD: attached rank medallion, stone rails/endcap, tightly cropped colored incision fill and Atomic ready seal. Layout uses the approved horizontal assembly; normal and narrow rendered checks cover score/feedback separation.
 
 - Sheet: `style-runes-v1.png`, 1536 × 1024, actual alpha transparency (828,125 fully transparent pixels). The viewer may show dark RGB beneath transparent pixels; this is not an opaque background.
 - Rank resources: `rank_f` through `rank_sss`, plus `rank_stone`.

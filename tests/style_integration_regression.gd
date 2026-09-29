@@ -209,6 +209,8 @@ func run():
 	key(KEY_ENTER)
 	check(manager.is_typing and session.special_casts == 0 and session.score.combo == 9999.0, "SSS alone cannot bypass Atomic cost")
 	session.score.combo = 10000.0
+	session.updated.emit()
+	await capture("atomic-ready")
 	key(KEY_ENTER)
 	check(not manager.is_typing and session.special_casts == 1 and session.score.combo == 0.0, "Atomic spends exactly 10000 once")
 	check(session.score.run_score == bank, "Atomic does not repay itself")

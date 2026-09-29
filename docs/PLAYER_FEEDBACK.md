@@ -295,17 +295,19 @@ Deferred: rocks, movement spells, more lightning spells, landmarks, structured/p
 
 ## Style playtest follow-up — 2026-09-28
 
-Approved combined pass; implementation and verification in progress. Earlier ray correctness claims do not close these fresh reports.
+Approved combined pass; implementation and focused verification complete; human balance/feel review remains. Earlier ray correctness claims do not close these fresh reports.
 
 | Feedback | Acceptance | Disposition |
 |---|---|---|
-| Atomic too easy; S reached around 2:30 | 800 raw combo per grade; rank multiplier applies only to run score; Atomic costs 10,000, cap supports it | Implementing |
-| Empty casting after repeated wipes | Population-aware offscreen replenishment plus bounded sustained-clear pressure; no special Atomic-only reset and no one-clear difficulty spike | Implementing |
-| Focus/Prism endings look wrong | Inspect both endpoints and expiry; visible beam agrees with damage until it ends | Investigating |
-| Prism second target not damaged | Real multi-target geometry and repeated-tick coverage, including edge-of-body intersections | Investigating |
-| Channel loses combo when target dies | Active finite beam lifetime suspends decay through retarget gaps; normal grace resumes after final channel; no extra cast awards | Implementing |
-| SS–SSS gap felt good | Preserve 800 gap, apply it consistently to earlier grades | Implementing |
+| Atomic too easy; S reached around 2:30 | 800 raw combo per grade; rank multiplier applies only to run score; Atomic costs 10,000, cap supports it | Implemented; regression verified |
+| Empty casting after repeated wipes | Population-aware offscreen replenishment plus bounded sustained-clear pressure; no special Atomic-only reset and no one-clear difficulty spike | Implemented; regression verified |
+| Focus/Prism endings look wrong | Inspect both endpoints and expiry; visible beam agrees with damage until it ends | Implemented; contact tests and native visual inspection |
+| Prism second target not damaged | Real multi-target geometry and repeated-tick coverage, including edge-of-body intersections | Implemented; contact tests and native visual inspection |
+| Channel loses combo when target dies | Active finite beam lifetime suspends decay through retarget gaps; normal grace resumes after final channel; no extra cast awards | Implemented; regression verified |
+| SS–SSS gap felt good | Preserve 800 gap, apply it consistently to earlier grades | Implemented; regression verified |
 
 Keep current cast scoring, spell damage, timed enemy tiers, later ranged unlocks and 20-minute extraction. Encounter density and feel require human playtesting after mechanical verification.
 
-Additional accepted feedback in this pass: Focus and Prism share target reservations (including two Prism casts); Lightning Bolt starts with four extra bounces and gains one per own spell rank; the meter must reproduce the connected stone/rune reference; faster cadence and larger groups rise in parallel. Implemented candidate awaits final integrated gates and human feel review.
+Additional accepted feedback in this pass: Focus and Prism share target reservations (including two Prism casts); Lightning Bolt starts with four extra bounces and gains one per own spell rank; the meter must reproduce the connected stone/rune reference; faster cadence and larger groups rise in parallel. Implemented and covered by integrated checks; final human feel review remains.
+
+Open diagnostic follow-up: console `kill_all_enemies` / `explode_all_enemies` remove enemies directly and can leave a stale spawner count. Normal combat and Atomic use the correct death signal. Repair debug removal bookkeeping separately; debug-assisted runs are excluded from scores.
