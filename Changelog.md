@@ -1,3 +1,8 @@
+## 2026-09-28 — Record style-meter color feedback
+
+- Preserve scratched-stone/circle direction and record richer color at all intermediate ranks, including D/C/B/A.
+- Separate suggested palette from confirmed feedback; no image or gameplay changes, implementation pending readiness.
+
 ## 2026-09-28 — Style scoring design and stone-inscription UI concept
 
 - Recorded combo/run score separation, length and speed bonuses, typo treatment, freshness, rank/decay, special-spell alternatives and local leaderboard.

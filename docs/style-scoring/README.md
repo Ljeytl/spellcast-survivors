@@ -127,6 +127,8 @@ Display one large readable rank, multiplier, combo meter and a separate run-scor
 
 Layer order: stone rail/endcaps → dark trough → clipped luminous incision fill → optional threshold cuts → separate rank glyph → sparse ritual-circle arcs → short event accents. Decorative glow is separate from legible text/fill. Same core meter footprint across ranks; high-rank accents must not occlude combat. Actual score digits and labels are rendered text, not baked into an atlas.
 
+Latest art feedback: retain v2 stone/circle shapes, restore richer color, and give D/C/B/A visible but restrained color too. See the art notes for the proposed palette; the saved image is not yet recolored. Implementation remains pending agreement.
+
 Direction: sharp angular marks scratched/chiseled into rough stone, broken magic-circle arcs, light through incisions. Simple pixel silhouettes and limited shades. Not ornate metallic Nordic bezels, keycaps or generic serif fantasy badges. Rank letters must remain readable; a real rune alphabet is not substituted for game information.
 
 Rank-up and successful cast briefly accent the bar; hit gets a clear down-rank response; typos only affect the current execution-bonus cue. Never label repeated Bolt a punishment. Higher ranks intensify the same motif instead of covering more screen. Reduced motion/flash keeps rank and values immediate. Animation cannot hold up scoring or input.
