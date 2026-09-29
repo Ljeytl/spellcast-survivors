@@ -4,51 +4,51 @@ const RECIPES = {
 	"lightning_bolt": {
 		"name": "Lightning Bolt", "incantation": "lightning bolt", "ingredients": ["bolt", "lightning_arc"],
 		"requirements": "Own Bolt and Lightning this run, then learn Lightning Bolt.",
-		"description": "A traveling bolt bounces to four additional living enemies within 240 units; no repeat target.",
-		"card_description": "A traveling bolt bounces between nearby enemies.",
-		"overrides": {"type": "bouncing_projectile", "damage": 60, "bounce_count": 4, "bounce_range": 240.0}
+		"description": "Bounces between enemies, striking a small lightning area at every impact. Bolt strengthens impact; Lightning strengthens the splash.",
+		"card_description": "A bouncing bolt strikes a lightning area at each hit.",
+		"overrides": {"type": "bouncing_projectile", "damage": 40, "bounce_count": 4, "bounce_range": 240.0}
 	},
 	"life_bolt": {
 		"name": "Life Bolt", "incantation": "life bolt", "ingredients": ["bolt", "life"],
 		"requirements": "Own Bolt and Life this run, then learn Life Bolt; both ingredients remain.",
-		"description": "A damaging hit plants a healing seed; collect it for 6 HP over 2 seconds. Seeds last 10 seconds, maximum 6 per caster; full health does not consume them. Bonus spell starts at rank 1 and uses no active slot.",
-		"card_description": "Hits plant a healing seed you can collect.",
+		"description": "Hits plant healing areas. Bolt levels increase impact damage; Life levels increase healing. Own ranks alternate extra bolts and larger healing areas.",
+		"card_description": "Hits plant healing areas you can collect.",
 		"overrides": {"type": "life_bolt"}
 	},
 	"meteor_lance": {
 		"name": "Meteor Lance", "incantation": "meteor lance", "ingredients": ["ember_lance", "meteor_shower"],
 		"requirements": "Equip Ember Lance and Meteor Shower, then choose Meteor Lance. Both ingredients stay equipped.",
-		"description": "Gain: piercing hits burst for half their damage within 90. Cost: 40% less direct damage than Ember Lance. Bursts reward tightly packed enemies. Keeps both ingredients and starts at rank 1 without using an active slot.",
-		"card_description": "Gain: each hit bursts for half damage nearby. Cost: 40% less direct damage.",
-		"overrides": {"explosive": true, "damage_multiplier": 0.6}
+		"description": "A piercing lance detonates meteor impacts. Ember Lance strengthens direct hits; Meteor Shower strengthens explosions.",
+		"card_description": "A piercing lance explodes through crowds.",
+		"overrides": {"explosive": true}
 	},
 	"soul_bloom": {
 		"name": "Soul Bloom", "incantation": "soul bloom", "ingredients": ["plague_seed", "regeneration"],
 		"requirements": "Equip Plague Seed and Regeneration, then choose Soul Bloom. Both ingredients stay equipped.",
-		"description": "Gain: infection heals 10% of actual damage, capped at 2 HP per half-second tick. Cost: 25% less infection damage than Plague Seed. Lasts 5 seconds; keeps both ingredients and uses no active slot.",
-		"card_description": "Gain: heal 10% of actual damage, up to 2 HP per tick. Cost: 25% less infection damage.",
-		"overrides": {"lifesteal": 0.1, "damage_multiplier": 0.75}
+		"description": "Infected deaths leave healing blooms and lingering spores. Plague Seed strengthens infection; Regeneration increases available healing.",
+		"card_description": "Infected deaths leave healing blooms and infectious spores.",
+		"overrides": {}
 	},
 	"steam_field": {
 		"name": "Steam Field", "incantation": "steam field", "ingredients": ["cinder_field", "ice_blast"],
 		"requirements": "Equip Cinder Field and Ice Blast, then choose Steam Field. Both ingredients stay equipped.",
-		"description": "Gain: the 150-radius damaging field slows enemies by 40%. Cost: lasts 3 seconds instead of Cinder Field's 5. Same damage per half-second tick; keeps both ingredients and uses no active slot.",
-		"card_description": "Gain: field slows enemies by 40%. Cost: lasts 3 seconds instead of 5.",
-		"overrides": {"slow": 0.4, "duration": 3.0}
+		"description": "A lasting damaging field slows enemies. Cinder Field strengthens damage; Ice Blast strengthens slowing.",
+		"card_description": "Burning steam damages and slows enemies.",
+		"overrides": {"slow": 0.4, "duration": 5.0}
 	},
 	"prism_ray": {
 		"name": "Prism Ray", "incantation": "prism ray", "ingredients": ["focus_ray", "ember_lance"],
 		"requirements": "Equip Focus Ray and Ember Lance, then choose Prism Ray. Both ingredients stay equipped.",
-		"description": "Gain: beam pierces aligned enemies. Cost: 40% less damage per target than Focus Ray. Ticks every 0.25 seconds for 2 seconds; up to three active beams. Keeps both ingredients and starts at rank 1 without using an active slot.",
-		"card_description": "Gain: pierce aligned enemies. Cost: 40% less damage per target.",
-		"overrides": {"beam_piercing": true, "beam_radius": 14.0, "active_limit": 3, "damage_multiplier": 0.6}
+		"description": "A wide fixed-direction laser pierces aligned enemies. Both ingredients and its own ranks increase damage.",
+		"card_description": "A powerful fixed-direction laser cuts through a line of enemies.",
+		"overrides": {"beam_piercing": true, "beam_radius": 32.0, "beam_turn_speed": 0.0, "active_limit": 3}
 	},
 	"frost_sigil": {
 		"name": "Frost Sigil", "incantation": "frost sigil", "ingredients": ["rune_trap", "ice_blast"],
 		"requirements": "Equip Rune Trap and Ice Blast, then choose Frost Sigil. Both ingredients stay equipped.",
-		"description": "Gain: a larger 170-radius burst slows survivors by 40% for 2 seconds. Cost: arms after 1.4 seconds instead of Rune Trap's 0.8. Waits until triggered; up to 3 traps. Keeps both ingredients and starts at rank 1 without using an active slot.",
-		"card_description": "Gain: larger burst and 40% slow for 2 seconds. Cost: arms in 1.4 seconds instead of 0.8.",
-		"overrides": {"trap_radius": 170, "frost": true, "arm_delay": 1.4}
+		"description": "A persistent frost trap bursts and slows enemies. Ingredients improve damage, radius and slowing; own ranks reduce arming time.",
+		"card_description": "A large frost trap explodes and slows survivors.",
+		"overrides": {"trap_radius": 170, "frost": true, "arm_delay": 1.2}
 	},
 	"reaping_spirit": {
 		"enabled": false,
