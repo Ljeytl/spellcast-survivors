@@ -43,3 +43,6 @@ Dungeon Crawl Stone Soup Full/
 __pycache__/
 
 /Actual Art we made/**/*.import
+
+# Generated import metadata for excluded design reference art
+docs/style-scoring/art/style-meter-stone-v2.png.import
