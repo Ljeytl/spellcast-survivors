@@ -1,8 +1,10 @@
 # SpellCast Survivors
 
+**[Patch notes by version](PATCH_NOTES.md)** — current project label: 0.1.36; MEGA and the Magic Missile rename are listed under Unreleased pending the next version/export.
+
 **Style scoring — 0.1.27:** [specification](docs/style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Rank cadence and finisher balance still need human feedback.
 
-> **Current development slate:** keep the playable roguelike alpha. Difficulty scaling is next; keyword and expedition work are deferred. Track observations, open work and verified fixes in the [player feedback tracker](docs/PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
+> **Current development slate:** keep the playable roguelike alpha. MEGA is implemented and ready for playtesting; tutorial discovery is next, with preparation and expeditions later. Track observations, open work and verified fixes in the [player feedback tracker](docs/PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
 
 > Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](docs/expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
 

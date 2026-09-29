@@ -1,3 +1,8 @@
+# Player-facing patch notes
+
+- Added PATCH_NOTES.md with recent version history and an Unreleased section for MEGA and Magic Missile.
+- Linked notes from README; keep future implemented changes under Unreleased until an agreed version and export are prepared. No version bump or new export in this documentation change.
+
 # MEGA keyword
 
 - Added `mega` before learned manual spell names: 1.5× Spell Power and Spell Size, including healing and combination effects. Ordinary casts and Magic Missile stay unchanged.
