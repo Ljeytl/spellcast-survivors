@@ -81,6 +81,8 @@ static func rank_description(id: String, manager: Node) -> String:
 		extra = " and fire one extra bolt"
 	elif id == "bolt" and rank < 5:
 		extra = " and fire one extra bolt"
+	elif id == "lightning_bolt":
+		extra = " and bounce to one more enemy"
 	elif id == "meteor_shower":
 		extra = " and drop one extra meteor"
 	elif id == "ice_blast":

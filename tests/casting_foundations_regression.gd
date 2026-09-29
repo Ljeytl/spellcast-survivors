@@ -105,6 +105,32 @@ func run():
 	check(manager.learn_spell("lightning_bolt"), "Bolt plus Lightning unlocks distinct bonus")
 	check(manager.find_cast_spell_slot("lightning") != manager.find_cast_spell_slot("lightning bolt"), "Lightning and Lightning Bolt resolve separately")
 	check(manager.get_spell_info(manager.find_spell_slot("lightning_bolt")).type == "bouncing_projectile", "Bonus dispatches bouncing projectile contract")
+	var chain_slot = manager.find_spell_slot("lightning_bolt")
+	check(manager.resolve_cast_info(chain_slot).bounce_count == 4, "Lightning Bolt starts with four additional bounces")
+	manager.upgrade_spell("lightning_bolt")
+	check(manager.resolve_cast_info(chain_slot).bounce_count == 5, "Lightning Bolt upgrade adds a bounce")
+	check("bounce" in preload("res://scripts/UpgradeCopy.gd").rank_description("lightning_bolt", manager), "Upgrade copy advertises extra bounce")
+	var chain_targets: Array = []
+	for i in 7:
+		var target = target_at(Vector2(80 + i * 50, 0))
+		var hurtbox = Area2D.new()
+		hurtbox.name = "HurtBox"
+		target.add_child(hurtbox)
+		chain_targets.append(target)
+	manager.cast_bouncing_bolt(chain_slot)
+	var chain
+	for candidate in get_nodes_in_group("spell_projectiles"):
+		if candidate.projectile_type == "lightning_bolt":
+			chain = candidate
+	check(is_instance_valid(chain), "Upgraded Lightning Bolt spawns an actual traveling chain")
+	for i in 6:
+		var victim = chain.target
+		chain.global_position = victim.global_position
+		chain._on_area_entered(victim.get_node("HurtBox"))
+	check(chain.hit_ids.size() == 6 and chain.despawning, "Five bounces damage six distinct enemies and terminate")
+	check(chain_targets.filter(func(target): return target.current_health == 1000.0).size() == 1, "Chain limit leaves seventh enemy untouched")
+	for target in chain_targets:
+		target.free()
 	game.level_up_screen.generate_upgrade_options({}, 5)
 	var pool = game.level_up_screen.current_upgrade_pool
 	check(pool.any(func(card): return card.key == "rank:life_bolt"), "Bonus rank offered in real upgrade pool")

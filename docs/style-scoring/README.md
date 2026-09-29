@@ -14,7 +14,7 @@ Fight well enough to maximize a stylish casting combo. Long incantations, fast e
 - Repetition has diminishing extra reward. Alternating only two or three spells must not fully restore freshness.
 - Inactivity causes decay, stronger at higher ranks. Health damage drops one grade while preserving progress inside that grade.
 - S rank provides access to **Atomic**, selected by the user as “a fucking nuke to the screen.”
-- First-test Atomic cost: **1,500 combo points**. No charge meter. Compare 1,000–2,000 after playtesting.
+- Approved Atomic cost: **10,000 combo points**. No separate charge meter.
 - V1 leaderboard is local. Online competition and verification are deferred.
 
 These are scoring rules. No ordinary combat-stat changes are part of this feature.
@@ -90,19 +90,20 @@ On exactly one successful manual release: calculate P; add P to C; derive the ne
 | Rank | C threshold | Run-score multiplier | Decay points/sec |
 |---|---:|---:|---:|
 | F | 0 | 1 | 5 |
-| E | 150 | 1.25 | 8 |
-| D | 350 | 1.5 | 12 |
-| C | 650 | 2 | 18 |
-| B | 1000 | 2.5 | 25 |
-| A | 1450 | 3 | 35 |
-| S | 2000 | 4 | 50 |
-| SS | 2700 | 5 | 65 |
-| SSS | 3500 | 6 | 80 |
+| E | 800 | 1.25 | 8 |
+| D | 1600 | 1.5 | 12 |
+| C | 2400 | 2 | 18 |
+| B | 3200 | 2.5 | 25 |
+| A | 4000 | 3 | 35 |
+| S | 4800 | 4 | 50 |
+| SS | 5600 | 5 | 65 |
+| SSS | 6400 | 6 | 80 |
 
-Candidate cap C=4500. These thresholds replace earlier example numbers and give a 1,000–2,000 point finisher cost a meaningful scale. They must be tested alongside actual cast cadence; they are not an approved difficulty curve.
+Approved playtest revision: every rank gap is 800 unmultiplied combo points. The cast formula is unchanged; only banked run score receives the rank multiplier. Combo caps at 12,000 as an initial tunable ceiling, allowing 10,000-point Atomic purchases after reaching SSS. Human playtesting still determines final pacing.
 
 - Proposed grace: 3 real seconds after successful manual release, then continuous decay at the current rank's rate. Integrate across rank boundaries; do not make results frame-rate dependent.
 - **First playable:** decay continues during typing. Merely opening the editor cannot freeze the bar indefinitely. If long casts feel unfairly punished, compare a bounded typing grace, not infinite stalling.
+- Finite active Focus Ray / Prism Ray channels suspend decay, including target-death and retarget gaps. After the final active channel ends, restart the normal three-second grace. Channel ticks award no additional cast points; traps, summons, fields and other lingering effects do not suspend decay.
 - Pause, forced upgrade selection and non-combat menus suspend clock and input scoring. Slowdown does not suspend decay. No offline/background elapsed-time decay after a proper pause.
 - Proposed actual damaging hit: drop one grade while preserving fractional within-grade progress. At F clear C. Fully absorbed damage does not drop rank. Invulnerability-rejected contacts are not multiple hits.
 - Decay and damage never subtract banked run score. Record reasons so HUD and debug agree.
@@ -113,7 +114,7 @@ Mana Bolt firing/hitting has no style award and does not reset grace or freshnes
 
 ## S-rank special spell — Atomic
 
-Proposed gate: current rank S or higher; proposed cost **1500 combo points**, test against 1000 and 2000. Run score is not spent. Validate availability on release, spend once, then derive lower rank. If rank drops while typing, reject without spending and preserve entered text. Alternative eligibility locking at cast start requires a deliberate choice.
+Gate: current rank S or higher AND at least **10,000 combo points**. Cost: **10,000 combo points**. Run score is not spent. Validate availability on release, spend once, then derive lower rank. If rank drops while typing, reject without spending and preserve entered text. Alternative eligibility locking at cast start requires a deliberate choice.
 
 The special cast cannot directly generate combo points or score that repay its own cost. Any optional kill-score treatment needs its own decision. No free first charge, stored charges or independent charge meter in this candidate. Earlier charge-based discussion is retained as an alternative, not mixed into the same rules.
 
@@ -125,7 +126,7 @@ The flash and rectangular shockwave last up to 0.85 seconds; the damage happens 
 
 See [concept sheet](art/style-meter-stone-v2.png) and [art notes/prompt](art/README.md).
 
-Display one large readable rank, multiplier, combo meter and a separate run-score number. A small combo value can accompany the bar. Each rank segment fills from its threshold to the next. Crossing a threshold changes the rank and restarts the visible bar with carried overflow; **C is not reset**. At SSS, fill to the cap and stay full there. Falling through a threshold reverses the same mapping. At S, show the special-spell seal and cost, not charge pips unless that design is selected.
+Display one large readable rank, multiplier, combo meter and a separate run-score number. A small combo value can accompany the bar. Each rank segment fills from its threshold to the next. Crossing a threshold changes the rank and restarts the visible bar with carried overflow; **C is not reset**. At SSS, fill to the cap and stay full there. Falling through a threshold reverses the same mapping. Show the special-spell seal only when both rank and cost requirements are met. Reaching S alone does not show Atomic as ready.
 
 Layer order: stone rail/endcaps → dark trough → clipped luminous incision fill → optional threshold cuts → separate rank glyph → sparse ritual-circle arcs → short event accents. Decorative glow is separate from legible text/fill. Same core meter footprint across ranks; high-rank accents must not occlude combat. Actual score digits and labels are rendered text, not baked into an atlas.
 
@@ -168,3 +169,7 @@ See [verification coverage and reproduction](VERIFICATION.md) for the operated r
 - No abandoned-run or crash recovery submission. Local score files are player-owned; online anti-cheat and server verification are deferred.
 
 Next: human playtests of rank cadence, short starter-kit rewards, six-spell rotation, readability and whether Atomic feels worth sacrificing rank. Tune thresholds, decay and boss damage from those sessions. Online leaderboards, stored charges, additional finishers, final VFX/audio and richer score-detail browsing remain later work.
+
+### Scoring revision 2
+
+The 800-point ranks and 10,000-point Atomic use `user://style_scores_v2.json`. Prior revision-1 scores remain on disk and are not mixed into the new local board.

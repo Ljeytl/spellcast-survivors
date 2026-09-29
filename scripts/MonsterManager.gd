@@ -20,6 +20,8 @@ var spawn_attempts = 0
 var actual_spawns = 0
 var cap_rejections = 0
 var encounter_director
+var spawn_batch_fraction := 0.0
+var spawn_pressure = preload("res://scripts/SpawnPressure.gd").new()
 @onready var player: CharacterBody2D = get_parent().get_node("Player")
 
 func _ready():
@@ -53,13 +55,32 @@ func select_monster(_difficulty_level: int = 1) -> Dictionary:
 	var available = get_available_variants(game_time)
 	var total: float = 0.0
 	for definition in available:
-		total += float(definition.weight)
+		total += variant_spawn_weight(definition)
 	var roll = randf() * total
 	for definition in available:
-		roll -= float(definition.weight)
+		roll -= variant_spawn_weight(definition)
 		if roll <= 0.0:
 			return definition
 	return {}
+
+func variant_spawn_weight(definition: Dictionary) -> float:
+	var specialist = definition.get("id", "") not in ["pursuer", "sprinter", "swarmer"]
+	return float(definition.weight) * (1.0 + spawn_pressure.level * 0.75 if specialist else 1.0)
+
+func refill_population_target() -> int:
+	return mini(max_monsters, int(lerpf(6.0, 24.0, clampf(game_time / 600.0, 0.0, 1.0))) + int(spawn_pressure.level * 8.0))
+
+func replenish_population(delta: float):
+	if run_finished or awaiting_extraction:
+		return
+	var target = refill_population_target()
+	spawn_pressure.advance(delta, monsters_alive, target)
+	if delta > 5.0 or delta <= 0.0:
+		return
+	var count = spawn_pressure.refill_count(monsters_alive, target)
+	var angle = randf() * TAU
+	for index in range(count):
+		spawn_monster({}, false, true, angle + float(index) / maxf(1.0, count) * TAU, 64.0)
 
 func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1) -> Dictionary:
 	var scaling = encounter_config.scaling
@@ -73,11 +94,11 @@ func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1)
 	}
 
 func _on_spawn_timer_timeout():
-	for index in range(calculate_spawn_batch_size()):
+	for index in range(consume_spawn_batch_size()):
 		spawn_monster()
 	spawn_timer.wait_time = calculate_spawn_interval()
 
-func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN) -> Node2D:
+func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN, entry_margin: float = -1.0) -> Node2D:
 	if run_finished or awaiting_extraction:
 		return null
 	spawn_attempts += 1
@@ -102,7 +123,7 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 			stats.damage *= 1.5
 			stats.xp *= 12.0
 		monster.configure(definition, stats, is_boss)
-		var point = encounter_director.entry_position(angle + index * 0.06, 29.0 * monster.scale.x)
+		var point = encounter_director.entry_position(angle + index * 0.06, 29.0 * monster.scale.x, entry_margin)
 		if not point.is_finite():
 			monster.free()
 			continue
@@ -154,6 +175,9 @@ func spawn_phase_interval(at_time: float) -> float:
 	return interval
 
 func spawn_difficulty_multiplier() -> float:
+	return minf(float(encounter_config.get("scaling", {}).get("maximum_spawn_difficulty", INF)), timed_spawn_difficulty_multiplier())
+
+func timed_spawn_difficulty_multiplier() -> float:
 	var scaling = encounter_config.get("scaling", {})
 	var points = scaling.get("spawn_difficulty_points", [])
 	if not points.is_empty():
@@ -181,18 +205,44 @@ func spawn_difficulty_multiplier() -> float:
 
 func calculate_spawn_interval() -> float:
 	var scaling = encounter_config.get("scaling", {})
-	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.1))), spawn_phase_interval(game_time) / spawn_difficulty_multiplier())
+	var difficulty = minf(float(scaling.get("maximum_spawn_difficulty", INF)), spawn_difficulty_multiplier() * (1.0 + 0.3 * spawn_pressure.level))
+	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.1))), spawn_phase_interval(game_time) / difficulty)
+
+func spawn_batch_amount() -> float:
+	var scaling = encounter_config.get("scaling", {})
+	var amount := 1.0
+	var points = scaling.get("spawn_batch_points", [])
+	if not points.is_empty():
+		var previous = points[0]
+		amount = float(previous.count)
+		for index in range(1, points.size()):
+			var point = points[index]
+			if game_time <= float(point.time):
+				var weight = clampf((game_time - float(previous.time)) / maxf(0.001, float(point.time) - float(previous.time)), 0.0, 1.0)
+				amount = lerpf(float(previous.count), float(point.count), weight)
+				break
+			previous = point
+			amount = float(previous.count)
+		if game_time > float(points.back().time):
+			amount += (game_time - float(points.back().time)) / 120.0 * float(scaling.get("endless_batch_growth_per_120_seconds", 0.5))
+	else:
+		var difficulty = spawn_difficulty_multiplier()
+		for batch in scaling.get("spawn_batches", []):
+			if float(batch.get("difficulty", 1.0)) <= difficulty:
+				amount = maxf(amount, float(batch.get("count", 1)))
+	return clampf(amount + floorf(spawn_pressure.level + 0.5), 1.0, max_monsters)
 
 func calculate_spawn_batch_size() -> int:
-	var difficulty = spawn_difficulty_multiplier()
-	var count = 1
-	var latest_threshold = -INF
-	for batch in encounter_config.get("scaling", {}).get("spawn_batches", []):
-		var threshold = float(batch.get("difficulty", 1.0))
-		if threshold <= difficulty and threshold > latest_threshold:
-			latest_threshold = threshold
-			count = clampi(int(batch.get("count", 1)), 1, max_monsters)
-	return count
+	return int(floorf(spawn_batch_amount()))
+
+func consume_spawn_batch_size() -> int:
+	var amount = spawn_batch_amount()
+	var count = int(floorf(amount))
+	spawn_batch_fraction += amount - count
+	if spawn_batch_fraction >= 1.0 - 0.000001:
+		count += 1
+		spawn_batch_fraction = maxf(0.0, spawn_batch_fraction - 1.0)
+	return mini(max_monsters, count)
 
 func get_current_difficulty_level() -> int:
 	return mini(4, int(game_time / 300.0) + 1)
@@ -202,6 +252,8 @@ func get_monster_count() -> int:
 
 func _on_monster_died(monster: CharacterBody2D):
 	monsters_alive = maxi(0, monsters_alive - 1)
+	if not monster.boss:
+		spawn_pressure.record_kill()
 	if get_parent().has_method("increment_enemies_killed"):
 		get_parent().increment_enemies_killed()
 	if monster.boss and not run_finished and not monster.has_meta("boss_reward_dropped"):
@@ -237,3 +289,5 @@ func advance_time(delta: float):
 		spawn_timer.start(calculate_spawn_interval())
 	check_boss_milestones()
 	encounter_director.update(delta)
+	if not spawn_timer.is_stopped():
+		replenish_population(delta)

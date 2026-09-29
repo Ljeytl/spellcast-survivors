@@ -29,9 +29,12 @@ func _initialize() -> void:
 	check(invalid.award_cast("b", "Bolt", NAN, 0, 1).is_empty(), "Reject invalid timing")
 	check(invalid.award_cast("b", "!!!", 1.0, 0, 2).is_empty(), "Reject empty incantation")
 	var crossing = Model.new()
-	crossing.combo = 140.0
+	crossing.combo = 790.0
 	var crossing_award: Dictionary = crossing.award_cast("b", "Bolt", 0.75, 0, 1)
 	check(crossing_award.banked == 58 and crossing.rank_index() == 1, "Award uses newly reached multiplier")
+	check(crossing.combo == 836.0 and crossing_award.points == 46, "Rank multiplier never multiplies combo gain")
+	for rank in range(1, Model.THRESHOLDS.size()):
+		check(Model.THRESHOLDS[rank] - Model.THRESHOLDS[rank - 1] == 800.0, "Every grade requires 800 raw combo")
 	var banked_before: int = crossing.run_score
 	crossing.take_hit()
 	crossing.advance(1000.0)
@@ -50,12 +53,12 @@ func _initialize() -> void:
 	check(model.combo == 50.0, "Grace retained")
 	model.advance(3.0)
 	check(model.combo == 40.0, "Grace remainder integrated")
-	model.combo = 2200.0
+	model.combo = 5000.0
 	model.take_hit()
-	check(is_equal_approx(model.combo, 1450.0 + 200.0 / 700.0 * 550.0), "Hit preserves fraction")
-	model.combo = 4500.0
+	check(is_equal_approx(model.combo, 4200.0), "Hit preserves fraction")
+	model.combo = Model.CAP
 	model.award_cast("new", "Regeneration", 3.0, 0, 55)
-	check(model.combo == 4500.0 and model.progress() == 1.0 and model.peak_rank == 8, "Cap and peak")
+	check(model.combo == Model.CAP and model.progress() == 1.0 and model.peak_rank == 8, "Cap and peak")
 	model.take_hit()
 	check(model.rank_index() == 7 and model.progress() > 0.999, "Hit at full cap still drops exactly one grade")
 	model.advance(99999.0)
@@ -84,7 +87,7 @@ func _initialize() -> void:
 	record.eligible = true
 	record.scoring_version = 99
 	check(not Store.submit(record, path), "Reject unknown schema")
-	record.scoring_version = 1
+	record.scoring_version = Model.VERSION
 	record.run_id = "b"
 	check(Store.submit(record, path), "Second save")
 	var file := FileAccess.open(path, FileAccess.WRITE)

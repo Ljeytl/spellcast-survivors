@@ -93,7 +93,7 @@ func run():
 	root.get_node("AudioManager").quitting = true
 	fresh()
 	await process_frame
-	session.score.combo = 2200.0
+	session.score.combo = 5000.0
 	session.score.grace_remaining = 0.0
 	manager.set_process(true)
 	for i in 4:
@@ -103,13 +103,31 @@ func run():
 	var live_start = session.clock
 	await create_timer(1.0, false, false, true).timeout
 	check(session.clock - live_start > 0.8 and session.clock - live_start < 1.5, "Running slowed cast advances a real second")
-	check(session.score.combo < 2170.0, "Typing does not freeze live decay")
+	check(session.score.combo < 4970.0, "Typing does not freeze live decay")
 	game.change_state(game.GameState.PAUSED)
 	var pause_start = session.clock
 	await create_timer(0.3, true, false, true).timeout
 	check(session.clock == pause_start, "Running pause freezes input clock")
 	game.change_state(game.GameState.PLAYING)
 	key(KEY_ESCAPE)
+	manager.set_process(false)
+	manager.learn_spell("focus_ray")
+	manager.cast_build_spell(manager.find_spell_slot("focus_ray"))
+	var channel = get_first_node_in_group("active_spell_channels")
+	check(is_instance_valid(channel), "Real Focus Ray exposes active channel lifetime")
+	channel.set_physics_process(false)
+	session.score.combo = 5000.0
+	session.score.grace_remaining = 0.0
+	var channel_bank = session.score.run_score
+	session.advance(10.0)
+	check(session.score.combo == 5000.0 and session.score.run_score == channel_bank, "Active channel without a target suspends decay but awards nothing")
+	channel.advance(20.0)
+	session.advance(0.1)
+	check(session.score.grace_remaining == 3.0, "Channel expiry restores full normal grace")
+	session.advance(2.0)
+	check(session.score.combo == 5000.0, "Afterglow cannot consume channel-end grace early")
+	session.advance(2.0)
+	check(session.score.combo == 4950.0, "Decay resumes normally after channel grace")
 	fresh()
 	await process_frame
 	key(KEY_1)
@@ -159,10 +177,10 @@ func run():
 	manager._process(0.1)
 	check(is_equal_approx(session.clock - clock_before, 0.5), "Slowdown uses real scoring seconds")
 	key(KEY_ESCAPE)
-	session.score.combo = 2200.0
+	session.score.combo = 5000.0
 	game.player.overheal = 10.0
 	game.player.take_damage(5.0)
-	check(session.score.combo == 2200.0, "Fully absorbed damage preserves rank")
+	check(session.score.combo == 5000.0, "Fully absorbed damage preserves rank")
 	game.player.overheal = 0.0
 	game.player.take_damage(1.0)
 	check(session.score.rank_index() == 5, "Health damage drops one grade")
@@ -179,30 +197,37 @@ func run():
 		check(rank_hud.label.text.begins_with(model.RANKS[rank]) and is_equal_approx(rank_hud.meter.value, 0.5), "Rank glyph, label and segment fill agree: " + model.RANKS[rank])
 	check(rank_hud.format_score(2500000) == "2.5M", "Large HUD scores use compact notation")
 	manager.casting_clock += 2.0
-	session.score.combo = 2200.0
+	session.score.combo = 5000.0
 	session.updated.emit()
 	await capture("game-s")
 	key(KEY_SPACE)
 	letters("atomic", 0.1)
-	session.score.combo = 1900.0
+	session.score.combo = 4700.0
 	key(KEY_ENTER)
-	check(manager.is_typing and session.special_casts == 0 and session.score.combo == 1900.0, "Lost S rejects Atomic without spending or clearing text")
-	session.score.combo = 2200.0
+	check(manager.is_typing and session.special_casts == 0 and session.score.combo == 4700.0, "Lost S rejects Atomic without spending or clearing text")
+	session.score.combo = 9999.0
 	key(KEY_ENTER)
-	check(not manager.is_typing and session.special_casts == 1 and session.score.combo == 700.0, "Atomic spends exactly 1500 once")
+	check(manager.is_typing and session.special_casts == 0 and session.score.combo == 9999.0, "SSS alone cannot bypass Atomic cost")
+	session.score.combo = 10000.0
+	session.updated.emit()
+	await capture("atomic-ready")
+	key(KEY_ENTER)
+	check(not manager.is_typing and session.special_casts == 1 and session.score.combo == 0.0, "Atomic spends exactly 10000 once")
 	check(session.score.run_score == bank, "Atomic does not repay itself")
 	await capture("atomic-warning")
 	await create_timer(0.8).timeout
 	await capture("atomic-impact")
-	session.score.combo = 3700.0
+	session.score.combo = 6700.0
 	session.score.peak_rank = 8
-	session.score.peak_combo = 3700.0
+	session.score.peak_combo = 6700.0
 	session.updated.emit()
 	await capture("game-sss")
 	root.size = Vector2i(480, 800)
 	for i in 8:
 		await process_frame
 	session.updated.emit()
+	check(rank_hud.score_label.get_rect().end.y <= rank_hud.note.position.y, "Narrow score and feedback never overlap")
+	check(rank_hud.special.get_rect().end.y <= rank_hud.size.y, "Atomic label fits HUD bounds")
 	await capture("game-narrow")
 	var hud = game.hud.get_node("StyleHUD")
 	check(hud.position.x >= 0 and hud.get_rect().end.x <= game.hud.size.x, "Style HUD fits narrow viewport")

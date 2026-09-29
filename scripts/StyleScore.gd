@@ -1,11 +1,13 @@
 extends RefCounted
 
-const VERSION := 1
+const VERSION := 2
 const RANKS := ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"]
-const THRESHOLDS := [0.0, 150.0, 350.0, 650.0, 1000.0, 1450.0, 2000.0, 2700.0, 3500.0]
+const THRESHOLDS := [0.0, 800.0, 1600.0, 2400.0, 3200.0, 4000.0, 4800.0, 5600.0, 6400.0]
 const MULTIPLIERS := [1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0]
 const DECAY := [5.0, 8.0, 12.0, 18.0, 25.0, 35.0, 50.0, 65.0, 80.0]
-const CAP := 4500.0
+const CAP := 12000.0
+const ATOMIC_COST := 10000.0
+const ATOMIC_RANK := 6
 const GRACE := 3.0
 
 var combo := 0.0

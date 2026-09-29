@@ -1,7 +1,7 @@
 extends RefCounted
 
 const VERSION = preload("res://scripts/StyleScore.gd").VERSION
-const DEFAULT_PATH := "user://style_scores_v1.json"
+const DEFAULT_PATH := "user://style_scores_v2.json"
 const LIMIT := 100
 
 static func _read(path: String) -> Variant:

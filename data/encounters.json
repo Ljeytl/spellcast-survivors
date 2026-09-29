@@ -51,13 +51,20 @@
     "spawn_growth_factor": 1.28,
     "spawn_difficulty_points": [
       {"time": 0, "multiplier": 1.0},
-      {"time": 180, "multiplier": 1.0},
-      {"time": 300, "multiplier": 1.2},
-      {"time": 600, "multiplier": 1.65},
-      {"time": 780, "multiplier": 2.0},
-      {"time": 1020, "multiplier": 3.3333333333},
-      {"time": 1200, "multiplier": 4.5}
+      {"time": 60, "multiplier": 1.15},
+      {"time": 180, "multiplier": 1.6},
+      {"time": 300, "multiplier": 2.4},
+      {"time": 480, "multiplier": 4.0},
+      {"time": 660, "multiplier": 4.5}
     ],
+    "maximum_spawn_difficulty": 4.5,
+    "spawn_batch_points": [
+      {"time": 0, "count": 1.0},
+      {"time": 300, "count": 1.5},
+      {"time": 660, "count": 2.0},
+      {"time": 1200, "count": 3.0}
+    ],
+    "endless_batch_growth_per_120_seconds": 0.5,
     "spawn_growth_period_seconds": 180,
     "spawn_batches": [
       {

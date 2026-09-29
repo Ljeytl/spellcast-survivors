@@ -21,6 +21,7 @@ var exclusion_reason = ""
 var run_id = ""
 var special_casts = 0
 var finalized = false
+var channel_was_active = false
 var result: Dictionary = {}
 
 func _ready():
@@ -63,7 +64,18 @@ func advance(seconds: float):
 	if finalized or game.current_state != game.GameState.PLAYING:
 		return
 	clock += seconds
-	score.advance(seconds)
+	var channel_active := false
+	for channel in get_tree().get_nodes_in_group("active_spell_channels"):
+		if channel.has_method("is_style_channel_active") and channel.is_style_channel_active():
+			channel_active = true
+			break
+	if channel_active:
+		score.grace_remaining = Score.GRACE
+	elif channel_was_active:
+		score.grace_remaining = Score.GRACE
+	else:
+		score.advance(seconds)
+	channel_was_active = channel_active
 	if game.player.is_invincible:
 		exclude_if_needed("Invincibility")
 	updated.emit()
@@ -149,12 +161,12 @@ func finish(stats: Dictionary) -> Dictionary:
 	return result
 
 func atomic_available() -> bool:
-	return not finalized and score.rank_index() >= 6
+	return not finalized and score.rank_index() >= Score.ATOMIC_RANK and score.combo >= Score.ATOMIC_COST
 
 func cast_atomic() -> bool:
 	if not atomic_available() or game.current_state != game.GameState.PLAYING:
 		return false
-	score.combo -= 1500.0
+	score.combo -= Score.ATOMIC_COST
 	special_casts += 1
 	var blast = load("res://scripts/AtomicBlast.gd").new()
 	blast.configure(game)

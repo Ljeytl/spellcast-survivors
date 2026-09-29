@@ -22,9 +22,10 @@ func visible_world_rect() -> Rect2:
 		bounds = bounds.expand(inverse * corner)
 	return bounds
 
-func entry_position(angle: float, radius: float) -> Vector2:
+func entry_position(angle: float, radius: float, entry_margin: float = -1.0) -> Vector2:
 	var settings = manager.encounter_config.get("recycling", {})
-	var bounds = visible_world_rect().grow(maxf(float(settings.get("entry_margin", 160)), radius * 4.0))
+	var margin = maxf(float(settings.get("entry_margin", 160)), radius * 4.0) if entry_margin < 0.0 else maxf(entry_margin, radius * 1.5)
+	var bounds = visible_world_rect().grow(margin)
 	var direction = Vector2.from_angle(angle)
 	var half_size = bounds.size * 0.5
 	var distance = minf(half_size.x / maxf(absf(direction.x), 0.0001), half_size.y / maxf(absf(direction.y), 0.0001))

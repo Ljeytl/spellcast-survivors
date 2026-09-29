@@ -1,8 +1,22 @@
-## Current balance override — 2026-09-28
+## Current balance override — 2026-09-28, playtest 0.1.28
 
-The active spawner repeats a 120-second cycle: 0–15 light, 15–45 heavy, 45–60 medium, 60–70 light, 70–80 medium, 80–110 heavy, 110–120 medium. Base intervals: light 3s / medium 2s / heavy 1s. Difficulty follows authored time/multiplier anchors: 0:00=1.0, 3:00=1.0, 5:00=1.2, 10:00=1.65, 13:00=2.0, 17:00=3.3333, 20:00=4.5, with smooth exponential interpolation between them. Divide every interval by this same factor. At minute 17 this gives light 0.9s / medium 0.6s / heavy 0.3s. The safety minimum is 0.1s and does not flatten the rhythm within a 20-minute run. The former midgame pressure multiplier is removed.
+The 120-second wave cycle stays: 0–15 light, 15–45 heavy, 45–60 medium, 60–70 light, 70–80 medium, 80–110 heavy, 110–120 medium. Base light/medium/heavy intervals remain 3/2/1 seconds. Cadence and group size now grow in parallel; reaching the fastest cadence is not the end of progression.
 
-`scaling.spawn_batches` maps difficulty thresholds to regular spawn-roll counts. It currently contains only 1.0→1; higher batches are supported but not enabled. Swarmer rolls still produce packs of three; waves/bosses use their separate existing schedules, capped regular population stays 160. Blue Sprinters remain 270 speed against 300 base player speed. This section supersedes conflicting older interval tuning below.
+| Run time | Cadence multiplier | Average regular spawn rolls per event |
+|---|---:|---:|
+| 0:00 | 1.0 | 1.0 |
+| 1:00 | 1.15 | 1.1 |
+| 3:00 | 1.6 | 1.3 |
+| 5:00 | 2.4 | 1.5 |
+| 8:00 | 4.0 | 1.75 |
+| 11:00 | 4.5 | 2.0 |
+| 20:00 | 4.5 | 3.0 |
+
+Cadence uses exponential interpolation, batches linear interpolation with a carried fractional budget (1.5 alternates one/two, 2.5 alternates two/three). At minute 11 the old minute-20 cadence is reached. Endless adds 0.5 average batch size per two minutes; regular population stays capped at 160. Swarmer rolls can still create packs of three; bosses and timed waves remain separate.
+
+When depleted, queue up to six regular enemies outside the camera every 0.6 seconds until the population target is met. Refill uses a 64-unit margin with at least 1.5× body-radius clearance, while normal arrivals retain 160 units / 4× radius. All twelve current sprites remain wholly offscreen. Target rises from six initially to 24 at ten minutes. Enemies physically travel into view; a clear still buys that travel time. Sustained clearing across at least three separate seconds and six kills per five-second sample raises bounded pressure, while a single mass kill cannot. Pressure can add one spawn roll, up to 30% faster cadence within its 4.5 cap, eight incoming enemies, and 75% extra selection weight for already unlocked specialists. It eases without sustained clearing. Enemy health, timed unlocks and boss milestones are unchanged.
+
+These are testable first-pass tuning values, not a completed human balance verdict. This section supersedes older spawn tuning below.
 
 # Enemy encounters and combat direction
 

@@ -1,6 +1,6 @@
 ## Attributed playtester ideas — 2026-09-28
 
-**Style scoring — 0.1.27:** [specification](docs/style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Rank cadence and finisher balance still need human feedback.
+**Style scoring — 0.1.28:** [specification](docs/style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Current follow-up uses 800-point gaps, 10,000-point Atomic, shared ray targets, active-channel grace and parallel spawn cadence/group growth. Human feedback still determines final balance.
 
 See the [complete LJ / Dead / Brad / Guer batch](docs/PLAYER_FEEDBACK.md#attributed-playtest-batch--2026-09-28). Preserve for prioritization: style/combo rewards, summoned knives, glyph-to-spell casting presentation and bottom rune circle, unique boss spell unlocks (Cinder Field → Conflagration candidate), incantation Easter eggs, leaderboard, and possible anti-spam resource/cooldown design. These are deferred ideas, not approved implementation. Existing movement, map, control and accessibility feedback remains in the same record.
 
@@ -684,4 +684,4 @@ Recorded the [rotary tower chamber and preparation book](docs/expedition-design/
 
 ### Style-meter asset preparation
 
-[Transparent sheet and atlas pieces](assets/ui/style-runes/README.md) prepared; next visual step is HUD-scale assembly and letter readability review. Scoring implementation awaits design agreement.
+[Transparent sheet and atlas pieces](assets/ui/style-runes/README.md) prepared; next visual step is HUD-scale assembly and letter readability review. Scoring is implemented; connected stone HUD assembly is in the 0.1.28 pass. Continue human readability/feel review.
