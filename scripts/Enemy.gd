@@ -487,6 +487,7 @@ func finish_death():
 	drop_xp_orb()
 	if not is_in_group("bosses"):
 		preload("res://scripts/HealthPotion.gd").try_drop(get_parent(), global_position)
+		preload("res://scripts/StylePickup.gd").try_drop(get_parent(), global_position)
 	
 	# Tell EnemyManager to remove this enemy from tracking
 	enemy_died.emit(self)

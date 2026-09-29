@@ -1,7 +1,6 @@
 extends Node2D
 
 const DROP_CHANCE = 0.01
-const HEAL_AMOUNT = 10.0
 const PICKUP_RADIUS = 30.0
 const MAX_DROPS = 12
 const RECLAIM_DISTANCE = 2000.0
@@ -14,7 +13,7 @@ static func try_drop(parent: Node, point: Vector2, roll: float = -1.0, guarantee
 	var chance = randf() if roll < 0.0 else roll
 	if not guaranteed and chance >= DROP_CHANCE:
 		return null
-	var drops = parent.get_tree().get_nodes_in_group("health_potions")
+	var drops = parent.get_tree().get_nodes_in_group("style_pickups")
 	if not guaranteed and drops.size() >= MAX_DROPS:
 		var target = parent.get_tree().get_first_node_in_group("player")
 		var oldest_distant = null
@@ -28,15 +27,15 @@ static func try_drop(parent: Node, point: Vector2, roll: float = -1.0, guarantee
 					oldest_distant = drop
 		if oldest_distant == null:
 			return null
-		oldest_distant.remove_from_group("health_potions")
+		oldest_distant.remove_from_group("style_pickups")
 		oldest_distant.queue_free()
-	var potion = load("res://scripts/HealthPotion.gd").new()
-	parent.add_child(potion)
-	potion.global_position = point
-	return potion
+	var pickup = load("res://scripts/StylePickup.gd").new()
+	parent.add_child(pickup)
+	pickup.global_position = point
+	return pickup
 
 func _ready():
-	add_to_group("health_potions")
+	add_to_group("style_pickups")
 	player = get_tree().get_first_node_in_group("player")
 	z_index = 1
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -46,20 +45,24 @@ func _process(_delta):
 		collect()
 
 func collect() -> bool:
-	if collected or not is_instance_valid(player) or player.health <= 0.0 or player.health >= player.max_health:
+	if collected or not is_instance_valid(player) or player.health <= 0.0:
+		return false
+	var game = get_tree().get_first_node_in_group("game")
+	if not is_instance_valid(game) or not is_instance_valid(game.style_session):
 		return false
 	collected = true
-	player.heal(HEAL_AMOUNT)
+	if not game.style_session.collect_style_pickup():
+		collected = false
+		return false
 	get_node("/root/AudioManager").on_xp_collected()
 	queue_free()
 	return true
 
 func _draw():
-	draw_rect(Rect2(-13, -8, 26, 26), Color("252b32"))
-	draw_rect(Rect2(-9, -5, 18, 19), Color("d5eff0"))
-	draw_rect(Rect2(-9, 1, 18, 13), Color("c9384b"))
-	draw_rect(Rect2(-5, -15, 10, 11), Color("d5eff0"))
-	draw_rect(Rect2(-6, -19, 12, 6), Color("9e6c43"))
-	draw_rect(Rect2(-6, -2, 3, 10), Color("fff2d1"))
-	draw_rect(Rect2(-2, 3, 4, 9), Color("fff2d1"))
-	draw_rect(Rect2(-5, 6, 10, 3), Color("fff2d1"))
+	var outer = PackedVector2Array([Vector2(0, -23), Vector2(19, 0), Vector2(0, 23), Vector2(-19, 0)])
+	var inner = PackedVector2Array([Vector2(0, -18), Vector2(14, 0), Vector2(0, 18), Vector2(-14, 0)])
+	draw_colored_polygon(outer, Color("30233f"))
+	draw_colored_polygon(inner, Color("eab64f"))
+	draw_line(Vector2(4, -11), Vector2(-5, 0), Color("fff5bd"), 5)
+	draw_line(Vector2(-5, 0), Vector2(5, 0), Color("fff5bd"), 5)
+	draw_line(Vector2(5, 0), Vector2(-4, 11), Color("fff5bd"), 5)
