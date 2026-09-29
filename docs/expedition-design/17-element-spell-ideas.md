@@ -92,7 +92,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | Water Jet | Tracking jet dealing damage and knockback; upgrades add jets | **Ray**, not Lance; no Water Lance selected |
 | Tsunami | Broad rectangular front spawns behind the player and travels forward | Blast family; supersedes radial version |
-| Tidal Push | Broad wave originates behind the caster and travels forward | Provisional name; explicitly not a cone |
+| Tidal Push | Earlier water Nova/Wave idea analogous to Frost Nova | Removed by user; not Tsunami. Frost Nova remains. |
 | Whirlpool | Lasting vortex | Field is the current candidate placement; earlier Ball/Strike uncertainty preserved |
 | Plain Rain / Water Field | Lacks a distinct identity | Not selected as standalone spells |
 | Water Wall | Uninspiring without another mechanic | Questioned |
@@ -137,6 +137,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | School | Keep Plague for now; broader death/undead/infection fantasy may justify Death later | No rename approved |
 | Unnamed carcass projectile | Catapult an infected carcass or create a dead zone | Ball exploration; actual name and impact/zone details unresolved |
+| Plague Lance | Undecided lance concept | Requested slot; fantasy, name and mechanics to develop |
 | Ray of Sickness | Sweep or pivot across many enemies to distribute debuffs rather than focus a kill | Damage over time and slow; reduced enemy outgoing damage is a possibility, not a settled payload |
 | Plague Slash | Palette swap unnecessary | Not selected |
 | Nova / Shower / Field / Wall / Trail / Trap | User wants these explored | Names and mechanics **TBD**; table cells must not invent spells |
@@ -151,7 +152,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | Life Bolt | Existing projectile plus healing pickup/patch | Implemented combination |
 | Unnamed vine ball | Area immobilization and damage, possibly bleed | User concept; final name and bleed undecided |
-| Vine Lance | Sends vines toward nearby enemies and pulls them | Pull destination, shape and interaction open |
+| Shillelagh | Life Lance; retain the earlier vine/root attack fantasy and nearby-enemy pulling idea | Placement and name selected; exact attack, pull destination and shape still open |
 | Vine Whip | Whip rather than Vine Slice | User concept in shared Slice/Whip family |
 | Expanding vine circle | Roiling vines expand, damage and immobilize or slow | Shared Nova/Wave family; control choice open |
 | Life Nova | Crushing vines | User direction; may overlap the expanding-circle concept rather than a separate spell |
@@ -178,3 +179,38 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 3. Define shapes, contact timing, payoff and keyword properties for selected candidates.
 4. Resolve Restoration versus buffs, golem spell ownership and unique infection placement.
 5. Only then approve implementation scope and tuning. This pass authorizes documentation, not a new spell implementation batch.
+
+## Earlier ideas and provenance
+
+The following preserves prior ideas and exclusions outside the main browsing matrix. Latest decisions above take precedence.
+
+## Other existing content and preserved ideas
+
+| Entry | Status |
+|---|---|
+| Mana Bolt | Implemented automatic attack, separate from manual Bolt |
+| Atomic | Implemented style reward, outside base acquisition pool |
+| Seeking Spirit / Reaping Spirit | Earlier spirit ideas; Reaping Spirit acquisition disabled; preserve despite school discussion |
+| Shillelagh | Now selected as Life Lance; earlier root-wave description is historical |
+| Dash / Swiftness | Earlier user mobility ideas; activation/duration design open |
+| Personal storm aura | Earlier dwell-triggered lightning idea; name and following behavior open; not automatically identical to Static Field |
+| Homing Bolt, stronger Glacial Lance and elemental-tier words | Earlier composition/tier concepts, not new runtime casts |
+| Earthquake / Earth Golem | Earlier user ideas preserved; not rejected in latest pass; no runtime implementation |
+| Lightning Shield | Earlier open/historical shield idea; no mechanics approved |
+
+## Examples and historical proposals that are not agreed spells
+
+| Entry | Provenance / latest disposition |
+|---|---|
+| Arcane Seed | Earlier assistant example; user now rejects it |
+| Arcane Golem | Generic candidate rejected in latest user pass |
+| Arcane Shield | Historical assistant proposal, unselected; **Prismatic Shield** above is a separate new user idea |
+| Life Seed | Assistant illustration, not selected; do not confuse with Life Bolt healing drops |
+| Frost Ray / Ice Ray | Removed from the proposed roster; Water Jet occupies the merged school’s Ray slot |
+| Frostball / Plague Ball | Assistant names, not selected; user now proposes Snowball and an unnamed carcass concept respectively |
+| Arcane Bolt / Arcane Ball / Mana Lance / Mana Strike | Unnecessary generic additions in this pass; existing Bolt/Focus Ray cover ordinary magic |
+| Water Lance / Lightning Ball / Earth Wave | Not selected |
+| Generic elemental slices, Fire Cone/Blast/Wave, Fire Nova, Fire Sigil | Often unnecessary palette swaps or modifier expressions; no blanket new-spell approval |
+| Ice Wall / Water Wall / plain Rain | Distinct useful identity not established |
+
+Inactive data definitions are not proof of acquisition. All proposed additions, renamed schools, modifier words and new recipes await selection and implementation approval. Historical 36-row campaign proposals remain archived design context rather than a mandatory roster.

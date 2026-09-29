@@ -99,3 +99,5 @@ The [detailed capture](17-element-spell-ideas.md) and [matrix](16-element-family
 ## Follow-up: consolidate schools and families
 
 Water/Ice and Earth/Metal merge; Spirit joins Plague/Death; Sun/Moon remain combination themes. Nova/Wave share a family, as do Slice/Whip. Multiple spells per cell are allowed. Tsunami is a rectangular Blast spawning behind the caster and travelling forward; Shrapnel also belongs to Blast. Water Jet replaces proposed Frost Ray. Sunbeam’s Fire + Life recipe and final names remain open. See the updated matrix; documentation only.
+
+Follow-up: remove Tidal Push (the water Nova/Wave proposal, not Tsunami); keep Frost Nova. Add undecided Plague Lance. Shillelagh occupies Life Lance. Put the supplied fantasy in each matrix cell; retain unnamed vine ball.

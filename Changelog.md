@@ -1,3 +1,9 @@
+# Documentation: readable spell fantasies
+
+- Added spell fantasies directly to the school/family matrix; moved historical commentary into detailed notes.
+- Removed Tidal Push, added undecided Plague Lance, and placed Shillelagh in Life Lance.
+- Names and unspecified mechanics remain open; gameplay unchanged.
+
 # Documentation: school and family consolidation
 
 - Recorded agreed school mergers and shared Nova/Wave, Slice/Whip columns; multiple spells per cell.
