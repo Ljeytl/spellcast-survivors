@@ -1,3 +1,7 @@
+## 2026-09-29 — Playtest version 0.1.3
+
+- Set the shared project version to 0.1.3 for menu, gameplay, pause, result labels and new score records. Existing exported packages require rebuilding to carry this version.
+
 ## 2026-09-29 — Disable clear-based difficulty escalation
 
 - Set `scaling.adaptive_clear_pressure_strength` to zero. Preserve sustained-clear tracking and all adaptive logic for later tuning; setting it to one restores the previous behavior.
