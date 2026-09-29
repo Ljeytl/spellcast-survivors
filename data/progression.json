@@ -3,7 +3,7 @@
     "generic_upgrades": {
       "spell_damage": {
         "name": "Spell Power",
-        "description": "+10% Spell Damage", 
+        "description": "+10% damage, healing and protection",
         "icon": "⚡",
         "effect": {"type": "spell_damage", "value": 0.10},
         "weight": 100
@@ -38,10 +38,17 @@
       },
       "projectile_speed": {
         "name": "Velocity",
-        "description": "+15% Projectile Speed",
+        "description": "+15% spell travel and turning speed",
         "icon": "🏃",
         "effect": {"type": "projectile_speed", "value": 0.15},
         "weight": 50
+      },
+      "spell_duration": {
+        "name": "Spell Duration",
+        "description": "+10% active spell duration",
+        "icon": "",
+        "effect": {"type": "spell_duration", "value": 0.10},
+        "weight": 60
       },
       "area_size": {
         "name": "Spell Size",

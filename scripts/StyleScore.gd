@@ -9,6 +9,7 @@ const CAP := 12000.0
 const ATOMIC_COST := 10000.0
 const ATOMIC_RANK := 6
 const GRACE := 5.0
+const PICKUP_POINTS := 200
 
 var combo := 0.0
 var run_score := 0
@@ -86,6 +87,15 @@ func award_cast(family: String, canonical: String, elapsed: float, mistakes: int
 	peak_combo = maxf(peak_combo, combo)
 	grace_remaining = GRACE
 	return {"points": points, "pts": points, "banked": banked, "old_rank": old_rank, "rank": rank_index(), "rank_changed": old_rank != rank_index(), "speed_bonus": speed, "clean_bonus": clean, "freshness_bonus": 0.5 * fresh, "length": length}
+
+func award_pickup() -> Dictionary:
+	var before := rank_index()
+	var banked := int(round(PICKUP_POINTS * multiplier()))
+	combo = minf(CAP, combo + PICKUP_POINTS)
+	run_score += banked
+	peak_rank = maxi(peak_rank, rank_index())
+	peak_combo = maxf(peak_combo, combo)
+	return {"points": PICKUP_POINTS, "banked": banked, "old_rank": before, "rank": rank_index()}
 
 func take_hit() -> void:
 	var index := rank_index()

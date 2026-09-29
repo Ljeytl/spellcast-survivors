@@ -18,6 +18,7 @@ var age = 0.0
 var beam_end = Vector2.RIGHT * 450
 var triggered = false
 var strike_ready = 0.0
+var spirit_hit_times: Dictionary = {}
 var trail_points: Array = []
 var trail_sample = 0.0
 var emission_deadline = 0.0
@@ -30,6 +31,7 @@ var linger_remaining = 0.4
 var burst_remaining = 0.0
 var burst_position = Vector2.ZERO
 var linger_tick = 0.0
+var duration_echo_created = false
 
 func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	if not valid_target(target):
@@ -64,7 +66,8 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 func extend_duration(data: Dictionary) -> float:
 	if info.type != "trail":
 		return super.extend_duration(data)
-	var added = float(data.get("emission_duration", 5.0))
+	var updated = Geometry.scaled_data(data, caster.get_ref())
+	var added = float(updated.get("emission_duration", 5.0))
 	if age >= emission_deadline:
 		var player = caster.get_ref() if caster else null
 		if is_instance_valid(player):
@@ -72,7 +75,8 @@ func extend_duration(data: Dictionary) -> float:
 			trail_strip += 1
 			trail_points.append({"position": last_trail_position, "age": 0.0, "strip": trail_strip})
 	emission_deadline = maxf(age, emission_deadline) + added
-	remaining = maxf(remaining, emission_deadline - age + float(info.get("patch_duration", 6.0)))
+	remaining = maxf(remaining, emission_deadline - age + float(updated.get("patch_duration", 6.0)))
+	info.patch_duration = float(updated.get("patch_duration", 6.0))
 	return added
 
 func advance(delta: float):
@@ -186,10 +190,11 @@ func beam_contact(enemy, reach: Vector2) -> float:
 
 func advance_beam(delta: float, player: Node2D):
 	global_position = player.global_position + info.get("beam_origin_offset", Vector2.ZERO)
-	var target = tracking_target(global_position, 450)
+	var turn_speed = float(info.get("beam_turn_speed", info.get("turn_speed", 4.0)))
+	var target = tracking_target(global_position, 450) if turn_speed > 0 else null
 	if target:
 		var desired = global_position.direction_to(target.global_position).angle()
-		direction = Vector2.from_angle(rotate_toward(direction.angle(), desired, float(info.get("turn_speed", 4.0)) * delta))
+		direction = Vector2.from_angle(rotate_toward(direction.angle(), desired, turn_speed * (1.0 if info.get("beam_piercing", false) else float(info.get("projectile_speed_multiplier", 1.0))) * delta))
 	var reach = global_position + direction * 450
 	var targets: Array = []
 	for enemy in get_tree().get_nodes_in_group("enemies"):
@@ -199,6 +204,8 @@ func advance_beam(delta: float, player: Node2D):
 				targets.append({"enemy": enemy, "contact": contact})
 	targets.sort_custom(func(a, b): return a.contact < b.contact)
 	var hits = targets if info.get("beam_piercing", false) else targets.slice(0, int(info.get("beam_targets", 1)))
+	if turn_speed <= 0:
+		target_ref = weakref(hits[0].enemy) if not hits.is_empty() else null
 	beam_end = direction * 450
 	if not info.get("beam_piercing", false) and not hits.is_empty():
 		beam_end = direction * minf(450, hits[-1].contact + 8)
@@ -209,31 +216,38 @@ func advance_beam(delta: float, player: Node2D):
 			deal_damage(hit.enemy, damage)
 
 func advance_trap():
-	if triggered or age + 0.000001 < float(info.get("arm_delay", 0.8)):
-		return
-	if not closest_target(global_position, float(info.get("trigger_radius", 70))):
-		return
-	triggered = true
+	if not triggered:
+		if age + 0.000001 < float(info.get("arm_delay", 0.8)):
+			return
+		if not closest_target(global_position, float(info.get("trigger_radius", 70))):
+			return
+		triggered = true
+		remaining = float(info.get("active_duration", 0.25 * float(info.spell_duration_multiplier)))
 	var radius = float(info.get("trap_radius", 130))
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if valid_target(enemy) and global_position.distance_to(enemy.global_position) <= radius:
+		if valid_target(enemy) and not hit_ids.has(enemy.get_instance_id()) and global_position.distance_to(enemy.global_position) <= radius:
+			hit_ids[enemy.get_instance_id()] = true
 			deal_damage(enemy, damage)
 			if valid_target(enemy) and info.get("frost", false) and enemy.has_method("apply_slow"):
-				enemy.apply_slow(0.6, 2.0)
-	remaining = minf(remaining, 0.25)
+				enemy.apply_slow(1.0 - float(info.get("slow", 0.4)), float(info.get("slow_duration", 2.0)))
 
 func advance_spirit(delta: float, player: Node2D):
 	var target = tracking_target(player.global_position, 600)
 	var destination = target.global_position if target else player.global_position
 	global_position = global_position.move_toward(destination, 320 * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
-	strike_ready = maxf(0, strike_ready - delta)
-	if target and valid_target(target) and global_position.distance_to(target.global_position) <= Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier) and strike_ready <= 0.000001:
-		var center = target.global_position
-		var before = float(target.current_health)
-		deal_damage(target, damage)
-		strike_ready = 0.5
-		if info.get("reaping", false) and before > 0 and is_instance_valid(target) and float(target.current_health) <= 0:
-			pulse(center, 100 * float(info.spell_size_multiplier), damage * 0.5, target)
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not valid_target(enemy) or age < float(spirit_hit_times.get(enemy.get_instance_id(), -INF)):
+			continue
+		if not enemy.is_visible_in_tree() or not player.get_viewport().get_visible_rect().has_point(enemy.get_global_transform_with_canvas().origin):
+			continue
+		if global_position.distance_to(enemy.global_position) > Geometry.SPIRIT_RADIUS * float(info.spell_size_multiplier):
+			continue
+		var center = enemy.global_position
+		var before = float(enemy.current_health)
+		deal_damage(enemy, damage)
+		spirit_hit_times[enemy.get_instance_id()] = age + 0.5
+		if info.get("reaping", false) and before > 0 and is_instance_valid(enemy) and float(enemy.current_health) <= 0:
+			pulse(center, 100 * float(info.spell_size_multiplier), damage * 0.5, enemy)
 			burst_position = center
 			burst_remaining = 0.25
 
@@ -285,6 +299,14 @@ func advance_returning(delta: float, player: Node2D):
 			pulse(global_position, radius, damage * float(info.get("linger_damage_multiplier", 0.5)))
 		return
 	else:
+		if not duration_echo_created:
+			duration_echo_created = true
+			var extra_duration = float(info.get("linger_duration", 0.9)) * (float(info.spell_duration_multiplier) - 1.0)
+			if extra_duration > 0.000001:
+				var echo = preload("res://scripts/LingeringArea.gd").new()
+				echo.tick_interval = float(info.get("linger_interval", 0.3))
+				echo.configure(global_position, radius, damage * float(info.get("linger_damage_multiplier", 0.5)), extra_duration, Color("c4b3eb"), "blade")
+				get_tree().current_scene.add_child(echo)
 		global_position = global_position.move_toward(player.global_position, movement)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if valid_target(enemy) and not leg_hits[leg].has(enemy.get_instance_id()) and Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= radius:

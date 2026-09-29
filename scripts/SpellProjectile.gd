@@ -13,6 +13,9 @@ var hit_ids: Dictionary = {}
 
 var spell_size = 1.0
 var despawning: bool = false
+var impact_pending = false
+var impact_generation = 0
+var impact_target: WeakRef
 
 # Movement and damage properties
 var speed: float = 400.0              # Movement speed in pixels per second
@@ -196,23 +199,54 @@ func _on_area_entered(area):
 			if enemy.has_method("take_damage"):
 				if hit_ids.has(enemy.get_instance_id()) or enemy.get("dying") or enemy.current_health <= 0:
 					return
+				if projectile_type != "lightning_bolt":
+					if not impact_pending:
+						impact_pending = true
+						impact_target = weakref(enemy)
+						resolve_impact.call_deferred(impact_generation)
+					return
 				reservation_remaining = 0.0
-				hit_ids[enemy.get_instance_id()] = true
-				var health_before = enemy.current_health
-				enemy.take_damage(damage, global_position)
-				var dealt = maxf(0.0, health_before - enemy.current_health)
-				if projectile_type == "life_bolt" and dealt > 0:
-					spawn_healing_seed()
-
-				
-				# Create damage number
-				var parent = get_parent()
-				if parent and parent.has_method("show_damage_number"):
-					parent.show_damage_number(enemy.global_position, damage)
-				
-				# Remove projectile after hit (unless it's a piercing type)
-				if not bounce_from(enemy) and projectile_type != "lightning_arc":
+				hit_enemy(enemy)
+				if not bounce_from(enemy):
 					despawn()
+
+func resolve_impact(generation: int = -1):
+	if not impact_pending or (generation >= 0 and generation != impact_generation):
+		return
+	impact_pending = false
+	if despawning or is_queued_for_deletion():
+		return
+	var first = impact_target.get_ref() if impact_target else null
+	var contacts: Array = [first] if Targeting.alive(first) else []
+	for overlap in get_overlapping_areas():
+		var enemy = overlap.get_parent()
+		if overlap.name == "HurtBox" and enemy.is_in_group("enemies") and Targeting.alive(enemy) and enemy not in contacts:
+			contacts.append(enemy)
+	if contacts.is_empty():
+		return
+	reservation_remaining = 0.0
+	for enemy in contacts:
+		hit_enemy(enemy)
+	if projectile_type != "lightning_arc":
+		despawn()
+
+func hit_enemy(enemy):
+	if not Targeting.alive(enemy) or hit_ids.has(enemy.get_instance_id()):
+		return
+	hit_ids[enemy.get_instance_id()] = true
+	var center = enemy.global_position
+	var health_before = float(enemy.current_health)
+	enemy.take_damage(damage, global_position)
+	var dealt = maxf(0.0, health_before - float(enemy.current_health)) if is_instance_valid(enemy) else health_before
+	if projectile_type == "life_bolt" and dealt > 0:
+		spawn_healing_seed()
+	if projectile_type == "lightning_bolt" and float(get_meta("splash_damage", 0.0)) > 0:
+		var splash = preload("res://scripts/LingeringArea.gd").new()
+		splash.configure(center, float(get_meta("splash_radius", 80.0)), float(get_meta("splash_damage", 0.0)), float(get_meta("splash_duration", 0.2)), Color("8dcfff"), "lightning")
+		get_parent().add_child(splash)
+	var parent = get_parent()
+	if parent and parent.has_method("show_damage_number"):
+		parent.show_damage_number(center, damage)
 
 # Custom drawing for special effects like lightning and area effects
 func _draw():
@@ -271,6 +305,7 @@ func spawn_healing_seed():
 	seed.healing_duration = float(get_meta("healing_seed_duration", 2.0))
 	seed.remaining = float(get_meta("healing_seed_lifetime", 10.0))
 	seed.cap = maxi(1, int(get_meta("healing_seed_cap", 6)))
+	seed.radius = float(get_meta("healing_seed_radius", 28.0))
 	seed.position = get_parent().to_local(global_position)
 	get_parent().add_child(seed)
 
@@ -280,12 +315,15 @@ func setup_for_pool():
 	is_pooled = true
 
 func reset_for_pool():
+	impact_generation += 1
+	impact_pending = false
+	impact_target = null
 	reservation_remaining = 0.0
 	monitoring = true
 	hit_ids.clear()
 	remove_meta("bounce_count")
 	remove_meta("bounce_range")
-	for key in ["healing_seed_owner", "healing_seed_amount", "healing_seed_duration", "healing_seed_lifetime", "healing_seed_cap"]:
+	for key in ["healing_seed_owner", "healing_seed_amount", "healing_seed_duration", "healing_seed_lifetime", "healing_seed_cap", "healing_seed_radius", "splash_damage", "splash_radius", "splash_duration"]:
 		remove_meta(key)
 	healing_owner = null
 	heal_on_hit = 0.0

@@ -82,6 +82,7 @@ func run():
 	for p in weak_bolts:
 		p.set_process(false)
 	weak_bolts[0]._on_area_entered(weak_bolts[0].target.get_node("HurtBox"))
+	weak_bolts[0].resolve_impact()
 	check(weak_bolts[0].despawning and weak_bolts[0].reservation_remaining == 0, "Real enemy impact consumes projectile reservation")
 	weak_bolts[1].reset_for_pool()
 	weak_bolts[1].setup_homing(game.player.position, enemies[2], 4, Color.WHITE, "mana_bolt")

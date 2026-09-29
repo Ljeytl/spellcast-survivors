@@ -56,7 +56,7 @@ func run():
 	var refreshed = shield_effect()
 	refreshed.set_process(false)
 	check(effect.is_queued_for_deletion() and refreshed != effect, "Recast replaces old stones")
-	check(is_equal_approx(game.player.overheal_timer, 16) and is_equal_approx(refreshed.duration, 16), "Recast refreshes full duration")
+	check(is_equal_approx(game.player.overheal_timer, 22) and is_equal_approx(refreshed.duration, 22), "Recast adds full duration to six remaining seconds")
 	game.player.take_damage(game.player.overheal)
 	refreshed._process(0.01)
 	check(game.player.overheal == 0 and refreshed.is_queued_for_deletion(), "Depleted shield removes stones immediately")

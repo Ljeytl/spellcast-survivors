@@ -25,6 +25,9 @@ const SLOW_EFFECT_STRENGTH = 0.5
 const SLOW_EFFECT_DURATION = 3.0
 const SPELL_CAST_COOLDOWN = 0.1  # Minimum time between spell casts
 
+const CombinationScaling = preload("res://scripts/CombinationScaling.gd")
+const Geometry = preload("res://scripts/SpellGeometry.gd")
+
 const Targeting = preload("res://scripts/SpellTargeting.gd")
 
 var spell_projectile_scene = preload("res://scenes/SpellProjectile.tscn")
@@ -440,7 +443,7 @@ func cast_spell_by_type(slot: int) -> bool:
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
 		"heal":
-			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)))
+			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)) * Geometry.power_multiplier(player))
 		"heal_over_time":
 			cast_life_spell(slot)
 		"aoe":
@@ -641,8 +644,8 @@ func get_multiple_enemies(count: int) -> Array:
 func cast_life_spell(slot: int):
 	var spell_info = get_spell_info(slot)
 	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
-	var heal_per_second = spell_info["heal_amount"] * level_multiplier
-	var duration = spell_info["duration"]
+	var heal_per_second = spell_info["heal_amount"] * level_multiplier * Geometry.power_multiplier(player)
+	var duration = float(spell_info["duration"]) * Geometry.duration_multiplier(player)
 	
 	var total_remaining = float(duration)
 	var extended = false
@@ -677,11 +680,11 @@ func cast_ice_blast_spell(slot: int):
 func cast_earthshield_spell(slot: int):
 	var spell_info = get_spell_info(slot)
 	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
-	var overheal_amount = spell_info["shield_hp"] * level_multiplier
+	var overheal_amount = spell_info["shield_hp"] * level_multiplier * Geometry.power_multiplier(player)
 	
 	# Add overheal to player instead of shield
 	if player and player.has_method("add_overheal"):
-		var duration = float(spell_info.get("duration", 16.0))
+		var duration = float(spell_info.get("duration", 16.0)) * Geometry.duration_multiplier(player)
 		var prior = maxf(0, player.overheal_timer) if player.overheal > 0 and spell_info.get("recast_behavior", "stack") == "extend" else 0.0
 		player.add_overheal(overheal_amount, duration)
 		player.overheal_timer += prior
@@ -707,6 +710,9 @@ func cast_bouncing_bolt(slot: int):
 		return
 	var projectile = spell_projectile_scene.instantiate()
 	projectile.speed = 550.0 * player.projectile_speed_multiplier
+	projectile.set_meta("splash_damage", info.splash_damage)
+	projectile.set_meta("splash_radius", float(info.splash_radius) * Geometry.multiplier(player))
+	projectile.set_meta("splash_duration", float(info.splash_duration) * Geometry.duration_multiplier(player))
 	projectile.set_meta("bounce_count", int(info.get("bounce_count", 4)))
 	projectile.set_meta("bounce_range", float(info.get("bounce_range", 240.0)))
 	projectile.lifetime = maxf(3.0, (int(info.get("bounce_count", 4)) + 1) * float(info.get("bounce_range", 240.0)) / projectile.speed + 1.0)
@@ -758,16 +764,10 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 	var spell_level = spell_info["level"]
 	var damage_ranks = 0.0 if spell_info.has("rank_steps") else float(spell_level - 1)
 	var level_multiplier = 1.0 + 0.15 * damage_ranks
-	var ingredient_ranks = get_combination_ingredient_ranks(str(spell_info.get("id", "")))
-	var inherited_damage = 0.0
-	for rank in ingredient_ranks.values():
-		inherited_damage += 0.075 * maxi(0, int(rank) - 1)
-	var damage = base_damage * (level_multiplier + inherited_damage)
-	
-	if player:
-		damage *= player.spell_damage_multiplier
-	
-	return damage * float(spell_info.get("damage_multiplier", 1.0))
+	if Synergies.RECIPES.has(str(spell_info.get("id", ""))):
+		var resolved = spell_info if spell_info.get("combination_scaled", false) else CombinationScaling.resolve(spell_info, get_combination_ingredient_ranks(str(spell_info.id)))
+		return float(resolved.damage) * Geometry.power_multiplier(player)
+	return float(base_damage) * level_multiplier * Geometry.power_multiplier(player)
 
 func process_healing_effects(delta):
 	for i in range(active_healing_effects.size() - 1, -1, -1):
@@ -796,23 +796,11 @@ func create_shield_effect():
 		particles.create_persistent_shield_circle(player, player.overheal_timer)
 
 func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String):
-	# Create satisfying area effect explosion
-	var effect = spell_projectile_scene.instantiate()
-	effect.setup_aoe_effect(pos, radius, color, effect_type)
+	var effect = load("res://scripts/LingeringArea.gd").new()
+	var slow_factor = 0.5 if effect_type == "ice" else 1.0
+	var slow_time = 3.0 if effect_type == "ice" else 0.0
+	effect.configure(pos, radius, damage, 0.2 * Geometry.duration_multiplier(player), color, effect_type, {}, slow_factor, slow_time)
 	get_parent().add_child(effect)
-	
-	# Deal damage to enemies in range
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var enemies = scene_tree.get_nodes_in_group("enemies")
-	for enemy in enemies:
-		var distance = pos.distance_to(enemy.global_position)
-		if _live_spell_target(enemy) and distance <= radius:
-			enemy.take_damage(damage)
-			# Apply slow effect for ice blast
-			if effect_type == "ice" and enemy.has_method("apply_slow"):
-				enemy.apply_slow(0.5, 3.0)  # 50% slow for 3 seconds
 
 func create_meteor_strike(pos: Vector2, damage: float, radius: float = 220.0):
 	# Larger radius and higher damage for meteors with big explosion
@@ -1057,18 +1045,35 @@ func cast_freeform_spell(spell_name: String) -> bool:
 	return cast_spell()
 
 func cast_life_bolt(slot: int):
-	var projectile = spell_projectile_scene.instantiate()
-	projectile.speed *= player.projectile_speed_multiplier
-	projectile.set_meta("healing_seed_amount", 6.0 * (1.0 + 0.075 * maxi(0, get_spell_rank("life") - 1)))
-	projectile.set_meta("healing_seed_duration", 2.0)
-	projectile.set_meta("healing_seed_lifetime", 10.0)
-	projectile.set_meta("healing_seed_cap", 6)
-	projectile.set_meta("healing_seed_owner", weakref(player))
-	get_parent().add_child(projectile)
-	var target = Targeting.select(get_tree(), player.global_position)
-	var direction = player.global_position.direction_to(target.global_position) if _live_spell_target(target) else Vector2.RIGHT
-	projectile.setup(player.global_position, direction, calculate_spell_damage(get_spell_info(slot)), Color.GREEN, "life_bolt")
-	projectile.assign_target(target)
+	var info = resolve_cast_info(slot)
+	var coverage: Dictionary = {}
+	var offscreen: Dictionary = {}
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not enemy.is_visible_in_tree() or not get_viewport().get_visible_rect().has_point(enemy.get_global_transform_with_canvas().origin):
+			offscreen[enemy.get_instance_id()] = true
+	for index in range(int(info.get("projectile_count", 1))):
+		var projectile = spell_projectile_scene.instantiate()
+		projectile.speed *= player.projectile_speed_multiplier
+		for key in ["healing_seed_amount", "healing_seed_duration", "healing_seed_lifetime", "healing_seed_radius"]:
+			var value = float(info[key])
+			if key == "healing_seed_lifetime":
+				value *= Geometry.duration_multiplier(player)
+			elif key == "healing_seed_radius":
+				value *= Geometry.multiplier(player)
+			projectile.set_meta(key, value)
+		projectile.set_meta("healing_seed_cap", 6)
+		projectile.set_meta("healing_seed_owner", weakref(player))
+		get_parent().add_child(projectile)
+		var excluded = offscreen.duplicate()
+		excluded.merge(coverage)
+		var target = Targeting.select(get_tree(), player.global_position, INF, excluded)
+		if not _live_spell_target(target):
+			target = Targeting.select(get_tree(), player.global_position, INF, offscreen)
+		if _live_spell_target(target):
+			coverage[target.get_instance_id()] = float(coverage.get(target.get_instance_id(), 0)) + 1.0
+		var direction = player.global_position.direction_to(target.global_position) if _live_spell_target(target) else Vector2.RIGHT.rotated(index * 0.15)
+		projectile.setup(player.global_position, direction, calculate_spell_damage(info), Color.GREEN, "life_bolt")
+		projectile.assign_target(target)
 
 func add_healing_effect(amount: float, duration: float):
 	if amount <= 0.0 or duration <= 0.0 or not is_instance_valid(player):
@@ -1147,6 +1152,7 @@ func learn_spell(spell_id: String) -> bool:
 			return false
 		var bonus = ingredient.duplicate(true)
 		bonus.merge(recipe.overrides, true)
+		bonus.erase("rank_steps")
 		bonus.id = spell_id
 		bonus.name = recipe.name
 		bonus.display_name = recipe.incantation
@@ -1178,18 +1184,10 @@ func get_combination_ingredient_ranks(spell_id: String) -> Dictionary:
 
 func resolve_cast_info(slot: int) -> Dictionary:
 	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
-	var ranks = get_combination_ingredient_ranks(str(info.get("id", "")))
-	var ice_bonus = 12.5 * maxi(0, int(ranks.get("ice_blast", 1)) - 1)
-	if info.id == "lightning_bolt":
-		info.bounce_count = int(info.get("bounce_count", 4)) + maxi(0, int(info.get("level", 1)) - 1)
-	elif info.id == "steam_field":
-		info.radius = float(info.get("radius", 150.0)) + ice_bonus
-	elif info.id == "frost_sigil":
-		info.trap_radius = float(info.get("trap_radius", 170.0)) + ice_bonus
-	elif info.id == "soul_bloom":
-		var healing_scale = 1.0 + 0.075 * maxi(0, int(ranks.get("regeneration", 1)) - 1)
-		info.lifesteal = float(info.lifesteal) * healing_scale
-		info.healing_tick_cap = 2.0 * healing_scale
+	info = CombinationScaling.resolve(info, get_combination_ingredient_ranks(str(info.get("id", ""))))
+	for key in ["splash_damage", "explosion_damage", "healing_seed_amount", "healing_bloom_amount"]:
+		if info.has(key):
+			info[key] = float(info[key]) * Geometry.power_multiplier(player)
 	return info
 
 func rebuild_freeform_library():
@@ -1228,6 +1226,9 @@ func synergy_eligible(id: String) -> bool:
 func get_rank_upgrade_description(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)
 	var prefix = "Rank %d → %d: " % [rank, rank + 1]
+	var combination_description = CombinationScaling.next_description(spell_id, rank)
+	if not combination_description.is_empty():
+		return prefix + combination_description
 	var ranked_info = get_spell_info(find_spell_slot(spell_id))
 	if ranked_info.has("rank_steps"):
 		return prefix + preload("res://scripts/SpellProgression.gd").next_description(ranked_info)

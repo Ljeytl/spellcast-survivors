@@ -90,7 +90,7 @@ func run():
 	spirits[1].advance(0.01)
 	check(spirits[1].target_ref.get_ref() == enemies[0], "Queued deletion releases reservation immediately")
 	var label = game.hud.get_node("BuildVersion")
-	check(label.text == "v0.1.31 · Playtest", "Real gameplay HUD uses requested version")
+	check(label.text == "v0.1.35 · Playtest", "Real gameplay HUD uses requested version")
 	game.queue_free()
 	await process_frame
 	print("Seeker targeting: %d checks, %d failures" % [checks, failures])

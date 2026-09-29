@@ -117,10 +117,12 @@ func run():
 	check(projectile != null, "Life Bolt creates seed-bearing projectile")
 	projectile.global_position = target.global_position
 	projectile._on_area_entered(hurt)
+	projectile.resolve_impact()
 	check(game.player.health == 50.0, "Damaging hit does not remotely heal")
 	var seeds = get_nodes_in_group("healing_seeds")
 	check(seeds.size() == 1 and seeds[0].global_position == target.global_position, "Actual impact plants one seed at the enemy")
 	projectile._on_area_entered(hurt)
+	projectile.resolve_impact()
 	check(get_nodes_in_group("healing_seeds").size() == 1, "Same projectile cannot plant twice")
 	var seed = seeds[0]
 	seed.set_physics_process(false)
@@ -168,8 +170,8 @@ func run():
 	check(profile.discovered_synergies.is_empty(), "Profile reset clears discovery")
 	menu.get_node("MenuPanel/VBoxContainer/CollectionButton").pressed.emit()
 	labels = menu.find_children("*", "Label", true, false)
-	check(not labels.any(func(label): return "Life Bolt" in label.text), "Unknown recipe details stay hidden")
-	check(labels.any(func(label): return "No discoveries yet." in label.text), "Empty collection explains discovery")
+	check(labels.any(func(label): return "Life Bolt" in label.text), "Necronomicon lists undiscovered recipes")
+	check(labels.any(func(label): return "Undiscovered" in label.text), "Necronomicon marks undiscovered recipes without granting them")
 	menu.queue_free()
 	await process_frame
 	for child in root.get_node("AudioManager").get_children():

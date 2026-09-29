@@ -20,13 +20,13 @@ const SPELLS = {
 }
 
 const EVOLUTIONS = {
-	"lightning_bolt": "Fire a bolt that bounces between nearby enemies.",
+	"lightning_bolt": "Bounce lightning between enemies with a blast on every hit.",
 	"life_bolt": "Hits plant a healing seed you can collect.",
-	"meteor_lance": "Pierce enemies with explosive hits and 40% less direct damage.",
-	"soul_bloom": "Spread healing infection with 25% less damage.",
-	"steam_field": "Create slowing steam that lasts 3 seconds.",
-	"prism_ray": "Pierce aligned enemies with 40% less damage per target.",
-	"frost_sigil": "Place a larger slowing trap that arms after 1.4 seconds.",
+	"meteor_lance": "Pierce enemies with explosive meteor hits.",
+	"soul_bloom": "Infect enemies; their deaths leave healing blooms.",
+	"steam_field": "Scald and slow enemies in a lingering steam field.",
+	"prism_ray": "Carve through a line with a broad, fixed-direction laser.",
+	"frost_sigil": "Place a persistent frost rune that bursts and slows enemies.",
 	"reaping_spirit": "Summon a hunter with explosive kills and 25% less contact damage."
 }
 
@@ -47,7 +47,9 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 		"spell_area":
 			return "Gain %s%% spell size." % number(value * 100)
 		"projectile_speed":
-			return "Gain %s%% projectile speed." % number(value * 100)
+			return "Spells travel and turn %s%% faster." % number(value * 100)
+		"spell_duration":
+			return "Effects last %s%% longer." % number(value * 100)
 		"slowdown_duration":
 			return "Gain %s seconds of slowdown per cast." % number(value)
 		"mana_bolt_mastery":
@@ -64,16 +66,18 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 
 static func rank_description(id: String, manager: Node) -> String:
 	var rank = manager.get_spell_rank(id)
+	if preload("res://scripts/SynergyCatalog.gd").RECIPES.has(id):
+		return preload("res://scripts/CombinationScaling.gd").next_description(id, rank)
 	var slot = manager.find_spell_slot(id)
 	var info = manager.get_spell_info(slot)
 	if info.has("rank_steps"):
 		return preload("res://scripts/SpellProgression.gd").next_description(info)
 	if id == "life":
-		return "Restore %s more health per cast." % number(float(info.heal_amount) * 0.15)
+		return "Restore %s more health per cast." % number(float(info.heal_amount) * 0.15 * manager.player.spell_damage_multiplier)
 	if id == "regeneration":
-		return "Restore %s more health each second." % number(float(info.heal_amount) * 0.15)
+		return "Restore %s more health each second." % number(float(info.heal_amount) * 0.15 * manager.player.spell_damage_multiplier)
 	if id == "earth_shield":
-		return "Gain %s more bonus health per cast." % number(float(info.shield_hp) * 0.15)
+		return "Gain %s more bonus health per cast." % number(float(info.shield_hp) * 0.15 * manager.player.spell_damage_multiplier)
 	var base = manager.mana_bolt_damage if id == "mana_bolt" else float(info.get("damage", 0)) * float(info.get("damage_multiplier", 1))
 	var gain = base * 0.15 * manager.player.spell_damage_multiplier
 	var extra = ""

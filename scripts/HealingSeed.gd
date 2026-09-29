@@ -6,6 +6,7 @@ var collected = false
 var healing_amount = 6.0
 var healing_duration = 2.0
 var cap = 6
+var radius = 28.0
 
 func _ready():
 	add_to_group("healing_seeds")
@@ -20,17 +21,21 @@ func _physics_process(delta):
 	if not is_instance_valid(player) or player.is_queued_for_deletion() or float(player.health) <= 0:
 		queue_free()
 		return
+	if collected:
+		return
 	remaining -= delta
-	if not collected and global_position.distance_to(player.global_position) <= 28 and player.health < player.max_health and player.has_method("start_healing_over_time"):
+	if remaining <= 0:
+		queue_free()
+		return
+	if not collected and global_position.distance_to(player.global_position) <= radius and player.health < player.max_health and player.has_method("start_healing_over_time"):
 		collected = true
 		player.start_healing_over_time(healing_amount, healing_duration)
 		queue_free()
 		return
-	if remaining <= 0:
-		queue_free()
 	queue_redraw()
 
 func _draw():
+	preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, Color("91dca2"), clampf(remaining, 0, 1))
 	var art = preload("res://scripts/EffectArt.gd")
 	if collected:
 		art.wreath(self, "heal", Vector2.ZERO, 24, 0, 0.7, 3)

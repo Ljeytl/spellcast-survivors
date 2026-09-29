@@ -1,3 +1,5 @@
+Prototype release note: [0.1.35 spell scaling](../releases/0.1.35-spell-scaling.md) defines the implemented passive/combination behavior. The keyword and campaign proposals below remain future design, not the current parser.
+
 # Spell language and modular composition specification
 
 **Decision precedence:** [Alignment review and open conflicts](13-review-record.md#alignment-review--28-september-2026) supersedes older conflicting proposals below, especially XP/mana, infection/Big and roster counting.
