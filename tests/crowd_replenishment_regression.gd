@@ -64,6 +64,33 @@ func run():
 		enemy.set_physics_process(false)
 		check(not manager.encounter_director.visible_world_rect().has_point(enemy.global_position), "Refill never materializes on screen")
 		check(enemy.family != "shooter", "Refill preserves timed ranged unlock")
+	var terrain = game.get_node("Background")
+	terrain.name = "BackgroundDisabledForEntryGeometry"
+	var bounds = manager.encounter_director.visible_world_rect()
+	for angle in [0.0, PI * 0.5, PI, PI * 1.5]:
+		var ordinary = manager.encounter_director.entry_position(angle, 25.0)
+		var refill = manager.encounter_director.entry_position(angle, 25.0, 64.0)
+		check(not bounds.grow(63.0).has_point(refill), "Refill retains at least64world-unit clearance")
+		check(is_equal_approx(ordinary.distance_to(refill), 96.0), "Refill saves96world units of approach while ordinary margin stays160")
+	var large = manager.encounter_director.entry_position(0.0, 100.0, 64.0)
+	check(is_equal_approx(large.x - bounds.end.x, 150.0), "Large bodies retain1.5radius offscreen clearance")
+	var standard_large = manager.encounter_director.entry_position(0.0, 100.0)
+	check(is_equal_approx(standard_large.x - bounds.end.x, 400.0), "Ordinary large bodies retain4radius margin")
+	for id in manager.encounter_config.variants:
+		var definition = manager.encounter_config.variants[id].duplicate(true)
+		definition.id = id
+		for angle in [0.0, PI * 0.5, PI, PI * 1.5]:
+			var enemy = manager.spawn_monster(definition, false, true, angle, 64.0)
+			var sprite = enemy.get_node("Sprite2D")
+			var used: Rect2 = Rect2(sprite.texture.get_image().get_used_rect())
+			used.position -= sprite.texture.get_size() * 0.5
+			var visual_bounds = Rect2(sprite.to_global(used.position), Vector2.ZERO)
+			for corner in [used.position + Vector2(used.size.x, 0.0), used.end, used.position + Vector2(0.0, used.size.y)]:
+				visual_bounds = visual_bounds.expand(sprite.to_global(corner))
+			check(not bounds.intersects(visual_bounds), "Entire refill sprite starts offscreen: " + id)
+			enemy.free()
+			manager.monsters_alive -= 1
+	terrain.name = "Background"
 	manager.replenish_population(0.6)
 	check(manager.monsters_alive == manager.refill_population_target(), "Refill reaches target promptly without timer timeout")
 	var population = manager.monsters_alive

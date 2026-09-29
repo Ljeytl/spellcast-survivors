@@ -80,7 +80,7 @@ func replenish_population(delta: float):
 	var count = spawn_pressure.refill_count(monsters_alive, target)
 	var angle = randf() * TAU
 	for index in range(count):
-		spawn_monster({}, false, true, angle + float(index) / maxf(1.0, count) * TAU)
+		spawn_monster({}, false, true, angle + float(index) / maxf(1.0, count) * TAU, 64.0)
 
 func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1) -> Dictionary:
 	var scaling = encounter_config.scaling
@@ -98,7 +98,7 @@ func _on_spawn_timer_timeout():
 		spawn_monster()
 	spawn_timer.wait_time = calculate_spawn_interval()
 
-func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN) -> Node2D:
+func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN, entry_margin: float = -1.0) -> Node2D:
 	if run_finished or awaiting_extraction:
 		return null
 	spawn_attempts += 1
@@ -123,7 +123,7 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 			stats.damage *= 1.5
 			stats.xp *= 12.0
 		monster.configure(definition, stats, is_boss)
-		var point = encounter_director.entry_position(angle + index * 0.06, 29.0 * monster.scale.x)
+		var point = encounter_director.entry_position(angle + index * 0.06, 29.0 * monster.scale.x, entry_margin)
 		if not point.is_finite():
 			monster.free()
 			continue
