@@ -1,5 +1,7 @@
 # 0.1.35 — Spell scaling and combination progression
 
+- Document spell-form vocabulary, Golem as the castable word, unique Seed identity, authored elemental variants and additive Flaming Earth Wall. Keep unresolved wall/shield mechanics and keyword numbers explicit; no gameplay changes.
+
 - Correct 0.1.35 Prism Ray to track at 0.25 radians/second instead of locking its direction; retain piercing damage and update descriptions and regression checks.
 
 - Added Spell Duration (+10% active effect lifetime), including brief damaging AoE aftermaths without slower impacts.
