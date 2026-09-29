@@ -182,7 +182,7 @@ func run():
 		game.pending_level_ups.append(2)
 		game.show_next_level_up()
 		var ui=game.level_up_screen
-		ui.available_upgrades=[{"name":"Earth Shield+","effect":{"type":"spell_upgrade","spell":"earth_shield"}},ui.generic_upgrades.spell_duration.duplicate(true),ui.generic_upgrades.spell_area.duplicate(true)]
+		ui.available_upgrades=[{"name":"Earth Shield+","effect":{"type":"spell_upgrade","spell":"earth_shield"}},ui.generic_upgrades.spell_duration.duplicate(true),ui.generic_upgrades.area_size.duplicate(true)]
 		ui.update_ui(2,{})
 		await create_timer(0.2).timeout
 		await RenderingServer.frame_post_draw
