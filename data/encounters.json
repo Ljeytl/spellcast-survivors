@@ -3,6 +3,7 @@
   "tier_duration": 300,
   "ranged_start": 600,
   "scaling": {
+    "adaptive_clear_pressure_strength": 0.0,
     "grace_seconds": 180,
     "health_growth_per_120_seconds": 1.16,
     "damage_growth_per_second": 0.0004,

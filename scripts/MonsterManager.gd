@@ -63,12 +63,15 @@ func select_monster(_difficulty_level: int = 1) -> Dictionary:
 			return definition
 	return {}
 
+func adaptive_clear_pressure() -> float:
+	return spawn_pressure.level * clampf(float(encounter_config.get("scaling", {}).get("adaptive_clear_pressure_strength", 0.0)), 0.0, 1.0)
+
 func variant_spawn_weight(definition: Dictionary) -> float:
 	var specialist = definition.get("id", "") not in ["pursuer", "sprinter", "swarmer"]
-	return float(definition.weight) * (1.0 + spawn_pressure.level * 0.75 if specialist else 1.0)
+	return float(definition.weight) * (1.0 + adaptive_clear_pressure() * 0.75 if specialist else 1.0)
 
 func refill_population_target() -> int:
-	return mini(max_monsters, int(lerpf(6.0, 24.0, clampf(game_time / 600.0, 0.0, 1.0))) + int(spawn_pressure.level * 8.0))
+	return mini(max_monsters, int(lerpf(6.0, 24.0, clampf(game_time / 600.0, 0.0, 1.0))) + int(adaptive_clear_pressure() * 8.0))
 
 func replenish_population(delta: float):
 	if run_finished or awaiting_extraction:
@@ -205,7 +208,7 @@ func timed_spawn_difficulty_multiplier() -> float:
 
 func calculate_spawn_interval() -> float:
 	var scaling = encounter_config.get("scaling", {})
-	var difficulty = minf(float(scaling.get("maximum_spawn_difficulty", INF)), spawn_difficulty_multiplier() * (1.0 + 0.3 * spawn_pressure.level))
+	var difficulty = minf(float(scaling.get("maximum_spawn_difficulty", INF)), spawn_difficulty_multiplier() * (1.0 + 0.3 * adaptive_clear_pressure()))
 	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.1))), spawn_phase_interval(game_time) / difficulty)
 
 func spawn_batch_amount() -> float:
@@ -230,7 +233,7 @@ func spawn_batch_amount() -> float:
 		for batch in scaling.get("spawn_batches", []):
 			if float(batch.get("difficulty", 1.0)) <= difficulty:
 				amount = maxf(amount, float(batch.get("count", 1)))
-	return clampf(amount + floorf(spawn_pressure.level + 0.5), 1.0, max_monsters)
+	return clampf(amount + floorf(adaptive_clear_pressure() + 0.5), 1.0, max_monsters)
 
 func calculate_spawn_batch_size() -> int:
 	return int(floorf(spawn_batch_amount()))

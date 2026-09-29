@@ -125,7 +125,17 @@ func run():
 	paused = false
 	var baseline_interval = manager.calculate_spawn_interval()
 	var baseline_batch = manager.calculate_spawn_batch_size()
+	var baseline_target = manager.refill_population_target()
 	manager.spawn_pressure.level = 1.0
+	check(manager.adaptive_clear_pressure() == 0.0, "Shipped tuning disables adaptive clear escalation even at maximum tracked pressure")
+	check(manager.calculate_spawn_interval() == baseline_interval, "Disabled pressure cannot accelerate timer")
+	check(manager.calculate_spawn_batch_size() == baseline_batch, "Disabled pressure cannot increase batches")
+	check(manager.refill_population_target() == baseline_target, "Disabled pressure cannot raise refill target")
+	var disabled_specialist = manager.encounter_config.variants.flanker.duplicate(true)
+	disabled_specialist.id = "flanker"
+	check(manager.variant_spawn_weight(disabled_specialist) == float(disabled_specialist.weight), "Disabled pressure cannot favor specialists")
+	manager.encounter_config.scaling.adaptive_clear_pressure_strength = 1.0
+	check(manager.refill_population_target() == baseline_target + 8, "Re-enabling tuning restores adaptive refill target")
 	check(manager.calculate_spawn_interval() < baseline_interval, "Sustained pressure accelerates regular timer")
 	check(manager.calculate_spawn_batch_size() == baseline_batch + 1, "Sustained pressure adds bounded group size")
 	var specialist = manager.encounter_config.variants.flanker.duplicate(true)

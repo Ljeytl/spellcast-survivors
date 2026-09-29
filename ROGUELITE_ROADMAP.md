@@ -1,3 +1,5 @@
+**2026-09-29 tuning:** Clear-based escalation is disabled, retained behind `adaptive_clear_pressure_strength = 0`. Normal refill and timed progression remain active. Pending playtest adjustments are tracked in `docs/PLAYER_FEEDBACK.md`.
+
 ## Attributed playtester ideas — 2026-09-28
 
 **Style scoring — 0.1.28:** [specification](docs/style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Current follow-up uses 800-point gaps, 10,000-point Atomic, shared ray targets, active-channel grace and parallel spawn cadence/group growth. Human feedback still determines final balance.

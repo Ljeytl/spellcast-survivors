@@ -1,3 +1,7 @@
+## Current override — 2026-09-29
+
+Clear-based adaptive escalation is disabled by `scaling.adaptive_clear_pressure_strength: 0.0` in `data/encounters.json`. Sustained-clear tracking and implementation remain available; one restores prior adaptive behavior. All four adaptive effects use the setting: spawn cadence, group size, refill population target and specialist weights. Normal refill and the time-based curve described below remain active and unchanged.
+
 ## Current balance override — 2026-09-28, playtest 0.1.28
 
 The 120-second wave cycle stays: 0–15 light, 15–45 heavy, 45–60 medium, 60–70 light, 70–80 medium, 80–110 heavy, 110–120 medium. Base light/medium/heavy intervals remain 3/2/1 seconds. Cadence and group size now grow in parallel; reaching the fastest cadence is not the end of progression.
