@@ -1,3 +1,9 @@
+## 2026-09-29 — Seeker targeting and combo grace (0.1.31)
+
+- Seekers reserve different visible enemies when available, retarget on death or leaving view, and share a lone target. When new enemies enter view they spread out again; absent targets, they return to the wizard.
+- Extend combo grace from three to five seconds after successful manual casts and the final active ray channel. Decay rates remain unchanged.
+- Set shared playtest version to0.1.31. Global offscreen-target filtering for other spells remains pending, as do the earlier Focus/rank/recycling proposals.
+
 ## 2026-09-29 — Playtest version 0.1.3
 
 - Set the shared project version to 0.1.3 for menu, gameplay, pause, result labels and new score records. Existing exported packages require rebuilding to carry this version.

@@ -16,6 +16,7 @@ func _initialize() -> void:
 	var model = Model.new()
 	check(model.award_cast("bolt", "Bolt", 0.75, 0, 1).pts == 46, "Worked Bolt")
 	check(model.award_cast("bolt", "Bolt", 0.75, 0, 1).is_empty(), "Duplicate receipt")
+	check(model.grace_remaining == 5.0, "Successful cast grants five seconds of grace")
 	check(model.manual_casts == 1 and model.run_score == 46, "No doubled award")
 	check(model.award_cast("bolt", "Bolt", 0.75, 0, 2).pts == 39, "Second freshness")
 	check(model.award_cast("bolt", "Bolt", 0.75, 0, 3).pts == 33, "Repeated base retained")
@@ -48,10 +49,12 @@ func _initialize() -> void:
 		chunked.advance(0.1)
 	check(is_equal_approx(model.combo, chunked.combo), "Piecewise decay frame independent")
 	model.combo = 50.0
-	model.grace_remaining = 3.0
+	model.grace_remaining = Model.GRACE
 	model.advance(2.0)
 	check(model.combo == 50.0, "Grace retained")
 	model.advance(3.0)
+	check(model.combo == 50.0, "Full five-second grace has no decay")
+	model.advance(2.0)
 	check(model.combo == 40.0, "Grace remainder integrated")
 	model.combo = 5000.0
 	model.take_hit()

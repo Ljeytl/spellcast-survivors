@@ -8,7 +8,7 @@ const DECAY := [5.0, 8.0, 12.0, 18.0, 25.0, 35.0, 50.0, 65.0, 80.0]
 const CAP := 12000.0
 const ATOMIC_COST := 10000.0
 const ATOMIC_RANK := 6
-const GRACE := 3.0
+const GRACE := 5.0
 
 var combo := 0.0
 var run_score := 0

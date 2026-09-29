@@ -127,6 +127,11 @@ func closest_target(center: Vector2, radius: float):
 
 func tracking_target(center: Vector2, radius: float):
 	var target = target_ref.get_ref() if target_ref else null
+	if info.type == "spirit":
+		var player = caster.get_ref() if caster else null
+		target = preload("res://scripts/SpellTargeting.gd").select_spirit(get_tree(), player, self, target) if is_instance_valid(player) else null
+		target_ref = weakref(target) if target else null
+		return target
 	if not valid_target(target) or center.distance_to(target.global_position) > radius:
 		if info.type == "beam":
 			var reserved: Array = []
