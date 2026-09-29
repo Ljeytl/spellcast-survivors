@@ -1,5 +1,9 @@
 # Stone inscription style-meter concept
 
+## Sprite preparation delivered
+
+The [colored transparent sprite sheet](../../../assets/ui/style-runes/style-runes-v1.png) and [24 named Godot atlas resources](../../../assets/ui/style-runes/README.md) now provide separate rank, meter, fill and accent pieces. The v2 sheet below remains the original shape concept. This supersedes the earlier note that no recolored sheet exists. Runtime HUD/scoring implementation is still pending. See asset notes for region sizes, transparency, prompt and legibility/assembly review limits.
+
 ## Latest review — color on the carved stone
 
 User feedback: the revised scratched-stone shapes and magical circles are much closer to the desired direction; prefer the richer color from the first sheet. **D, C, B and A should already have color**, with less intensity than S/SS/SSS. Preserve rough dark stone and sharp carved marks; color belongs primarily in the inscriptions and circle marks, not metallic framing.
