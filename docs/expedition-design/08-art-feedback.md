@@ -1,3 +1,7 @@
+Art decision: retain the friend’s art for this iteration. Later compare 2D, 3D and hybrid treatments of the same casting/combo sequence; none is selected, and this release commissions or generates no new art.
+
+Current Shield rule: [0.1.36 Earth Shield](../releases/0.1.36-earth-shield.md) supersedes earlier absorption-pool proposals. [Element × family matrix](16-element-family-matrix.md) separates implemented spells, user ideas and unselected examples.
+
 # Art direction, VFX, impact and audio specification
 
 **Confirmed direction:** wizard fantasy and readable ancient inscriptions, replacing keycap/typing-game identity. Norse-inspired angular rune carving is a reference for form, not a requirement to copy a particular game or replace readable letters. Palette, environment treatment and animation timing below remain proposals. Explore a user sketch and a simple flat-color ground before commissioning broad replacement art; shaders remain later.
@@ -70,7 +74,7 @@ Camera trauma 0–1, quadratic amplitude, linear decay 2.5/s; heavy impact adds 
 |Cinder Field/Firewalk|Boundary appears at activation. Ground flames connect; damage and brightness pulses coincide every 500 ms, with partial exposure settled on exit. After expiry, 150 ms of dim ash is harmless.|
 |Plague Seed|Seed arrives, lesion appears, periodic damage starts. Spreading spores visibly travel. Host death leaves a 3-second orphan; successful arrival consumes it, expiry dissolves it.|
 |Regeneration|Leaves persist for 6 seconds. Emit a small plus only when HP increases. Full health shows quiet leaves without false healing numbers.|
-|Earth Shield|Stone pieces arrive over 150 ms while shield value is already shown. Pieces crack with absorbed damage; expiry creates 250 ms of harmless crumbling.|
+|Earth Shield|Distinct floating stone charges; a blocked hit consumes one and launches a visible attacker-directed earth front. Damage and knockback follow the front; expiration visibly removes a charge. No HP-pool presentation.|
 |Rune Trap|800 ms arming fill, then steady glyph. Trigger, bright ring, actual blast, 180 ms decay. Armed trap persists until triggered or replaced.|
 |Seeker|120 ms summon. Face/tail orient toward the actual target; contact accent follows damage. Turns remain visible; expired spirit dissolves over 150 ms.|
 |Cross Blade|Spinning outbound cross; 900 ms linger with three damaging pulses; distinct return direction; dissolve on catch. No damage after catch.|

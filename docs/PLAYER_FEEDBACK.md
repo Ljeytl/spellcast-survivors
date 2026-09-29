@@ -2,7 +2,7 @@
 
 ## Approved 0.1.35 batch — 29 September 2026
 
-[Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, slowly tracking Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework and Frost Sigil double placement remain deferred.
+[Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, slowly tracking Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework is now approved for 0.1.36; Frost Sigil double placement remains deferred.
 
 **Style art:** colored scratched-stone rank glyphs, meter and Atomic seal are integrated. Simple procedural Atomic VFX is placeholder; polish follows feel testing.
 
@@ -325,3 +325,11 @@ Open diagnostic follow-up: console `kill_all_enemies` / `explode_all_enemies` re
 ## Seeker and style follow-up — 0.1.31
 
 Implemented: Seekers distribute among visible targets, release reservations on death/offscreen/expiry, share only when alternatives run out and spread again when new targets arrive. No visible target means return toward the caster. Combo grace is five seconds after a manual cast or final ray channel. Global targeting restrictions for other spells, shorter Focus, graduated rank thresholds and300-unit recycling remain pending.
+
+## 0.1.36 approved feedback
+
+- Earth Shield: stack one-hit charges; preserve combo when blocked; retaliate with damaging directional knockback toward the attacker. Implementation/verification status: [release spec](releases/0.1.36-earth-shield.md).
+- Populated element × family grid, not just lists or an empty table: [matrix](expedition-design/16-element-family-matrix.md). Documentation addressed.
+- Arcane Seed / Arcane Shield were not agreed: mark assistant/historical proposals outside the main matrix. Documentation addressed.
+- Families guide identities; Ball, Seed lifecycle, Golem word, Restoration and additive Flaming Earth Wall recorded. General keywords remain unimplemented.
+- After this shield pass: tutorial, significant modifiers, then an actual preparation/discovery/return loop. Art medium exploration later; retain friend’s assets now.

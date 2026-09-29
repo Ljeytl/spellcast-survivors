@@ -28,6 +28,25 @@ def validate_roster(text):
 
 
 class DocumentationChecks(unittest.TestCase):
+    def test_current_matrix_covers_live_bases(self):
+        import json
+        root = ROOT.parent.parent
+        source = (root / 'scripts/SpellManager.gd').read_text()
+        ids = json.loads(re.search(r'const BASE_SPELL_IDS = (\[.*?\])', source).group(1))
+        spells = json.loads((root / 'data/spells.json').read_text())['spells']
+        table = content('16-element-family-matrix.md')
+        self.assertEqual(len(ids), 16)
+        for spell_id in ids:
+            if spell_id in spells:
+                self.assertIn(spells[spell_id]['name'], table)
+        for name in ('Ember Lance', 'Plague Seed', 'Cinder Field', 'Arcane Orbit',
+                     'Lightning Bolt', 'Life Bolt', 'Meteor Lance', 'Soul Bloom',
+                     'Steam Field', 'Prism Ray', 'Frost Sigil'):
+            self.assertIn(name, table)
+        selected = table.split('## Examples and historical proposals')[0]
+        for name in ('Arcane Seed', 'Arcane Shield'):
+            self.assertNotIn(name, selected)
+
     def test_component_reference_covers_roster(self):
         reference = content('14-spell-system-reference.md')
         section = reference.split('## 8. Named spell recipes', 1)[1].split('## 9.', 1)[0]
@@ -46,7 +65,7 @@ class DocumentationChecks(unittest.TestCase):
     def test_numbered_documents_are_indexed(self):
         index = content('README.md')
         documents = sorted(ROOT.glob('[0-9][0-9]-*.md'))
-        self.assertEqual(len(documents), 15)
+        self.assertEqual(len(documents), 16)
         for document in documents:
             self.assertIn(f']({document.name})', index, document.name)
 
@@ -78,8 +97,9 @@ class DocumentationChecks(unittest.TestCase):
 
     def test_key_compatibility_exclusions(self):
         rows = matrix(content('04-composition.md'))
-        for name in ('Life', 'Regeneration', 'Earth Shield'):
+        for name in ('Life', 'Regeneration'):
             self.assertNotIn('Big', rows[name])
+        self.assertIn('Big', rows['Earth Shield'])
         self.assertNotIn('Lasting', rows['Yggdrasil'])
         for name in ('Focus Ray', 'Frost Ray', 'Prism Ray', 'Seeker', 'Summon Golem'):
             self.assertNotIn('Charged', rows[name])

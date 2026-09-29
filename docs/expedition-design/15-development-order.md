@@ -1,6 +1,6 @@
 # Development order: evolve the game we have
 
-> **Current development slate:** keep the playable roguelike alpha. Difficulty scaling is next; keyword and expedition work are deferred. Track observations, open work and verified fixes in the [player feedback tracker](../PLAYER_FEEDBACK.md). Future milestones below are not the immediate implementation queue.
+> **Current development slate:** preserve the playable roguelike and style system. Implement the approved Earth Shield redesign for 0.1.36, then build a tutorial introducing meaningful, visibly multiplicative keywords, then preparation/tower/ley-line expeditions. Keyword selection and numeric stacking remain proposals. Keep the friend’s art; 2D, 3D and hybrid art direction are a later exploration.
 
 **28 September 2026 · documentation only · current direction**
 
@@ -27,14 +27,15 @@ Source inspected at gameplay baseline `5955a876059af06e571c3861f306072afb881d16`
 
 | Milestone | Change from today | Concrete scope | Completion evidence |
 |---|---|---|---|
-| M1 — keywords in the current game | Add expression to existing combat | Proposed first words Big and Powerful; existing Bolt, Ice Blast and Meteor Shower exercise projectile, fan and multi-impact geometry. Other existing spells remain available through existing behavior; unsupported words fail clearly | Play current encounters with modified and ordinary casts; size matches collision, no unavailable casts, short spells retain utility, workshop agrees |
+| Current — Earth Shield 0.1.36 | Replace overheal with an active defensive decision | Stack one-hit stone charges; blocked hit preserves combo and sends damaging knockback toward the attacker | Source-aware melee/projectile hits, one charge per hit, visible collision, no combo loss |
+| M1 — tutorial and keywords in the current game | Add expression to existing combat | Proposed first words Big and Powerful; existing Bolt, Ice Blast and Meteor Shower exercise projectile, fan and multi-impact geometry. Other existing spells remain available through existing behavior; unsupported words fail clearly | Play current encounters with modified and ordinary casts; size matches collision, no unavailable casts, short spells retain utility, workshop agrees |
 | M2 — prepare your spellbook | Add selection/order before entry and activation during a run | Use the existing spell catalog; persistent known vocabulary, prepared bases and derived spells; settle capacity and XP/mana/upgrade roles before replacing old progression | Prepare → enter → activate → cast → return; locked/inactive spells reject; existing combat remains playable |
 | M3 — exploration earns knowledge | Add purpose to the existing world | Four ley-line sites with readable challenges and spell/keyword rewards; reuse terrain, enemies and encounter machinery; authored anchors with restrained variation | Travel, attempt, fail/retry, complete, grant once; readable threats and worthwhile rewards |
 | M4 — connected expeditions | Connect progression into a complete loop | Permanent knowledge, return to preparation, guardian after four sites, 20-minute extraction, death and save handling | Discover → extract or die under selected retention policy → reopen → prepare new vocabulary → reenter; reward and save integrity |
 | M5 — levels and vocabulary expansion | Shape and expand the working loop | Normal-slime first level; introduce later enemy patterns and compatible keywords in tested batches; add genuinely new spells separately from migrating existing ones | Distinct preparations and spell choices matter; no compulsory elemental hard counter; complete level journeys |
 | M6 — production and release | Polish a proven expanding game | Accessibility, performance, readable art/audio, packaging and provenance work; add content justified by playtests | Operated packages and representative player evidence, not document/test counts alone |
 
-M1 is the next playable milestone. There is no M0 rebuild gate. Inspect relevant existing code as part of M1, then adapt the minimum shared behavior needed. A complete compiler/scheduler/module hierarchy is not a prerequisite to trying Big Bolt in the actual game. Architecture names in document 10 describe responsibilities, not mandatory new files.
+Earth Shield 0.1.36 is the immediate approved implementation. M1 follows with a short playable introduction that teaches Bolt, spell choice and a visibly stronger modified cast. There is no M0 rebuild gate. Inspect relevant existing code as part of M1, then adapt the minimum shared behavior needed. A complete compiler/scheduler/module hierarchy is not a prerequisite to trying Big Bolt in the actual game. Architecture names in document 10 describe responsibilities, not mandatory new files.
 
 ## First level and retained content
 
@@ -50,10 +51,10 @@ The small M1 modifier test set is not the shipping starting loadout and does not
 | Duration, force and movement | Lasting, Repulsing, Swift, Seeking | Explicit compatible properties; reuse existing duration, knockback and targeting rather than claim they are absent |
 | Release structure | Delayed, Charged, Repeating, Duplicating | Clock, cancellation, output ownership and retargeting contracts; duplicating differs from a delayed smaller echo |
 | Elements | Fiery, Icy, Venomous, Earthen | Damage type versus status distinction, readable conversion, no useless accepted words |
-| New content | Water Jet, Wave, Frost Nova, Thunderwave, Frost Ray, Fire Bolt, Firestorm, Earthquake, Grasping Hand, Moonfall, Mana Storm, Summon Golem, Yggdrasil | Introduce by play value and compatible components after the loop works; do not delay existing infection or Seeker until these are built |
+| New content | Water Jet, Wave, Frost Nova, Thunderwave, Frost Ray, Fire Bolt, Firestorm, Earthquake, Grasping Hand, Moonfall, Mana Storm, Summon Golem (castable word Golem), Yggdrasil | Introduce by play value and compatible components after the loop works; do not delay existing infection or Seeker until these are built |
 | Later experiments | Ice Lance/Glacial Lance paired family, base Wall plus elemental synonyms, Mega/Super/Omega, Orbiting/Rotating, Wide/Piercing, Quick Cast, numeric Delay, Earth Wall, Reaping Spirit, alternate characters | Preserve ideas; none is a requirement for the next playable milestone |
 
-Catalog coverage (design entries, not a final independent-base count): Bolt, Life, Ice Blast, Lightning, Regeneration, Earth Shield, Meteor Shower, Ember Lance, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade, Wave, Water Jet, Frost Nova, Fire Bolt, Firestorm, Earthquake, Thunderwave, Frost Ray, Moonfall, Grasping Hand, Mana Storm, Summon Golem, Yggdrasil, Lightning Bolt, Life Bolt, Meteor Lance, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. The existing table has 29 base rows plus seven derived rows; desired independent-spell count and family tiers still require reconciliation.
+Catalog coverage (design entries, not a final independent-base count): Bolt, Life, Ice Blast, Lightning, Regeneration, Earth Shield, Meteor Shower, Ember Lance, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade, Wave, Water Jet, Frost Nova, Fire Bolt, Firestorm, Earthquake, Thunderwave, Frost Ray, Moonfall, Grasping Hand, Mana Storm, Summon Golem (castable word Golem), Yggdrasil, Lightning Bolt, Life Bolt, Meteor Lance, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. The existing table has 29 base rows plus seven derived rows; desired independent-spell count and family tiers still require reconciliation.
 
 ## Presentation track alongside gameplay
 
