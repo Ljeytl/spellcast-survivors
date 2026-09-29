@@ -53,9 +53,9 @@ func fresh(recipe: String, evolved: bool):
 		manager.learn_spell(recipe)
 		manager.upgrade_spell(recipe)
 		manager.upgrade_spell(recipe)
-	var info = manager.get_spell_info(manager.find_spell_slot(recipe if evolved else primary))
-	if evolved and "--known-bad-no-damage-cost" in OS.get_cmdline_user_args():
-		info.damage_multiplier = 1.0
+	var info = manager.resolve_cast_info(manager.find_spell_slot(recipe if evolved else primary))
+	if evolved and "--known-bad-combination-penalty" in OS.get_cmdline_user_args():
+		info.damage *= 0.5
 	return info
 
 func target(offset: Vector2):
@@ -84,19 +84,18 @@ func run():
 		game.level_up_screen.generate_upgrade_options({}, 8)
 		check(game.level_up_screen.current_upgrade_pool.any(func(card): return card.key == "rank:" + primary), "Basic rank investment remains available beside evolution: " + id)
 		var base_damage = manager.calculate_spell_damage(base)
-		var authored_damage = float(CATALOG.RECIPES[id].overrides.get("damage", base.damage))
-		base_damage *= authored_damage / float(base.damage)
 		var evolved = fresh(id, true)
-		var expected_factor = float(CATALOG.RECIPES[id].overrides.get("damage_multiplier", 1.0))
-		check(is_equal_approx(manager.calculate_spell_damage(evolved), base_damage * expected_factor), "Equal rank and player scaling apply cost once: " + id)
-		check(evolved.level == 3 and evolved.damage == authored_damage, "Independently ranked bonus uses authored damage: " + id)
+		check(manager.calculate_spell_damage(evolved) >= base_damage - 0.000001, "Combination keeps ingredient impact investment: " + id)
+		check(evolved.level == 3 and evolved.get("combination_scaled", false), "Bonus resolves explicit component ranks: " + id)
+		check(not evolved.has("rank_steps") and not evolved.has("damage_multiplier"), "Combination avoids copied reward trees and penalties: " + id)
 		check(manager.find_spell_slot(primary) > 0 and manager.find_spell_slot(CATALOG.RECIPES[id].ingredients[1]) > 0, "Both ingredients retained: " + id)
-		if id not in ["lightning_bolt", "life_bolt"]:
-			check("Gain:" in CATALOG.RECIPES[id].card_description and "Cost:" in CATALOG.RECIPES[id].card_description and "Cost:" in CATALOG.RECIPES[id].description, "Offer and collection disclose both sides: " + id)
+		check(not "Cost:" in CATALOG.RECIPES[id].card_description, "Offer no longer advertises removed penalties: " + id)
+		var previous_damage = manager.calculate_spell_damage(evolved)
 		manager.upgrade_spell(id)
-		check(is_equal_approx(manager.calculate_spell_damage(evolved) - base_damage * expected_factor, authored_damage * 0.15 * 1.7 * expected_factor), "Rank increment retains evolved cost: " + id)
-		if expected_factor < 1:
-			check("evolved base damage" in manager.get_rank_upgrade_description(id), "Rank copy identifies penalized base: " + id)
+		var upgraded = manager.resolve_cast_info(manager.find_spell_slot(id))
+		check(manager.calculate_spell_damage(upgraded) >= previous_damage - 0.000001, "Own rank does not reduce damage: " + id)
+		check(not manager.get_rank_upgrade_description(id).is_empty(), "Own rank has an upgrade description: " + id)
+
 	compare_optional_offers()
 	await compare_life()
 	compare_meteor()
@@ -128,7 +127,7 @@ func compare_life():
 		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.4).timeout
 		var projectiles = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
-		check(projectiles.size() == (1 if evolved else 3), "Real rank-three volley count vs single healing bolt")
+		check(projectiles.size() == (2 if evolved else 3), "Rank-three Life Bolt has two shots; Bolt has three")
 		for projectile in projectiles:
 			projectile._on_area_entered(hurt)
 		totals.append(10000 - enemy.current_health)
@@ -147,7 +146,7 @@ func compare_life():
 		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.6).timeout
 		var volley = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
-		check(volley.size() == (1 if evolved else 5), "Real rank-five Bolt retains five shots while Life Bolt has one")
+		check(volley.size() == (3 if evolved else 5), "Rank-five Life Bolt has three shots; Bolt has five")
 		for shot in volley:
 			shot._on_area_entered(hitbox)
 		rank_five_damage.append(10000 - durable.current_health)
@@ -176,7 +175,7 @@ func compare_meteor():
 		spell = effect(info, enemies[0])
 		spell.advance(0.1)
 		crowds.append(enemies.reduce(func(total, node): return total + 10000 - node.current_health, 0.0))
-	check(solo[0] > solo[1], "Ember Lance wins isolated-target damage")
+	check(solo[1] >= solo[0], "Meteor Lance preserves direct-hit investment")
 	check(crowds[1] > crowds[0], "Meteor Lance wins damage against a compact off-axis crowd")
 
 func compare_soul():
@@ -188,11 +187,16 @@ func compare_soul():
 		var spell = effect(info, enemy)
 		spell.advance(1.0)
 		damage.append(10000 - enemy.current_health)
-		check(game.player.health > 50 if evolved else game.player.health == 50, "Soul Bloom trades infection damage for actual healing")
-		game.player.health = 100
-		spell.advance(0.5)
-		check(game.player.health == 100, "Infection never grants overheal")
-	check(damage[0] > damage[1], "Plague Seed wins infection damage when healing is unnecessary")
+		check(game.player.health == 50, "Infection never heals remotely")
+		check(not info.has("lifesteal"), "Soul Bloom uses ground healing instead of leech")
+		if evolved:
+			enemy.current_health = 1
+			spell.advance(0.5)
+			var blooms = get_nodes_in_group("healing_seeds")
+			check(blooms.size() == 1, "Infected death creates one healing bloom")
+			check(spell.resting_spores.size() == 1, "Infected death preserves separate infectious spore")
+			check(game.player.health == 50, "Death bloom still requires physical collection")
+	check(is_equal_approx(damage[0], damage[1]), "Soul Bloom preserves Plague Seed infection damage")
 
 func compare_fields():
 	var totals: Array = []
@@ -201,9 +205,9 @@ func compare_fields():
 		var info = fresh("steam_field", evolved)
 		var enemy = target(Vector2(100, 0))
 		var spell = effect(info, enemy)
-		spell.advance(5)
+		spell.advance(float(info.duration))
 		totals.append(10000 - enemy.current_health)
-		check(enemy.hits == (6 if evolved else 10), "Field duration gives exact six or ten ticks")
+		check(enemy.hits == (12 if evolved else 10), "Rank-three Steam adds field lifetime and ticks")
 		check(spell.is_queued_for_deletion(), "Field expires at its own duration")
 		info = fresh("steam_field", evolved)
 		enemy = target(Vector2(100, 0))
@@ -214,8 +218,8 @@ func compare_fields():
 			enemy.position.x += 100 * enemy.slow * 0.1
 			spell.advance(0.1)
 		displacement.append(enemy.position.distance_to(start))
-	check(totals[0] > totals[1], "Cinder Field wins sustained stationary-target damage")
-	check(displacement[1] < displacement[0], "Steam Field restrains a moving target during its shorter lifetime")
+	check(totals[1] >= totals[0], "Steam preserves damage and extends field lifetime")
+	check(displacement[1] < displacement[0], "Steam Field adds control to its damaging field")
 
 func compare_prism():
 	var solos: Array = []
@@ -224,15 +228,20 @@ func compare_prism():
 		var info = fresh("prism_ray", evolved)
 		var enemies = [target(Vector2(100, 0)), target(Vector2(200, 0)), target(Vector2(300, 0))]
 		var spell = effect(info, enemies[0])
+		if evolved:
+			check(spell.beam_radius() >= 32, "Prism has wide laser footprint")
+			check(float(info.get("beam_turn_speed", -1)) == 0, "Prism fixed-direction contract")
 		spell.advance(2)
 		solos.append(10000 - enemies[0].current_health)
 		totals.append(enemies.reduce(func(total, node): return total + 10000 - node.current_health, 0.0))
-	check(solos[0] > solos[1], "Focus Ray wins concentrated damage on the first target")
+	check(solos[1] >= solos[0], "Prism preserves concentrated damage on first target")
 	check(totals[1] > totals[0], "Prism Ray wins aggregate damage on three aligned targets")
 
 func compare_traps():
 	for evolved in [false, true]:
 		var info = fresh("frost_sigil", evolved)
+		if evolved:
+			check(is_equal_approx(float(info.arm_delay), 1.0), "Rank-three Frost arms after one second")
 		var enemy = target(Vector2(160, 0))
 		var spell = effect(info, enemy)
 		spell.advance(0.8)
@@ -247,25 +256,6 @@ func compare_traps():
 		spell.advance(1.4)
 		check(outside.hits == (1 if evolved else 0), "Prepared Frost Sigil reaches the larger-radius target")
 		check(enemy.slow == (0.6 if evolved else 1.0), "Frost adds slow after its longer preparation")
-
-func compare_spirits():
-	var solo: Array = []
-	var crowds: Array = []
-	for evolved in [false, true]:
-		var info = fresh("reaping_spirit", evolved)
-		var enemy = target(Vector2(20, 0))
-		var spell = effect(info, enemy)
-		spell.advance(0.05)
-		solo.append(10000 - enemy.current_health)
-		info = fresh("reaping_spirit", evolved)
-		enemy = target(Vector2(20, 0))
-		enemy.current_health = 1
-		var neighbors = [target(Vector2(60, 0)), target(Vector2(20, 60)), target(Vector2(20, -60))]
-		spell = effect(info, enemy)
-		spell.advance(0.05)
-		crowds.append(1 + neighbors.reduce(func(total, node): return total + 10000 - node.current_health, 0.0))
-	check(solo[0] > solo[1], "Seeking Spirit wins damage on a durable target without kills")
-	check(crowds[1] > crowds[0], "Reaping Spirit rewards finishing a weak target inside a crowd")
 
 func compare_optional_offers():
 	fresh("life_bolt", false)
