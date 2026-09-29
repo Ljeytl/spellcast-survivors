@@ -6,7 +6,7 @@
 
 This package evolves the existing playable SpellCast Survivors game toward the working title **Should Have Joined a Party**. The user finds the current game fun; preserve that foundation while adding permanent vocabulary, prepared spells and expeditions. Typing expresses complex magic; typing-game branding and keycap presentation are being retired in favor of readable magical inscriptions. These documents change no runtime behavior.
 
-Latest vocabulary discussion: [spell forms, unique identities, Golem and Flaming Earth Wall](14-spell-system-reference.md#14-spell-forms-identities-and-additive-modifiers). These are design clarifications, not implemented keywords.
+Latest vocabulary discussion: [spell forms, Golem, additive elements and the Seed lifecycle](14-spell-system-reference.md#14-spell-forms-identities-and-additive-modifiers). These are design clarifications, not implemented keywords.
 
 For **what to build next**, start with [Development order](15-development-order.md). For **how spells are constructed**, use [Spell system reference](14-spell-system-reference.md). Milestone lists track development inventory; final acquisition and independent-spell versus family-tier counting remain design decisions.
 

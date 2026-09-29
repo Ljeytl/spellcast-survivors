@@ -507,7 +507,7 @@ Next design exercise, when revisited: define one Wall recipe, two candidate word
 
 - Bolt, Wall, Shield, Slice and Shower are useful core spell forms. Trail, Blast and Wave were also explicitly endorsed. The wider candidate inventory below preserves the rest of the discussion.
 - **Golem is the player-facing spell word**, not Summon. Summon remains an internal behavior/component category for independent actors. Older catalog rows labelled “Summon Golem” refer to this same proposed spell, not another unlock; the earlier summon-word grammar exception is superseded.
-- Not every named spell must become an interchangeable family. **Plague Seed can remain a unique identity**; Seed is not approved as a universal form that automatically supports Fire Seed, Ice Seed, etc. A unique spell can still expose damage-element conversion or other meaningful properties.
+- **Seed remains a generalizable family candidate:** plant → grow → bloom into a persistent effect. Individual Seed spells can have substantially different mature effects, including buffs and turrets. The earlier exclusion of Seed was premature and is superseded by the follow-up below. This does not automatically approve every elemental pairing. Unique spells can still exist.
 - Shared forms allow authored differences. Flame Wall and Earth Wall may form different shapes and behave differently; element variants are not required to be identical geometry with recolored damage. Their exact shapes remain undecided.
 - **Flaming Earth Wall is still Earth Wall, with fire added.** Preserve its earthen barrier identity and native behavior. Do not replace it with Flame Wall or silently remove physical blocking/destructibility if those belong to its recipe.
 - Longer incantations should provide meaningfully stronger output or utility. Keywords should be significant and support multiplicative scaling. Exact multipliers, stacking and supported combinations remain to be tuned; older additive formulas are proposals, not approval of weak modifiers.
@@ -532,7 +532,8 @@ Next design exercise, when revisited: define one Wall recipe, two candidate word
 | Orbit | Bodies following an orbital path | Candidate family |
 | Trap / Sigil | Placed effect awaiting a trigger | Candidate naming/family |
 | Golem | Independent creature with its own behavior | Confirmed castable word; uses summon components |
-| Plague Seed | Host infection, transfer and lingering spores | Unique identity; generic Seed family not approved |
+| Seed | Planting, growth and blooming into an authored effect | Generalizable family candidate; buffs and turrets explicitly discussed |
+| Plague Seed / possible Infestation | Host infection, transfer and lingering spores | Existing infection spell; rename to Infestation is an idea, not implemented or finalized |
 | Life / Regeneration | Immediate healing / sustained healing | Named identities; Restoration is a descriptive category, not an approved cast word |
 
 Storm as a distinct family versus a stronger Shower/Field word remains open. Aura can be implemented as a following Field without requiring a separate engine subsystem. These are structural options, not approved vocabulary unlocks.
@@ -554,3 +555,24 @@ Shared components remain the implementation foundation. Family defaults do not e
 ### Earth protection discussion remains open
 
 The destructible enclosure idea belongs to Wall exploration rather than an automatic replacement for personal Shield. Walls that collapse when the player leaves or nears the edge were raised as possibilities, not selected rules. Enclosure versus short segment, passage for player/spells, enemy attacks, lifetime and final Shield behavior all still need decisions. No new Earth Shield or Earth Wall behavior is approved for implementation by this note.
+
+
+### Seed follow-up: shared lifecycle, distinct mature effects
+
+**29 September clarification:** Seed should remain in the family exploration. Different Seed spells need not share the same final attack or buff. A common lifecycle can give them a readable identity: plant something, allow it to develop, then receive a substantial payoff. The user explicitly proposed Flame Seed, delayed major buffs, turret-like plants, and potentially renaming current Plague Seed to **Infestation**. These are design ideas, not approved runtime changes or tuned recipes.
+
+The case for this family is strategic preparation: investing in a location before it becomes useful. The design risk is that an unsafe planting site or an unrewarding wait makes the spell frustrating. Growth and maturity need clear visual stages, and the mature effect should repay the setup.
+
+| Candidate | Plant/growth stage | Distinct mature payoff | Status |
+|---|---|---|---|
+| Flame Seed | Ember-like seed takes root and visibly brightens | Fire-flower turret firing at nearby enemies | User named the seed and turret possibility; this specific pairing is a proposal |
+| Life Seed | A small shoot grows into an open blossom | Healing or a temporary regeneration buff in its vicinity | Proposed concrete example, not an approved spell |
+| Arcane Seed | A small bud develops a visible magical charge | A temporary spell-potency buff near the bloom | Proposed concrete example, not an approved spell |
+
+These are alternatives illustrating the family, not a requirement that every seed be a stationary turret or that all seeds use the same shape. Whether seeds can be destroyed, moved, prematurely harvested or triggered remains open. Beneficial effects must target the player/allies explicitly, never enemies accidentally.
+
+Reusable properties can include placement rules, growth time, mature lifetime, effect radius, and output potency. Turret recipes additionally expose attack cadence, projectile properties and targeting; buff recipes expose buff kind/strength and recipient rules. Reuse the lifecycle and applicable components rather than hard-coding unrelated copies or forcing every seed to expose every property.
+
+Potential modifier bindings: Big enlarges the mature effect's useful footprint; Powerful increases the declared mature payload; Lasting extends mature lifetime, **not the wait before blooming**. Swift can affect a turret's projectiles where supported; it does not automatically shorten every seed's growth time. Exact bindings, numeric multipliers and stacking need approval before implementation.
+
+Current Plague Seed spreads between hosts rather than growing at a planted location. **Infestation** could describe that existing identity more clearly, but the rename remains open and must not silently change its mechanics or remove the spell. Do not force the existing infection into the Seed lifecycle merely to make the names uniform.
