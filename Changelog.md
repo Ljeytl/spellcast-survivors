@@ -1,9 +1,11 @@
 # 0.1.35 — Spell scaling and combination progression
 
+- Correct 0.1.35 Prism Ray to track at 0.25 radians/second instead of locking its direction; retain piercing damage and update descriptions and regression checks.
+
 - Added Spell Duration (+10% active effect lifetime), including brief damaging AoE aftermaths without slower impacts.
 - Spell Power now scales healing and protection; Size and Velocity affect meaningful spell geometry and movement.
 - Reworked seven combinations with explicit ingredient-rank contributions and their own progression; removed old combination damage penalties.
-- Prism Ray is a broad fixed-direction penetrating laser. Lightning Bolt explodes at every contact. Soul Bloom deaths leave collectible healing areas while spores continue spreading.
+- Prism Ray is a broad slowly tracking penetrating laser. Lightning Bolt explodes at every contact. Soul Bloom deaths leave collectible healing areas while spores continue spreading.
 - Health drops are 1%; separate 1% style runes grant 200 raw combo plus 200 times the pre-pickup multiplier in run score.
 - Updated upgrade copy and documented scope, tuning, tests and deferred Earth Shield/Frost Sigil ideas in docs/releases/0.1.35-spell-scaling.md.
 - Added runtime, real-physics and native UI checks plus failing negative controls; reviewed component/pickup integration and completed an isolated bot smoke run. Final revision evidence: builds/spell-scaling-0135/.

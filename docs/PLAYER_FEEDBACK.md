@@ -2,7 +2,7 @@
 
 ## Approved 0.1.35 batch — 29 September 2026
 
-[Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, fixed-direction Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework and Frost Sigil double placement remain deferred.
+[Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, slowly tracking Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework and Frost Sigil double placement remain deferred.
 
 **Style art:** colored scratched-stone rank glyphs, meter and Atomic seal are integrated. Simple procedural Atomic VFX is placeholder; polish follows feel testing.
 
