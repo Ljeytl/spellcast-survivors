@@ -1,5 +1,7 @@
 ## Attributed playtester ideas — 2026-09-28
 
+**Style-system design (28 September):** [scoring spec and segmented art concept](docs/style-scoring/README.md). Combo versus run score, length-relative speed bonuses, clean execution, freshness, decay and S-rank special-spell proposals are recorded for review. Design/art only; implementation waits for agreement.
+
 See the [complete LJ / Dead / Brad / Guer batch](docs/PLAYER_FEEDBACK.md#attributed-playtest-batch--2026-09-28). Preserve for prioritization: style/combo rewards, summoned knives, glyph-to-spell casting presentation and bottom rune circle, unique boss spell unlocks (Cinder Field → Conflagration candidate), incantation Easter eggs, leaderboard, and possible anti-spam resource/cooldown design. These are deferred ideas, not approved implementation. Existing movement, map, control and accessibility feedback remains in the same record.
 
 ## Further endless encounters — deferred

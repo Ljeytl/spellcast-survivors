@@ -1,3 +1,9 @@
+## 2026-09-28 — Style scoring design and stone-inscription UI concept
+
+- Recorded combo/run score separation, length and speed bonuses, typo treatment, freshness, rank/decay, special-spell alternatives and local leaderboard.
+- Added a single segmented concept sheet with carved-stone glyphs, meter parts and assembly examples; no runtime integration.
+- Kept unapproved numerical choices explicit and documented verification journeys.
+
 ## 2026-09-28 — Attributed playtester feedback
 
 - Preserve the full LJ, Dead, Brad and Guer feedback batch in `docs/PLAYER_FEEDBACK.md`, including positive reactions and deferred ideas.
