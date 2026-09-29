@@ -88,10 +88,11 @@ func run():
 		DirAccess.make_dir_recursive_absolute("res://builds/style-verification")
 		root.get_texture().get_image().save_png("res://builds/style-verification/ray-contact.png")
 	var dead = beams[2].target_ref.get_ref()
+	var fixed_direction = beams[2].direction
 	dead.dying = true
 	beams[2].advance(0.05)
 	check(beams[2].target_ref.get_ref() != dead, "Dead target reservation is released")
-	check(beams[2].target_ref.get_ref() != focus.target_ref.get_ref() and beams[2].target_ref.get_ref() != prism.target_ref.get_ref(), "Retarget selects an unreserved alternative")
+	check(beams[2].direction.is_equal_approx(fixed_direction), "Prism keeps its release direction after a target dies")
 	for index in range(1, enemies.size()):
 		enemies[index].dying = true
 	beams[2].target_ref = null
