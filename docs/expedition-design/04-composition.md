@@ -1,3 +1,5 @@
+Latest idea authority: [29 September element exploration](17-element-spell-ideas.md) and [populated matrix](16-element-family-matrix.md). This preserves proposals and rejections without approving a new runtime roster. Older 36-row campaign recipes below are historical drafts where they conflict with that exploration.
+
 Current Shield rule: [0.1.36 Earth Shield](../releases/0.1.36-earth-shield.md) supersedes earlier absorption-pool proposals. [Element × family matrix](16-element-family-matrix.md) separates implemented spells, user ideas and unselected examples.
 
 Prototype release note: [0.1.35 spell scaling](../releases/0.1.35-spell-scaling.md) defines the implemented passive/combination behavior. The keyword and campaign proposals below remain future design, not the current parser.

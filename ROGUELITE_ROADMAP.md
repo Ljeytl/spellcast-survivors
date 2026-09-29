@@ -1,6 +1,6 @@
 # Current release scope
 
-[0.1.36 Earth Shield](docs/releases/0.1.36-earth-shield.md) is the approved current pass. Then tutorial and meaningful keywords, followed by preparation/tower/expeditions. [Element × family matrix](docs/expedition-design/16-element-family-matrix.md) separates implemented content from ideas.
+[0.1.36 Earth Shield](docs/releases/0.1.36-earth-shield.md) is implemented and merged. Next: tutorial and meaningful keywords, followed by preparation/tower/expeditions. [Element × family matrix](docs/expedition-design/16-element-family-matrix.md) separates implemented content from ideas.
 
 **0.1.31:** Seeker target distribution/visibility and five-second combo grace implemented. Remaining playtest tuning stays in the feedback tracker.
 
@@ -68,13 +68,13 @@ See [bounded scope and deferred feedback](docs/PLAYER_FEEDBACK.md#approved-playt
 
 Current playtest tuning (2026-09-28): ambient spawns repeat the approved two-minute light/medium/heavy rhythm. Future batch-size thresholds can increase rolls per tick; scheduled horde waves remain separate.
 
-# Current slate — difficulty scaling first
+# Current slate — tutorial and meaningful keywords after 0.1.36
 
-See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified items. Preserve current roguelike progression; validate opening and minutes 3–8 pressure while protecting the liked 9–11 minute escalation. Random health-potion drops, forest paths and rocks are later ideas. Keyword composition and the tower/expedition package remain future experiments.
+See [Player feedback](docs/PLAYER_FEEDBACK.md) for open, deferred and verified items. Preserve current roguelike progression; validate opening and minutes 3–8 pressure while protecting the liked 9–11 minute escalation. Health/style pickup drops are implemented. Forest paths and rocks remain later ideas. Earth Shield 0.1.36 is complete; next are tutorial/keyword increments, then tower/expeditions.
 
 > Current direction: **Should Have Joined a Party**, a wizard action game using language to express complex magic. Evolve the existing playable game through keywords, preparation and persistent discoveries. Readable inscriptions replace keycap branding. See the [current design and development roadmap](docs/expedition-design/README.md). Older prototype descriptions, plans and marketing language below are historical, not the current target specification.
 
-- Use [Development order](docs/expedition-design/15-development-order.md) for concrete playable milestones, separate from campaign unlock timing. That future sequence does not replace the current difficulty-first slate.
+- Use [Development order](docs/expedition-design/15-development-order.md) for concrete playable milestones, separate from campaign unlock timing. That sequence is the current slate; balance observations remain tracked alongside it.
 
 ## Next balance review — latest playtest (2026-09-28)
 
@@ -693,3 +693,7 @@ Recorded the [rotary tower chamber and preparation book](docs/expedition-design/
 ### Style-meter asset preparation
 
 [Transparent sheet and atlas pieces](assets/ui/style-runes/README.md) prepared; next visual step is HUD-scale assembly and letter readability review. Scoring is implemented; connected stone HUD assembly is in the 0.1.28 pass. Continue human readability/feel review.
+
+## Latest vocabulary exploration
+
+[Full element-by-element idea capture](docs/expedition-design/17-element-spell-ideas.md) preserves new spell identities, rejected palette swaps, school-grouping questions and family exceptions. Documentation only; no content batch selected or implemented.
