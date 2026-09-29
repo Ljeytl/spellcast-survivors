@@ -94,4 +94,8 @@ Families are guiding identities, not rigid one-to-one engine classes. The [popul
 
 ## Latest element-by-element exploration — 29 September
 
-The [detailed capture](17-element-spell-ideas.md) and [matrix](16-element-family-matrix.md) preserve the full user brainstorm. This authorizes documentation only. No new spell roster, school merge, keyword values or combination ingredients are approved. Explicit placement: Snowball → Bolt; Water Jet → Ray; Mana Storm → Shower; existing Plague Seed/Soul Bloom remain in Seed. Arcane Seed/Golem rejected; Prismatic Shield is a separate new user concept. Existing 0.1.36 Earth Shield is complete. Next development remains tutorial/meaningful keywords, then preparation/expeditions; selecting candidate spells is a separate decision.
+The [detailed capture](17-element-spell-ideas.md) and [matrix](16-element-family-matrix.md) preserve the full user brainstorm. This authorizes documentation only. No new runtime roster, keyword values or combination ingredients are approved. Follow-up school/family decisions supersede the initial open classifications. Explicit placement: Snowball → Bolt; Water Jet → Ray; Mana Storm → Shower; existing Plague Seed/Soul Bloom remain in Seed. Arcane Seed/Golem rejected; Prismatic Shield is a separate new user concept. Existing 0.1.36 Earth Shield is complete. Next development remains tutorial/meaningful keywords, then preparation/expeditions; selecting candidate spells is a separate decision.
+
+## Follow-up: consolidate schools and families
+
+Water/Ice and Earth/Metal merge; Spirit joins Plague/Death; Sun/Moon remain combination themes. Nova/Wave share a family, as do Slice/Whip. Multiple spells per cell are allowed. Tsunami is a rectangular Blast spawning behind the caster and travelling forward; Shrapnel also belongs to Blast. Water Jet replaces proposed Frost Ray. Sunbeam’s Fire + Life recipe and final names remain open. See the updated matrix; documentation only.

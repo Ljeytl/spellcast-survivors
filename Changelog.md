@@ -1,3 +1,9 @@
+# Documentation: school and family consolidation
+
+- Recorded agreed school mergers and shared Nova/Wave, Slice/Whip columns; multiple spells per cell.
+- Moved Tsunami and Shrapnel to Blast, replaced proposed Frost Ray with Water Jet, and separated Sun/Moon combination ideas.
+- Names, Sunbeam recipe and new spell tuning remain future design work; no gameplay changes.
+
 # Design capture — element and family exploration (29 September 2026)
 
 - Populate the family matrix with latest user concepts while preserving 16 implemented bases and seven combinations; separate brainstorms, alternatives and rejected examples.

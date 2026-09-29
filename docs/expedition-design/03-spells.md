@@ -1,3 +1,5 @@
+Current classification: [consolidated matrix](16-element-family-matrix.md) supersedes historical school/family labels below. Water/Ice and Earth/Metal are merged; Spirit joins Plague/Death; Sun/Moon are combination themes. Nova/Wave and Slice/Whip each share one family. Tsunami and Shrapnel are Blast; Water Jet replaces proposed Frost Ray. Multiple spells per cell are allowed. Runtime unchanged.
+
 Latest idea authority: [29 September element exploration](17-element-spell-ideas.md) and [populated matrix](16-element-family-matrix.md). This preserves proposals and rejections without approving a new runtime roster. Older 36-row campaign recipes below are historical drafts where they conflict with that exploration.
 
 Current Shield rule: [0.1.36 Earth Shield](../releases/0.1.36-earth-shield.md) supersedes earlier absorption-pool proposals. [Element × family matrix](16-element-family-matrix.md) separates implemented spells, user ideas and unselected examples.
