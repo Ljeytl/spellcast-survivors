@@ -12,7 +12,7 @@ Use the [populated matrix](16-element-family-matrix.md) for browsing. This page 
 | Combinations | Existing combinations remain available and overlap families; separate/de-emphasize them while designing base identities | New recipe ingredients and acquisitions |
 | Name versus delivery | Snowball belongs under Bolt despite its name; Spike can sit in Bolt exploration despite ground delivery | Final player-facing family names |
 | Ball versus Strike | Travelling body and called-down impact are useful distinctions; an individual spell can combine components | Final placement of Whirlpool and the unnamed gravity well |
-| Nova versus Wave | Radial and directional propagation are useful questions, not a final universal rule | Vine-circle and other overlapping concepts |
+| Nova versus Wave | Radial burst versus travelling front is a useful proposed distinction, not a rigid rule | Vine-circle and other overlapping concepts |
 | Shower | A moving cloud can be a Shower with persistent area components | Following versus independently moving storms |
 | Unique existing spells | Keep them visible in the matrix even when they break the default family lifecycle | No forced mechanical conversion for classification |
 | Elements | Arcane/Mana is ordinary magic; schools/themes need not each become a distinct damage type | Water/Ice, Metal/Earth, Spirit and Moon/Sun grouping decisions |
@@ -50,7 +50,7 @@ Arcane's theme is overwhelming magical energy, not a requirement for a separate 
 | Fire Cone / Blast / Wave | Generic elemental variants may not justify independent spells | Questioned rather than committed |
 | Flame Wall | Passable burning boundary that hurts enemies crossing it | User concept; do not make solid simply because Earth Wall is solid |
 | Volcano | Impact/eruption followed by a lingering sentry-like effect; possible alternative to Meteor | Competing delivery/payoff options, not settled |
-| Firestorm | Desired exploration distinct from Meteor Shower only if it earns an identity | Mechanic undefined; inactive JSON is not implementation |
+| Firestorm | User questioned what this historical name meant compared with Meteor Shower | Undefined/questioned; no distinct mechanic selected; inactive JSON is not implementation |
 | Fire Nova | Generic Nova may already suffice | No separate fire spell needed in this pass |
 | Fire Sigil | Merely changing damage type is a modifier | No unique spell without an additional mechanic |
 | Fire Shield | Retaliatory Fire Blast | User concept; exact trigger/protection open |
@@ -103,6 +103,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 | Rain of Lightning | Distributed lightning impacts | User idea retained |
 | Static Field | Desired lightning area identity | Mechanic not fixed by the name; do not silently conflate it with all older storm-aura ideas |
 | Tesla Wall | Two solid coils/endpoints connected by a passable but strongly damaging electrical boundary | User concept; endpoint durability and placement open |
+| Lightning Shield | Earlier open shield-family idea | Preserve as historical exploration; no shield response or implementation approved |
 
 ## Earth
 
@@ -118,6 +119,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 | Earth Trap | Long-lasting spike trap, brief immobilization and bleeding | Distinct from exploding Rune Trap |
 | Muck | Strongly slowing trail or oil-like ground | Name and family placement open; possible fire interaction is a later idea |
 | Earth Shield | Stacked one-hit protection with attacker-directed retaliation | Implemented in 0.1.36; no new change in this brainstorm |
+| Earthquake / Earth Golem | Earlier ground-shaking and summoned-earth-creature ideas | Preserved; latest brainstorm did not reject them; exact authored behavior remains open |
 
 ## Plague / possible Death
 

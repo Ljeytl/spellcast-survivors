@@ -26,7 +26,7 @@ This matrix is brainstorming, not a new shipping roster. Current code still has 
 | Element / theme | Nova | Strike | Shower | Field | Wall | Trail | Trap / Sigil |
 |---|---|---|---|---|---|---|---|
 | Arcane / Mana | Arcane Nova [U] | — | Mana Storm [U] | Eye of [unnamed] [U?] | Prism Wall [U] | — | **Rune Trap** |
-| Fire | — | Volcano [U?] | **Meteor Shower**; Firestorm [TBD] | **Cinder Field** | Flame Wall [U] | **Firewalk** | — |
+| Fire | — | Volcano [U?] | **Meteor Shower**; Firestorm [questioned] | **Cinder Field** | Flame Wall [U] | **Firewalk** | — |
 | Ice | Frost Nova [U] | Falling icicle [U?] | Blizzard [U?] | — | — | — | — |
 | Water | — | — | — | Whirlpool [U?] | — | — | — |
 | Lightning | — | **Lightning** | Rain of Lightning [U] | Static Field [U] | Tesla Wall [U] | — | — |
@@ -91,6 +91,8 @@ This matrix is brainstorming, not a new shipping roster. Current code still has 
 | Dash / Swiftness | Earlier user mobility ideas; activation/duration design open |
 | Personal storm aura | Earlier dwell-triggered lightning idea; name and following behavior open; not automatically identical to Static Field |
 | Homing Bolt, stronger Glacial Lance and elemental-tier words | Earlier composition/tier concepts, not new runtime casts |
+| Earthquake / Earth Golem | Earlier user ideas preserved; not rejected in latest pass; no runtime implementation |
+| Lightning Shield | Earlier open/historical shield idea; no mechanics approved |
 
 ## Examples and historical proposals that are not agreed spells
 
