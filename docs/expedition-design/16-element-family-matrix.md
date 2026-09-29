@@ -10,15 +10,15 @@ Multiple spells may occupy any cell. Slice/Whip is one family; differences in sh
 
 | School | Bolt | Ball | Lance | Ray | Slice / Whip | Blast |
 |---|---|---|---|---|---|---|
-| Arcane / Mana | **Bolt** | — | — | **Focus Ray** | Arcane Slash [U] | — |
-| Fire | Fire Bolt [U] | Fireball [U] | **Ember Lance** | Scorching Ray [U?] | — | — |
-| Water / Ice | Snowball [U] | — | Ice Lance / Glacial Lance [U?] | Water Jet [U] | Water Whip [U] | **Ice Blast**; Tsunami [U]; Tidal Push [U?] |
-| Lightning | — | — | Lightning Lance / rod [U?] | Static Shock [U?] | Lightning Whip [U] | — |
-| Earth / Metal | Spike [U; ground delivery]; Bullet / Spray [U?] | Boulder [U; no splash assumed] | Earth Lance [U] | — | **Cross Blade**; Slash [U] | Earth Blast [U]; Shrapnel [U?] |
-| Plague / Death | **Seeker** (ghost identity retained) | Unnamed carcass projectile [U?] | — | Ray of Sickness [U] | — | — |
-| Life / Nature | — | Unnamed vine ball [U?] | Vine Lance [U?] | — | Vine Whip [U] | — |
+| Arcane / Mana | **Bolt** — a simple bolt of magical energy | — | — | **Focus Ray** — a sustained tracking beam | Arcane Slash [U] — cut glyphs into an area; they detonate after a delay, with contact behavior open | — |
+| Fire | Fire Bolt [U] — a travelling bolt of fire | Fireball [U] — a classic explosive fire projectile | **Ember Lance** — a piercing lance of fire | Scorching Ray [U?] — two or three lingering fire beams, in a triangle or aimed at enemies | — | — |
+| Water / Ice | Snowball [U] — a compact ice projectile | — | Ice Lance / Glacial Lance [U?] — push foes aside or impale with a major debuff; Glacial is the stronger variant idea | Water Jet [U] — tracking water stream damages and pushes; upgrades may add jets | Water Whip [U] — lash with water; exact contact behavior open | **Ice Blast** — ice shards fan outward in a cone; Tsunami [U] — a rectangular wave spawns behind you and sweeps forward |
+| Lightning | — | — | Lightning Lance / rod [U?] — embeds or lands as a rod calling down strikes; persists after its host dies | Static Shock [U?] — a channeled chain of lightning | Lightning Whip [U] — lash with lightning; exact behavior open | — |
+| Earth / Metal | Spike [U; ground delivery] — a ground spike erupts and causes bleeding; Bullet / Spray [U?] — rapid travelling metal shots | Boulder [U; no splash assumed] — a slow heavy rock with high damage and knockback | Earth Lance [U] — shatters on impact into smaller scattering lances | — | **Cross Blade** — a blade lingers before returning; Slash [U] — slash toward the nearest enemy | Earth Blast [U] — a cone of fragments with knockback and bleed; Shrapnel [U?] — a blast of metal fragments; delivery open |
+| Plague / Death | **Seeker** (ghost identity retained) — a pursuing ghost that seeks enemies | Unnamed carcass projectile [U?] — hurl infected remains to create a diseased dead zone | Plague Lance [TBD] — fantasy and mechanics undecided | Ray of Sickness [U] — sweep across a crowd spreading damage over time, slow and possibly reduced enemy damage | — | — |
+| Life / Nature | — | Unnamed vine ball [U?] — a ball of vines damages and immobilizes an area; bleed is possible | Shillelagh [U] — Life Lance; preserve the vine/root fantasy, with final attack and pulling behavior open | — | Vine Whip [U] — lash with a living vine | — |
 
-Tsunami is a broad square/rectangular front spawning behind the player and travelling forward, with contact as it reaches enemies. It replaces the earlier radial Tsunami description. Tidal Push may overlap this concept; whether it remains a separate spell is open. Shrapnel is in Blast; exact delivery remains open rather than requiring its earlier grenade proposal.
+Tsunami is a broad square/rectangular front spawning behind the player and travelling forward, with contact as it reaches enemies. It replaces the earlier radial Tsunami description. Shrapnel is in Blast; exact delivery remains open rather than requiring its earlier grenade proposal.
 
 ## Areas and placed effects
 
@@ -26,35 +26,35 @@ Nova/Wave is one family. Radial versus directional shape and propagation are pro
 
 | School | Nova / Wave | Strike | Shower | Field | Wall | Trail | Trap / Sigil |
 |---|---|---|---|---|---|---|---|
-| Arcane / Mana | Arcane Nova [U] | — | Mana Storm [U] | Eye of [unnamed] [U?] | Prism Wall [U] | — | **Rune Trap** |
-| Fire | — | Volcano [U?] | **Meteor Shower**; Firestorm [questioned] | **Cinder Field** | Flame Wall [U] | **Firewalk** | — |
-| Water / Ice | Frost Nova [U] | Falling icicle [U?] | Blizzard [U?] | Whirlpool [U?] | — | — | — |
-| Lightning | Thunderwave [U; radial knockback] | **Lightning** | Rain of Lightning [U] | Static Field [U] | Tesla Wall [U] | — | — |
-| Earth / Metal | Earth Nova [U] | — | — | — | Earth Wall [U] | Muck [U?] | Earth Trap [U] |
-| Plague / Death | Explore [TBD] | — | Explore [TBD] | Grasping Hand [U]; more [TBD] | Explore [TBD] | Explore [TBD] | Explore [TBD] |
-| Life / Nature | Crushing / expanding vines [U?] | Poisonous / exploding flowers [U?] | Poisonous / exploding flowers [U?] | — | — | Flower / vine trail [U?] | — |
+| Arcane / Mana | Arcane Nova [U] — an expanding burst of powerful magic | — | Mana Storm [U] — a moving cloud rains mana daggers | Eye of [unnamed] [U?] — a large damaging gravity well | Prism Wall [U] — a fragile barrier reflects some attacker damage | — | **Rune Trap** — a visible persistent rune triggers when enemies enter |
+| Fire | — | Volcano [U?] — an eruption leaves a lingering sentry-like hazard | **Meteor Shower** — warned impacts rain down and explode; Firestorm [questioned] — distinct identity versus Meteor Shower unresolved | **Cinder Field** — a persistent patch of burning ground | Flame Wall [U] — a passable wall of fire burns crossing enemies | **Firewalk** — leave lasting burning ground behind you | — |
+| Water / Ice | Frost Nova [U] — Ice Blast-like cold bursts in all directions | Falling icicle [U?] — an icicle strikes from above | Blizzard [U?] — a moving storm strongly slows or freezes, with lighter damage | Whirlpool [U?] — a lasting vortex; exact pull behavior open | — | — | — |
+| Lightning | Thunderwave [U; radial knockback] — a surrounding thunder burst pushes enemies away | **Lightning** — a brief ground circle zaps enemies within it | Rain of Lightning [U] — lightning rains across an area | Static Field [U] — an electrical hazard area; mechanics open | Tesla Wall [U] — solid coils join a passable, highly damaging electrical boundary | — | — |
+| Earth / Metal | Earth Nova [U] — radial ground spikes damage and bleed | — | — | — | Earth Wall [U] — raise physical barriers | Muck [U?] — leave strongly slowing ground; later fire interaction possible | Earth Trap [U] — lasting spikes briefly immobilize and bleed enemies |
+| Plague / Death | Explore [TBD] | — | Explore [TBD] | Grasping Hand [U] — a spectral hand restrains enemies in an area; more [TBD] | Explore [TBD] | Explore [TBD] | Explore [TBD] |
+| Life / Nature | Crushing / expanding vines [U?] — vines spread around you, damaging and rooting or slowing | Poisonous / exploding flowers [U?] — flowers poison or burst; delivery open | Poisonous / exploding flowers [U?] — flowers poison or burst; delivery open | — | — | Flower / vine trail [U?] — leave poisonous flowers or writhing vines | — |
 
 ## Protection and persistent magic
 
 | School | Shield | Orbit | Seed | Golem | Restoration |
 |---|---|---|---|---|---|
-| Arcane / Mana | Prismatic Shield [U] | **Arcane Orbit** | — | — | XP magnet utility [U?] |
-| Fire | Fire Shield [U] | Fire Orbit [U] | Flame Seed [U] | Fire Golem [U?] | Flaming Restoration [U?] |
+| Arcane / Mana | Prismatic Shield [U] — temporary invulnerability, perhaps reflection; roughly ten seconds proposed | **Arcane Orbit** — orbiting magic strikes nearby enemies | — | — | XP magnet utility [U?] — draw distant XP toward you |
+| Fire | Fire Shield [U] — retaliate with a fire blast | Fire Orbit [U] — orbiting fire damages and burns | Flame Seed [U] — grows into a fire turret | Fire Golem [U?] — a fire ally, possibly casting Ember Lance from your kit | Flaming Restoration [U?] — restoration with a fire buff; payoff open |
 | Water / Ice | — | — | — | — | — |
 | Lightning | — | — | — | — | — |
-| Earth / Metal | **Earth Shield** | — | — | Earth Golem [U] | — |
-| Plague / Death | — | — | **Plague Seed**; **Soul Bloom¹** | — | — |
-| Life / Nature | — | — | — | — | **Life; Regeneration**; Yggdrasil [U] |
+| Earth / Metal | **Earth Shield** — stack one-hit blocks that erupt toward the attacker | — | — | Earth Golem [U] — summon a stone ally | — |
+| Plague / Death | — | — | **Plague Seed** — infection spreads between enemies and lingers after death; **Soul Bloom¹** — spreading infection produces healing blooms | — | — |
+| Life / Nature | — | — | — | — | **Life; Regeneration** — quick small heal; stronger sustained healing; Yggdrasil [U] — grow a tree of life that heals and harms nearby enemies |
 
 ## Combination-theme ideas
 
 Sun and Moon are combination themes, not separate school rows. These are unimplemented concepts, separate from the enabled recipes below.
 
-| Spell | Family | Recipe status |
+| Spell | Family | Fantasy / recipe |
 |---|---|---|
-| Sunbeam | Ray | Fire + Life is a candidate, not a locked recipe |
-| Moon Slash / Crescent Slash | Slice / Whip | Ingredients open |
-| Moonfall | Field | Ingredients open |
+| Sunbeam | Ray | A powerful sunbeam; Fire + Life candidate, recipe open |
+| Moon Slash / Crescent Slash | Slice / Whip | Multiple purple crescent slashes; ingredients open |
+| Moonfall | Field | A moonlit area damages enemies and gently heals you; ingredients open |
 
 ## Existing combinations — secondary to the base-spell exploration
 
@@ -70,44 +70,4 @@ Sun and Moon are combination themes, not separate school rows. These are unimple
 
 ¹ Soul Bloom is shown in the main Seed column deliberately, not reclassified as a planted turret. Ingredients remain available; combinations consume no additional active slot.
 
-## Reading the boundaries
-
-- Snowball is Bolt, Water Jet is Ray, Mana Storm is Shower. These placements follow the user’s explicit correction.
-- Ball suggests projectile delivery into an area payoff; Strike suggests an effect appearing at a chosen location. Boulder is a heavy-body exception: no splash/explosion is invented.
-- Nova and Wave share one column; Slash/Slice and Whip share one column. Geometry does not create another family. Tsunami and Shrapnel belong to Blast.
-- Seed’s plant → grow → bloom lifecycle is guidance, not a hard gate. Plague Seed and Soul Bloom keep their current infection behavior in this column.
-- Golem is a castable-form idea, with “elemental” an alternative name. Summon remains a component; Seeker is not forced into Golem.
-- Water/Ice and Earth/Metal are merged schools; Spirit concepts sit within Plague/Death. Sun/Moon are combination themes. Display names remain refinable; these classifications do not change runtime behavior.
-- Flaming Earth Wall adds fire while retaining the wall’s earth identity. Restoration/buffs and elemental modifiers need explicit per-spell meanings.
-- Whip shares the Slice family, with spell-specific motion. Grasping Hand’s Plague theme is selected for design; its implementation is not approved.
-
-## Other existing content and preserved ideas
-
-| Entry | Status |
-|---|---|
-| Mana Bolt | Implemented automatic attack, separate from manual Bolt |
-| Atomic | Implemented style reward, outside base acquisition pool |
-| Seeking Spirit / Reaping Spirit | Earlier spirit ideas; Reaping Spirit acquisition disabled; preserve despite school discussion |
-| Shillelagh | User-named directional root wave; school open |
-| Dash / Swiftness | Earlier user mobility ideas; activation/duration design open |
-| Personal storm aura | Earlier dwell-triggered lightning idea; name and following behavior open; not automatically identical to Static Field |
-| Homing Bolt, stronger Glacial Lance and elemental-tier words | Earlier composition/tier concepts, not new runtime casts |
-| Earthquake / Earth Golem | Earlier user ideas preserved; not rejected in latest pass; no runtime implementation |
-| Lightning Shield | Earlier open/historical shield idea; no mechanics approved |
-
-## Examples and historical proposals that are not agreed spells
-
-| Entry | Provenance / latest disposition |
-|---|---|
-| Arcane Seed | Earlier assistant example; user now rejects it |
-| Arcane Golem | Generic candidate rejected in latest user pass |
-| Arcane Shield | Historical assistant proposal, unselected; **Prismatic Shield** above is a separate new user idea |
-| Life Seed | Assistant illustration, not selected; do not confuse with Life Bolt healing drops |
-| Frost Ray / Ice Ray | Removed from the proposed roster; Water Jet occupies the merged school’s Ray slot |
-| Frostball / Plague Ball | Assistant names, not selected; user now proposes Snowball and an unnamed carcass concept respectively |
-| Arcane Bolt / Arcane Ball / Mana Lance / Mana Strike | Unnecessary generic additions in this pass; existing Bolt/Focus Ray cover ordinary magic |
-| Water Lance / Lightning Ball / Earth Wave | Not selected |
-| Generic elemental slices, Fire Cone/Blast/Wave, Fire Nova, Fire Sigil | Often unnecessary palette swaps or modifier expressions; no blanket new-spell approval |
-| Ice Wall / Water Wall / plain Rain | Distinct useful identity not established |
-
-Inactive data definitions are not proof of acquisition. All proposed additions, renamed schools, modifier words and new recipes await selection and implementation approval. Historical 36-row campaign proposals remain archived design context rather than a mandatory roster.
+For earlier ideas, rejected examples and unresolved details, see the [design notes](17-element-spell-ideas.md).
