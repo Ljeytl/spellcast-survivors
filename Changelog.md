@@ -1,3 +1,9 @@
+# 0.1.41 — Progressive style-rank hotfix
+
+- Correct rank gaps to 100/200/400/600/800/1000/1200/1400 raw combo; verify promotion boundaries, bar fractions and hit grade loss.
+- Preserve Atomic cost, cap, decay and casting formula; use scoring revision 3 with previous leaderboard files retained.
+- Update version and player patch notes; duration-spell decay proposal remains deferred.
+
 # 0.1.4 web packaging
 
 - Track the MEGA regression script UID and ignore generated import metadata for excluded design-reference art so Godot imports preserve a clean export checkout.
