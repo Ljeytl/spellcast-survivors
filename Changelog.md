@@ -1,7 +1,7 @@
-# Player-facing patch notes
+# 0.1.4 — MEGA and Magic Missile
 
-- Added PATCH_NOTES.md with recent version history and an Unreleased section for MEGA and Magic Missile.
-- Linked notes from README; keep future implemented changes under Unreleased until an agreed version and export are prepared. No version bump or new export in this documentation change.
+- Added PATCH_NOTES.md with recent version history and the 0.1.4 notes for MEGA and Magic Missile.
+- Linked notes from README; keep future implemented changes under Unreleased until an agreed version and export are prepared. Bumped the shared project version to 0.1.4; a fresh export remains pending.
 
 # MEGA keyword
 

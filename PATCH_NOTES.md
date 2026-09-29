@@ -1,8 +1,8 @@
 # Patch notes
 
-Player-facing changes, newest first. The current project version is **0.1.36**. **Unreleased** changes are merged into the project but have not been assigned a new version or packaged in a fresh shareable export. Older entries describe changes at the time of that version; later entries supersede their balance values.
+Player-facing changes, newest first. The current project version is **0.1.4**. A fresh shareable export of 0.1.4 has not yet been built. Older entries describe changes at the time of that version; later entries supersede their balance values.
 
-## Unreleased — Make it MEGA
+## 0.1.4 — Make it MEGA
 
 ### New
 

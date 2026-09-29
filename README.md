@@ -1,6 +1,6 @@
 # SpellCast Survivors
 
-**[Patch notes by version](PATCH_NOTES.md)** — current project label: 0.1.36; MEGA and the Magic Missile rename are listed under Unreleased pending the next version/export.
+**[Patch notes by version](PATCH_NOTES.md)** — current project version: **0.1.4**, featuring MEGA and Magic Missile. A fresh shareable export is pending.
 
 **Style scoring — 0.1.27:** [specification](docs/style-scoring/README.md). F–SSS combo, banked run score, casting bonuses, colored rune HUD, local high scores and S-rank Atomic are implemented for playtesting. Rank cadence and finisher balance still need human feedback.
 
