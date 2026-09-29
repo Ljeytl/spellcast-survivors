@@ -101,9 +101,9 @@ On exactly one successful manual release: calculate P; add P to C; derive the ne
 
 Approved playtest revision: every rank gap is 800 unmultiplied combo points. The cast formula is unchanged; only banked run score receives the rank multiplier. Combo caps at 12,000 as an initial tunable ceiling, allowing 10,000-point Atomic purchases after reaching SSS. Human playtesting still determines final pacing.
 
-- Proposed grace: 3 real seconds after successful manual release, then continuous decay at the current rank's rate. Integrate across rank boundaries; do not make results frame-rate dependent.
+- Proposed grace: 5 real seconds after successful manual release, then continuous decay at the current rank's rate. Integrate across rank boundaries; do not make results frame-rate dependent.
 - **First playable:** decay continues during typing. Merely opening the editor cannot freeze the bar indefinitely. If long casts feel unfairly punished, compare a bounded typing grace, not infinite stalling.
-- Finite active Focus Ray / Prism Ray channels suspend decay, including target-death and retarget gaps. After the final active channel ends, restart the normal three-second grace. Channel ticks award no additional cast points; traps, summons, fields and other lingering effects do not suspend decay.
+- Finite active Focus Ray / Prism Ray channels suspend decay, including target-death and retarget gaps. After the final active channel ends, restart the normal five-second grace. Channel ticks award no additional cast points; traps, summons, fields and other lingering effects do not suspend decay.
 - Pause, forced upgrade selection and non-combat menus suspend clock and input scoring. Slowdown does not suspend decay. No offline/background elapsed-time decay after a proper pause.
 - Proposed actual damaging hit: drop one grade while preserving fractional within-grade progress. At F clear C. Fully absorbed damage does not drop rank. Invulnerability-rejected contacts are not multiple hits.
 - Decay and damage never subtract banked run score. Record reasons so HUD and debug agree.
@@ -159,7 +159,7 @@ See [verification coverage and reproduction](VERIFICATION.md) for the operated r
 ## First playable decisions and remaining tuning
 
 - Additive bonuses, 4-letter/sec reference, 50% speed cap and the documented freshness schedule are implemented.
-- Decay continues during typing after the 3-second grace; game pauses and upgrade selection freeze it.
+- Decay continues during typing after the 5-second grace; game pauses and upgrade selection freeze it.
 - Health loss drops one grade preserving segment progress. Fully absorbed shield damage does not.
 - Cast-only run score; no kill/heal/HP efficiency points.
 - Current S rank is required at Atomic release; spending does not refresh grace or freshness and does not award score.

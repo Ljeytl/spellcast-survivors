@@ -1,3 +1,5 @@
+**0.1.31:** Seeker target distribution/visibility and five-second combo grace implemented. Remaining playtest tuning stays in the feedback tracker.
+
 **2026-09-29 tuning:** Clear-based escalation is disabled, retained behind `adaptive_clear_pressure_strength = 0`. Normal refill and timed progression remain active. Pending playtest adjustments are tracked in `docs/PLAYER_FEEDBACK.md`.
 
 ## Attributed playtester ideas — 2026-09-28

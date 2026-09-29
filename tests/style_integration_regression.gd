@@ -123,10 +123,10 @@ func run():
 	check(session.score.combo == 5000.0 and session.score.run_score == channel_bank, "Active channel without a target suspends decay but awards nothing")
 	channel.advance(20.0)
 	session.advance(0.1)
-	check(session.score.grace_remaining == 3.0, "Channel expiry restores full normal grace")
+	check(session.score.grace_remaining == 5.0, "Channel expiry restores full normal grace")
 	session.advance(2.0)
 	check(session.score.combo == 5000.0, "Afterglow cannot consume channel-end grace early")
-	session.advance(2.0)
+	session.advance(4.0)
 	check(session.score.combo == 4950.0, "Decay resumes normally after channel grace")
 	fresh()
 	await process_frame

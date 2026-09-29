@@ -1300,6 +1300,8 @@ func cast_build_spell(slot: int) -> bool:
 			if target_distance < distance:
 				distance = target_distance
 				target = enemy
+	if info.type == "spirit":
+		target = Targeting.select_spirit(get_tree(), player)
 	if info.type == "beam":
 		var beam_direction = player.global_position.direction_to(target.global_position) if target else Vector2.RIGHT
 		var occupied_lanes: Array = []

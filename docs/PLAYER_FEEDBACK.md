@@ -317,3 +317,7 @@ Open diagnostic follow-up: console `kill_all_enemies` / `explode_all_enemies` re
 - Implemented: clear-based escalation disabled through a zero-valued setting; retain its code. Respawn/refill and timed growth remain unchanged as requested.
 - Pending: rank gaps100/200/400/600/800/1000/1200/1400; Arcane Orbit should respond to projectile speed; Focus duration2or1.5seconds (latest preference1.5, runtime still3); recycle beyond300instead600; acquire/retarget visible enemies only. These are not part of the adaptive-disable change.
 - Feedback: sustained rapid casting felt physically tiring and adaptive difficulty became excessive. Do not interpret that as authorization to keep Focus at3or remove respawn.
+
+## Seeker and style follow-up — 0.1.31
+
+Implemented: Seekers distribute among visible targets, release reservations on death/offscreen/expiry, share only when alternatives run out and spread again when new targets arrive. No visible target means return toward the caster. Combo grace is five seconds after a manual cast or final ray channel. Global targeting restrictions for other spells, shorter Focus, graduated rank thresholds and300-unit recycling remain pending.
