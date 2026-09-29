@@ -1,5 +1,7 @@
 # 0.1.35 — Spell scaling and combination progression
 
+- Reopen Seed as a generalizable plant/grow/bloom family with distinct buff or turret payoffs; record Flame Seed and the possible Infestation rename. Supersede the premature generic-Seed exclusion; design only.
+
 - Document spell-form vocabulary, Golem as the castable word, unique Seed identity, authored elemental variants and additive Flaming Earth Wall. Keep unresolved wall/shield mechanics and keyword numbers explicit; no gameplay changes.
 
 - Correct 0.1.35 Prism Ray to track at 0.25 radians/second instead of locking its direction; retain piercing damage and update descriptions and regression checks.
