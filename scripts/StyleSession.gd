@@ -132,6 +132,15 @@ func on_release(family: String, canonical: String, typed: String):
 	feedback.emit(text, promoted)
 	updated.emit()
 
+func collect_style_pickup() -> bool:
+	if finalized or game.current_state != game.GameState.PLAYING or game.player.health <= 0.0:
+		return false
+	var award = score.award_pickup()
+	var promoted = award.rank > award.old_rank
+	feedback.emit("STYLE +%d" % award.points, promoted)
+	updated.emit()
+	return true
+
 func on_hit(_health_loss: float):
 	if finalized:
 		return
