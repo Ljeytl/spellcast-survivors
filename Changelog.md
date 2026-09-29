@@ -1,3 +1,13 @@
+## 2026-09-28 — Style pacing, crowd pressure and readable rays (0.1.28)
+
+- Set every rank gap to 800 raw combo points; rank multiplier still applies only to run score. Atomic costs 10,000 with a 12,000 combo cap. Separate revision-2 local scores preserve older records without mixing balance versions.
+- Refill depleted populations outside the view and ramp spawn frequency and fractional group size together. Reach the former final cadence at minute 11, continue group growth thereafter, and add bounded pressure for sustained clearing. One screen wipe alone cannot trigger it; timed enemy unlocks and health remain intact.
+- Make Focus and Prism share target reservations across simultaneous casts, including repeated Prism casts. Beam width now intersects actual enemy hurtboxes; every pierced enemy receives repeated ticks. Add capped beam tips and a brief visual-only expiry fade.
+- Suspend style decay during finite active ray channels, including retarget gaps, then restart normal grace. Lingering visual effects do not hold combo or award extra points.
+- Start Lightning Bolt with four additional bounces; each spell rank adds one bounce with sufficient travel lifetime and matching upgrade text.
+- Reassemble the colored carved-stone meter as an attached rank medallion, framed incision and stone endcap; separate score/feedback at narrow sizes.
+- Follow-up: human tuning of encounter density, Atomic affordability and beam/meter feel; fuller visual/audio polish and online boards remain deferred.
+
 ## 2026-09-28 — Style scoring and Atomic (0.1.27)
 
 - Add F–SSS combo ranks and separately banked run score, with length, relative typing speed, clean execution and spell-variety bonuses.

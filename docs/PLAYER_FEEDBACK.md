@@ -307,3 +307,5 @@ Approved combined pass; implementation and verification in progress. Earlier ray
 | SS–SSS gap felt good | Preserve 800 gap, apply it consistently to earlier grades | Implementing |
 
 Keep current cast scoring, spell damage, timed enemy tiers, later ranged unlocks and 20-minute extraction. Encounter density and feel require human playtesting after mechanical verification.
+
+Additional accepted feedback in this pass: Focus and Prism share target reservations (including two Prism casts); Lightning Bolt starts with four extra bounces and gains one per own spell rank; the meter must reproduce the connected stone/rune reference; faster cadence and larger groups rise in parallel. Implemented candidate awaits final integrated gates and human feel review.

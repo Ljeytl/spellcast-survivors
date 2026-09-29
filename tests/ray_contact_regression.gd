@@ -81,6 +81,12 @@ func run():
 	focus.advance(0.25)
 	check(enemies[0].current_health < enemies[2].current_health, "Focus damages its first obstruction")
 	check(focus.beam_end.length() < 80, "Focus ends at body contact rather than passing into center")
+	if "--screenshots" in OS.get_cmdline_user_args():
+		for beam in beams:
+			beam.queue_redraw()
+		await RenderingServer.frame_post_draw
+		DirAccess.make_dir_recursive_absolute("res://builds/style-verification")
+		root.get_texture().get_image().save_png("res://builds/style-verification/ray-contact.png")
 	var dead = beams[2].target_ref.get_ref()
 	dead.dying = true
 	beams[2].advance(0.05)
