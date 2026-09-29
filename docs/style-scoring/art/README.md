@@ -1,5 +1,13 @@
 # Stone inscription style-meter concept
 
+## Latest review — color on the carved stone
+
+User feedback: the revised scratched-stone shapes and magical circles are much closer to the desired direction; prefer the richer color from the first sheet. **D, C, B and A should already have color**, with less intensity than S/SS/SSS. Preserve rough dark stone and sharp carved marks; color belongs primarily in the inscriptions and circle marks, not metallic framing.
+
+Suggested palette, still a proposal: faint light at F/E, dim teal at D, cyan at C, blue-violet at B, stronger violet at A, then violet-to-gold escalation across S/SS/SSS. Exact hues, glow coverage and brightness remain for visual review. Do not imply this exact palette was independently approved.
+
+The saved v2 image has not been recolored; it is the shape reference. The rejected first image remains a color reference only, not the frame design. No new generation or runtime integration is part of this feedback update. **Continue design review; implement only once the user says ready.**
+
 Generated with the built-in image tool; one revised concept board, not installed game art. The earlier ornate metal-framed image was rejected and is not a production candidate.
 
 File: [style-meter-stone-v2.png](style-meter-stone-v2.png). Opaque background, 1536 × 1024 pixels. One sheet: nine rank badges; separated meter pieces and circle arcs; F/S/SSS assemblies; a rough transition strip.

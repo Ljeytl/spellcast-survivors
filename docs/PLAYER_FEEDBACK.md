@@ -1,5 +1,7 @@
 # Player feedback tracker
 
+**Style art feedback — design review:** scratched stone and ritual-circle shapes accepted as direction; restore richer color, including restrained color on D/C/B/A. Exact palette remains proposed. [Art notes](style-scoring/art/README.md). No recolor or gameplay implementation yet; wait for readiness.
+
 **Style-system design (28 September):** [scoring spec and segmented art concept](style-scoring/README.md). Combo versus run score, length-relative speed bonuses, clean execution, freshness, decay and S-rank special-spell proposals are recorded for review. Design/art only; implementation waits for agreement.
 
 Single entry point for player feedback, fixes and deferred ideas. Updated 28 September 2026. This tracker changes no gameplay. Earlier detailed feedback remains in the linked source records; rows below consolidate concerns without replacing those records or claiming old fixes still pass today.
