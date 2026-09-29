@@ -97,8 +97,10 @@ func refresh():
 		return
 	compact = get_parent().size.x < 700
 	var width = 208.0 if compact else 316.0
-	size = Vector2(width, 150)
-	position = Vector2(get_parent().size.x - width - 18, session.game.timer_panel.get_rect().end.y + 10)
+	var top = session.game.timer_panel.get_rect().end.y + 10
+	if compact:
+		top = maxf(top, get_parent().get_node("StatsPanel").get_rect().end.y + 14)
+	position = Vector2(get_parent().size.x - width - 18, top)
 	var rank = session.score.rank_index()
 	var badge_size = 76.0 if compact else 104.0
 	var bar_x = badge_size * 0.70
@@ -129,17 +131,18 @@ func refresh():
 	score_label.size = Vector2(width - bar_x, 24)
 	score_label.add_theme_font_size_override("font_size", 14 if compact else 17)
 	score_label.text = "SCORE %s" % format_score(session.score.run_score)
-	note.position = Vector2(0, badge_size + 4)
+	note.position = Vector2(0, maxf(badge_size, score_label.position.y + score_label.size.y) + 6)
 	note.size = Vector2(width, 22)
 	note.text = message if session.clock < message_until else "COMBO %d" % int(session.score.combo) if session.score.combo > 0 else ""
 	note.modulate = COLORS[rank]
-	special.position = Vector2(0, badge_size + 30)
+	special.position = Vector2(0, note.position.y + note.size.y + 5)
 	special.size = Vector2(width, 42)
 	special.text = "ATOMIC\n10,000 combo" if session.atomic_available() else ""
 	special.modulate = Color("ffe49b")
 	seal.visible = session.atomic_available()
-	seal.position = Vector2(width - 150, badge_size + 27)
+	seal.position = Vector2(width - 150, special.position.y - 3)
 	seal.size = Vector2(44, 44)
+	size = Vector2(width, special.position.y + special.size.y)
 	for child in get_children():
 		child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 

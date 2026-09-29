@@ -103,13 +103,31 @@ func run():
 	var live_start = session.clock
 	await create_timer(1.0, false, false, true).timeout
 	check(session.clock - live_start > 0.8 and session.clock - live_start < 1.5, "Running slowed cast advances a real second")
-	check(session.score.combo < 2170.0, "Typing does not freeze live decay")
+	check(session.score.combo < 4970.0, "Typing does not freeze live decay")
 	game.change_state(game.GameState.PAUSED)
 	var pause_start = session.clock
 	await create_timer(0.3, true, false, true).timeout
 	check(session.clock == pause_start, "Running pause freezes input clock")
 	game.change_state(game.GameState.PLAYING)
 	key(KEY_ESCAPE)
+	manager.set_process(false)
+	manager.learn_spell("focus_ray")
+	manager.cast_build_spell(manager.find_spell_slot("focus_ray"))
+	var channel = get_first_node_in_group("active_spell_channels")
+	check(is_instance_valid(channel), "Real Focus Ray exposes active channel lifetime")
+	channel.set_physics_process(false)
+	session.score.combo = 5000.0
+	session.score.grace_remaining = 0.0
+	var channel_bank = session.score.run_score
+	session.advance(10.0)
+	check(session.score.combo == 5000.0 and session.score.run_score == channel_bank, "Active channel without a target suspends decay but awards nothing")
+	channel.advance(20.0)
+	session.advance(0.1)
+	check(session.score.grace_remaining == 3.0, "Channel expiry restores full normal grace")
+	session.advance(2.0)
+	check(session.score.combo == 5000.0, "Afterglow cannot consume channel-end grace early")
+	session.advance(2.0)
+	check(session.score.combo == 4950.0, "Decay resumes normally after channel grace")
 	fresh()
 	await process_frame
 	key(KEY_1)
@@ -206,6 +224,8 @@ func run():
 	for i in 8:
 		await process_frame
 	session.updated.emit()
+	check(rank_hud.score_label.get_rect().end.y <= rank_hud.note.position.y, "Narrow score and feedback never overlap")
+	check(rank_hud.special.get_rect().end.y <= rank_hud.size.y, "Atomic label fits HUD bounds")
 	await capture("game-narrow")
 	var hud = game.hud.get_node("StyleHUD")
 	check(hud.position.x >= 0 and hud.get_rect().end.x <= game.hud.size.x, "Style HUD fits narrow viewport")
