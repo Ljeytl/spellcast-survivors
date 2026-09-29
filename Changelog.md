@@ -1,3 +1,9 @@
+## 2026-09-29 — Disable clear-based difficulty escalation
+
+- Set `scaling.adaptive_clear_pressure_strength` to zero. Preserve sustained-clear tracking and all adaptive logic for later tuning; setting it to one restores the previous behavior.
+- Gate adaptive spawn frequency, group size, refill target and specialist weighting through the same setting. Normal respawn/refill and timed difficulty remain unchanged.
+- Record pending playtest decisions separately: graduated style thresholds, shorter Focus duration, closer enemy recycling and visible-target preference.
+
 ## 2026-09-28 — Style pacing, crowd pressure and readable rays (0.1.28)
 
 - Set every rank gap to 800 raw combo points; rank multiplier still applies only to run score. Atomic costs 10,000 with a 12,000 combo cap. Separate revision-2 local scores preserve older records without mixing balance versions.

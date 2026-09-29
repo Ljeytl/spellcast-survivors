@@ -311,3 +311,9 @@ Keep current cast scoring, spell damage, timed enemy tiers, later ranged unlocks
 Additional accepted feedback in this pass: Focus and Prism share target reservations (including two Prism casts); Lightning Bolt starts with four extra bounces and gains one per own spell rank; the meter must reproduce the connected stone/rune reference; faster cadence and larger groups rise in parallel. Implemented and covered by integrated checks; final human feel review remains.
 
 Open diagnostic follow-up: console `kill_all_enemies` / `explode_all_enemies` remove enemies directly and can leave a stale spawner count. Normal combat and Atomic use the correct death signal. Repair debug removal bookkeeping separately; debug-assisted runs are excluded from scores.
+
+## Follow-up tuning — 2026-09-29
+
+- Implemented: clear-based escalation disabled through a zero-valued setting; retain its code. Respawn/refill and timed growth remain unchanged as requested.
+- Pending: rank gaps100/200/400/600/800/1000/1200/1400; Arcane Orbit should respond to projectile speed; Focus duration2or1.5seconds (latest preference1.5, runtime still3); recycle beyond300instead600; acquire/retarget visible enemies only. These are not part of the adaptive-disable change.
+- Feedback: sustained rapid casting felt physically tiring and adaptive difficulty became excessive. Do not interpret that as authorization to keep Focus at3or remove respawn.
