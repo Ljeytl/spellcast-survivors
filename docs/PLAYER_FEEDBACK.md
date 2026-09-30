@@ -2,6 +2,24 @@
 
 Latest batch: [30 September playtest feedback](#playtest-feedback--2026-09-30). Testing-console repair implemented; other feedback remains separately triaged.
 
+## Agreed execution order — 30 September 2026
+
+This is the authoritative order approved by the player. Read this checklist before work or status reports. New feedback is appended to the backlog; changes to this order need explicit agreement. Proposed, documented, investigating, implemented, verified, merged and shipped are distinct states. Verification links to the tested revision/evidence; an implementation is not automatically shipped in the itch ZIP.
+
+| Order | Feedback | Status | Required result / evidence |
+|---|---|---|---|
+| 1 — First | SEP30-01: displayed 0 HP without death | Implemented and verified; export pending | Confirmed actual 0.4 HP displayed as 0; now displays <1. Lethal damage ends the run. Evidence: health_truth_regression (14 checks), native captures at 1280×720 and 640×480, console/shield regressions. Original playtest cause not definitively identified; reopen if actual zero survives. |
+| 2 — First | SEP30-02: performance collapses after travel | Open | Reproduce and profile accumulation, recycling, rendering and simulation; measure before/after without assuming rendering is the cause. |
+| Alongside 2 — Useful support | SEP30-20: FPS toggle | Open | Add a toggle in video settings; verify visible state, persistence and useful playtester measurements. |
+| 3 — Next | SEP30-13/14/16: cast, MEGA and combo event feedback | Open | Distinct brief feedback for accepted casts, MEGA, combo gain and breaks; start with simple animation, clear visual changes and existing sound where useful. |
+| 4 — Next | SEP30-09/15: combo versus score; duration versus cooldown | Open | Separate banked score from live style; consistently identify active duration without adding cooldown mechanics. |
+| 5 — Next | SEP30-10/11/12: passive readability, XP label, larger HP | Open | Improve essential HUD readability without explanatory clutter. |
+| 6 — Next | SEP30-17: MEGA in Necronomicon | Open | Document the live keyword in the archive and verify it can be found. |
+| 7 — Later | SEP30-18: current modifications | Open | Improve existing spellbook/inventory before introducing another menu. |
+| 8 — Later | SEP30-21: clear local leaderboard | Open | Confirm deletion scope and verify confirmation, cancellation and persistence. |
+
+Testing-console repair is merged in PR110; it does not complete the performance, death, balance or HUD items. Firewalk tuning (SEP30-19) remains a separate logged balance follow-up, outside this ordered tranche. Blessings, hidden typing statistics and anti-macro boss ideas remain deferred.
+
 ## Approved 0.1.35 batch — 29 September 2026
 
 [Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, slowly tracking Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework is implemented and merged in 0.1.36; Frost Sigil double placement remains deferred.
@@ -348,7 +366,7 @@ Source: Aditya's collected playtest feedback, with Brad explicitly attributed be
 
 | ID | Report | Disposition / next evidence needed |
 |---|---|---|
-| SEP30-01 | Player reached displayed 0 HP without dying | Open; high-priority reproduction candidate. Check displayed versus actual health and the death transition; do not assume rounding, protection or invincibility explains it without evidence. |
+| SEP30-01 | Player reached displayed 0 HP without dying | Confirmed display defect fixed and verified locally: damage leaving 0.4 actual HP displayed 0 / 100 on baseline. Positive fractions now display <1 in normal/debug/overheal labels. Actual lethal damage correctly enters paused GAME_OVER and cannot be healed back. Original playtest cause remains unconfirmed; this does not claim all possible death bugs excluded. See the ordered checklist for integration status. |
 | SEP30-02 | Walking a long distance without killing produces more enemies in new space while old enemies reportedly remain rendered; FPS tanks | Open; high-priority performance reproduction candidate. Reproduce travel-only play and measure retained enemies, spawning/recycling, rendering, simulation and frame time. Continued rendering is the reported explanation, not a confirmed root cause. |
 | SEP30-03 | `laser` command does not work | Confirmed placeholder; command is now explicitly unavailable and hidden from help/autocomplete. Laser feature remains deferred. |
 | SEP30-04 | “big head” makes slimes smaller | Fixed `bighead`: doubles current enemy art relative to its actual size; repeated on is idempotent and off restores exact size. Collision unchanged; future spawns require reapplying on. |
@@ -392,4 +410,4 @@ Source: Aditya's collected playtest feedback, with Brad explicitly attributed be
 | SEP30-27 | Firewalk layering bug is fixed: the wizard now appears above it | Player-confirmed improvement, linked to earlier F41. No new independent verification in this batch. |
 | SEP30-28 | Recasting the same spell successfully increases its duration | Player-confirmed working behavior. No claim that every spell or timing boundary was retested. |
 
-Suggested first triage: SEP30-01 (0-HP/death), SEP30-02 (travel-related frame collapse), then the action-feedback/readability group. Debug commands, balance tuning and optional ideas remain separately selectable. Record reproduction/build evidence and update each ID to fixed/verified only when that work is actually done.
+Execution order is maintained in [the agreed checklist](#agreed-execution-order--30-september-2026). Record reproduction/build evidence there and in each feedback disposition; do not reconstruct or silently reorder the plan.

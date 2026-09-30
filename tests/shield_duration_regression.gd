@@ -170,7 +170,7 @@ func run():
 	await process_frame
 	check(get_nodes_in_group("earth_shield_eruptions").size()==1,"Explosion produces one deferred retaliation")
 	clear_eruptions()
-	check(preload("res://scripts/BuildVersion.gd").text()=="v0.1.36 · Playtest","Version 0.1.36")
+	check(game.hud.get_node("BuildVersion").text == "v%s · Playtest" % ProjectSettings.get_setting("application/config/version"), "HUD uses current project version")
 	if "--visual" in OS.get_cmdline_user_args():
 		root.size = Vector2i(640,480)
 		cast()
