@@ -5,6 +5,17 @@
 - Apply MEGA ×1.1 after existing cast-style bonuses and penalties, with a separate brief stamp. Power and size remain ×1.5. Failed target-dependent casts produce no award and clear no-target feedback.
 - Development version 0.1.45. Focused regression and rendered evidence recorded in the feedback tracker; native operated gate and integration pending. No public patch notes or export.
 
+# Tower 0.2.0 controls — Space interaction
+
+- Space works alongside E to enter/leave orb control and open the Necronomicon. Update nearby interaction prompts; keep rotation keys and gameplay casting unchanged.
+
+# 0.1.43 — Inward-facing tower arches
+
+- Replace four coarse tower view buckets with continuous inward-facing arch projection at all twelve clock positions and throughout rotation. Side views foreshorten naturally; southern positions show the outward back instead of repeating one front-facing frame.
+- Preserve the approved grey/moss stone and Level 1 woodland artwork; project stone depth and aperture surfaces separately. Keep the arch feet on the rotating ring and book blockers on their doorway's inner side.
+- Add native twelve-angle contact-sheet and midpoint evidence, actual render-basis mirrored controls, screenshot-save checks and sustained rotation timing. Existing walkable hub, orb controls, selected top doorway and run lifecycle are unchanged.
+- Future art polish: authored stone depth textures and rotating bookshelf perspectives; this correction uses simple code-drawn matching masonry, not new level art.
+
 # Unreleased — Walkable wizard tower home
 
 - Play now enters a walkable tower using the approved crimson carpet, stone arches, orb, tome and modular furniture art. The fixed central floor stays still while twelve outer doorways and their book blockers rotate together under orb control.

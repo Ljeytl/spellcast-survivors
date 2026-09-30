@@ -6,12 +6,13 @@ Title Play → walkable tower → selected Level 1 doorway → run → death/ext
 
 The central floor, room-sized red carpet, cyan orb pedestal, tome, bed and table stay fixed. Twelve outer arches, continuous masonry and doorway book blockers rotate together. The top doorway is selected; only the woodland Level 1 portal is available. Blank destinations cannot start runs. Bookcase/pile removal on future unlocks is reserved, with no invented unlock rules.
 
-WASD/arrows move. E near the orb enters rotation control; Left/Right or A/D steps one doorway at a time. Repeated presses during a turn are ignored. E or Escape leaves the orb after it settles. Movement is disabled while operating it, keeping the player on the safe central floor. The selected Woodland corridor extends through its physical arch; crossing the top threshold starts the run once. E at the tome opens existing Necronomicon; its controls consume input and room movement stops until it closes. Escape elsewhere returns to title.
+WASD/arrows move. E or Space near the orb enters rotation control; Left/Right or A/D steps one doorway at a time. Repeated presses during a turn are ignored. E, Space or Escape leaves the orb after it settles. Movement is disabled while operating it, keeping the player on the safe central floor. The selected Woodland corridor extends through its physical arch; crossing the top threshold starts the run once. E or Space at the tome opens existing Necronomicon; its controls consume input and room movement stops until it closes. Escape elsewhere returns to title.
 
 ## Structure
 
 - `Tower.gd`: room assembly, independent hub avatar, interaction/input, camera fit, doorway selection and departure.
-- `TowerArt.gd`: cached atlas regions; upright sprites switch view rather than spinning flat images.
+- `TowerArt.gd`: cached atlas regions and approved prop art.
+- `TowerArch.gd`: continuous 2.5D projection of the approved front stone/window textures, with upright elevation, tangent facade, radial thickness and separate front/back faces.
 - `TowerRing.gd`: low continuous stone rim with moving mortar joints behind authored arches.
 - `Tower.tscn`: hub scene entry.
 - `Game.gd`: separate result-return callback, leaving pause retry behavior intact.
@@ -26,7 +27,7 @@ Generation brief: preserve the approved simple pixel style; isolate bare round f
 
 Approved source references were `exec-dd92b541-9c9c-483a-9c15-4fd2546dd987.png` and `exec-ac003ca2-23db-4ea4-90b3-38ca604daa17.png` from the conversation's generated-image library. The project contains the usable derived assets, with no runtime dependency on that external library.
 
-Remaining art work: more intermediate perspective frames for smoother rotating architecture, authored curved wall segments instead of the simple joining rim, and additional room dressing. This implementation intentionally uses discrete views and placeholder joining masonry; it does not claim a fully animated 3D tower.
+Remaining art work: authored stone depth textures, rotating furniture perspectives, curved wall segments instead of the simple joining rim, and additional room dressing. Arch orientation now uses continuous projection, not discrete view swaps. Joining masonry remains simple; this is a 2D renderer with projected arch depth, not a fully modeled 3D tower.
 
 ## Verification
 
@@ -46,3 +47,13 @@ On implementation revision `ae23c3c`, the tower regression passed 27 checks, run
 The later integration of main's version-only 0.1.42 change is verified with fresh tower regression and operated journey runs; final candidate/revision and logs accompany the retained evidence directory. Windows/browser/itch remain unverified. This is a scoped tower gate, not a claim that every existing application surface is free of layout defects.
 
 Native journey input uses a non-focusing offscreen window and logs/reasserts injected held keys if OS focus events release their physical state. This avoids lost synthetic holds during resize/archive transitions without bypassing movement, collision, input handlers or route-distance assertions. Initial native reruns exposed this harness issue; those failures were investigated before rerunning the full operated route.
+
+## Inward-facing arch correction (0.1.43)
+
+Every doorway faces the chamber center. Clock slots are 30 degrees apart: 12 faces 270 degrees; 1 faces 240; 3 faces 180; 6 faces 90; 9 faces 0; 11 faces 300. Angles here use mathematical +X right/+Y north. In Godot screen coordinates, ring phase zero is north, tangent is `(cos(phase), sin(phase))`, and the inward normal is `(-sin(phase), cos(phase))`. The ground Y projection is 2/3, matching the 450-by-300 ring. Height remains vertical; projection changes apparent width instead of forcing every view to 170 screen pixels.
+
+The runtime draws the approved blank stone facade on both sides, woodland glass on the inward face only, and an opaque backing on the outward woodland face. Open blank arches remain apertures. A modest 26-unit radial stone extrusion produces top, side and aperture surfaces, so exact 3/9 o'clock views retain thickness. One shared geometry definition replaces direction-specific images; rotation therefore stays coherent between stops. Book blockers move 42 ground units inward with their sector and switch relative depth order at the far/near half of the ring. Their existing furniture art is still a billboard; authored furniture perspectives are a separate polish item.
+
+`tests/tower_arch_views.gd` is a native-render gate: twelve labeled clock renders, the settled whole room, and the room halfway between slots. It verifies all normals, draw transforms, elevation, mirrored/outward negative controls and actual image differences from a deliberately mirrored control. Missing native rendering or failed PNG saves fails this gate. It also measures warm idle and rotating frame rates, while retaining separate numerical checks. Native evidence is under `builds/arch-evidence`; browser/Windows rendering remains unverified.
+
+The correction passed 112 native orientation/render/evidence checks, 27 hub regression checks and 17 operated keyboard journey checks (156 total). Warm three-second samples measured approximately 60 frames/second both idle and rotating on the local Mac, with `update_ring` averaging 34 microseconds. These are local native measurements, not a browser or low-end-device performance guarantee. The original unrelated narrow Options layout issue remains outside this correction.
