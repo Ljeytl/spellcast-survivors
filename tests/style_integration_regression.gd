@@ -269,6 +269,10 @@ func run():
 	click(game.game_over_screen.main_menu_button)
 	for i in 10:
 		await process_frame
+	check(current_scene.has_method("depart"), "Result home returns to tower")
+	key(KEY_ESCAPE)
+	for i in 10:
+		await process_frame
 	var menu = current_scene
 	await capture("menu-narrow")
 	var button = menu.get_node("MenuPanel/VBoxContainer/ScoresButton")

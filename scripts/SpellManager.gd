@@ -155,7 +155,7 @@ func handle_key_input(event: InputEventKey):
 		handle_freeform_typing_input(event)
 		return
 	if event.keycode == KEY_SPACE and not is_typing and not event.echo:
-		if casting_clock - last_spell_cast_time >= SPELL_CAST_COOLDOWN:
+		if not pending_keyword_casts.is_empty() or casting_clock - last_spell_cast_time >= SPELL_CAST_COOLDOWN:
 			space_casting = true
 			start_freeform_typing()
 		return
@@ -180,7 +180,7 @@ func activate_spell_slot(slot: int) -> bool:
 	if not is_spell_unlocked(slot):
 		game_manager.show_gameplay_feedback("Empty slot · Learn a spell when you level up")
 		return false
-	if casting_clock - last_spell_cast_time < SPELL_CAST_COOLDOWN:
+	if pending_keyword_casts.is_empty() and casting_clock - last_spell_cast_time < SPELL_CAST_COOLDOWN:
 		game_manager.show_gameplay_feedback("Spell recovering · Try again in a moment")
 		return false
 	spell_queue.clear()
@@ -1063,7 +1063,7 @@ func handle_freeform_input(event: InputEventKey):
 		if (key_code >= KEY_A and key_code <= KEY_Z) or key_code == KEY_SPACE:
 			# Check spell cast cooldown to prevent rapid casting
 			var current_time = casting_clock
-			if current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
+			if pending_keyword_casts.is_empty() and current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
 				return
 			
 			start_freeform_typing()

@@ -24,6 +24,9 @@ func _ready():
 	clip_contents = true
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	label.self_modulate.a = 0
+	label.clip_text = true
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.add_theme_font_size_override("font_size", 1)
 	last_ticks = Time.get_ticks_usec()
 	for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
 		var path = "res://assets/typecast/Keys/%s.png" % letter
@@ -78,7 +81,7 @@ func clear_keys():
 	queue_redraw()
 
 func update_height():
-	var height = 62.0
+	var height = 80.0 if not error_caption().is_empty() else 62.0
 	for piece in fragments:
 		height = maxf(height, piece.floor_height)
 	label.custom_minimum_size.y = height
@@ -175,7 +178,7 @@ func _draw():
 
 	var caption_y = float(label.get_parent().scroll_vertical)
 	if not error_caption().is_empty():
-		draw_string(font, Vector2(8, caption_y + 60), error_caption(), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 14, Color("ff8175"))
+		draw_string(font, Vector2(8, caption_y + 72), error_caption(), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 14, Color("ff8175"))
 
 func error_caption() -> String:
 	for error in ["No target in range", "Mismatch", "unavailable", "No matching spell"]:

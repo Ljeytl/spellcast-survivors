@@ -1184,7 +1184,8 @@ func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
 	var letter_count = typing_keycaps.letters.length() if is_instance_valid(typing_keycaps) else 4
-	box.size = Vector2(minf(maxf(280.0, letter_count * 50.0 + 48.0), $UI/HUD.size.x - 36.0), 102.0)
+	box.size = Vector2(minf(maxf(280.0, letter_count * 50.0 + 48.0), $UI/HUD.size.x - 36.0), 120.0 if not typing_keycaps.error_caption().is_empty() else 102.0)
+	area.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	area.offset_top = 30.0
 	area.offset_bottom = -8.0
 	area.offset_left = 12.0

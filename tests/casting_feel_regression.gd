@@ -25,6 +25,16 @@ func capture(name):
 	var out = "res://builds/casting-feel"
 	DirAccess.make_dir_recursive_absolute(out)
 	root.get_texture().get_image().save_png(out.path_join(name+".png"))
+func press(code: int, unicode_value: int = 0):
+	var event = InputEventKey.new()
+	event.keycode = code
+	event.physical_keycode = code
+	event.unicode = unicode_value
+	event.pressed = true
+	root.push_input(event)
+	event.pressed = false
+	root.push_input(event)
+
 func type_spell(text):
 	if manager.is_typing:
 		manager.cancel_typing()
@@ -72,6 +82,24 @@ func run():
 	manager.set_process(false)
 	game.player.set_physics_process(false)
 	var session = game.style_session
+	manager.casting_clock += 1
+	press(KEY_SPACE)
+	for letter in "mega bolt":
+		press(letter.to_upper().unicode_at(0),letter.unicode_at(0))
+	press(KEY_ENTER)
+	check(manager.pending_keyword_casts.size()==1,"physical input commits MEGA")
+	press(KEY_1)
+	check(manager.is_typing and manager.target_spell=="bolt","physical next slot begins during charge")
+	press(KEY_ESCAPE)
+	check(manager.pending_keyword_casts.size()==1,"physical Escape preserves prior commit")
+	press(KEY_SPACE)
+	check(manager.is_typing,"physical Space begins during charge")
+	press(KEY_ESCAPE)
+	manager.advance_pending_casts(0.121)
+	type_spell("bolt")
+	manager.cast_freeform_spell("bolt")
+	press(KEY_1)
+	check(not manager.is_typing,"normal cast retains input cooldown")
 	type_spell("bolt")
 	var count = session.score.manual_casts
 	check(manager.cast_freeform_spell("bolt"),"normal accepted")
@@ -165,11 +193,16 @@ func run():
 	for geometry in [Vector2i(1280,720),Vector2i(640,720),Vector2i(480,800)]:
 		root.size=geometry
 		game.get_node("GameplayReadability").layout()
-		for text in ["bolt","mega meteor shower","mega regeneration","mega "+"x".repeat(100)]:
+		for text in ["bolt","mega meteor shower","mega regeneration","mega "+"x".repeat(100),"zz"]:
 			type_spell(text)
+			if text=="zz":
+				manager.attempt_freeform_cast()
 			await settle()
 			game._fit_typing_content()
 			var panel = game.hud.get_node("TypingPanel")
+			if text=="zz":
+				check(not panel.get_node("TypingArea").get_v_scroll_bar().visible,"invalid spell has no vertical scrollbar")
+				check(game.typing_keycaps.error_caption()=="unavailable","invalid feedback stays concise")
 			if known_bad:
 				panel.position = game.hud.size/2-panel.size/2
 			check(not panel.get_rect().intersects(Rect2(game.hud.size/2-Vector2(30,50),Vector2(60,100))),"typing avoids wizard body")
