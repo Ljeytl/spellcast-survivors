@@ -19,6 +19,7 @@ func key(code: int, pressed: bool):
 	event.physical_keycode = code
 	event.pressed = pressed
 	Input.parse_input_event(event)
+	Input.flush_buffered_events()
 func tap(code: int):
 	key(code,true)
 	await process_frame
@@ -31,9 +32,13 @@ func walk(code: int, distance: float):
 	var frames = 0
 	while is_instance_valid(tower) and tower.wizard.position.distance_to(start) < distance and frames < 180:
 		await physics_frame
+		if not Input.is_physical_key_pressed(code):
+			print("OS released injected key; resuming held input ", code)
+			key(code,true)
 		frames += 1
 	key(code,false)
 	await process_frame
+	print("WALK ", code, " from ", start, " to ", tower.wizard.position if is_instance_valid(tower) else Vector2.ZERO, " frames ", frames)
 	return is_instance_valid(tower) and tower.wizard.position.distance_to(start) >= distance
 func screenshot(name: String):
 	if DisplayServer.get_name() == "headless": return
@@ -44,6 +49,8 @@ func settle():
 func run():
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	root.get_node("AudioManager").quitting = true
+	root.set_flag(Window.FLAG_NO_FOCUS, true)
+	root.position = Vector2i(5000,5000)
 	root.size = Vector2i(1280,800)
 	root.get_node("SceneManager").goto_scene("res://scenes/MainMenu.tscn")
 	await settle()
@@ -85,8 +92,12 @@ func run():
 	check(await walk(KEY_A,75), "Align with selected top arch")
 	await screenshot("journey-doorway")
 	key(KEY_W,true)
-	await create_timer(1.0).timeout
+	for frame in 120:
+		if current_scene != tower: break
+		await physics_frame
+		if not Input.is_physical_key_pressed(KEY_W): key(KEY_W,true)
 	key(KEY_W,false)
+	await settle()
 	check(current_scene.scene_file_path.ends_with("Game.tscn"), "Actual walking crosses doorway into run")
 	if not current_scene.scene_file_path.ends_with("Game.tscn"):
 		print("TOWER JOURNEYS: %d checks, %d failures" % [checks, failures])
