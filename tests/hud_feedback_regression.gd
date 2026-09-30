@@ -53,15 +53,31 @@ func run():
 	game.style_session.updated.emit()
 	await settle()
 	if interactive:
-		print("Assisted HUD QA fixture ready: Bolt, Firewalk, Arcane Orbit, Earth Shield, Focus Ray, Regeneration; invincible, normal controls.")
+		manager.mana_bolt_timer = 1000000.0
+		game.style_session.score.grace_remaining = 3600.0
+		var encounters = game.get_node("MonsterManager")
+		encounters.set_process(false)
+		encounters.spawn_timer.stop()
+		var definition = encounters.encounter_config.variants.pursuer.duplicate(true)
+		definition.id = "pursuer"
+		for index in 8:
+			var enemy = encounters.spawn_monster(definition, false, true)
+			if enemy:
+				enemy.current_health = 1000000.0
+				enemy.max_health = 1000000.0
+				enemy.position = game.player.position + Vector2.from_angle(index * TAU / 8) * 250.0
+				enemy.set_physics_process(false)
+		print("Assisted HUD QA fixture ready: Bolt, Firewalk, Arcane Orbit, Earth Shield, Focus Ray, Regeneration; invincible, stationary high-HP targets, auto attack disabled, initial grace extended; normal manual controls/scoring.")
 		return
+	for family in ["spell_damage", "spell_area", "projectile_speed", "spell_duration", "slowdown_duration", "mana_bolt_mastery"]:
+		game.player.passive_ranks[family] = 1
 	manager.set_process(false)
 	game.get_node("MonsterManager").set_process(false)
 	game.get_node("MonsterManager").spawn_timer.stop()
 	game.player.set_physics_process(false)
 	if not baseline:
 		await verify_feedback()
-	for geometry in [Vector2i(1280, 720), Vector2i(640, 720)]:
+	for geometry in [Vector2i(1280, 720), Vector2i(640, 720), Vector2i(480, 800)]:
 		root.size = geometry
 		interface.layout()
 		game.style_session.updated.emit()

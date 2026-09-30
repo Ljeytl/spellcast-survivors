@@ -148,7 +148,7 @@ func refresh():
 	label.modulate = COLORS[rank]
 	var stats = get_parent().get_node("StatsPanel")
 	score_label.position = Vector2(stats.position.x + 6, stats.get_rect().end.y + 5)
-	score_label.size = Vector2(stats.size.x, 22)
+	score_label.size = Vector2(minf(stats.size.x, maxf(0, position.x - score_label.position.x - 12)) if compact else stats.size.x, 22)
 	score_label.text = "Score %d" % session.score.run_score
 	note.position = Vector2(bar_x, bar_y + 33)
 	note.size = Vector2(bar_width, 22)
