@@ -35,6 +35,6 @@ Run tests with the isolated `SpellCast Survivors Synergy Test` custom user direc
 - `tests/tower_regression.gd`: collisions plus deliberately disabled-mask negative control; ring selection; invalid doorway rejection; tome state; death/extraction and fresh repeated runs; duplicate-finalization progression guard.
 - `tests/tower_journeys.gd`: real key events through title, walking to orb, turning, tome, walking into the top arch, results and home/title. Native screenshots at desktop and 480×720 include rotation, archive, doorway and results.
 - `tests/ui_ux_journeys.gd`: adapted expected results routes; existing menu/pause/casting/upgrade journeys remain.
-- `tests/run_ending_regression.gd`: extraction versus endless continuation and existing result persistence.
+- `tests/run_ending_regression.gd`: extraction versus endless continuation and existing result persistence. Updated its obsolete strictly-growing cadence assertion: cadence respects the existing cap while group size and enemy stats continue growing. MonsterManager and encounter data are unchanged from the integration baseline.
 
 Native screenshots and command logs are retained under ignored builds/tower-evidence for candidate review. Browser/itch, Windows and touch input are not verified by these native tests. No refreshed export is included in this change.

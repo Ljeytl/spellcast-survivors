@@ -139,8 +139,11 @@ func depart():
 	SceneManager.goto_scene("res://scenes/Game.tscn")
 
 func move_wizard(direction: Vector2, _delta: float):
+	var before = wizard.position
 	wizard.velocity = direction * SPEED
 	wizard.move_and_slide()
+	if selected == 0 and settled() and before.y < 0 and (before / Vector2(370,245)).length() > 1 and absf(before.x) <= 48:
+		wizard.position.x = clampf(wizard.position.x, -47.9, 47.9)
 	var normalized = wizard.position / Vector2(370, 245)
 	var exit_corridor = selected == 0 and settled() and absf(wizard.position.x) < 48 and wizard.position.y < 0
 	if normalized.length() > 1 and not exit_corridor:

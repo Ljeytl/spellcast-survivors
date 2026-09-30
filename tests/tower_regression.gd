@@ -64,6 +64,10 @@ func run():
 	for i in 40: tower._physics_process(0.02)
 	tower.interact()
 	check(tower.selected == 0, "Can return to Woodland")
+	tower.wizard.position = Vector2(47,-270)
+	await physics_frame
+	tower.move_wizard(Vector2.RIGHT, 0.02)
+	check(tower.wizard.position.x < 48 and is_equal_approx(tower.wizard.position.y,-270), "Exit corridor blocks sideways without snapping south")
 	tower.wizard.position = Vector2(0,-301)
 	tower._physics_process(0)
 	await settle()
@@ -72,6 +76,7 @@ func run():
 	check(game.game_time < 2 and game.spell_manager.spells.size() == 1 and not paused, "First run fresh")
 	var progression = root.get_node("CharacterManager")
 	var games_before = progression.total_games_played
+	var discoveries_before = progression.discovered_synergies.duplicate()
 	game.finish_run(false)
 	var xp_after = progression.persistent_xp
 	game.finish_run(false)
@@ -86,6 +91,7 @@ func run():
 	await settle()
 	game = current_scene
 	check(game.game_time < 2 and game.player.health == game.player.max_health, "Second run resets clock and health")
+	check(progression.persistent_xp == xp_after and progression.discovered_synergies == discoveries_before, "Second startup retains XP and discoveries")
 	game.finish_run(true)
 	await settle()
 	check(game.game_over_screen.title_label.text == "VICTORY!", "Extraction still shows victory")
