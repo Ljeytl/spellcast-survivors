@@ -191,20 +191,17 @@ The following preserves prior ideas and exclusions outside the main browsing mat
 | Magic Missile | Implemented automatic attack, separate from manual Bolt |
 | Atomic | Implemented style reward, outside base acquisition pool |
 | Seeking Spirit / Reaping Spirit | Earlier spirit ideas; Reaping Spirit acquisition disabled; preserve despite school discussion |
-| Shillelagh | Now selected as Life Lance; earlier root-wave description is historical |
+| Shillelagh | Possible distinction from Life Lance: Life Lance uses vines to pull enemies toward a destination, while Shillelagh forms a root wall that immobilizes enemies; exact pull destination and wall shape remain open |
 | Dash / Swiftness | Earlier user mobility ideas; activation/duration design open |
 | Personal storm aura | Earlier dwell-triggered lightning idea; name and following behavior open; not automatically identical to Static Field |
 | Homing Bolt, stronger Glacial Lance and elemental-tier words | Earlier composition/tier concepts, not new runtime casts |
-| Earthquake / Earth Golem | Earlier user ideas preserved; not rejected in latest pass; no runtime implementation |
 | Lightning Shield | Earlier open/historical shield idea; no mechanics approved |
 
 ## Examples and historical proposals that are not agreed spells
 
 | Entry | Provenance / latest disposition |
 |---|---|
-| Arcane Seed | Earlier assistant example; user now rejects it |
-| Arcane Golem | Generic candidate rejected in latest user pass |
-| Arcane Shield | Historical assistant proposal, unselected; **Prismatic Shield** above is a separate new user idea |
+|  |
 | Life Seed | Assistant illustration, not selected; do not confuse with Life Bolt healing drops |
 | Frost Ray / Ice Ray | Removed from the proposed roster; Water Jet occupies the merged school’s Ray slot |
 | Frostball / Plague Ball | Assistant names, not selected; user now proposes Snowball and an unnamed carcass concept respectively |
