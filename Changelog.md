@@ -3,6 +3,7 @@
 - Cache deterministic offscreen grove queries with a bounded 256-entry recency cache; enemy steering no longer regenerates the same distant terrain every physics tick. Preserve layout, enemy cap, recycling rate and encounter difficulty.
 - Add a persisted Show FPS option under Graphics, default off. Display above the build label across menus/gameplay, update every 250 real milliseconds, and keep pause/typing slowdown from distorting update cadence.
 - Add seeded component and real physics-frame travel profiles plus cache/settings regression and known-bad uncached control. Separate measured simulation cost from unverified rendering claims; record evidence in docs/travel-performance.md.
+- Native review caught an FPS-only narrow-window scaling defect; give the overlay the existing responsive root treatment and verify readable screen-space font size, placement and a deliberately unscaled negative control.
 - No version bump or refreshed itch export in this tranche.
 
 # Unreleased — Agreed feedback execution order

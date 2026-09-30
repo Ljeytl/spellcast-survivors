@@ -45,7 +45,9 @@ The optional `--natural` mode drives the encounter clock and enemy callbacks in 
 
 `tests/travel_settings_regression.gd` verifies repeated warm queries generate once, 2,000 distinct queries remain bounded, evicted layouts regenerate identically, FPS defaults off, immediate on/off presentation, saved setting, menu reopening, fresh settings-instance reload and paused disable at desktop/narrow geometry. Its uncached negative control deliberately calls generation ten times and detects ten generations; the warm-query assertion would fail against the old implementation. Test setup requires the isolated Synergy Test profile and restores its prior presentation file.
 
-FPS lives in Graphics settings, defaults off, persists in `presentation.cfg`, appears above the build label, ignores mouse input and updates every 250 real milliseconds even during focus slowdown/pause. Headless tests cover state/persistence; actual desktop/narrow menu operation and fresh-process persistence remain the separate native review gate.
+FPS lives in Graphics settings, defaults off, persists in `presentation.cfg`, appears above the build label, ignores mouse input and updates every 250 real milliseconds even during focus slowdown/pause. Headless tests cover state/persistence and now enforce at least 17.5 screen pixels of FPS font height, on-screen placement above the version, and a deliberately unscaled negative control at 640×720. The suite now has 124 checks, all passing.
+
+Native operated review of `c15d606` verified enable → Back → gameplay → level-up/death → main menu → Quit → fresh process persistence. At actual 640×720, the toggle and navigation worked but FPS itself was too small and overlapped the version. This failed visual obligation is repaired with the same responsive-root treatment as existing menus; its native retest is pending. No blanket UI/UX pass is claimed.
 
 Use the isolated profile described in README, then run `godot --headless --path . --script tests/travel_settings_regression.gd`. The profile scripts use the same guard. No version bump or shareable ZIP update in this tranche.
 

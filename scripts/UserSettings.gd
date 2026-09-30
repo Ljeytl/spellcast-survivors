@@ -3,6 +3,7 @@ extends Node
 const PATH = "user://presentation.cfg"
 var show_fps := false
 var fps_label: Label
+var fps_root: Control
 var next_fps_update_msec := 0
 
 func _ready():
@@ -10,6 +11,12 @@ func _ready():
 	var overlay = CanvasLayer.new()
 	overlay.layer = 110
 	add_child(overlay)
+	fps_root = Control.new()
+	fps_root.name = "FPSOverlay"
+	fps_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(fps_root)
+	get_window().size_changed.connect(layout_fps)
+	layout_fps()
 	fps_label = Label.new()
 	fps_label.name = "FPSMeter"
 	fps_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -18,7 +25,7 @@ func _ready():
 	fps_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 	fps_label.add_theme_constant_override("shadow_offset_x", 2)
 	fps_label.add_theme_constant_override("shadow_offset_y", 2)
-	overlay.add_child(fps_label)
+	fps_root.add_child(fps_label)
 	fps_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	fps_label.offset_left = -120
 	fps_label.offset_top = -58
@@ -48,6 +55,7 @@ func save_value(section: String, key: String, value: Variant) -> Error:
 	return config.save(PATH)
 
 func set_show_fps(value: bool) -> Error:
+	layout_fps()
 	show_fps = value
 	fps_label.visible = value
 	fps_label.text = "%d FPS" % Engine.get_frames_per_second()
@@ -58,4 +66,8 @@ func _process(_delta: float):
 		return
 	if Time.get_ticks_msec() >= next_fps_update_msec:
 		next_fps_update_msec = Time.get_ticks_msec() + 250
+		layout_fps()
 		fps_label.text = "%d FPS" % Engine.get_frames_per_second()
+
+func layout_fps():
+	preload("res://scripts/GameplayReadability.gd").fit_root(fps_root)

@@ -54,6 +54,18 @@ func run():
 		check(not toggle.button_pressed, "options reflects off")
 		toggle.button_pressed = true
 		check(settings.show_fps and settings.fps_label.visible, "toggle immediately shows meter")
+		await process_frame
+		var screen_transform = root.get_final_transform() * settings.fps_label.get_global_transform_with_canvas()
+		var screen_font_height = settings.fps_label.get_theme_font_size("font_size") * screen_transform.get_scale().y
+		check(screen_font_height >= 17.5, "FPS font stays readable in screen pixels")
+		var fps_rect = screen_transform * Rect2(Vector2.ZERO, settings.fps_label.size)
+		check(fps_rect.position.x >= 0 and fps_rect.end.x <= geometry.x + 1 and fps_rect.position.y >= 0 and fps_rect.end.y <= geometry.y - 25, "FPS stays on screen above version")
+		var previous_scale = settings.fps_root.scale
+		settings.fps_root.scale = Vector2.ONE
+		var broken_transform = root.get_final_transform() * settings.fps_label.get_global_transform_with_canvas()
+		if geometry.x == 640:
+			check(settings.fps_label.get_theme_font_size("font_size") * broken_transform.get_scale().y < 17.5, "negative control detects unscaled FPS root")
+		settings.fps_root.scale = previous_scale
 		var config = ConfigFile.new()
 		config.load(path)
 		check(config.get_value("display", "show_fps") == true, "toggle persisted")

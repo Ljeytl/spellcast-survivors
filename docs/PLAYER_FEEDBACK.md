@@ -1,6 +1,6 @@
 # Player feedback tracker
 
-Latest batch: [30 September playtest feedback](#playtest-feedback--2026-09-30). Testing-console repair implemented; other feedback remains separately triaged.
+Latest batch: [30 September playtest feedback](#playtest-feedback--2026-09-30). Testing-console repair and fractional-health display are merged; travel performance/FPS work follows the agreed execution checklist below.
 
 ## Agreed execution order — 30 September 2026
 
@@ -8,7 +8,7 @@ This is the authoritative order approved by the player. Read this checklist befo
 
 | Order | Feedback | Status | Required result / evidence |
 |---|---|---|---|
-| 1 — First | SEP30-01: displayed 0 HP without death | Implemented and verified; export pending | Confirmed actual 0.4 HP displayed as 0; now displays <1. Lethal damage ends the run. Evidence: health_truth_regression (14 checks), native captures at 1280×720 and 640×480, console/shield regressions. Original playtest cause not definitively identified; reopen if actual zero survives. |
+| 1 — First | SEP30-01: displayed 0 HP without death | Merged (PR #111, e9a7e27); export pending | Confirmed actual 0.4 HP displayed as 0; now displays <1. Lethal damage ends the run. Evidence: health_truth_regression (14 checks), native captures at 1280×720 and 640×480, console/shield regressions. Original playtest cause not definitively identified; reopen if actual zero survives. |
 | 2 — First | SEP30-02: performance collapses after travel | Implemented; runtime profiling verified, integration/export pending | Confirmed repeated offscreen grove generation in enemy steering; bounded deterministic cache. Enemy cap and scenery node counts stayed bounded. See [profiling evidence](travel-performance.md); headless evidence does not establish a rendering defect. |
 | Alongside 2 — Useful support | SEP30-20: FPS toggle | Implemented; automated checks passed, operated native review pending | Graphics settings checkbox defaults off; live FPS display persists across scenes/restarts and updates on real time. See [verification](travel-performance.md). |
 | 3 — Next | SEP30-13/14/16: cast, MEGA and combo event feedback | Open | Distinct brief feedback for accepted casts, MEGA, combo gain and breaks; start with simple animation, clear visual changes and existing sound where useful. |
@@ -360,7 +360,7 @@ All latest concepts, alternatives and rejections are recorded in [the detailed p
 
 ## Playtest feedback — 2026-09-30
 
-Source: Aditya's collected playtest feedback, with Brad explicitly attributed below. Recorded after 0.1.41; the exact build/platform used for each observation is unconfirmed. **Testing-console repair authorized and implemented; other items remain triage.** Command behavior is regression-tested below; other reported symptoms and suspected causes remain distinct. The priorities below are suggested triage, not a committed development slate.
+Source: Aditya's collected playtest feedback, with Brad explicitly attributed below. Recorded after 0.1.41; the exact build/platform used for each observation is unconfirmed. **Implementation follows the authoritative agreed execution order above.** Command behavior and subsequently verified fixes are marked individually; reported symptoms and suspected causes remain distinct. The grouped feedback below is a record of reports, not a competing execution order.
 
 ### Bugs and diagnostics
 
