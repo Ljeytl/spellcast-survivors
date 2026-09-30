@@ -10,7 +10,7 @@ This is the authoritative order approved by the player. Read this checklist befo
 |---|---|---|---|
 | 1 — First | SEP30-01: displayed 0 HP without death | Merged (PR #111, e9a7e27); export pending | Confirmed actual 0.4 HP displayed as 0; now displays <1. Lethal damage ends the run. Evidence: health_truth_regression (14 checks), native captures at 1280×720 and 640×480, console/shield regressions. Original playtest cause not definitively identified; reopen if actual zero survives. |
 | 2 — First | SEP30-02: performance collapses after travel | Implemented; runtime profiling verified, integration/export pending | Confirmed repeated offscreen grove generation in enemy steering; bounded deterministic cache. Enemy cap and scenery node counts stayed bounded. See [profiling evidence](travel-performance.md); headless evidence does not establish a rendering defect. |
-| Alongside 2 — Useful support | SEP30-20: FPS toggle | Implemented; automated checks passed, operated native review pending | Graphics settings checkbox defaults off; live FPS display persists across scenes/restarts and updates on real time. See [verification](travel-performance.md). |
+| Alongside 2 — Useful support | SEP30-20: FPS toggle | Implemented and verified; integration/export pending | Graphics settings checkbox defaults off; 124 automated checks and operated native FPS journeys passed on f3d52b1 at 640×720/3024×1726, including restart, pause/resume and resize. See [verification](travel-performance.md). |
 | 3 — Next | SEP30-13/14/16: cast, MEGA and combo event feedback | Open | Distinct brief feedback for accepted casts, MEGA, combo gain and breaks; start with simple animation, clear visual changes and existing sound where useful. |
 | 4 — Next | SEP30-09/15: combo versus score; duration versus cooldown | Open | Separate banked score from live style; consistently identify active duration without adding cooldown mechanics. |
 | 5 — Next | SEP30-10/11/12: passive readability, XP label, larger HP | Open | Improve essential HUD readability without explanatory clutter. |
@@ -395,7 +395,7 @@ Source: Aditya's collected playtest feedback, with Brad explicitly attributed be
 | ID | Report / idea | Disposition |
 |---|---|---|
 | SEP30-19 | Firewalk may be overtuned; Brad said it made the game pretty easy | Open balance hypothesis, not an approved nerf. Capture rank, passives, MEGA usage, encounter time and play pattern before tuning. |
-| SEP30-20 | Toggleable FPS meter in video settings | Implemented in Graphics settings, default off, above the build label; session/reopen persistence tested. Native desktop/narrow operated review pending. |
+| SEP30-20 | Toggleable FPS meter in video settings | Implemented and verified in Graphics settings, default off, above the build label. Native desktop/narrow toggles, resize, pause/resume and fresh-process persistence passed on f3d52b1; see [evidence](travel-performance.md). |
 | SEP30-21 | Option to wipe the local leaderboard | Requested settings feature; scope of deletion, confirmation and handling of older scoring revisions need design before implementation. No scores deleted. |
 | SEP30-22 | Blessing spells: buffs such as Golden Vow in Elden Ring | Deferred spell-family/buff idea; preserve fantasy without inventing effects, numbers or recipes. |
 | SEP30-23 | A little hidden typing-speed statistic | Deferred statistics idea; measurement, where it is exposed and meaning of “hidden” undecided. |
