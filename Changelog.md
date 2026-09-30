@@ -1,3 +1,10 @@
+# 0.1.43 — Inward-facing tower arches
+
+- Replace four coarse tower view buckets with continuous inward-facing arch projection at all twelve clock positions and throughout rotation. Side views foreshorten naturally; southern positions show the outward back instead of repeating one front-facing frame.
+- Preserve the approved grey/moss stone and Level 1 woodland artwork; project stone depth and aperture surfaces separately. Keep the arch feet on the rotating ring and book blockers on their doorway's inner side.
+- Add native twelve-angle contact-sheet and midpoint evidence, actual render-basis mirrored controls, screenshot-save checks and sustained rotation timing. Existing walkable hub, orb controls, selected top doorway and run lifecycle are unchanged.
+- Future art polish: authored stone depth textures and rotating bookshelf perspectives; this correction uses simple code-drawn matching masonry, not new level art.
+
 # Unreleased — Walkable wizard tower home
 
 - Play now enters a walkable tower using the approved crimson carpet, stone arches, orb, tome and modular furniture art. The fixed central floor stays still while twelve outer doorways and their book blockers rotate together under orb control.
