@@ -43,7 +43,8 @@ func _ready():
 	add_prop(15, Vector2(240, -80), 100, Vector2(35, 48))
 	for i in PORTAL_COUNT:
 		var portal = Node2D.new()
-		var arch = ART.sprite(4, 170)
+		var arch = preload("res://scripts/TowerArch.gd").new()
+		arch.woodland = i == 0
 		arch.name = "Arch"
 		portal.add_child(arch)
 		if i != 0:
@@ -159,11 +160,13 @@ func update_ring():
 		var portal = arches[i]
 		portal.position = point
 		portal.z_index = int(point.y + 400)
-		var view = 3 if point.y > 60 else (1 if point.x < -100 else (2 if point.x > 100 else 0))
-		var sprite = portal.get_node("Arch")
-		sprite.texture = ART.texture((8 if i == 0 else 4) + view)
-		sprite.scale = Vector2.ONE * 170 / sprite.texture.get_width()
-		sprite.position.y = -sprite.texture.get_height() * sprite.scale.y / 2 + 10
+		var arch = portal.get_node("Arch")
+		arch.set_phase(phase)
+		if portal.has_node("Blocker"):
+			var blocker = portal.get_node("Blocker")
+			blocker.position = arch.ground(arch.inward(phase) * 42.0)
+			blocker.position.y -= blocker.texture.get_height() * blocker.scale.y / 2.0 - 5.0
+			blocker.z_index = 1 if cos(phase) >= 0.0 else -1
 
 	selected = posmod(roundi(-angle / STEP), PORTAL_COUNT)
 
