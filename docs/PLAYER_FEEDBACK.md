@@ -1,6 +1,6 @@
 # Player feedback tracker
 
-Latest batch: [30 September playtest feedback](#playtest-feedback--2026-09-30). Documentation only; implementation scope not selected.
+Latest batch: [30 September playtest feedback](#playtest-feedback--2026-09-30). Testing-console repair implemented; other feedback remains separately triaged.
 
 ## Approved 0.1.35 batch — 29 September 2026
 
@@ -316,7 +316,7 @@ Keep current cast scoring, spell damage, timed enemy tiers, later ranged unlocks
 
 Additional accepted feedback in this pass: Focus and Prism share target reservations (including two Prism casts); Lightning Bolt starts with four extra bounces and gains one per own spell rank; the meter must reproduce the connected stone/rune reference; faster cadence and larger groups rise in parallel. Implemented and covered by integrated checks; final human feel review remains.
 
-Open diagnostic follow-up: console `kill_all_enemies` / `explode_all_enemies` remove enemies directly and can leave a stale spawner count. Normal combat and Atomic use the correct death signal. Repair debug removal bookkeeping separately; debug-assisted runs are excluded from scores.
+Console diagnostic repaired: `kill_all` and `thanos` use normal death/reward handling and population bookkeeping; unfinished `explode` is explicitly unavailable. Assisted runs remain excluded from scores.
 
 ## Follow-up tuning — 2026-09-29
 
@@ -342,7 +342,7 @@ All latest concepts, alternatives and rejections are recorded in [the detailed p
 
 ## Playtest feedback — 2026-09-30
 
-Source: Aditya's collected playtest feedback, with Brad explicitly attributed below. Recorded after 0.1.41; the exact build/platform used for each observation is unconfirmed. **Documentation only: this is not approval to implement every item.** Reported symptoms and suspected causes are distinct; no fresh reproduction or verification was performed for this batch. The priorities below are suggested triage, not a committed development slate.
+Source: Aditya's collected playtest feedback, with Brad explicitly attributed below. Recorded after 0.1.41; the exact build/platform used for each observation is unconfirmed. **Testing-console repair authorized and implemented; other items remain triage.** Command behavior is regression-tested below; other reported symptoms and suspected causes remain distinct. The priorities below are suggested triage, not a committed development slate.
 
 ### Bugs and diagnostics
 
@@ -350,12 +350,12 @@ Source: Aditya's collected playtest feedback, with Brad explicitly attributed be
 |---|---|---|
 | SEP30-01 | Player reached displayed 0 HP without dying | Open; high-priority reproduction candidate. Check displayed versus actual health and the death transition; do not assume rounding, protection or invincibility explains it without evidence. |
 | SEP30-02 | Walking a long distance without killing produces more enemies in new space while old enemies reportedly remain rendered; FPS tanks | Open; high-priority performance reproduction candidate. Reproduce travel-only play and measure retained enemies, spawning/recycling, rendering, simulation and frame time. Continued rendering is the reported explanation, not a confirmed root cause. |
-| SEP30-03 | `laser` command does not work | Open debug-command report; exact command spelling/arguments, expected effect and actual response need reproduction. |
-| SEP30-04 | “big head” makes slimes smaller | Open debug-command report; capture before/after size and determine intended affected entities. Exact command spelling unconfirmed. |
-| SEP30-05 | “black hole” does not work | Open debug-command report; reproduce invocation and intended effect. Exact command spelling unconfirmed. |
-| SEP30-06 | “matrix mode” does not work | Open debug-command report; reproduce invocation and intended effect. Exact command spelling unconfirmed. |
-| SEP30-07 | “rainbow trail” does not work | Open debug-command report; reproduce invocation and intended effect. Exact command spelling unconfirmed. |
-| SEP30-08 | `speed` does not work | Open debug-command report; reproduce arguments, affected property and visible response. |
+| SEP30-03 | `laser` command does not work | Confirmed placeholder; command is now explicitly unavailable and hidden from help/autocomplete. Laser feature remains deferred. |
+| SEP30-04 | “big head” makes slimes smaller | Fixed `bighead`: doubles current enemy art relative to its actual size; repeated on is idempotent and off restores exact size. Collision unchanged; future spawns require reapplying on. |
+| SEP30-05 | “black hole” does not work | Confirmed placeholder; `blackhole` now explicitly unavailable and hidden. Feature deferred. |
+| SEP30-06 | “matrix mode” does not work | Confirmed ineffective camera tint; `matrix` now explicitly unavailable and hidden. Feature deferred. |
+| SEP30-07 | “rainbow trail” does not work | Confirmed placeholder; `rainbow` now explicitly unavailable and hidden. Feature deferred. |
+| SEP30-08 | `speed` does not work | Fixed: `speed 2` sets real movement-speed multiplier to 2× base; validated numeric input. Does not alter projectile speed. |
 
 ### Readability and action feedback
 

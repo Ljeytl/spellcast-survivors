@@ -1,3 +1,11 @@
+# Unreleased — Testing console repair
+
+- Repair movement speed, Spell Power, XP, health/death, invincibility, noclip, upgrade resources, enemy spawning, encounter-time jumps, chest placement and learned spell listing against current game APIs.
+- Make `bighead` double current sprite sizes relative to their original art, with idempotent on/off restoration. Route kill commands through normal death/reward bookkeeping.
+- Hide unfinished novelty commands and unstable time-scale control; direct invocation reports unavailable instead of fake success. These effects remain deferred.
+- Strictly validate numeric/toggle inputs, including persistent progression and save-slot controls. Keep read-only/unknown/unavailable console use leaderboard-eligible; supported modifying commands mark the run assisted conservatively, even on rejected arguments.
+- Add isolated console regression coverage for real state changes, invalid input, score eligibility, death/upgrade pause transitions, boss milestones and extraction. No version bump or rebuilt shareable export.
+
 # 2026-09-30 — Capture playtest feedback
 
 - Log all 28 reports, questions and positive observations with individual IDs and dispositions in the feedback tracker.
