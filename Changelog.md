@@ -6,6 +6,12 @@
 - Verify physics collisions, doorway selection, keyboard journeys, narrow layout, archive input isolation, repeat runs and exactly-once progression. No version bump or shareable export in this tranche.
 - Future: authored perspective frames throughout rotation, level unlocks/clearing blockers and spell preparation; see docs/tower-home.md.
 
+# Unreleased — Focused cast and style HUD feedback
+
+- Implement the approved priority 3/4 presentation pass: incantation success/MEGA response, distinct style gain/loss, separated banked score, and selective active spell status; preserve scoring and spell mechanics.
+- Preserve carved-stone style assets and debug detail; omit normal-HUD tutorial prose and rank-progress fractions. Broader inventory readability remains a separate priority.
+- Targeted HUD/style/ground/MEGA checks pass; deliberate score-overlap/rank-fraction controls fail. Native review found and corrected typing/inventory overlap and stale focus during cast confirmation. Scoped desktop/narrow operated journeys passed on 0ba1365; details and limits are in docs/UI_UX_PASS.md. Implemented and verified, pending merge; no export refreshed.
+
 # Unreleased — Travel performance and FPS diagnostics
 
 - Cache deterministic offscreen grove queries with a bounded 256-entry recency cache; enemy steering no longer regenerates the same distant terrain every physics tick. Preserve layout, enemy cap, recycling rate and encounter difficulty.
@@ -848,3 +854,5 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 
 - Plague Seed and Soul Bloom acquire only visible living hosts, optionally respecting an authored initial cast range. No-target attempts remain editable with “No target in range,” preserve the current slowdown allowance, and do not count or flash as successful casts. Shield-only absorption emits stone feedback; health loss emits red feedback, with both on overflow.
 
+
+- HUD cast confirmation hides the finished focus countdown and restores it on the next incantation; the release animation no longer displays stale focus time.

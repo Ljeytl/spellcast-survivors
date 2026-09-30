@@ -2,6 +2,7 @@ extends Node
 
 signal updated
 signal feedback(text: String, promoted: bool)
+signal style_event(kind: String, amount: float, promoted: bool)
 
 const Score = preload("res://scripts/StyleScore.gd")
 const Store = preload("res://scripts/StyleScoreStore.gd")
@@ -127,19 +128,23 @@ func on_release(family: String, canonical: String, typed: String):
 	if completed_text != typed.strip_edges().to_lower().replace("_", " "):
 		return
 	var before = score.rank_index()
+	var combo_before = score.combo
 	var award = score.award_cast(family, canonical, completed_at - first_letter, mistakes, receipt)
 	if award.is_empty():
 		return
 	var promoted = score.rank_index() > before
 	var text = "%s RANK" % Score.RANKS[score.rank_index()] if promoted else "CLEAN +%d" % award.points if mistakes == 0 else "+%d" % award.points
+	style_event.emit("gain", maxf(0.0, score.combo - combo_before), promoted)
 	feedback.emit(text, promoted)
 	updated.emit()
 
 func collect_style_pickup() -> bool:
 	if finalized or game.current_state != game.GameState.PLAYING or game.player.health <= 0.0:
 		return false
+	var combo_before = score.combo
 	var award = score.award_pickup()
 	var promoted = award.rank > award.old_rank
+	style_event.emit("gain", maxf(0.0, score.combo - combo_before), promoted)
 	feedback.emit("STYLE +%d" % award.points, promoted)
 	updated.emit()
 	return true
@@ -147,7 +152,9 @@ func collect_style_pickup() -> bool:
 func on_hit(_health_loss: float):
 	if finalized:
 		return
+	var combo_before = score.combo
 	score.take_hit()
+	style_event.emit("hit", maxf(0.0, combo_before - score.combo), false)
 	feedback.emit("HIT", false)
 	updated.emit()
 
@@ -183,6 +190,7 @@ func cast_atomic() -> bool:
 	var blast = load("res://scripts/AtomicBlast.gd").new()
 	blast.configure(game)
 	game.add_child(blast)
+	style_event.emit("atomic", Score.ATOMIC_COST, false)
 	feedback.emit("ATOMIC", true)
 	updated.emit()
 	return true
