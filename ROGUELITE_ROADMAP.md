@@ -697,3 +697,9 @@ Recorded the [rotary tower chamber and preparation book](docs/expedition-design/
 ## Latest vocabulary exploration
 
 [Full element-by-element idea capture](docs/expedition-design/17-element-spell-ideas.md) preserves new spell identities, rejected palette swaps, school-grouping questions and family exceptions. Documentation only; no content batch selected or implemented.
+
+## Captured playtest options — 2026-09-30
+
+See the [dated feedback batch](docs/PLAYER_FEEDBACK.md#playtest-feedback--2026-09-30) for all 28 observations and individual statuses. This is a capture, not a new implementation commitment.
+
+Potential follow-up: investigate 0-HP survival and travel-related enemy accumulation/performance; improve combo/score, passives, HP/XP and cast/timer/MEGA feedback; show MEGA in the Necronomicon. Optional settings/inspection ideas include FPS display, local-score reset and current spell-modification details. Firewalk balance requires evidence before a nerf. Blessing spells, hidden typing statistics and a humorous anti-macro boss remain deferred ideas; no automatic punishment or macro-detection rule is approved. Potions, Firewalk layering and duration-extension recasts received positive feedback.
