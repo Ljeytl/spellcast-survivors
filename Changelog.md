@@ -4,7 +4,7 @@
 - MEGA commits an independent spell/stat/style snapshot, gathers particles at the moving staff for 0.12 seconds of unpaused gameplay time, then releases. Ordinary casts remain immediate. Later typing or cancellation cannot overwrite committed casts; terminal states discard them.
 - Apply MEGA ×1.1 after existing cast-style bonuses and penalties, with a separate brief stamp. Power and size remain ×1.5. Failed target-dependent casts produce no award and clear no-target feedback.
 - Permit immediate next-incantation input during committed MEGA charging while retaining ordinary cooldown; keep invalid-cast text in a bounded error line without a scrollbar.
-- Development version 0.1.45. Focused regression and rendered evidence recorded in the feedback tracker; native operated gate and integration pending. No public patch notes or export.
+- Development version 0.1.45. 313 focused assertions pass, deliberate bad controls fail, and scoped desktop/narrow native casting journeys pass on 0f9179b. Verification limits are recorded in the feedback tracker; integration pending. No public patch notes or export.
 
 # Tower 0.2.0 controls — Space interaction
 
