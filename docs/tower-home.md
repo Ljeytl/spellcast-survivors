@@ -38,3 +38,9 @@ Run tests with the isolated `SpellCast Survivors Synergy Test` custom user direc
 - `tests/run_ending_regression.gd`: extraction versus endless continuation and existing result persistence. Updated its obsolete strictly-growing cadence assertion: cadence respects the existing cap while group size and enemy stats continue growing. MonsterManager and encounter data are unchanged from the integration baseline.
 
 Native screenshots and command logs are retained under ignored builds/tower-evidence for candidate review. Browser/itch, Windows and touch input are not verified by these native tests. No refreshed export is included in this change.
+
+### Verification disposition
+
+On implementation revision `ae23c3c`, the tower regression passed 27 checks, run-ending regression passed 65 checks, and native operated tower journeys passed 17 checks (109 total). The sibling `ui_ux_journeys.gd` sweep passed 119 of 120 checks: **`Options Back fits (480, 640)` remains failed/open**. That Options layout is outside this tower implementation and its source is unchanged from main; the sweep is not reported as fully passed. Evidence: `builds/tower-evidence/ui-sibling-sweep.log`. The actual tower desktop/narrow journeys, archive heading and result transitions pass.
+
+The later integration of main's version-only 0.1.42 change is verified with fresh tower regression and operated journey runs; final candidate/revision and logs accompany the retained evidence directory. Windows/browser/itch remain unverified. This is a scoped tower gate, not a claim that every existing application surface is free of layout defects.
