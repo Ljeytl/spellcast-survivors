@@ -662,6 +662,8 @@ func change_state(new_state: GameState):
 	if current_state == GameState.GAME_OVER:
 		return
 	current_state = new_state
+	if new_state in [GameState.GAME_OVER, GameState.EXTRACTION]:
+		spell_manager.discard_pending_casts()
 	
 	if hud.has_node("BuildVersion"):
 		hud.get_node("BuildVersion").visible = current_state == GameState.PLAYING
@@ -732,7 +734,7 @@ func update_typing_display(text: String):
 		
 		# Position typing UI in upper screen when visible
 		if should_show:
-			position_typing_ui_upper_screen()
+			_fit_typing_content()
 	else:
 		# Falalback: print to console if UI still not found
 		print("Typing display: ", text)
@@ -1068,9 +1070,11 @@ func _on_spell_queued(spell_name: String, slot: int):
 	highlight_spell_slot(slot - 1)  # Convert to 0-based index
 
 func _on_typing_started():
+	time_dilation_effect.set_typing_visual(true)
 	$UI/HUD/TypingPanel/SlowdownStatus.show()
 
 func _on_typing_ended():
+	time_dilation_effect.set_typing_visual(false)
 	$UI/HUD/TypingPanel/SlowdownStatus.hide()
 	clear_spell_slot_highlights()
 	if current_state == GameState.PLAYING and not pending_level_ups.is_empty():
@@ -1179,10 +1183,18 @@ func update_typing_slowdown(remaining: float, _capacity: float):
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	box.size.x = minf(1000.0, $UI/HUD.size.x - 36.0)
-	box.size.y = minf(maxf(typing_label.get_minimum_size().y + 44.0, 148.0), maxf(132.0, $UI/HUD.size.y * 0.5 - 180.0))
+	var letter_count = typing_keycaps.letters.length() if is_instance_valid(typing_keycaps) else 4
+	box.size = Vector2(minf(maxf(280.0, letter_count * 50.0 + 48.0), $UI/HUD.size.x - 36.0), 120.0 if not typing_keycaps.error_caption().is_empty() else 102.0)
+	area.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	area.offset_top = 30.0
+	area.offset_bottom = -8.0
+	area.offset_left = 12.0
+	area.offset_right = -12.0
+	var backing = StyleBoxFlat.new()
+	backing.bg_color = Color(0.035, 0.06, 0.07, 0.65)
+	backing.set_corner_radius_all(8)
+	box.add_theme_stylebox_override("panel", backing)
 	position_typing_ui_upper_screen()
-	_scroll_typing_to_end.call_deferred()
 
 func _scroll_typing_to_end():
 	var area = typing_label.get_parent() as ScrollContainer
@@ -1191,22 +1203,14 @@ func _scroll_typing_to_end():
 func position_typing_ui_upper_screen():
 	if not typing_label:
 		return
-	
-	# Get screen dimensions
 	var screen_size = $UI/HUD.size
-	
-	# Position in upper center of screen (25% down from top)
-	var typing_ui_position = Vector2(screen_size.x / 2, screen_size.y * 0.5 - 40.0)
-	
-	# Find the typing panel (parent container) to position it
-	var typing_panel = typing_label.get_parent().get_parent()  # TypingArea -> TypingPanel
-	if typing_panel and typing_panel is Control:
-		var control = typing_panel as Control
-		control.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		control.position = typing_ui_position - Vector2(control.size.x / 2, control.size.y)
-		if screen_size.y <= 600:
-			control.position.y = screen_size.y * 0.5 + 36.0
-	
+	var panel = typing_label.get_parent().get_parent() as Control
+	panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	var y = screen_size.y-panel.size.y-130.0
+	var reference = $UI/HUD.get_node_or_null("CastingReference")
+	if reference and reference.size.y > 0:
+		y = minf(y, reference.position.y-panel.size.y-10.0)
+	panel.position = Vector2((screen_size.x-panel.size.x)/2, y)
 
 func print_ui_structure(node: Node, indent: String = ""):
 	if not node:

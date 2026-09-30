@@ -71,7 +71,8 @@ func award_cast(family: String, canonical: String, elapsed: float, mistakes: int
 		speed = clampf(((length - 1) / maxf(elapsed, 0.25) / 4.0 - 1.0) * 0.5, 0.0, 0.5)
 	var clean := 0.25 if mistakes == 0 else (0.10 if mistakes == 1 else 0.0)
 	var fresh: float = freshness.get(family, 1.0)
-	var points := int(floor(base * (1.0 + speed + clean + 0.5 * fresh) + 0.5))
+	var keyword_multiplier = float(preload("res://scripts/KeywordRules.gd").for_incantation(canonical).get("style", 1.0))
+	var points := int(floor(base * (1.0 + speed + clean + 0.5 * fresh) * keyword_multiplier + 0.5))
 	for key in freshness:
 		if key != family:
 			freshness[key] = minf(1.0, freshness[key] + 0.1)
@@ -86,7 +87,7 @@ func award_cast(family: String, canonical: String, elapsed: float, mistakes: int
 	peak_rank = maxi(peak_rank, rank_index())
 	peak_combo = maxf(peak_combo, combo)
 	grace_remaining = GRACE
-	return {"points": points, "pts": points, "banked": banked, "old_rank": old_rank, "rank": rank_index(), "rank_changed": old_rank != rank_index(), "speed_bonus": speed, "clean_bonus": clean, "freshness_bonus": 0.5 * fresh, "length": length}
+	return {"keyword_multiplier": keyword_multiplier, "points": points, "pts": points, "banked": banked, "old_rank": old_rank, "rank": rank_index(), "rank_changed": old_rank != rank_index(), "speed_bonus": speed, "clean_bonus": clean, "freshness_bonus": 0.5 * fresh, "length": length}
 
 func award_pickup() -> Dictionary:
 	var before := rank_index()

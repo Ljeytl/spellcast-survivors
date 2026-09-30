@@ -140,6 +140,7 @@ func verify_feedback():
 	for i in keys.letters.length():
 		check(keys.typed_letter_tint(i) != Color("ff8175"), "valid freeform MEGA not mismatch")
 	check(manager.cast_freeform_spell("mega bolt"), "MEGA cast accepted")
+	manager.advance_pending_casts(0.121)
 	check(keys.completed_mega and keys.completion_duration > 0.28, "MEGA distinct emphasis")
 	await capture("cast-mega")
 	prepare_cast("mega bolt")

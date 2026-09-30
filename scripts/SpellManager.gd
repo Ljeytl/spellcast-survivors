@@ -26,7 +26,12 @@ const SLOW_EFFECT_DURATION = 3.0
 const SPELL_CAST_COOLDOWN = 0.1  # Minimum time between spell casts
 
 const CombinationScaling = preload("res://scripts/CombinationScaling.gd")
-const MEGA_MULTIPLIER = 1.5
+const Keywords = preload("res://scripts/KeywordRules.gd")
+const MEGA_MULTIPLIER = Keywords.DEFINITIONS.mega.power
+var pending_keyword_casts: Array[Dictionary] = []
+var release_snapshot: Dictionary = {}
+var release_style_receipt: Dictionary = {}
+const SNAPSHOT_STATS = ["spell_damage_multiplier", "spell_size_multiplier", "spell_duration_multiplier", "projectile_speed_multiplier", "cast_speed_multiplier", "level"]
 var cast_keyword_multiplier = 1.0
 
 const Geometry = preload("res://scripts/SpellGeometry.gd")
@@ -130,6 +135,7 @@ func _process(delta):
 	casting_clock += unscaled_delta
 	style_clock_advanced.emit(unscaled_delta)
 	advance_typing_slowdown(unscaled_delta)
+	advance_pending_casts(unscaled_delta)
 	# Handle auto-attack Magic Missile
 	handle_auto_attack(delta)
 	
@@ -149,7 +155,7 @@ func handle_key_input(event: InputEventKey):
 		handle_freeform_typing_input(event)
 		return
 	if event.keycode == KEY_SPACE and not is_typing and not event.echo:
-		if casting_clock - last_spell_cast_time >= SPELL_CAST_COOLDOWN:
+		if not pending_keyword_casts.is_empty() or casting_clock - last_spell_cast_time >= SPELL_CAST_COOLDOWN:
 			space_casting = true
 			start_freeform_typing()
 		return
@@ -174,7 +180,7 @@ func activate_spell_slot(slot: int) -> bool:
 	if not is_spell_unlocked(slot):
 		game_manager.show_gameplay_feedback("Empty slot · Learn a spell when you level up")
 		return false
-	if casting_clock - last_spell_cast_time < SPELL_CAST_COOLDOWN:
+	if pending_keyword_casts.is_empty() and casting_clock - last_spell_cast_time < SPELL_CAST_COOLDOWN:
 		game_manager.show_gameplay_feedback("Spell recovering · Try again in a moment")
 		return false
 	spell_queue.clear()
@@ -285,7 +291,29 @@ func cast_spell() -> bool:
 	var spell_data = spell_queue[0]
 	var spell_name = spell_data["name"]
 	var mega = spell_data.get("mega", current_typing_text.strip_edges().to_lower().begins_with("mega "))
-	if not cast_spell_by_type(spell_data["slot"], MEGA_MULTIPLIER if mega else 1.0):
+	if mega:
+		var slot = int(spell_data["slot"])
+		if not is_spell_unlocked(slot):
+			return false
+		var info = get_spell_info(slot)
+		if info.type == "plague" and get_visible_plague_host(info) == null:
+			last_cast_failure = "No target in range"
+			game_manager.update_typing_display(current_typing_text + " · " + last_cast_failure)
+			return false
+		var stats: Dictionary = {}
+		for key in SNAPSHOT_STATS:
+			stats[key] = player.get(key)
+		var charge = preload("res://scripts/KeywordCharge.gd").new()
+		charge.caster = player
+		charge.tint = Keywords.cast_color(info)
+		get_parent().add_child(charge)
+		var payload = {"slot": slot, "info": info.duplicate(true), "ranks": get_combination_ingredient_ranks(str(info.id)).duplicate(true), "stats": stats, "canonical": "mega " + str(info.display_name), "typed": current_typing_text, "name": spell_name, "remaining": Keywords.DEFINITIONS.mega.charge_seconds, "charge": charge, "receipt": game_manager.style_session.snapshot_attempt()}
+		pending_keyword_casts.append(payload)
+		spell_queue.pop_front()
+		last_spell_cast_time = casting_clock
+		end_typing()
+		return true
+	if not cast_spell_by_type(spell_data["slot"]):
 		if not last_cast_failure.is_empty() and game_manager:
 			game_manager.update_typing_display(current_typing_text + " · " + last_cast_failure)
 		return false
@@ -298,6 +326,49 @@ func cast_spell() -> bool:
 		game_manager.increment_spells_cast()
 	end_typing()
 	return true
+
+func cast_stat(key: String) -> float:
+	return float(release_snapshot.stats[key]) if not release_snapshot.is_empty() and release_snapshot.stats.has(key) else float(player.get(key))
+
+func discard_pending_casts():
+	for payload in pending_keyword_casts:
+		if is_instance_valid(payload.charge):
+			payload.charge.queue_free()
+	pending_keyword_casts.clear()
+
+func advance_pending_casts(seconds: float):
+	if not is_instance_valid(player) or player.health <= 0 or game_manager.current_state in [game_manager.GameState.GAME_OVER, game_manager.GameState.EXTRACTION]:
+		discard_pending_casts()
+		return
+	if get_tree().paused or game_manager.current_state != game_manager.GameState.PLAYING:
+		return
+	var ready: Array[Dictionary] = []
+	for payload in pending_keyword_casts:
+		payload.remaining -= maxf(0, seconds)
+		if is_instance_valid(payload.charge):
+			payload.charge.remaining = payload.remaining
+		if payload.remaining <= 0:
+			ready.append(payload)
+	for payload in ready:
+		pending_keyword_casts.erase(payload)
+		if is_instance_valid(payload.charge):
+			payload.charge.queue_free()
+		release_snapshot = payload
+		var accepted = cast_spell_by_type(payload.slot, MEGA_MULTIPLIER)
+		release_snapshot = {}
+		if accepted:
+			if is_instance_valid(payload.charge):
+				payload.charge.release_burst()
+			release_style_receipt = payload.receipt
+			manual_spell_released.emit(str(payload.info.id), payload.canonical, payload.typed)
+			release_style_receipt = {}
+			spell_cast.emit(payload.name)
+			game_manager.increment_spells_cast()
+		else:
+			game_manager.hud.get_node("StyleHUD").show_cast_fizzle()
+
+func _exit_tree():
+	discard_pending_casts()
 
 func cancel_typing():
 	spell_queue.clear()
@@ -337,7 +408,7 @@ func handle_auto_attack(delta):
 	if mana_bolt_timer <= 0.0:
 		fire_mana_bolt()
 		# Apply cast speed to Magic Missile cooldown (faster auto-attacks)
-		var cast_speed_bonus = player.cast_speed_multiplier if player else 1.0
+		var cast_speed_bonus = cast_stat("cast_speed_multiplier") if player else 1.0
 		var adjusted_cooldown = mana_bolt_cooldown / cast_speed_bonus
 		mana_bolt_timer = adjusted_cooldown
 
@@ -351,7 +422,7 @@ func fire_mana_bolt():
 	
 	# Calculate damage
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
-	var damage = mana_bolt_damage * level_multiplier * player.spell_damage_multiplier
+	var damage = mana_bolt_damage * level_multiplier * cast_stat("spell_damage_multiplier")
 	
 	# Determine number of projectiles based on Magic Missile level
 	var projectile_count = 1
@@ -417,7 +488,7 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 	
 	# Slightly vary speed
 	var speed_variation = 450.0 + (projectile_index * 25.0)
-	projectile.speed = speed_variation * player.projectile_speed_multiplier
+	projectile.speed = speed_variation * cast_stat("projectile_speed_multiplier")
 	
 	# Strong homing for Magic Missiles
 	projectile.homing_strength = 6.0
@@ -454,7 +525,7 @@ func _dispatch_spell(slot: int) -> bool:
 		"projectile":
 			cast_enhanced_bolt_spell(slot)
 		"heal":
-			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)) * (Geometry.power_multiplier(player) * cast_keyword_multiplier), cast_keyword_multiplier)
+			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier), cast_keyword_multiplier)
 		"heal_over_time":
 			cast_life_spell(slot)
 		"aoe":
@@ -502,7 +573,7 @@ func cast_bolt_spell(slot: int):
 	
 	
 	# Set projectile properties before calling setup
-	projectile.speed = 600.0 * player.projectile_speed_multiplier  # Faster than normal
+	projectile.speed = 600.0 * cast_stat("projectile_speed_multiplier")  # Faster than normal
 	
 	# Add to scene first, then setup (this ensures _ready() runs before setup)
 	var parent = get_parent()
@@ -567,13 +638,13 @@ func cast_enhanced_bolt_spell(slot: int):
 		# Create spread + homing projectile with delay
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, Geometry.multiplier(player) * cast_keyword_multiplier)
+				_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier"))
 			)
 		else:
-			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i, Geometry.multiplier(player) * cast_keyword_multiplier)
+			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier"))
 
 # Helper function to create individual spread + homing bolt projectiles
-func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle: float, target: Node2D, damage: float, projectile_index: int, size_snapshot: float = -1.0):
+func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle: float, target: Node2D, damage: float, projectile_index: int, size_snapshot: float = -1.0, speed_snapshot: float = -1.0):
 	target = Targeting.select(get_tree(), player.global_position)
 	if target:
 		base_direction = player.global_position.direction_to(target.global_position)
@@ -608,7 +679,7 @@ func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle:
 	
 	# Slightly vary speed for additional visual distinction
 	var speed_variation = 500.0 + (projectile_index * 30.0)  # Each bolt slightly faster
-	projectile.speed = speed_variation * player.projectile_speed_multiplier
+	projectile.speed = speed_variation * (speed_snapshot if speed_snapshot > 0 else cast_stat("projectile_speed_multiplier"))
 	
 	# Set very subtle homing strength for spread bolts (allows many misses but provides minimal guidance)
 	projectile.homing_strength = 1.5  # Very subtle homing to maintain spread pattern and allow many misses
@@ -618,7 +689,7 @@ func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle:
 	if parent:
 		parent.add_child(projectile)
 		
-		projectile.set_meta("cast_size_snapshot", size_snapshot if size_snapshot > 0 else Geometry.multiplier(player))
+		projectile.set_meta("cast_size_snapshot", size_snapshot if size_snapshot > 0 else maxf(0.1, cast_stat("spell_size_multiplier")))
 		projectile.setup(player.global_position, initial_direction, damage, projectile_color, "bolt")
 		projectile.is_homing = false
 		projectile.assign_target(target)
@@ -656,8 +727,8 @@ func get_multiple_enemies(count: int) -> Array:
 func cast_life_spell(slot: int):
 	var spell_info = get_spell_info(slot)
 	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
-	var heal_per_second = spell_info["heal_amount"] * level_multiplier * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
-	var duration = float(spell_info["duration"]) * Geometry.duration_multiplier(player)
+	var heal_per_second = spell_info["heal_amount"] * level_multiplier * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
+	var duration = float(spell_info["duration"]) * maxf(1.0, cast_stat("spell_duration_multiplier"))
 	
 	var total_remaining = float(duration)
 	var visual_size = cast_keyword_multiplier
@@ -699,9 +770,9 @@ func cast_earthshield_spell(slot: int):
 	var info = get_spell_info(slot)
 	var rank_multiplier = 1.0 + 0.15 * (int(info.get("level", 1)) - 1)
 	player.add_earth_shield_charge({
-		"remaining": float(info.get("duration", 16.0)) * Geometry.duration_multiplier(player),
-		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * (Geometry.power_multiplier(player) * cast_keyword_multiplier),
-		"reach": float(info.get("retaliation_reach", 160.0)) * (float(player.spell_size_multiplier) * cast_keyword_multiplier),
+		"remaining": float(info.get("duration", 16.0)) * maxf(1.0, cast_stat("spell_duration_multiplier")),
+		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier),
+		"reach": float(info.get("retaliation_reach", 160.0)) * (float(cast_stat("spell_size_multiplier")) * cast_keyword_multiplier),
 		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
 		"knockback": float(info.get("retaliation_knockback", 500.0)),
 		"travel_time": float(info.get("retaliation_travel_time", 0.22))
@@ -710,6 +781,8 @@ func cast_earthshield_spell(slot: int):
 func cast_lightning_arc_spell(slot: int):
 	var info = get_spell_info(slot).duplicate(true)
 	info.keyword_size_multiplier = cast_keyword_multiplier
+	if not release_snapshot.is_empty():
+		info.keyword_stats = release_snapshot.stats.duplicate(true)
 	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)))
 	if not _live_spell_target(target):
 		return
@@ -723,22 +796,22 @@ func cast_bouncing_bolt(slot: int):
 	if not _live_spell_target(target):
 		return
 	var projectile = spell_projectile_scene.instantiate()
-	projectile.speed = 550.0 * player.projectile_speed_multiplier
+	projectile.speed = 550.0 * cast_stat("projectile_speed_multiplier")
 	projectile.set_meta("splash_damage", info.splash_damage)
-	projectile.set_meta("splash_radius", float(info.splash_radius) * (Geometry.multiplier(player) * cast_keyword_multiplier))
-	projectile.set_meta("splash_duration", float(info.splash_duration) * Geometry.duration_multiplier(player))
+	projectile.set_meta("splash_radius", float(info.splash_radius) * (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier))
+	projectile.set_meta("splash_duration", float(info.splash_duration) * maxf(1.0, cast_stat("spell_duration_multiplier")))
 	projectile.set_meta("bounce_count", int(info.get("bounce_count", 4)))
 	projectile.set_meta("bounce_range", float(info.get("bounce_range", 240.0)))
 	projectile.lifetime = maxf(3.0, (int(info.get("bounce_count", 4)) + 1) * float(info.get("bounce_range", 240.0)) / projectile.speed + 1.0)
 	get_parent().add_child(projectile)
-	projectile.set_meta("cast_size_snapshot", Geometry.multiplier(player) * cast_keyword_multiplier)
+	projectile.set_meta("cast_size_snapshot", maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
 	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
 
 func cast_meteor_shower_spell(slot: int):
 	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
 	var damage = calculate_spell_damage(info)
 	var count = int(info["meteor_count"])
-	var radius = float(info.get("radius", 220.0)) * (Geometry.multiplier(player) * cast_keyword_multiplier)
+	var radius = float(info.get("radius", 220.0)) * (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
 	var coverage: Dictionary = {}
 	for index in range(count):
 		var delay = float(info.get("warning_duration", 0.65)) + index * float(info.get("delay_interval", 0.3))
@@ -750,7 +823,7 @@ func cast_meteor_shower_spell(slot: int):
 			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
 				coverage[enemy.get_instance_id()] = float(coverage.get(enemy.get_instance_id(), 0)) + 1.0
 		create_meteor_warning(center, delay, radius)
-		get_tree().create_timer(delay).timeout.connect(create_meteor_strike.bind(center, damage * 0.8, radius))
+		get_tree().create_timer(delay).timeout.connect(create_meteor_strike.bind(center, damage * 0.8, radius, maxf(1.0, cast_stat("spell_duration_multiplier"))))
 
 # Helper functions
 func get_closest_enemy():
@@ -781,8 +854,8 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 	var level_multiplier = 1.0 + 0.15 * damage_ranks
 	if Synergies.RECIPES.has(str(spell_info.get("id", ""))):
 		var resolved = spell_info if spell_info.get("combination_scaled", false) else CombinationScaling.resolve(spell_info, get_combination_ingredient_ranks(str(spell_info.id)))
-		return float(resolved.damage) * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
-	return float(base_damage) * level_multiplier * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
+		return float(resolved.damage) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
+	return float(base_damage) * level_multiplier * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
 
 func process_healing_effects(delta):
 	for i in range(active_healing_effects.size() - 1, -1, -1):
@@ -832,16 +905,16 @@ func create_shield_effect():
 	if is_instance_valid(particles) and particles.has_method("create_persistent_shield_circle"):
 		particles.create_persistent_shield_circle(player, player.overheal_timer)
 
-func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String):
+func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String, duration_snapshot: float = -1.0):
 	var effect = load("res://scripts/LingeringArea.gd").new()
 	var slow_factor = 0.5 if effect_type == "ice" else 1.0
 	var slow_time = 3.0 if effect_type == "ice" else 0.0
-	effect.configure(pos, radius, damage, 0.2 * Geometry.duration_multiplier(player), color, effect_type, {}, slow_factor, slow_time)
+	effect.configure(pos, radius, damage, 0.2 * (duration_snapshot if duration_snapshot > 0 else maxf(1.0, cast_stat("spell_duration_multiplier"))), color, effect_type, {}, slow_factor, slow_time)
 	get_parent().add_child(effect)
 
-func create_meteor_strike(pos: Vector2, damage: float, radius: float = 220.0):
+func create_meteor_strike(pos: Vector2, damage: float, radius: float = 220.0, duration_snapshot: float = -1.0):
 	# Larger radius and higher damage for meteors with big explosion
-	create_aoe_explosion(pos, radius, damage, Color.RED, "meteor")
+	create_aoe_explosion(pos, radius, damage, Color.RED, "meteor", duration_snapshot)
 
 func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 	# Create a warning indicator at the target position showing the impact radius
@@ -854,7 +927,7 @@ func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_
 	var target = get_closest_enemy()
 	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
 	var effect = preload("res://scripts/IceBlast.gd").new()
-	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, player.projectile_speed_multiplier, (Geometry.multiplier(player) * cast_keyword_multiplier))
+	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, cast_stat("projectile_speed_multiplier"), (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier))
 	get_parent().add_child(effect)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
@@ -936,7 +1009,7 @@ func get_mana_bolt_damage() -> float:
 	
 	# Apply player's spell damage multiplier
 	if player:
-		damage *= player.spell_damage_multiplier
+		damage *= cast_stat("spell_damage_multiplier")
 	
 	return damage
 
@@ -990,7 +1063,7 @@ func handle_freeform_input(event: InputEventKey):
 		if (key_code >= KEY_A and key_code <= KEY_Z) or key_code == KEY_SPACE:
 			# Check spell cast cooldown to prevent rapid casting
 			var current_time = casting_clock
-			if current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
+			if pending_keyword_casts.is_empty() and current_time - last_spell_cast_time < SPELL_CAST_COOLDOWN:
 				return
 			
 			start_freeform_typing()
@@ -1091,13 +1164,13 @@ func cast_life_bolt(slot: int):
 			offscreen[enemy.get_instance_id()] = true
 	for index in range(int(info.get("projectile_count", 1))):
 		var projectile = spell_projectile_scene.instantiate()
-		projectile.speed *= player.projectile_speed_multiplier
+		projectile.speed *= cast_stat("projectile_speed_multiplier")
 		for key in ["healing_seed_amount", "healing_seed_duration", "healing_seed_lifetime", "healing_seed_radius"]:
 			var value = float(info[key])
 			if key == "healing_seed_lifetime":
-				value *= Geometry.duration_multiplier(player)
+				value *= maxf(1.0, cast_stat("spell_duration_multiplier"))
 			elif key == "healing_seed_radius":
-				value *= (Geometry.multiplier(player) * cast_keyword_multiplier)
+				value *= (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
 			projectile.set_meta(key, value)
 		projectile.set_meta("healing_seed_cap", 6)
 		projectile.set_meta("healing_seed_owner", weakref(player))
@@ -1110,7 +1183,7 @@ func cast_life_bolt(slot: int):
 		if _live_spell_target(target):
 			coverage[target.get_instance_id()] = float(coverage.get(target.get_instance_id(), 0)) + 1.0
 		var direction = player.global_position.direction_to(target.global_position) if _live_spell_target(target) else Vector2.RIGHT.rotated(index * 0.15)
-		projectile.set_meta("cast_size_snapshot", Geometry.multiplier(player) * cast_keyword_multiplier)
+		projectile.set_meta("cast_size_snapshot", maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
 		projectile.setup(player.global_position, direction, calculate_spell_damage(info), Color.GREEN, "life_bolt")
 		projectile.assign_target(target)
 
@@ -1159,6 +1232,8 @@ func get_all_spells() -> Dictionary:
 	return all
 
 func get_spell_info(slot: int) -> Dictionary:
+	if not release_snapshot.is_empty() and slot == release_snapshot.slot:
+		return release_snapshot.info
 	return spells.get(slot, bonus_spells.get(slot, {}))
 
 func find_spell_slot(spell_name: String) -> int:
@@ -1224,11 +1299,13 @@ func get_combination_ingredient_ranks(spell_id: String) -> Dictionary:
 
 func resolve_cast_info(slot: int) -> Dictionary:
 	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
-	info = CombinationScaling.resolve(info, get_combination_ingredient_ranks(str(info.get("id", ""))))
+	info = CombinationScaling.resolve(info, release_snapshot.ranks if not release_snapshot.is_empty() else get_combination_ingredient_ranks(str(info.get("id", ""))))
 	info.keyword_size_multiplier = cast_keyword_multiplier
+	if not release_snapshot.is_empty():
+		info.keyword_stats = release_snapshot.stats.duplicate(true)
 	for key in ["splash_damage", "explosion_damage", "healing_seed_amount", "healing_bloom_amount"]:
 		if info.has(key):
-			info[key] = float(info[key]) * (Geometry.power_multiplier(player) * cast_keyword_multiplier)
+			info[key] = float(info[key]) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
 	return info
 
 func rebuild_freeform_library():
@@ -1301,7 +1378,7 @@ func cast_build_spell(slot: int) -> bool:
 		var volleys = get_tree().get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion())
 		if volleys.size() >= int(info.get("active_limit", 3)):
 			volleys[0].queue_free()
-		info.projectile_speed_multiplier = player.projectile_speed_multiplier
+		info.projectile_speed_multiplier = cast_stat("projectile_speed_multiplier")
 		var volley = preload("res://scripts/CrossBladeVolley.gd").new()
 		get_parent().add_child(volley)
 		volley.configure(info, calculate_spell_damage(info), player)
@@ -1312,7 +1389,7 @@ func cast_build_spell(slot: int) -> bool:
 	if info.type == "plague" and target == null:
 		last_cast_failure = "No target in range"
 		return false
-	info.projectile_speed_multiplier = player.projectile_speed_multiplier
+	info.projectile_speed_multiplier = cast_stat("projectile_speed_multiplier")
 	var tactical = info.type in ["beam", "trap", "spirit", "trail", "returning"]
 	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return effect.info.id == info.id and not effect.is_queued_for_deletion())
 	if info.get("recast_behavior", "stack") == "extend":
@@ -1383,13 +1460,13 @@ func _delayed_mana_bolt(reference: WeakRef, damage: float, index: int):
 	var target = reference.get_ref()
 	create_mana_bolt_projectile(target, damage, index)
 
-func _delayed_spread_bolt(direction: Vector2, angle: float, reference: WeakRef, damage: float, index: int, size_snapshot: float = -1.0):
+func _delayed_spread_bolt(direction: Vector2, angle: float, reference: WeakRef, damage: float, index: int, size_snapshot: float = -1.0, speed_snapshot: float = -1.0):
 	if not is_inside_tree() or not is_instance_valid(player):
 		return
 	var target = Targeting.select(get_tree(), player.global_position)
 	if reference and target == null:
 		return
-	create_spread_homing_bolt_projectile(direction, angle, target, damage, index, size_snapshot)
+	create_spread_homing_bolt_projectile(direction, angle, target, damage, index, size_snapshot, speed_snapshot)
 
 func _delayed_chain(reference: WeakRef, damage: float, remaining: int, hit_ids: Array):
 	if not is_inside_tree() or not is_instance_valid(player):

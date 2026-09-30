@@ -241,6 +241,10 @@ func run():
 	click(game.game_over_screen.play_again_button)
 	for i in 10:
 		await process_frame
+	check(current_scene.has_method("depart"), "Retry returns to tower")
+	current_scene.depart()
+	for i in 10:
+		await process_frame
 	game = current_scene
 	manager = game.spell_manager
 	session = game.style_session
@@ -263,6 +267,10 @@ func run():
 	game.finish_run(true)
 	check(not session.result.eligible and not session.result.saved, "Turning invincibility off does not restore eligibility")
 	click(game.game_over_screen.main_menu_button)
+	for i in 10:
+		await process_frame
+	check(current_scene.has_method("depart"), "Result home returns to tower")
+	key(KEY_ESCAPE)
 	for i in 10:
 		await process_frame
 	var menu = current_scene
