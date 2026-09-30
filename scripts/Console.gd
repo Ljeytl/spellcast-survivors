@@ -14,6 +14,10 @@ var previous_focus: WeakRef
 var command_history: Array[String] = []
 var history_index: int = -1
 var game_node: Node2D = null
+var noclip_enabled := false
+var collision_snapshot := Vector2i.ZERO
+var bighead_enabled := false
+const UNAVAILABLE = ["disco", "matrix", "rain", "magnet", "rainbow", "explode", "army", "missile", "blackhole", "laser", "konami", "party", "giant", "tiny", "time_scale", "earthquake"]
 
 # Available console commands
 var commands: Dictionary = {
@@ -48,15 +52,15 @@ var commands: Dictionary = {
 		"usage": "spawn_enemy <type> [count]"
 	},
 	"difficulty": {
-		"description": "Jump to difficulty level or add time",
-		"usage": "difficulty <level/+time>"
+		"description": "Advance to minute or add seconds (no rewind)",
+		"usage": "difficulty <minute/+seconds>"
 	},
 	"kill_all": {
-		"description": "Kill all enemies on screen",
+		"description": "Kill all currently spawned enemies",
 		"usage": "kill_all"
 	},
 	"god_mode": {
-		"description": "Enable god mode (invincibility + infinite mana)",
+		"description": "Alias for invincibility",
 		"usage": "god_mode [on/off/toggle]"
 	},
 	"set_health": {
@@ -84,7 +88,7 @@ var commands: Dictionary = {
 		"usage": "speed <multiplier>"
 	},
 	"damage": {
-		"description": "Set player damage multiplier",
+		"description": "Set Spell Power multiplier (also healing/protection)",
 		"usage": "damage <multiplier>"
 	},
 	"spawn_chest": {
@@ -92,7 +96,7 @@ var commands: Dictionary = {
 		"usage": "spawn_chest"
 	},
 	"bighead": {
-		"description": "Make all enemies have big heads",
+		"description": "Double current enemy art size; off restores original sizes",
 		"usage": "bighead [on/off/toggle]"
 	},
 	"disco": {
@@ -112,7 +116,7 @@ var commands: Dictionary = {
 		"usage": "rain <spell_type> [count] [duration]"
 	},
 	"freeze": {
-		"description": "Freeze all enemies in place",
+		"description": "Apply maximum slow to current enemies",
 		"usage": "freeze [duration]"
 	},
 	"magnet": {
@@ -192,7 +196,7 @@ var commands: Dictionary = {
 		"usage": "freeform [on/off/toggle]"
 	},
 	"spell_list": {
-		"description": "Show all available spells in freeform mode",
+		"description": "Show currently learned manual and combination spells",
 		"usage": "spell_list"
 	},
 	"persistent_xp": {
@@ -230,6 +234,8 @@ var commands: Dictionary = {
 }
 
 func _ready():
+	for command in UNAVAILABLE:
+		commands.erase(command)
 	console_panel.add_theme_stylebox_override("panel", preload("res://scripts/GameplayReadability.gd").panel_style(Color("79d9e8"), Color("17231c")))
 	# Hide console initially and position it off-screen
 	visible = false
@@ -354,15 +360,24 @@ func _on_command_submitted(command_text: String):
 	suggestions_list.visible = false
 
 func execute_command(command_text: String):
-	var parts = command_text.split(" ")
+	var parts = command_text.strip_edges().split(" ", false)
+	if parts.is_empty():
+		return
 	var command = parts[0].to_lower()
 	var args = parts.slice(1)
-	if command not in ["help", "ui_debug", "ui_details", "clear"] and is_instance_valid(game_node) and is_instance_valid(game_node.style_session):
+	if command in UNAVAILABLE:
+		add_output("[color=yellow]" + command + " is unavailable in this build; no effect applied.[/color]")
+		return
+	var read_only = command in ["help", "ui_debug", "ui_details", "clear", "spell_list", "progression", "save_slots", "reset_progression", "rickroll"] or (command in ["character", "persistent_xp", "unlock_character"] and args.is_empty())
+	if (commands.has(command) or command == "reset_progression_confirm") and not read_only and is_instance_valid(game_node) and is_instance_valid(game_node.style_session):
 		game_node.style_session.exclude("Console command: " + command)
 	
 	match command:
 		"ui_debug":
-			game_node.set_interface_debug(args[0] == "on" if not args.is_empty() else not game_node.interface_debug)
+			var enabled = toggle_value(args, game_node.interface_debug)
+			if enabled == null:
+				return
+			game_node.set_interface_debug(enabled)
 			add_output("Interface diagnostics: " + str(game_node.interface_debug))
 		"ui_details":
 			add_output(game_node.interface_debug_report())
@@ -490,12 +505,16 @@ func show_help(args: Array):
 			add_output("  [color=white]" + cmd + "[/color] - " + commands[cmd].description)
 
 func toggle_invincibility(args: Array):
-	if not game_node or not game_node.has_method("toggle_invincibility"):
-		add_output("[color=red]Invincibility not available[/color]")
+	var player = get_tree().get_first_node_in_group("player")
+	if not player:
+		add_output("[color=red]Player not found[/color]")
 		return
-		
-	game_node.toggle_invincibility()
-	add_output("[color=green]Invincibility toggled[/color]")
+	var enabled = toggle_value(args, player.is_invincible)
+	if enabled == null:
+		return
+	if enabled != player.is_invincible:
+		player.toggle_invincibility()
+	add_output("Invincibility: " + str(player.is_invincible))
 
 func unlock_all_spells():
 	var spell_manager = get_tree().get_first_node_in_group("spell_manager")
@@ -517,72 +536,52 @@ func trigger_level_up():
 		add_output("[color=red]Could not trigger level up[/color]")
 
 func add_experience(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: add_xp <amount>[/color]")
+	var amount = numeric_value(args, 1.0, 100000.0, true)
+	if amount == null:
 		return
-		
-	var amount = args[0].to_int()
-	if amount <= 0:
-		add_output("[color=red]XP amount must be positive[/color]")
-		return
-		
-	var player = get_tree().get_first_node_in_group("player")
-	if player and player.has_method("add_experience"):
-		player.add_experience(amount)
-		add_output("[color=green]Added " + str(amount) + " XP[/color]")
-	else:
-		add_output("[color=red]Could not add XP[/color]")
+	var player = living_player()
+	if player:
+		player.add_xp(amount)
+		add_output("Added %d XP" % amount)
 
 func heal_player(args: Array):
-	var player = get_tree().get_first_node_in_group("player")
-	if not player or not player.has_method("heal"):
-		add_output("[color=red]Player not found[/color]")
+	var player = living_player()
+	if not player:
 		return
-	var amount = maxf(0.0, args[0].to_float()) if not args.is_empty() else float(player.max_health)
+	var amount = player.max_health if args.is_empty() else numeric_value(args, 0.0, 100000.0)
+	if amount == null:
+		return
+	var before = player.health
 	player.heal(amount)
-	add_output("[color=green]Healed " + str(amount) + " HP[/color]")
+	add_output("Healed %.1f HP" % (player.health - before))
 
 func change_difficulty(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: difficulty <level/+time>[/color]")
+	if args.size() != 1:
+		add_output("Usage: difficulty <minute/+seconds>")
 		return
-		
-	if game_node and game_node.has_method("add_game_time"):
-		var arg = args[0]
-		if arg.begins_with("+"):
-			var time_add = arg.substr(1).to_int()
-			game_node.add_game_time(time_add)
-			add_output("[color=green]Added " + str(time_add) + " seconds to game time[/color]")
-		else:
-			var level = arg.to_int()
-			var time_needed = level * 60  # 60 seconds per level
-			game_node.add_game_time(time_needed)
-			add_output("[color=green]Jumped to difficulty level " + str(level) + "[/color]")
-	else:
-		add_output("[color=red]Could not change difficulty[/color]")
+	var additive = args[0].begins_with("+")
+	var value = numeric_value([args[0].substr(1) if additive else args[0]], 0.0, 1200.0)
+	if value == null:
+		return
+	var manager = game_node.get_node("MonsterManager")
+	var seconds = value if additive else value * 60.0 - manager.game_time
+	if seconds < 0.0:
+		add_output("Cannot rewind encounter time; start a new run.")
+		return
+	manager.add_game_time(seconds)
+	game_node.game_time = manager.game_time
+	add_output("Encounter time: %.1f seconds" % manager.game_time)
 
 func kill_all_enemies():
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var count = enemies.size()
-	
-	for enemy in enemies:
-		if enemy and is_instance_valid(enemy):
-			enemy.queue_free()
-			
-	add_output("[color=green]Killed " + str(count) + " enemies[/color]")
+	var count = 0
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(enemy) and not enemy.dying:
+			enemy.die()
+			count += 1
+	add_output("Killed %d enemies through normal death/reward handling" % count)
 
-func set_time_scale(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: time_scale <multiplier>[/color]")
-		return
-		
-	var scale = args[0].to_float()
-	if scale <= 0:
-		add_output("[color=red]Time scale must be positive[/color]")
-		return
-		
-	Engine.time_scale = scale
-	add_output("[color=green]Time scale set to " + str(scale) + "[/color]")
+func set_time_scale(_args: Array):
+	add_output("time_scale is unavailable in this build; no effect applied.")
 
 func clear_console():
 	output_label.text = ""
@@ -641,340 +640,161 @@ func _on_suggestion_selected(index: int):
 # Additional helper commands
 func toggle_god_mode(args: Array):
 	toggle_invincibility(args)
-	# Could add infinite mana here if implemented
-	add_output("[color=green]God mode toggled[/color]")
 
 func set_player_health(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: set_health <amount>[/color]")
+	var amount = numeric_value(args, 0.0, 100000.0)
+	if amount == null:
 		return
-		
-	var amount = args[0].to_int()
-	var player = get_tree().get_first_node_in_group("player")
-	if player and player.has_property("current_health"):
-		player.current_health = amount
-		add_output("[color=green]Player health set to " + str(amount) + "[/color]")
-	else:
-		add_output("[color=red]Could not set player health[/color]")
+	var player = living_player()
+	if not player:
+		return
+	player.health = minf(amount, player.max_health)
+	player.overheal = 0.0
+	player.health_changed.emit(player.health, player.max_health, player.overheal)
+	add_output("Player health: %.1f" % player.health)
+	if player.health <= 0.0:
+		player.player_died.emit()
 
 func teleport_player():
 	var player = get_tree().get_first_node_in_group("player")
 	if player:
-		var mouse_pos = get_global_mouse_position()
+		var mouse_pos = player.get_global_mouse_position()
 		player.global_position = mouse_pos
 		add_output("[color=green]Player teleported to mouse position[/color]")
 	else:
 		add_output("[color=red]Player not found[/color]")
 
 func spawn_enemy(args: Array):
-	add_output("[color=yellow]Enemy spawning not yet implemented[/color]")
-
-# ========== ADVANCED CHEAT COMMANDS ==========
+	var manager = game_node.get_node("MonsterManager")
+	if args.is_empty() or not manager.encounter_config.variants.has(args[0]):
+		add_output("Usage: spawn_enemy <type> [count]. Types: " + ", ".join(manager.encounter_config.variants.keys()))
+		return
+	var count = 1.0 if args.size() == 1 else numeric_value(args.slice(1), 1.0, 100.0, true)
+	if count == null:
+		return
+	var definition = manager.encounter_config.variants[args[0]].duplicate(true)
+	definition.id = args[0]
+	var spawned = 0
+	for i in int(count):
+		if manager.spawn_monster(definition, false, true):
+			spawned += 1
+	add_output("Spawned %d/%d enemies (normal population cap applies)" % [spawned, count])
 
 func toggle_noclip(args: Array):
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		if player.has_method("toggle_collision"):
-			player.toggle_collision()
-		elif player.has_property("collision_layer"):
-			player.collision_layer = 0 if player.collision_layer != 0 else 1
-		add_output("[color=cyan]Noclip toggled![/color]")
-	else:
-		add_output("[color=red]Player not found[/color]")
+	var player = living_player()
+	if not player:
+		return
+	var enabled = toggle_value(args, noclip_enabled)
+	if enabled == null:
+		return
+	if enabled and not noclip_enabled:
+		collision_snapshot = Vector2i(player.collision_layer, player.collision_mask)
+		player.collision_layer = 0
+		player.collision_mask = 0
+	elif not enabled and noclip_enabled:
+		player.collision_layer = collision_snapshot.x
+		player.collision_mask = collision_snapshot.y
+	noclip_enabled = enabled
+	add_output("Noclip: " + str(noclip_enabled))
 
 func set_player_speed(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: speed <multiplier>[/color]")
-		return
-		
-	var multiplier = args[0].to_float()
-	var player = get_tree().get_first_node_in_group("player")
-	if player and player.has_property("base_speed"):
-		var original_speed = 200.0  # Assume default speed
-		player.base_speed = original_speed * multiplier
-		add_output("[color=green]Player speed set to " + str(multiplier) + "x[/color]")
-	else:
-		add_output("[color=red]Could not set player speed[/color]")
+	set_player_multiplier(args, "movement_speed_multiplier", "Movement speed")
 
 func set_player_damage(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: damage <multiplier>[/color]")
-		return
-		
-	var multiplier = args[0].to_float()
-	var spell_manager = get_tree().get_first_node_in_group("spell_manager")
-	if not spell_manager:
-		spell_manager = game_node.get_node_or_null("SpellManager") if game_node else null
-		
-	if spell_manager and spell_manager.has_property("damage_multiplier"):
-		spell_manager.damage_multiplier = multiplier
-		add_output("[color=green]Damage multiplier set to " + str(multiplier) + "x[/color]")
-	else:
-		add_output("[color=red]Could not set damage multiplier[/color]")
+	set_player_multiplier(args, "spell_damage_multiplier", "Spell Power")
 
 func spawn_chest_at_mouse():
-	var chest_manager = get_tree().get_first_node_in_group("chest_manager")
-	if not chest_manager and game_node:
-		chest_manager = game_node.get_node_or_null("ChestManager")
-		
-	if chest_manager and chest_manager.has_method("spawn_chest_at_position"):
-		var mouse_pos = get_global_mouse_position()
-		chest_manager.spawn_chest_at_position(mouse_pos)
-		add_output("[color=green]Chest spawned at mouse position![/color]")
+	var manager = game_node.chest_manager
+	if not manager or not living_player():
+		return
+	var previous_count = manager.active_chests.size()
+	manager.spawn_chest()
+	var chest = manager.active_chests.back() if manager.active_chests.size() > previous_count else null
+	if is_instance_valid(chest):
+		chest.global_position = game_node.player.get_global_mouse_position()
+		add_output("Chest spawned at mouse position")
 	else:
-		add_output("[color=red]Could not spawn chest[/color]")
+		add_output("Could not spawn chest")
 
 func toggle_bighead_mode(args: Array):
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	for enemy in enemies:
-		if enemy and is_instance_valid(enemy):
-			var sprite = enemy.get_node_or_null("Sprite2D")
-			if sprite:
-				sprite.scale = Vector2(2.0, 2.0) if sprite.scale.x <= 1.0 else Vector2(1.0, 1.0)
-	add_output("[color=magenta]Big head mode toggled! " + str(enemies.size()) + " enemies affected[/color]")
-
-func toggle_disco_mode(args: Array):
-	# Apply rainbow effects to everything
-	var all_sprites = get_tree().get_nodes_in_group("enemies")
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		all_sprites.append(player)
-		
-	for node in all_sprites:
-		if node and is_instance_valid(node):
-			var sprite = node.get_node_or_null("Sprite2D")
-			if sprite:
-				var tween = create_tween()
-				tween.set_loops()
-				tween.tween_method(func(color): sprite.modulate = color, Color.RED, Color.BLUE, 1.0)
-				tween.tween_method(func(color): sprite.modulate = color, Color.BLUE, Color.GREEN, 1.0)
-				tween.tween_method(func(color): sprite.modulate = color, Color.GREEN, Color.RED, 1.0)
-	
-	add_output("[color=rainbow]🕺 DISCO MODE ACTIVATED! 🕺[/color]")
-
-func toggle_matrix_mode(args: Array):
-	# Apply green tint to everything
-	var camera = get_tree().get_first_node_in_group("camera")
-	if not camera and game_node:
-		camera = game_node.get_node_or_null("Camera2D")
-		
-	if camera:
-		camera.modulate = Color.GREEN if camera.modulate != Color.GREEN else Color.WHITE
-		add_output("[color=green]Matrix mode toggled - Welcome to the Matrix![/color]")
-	else:
-		add_output("[color=red]Could not enable matrix mode[/color]")
-
-func trigger_earthquake(args: Array):
-	var intensity = args[0].to_float() if args.size() > 0 else 10.0
-	var duration = args[1].to_float() if args.size() > 1 else 3.0
-	
-	if game_node and game_node.has_method("trigger_screen_shake"):
-		game_node.trigger_screen_shake(intensity, duration)
-		add_output("[color=yellow]🌍 EARTHQUAKE! Intensity: " + str(intensity) + " Duration: " + str(duration) + "s[/color]")
-	else:
-		add_output("[color=red]Could not trigger earthquake[/color]")
-
-func spell_rain(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: rain <spell_type> [count] [duration][/color]")
+	var enabled = toggle_value(args, bighead_enabled)
+	if enabled == null:
 		return
-		
-	var spell_type = args[0]
-	var count = args[1].to_int() if args.size() > 1 else 50
-	var duration = args[2].to_float() if args.size() > 2 else 5.0
-	
-	# Create spell rain effect
-	for i in count:
-		await get_tree().create_timer(randf() * duration).timeout
-		var spawn_pos = Vector2(
-			randf_range(-500, 500), 
-			randf_range(-300, -100)
-		)
-		if game_node and game_node.has_method("create_spell_projectile"):
-			game_node.create_spell_projectile(spawn_pos, Vector2.DOWN, spell_type)
-	
-	add_output("[color=cyan]🌧️ It's raining " + spell_type + "! Count: " + str(count) + "[/color]")
+	var count = 0
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		var sprite = enemy.get_node_or_null("Sprite2D")
+		if not sprite:
+			continue
+		if enabled and not sprite.has_meta("console_original_scale"):
+			sprite.set_meta("console_original_scale", sprite.scale)
+			sprite.scale *= 2.0
+		elif not enabled and sprite.has_meta("console_original_scale"):
+			sprite.scale = sprite.get_meta("console_original_scale")
+			sprite.remove_meta("console_original_scale")
+		count += 1
+	bighead_enabled = enabled
+	add_output("Bighead: %s (%d current enemy sprites)" % [enabled, count])
+
+func toggle_disco_mode(_args: Array):
+	add_output("disco is unavailable in this build; no effect applied.")
+
+func toggle_matrix_mode(_args: Array):
+	add_output("matrix is unavailable in this build; no effect applied.")
+
+func trigger_earthquake(_args: Array):
+	add_output("earthquake is unavailable in this build; no effect applied.")
+
+func spell_rain(_args: Array):
+	add_output("rain is unavailable in this build; no effect applied.")
 
 func freeze_enemies(args: Array):
-	var duration = args[0].to_float() if args.size() > 0 else 5.0
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	
-	for enemy in enemies:
-		if enemy and is_instance_valid(enemy) and enemy.has_property("speed"):
-			enemy.set_meta("original_speed", enemy.speed)
-			enemy.speed = 0
-			
-	# Unfreeze after duration
-	await get_tree().create_timer(duration).timeout
-	for enemy in enemies:
-		if enemy and is_instance_valid(enemy) and enemy.has_meta("original_speed"):
-			enemy.speed = enemy.get_meta("original_speed")
-			
-	add_output("[color=cyan]❄️ All enemies frozen for " + str(duration) + " seconds![/color]")
-
-func toggle_enemy_magnet(args: Array):
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var player = get_tree().get_first_node_in_group("player")
-	
-	if not player:
-		add_output("[color=red]Player not found[/color]")
+	var duration = 5.0 if args.is_empty() else numeric_value(args, 0.1, 60.0)
+	if duration == null:
 		return
-		
-	for enemy in enemies:
-		if enemy and is_instance_valid(enemy):
-			enemy.set_meta("magnet_mode", not enemy.get_meta("magnet_mode", false))
-			
-	add_output("[color=magenta]🧲 Enemy magnet toggled![/color]")
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		enemy.apply_slow(0.0, duration)
+	add_output("Applied maximum slow to current enemies for %.1f seconds" % duration)
 
-func make_player_giant(args: Array):
-	var scale = args[0].to_float() if args.size() > 0 else 3.0
-	var duration = args[1].to_float() if args.size() > 1 else 10.0
-	
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		player.scale = Vector2(scale, scale)
-		add_output("[color=green]🦣 Player is now GIANT! Scale: " + str(scale) + "x[/color]")
-		
-		if duration > 0:
-			await get_tree().create_timer(duration).timeout
-			player.scale = Vector2(1.0, 1.0)
-			add_output("[color=yellow]Player returned to normal size[/color]")
-	else:
-		add_output("[color=red]Player not found[/color]")
+func toggle_enemy_magnet(_args: Array):
+	add_output("magnet is unavailable in this build; no effect applied.")
 
-func make_player_tiny(args: Array):
-	var scale = args[0].to_float() if args.size() > 0 else 0.3
-	var duration = args[1].to_float() if args.size() > 1 else 10.0
-	
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		player.scale = Vector2(scale, scale)
-		add_output("[color=green]🐭 Player is now TINY! Scale: " + str(scale) + "x[/color]")
-		
-		if duration > 0:
-			await get_tree().create_timer(duration).timeout
-			player.scale = Vector2(1.0, 1.0)
-			add_output("[color=yellow]Player returned to normal size[/color]")
-	else:
-		add_output("[color=red]Player not found[/color]")
+func make_player_giant(_args: Array):
+	add_output("giant is unavailable in this build; no effect applied.")
 
-func toggle_rainbow_trail(args: Array):
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		# Add rainbow particle trail
-		add_output("[color=rainbow]🌈 Rainbow trail activated![/color]")
-	else:
-		add_output("[color=red]Player not found[/color]")
+func make_player_tiny(_args: Array):
+	add_output("tiny is unavailable in this build; no effect applied.")
 
-func explode_all_enemies(args: Array):
-	var damage = args[0].to_float() if args.size() > 0 else 100.0
-	var radius = args[1].to_float() if args.size() > 1 else 200.0
-	
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	for enemy in enemies:
-		if enemy and is_instance_valid(enemy):
-			# Create explosion effect
-			if game_node and game_node.has_method("create_explosion_effect"):
-				game_node.create_explosion_effect(enemy.global_position, radius)
-			enemy.queue_free()
-			
-	add_output("[color=red]💥 BOOM! All enemies exploded! Damage: " + str(damage) + "[/color]")
+func toggle_rainbow_trail(_args: Array):
+	add_output("rainbow is unavailable in this build; no effect applied.")
 
-func spawn_enemy_army(args: Array):
-	if args.size() < 2:
-		add_output("[color=red]Usage: army <enemy_type> <count>[/color]")
-		return
-		
-	var enemy_type = args[0]
-	var count = args[1].to_int()
-	
-	add_output("[color=yellow]Spawning army of " + str(count) + " " + enemy_type + "s... (not fully implemented)[/color]")
+func explode_all_enemies(_args: Array):
+	add_output("explode is unavailable in this build; no effect applied.")
 
-func launch_homing_missiles(args: Array):
-	var count = args[0].to_int() if args.size() > 0 else 10
-	var damage = args[1].to_float() if args.size() > 1 else 50.0
-	
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var player = get_tree().get_first_node_in_group("player")
-	
-	if not player or enemies.is_empty():
-		add_output("[color=red]No targets found[/color]")
-		return
-		
-	for i in min(count, enemies.size()):
-		var target = enemies[i % enemies.size()]
-		if game_node and game_node.has_method("create_homing_missile"):
-			game_node.create_homing_missile(player.global_position, target, damage)
-			
-	add_output("[color=red]🚀 Launched " + str(count) + " homing missiles![/color]")
+func spawn_enemy_army(_args: Array):
+	add_output("army is unavailable in this build; no effect applied.")
 
-func create_blackhole(args: Array):
-	var duration = args[0].to_float() if args.size() > 0 else 5.0
-	var strength = args[1].to_float() if args.size() > 1 else 500.0
-	
-	var mouse_pos = get_global_mouse_position()
-	add_output("[color=purple]🕳️ Black hole created at mouse position! Duration: " + str(duration) + "s[/color]")
+func launch_homing_missiles(_args: Array):
+	add_output("missile is unavailable in this build; no effect applied.")
 
-func toggle_laser_mode(args: Array):
-	var damage = args[1].to_float() if args.size() > 1 else 100.0
-	add_output("[color=red]🔴 Laser mode toggled! Damage: " + str(damage) + "/sec[/color]")
+func create_blackhole(_args: Array):
+	add_output("blackhole is unavailable in this build; no effect applied.")
 
-# ========== EASTER EGG COMMANDS ==========
+func toggle_laser_mode(_args: Array):
+	add_output("laser is unavailable in this build; no effect applied.")
 
 func thanos_snap():
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	var half_count = enemies.size() / 2
-	
-	# Randomly select half the enemies to remove
+	var enemies = get_tree().get_nodes_in_group("enemies").filter(func(enemy): return not enemy.dying)
 	enemies.shuffle()
-	for i in half_count:
-		if enemies[i] and is_instance_valid(enemies[i]):
-			# Add dust effect before removing
-			enemies[i].modulate = Color.TRANSPARENT
-			enemies[i].queue_free()
-	
-	add_output("[color=purple]💜 *SNAP* 💜[/color]")
-	add_output("[color=gray]Perfectly balanced, as all things should be...[/color]")
-	add_output("[color=yellow]" + str(half_count) + " enemies have been dusted[/color]")
+	var count = int(enemies.size() / 2)
+	for i in count:
+		enemies[i].die()
+	add_output("Killed %d enemies through normal death/reward handling" % count)
 
 func konami_code():
-	# Ultimate cheat mode activation
-	add_output("[color=gold]🎮 KONAMI CODE ACTIVATED! 🎮[/color]")
-	add_output("[color=cyan]↑↑↓↓←→←→BA[/color]")
-	
-	# Enable multiple cheats at once
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		player.scale = Vector2(1.5, 1.5)  # Slightly larger
-		if player.has_method("toggle_invincibility"):
-			player.toggle_invincibility()
-	
-	# Unlock all spells
-	unlock_all_spells()
-	
-	# Add massive XP
-	add_experience(["10000"])
-	
-	# Set high damage multiplier
-	set_player_damage(["5.0"])
-	
-	add_output("[color=rainbow]LEGENDARY MODE UNLOCKED![/color]")
+	add_output("konami is unavailable in this build; no effect applied.")
 
 func party_mode():
-	add_output("[color=magenta]🎉🎊 PARTY TIME! 🎊🎉[/color]")
-	add_output("[color=cyan]🎈 Everyone's invited! 🎈[/color]")
-	
-	# Make everything colorful and fun
-	toggle_disco_mode([])
-	
-	# Spawn some chests for party gifts
-	for i in 5:
-		spawn_chest_at_mouse()
-	
-	# Make enemies dance (freeze them in place briefly)
-	freeze_enemies(["3.0"])
-	
-	add_output("[color=yellow]🍰 Party favors distributed! 🍰[/color]")
+	add_output("party is unavailable in this build; no effect applied.")
 
 func rickroll_easter_egg():
 	add_output("[color=red]🎵 We're no strangers to love... 🎵[/color]")
@@ -1014,65 +834,31 @@ func answer_to_everything():
 # ========== REROLL RESOURCE COMMANDS ==========
 
 func set_reroll_resources(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: rerolls <amount>[/color]")
+	var amount = numeric_value(args, 0.0, 1000.0, true)
+	if amount == null:
 		return
-		
-	var amount = args[0].to_int()
-	var level_up_screen = get_tree().get_first_node_in_group("level_up_screen")
-	
-	if not level_up_screen:
-		# Try to find it in the game node
-		if game_node:
-			level_up_screen = game_node.get_node_or_null("LevelUpScreen")
-	
-	if level_up_screen and level_up_screen.has_property("rerolls_remaining"):
-		level_up_screen.rerolls_remaining = amount
-		if level_up_screen.has_method("update_reroll_button_texts"):
-			level_up_screen.update_reroll_button_texts()
-		add_output("[color=green]Rerolls set to " + str(amount) + "[/color]")
-	else:
-		add_output("[color=red]Could not find level up screen[/color]")
+	var screen = game_node.level_up_screen
+	screen.rerolls_remaining = int(amount)
+	screen.update_reroll_button_texts()
+	add_output("Rerolls: %d" % amount)
 
 func set_banish_resources(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: banishes <amount>[/color]")
+	var amount = numeric_value(args, 0.0, 1000.0, true)
+	if amount == null:
 		return
-		
-	var amount = args[0].to_int()
-	var level_up_screen = get_tree().get_first_node_in_group("level_up_screen")
-	
-	if not level_up_screen:
-		if game_node:
-			level_up_screen = game_node.get_node_or_null("LevelUpScreen")
-	
-	if level_up_screen and level_up_screen.has_property("banishes_remaining"):
-		level_up_screen.banishes_remaining = amount
-		if level_up_screen.has_method("update_reroll_button_texts"):
-			level_up_screen.update_reroll_button_texts()
-		add_output("[color=green]Banishes set to " + str(amount) + "[/color]")
-	else:
-		add_output("[color=red]Could not find level up screen[/color]")
+	var screen = game_node.level_up_screen
+	screen.banishes_remaining = int(amount)
+	screen.update_reroll_button_texts()
+	add_output("Banishes: %d" % amount)
 
 func set_lock_resources(args: Array):
-	if args.size() == 0:
-		add_output("[color=red]Usage: locks <amount>[/color]")
+	var amount = numeric_value(args, 0.0, 1000.0, true)
+	if amount == null:
 		return
-		
-	var amount = args[0].to_int()
-	var level_up_screen = get_tree().get_first_node_in_group("level_up_screen")
-	
-	if not level_up_screen:
-		if game_node:
-			level_up_screen = game_node.get_node_or_null("LevelUpScreen")
-	
-	if level_up_screen and level_up_screen.has_property("locks_remaining"):
-		level_up_screen.locks_remaining = amount
-		if level_up_screen.has_method("update_reroll_button_texts"):
-			level_up_screen.update_reroll_button_texts()
-		add_output("[color=green]Locks set to " + str(amount) + "[/color]")
-	else:
-		add_output("[color=red]Could not find level up screen[/color]")
+	var screen = game_node.level_up_screen
+	screen.locks_remaining = int(amount)
+	screen.update_reroll_button_texts()
+	add_output("Locks: %d" % amount)
 
 func toggle_freeform_mode(args: Array):
 	var spell_manager = get_spell_manager()
@@ -1088,6 +874,8 @@ func toggle_freeform_mode(args: Array):
 		add_output("[color=red]Freeform mode not implemented in spell manager yet[/color]")
 		return
 	
+	if toggle_value(args, spell_manager.freeform_mode) == null:
+		return
 	spell_manager.toggle_freeform_mode(action)
 	
 	# Check if freeform mode is now enabled
@@ -1100,38 +888,13 @@ func toggle_freeform_mode(args: Array):
 		add_output("[color=yellow]Returned to normal slot-based casting[/color]")
 
 func show_spell_list():
-	var spell_manager = get_spell_manager()
-	if not spell_manager:
-		add_output("[color=red]Could not find spell manager[/color]")
+	var manager = get_spell_manager()
+	if not manager:
 		return
-	
-	if not spell_manager.get("freeform_mode"):
-		add_output("[color=yellow]Freeform mode is not enabled[/color]")
-		add_output("[color=cyan]Use 'freeform on' to enable free-form spell casting[/color]")
-		return
-	
-	add_output("[color=cyan]Available spells in freeform mode:[/color]")
-	
-	# Show basic spells (current system)
-	add_output("[color=green]Basic Spells:[/color]")
-	add_output("  bolt (4) - Lightning projectile")
-	add_output("  life (4) - Heal over time")  
-	add_output("  ice blast (9) - Freezing explosion")
-	add_output("  earth shield (12) - Protective barrier")
-	add_output("  lightning arc (13) - Chain lightning")
-	add_output("  meteor shower (13) - Multiple meteor strikes")
-	add_output("  magic missile (13) - Basic auto-attack spell")
-	
-	# Show expanded test spells
-	add_output("[color=yellow]Test Spells:[/color]")
-	add_output("  fireball (8) - Fire projectile")
-	add_output("  heal (4) - Instant healing")
-	add_output("  lightning (9) - Single lightning strike")
-	add_output("  explosion (9) - Area blast")
-	add_output("  barrier (7) - Shield effect")
-	add_output("  teleport (8) - Move to cursor")
-	add_output("  slow (4) - Slow all enemies")
-	add_output("  haste (5) - Speed boost")
+	add_output("Learned spells this run:")
+	for id in manager.acquired_spells:
+		var data = DataManager.get_spell_data(id)
+		add_output("  " + str(data.get("incantation", id.replace("_", " "))))
 
 func get_spell_manager():
 	if not game_node:
@@ -1154,7 +917,9 @@ func manage_persistent_xp(args: Array):
 		add_output("[color=cyan]Current persistent XP: " + str(CharacterManager.persistent_xp) + "[/color]")
 		return
 	
-	var amount = args[0].to_int()
+	var amount = numeric_value(args, 0.0, 1000000.0, true)
+	if amount == null:
+		return
 	if amount < 0:
 		add_output("[color=red]XP amount cannot be negative[/color]")
 		return
@@ -1195,7 +960,9 @@ func manage_character(args: Array):
 		add_output("[color=red]Character not found: " + character_id + "[/color]")
 		return
 	
-	CharacterManager.select_character(found_char)
+	if not CharacterManager.select_character(found_char):
+		add_output("Character is locked; selection unchanged")
+		return
 	var char_data = CharacterManager.characters[found_char]
 	add_output("[color=green]Selected character: " + char_data.icon + " " + char_data.name + "[/color]")
 
@@ -1324,7 +1091,10 @@ func switch_save_slot_cmd(args: Array):
 		add_output("[color=red]Usage: switch_slot <1-3>[/color]")
 		return
 	
-	var slot = args[0].to_int()
+	var parsed = numeric_value(args, 1.0, CharacterManager.max_save_slots, true)
+	if parsed == null:
+		return
+	var slot = int(parsed)
 	if slot < 1 or slot > CharacterManager.max_save_slots:
 		add_output("[color=red]Invalid save slot. Must be between 1 and " + str(CharacterManager.max_save_slots) + "[/color]")
 		return
@@ -1350,7 +1120,10 @@ func delete_save_slot_cmd(args: Array):
 		add_output("[color=red]Usage: delete_slot <1-3>[/color]")
 		return
 	
-	var slot = args[0].to_int()
+	var parsed = numeric_value(args, 1.0, CharacterManager.max_save_slots, true)
+	if parsed == null:
+		return
+	var slot = int(parsed)
 	if slot < 1 or slot > CharacterManager.max_save_slots:
 		add_output("[color=red]Invalid save slot. Must be between 1 and " + str(CharacterManager.max_save_slots) + "[/color]")
 		return
@@ -1369,3 +1142,36 @@ func delete_save_slot_cmd(args: Array):
 		add_output("[color=green]Save slot " + str(slot) + " deleted successfully[/color]")
 	else:
 		add_output("[color=red]Failed to delete save slot " + str(slot) + "[/color]")
+func numeric_value(args: Array, minimum: float, maximum: float, integer: bool = false):
+	if args.size() != 1 or not str(args[0]).is_valid_float() or (integer and not str(args[0]).is_valid_int()):
+		add_output("[color=red]Expected one valid %s[/color]" % ("integer" if integer else "number"))
+		return null
+	var value = float(args[0])
+	if not is_finite(value) or value < minimum or value > maximum:
+		add_output("[color=red]Value must be between %s and %s[/color]" % [minimum, maximum])
+		return null
+	return value
+
+func toggle_value(args: Array, current: bool):
+	if args.is_empty() or (args.size() == 1 and args[0].to_lower() == "toggle"):
+		return not current
+	if args.size() == 1 and args[0].to_lower() in ["on", "off"]:
+		return args[0].to_lower() == "on"
+	add_output("[color=red]Expected on, off or toggle[/color]")
+	return null
+
+func living_player():
+	var player = get_tree().get_first_node_in_group("player")
+	if not player or player.health <= 0.0:
+		add_output("[color=red]No living player; start a new run[/color]")
+		return null
+	return player
+
+func set_player_multiplier(args: Array, property: String, label: String):
+	var multiplier = numeric_value(args, 0.1, 20.0)
+	if multiplier == null:
+		return
+	var player = living_player()
+	if player:
+		player.set(property, multiplier)
+		add_output("%s: %.2fx base (replaces the current stat multiplier)" % [label, multiplier])

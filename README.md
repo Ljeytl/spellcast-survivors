@@ -144,3 +144,13 @@ python3 tools/serve_previews.py --directory builds/web-TIMESTAMP/web --port 8765
 ```
 
 Open `http://127.0.0.1:8765/`. The export prints its actual output directory and writes a revision manifest plus `Shoulda-Joined-a-Party-Web.zip`. The ZIP contains `index.html` at its root for an itch.io HTML project. Select the upload as playable in-browser. On itch, open Edit game → Embed options → Click to launch in fullscreen, then save and relaunch the game. Alternatively, choose Embed in page and enable Fullscreen Button for a bottom-right fullscreen control. This is a desktop keyboard game. Verify typing, audio, menu transitions and saved settings in the browser before sharing. Re-run after each approved gameplay/balance merge; exported files are ignored by Git. Export success alone does not certify browser gameplay.
+
+## Developer testing console
+
+Open with backtick/tilde and enter `help`. Useful examples: `speed 2`, `damage 1.5`, `add_xp 10`, `set_health 20`, `heal`, `invincibility on`, `noclip on`, `spawn_enemy pursuer 5`, `kill_all`, `spawn_chest`, `difficulty 5` (advance to minute five), `difficulty +30` (add seconds), and `spell_list` (learned spells). `speed` changes movement only; `damage` sets Spell Power, including healing/protection. Both replace the current stat multiplier relative to base; later upgrades can increase it again. Time cannot rewind.
+
+`bighead on` doubles currently spawned enemy art without changing collision; `off` restores exact original sizes. Reapply `on` for newly spawned enemies. `freeze 5` applies a five-second movement freeze to current enemies; attacks are not disabled. Kill commands retain normal XP/reward and population bookkeeping. Teleport/chest placement use the mouse's world position.
+
+Unfinished visual/novelty commands and `time_scale` are hidden and explicitly unavailable. Supported modifying commands conservatively exclude the run from local scores, including rejected attempts. Read-only, unknown and unavailable commands do not. Progression/save-slot commands still affect local saves: use an isolated profile for automated tests.
+
+Console regression: create an ignored `override.cfg` with `[application]`, `config/use_custom_user_dir=true`, and `config/custom_user_dir_name="SpellCast Survivors Synergy Test"`; import the project with Godot, then run `godot --headless --path . --script tests/console_regression.gd`. Remove the override before exporting.
