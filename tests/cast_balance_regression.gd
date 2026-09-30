@@ -70,7 +70,7 @@ func run():
 		movements.append(enemy.position.distance_to(before))
 		press(KEY_ENTER)
 		check(not spells.is_typing and casts.size() == movements.size(), "Same input still completes an owned manual cast")
-		check(spells.typing_slowdown_remaining > 1.8 and spells.typing_slowdown_remaining < 2.1, "One real second consumes the same bounded typing budget")
+		check(spells.typing_slowdown_remaining > 0.3 and spells.typing_slowdown_remaining < 0.6, "One real second consumes the same bounded typing budget")
 		spells.mana_bolt_timer = 0
 		spells.handle_auto_attack(0)
 		check(is_equal_approx(spells.mana_bolt_timer, 1.5 / multiplier), "Automatic attack cadence retains rate upgrade")
@@ -95,12 +95,12 @@ func run():
 		await process_frame
 	check(player.touching_enemies.has(enemy), "Actual HitBox overlap registers the live enemy")
 	player.process_enemy_contact_damage(0)
-	check(is_equal_approx(player.health, 96), "Live contact remains damaging")
+	check(is_equal_approx(player.health, 92), "Live contact remains damaging")
 	enemy.take_damage(100000)
 	check(enemy.dying and is_instance_valid(enemy), "Control reaches deferred-death window")
 	player.damage_timer = 0
 	player.process_enemy_contact_damage(0)
-	check(is_equal_approx(player.health, 96), "Lethally hit enemy cannot deal a postmortem contact tick")
+	check(is_equal_approx(player.health, 92), "Lethally hit enemy cannot deal a postmortem contact tick")
 	check(player.touching_enemies.is_empty(), "Dead contact is removed before aggregate damage")
 	var living = manager.spawn_monster(definition)
 	living.set_physics_process(false)
@@ -111,7 +111,7 @@ func run():
 	queued.queue_free()
 	player.damage_timer = 0
 	player.process_enemy_contact_damage(0)
-	check(is_equal_approx(player.health, 92), "Queued removal is excluded while live contact still counts")
+	check(is_equal_approx(player.health, 84), "Queued removal is excluded while live contact still counts")
 	check(player.last_damage_context.count == 1, "Contact explanation counts only living attackers")
 	var rate_upgrade = root.get_node("DataManager").get_generic_upgrades().get("mana_bolt_mastery", {})
 	check(rate_upgrade.get("description", "").contains("Magic Missile"), "Upgrade explains its actual automatic attack benefit")

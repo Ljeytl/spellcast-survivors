@@ -1,3 +1,11 @@
+# Unreleased — HUD readability, MEGA archive entry and current-build page (checklist 5–7)
+
+- SEP30-10/11/12: passives read as words with totals ("Spell Power +20%") instead of two-letter glyphs; narrow windows use short names. HP bar is 34 px tall (was 15) and the XP bar 12 px (was 6); the XP label reads "Level N · XP current / needed". Windows shorter than 560 px keep the old compact bars.
+- SEP30-17: Necronomicon opens with a KEYWORDS section documenting MEGA, read from KeywordRules so the numbers cannot drift.
+- SEP30-18: the run spellbook shows each owned spell's current numbers ("Now: 62.4 damage"), passive totals with what they affect, the live keyword, and Magic Missile's current damage and interval. No new menu. Shared logic lives in scripts/BuildSummary.gd.
+- Tests: update four suites that hardcoded the 3.0 s slowdown or 4 contact damage to the committed 1.5 s and doubled damage; add archive, spellbook and passive-chip checks. Against the previous commit, 70 headless suites show no new failing check names. playtest_ux "Reference clears inventory" already failed for the 16-card boss fixture at 640×480 and 480×640 and now reports 11 intersections instead of 7.
+- Rendered captures under builds/claude-shots/. Uncommitted; no version bump or export.
+
 # 0.2.0 — Approved local tuning integration
 
 - Commit the existing local tuning: double base damage for all twelve enemy variants and reduce the fresh per-cast slowdown duration from 3.0 to 1.5 seconds.

@@ -89,6 +89,7 @@ func run():
 	inventory.cards.lightning_bolt.show()
 	check(inventory.cards.lightning_bolt.is_visible_in_tree(), "Restored combination is actually visible")
 	check(inventory.cards.has("spell_damage"), "Passive appears in own row")
+	check(inventory.cards.spell_damage.get_meta("full_text") == "Spell Power +10%" and "damage, healing and protection" in inventory.cards.spell_damage.tooltip_text, "Passive reads as a name and total")
 	check("Rank 2" in inventory.cards.bolt.tooltip_text, "Upgrade rank refreshes")
 	click(inventory.cards.lightning_bolt)
 	check(manager.is_typing and "lightning" in manager.target_spell, "Combination card starts owned cast")

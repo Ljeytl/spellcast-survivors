@@ -45,6 +45,7 @@ func run():
 		await settle()
 		check(book.catalog_ids.size() == 24, "All 16 implemented actives, Magic Missile and seven enabled combinations")
 		check(not book.catalog_ids.has("reaping_spirit"), "Disabled combination excluded")
+		check(book.keyword_ids.has("mega") and book.find_child("Entry_keyword_mega", true, false) != null, "MEGA keyword is documented in the archive")
 		check(book.catalog_ids.has("meteor_shower"), "Unlearned active visible")
 		check(book.catalog_ids.has("life_bolt"), "Undiscovered recipe visible")
 		check(manager.acquired_spells == original, "Browsing does not grant spells")
@@ -83,6 +84,8 @@ func run():
 		copy += label.text
 	check(not copy.contains("Discovered recipes"), "Run book excludes permanent archive")
 	check(copy.contains("Type: life bolt"), "Run book gives exact bonus incantation")
+	check(copy.contains("MEGA · +50% power, +50% size"), "Run book lists the live keyword and its effect")
+	check(copy.contains("Now: 40 damage"), "Run book shows Bolt's current damage")
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://builds/book-evidence/run-book-800.png")

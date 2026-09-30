@@ -13,9 +13,9 @@ This is the authoritative order approved by the player. Read this checklist befo
 | Alongside 2 — Useful support | SEP30-20: FPS toggle | Merged (PR #112, e3c7b6b); export pending | Graphics settings checkbox defaults off; 124 automated checks and operated native FPS journeys passed on f3d52b1 at 640×720/3024×1726, including restart, pause/resume and resize. See [verification](travel-performance.md). |
 | 3 — Next | SEP30-13/14/16: cast, MEGA and combo event feedback | Merged (PR #113); export pending | Distinct brief feedback for accepted casts, MEGA, combo gain and breaks; start with simple animation, clear visual changes and existing sound where useful. |
 | 4 — Next | SEP30-09/15: combo versus score; duration versus cooldown | Merged (PR #113); export pending | Separate banked score from live style; consistently identify active duration without adding cooldown mechanics. |
-| 5 — Next | SEP30-10/11/12: passive readability, XP label, larger HP | Open | Improve essential HUD readability without explanatory clutter. |
-| 6 — Next | SEP30-17: MEGA in Necronomicon | Open | Document the live keyword in the archive and verify it can be found. |
-| 7 — Later | SEP30-18: current modifications | Open | Improve existing spellbook/inventory before introducing another menu. |
+| 5 — Next | SEP30-10/11/12: passive readability, XP label, larger HP | Implemented locally; uncommitted, no export | Improve essential HUD readability without explanatory clutter. |
+| 6 — Next | SEP30-17: MEGA in Necronomicon | Implemented locally; uncommitted, no export | Document the live keyword in the archive and verify it can be found. |
+| 7 — Later | SEP30-18: current modifications | Implemented locally in the run spellbook; uncommitted, no export | Improve existing spellbook/inventory before introducing another menu. |
 | 8 — Later | SEP30-21: clear local leaderboard | Open | Confirm deletion scope and verify confirmation, cancellation and persistence. |
 
 Testing-console repair is merged in PR110; it does not complete the performance, death, balance or HUD items. Firewalk tuning (SEP30-19) remains a separate logged balance follow-up, outside this ordered tranche. Blessings, hidden typing statistics and anti-macro boss ideas remain deferred.

@@ -593,7 +593,7 @@ func _on_player_xp_changed(current_xp: float, xp_needed: float):
 	
 	# Update XP text label
 	if xp_label:
-		xp_label.text = "Level %d · XP %d/%d" % [player.level, int(current_xp), int(xp_needed)] if interface_debug else "Level %d" % player.level
+		xp_label.text = "Level %d · XP %d/%d" % [player.level, int(current_xp), int(xp_needed)] if interface_debug else "Level %d · XP %d / %d" % [player.level, int(current_xp), int(xp_needed)]
 
 func update_xp_bar_effects(xp_percent: float):
 	var xp_bar_fill = get_or_create_progress_bar_style(xp_bar)

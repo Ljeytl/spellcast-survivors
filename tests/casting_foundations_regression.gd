@@ -53,7 +53,7 @@ func run():
 	check(manager.spells.size() == 1 and manager.spells[1].id == "bolt" and manager.spells[1].name == "Bolt", "Start only with Bolt in slot1")
 	check(not manager.cast_freeform_spell("lightning bolt") and not manager.cast_freeform_spell("lightning"), "Neither Lightning identity is a starter alias")
 	manager.activate_spell_slot(1)
-	manager.advance_typing_slowdown(2.5)
+	manager.advance_typing_slowdown(1.0)
 	check(is_equal_approx(manager.typing_slowdown_remaining, 0.5), "Unscaled typing seconds drain once")
 	manager.advance_typing_slowdown(1)
 	check(manager.is_typing and manager.typing_slowdown_remaining == 0 and Engine.time_scale == 1, "Exhaustion preserves editable cast at normal speed")
@@ -61,18 +61,18 @@ func run():
 	manager.advance_typing_slowdown(50)
 	check(manager.typing_slowdown_remaining == 0, "Idle time does not refill a shared reserve")
 	manager.activate_spell_slot(1)
-	check(manager.typing_slowdown_remaining == 3 and is_equal_approx(Engine.time_scale, 0.2), "New numbered cast gets fresh allowance")
+	check(manager.typing_slowdown_remaining == 1.5 and is_equal_approx(Engine.time_scale, 0.2), "New numbered cast gets fresh allowance")
 	manager.cancel_typing()
 	manager.space_casting = true
 	manager.start_freeform_typing()
-	check(manager.typing_slowdown_remaining == 3, "Space cast also starts fresh")
+	check(manager.typing_slowdown_remaining == 1.5, "Space cast also starts fresh")
 	manager.cancel_typing()
 	game._on_upgrade_selected({"name":"Focus", "effect":{"type":"slowdown_duration","value":0.5}})
 	manager.activate_spell_slot(1)
-	check(manager.typing_slowdown_remaining == 3.5 and is_equal_approx(Engine.time_scale,0.2), "Focus changes duration without changing strength")
+	check(manager.typing_slowdown_remaining == 2.0 and is_equal_approx(Engine.time_scale,0.2), "Focus changes duration without changing strength")
 	manager._scale_change_frame = -1
 	manager._process(0.1)
-	check(is_equal_approx(manager.typing_slowdown_remaining, 3.0), "Scaled delta converts to real time once at fixed0.2speed")
+	check(is_equal_approx(manager.typing_slowdown_remaining, 1.5), "Scaled delta converts to real time once at fixed0.2speed")
 	manager.set_process(true)
 	paused = true
 	var pause_budget = manager.typing_slowdown_remaining
@@ -226,7 +226,7 @@ func run():
 	manager.attempt_cast()
 	check(manager.is_typing and manager.current_typing_text == "plague seed" and manager.spell_queue.size() == 1, "Numbered no-target cast remains editable and retryable")
 	check("No target in range" in game.typing_label.text and game.typing_keycaps.completion_remaining == 0, "Numbered failure displays no-target instead of successful completion")
-	check(manager.typing_slowdown_remaining == 2, "Failed retry does not reset slowdown")
+	check(manager.typing_slowdown_remaining == 0.5, "Failed retry does not reset slowdown")
 	manager.cancel_typing()
 	manager.space_casting = true
 	manager.start_freeform_typing()

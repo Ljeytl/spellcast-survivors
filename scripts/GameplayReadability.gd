@@ -167,8 +167,10 @@ func layout():
 	var stats = hud.get_node("StatsPanel")
 	stats.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	stats.position = Vector2(18, 18)
-	stats.size = Vector2(minf(280 if game.interface_debug else 240, width * 0.55), 92 if game.interface_debug else 84)
-	for spec in [["HealthLabel", 6, 27], ["HealthBar", 30, 45], ["XPLabel", 46, 68], ["XPBar", 69, 75]]:
+	# Short windows keep the compact bars so the inventory and casting reference still fit.
+	var roomy = height >= 560
+	stats.size = Vector2(minf(320 if game.interface_debug else 300, width * 0.6), 110 if roomy else 92 if game.interface_debug else 84)
+	for spec in ([["HealthLabel", 5, 27], ["HealthBar", 28, 62], ["XPLabel", 64, 86], ["XPBar", 88, 100]] if roomy else [["HealthLabel", 6, 27], ["HealthBar", 30, 45], ["XPLabel", 46, 68], ["XPBar", 69, 75]]):
 		var item = stats.get_node(spec[0])
 		item.offset_top = spec[1]
 		item.offset_bottom = spec[2]

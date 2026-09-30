@@ -37,7 +37,7 @@ func run():
 		await process_frame
 	var elapsed = (Time.get_ticks_msec() - started) / 1000.0
 	print("SLOWDOWN_ELAPSED_SECONDS=", elapsed)
-	check(absf(elapsed - 3.0) < 0.2, "Slowdown lasts approximately three unscaled seconds at 15 FPS")
+	check(absf(elapsed - 1.5) < 0.2, "Slowdown lasts approximately 1.5 unscaled seconds at 15 FPS")
 	check(spells.is_typing and is_equal_approx(Engine.time_scale, 1), "Real process restores normal speed on expiry")
 	press(KEY_ESCAPE)
 	press(KEY_SPACE)
@@ -45,14 +45,14 @@ func run():
 	press(KEY_ESCAPE)
 	await wait_seconds(1.0)
 	var refilled = spells.typing_slowdown_remaining
-	check(is_equal_approx(refilled, 3.0), "Idle process does not spend or refill inactive allowance")
+	check(is_equal_approx(refilled, 1.5), "Idle process does not spend or refill inactive allowance")
 	press(KEY_SPACE)
 	game.change_state(game.GameState.PAUSED)
 	await wait_seconds(0.5)
 	check(is_equal_approx(spells.typing_slowdown_remaining, refilled), "Paused wall time consumes no budget")
 	game.change_state(game.GameState.PLAYING)
 	await wait_seconds(0.5)
-	check(absf(spells.typing_slowdown_remaining - 2.5) < 0.15, "Resume spends only the elapsed half second")
+	check(absf(spells.typing_slowdown_remaining - 1.0) < 0.15, "Resume spends only the elapsed half second")
 	spells.cancel_typing()
 	game.queue_free()
 	await process_frame
