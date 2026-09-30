@@ -1,6 +1,7 @@
 extends Node2D
 
 const CELL_SIZE = 800.0
+const MAX_CACHED_LAYOUTS = 256
 const GROVE_RADIUS = 190.0
 const MIN_TRUNK_SPACING = 180.0
 const CLEARING_RADIUS = 300.0
@@ -16,6 +17,7 @@ var floor_textures: Array[Texture2D] = []
 var grass_density = FastNoiseLite.new()
 var decorations: Dictionary = {}
 var layouts: Dictionary = {}
+var layout_generation_count := 0
 var last_cell = Vector2i(2147483647, 2147483647)
 var last_view = Vector2.ZERO
 var tree_canopies: Node2D
@@ -49,6 +51,7 @@ func cell_for(point: Vector2) -> Vector2i:
 	return Vector2i(floori(point.x / CELL_SIZE), floori(point.y / CELL_SIZE))
 
 func generate_layout(cell: Vector2i) -> Dictionary:
+	layout_generation_count += 1
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash("grove:%d:%d" % [cell.x, cell.y])
 	var center = Vector2(cell) * CELL_SIZE + Vector2.ONE * CELL_SIZE / 2 + Vector2(rng.randf_range(-100, 100), rng.randf_range(-100, 100))
@@ -77,7 +80,16 @@ func generate_layout(cell: Vector2i) -> Dictionary:
 	return {"trees": trees, "bushes": bushes}
 
 func layout_for(cell: Vector2i) -> Dictionary:
-	return layouts[cell] if layouts.has(cell) else generate_layout(cell)
+	if layouts.has(cell):
+		var cached: Dictionary = layouts[cell]
+		layouts.erase(cell)
+		layouts[cell] = cached
+		return cached
+	var layout = generate_layout(cell)
+	if layouts.size() >= MAX_CACHED_LAYOUTS:
+		layouts.erase(layouts.keys()[0])
+	layouts[cell] = layout
+	return layout
 
 func tree_position(cell: Vector2i) -> Vector2:
 	var trees = layout_for(cell).trees
@@ -146,13 +158,12 @@ func refresh_decorations():
 			var key = Vector2i(x, y)
 			wanted[key] = true
 			if not decorations.has(key):
-				layouts[key] = generate_layout(key)
+				layout_for(key)
 				decorations[key] = create_decoration(key)
 	for key in decorations.keys():
 		if not wanted.has(key):
 			decorations[key].queue_free()
 			decorations.erase(key)
-			layouts.erase(key)
 
 func create_decoration(cell: Vector2i) -> Node2D:
 	var holder = Node2D.new()

@@ -110,6 +110,11 @@ layout_mode = 2
 text = "VSync"
 button_pressed = true
 
+[node name="FPSCheckBox" type="CheckBox" parent="OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Show FPS"
+tooltip_text = "Display frames per second in the bottom-right corner."
+
 [node name="Spacer" type="Control" parent="OptionsPanel/VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
@@ -131,3 +136,5 @@ text = "BACK"
 [connection signal="toggled" from="OptionsPanel/VBoxContainer/FullscreenCheckBox" to="." method="_on_fullscreen_check_box_toggled"]
 [connection signal="toggled" from="OptionsPanel/VBoxContainer/VSyncCheckBox" to="." method="_on_v_sync_check_box_toggled"]
 [connection signal="toggled" from="OptionsPanel/VBoxContainer/ReducedEffectsCheckBox" to="." method="_on_reduced_effects_toggled"]
+
+[connection signal="toggled" from="OptionsPanel/VBoxContainer/FPSCheckBox" to="." method="_on_fps_toggled"]

@@ -10,6 +10,7 @@ func _ready():
 	$OptionsPanel/VBoxContainer/ReducedEffectsCheckBox.set_pressed_no_signal(EFFECTS.reduced())
 	preload("res://scripts/GameplayReadability.gd").setup_menu(self, "OptionsPanel")
 	var column = $OptionsPanel/VBoxContainer
+	column.get_node("FPSCheckBox").set_pressed_no_signal(UserSettings.show_fps)
 	for spec in [["MasterVolumeContainer/MasterSlider", AudioManager.master_volume], ["SFXContainer/SFXSlider", AudioManager.sfx_volume], ["MusicContainer/MusicSlider", AudioManager.music_volume]]:
 		var slider = column.get_node(spec[0])
 		slider.set_value_no_signal(spec[1] * 100)
@@ -106,3 +107,6 @@ func show_save_result(result: Error):
 		return
 	save_status.visible = result != OK
 	save_status.text = "Could not save settings. Changes apply for this session."
+
+func _on_fps_toggled(value: bool):
+	show_save_result(UserSettings.set_show_fps(value))

@@ -154,3 +154,7 @@ Open with backtick/tilde and enter `help`. Useful examples: `speed 2`, `damage 1
 Unfinished visual/novelty commands and `time_scale` are hidden and explicitly unavailable. Supported modifying commands conservatively exclude the run from local scores, including rejected attempts. Read-only, unknown and unavailable commands do not. Progression/save-slot commands still affect local saves: use an isolated profile for automated tests.
 
 Console regression: create an ignored `override.cfg` with `[application]`, `config/use_custom_user_dir=true`, and `config/custom_user_dir_name="SpellCast Survivors Synergy Test"`; import the project with Godot, then run `godot --headless --path . --script tests/console_regression.gd`. Remove the override before exporting.
+
+### Performance diagnostics
+
+Options → Graphics → **Show FPS** enables a small meter above the build version. It defaults off and persists across scenes and restarts. Report FPS alongside the build, platform, run time and travel/casting pattern. Simulation profiling and limits are documented in [travel performance](docs/travel-performance.md).

@@ -1,3 +1,12 @@
+# Unreleased — Travel performance and FPS diagnostics
+
+- Cache deterministic offscreen grove queries with a bounded 256-entry recency cache; enemy steering no longer regenerates the same distant terrain every physics tick. Preserve layout, enemy cap, recycling rate and encounter difficulty.
+- Add a persisted Show FPS option under Graphics, default off. Display above the build label across menus/gameplay, update every 250 real milliseconds, and keep pause/typing slowdown from distorting update cadence.
+- Add seeded component and real physics-frame travel profiles plus cache/settings regression and known-bad uncached control. Separate measured simulation cost from unverified rendering claims; record evidence in docs/travel-performance.md.
+- Native review caught an FPS-only narrow-window scaling defect; give the overlay the existing responsive root treatment and verify readable screen-space font size, placement and a deliberately unscaled negative control.
+- Verify the corrected FPS control and overlay through native 640×720/3024×1726 menu, gameplay, pause/resume, resize and fresh-process journeys at f3d52b1; retain candidate-bound evidence.
+- No version bump or refreshed itch export in this tranche.
+
 # Unreleased — Agreed feedback execution order
 
 - Save the approved priority order and explicit implementation/verification/shipping states in the existing feedback tracker. Fix reproduced SEP30-01 fractional-health display; travel profiling and FPS support remain next.
