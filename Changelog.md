@@ -1,3 +1,9 @@
+# Unreleased — Agreed feedback execution order
+
+- Save the approved priority order and explicit implementation/verification/shipping states in the existing feedback tracker. Fix reproduced SEP30-01 fractional-health display; travel profiling and FPS support remain next.
+- Display positive health/overheal below one as <1, reserving 0 for actual zero; leave damage/death mechanics unchanged. Baseline reproduces four misleading labels; fixed runtime/native tests pass.
+- Verify lethal death, recovery, invincibility and terminal healing guards. Refresh the shield regression’s obsolete version assertion to inspect the current HUD version setting.
+
 # Unreleased — Testing console repair
 
 - Repair movement speed, Spell Power, XP, health/death, invincibility, noclip, upgrade resources, enemy spawning, encounter-time jumps, chest placement and learned spell listing against current game APIs.

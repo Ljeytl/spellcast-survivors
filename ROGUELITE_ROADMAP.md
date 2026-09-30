@@ -1,5 +1,7 @@
 # Current release scope
 
+**Immediate work:** follow the [agreed September 30 feedback checklist](docs/PLAYER_FEEDBACK.md#agreed-execution-order--30-september-2026) in order. This takes precedence over the longer-term tutorial/tower sequence below; new feedback does not silently reorder it.
+
 [0.1.36 Earth Shield](docs/releases/0.1.36-earth-shield.md) is implemented and merged. Next: tutorial and meaningful keywords, followed by preparation/tower/expeditions. [Element × family matrix](docs/expedition-design/16-element-family-matrix.md) separates implemented content from ideas.
 
 **0.1.31:** Seeker target distribution/visibility and five-second combo grace implemented. Remaining playtest tuning stays in the feedback tracker.

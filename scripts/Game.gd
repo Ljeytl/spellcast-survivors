@@ -393,7 +393,7 @@ func setup_ui():
 	if health_label and player:
 		var current_health = player.health if "health" in player else 100
 		var max_health = player.max_health if "max_health" in player else 100
-		health_label.text = "Health · {0}/{1}".format([int(current_health), int(max_health)])
+		health_label.text = "Health · {0}/{1}".format([health_amount_text(current_health), health_amount_text(max_health)])
 	
 	# Set up XP bar to show values from 0-100%
 	if xp_bar:
@@ -481,6 +481,9 @@ func setup_camera():
 		camera_shake.set_camera(camera)
 		camera_shake.set_follow_target(player)
 
+func health_amount_text(amount: float) -> String:
+	return "<1" if amount > 0.0 and amount < 1.0 else str(int(maxf(0.0, amount)))
+
 func _on_player_health_changed(new_health: float, max_health: float, overheal_amount: float):
 	if not health_bar:
 		return
@@ -497,9 +500,9 @@ func _on_player_health_changed(new_health: float, max_health: float, overheal_am
 		if overheal_amount > 0:
 			# Show overheal with remaining time
 			var time_remaining = player.get_overheal_time_remaining() if player and player.has_method("get_overheal_time_remaining") else 0.0
-			health_label.text = "Health · {0}/{1} (+{2}) [{3}s]".format([int(new_health), int(max_health), int(overheal_amount), int(time_remaining)])
+			health_label.text = "Health · {0}/{1} (+{2}) [{3}s]".format([health_amount_text(new_health), health_amount_text(max_health), health_amount_text(overheal_amount), int(time_remaining)])
 		else:
-			health_label.text = "Health · {0}/{1}".format([int(new_health), int(max_health)]) if interface_debug else "{0} / {1}".format([int(new_health), int(max_health)])
+			health_label.text = "Health · {0}/{1}".format([health_amount_text(new_health), health_amount_text(max_health)]) if interface_debug else "{0} / {1}".format([health_amount_text(new_health), health_amount_text(max_health)])
 
 func animate_progress_bar(progress_bar: ProgressBar, value: float, duration: float):
 	var previous_tween = progress_bar.get_meta("value_tween") if progress_bar.has_meta("value_tween") else null
