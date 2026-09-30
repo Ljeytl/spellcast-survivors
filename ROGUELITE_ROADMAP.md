@@ -1,3 +1,7 @@
+## Wizard tower home — approved first implementation
+
+The [tower home](docs/tower-home.md) connects Play, a walkable rotating level-select room, Level 1 and results returning home. The tome opens Necronomicon only. Additional levels, blocker-clearing progression and prepared spell selection remain future work. This is the explicitly approved tower tranche, not authorization to implement the whole expedition roadmap.
+
 # Current release scope
 
 **Immediate work:** follow the [agreed September 30 feedback checklist](docs/PLAYER_FEEDBACK.md#agreed-execution-order--30-september-2026) in order. This takes precedence over the longer-term tutorial/tower sequence below; new feedback does not silently reorder it.

@@ -1,3 +1,11 @@
+# Unreleased — Walkable wizard tower home
+
+- Play now enters a walkable tower using the approved crimson carpet, stone arches, orb, tome and modular furniture art. The fixed central floor stays still while twelve outer doorways and their book blockers rotate together under orb control.
+- Level 1 Woodland is the only open destination; walk through its top doorway to begin a fresh run. Other arches stay blank and unavailable. E near the tome opens the existing Necronomicon, without adding a loadout system.
+- Death and successful extraction retain their results, then return home. Endless Continue remains in the run; pause Retry deliberately retains its existing direct restart behavior.
+- Verify physics collisions, doorway selection, keyboard journeys, narrow layout, archive input isolation, repeat runs and exactly-once progression. No version bump or shareable export in this tranche.
+- Future: authored perspective frames throughout rotation, level unlocks/clearing blockers and spell preparation; see docs/tower-home.md.
+
 # Unreleased — Focused cast and style HUD feedback
 
 - Implement the approved priority 3/4 presentation pass: incantation success/MEGA response, distinct style gain/loss, separated banked score, and selective active spell status; preserve scoring and spell mechanics.

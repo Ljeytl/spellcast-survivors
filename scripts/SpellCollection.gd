@@ -135,6 +135,9 @@ func update_typography():
 		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	else:
 		READABILITY.fit_root(self)
+	var heading = find_child("CollectionTitle", true, false)
+	if heading:
+		heading.add_theme_font_size_override("font_size", mini(36, int((size.x - 48) / 14.0)))
 
 func ingredient_name(id: String) -> String:
 	var data = get_tree().root.get_node("DataManager").get_spell_data(id)

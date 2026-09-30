@@ -459,8 +459,8 @@ func setup_player():
 	# Create game over screen
 	game_over_screen = game_over_screen_scene.instantiate()
 	$UI.add_child(game_over_screen)
-	game_over_screen.restart_game.connect(_on_restart_game)
-	game_over_screen.return_to_menu.connect(_on_return_to_menu)
+	game_over_screen.restart_game.connect(_on_return_to_tower)
+	game_over_screen.return_to_menu.connect(_on_return_to_tower)
 
 func setup_camera():
 	if camera and player:
@@ -1350,3 +1350,6 @@ func interface_debug_report() -> String:
 	if not game_over_screen.last_stats.is_empty():
 		lines.append("LAST RUN\n" + JSON.stringify(game_over_screen.last_stats, "  "))
 	return "\n".join(lines)
+
+func _on_return_to_tower():
+	SceneManager.goto_scene("res://scenes/Tower.tscn")

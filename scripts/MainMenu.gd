@@ -27,7 +27,7 @@ func _ready():
 func _on_play_button_pressed():
 	if is_instance_valid(AudioManager):
 		AudioManager.on_button_click()  # Play button click sound
-	SceneManager.goto_scene("res://scenes/Game.tscn")  # Load game scene
+	SceneManager.goto_scene("res://scenes/Tower.tscn")  # Load game scene
 
 # Open the options/settings screen
 func _on_options_button_pressed():
