@@ -243,6 +243,9 @@ func run():
 	check(paused and game.game_over_screen.visible, "Death pauses with ending visible")
 	await key(KEY_ENTER)
 	await settle(0.5)
+	check(current_scene.scene_file_path.ends_with("Tower.tscn"), "Death returns home")
+	current_scene.depart()
+	await settle(0.5)
 	game = current_scene
 	check(game.game_time < 2 and game.spell_manager.spells.size() == 1 and not paused, "Retry resets time, kit and pause")
 	game.finish_run(true)
@@ -251,7 +254,10 @@ func run():
 	await screenshot("victory-480")
 	await key(KEY_ESCAPE)
 	await settle()
-	check(current_scene.has_node("MenuPanel") and not paused, "Ending returns to usable menu")
+	check(current_scene.scene_file_path.ends_with("Tower.tscn"), "Victory returns home")
+	root.get_node("SceneManager").goto_scene("res://scenes/MainMenu.tscn")
+	await settle()
+	check(current_scene.has_node("MenuPanel") and not paused, "Title remains accessible")
 	for geometry in [Vector2i(480, 640), Vector2i(800, 600), Vector2i(1280, 720)]:
 		root.size = geometry
 		await settle()
