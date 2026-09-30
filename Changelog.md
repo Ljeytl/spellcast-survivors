@@ -1,3 +1,9 @@
+# 2026-09-30 — Capture playtest feedback
+
+- Log all 28 reports, questions and positive observations with individual IDs and dispositions in the feedback tracker.
+- Preserve 0-HP and travel-performance reports as unverified bugs; separate UX, debug commands, Firewalk balance, settings and deferred ideas.
+- Link optional follow-ups from the roadmap; no gameplay changes, score deletion or blanket implementation commitment.
+
 # 0.1.41 — Progressive style-rank hotfix
 
 - Correct rank gaps to 100/200/400/600/800/1000/1200/1400 raw combo; verify promotion boundaries, bar fractions and hit grade loss.

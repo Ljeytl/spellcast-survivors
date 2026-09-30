@@ -1,5 +1,7 @@
 # Player feedback tracker
 
+Latest batch: [30 September playtest feedback](#playtest-feedback--2026-09-30). Documentation only; implementation scope not selected.
+
 ## Approved 0.1.35 batch — 29 September 2026
 
 [Spell scaling and combination specification](releases/0.1.35-spell-scaling.md) consolidates Power/Size/Velocity/Duration, slowly tracking Prism Ray, ingredient-level inheritance, seven combination progressions, healing ground patches, 1% health and 1% style pickups (+200 raw combo, +200 × pre-pickup multiplier score). **Implemented for0.1.35; regression and native visual evidence tracked in the release specification.** Earth Shield rework is implemented and merged in 0.1.36; Frost Sigil double placement remains deferred.
@@ -337,3 +339,57 @@ Implemented: Seekers distribute among visible targets, release reservations on d
 ## Element/family brainstorm capture — documentation addressed
 
 All latest concepts, alternatives and rejections are recorded in [the detailed pass](expedition-design/17-element-spell-ideas.md), with a populated matrix. User requests Seed-column placement for current infection spells; Snowball Bolt, Water Jet Ray and Mana Storm Shower; no invented approved roster or forced school merges. Runtime unchanged by this capture. Next: user selects identities and resolves taxonomy before any new spell implementation.
+
+## Playtest feedback — 2026-09-30
+
+Source: Aditya's collected playtest feedback, with Brad explicitly attributed below. Recorded after 0.1.41; the exact build/platform used for each observation is unconfirmed. **Documentation only: this is not approval to implement every item.** Reported symptoms and suspected causes are distinct; no fresh reproduction or verification was performed for this batch. The priorities below are suggested triage, not a committed development slate.
+
+### Bugs and diagnostics
+
+| ID | Report | Disposition / next evidence needed |
+|---|---|---|
+| SEP30-01 | Player reached displayed 0 HP without dying | Open; high-priority reproduction candidate. Check displayed versus actual health and the death transition; do not assume rounding, protection or invincibility explains it without evidence. |
+| SEP30-02 | Walking a long distance without killing produces more enemies in new space while old enemies reportedly remain rendered; FPS tanks | Open; high-priority performance reproduction candidate. Reproduce travel-only play and measure retained enemies, spawning/recycling, rendering, simulation and frame time. Continued rendering is the reported explanation, not a confirmed root cause. |
+| SEP30-03 | `laser` command does not work | Open debug-command report; exact command spelling/arguments, expected effect and actual response need reproduction. |
+| SEP30-04 | “big head” makes slimes smaller | Open debug-command report; capture before/after size and determine intended affected entities. Exact command spelling unconfirmed. |
+| SEP30-05 | “black hole” does not work | Open debug-command report; reproduce invocation and intended effect. Exact command spelling unconfirmed. |
+| SEP30-06 | “matrix mode” does not work | Open debug-command report; reproduce invocation and intended effect. Exact command spelling unconfirmed. |
+| SEP30-07 | “rainbow trail” does not work | Open debug-command report; reproduce invocation and intended effect. Exact command spelling unconfirmed. |
+| SEP30-08 | `speed` does not work | Open debug-command report; reproduce arguments, affected property and visible response. |
+
+### Readability and action feedback
+
+| ID | Report / request | Disposition |
+|---|---|---|
+| SEP30-09 | Run score directly underneath the combo meter is confusing | Open UX feedback: distinguish banked run score from current combo/rank. Layout solution not selected. |
+| SEP30-10 | Passives need to be easier to read | Open UX feedback; inspect icon, name, rank and effect legibility before choosing a layout. |
+| SEP30-11 | XP bar needs a label | Requested UX improvement; not implemented by this documentation pass. |
+| SEP30-12 | HP bar should be bigger | Requested UX improvement; dimensions and layout not selected. |
+| SEP30-13 | “What is this?” / “Did I do this right?” — actions and effects lack clear feedback | Open cross-cutting UX concern. Animation and sound are proposed ways to communicate results, not a commitment to a full art/audio overhaul. |
+| SEP30-14 | Hard to tell whether combo increased or broke | Open feedback concern; inspect rank gain, score gain, repetition reductions, damage penalties and decay as distinct events. |
+| SEP30-15 | Unclear whether a displayed timer is spell duration or cooldown | Open feedback concern; communicate the timer's actual meaning, without introducing a cooldown mechanically. |
+| SEP30-16 | “Did the MEGA actually mega?” | Open keyword feedback concern; player should recognize acceptance and stronger/larger output. Existing implementation checks do not resolve subjective clarity. |
+| SEP30-17 | Add MEGA information to the Necronomicon | Requested discoverability improvement. Current run-spellbook hint does not discharge this separate archive request. |
+| SEP30-18 | A page showing current buffs/modifications on abilities | Feature idea; show actual current effects if selected. Placement, per-spell detail and scope undecided. |
+
+### Balance, settings and later ideas
+
+| ID | Report / idea | Disposition |
+|---|---|---|
+| SEP30-19 | Firewalk may be overtuned; Brad said it made the game pretty easy | Open balance hypothesis, not an approved nerf. Capture rank, passives, MEGA usage, encounter time and play pattern before tuning. |
+| SEP30-20 | Toggleable FPS meter in video settings | Requested diagnostic option; default and placement not selected. |
+| SEP30-21 | Option to wipe the local leaderboard | Requested settings feature; scope of deletion, confirmation and handling of older scoring revisions need design before implementation. No scores deleted. |
+| SEP30-22 | Blessing spells: buffs such as Golden Vow in Elden Ring | Deferred spell-family/buff idea; preserve fantasy without inventing effects, numbers or recipes. |
+| SEP30-23 | A little hidden typing-speed statistic | Deferred statistics idea; measurement, where it is exposed and meaning of “hidden” undecided. |
+| SEP30-24 | Brad is using macros / automated typing | Reported behavior; no detection or leaderboard enforcement conclusion established. Distinguish assisted input from normal fast typing before any policy changes. |
+| SEP30-25 | Secret invincible boss detects auto-typing spam and eats the player | Deferred playful counter-cheating idea, not an approved punishment system. Detection, false positives, accessibility and score handling unresolved. |
+
+### Positive feedback and reported fixes
+
+| ID | Observation | Disposition |
+|---|---|---|
+| SEP30-26 | Health potions are liked | Positive playtest feedback; preserve what works. |
+| SEP30-27 | Firewalk layering bug is fixed: the wizard now appears above it | Player-confirmed improvement, linked to earlier F41. No new independent verification in this batch. |
+| SEP30-28 | Recasting the same spell successfully increases its duration | Player-confirmed working behavior. No claim that every spell or timing boundary was retested. |
+
+Suggested first triage: SEP30-01 (0-HP/death), SEP30-02 (travel-related frame collapse), then the action-feedback/readability group. Debug commands, balance tuning and optional ideas remain separately selectable. Record reproduction/build evidence and update each ID to fixed/verified only when that work is actually done.
