@@ -122,10 +122,13 @@ func verify_feedback():
 	var session = game.style_session
 	var reference = game.hud.get_node("CastingReference")
 	prepare_cast("bolt")
+	var focus_status = game.hud.get_node("TypingPanel/SlowdownStatus")
+	check(focus_status.visible, "focus visible during incantation")
 	var completion = keys.completion_count
 	check(manager.cast_freeform_spell("bolt"), "owned bolt casts")
 	check(keys.completion_count == completion + 1 and not keys.completed_mega, "successful ordinary incantation cue")
 	check(keys.visible_caption().is_empty(), "no success toast")
+	check(not focus_status.visible, "no stale focus during cast completion")
 	check(style.pulse_kind == "gain", "cast award gives gain cue")
 	game.hud.get_node("RunInventory")._process(0)
 	var typing_panel = game.hud.get_node("TypingPanel")
@@ -175,6 +178,7 @@ func verify_feedback():
 			blast.queue_free()
 	prepare_cast("bolt")
 	check(keys.completion_remaining == 0, "new typing clears prior completion")
+	check(focus_status.visible, "new incantation restores focus status")
 	await settle()
 	check(not inventory.visible or not typing_panel.get_global_rect().intersects(inventory.get_global_rect()), "active typing does not cover inventory")
 	manager.cancel_typing()

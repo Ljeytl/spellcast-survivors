@@ -846,3 +846,5 @@ Validation: 33 balance checks, 3,321 encounter assertions and three seeded openi
 
 - Plague Seed and Soul Bloom acquire only visible living hosts, optionally respecting an authored initial cast range. No-target attempts remain editable with “No target in range,” preserve the current slowdown allowance, and do not count or flash as successful casts. Shield-only absorption emits stone feedback; health loss emits red feedback, with both on overflow.
 
+
+- HUD cast confirmation hides the finished focus countdown and restores it on the next incantation; the release animation no longer displays stale focus time.

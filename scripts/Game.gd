@@ -1068,11 +1068,10 @@ func _on_spell_queued(spell_name: String, slot: int):
 	highlight_spell_slot(slot - 1)  # Convert to 0-based index
 
 func _on_typing_started():
-	# Handle typing mode starting
-	pass  # Spell slot is already highlighted from _on_spell_queued
+	$UI/HUD/TypingPanel/SlowdownStatus.show()
 
 func _on_typing_ended():
-	# Handle typing mode ending
+	$UI/HUD/TypingPanel/SlowdownStatus.hide()
 	clear_spell_slot_highlights()
 	if current_state == GameState.PLAYING and not pending_level_ups.is_empty():
 		_show_pending_after_typing.call_deferred()
