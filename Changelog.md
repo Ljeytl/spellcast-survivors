@@ -1,3 +1,8 @@
+# 0.2.0 — Combined development milestone
+
+- Identify the merged 0.1.45 casting-feel work, walkable rotating tower, inward-facing arches and E/Space interactions as development version 0.2.0 using the shared menu/gameplay version setting.
+- No new export is produced by this version update. New uncommitted casting, encounter and design edits are not included.
+
 # Unreleased — Casting feel 0.1.45
 
 - Move incantations to a compact lower-center strip, sized to the text and fitted above the spell reference. Fit known long incantations on one line, retain a bounded trailing window for arbitrary input, and reduce world dimming to 3.5% beneath the HUD.
