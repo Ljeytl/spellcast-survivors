@@ -4,9 +4,11 @@ class_name TimeDilationEffect
 @onready var screen_overlay: ColorRect
 var is_time_dilated: bool = false
 var normal_time_scale: float = 1.0
+var overlay_tween: Tween
 var dilation_time_scale: float = 0.2
 
 func _ready():
+	layer = 0
 	# Create screen overlay for time dilation effect
 	screen_overlay = ColorRect.new()
 	screen_overlay.size = get_viewport().size
@@ -30,8 +32,10 @@ func start_time_dilation():
 	Engine.time_scale = dilation_time_scale
 	
 	# Animate screen overlay
-	var tween = create_tween()
-	tween.tween_property(screen_overlay, "color:a", 0.15, 0.2)
+	if overlay_tween:
+		overlay_tween.kill()
+	overlay_tween = create_tween()
+	overlay_tween.tween_property(screen_overlay, "color:a", 0.035, 0.08)
 
 func end_time_dilation():
 	# End time dilation effect and return to normal
@@ -42,11 +46,18 @@ func end_time_dilation():
 	Engine.time_scale = normal_time_scale
 	
 	# Animate screen overlay fade out
-	var tween = create_tween()
-	tween.tween_property(screen_overlay, "color:a", 0.0, 0.3)
+	if overlay_tween:
+		overlay_tween.kill()
+	overlay_tween = create_tween()
+	overlay_tween.tween_property(screen_overlay, "color:a", 0.0, 0.08)
 
 func is_active() -> bool:
 	return is_time_dilated
 
 func get_time_scale() -> float:
 	return Engine.time_scale
+func set_typing_visual(active: bool):
+	if overlay_tween:
+		overlay_tween.kill()
+	is_time_dilated = active
+	screen_overlay.color.a = 0.035 if active else 0.0

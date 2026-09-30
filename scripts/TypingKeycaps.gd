@@ -37,12 +37,17 @@ func _ready():
 func columns() -> int:
 	return maxi(1, floori(maxf(STRIDE, size.x - 16) / STRIDE))
 
+func fitted_key_size() -> float:
+	return minf(KEY_SIZE, maxf(20.0, (size.x - 16.0) / maxf(1, letters.length()) - 2.0))
+
+func visible_start() -> int:
+	return maxi(0, letters.length() - maxi(1, int((size.x - 16.0) / 22.0)))
+
 func key_position(index: int) -> Vector2:
-	var available = maxf(KEY_SIZE, size.x - 16.0)
-	var stride = clampf((available - KEY_SIZE) / maxf(1, letters.length() - 1), KEY_SIZE, STRIDE)
-	var width = maxf(0, letters.length() - 1) * stride + KEY_SIZE
-	var origin = (size.x - width) / 2 if width <= available else size.x - 8 - width
-	return Vector2(origin + index * stride, 30)
+	var key_size = fitted_key_size()
+	var stride = key_size + 2.0
+	var width = maxf(0, letters.length() - visible_start() - 1) * stride + key_size
+	return Vector2((size.x - width) / 2 + (index-visible_start()) * stride, 6)
 
 func sync(text: String, message: String):
 	feedback = message
@@ -73,23 +78,31 @@ func clear_keys():
 	queue_redraw()
 
 func update_height():
-	var height = 34 + STRIDE
+	var height = 62.0
 	for piece in fragments:
 		height = maxf(height, piece.floor_height)
 	label.custom_minimum_size.y = height
 
 func shatter(index: int):
+	if index < visible_start():
+		return
 	var origin = key_position(index)
 	var texture = textures.get(letters[index].to_upper(), BLANK)
 	for y in range(2):
 		for x in range(2):
 			if fragments.size() >= 64:
 				fragments.pop_front()
-			fragments.append({"texture": texture, "region": Rect2(x * 16, y * 16, 16, 16), "position": origin + Vector2(x, y) * (KEY_SIZE / 2), "velocity": Vector2((x * 2 - 1) * 65, -50 - y * 25), "age": 0.0, "floor_height": label.custom_minimum_size.y})
+			fragments.append({"texture": texture, "region": Rect2(x * 16, y * 16, 16, 16), "size": fitted_key_size() / 2, "position": origin + Vector2(x, y) * (fitted_key_size() / 2), "velocity": Vector2((x * 2 - 1) * 65, -50 - y * 25), "age": 0.0, "floor_height": label.custom_minimum_size.y})
 
-func on_manual_release(_family: String, canonical: String, _typed: String):
+func on_manual_release(_family: String, canonical: String, typed: String):
 	completed_mega = canonical.begins_with("mega ")
-	complete_incantation()
+	if not manager.is_typing and completed_mega:
+		letters = typed
+		ages.resize(letters.length())
+		ages.fill(1.0)
+		update_height()
+	if not manager.is_typing or not completed_mega:
+		complete_incantation()
 	var game = manager.game_manager
 	if is_instance_valid(game) and is_instance_valid(game.particle_manager):
 		var effect = game.particle_manager.create_spell_cast_effect(manager.player.global_position)
@@ -130,6 +143,7 @@ func _process(_delta):
 		if completion_remaining <= 0 and not manager.is_typing:
 			clear_keys()
 			get_parent().get_parent().get_parent().hide()
+	label.self_modulate.a = 0
 	var parent_tint = label.modulate
 	modulate = Color(1.0 / maxf(parent_tint.r, 0.01), 1.0 / maxf(parent_tint.g, 0.01), 1.0 / maxf(parent_tint.b, 0.01))
 	update_height()
@@ -139,7 +153,7 @@ func _draw():
 	if not is_instance_valid(manager):
 		return
 	var font = label.get_theme_font("font")
-	for i in range(letters.length()):
+	for i in range(visible_start(), letters.length()):
 		var key = letters[i].to_upper()
 		var texture = textures.get(key, BLANK)
 		var pos = key_position(i)
@@ -151,17 +165,23 @@ func _draw():
 			tint.a = clampf(completion_remaining / completion_duration * 1.8, 0.0, 1.0)
 			if not manager.game_manager.particle_manager.reduced_effects:
 				pos.y -= (1.0 - completion_remaining / completion_duration) * (20 if completed_mega else 10)
-		draw_texture_rect(texture, Rect2(pos, Vector2.ONE * KEY_SIZE), false, tint)
+		draw_texture_rect(texture, Rect2(pos, Vector2.ONE * fitted_key_size()), false, tint)
 		if texture == BLANK and key != " ":
 			draw_string(font, pos + Vector2(0, 34), key, HORIZONTAL_ALIGNMENT_CENTER, KEY_SIZE, 27, Color("514f43"))
 		elif key == " ":
 			draw_line(pos + Vector2(15, 34), pos + Vector2(33, 34), Color("999587"), 2)
 	for piece in fragments:
-		draw_texture_rect_region(piece.texture, Rect2(piece.position, Vector2.ONE * (KEY_SIZE / 2)), piece.region, Color(1, 1, 1, 1 - piece.age / 0.32))
+		draw_texture_rect_region(piece.texture, Rect2(piece.position, Vector2.ONE * piece.size), piece.region, Color(1, 1, 1, 1 - piece.age / 0.32))
 
 	var caption_y = float(label.get_parent().scroll_vertical)
-	draw_rect(Rect2(0, caption_y, size.x, 26), Color("21382a"))
-	draw_string(font, Vector2(8, caption_y + 19), fitted_caption(font), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 18, Color("eee8d8"))
+	if not error_caption().is_empty():
+		draw_string(font, Vector2(8, caption_y + 60), error_caption(), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 14, Color("ff8175"))
+
+func error_caption() -> String:
+	for error in ["No target in range", "Mismatch", "unavailable", "No matching spell"]:
+		if error in feedback:
+			return error
+	return ""
 
 func visible_caption() -> String:
 	if completion_remaining > 0:

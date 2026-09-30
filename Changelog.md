@@ -1,3 +1,10 @@
+# Unreleased — Casting feel 0.1.45
+
+- Move incantations to a compact lower-center strip, sized to the text and fitted above the spell reference. Fit known long incantations on one line, retain a bounded trailing window for arbitrary input, and reduce world dimming to 3.5% beneath the HUD.
+- MEGA commits an independent spell/stat/style snapshot, gathers particles at the moving staff for 0.12 seconds of unpaused gameplay time, then releases. Ordinary casts remain immediate. Later typing or cancellation cannot overwrite committed casts; terminal states discard them.
+- Apply MEGA ×1.1 after existing cast-style bonuses and penalties, with a separate brief stamp. Power and size remain ×1.5. Failed target-dependent casts produce no award and clear no-target feedback.
+- Development version 0.1.45. Focused regression and rendered evidence recorded in the feedback tracker; native operated gate and integration pending. No public patch notes or export.
+
 # Unreleased — Walkable wizard tower home
 
 - Play now enters a walkable tower using the approved crimson carpet, stone arches, orb, tome and modular furniture art. The fixed central floor stays still while twelve outer doorways and their book blockers rotate together under orb control.

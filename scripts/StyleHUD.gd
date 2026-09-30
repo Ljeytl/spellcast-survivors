@@ -22,9 +22,15 @@ var endcap: TextureRect
 var pulse_kind := ""
 var pulse_count := 0
 var pulse_tween: Tween
+var keyword_stamp: Label
+var keyword_tween: Tween
 
 func _ready():
 	name = "StyleHUD"
+	keyword_stamp = make_label(14)
+	keyword_stamp.modulate = Color("ffe49b")
+	keyword_stamp.hide()
+	session.keyword_awarded.connect(on_keyword_awarded)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for rank in MODEL.RANKS:
 		glyphs.append(load("res://assets/ui/style-runes/rank_%s.tres" % rank.to_lower()))
@@ -87,6 +93,23 @@ func make_label(font_size: int) -> Label:
 	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(result)
 	return result
+
+func show_cast_fizzle():
+	on_keyword_awarded("", 1.0)
+	keyword_stamp.text = "No target"
+	keyword_stamp.modulate = Color("ff8175")
+
+func on_keyword_awarded(word: String, multiplier: float):
+	keyword_stamp.modulate = Color("ffe49b")
+	keyword_stamp.text = "%s ×%.1f" % [word, multiplier]
+	keyword_stamp.show()
+	keyword_stamp.modulate.a = 1.0
+	if keyword_tween:
+		keyword_tween.kill()
+	keyword_tween = create_tween()
+	keyword_tween.tween_interval(0.4)
+	keyword_tween.tween_property(keyword_stamp, "modulate:a", 0.0, 0.2)
+	keyword_tween.tween_callback(keyword_stamp.hide)
 
 func on_style_event(kind: String, amount: float, promoted: bool):
 	if kind == "gain" and amount <= 0.0:
@@ -153,7 +176,9 @@ func refresh():
 	note.position = Vector2(bar_x, bar_y + 33)
 	note.size = Vector2(bar_width, 22)
 	note.text = "COMBO %d" % int(session.score.combo)
-	special.position = Vector2(0, note.position.y + note.size.y + 5)
+	keyword_stamp.position = Vector2(0, note.position.y + 24)
+	keyword_stamp.size = Vector2(width, 20)
+	special.position = Vector2(0, note.position.y + note.size.y + 28)
 	special.size = Vector2(width, 42)
 	special.text = "ATOMIC" if session.atomic_available() else ""
 	special.modulate = Color("ffe49b")

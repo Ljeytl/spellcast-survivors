@@ -11,8 +11,8 @@ This is the authoritative order approved by the player. Read this checklist befo
 | 1 — First | SEP30-01: displayed 0 HP without death | Merged (PR #111, e9a7e27); export pending | Confirmed actual 0.4 HP displayed as 0; now displays <1. Lethal damage ends the run. Evidence: health_truth_regression (14 checks), native captures at 1280×720 and 640×480, console/shield regressions. Original playtest cause not definitively identified; reopen if actual zero survives. |
 | 2 — First | SEP30-02: performance collapses after travel | Merged (PR #112, e3c7b6b); export pending | Confirmed repeated offscreen grove generation in enemy steering; bounded deterministic cache. Enemy cap and scenery node counts stayed bounded. See [profiling evidence](travel-performance.md); headless evidence does not establish a rendering defect. |
 | Alongside 2 — Useful support | SEP30-20: FPS toggle | Merged (PR #112, e3c7b6b); export pending | Graphics settings checkbox defaults off; 124 automated checks and operated native FPS journeys passed on f3d52b1 at 640×720/3024×1726, including restart, pause/resume and resize. See [verification](travel-performance.md). |
-| 3 — Next | SEP30-13/14/16: cast, MEGA and combo event feedback | Implemented and verified; merge pending | Distinct brief feedback for accepted casts, MEGA, combo gain and breaks; start with simple animation, clear visual changes and existing sound where useful. |
-| 4 — Next | SEP30-09/15: combo versus score; duration versus cooldown | Implemented and verified; merge pending | Separate banked score from live style; consistently identify active duration without adding cooldown mechanics. |
+| 3 — Next | SEP30-13/14/16: cast, MEGA and combo event feedback | Merged (PR #113); export pending | Distinct brief feedback for accepted casts, MEGA, combo gain and breaks; start with simple animation, clear visual changes and existing sound where useful. |
+| 4 — Next | SEP30-09/15: combo versus score; duration versus cooldown | Merged (PR #113); export pending | Separate banked score from live style; consistently identify active duration without adding cooldown mechanics. |
 | 5 — Next | SEP30-10/11/12: passive readability, XP label, larger HP | Open | Improve essential HUD readability without explanatory clutter. |
 | 6 — Next | SEP30-17: MEGA in Necronomicon | Open | Document the live keyword in the archive and verify it can be found. |
 | 7 — Later | SEP30-18: current modifications | Open | Improve existing spellbook/inventory before introducing another menu. |
@@ -411,3 +411,14 @@ Source: Aditya's collected playtest feedback, with Brad explicitly attributed be
 | SEP30-28 | Recasting the same spell successfully increases its duration | Player-confirmed working behavior. No claim that every spell or timing boundary was retested. |
 
 Execution order is maintained in [the agreed checklist](#agreed-execution-order--30-september-2026). Record reproduction/build evidence there and in each feedback disposition; do not reconstruct or silently reorder the plan.
+
+## Approved casting-feel pass — 0.1.45
+
+1. Compare lower-center, below-wizard and above-wizard typing strips at desktop/narrow sizes before choosing placement. Use lighter world dimming and small local backing, preserve focus and long incantation readability.
+2. Give accepted MEGA casts a shared 0.12-second staff charge followed by release; normal casts remain immediate. Snapshot spell, scaling and style receipt. Movement remains available; pause freezes charge, terminal run states discard it, and later typing/cancellation cannot mutate it.
+3. Apply MEGA ×1.1 to earned cast style after current bonuses/penalties and before rounding; retain banked score's rank multiplier. Brief stamp is separate from exact combo. Preserve existing MEGA power/size.
+4. Verify queued outcomes, rapid casts, rejected casts, pause/death/scene transitions and known-bad controls. Version 0.1.45, internal changelog only; no export or public patch notes.
+
+Status: implemented; focused regression/render verification in progress, operated native gate and integration pending. Lower-center selected after desktop/narrow comparison; compact local backing, fit-to-width keycaps and no overlap with wizard body or wrapped spell reference. No QUICK, piercing or new words in this pass.
+
+Verification harness: `tests/casting_feel_regression.gd` (95 assertions), plus existing HUD/MEGA/style integration siblings. Known-bad mode intentionally inserts pre-release scoring and centers the strip over the wizard, using the same assertions. `--interactive` provides an assisted invincible prepared kit with stationary high-HP targets and suppressed incidental level-ups; `--narrow` starts 640×720, `--menu` starts the real menu/tower flow. Fixtures are not natural balance evidence.

@@ -9,8 +9,9 @@ var hit_ids: Dictionary = {}
 
 func configure(center: Vector2, data: Dictionary, amount: float, player: Node2D):
 	global_position = center
-	radius = float(data.get("radius", 160.0)) * preload("res://scripts/SpellGeometry.gd").multiplier(player) * float(data.get("keyword_size_multiplier", 1.0))
-	duration = float(data.get("active_duration", 0.2)) * preload("res://scripts/SpellGeometry.gd").duration_multiplier(player)
+	var stats: Dictionary = data.get("keyword_stats", {})
+	radius = float(data.get("radius", 160.0)) * float(stats.get("spell_size_multiplier", preload("res://scripts/SpellGeometry.gd").multiplier(player))) * float(data.get("keyword_size_multiplier", 1.0))
+	duration = float(data.get("active_duration", 0.2)) * float(stats.get("spell_duration_multiplier", preload("res://scripts/SpellGeometry.gd").duration_multiplier(player)))
 	damage = amount
 	caster = weakref(player)
 

@@ -3,6 +3,7 @@ extends Node
 signal updated
 signal feedback(text: String, promoted: bool)
 signal style_event(kind: String, amount: float, promoted: bool)
+signal keyword_awarded(word: String, multiplier: float)
 
 const Score = preload("res://scripts/StyleScore.gd")
 const Store = preload("res://scripts/StyleScoreStore.gd")
@@ -122,19 +123,27 @@ func observe_text(text: String):
 	completed_text = normalized if complete else ""
 	updated.emit()
 
+func snapshot_attempt() -> Dictionary:
+	return {"first": first_letter, "completed": completed_at, "text": completed_text, "mistakes": mistakes, "receipt": receipt}
+
 func on_release(family: String, canonical: String, typed: String):
-	if finalized or first_letter < 0.0 or completed_at < first_letter:
+	var attempt = game.spell_manager.release_style_receipt
+	if attempt.is_empty():
+		attempt = snapshot_attempt()
+	if finalized or attempt.first < 0.0 or attempt.completed < attempt.first:
 		return
-	if completed_text != typed.strip_edges().to_lower().replace("_", " "):
+	if attempt.text != typed.strip_edges().to_lower().replace("_", " "):
 		return
 	var before = score.rank_index()
 	var combo_before = score.combo
-	var award = score.award_cast(family, canonical, completed_at - first_letter, mistakes, receipt)
+	var award = score.award_cast(family, canonical, attempt.completed - attempt.first, attempt.mistakes, attempt.receipt)
 	if award.is_empty():
 		return
 	var promoted = score.rank_index() > before
-	var text = "%s RANK" % Score.RANKS[score.rank_index()] if promoted else "CLEAN +%d" % award.points if mistakes == 0 else "+%d" % award.points
+	var text = "%s RANK" % Score.RANKS[score.rank_index()] if promoted else "CLEAN +%d" % award.points if attempt.mistakes == 0 else "+%d" % award.points
 	style_event.emit("gain", maxf(0.0, score.combo - combo_before), promoted)
+	if award.get("keyword_multiplier", 1.0) > 1.0 and award.points > 0:
+		keyword_awarded.emit("MEGA", award.keyword_multiplier)
 	feedback.emit(text, promoted)
 	updated.emit()
 
