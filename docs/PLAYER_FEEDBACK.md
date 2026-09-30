@@ -419,7 +419,7 @@ Execution order is maintained in [the agreed checklist](#agreed-execution-order-
 3. Apply MEGA ×1.1 to earned cast style after current bonuses/penalties and before rounding; retain banked score's rank multiplier. Brief stamp is separate from exact combo. Preserve existing MEGA power/size.
 4. Verify queued outcomes, rapid casts, rejected casts, pause/death/scene transitions and known-bad controls. Version 0.1.45, internal changelog only; no export or public patch notes.
 
-Status: implemented and verified within the scoped casting pass; integration pending. Lower-center selected after desktop/narrow comparison; compact local backing, fit-to-width keycaps and no overlap with wizard body or wrapped spell reference. No QUICK, piercing or new words in this pass.
+Status: implemented and verified within the scoped casting pass. Integration status is tracked by the casting-feel pull request. Lower-center selected after desktop/narrow comparison; compact local backing, fit-to-width keycaps and no overlap with wizard body or wrapped spell reference. No QUICK, piercing or new words in this pass.
 
 Verification harness: `tests/casting_feel_regression.gd` (121 assertions), plus existing HUD/MEGA/style integration siblings. Known-bad mode intentionally inserts pre-release scoring and centers the strip over the wizard, using the same assertions. `--interactive` provides an assisted invincible prepared kit with stationary high-HP targets and suppressed incidental level-ups; `--narrow` starts 640×720, `--menu` starts the real menu/tower flow. Fixtures are not natural balance evidence.
 
