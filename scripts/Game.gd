@@ -417,6 +417,7 @@ func setup_ui():
 		typing_keycaps.manager = spell_manager
 		typing_label.add_child(typing_keycaps)
 		spell_manager.spell_cast.connect(typing_keycaps.finish_cast)
+		spell_manager.manual_spell_released.connect(typing_keycaps.on_manual_release)
 		
 		# Hide the typing UI initially (shown only when typing spells)
 		hide_typing_ui()
@@ -1172,7 +1173,9 @@ func hide_typing_ui():
 func update_typing_slowdown(remaining: float, _capacity: float):
 	var status = $UI/HUD/TypingPanel/SlowdownStatus
 	var instruction = "Enter casts" if spell_manager.space_casting else "Finish name to cast"
-	status.text = ("Slowdown %.1fs" % remaining if remaining > 0.0 else "Normal speed") + " · " + instruction + " · Esc cancels"
+	status.text = ("Focus %.1fs" % remaining if remaining > 0.0 else "Normal speed")
+	if interface_debug:
+		status.text += " · " + instruction + " · Esc cancels"
 
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer

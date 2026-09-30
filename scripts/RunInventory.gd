@@ -26,7 +26,9 @@ func _process(_delta):
 		style.border_color = Color.WHITE if selected else card.get_meta("accent")
 		style.set_border_width_all(2 if selected else 1)
 	var hud = game.hud
-	position = Vector2(18, maxf(116, game.timer_panel.get_rect().end.y + 10) if game.timer_panel.position.y > 18 else 116)
+	var score = hud.get_node_or_null("RunScore")
+	var top = maxf(116, score.get_rect().end.y + 10) if score else 116.0
+	position = Vector2(18, maxf(top, game.timer_panel.get_rect().end.y + 10) if game.timer_panel.position.y > 18 else top)
 	size.x = minf(180 if hud.size.x < 700 else 420, hud.size.x - 36)
 	for card in cards.values():
 		var compact = hud.size.x < 700

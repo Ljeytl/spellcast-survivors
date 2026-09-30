@@ -1,0 +1,195 @@
+extends SceneTree
+
+var checks := 0
+var failures := 0
+var game
+var manager
+var interface
+var interactive = "--interactive" in OS.get_cmdline_user_args()
+var baseline = "--baseline" in OS.get_cmdline_user_args()
+
+func _initialize():
+	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
+		quit(2)
+		return
+	run.call_deferred()
+
+func check(value: bool, message: String):
+	checks += 1
+	if not value:
+		failures += 1
+		printerr("FAIL: " + message)
+
+func settle():
+	for i in 4:
+		await process_frame
+
+func capture(name: String):
+	if DisplayServer.get_name() == "headless":
+		return
+	await RenderingServer.frame_post_draw
+	var directory = "res://builds/hud-feedback-evidence"
+	DirAccess.make_dir_recursive_absolute(directory)
+	root.get_texture().get_image().save_png(directory.path_join(name + ".png"))
+
+func run():
+	root.get_node("AudioManager").quitting = true
+	root.mode = Window.MODE_WINDOWED
+	root.size = Vector2i(1280, 720)
+	if not interactive:
+		root.set_flag(Window.FLAG_NO_FOCUS, true)
+		root.position = Vector2i(5000, 5000)
+	game = load("res://scenes/Game.tscn").instantiate()
+	game.set_meta("bot_run", true)
+	root.add_child(game)
+	current_scene = game
+	manager = game.spell_manager
+	interface = game.get_node("GameplayReadability")
+	game.player.is_invincible = true
+	for id in ["ember_trail", "arcane_orbit", "earth_shield", "focus_ray", "regeneration"]:
+		manager.learn_spell(id)
+	game.style_session.score.combo = 95.0
+	game.style_session.score.run_score = 12345
+	game.style_session.updated.emit()
+	await settle()
+	if interactive:
+		print("Assisted HUD QA fixture ready: Bolt, Firewalk, Arcane Orbit, Earth Shield, Focus Ray, Regeneration; invincible, normal controls.")
+		return
+	manager.set_process(false)
+	game.get_node("MonsterManager").set_process(false)
+	game.get_node("MonsterManager").spawn_timer.stop()
+	game.player.set_physics_process(false)
+	if not baseline:
+		await verify_feedback()
+	for geometry in [Vector2i(1280, 720), Vector2i(640, 720)]:
+		root.size = geometry
+		interface.layout()
+		game.style_session.updated.emit()
+		await settle()
+		await capture(("baseline-" if baseline else "final-") + str(geometry.x))
+		if not baseline:
+			var style = game.hud.get_node("StyleHUD")
+			var inventory = game.hud.get_node("RunInventory")
+			check(not style.score_label.get_global_rect().intersects(style.get_global_rect()), "score separated from style meter")
+			check(style.score_label.get_rect().end.y < inventory.position.y, "score does not overlap inventory")
+			check(game.hud.get_global_rect().encloses(style.get_global_rect()), "style stays within HUD")
+			check(style.note.text == "COMBO %d" % int(game.style_session.score.combo), "exact combo remains visible")
+			check(not "/" in style.note.text and not "/" in style.label.text, "no rank fraction")
+			check(not interface.guidance.is_visible_in_tree(), "normal HUD has no tutorial instructions")
+	game.free()
+	await process_frame
+	print("Baseline HUD captures complete (not a regression pass)" if baseline else "HUD feedback: %d checks, %d failures" % [checks, failures])
+	quit(1 if failures else 0)
+
+func prepare_cast(text: String):
+	if manager.is_typing:
+		manager.cancel_typing()
+	manager.casting_clock += 2.0
+	manager.start_freeform_typing()
+	manager.current_typing_text = text
+	game.style_session.observe_text(text)
+	game.update_typing_display(text)
+	game.typing_keycaps.sync(text, "")
+
+func verify_feedback():
+	var keys = game.typing_keycaps
+	var style = game.hud.get_node("StyleHUD")
+	var session = game.style_session
+	var reference = game.hud.get_node("CastingReference")
+	prepare_cast("bolt")
+	var completion = keys.completion_count
+	check(manager.cast_freeform_spell("bolt"), "owned bolt casts")
+	check(keys.completion_count == completion + 1 and not keys.completed_mega, "successful ordinary incantation cue")
+	check(keys.visible_caption().is_empty(), "no success toast")
+	check(style.pulse_kind == "gain", "cast award gives gain cue")
+	await capture("cast-normal")
+	prepare_cast("mega bolt")
+	for i in keys.letters.length():
+		check(keys.typed_letter_tint(i) != Color("ff8175"), "valid freeform MEGA not mismatch")
+	check(manager.cast_freeform_spell("mega bolt"), "MEGA cast accepted")
+	check(keys.completed_mega and keys.completion_duration > 0.28, "MEGA distinct emphasis")
+	await capture("cast-mega")
+	prepare_cast("mega bolt")
+	manager.target_spell = "bolt"
+	for i in keys.letters.length():
+		check(keys.typed_letter_tint(i) != Color("ff8175"), "valid numbered MEGA not mismatch")
+	keys.letters = "mega bolx"
+	check(keys.typed_letter_tint(8) == Color("ff8175"), "actual numbered typo marked")
+	keys.letters = "me"
+	check(keys.typed_letter_tint(1) != Color("ff8175"), "partial MEGA prefix valid")
+	completion = keys.completion_count
+	manager.cancel_typing()
+	check(keys.completion_count == completion, "cancel no success cue")
+	prepare_cast("not a spell")
+	check(not manager.cast_freeform_spell("not a spell"), "unknown spell rejected")
+	check(keys.completion_count == completion, "unknown no success cue")
+	prepare_cast("meteor shower")
+	check(not manager.cast_freeform_spell("meteor shower"), "unowned spell rejected")
+	check(keys.completion_count == completion, "unowned no success cue")
+	manager.cancel_typing()
+	var pulse = style.pulse_count
+	session.on_release("bolt", "bolt", "bolt")
+	check(style.pulse_count == pulse, "invalid score receipt no gain pulse")
+	session.score.combo = session.Score.CAP
+	prepare_cast("bolt")
+	pulse = style.pulse_count
+	check(manager.cast_freeform_spell("bolt"), "spell casts at style cap")
+	check(style.pulse_count == pulse, "zero actual combo gain does not pulse")
+	check(keys.completion_count == completion + 1, "cast success independent of combo award")
+	session.score.combo = 10000
+	prepare_cast("atomic")
+	check(manager.cast_freeform_spell("atomic"), "Atomic accepted")
+	check(style.pulse_kind == "atomic" and keys.completion_count == completion + 2, "Atomic cue distinct from damage")
+	for blast in game.get_children():
+		if blast.get_script() == load("res://scripts/AtomicBlast.gd"):
+			blast.queue_free()
+	prepare_cast("bolt")
+	check(keys.completion_remaining == 0, "new typing clears prior completion")
+	manager.cancel_typing()
+	session.score.combo = 900
+	session.score.grace_remaining = 0
+	pulse = style.pulse_count
+	session.advance(1.0)
+	check(session.score.combo < 900 and style.pulse_count == pulse, "decay drains without damage pulse")
+	game.player.is_invincible = false
+	game.player.overheal = 10
+	game.player.take_damage(1)
+	check(style.pulse_count == pulse, "overheal loss no combo hit cue")
+	game.player.overheal = 0
+	game.player.take_damage(1)
+	check(style.pulse_kind == "hit" and style.pulse_count == pulse + 1, "health loss distinct hit cue")
+	game.player.is_invincible = true
+	game.particle_manager.reduced_effects = true
+	style.badge.scale = Vector2.ONE
+	style.on_style_event("gain", 10, true)
+	check(style.badge.scale == Vector2.ONE and style.meter.modulate != Color.WHITE, "reduced effects preserves color without movement")
+	game.particle_manager.reduced_effects = false
+	var policy = load("res://scripts/CastingReference.gd")
+	for id in ["bolt", "ice_blast", "lightning_arc", "focus_ray", "seeking_spirit", "meteor_shower"]:
+		check(not policy.shows_status(root.get_node("DataManager").get_spell_data(id)), "no unnecessary timer: " + id)
+	for id in ["ember_trail", "arcane_orbit", "earth_shield", "regeneration", "rune_trap"]:
+		check(policy.shows_status(root.get_node("DataManager").get_spell_data(id)), "useful maintained status: " + id)
+	check(policy.shows_status({"type":"beam","recast_behavior":"extend"}), "negative control changed lifecycle changes timer policy")
+	var status = load("res://scripts/SpellDurationStatus.gd")
+	for first in ["ground", "active"]:
+		var states = {}
+		status.add(states, "ember_trail", 6 if first == "ground" else 1, first)
+		status.add(states, "ember_trail", 1 if first == "ground" else 6, "active" if first == "ground" else "ground")
+		check(states.ember_trail.phase == "active" and states.ember_trail.seconds == 1, "mixed trail phase has honest remaining emission")
+	for id in ["ember_trail", "arcane_orbit", "earth_shield", "regeneration"]:
+		manager.cast_spell_by_type(manager.find_spell_slot(id))
+	await settle()
+	reference._process(0)
+	check(reference.status_bars.ember_trail.visible and "active" in reference.entries.ember_trail.text, "Firewalk shows active drain")
+	check(reference.status_bars.arcane_orbit.visible, "orbit shows active drain")
+	check("charge" in reference.entries.earth_shield.text and not reference.status_bars.earth_shield.visible, "shield charges not cooldown")
+	check(not reference.status_bars.bolt.visible and not "\n" in reference.entries.bolt.text, "Bolt stays name only")
+	manager.cast_spell_by_type(manager.find_spell_slot("ember_trail"))
+	reference._process(0)
+	check("+" in reference.entries.ember_trail.text, "recast extension remains observable")
+	pulse = style.pulse_count
+	game.player.is_invincible = false
+	game.player.take_damage(1, {"position":game.player.position + Vector2(10,0)})
+	check(style.pulse_count == pulse, "shield block no hit cue")
+	game.player.is_invincible = true
+	check(not "Enter casts" in game.hud.get_node("TypingPanel/SlowdownStatus").text, "focus line no tutorial prose")

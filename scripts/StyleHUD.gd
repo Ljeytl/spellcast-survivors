@@ -19,6 +19,9 @@ var special: Label
 var seal: TextureRect
 var rail: TextureRect
 var endcap: TextureRect
+var pulse_kind := ""
+var pulse_count := 0
+var pulse_tween: Tween
 
 func _ready():
 	name = "StyleHUD"
@@ -42,7 +45,12 @@ func _ready():
 	endcap = make_texture(atlas_region(Rect2(616, 608, 104, 174)))
 	move_child(badge, get_child_count() - 1)
 	label = make_label(18)
-	score_label = make_label(18)
+	score_label = make_label(14)
+	score_label.name = "RunScore"
+	remove_child(score_label)
+	get_parent().add_child(score_label)
+	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	score_label.modulate = Color("b8c5aa")
 	note = make_label(14)
 	special = make_label(15)
 	seal = TextureRect.new()
@@ -51,7 +59,7 @@ func _ready():
 	seal.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	add_child(seal)
 	session.updated.connect(refresh)
-	session.feedback.connect(on_feedback)
+	session.style_event.connect(on_style_event)
 	get_parent().resized.connect(refresh)
 	refresh()
 
@@ -80,17 +88,28 @@ func make_label(font_size: int) -> Label:
 	add_child(result)
 	return result
 
-func on_feedback(text: String, _promoted: bool):
-	message = text
-	message_until = session.clock + 1.5
-	refresh()
-	if _promoted and not session.game.particle_manager.reduced_effects:
+func on_style_event(kind: String, amount: float, promoted: bool):
+	if kind == "gain" and amount <= 0.0:
+		return
+	pulse_kind = kind
+	pulse_count += 1
+	if pulse_tween:
+		pulse_tween.kill()
+	var color = Color("ff8175") if kind == "hit" else Color("ffe49b") if promoted or kind == "atomic" else Color("79d9e8")
+	meter.modulate = color
+	rail.modulate = color
+	note.modulate = color
+	pulse_tween = create_tween().set_parallel(true)
+	for item in [meter, rail, note]:
+		pulse_tween.tween_property(item, "modulate", Color.WHITE, 0.30 if kind == "hit" else 0.22)
+	if not session.game.particle_manager.reduced_effects:
 		if rank_tween:
 			rank_tween.kill()
 		badge.pivot_offset = badge.size / 2.0
-		badge.scale = Vector2.ONE * 1.14
+		badge.scale = Vector2.ONE * (1.14 if promoted else 0.90 if kind == "hit" else 1.04)
 		rank_tween = create_tween()
 		rank_tween.tween_property(badge, "scale", Vector2.ONE, 0.22)
+	refresh()
 
 func refresh():
 	if not is_instance_valid(badge):
@@ -125,19 +144,18 @@ func refresh():
 	label.position = Vector2(bar_x + 8, bar_y - 34)
 	label.size = Vector2(bar_width - 8, 24)
 	label.add_theme_font_size_override("font_size", 14 if compact else 17)
-	label.text = "%s  ×%s" % [MODEL.RANKS[rank], str(session.score.multiplier())]
+	label.text = "×%s" % str(session.score.multiplier())
 	label.modulate = COLORS[rank]
-	score_label.position = Vector2(bar_x, bar_y + 38)
-	score_label.size = Vector2(width - bar_x, 24)
-	score_label.add_theme_font_size_override("font_size", 14 if compact else 17)
-	score_label.text = "SCORE %s" % format_score(session.score.run_score)
-	note.position = Vector2(0, maxf(badge_size, score_label.position.y + score_label.size.y) + 6)
-	note.size = Vector2(width, 22)
-	note.text = message if session.clock < message_until else "COMBO %d" % int(session.score.combo) if session.score.combo > 0 else ""
-	note.modulate = COLORS[rank]
+	var stats = get_parent().get_node("StatsPanel")
+	score_label.position = Vector2(stats.position.x + 6, stats.get_rect().end.y + 5)
+	score_label.size = Vector2(stats.size.x, 22)
+	score_label.text = "Score %d" % session.score.run_score
+	note.position = Vector2(bar_x, bar_y + 33)
+	note.size = Vector2(bar_width, 22)
+	note.text = "COMBO %d" % int(session.score.combo)
 	special.position = Vector2(0, note.position.y + note.size.y + 5)
 	special.size = Vector2(width, 42)
-	special.text = "ATOMIC\n10,000 combo" if session.atomic_available() else ""
+	special.text = "ATOMIC" if session.atomic_available() else ""
 	special.modulate = Color("ffe49b")
 	seal.visible = session.atomic_available()
 	seal.position = Vector2(width - 150, special.position.y - 3)

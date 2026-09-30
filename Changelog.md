@@ -1,3 +1,9 @@
+# Unreleased — Focused cast and style HUD feedback
+
+- Implement the approved priority 3/4 presentation pass: incantation success/MEGA response, distinct style gain/loss, separated banked score, and selective active spell status; preserve scoring and spell mechanics.
+- Preserve carved-stone style assets and debug detail; omit normal-HUD tutorial prose and rank-progress fractions. Broader inventory readability remains a separate priority.
+- Verification is tracked in docs/UI_UX_PASS.md; baseline/final fixtures and operated native review are required before integration.
+
 # Unreleased — Travel performance and FPS diagnostics
 
 - Cache deterministic offscreen grove queries with a bounded 256-entry recency cache; enemy steering no longer regenerates the same distant terrain every physics tick. Preserve layout, enemy cap, recycling rate and encounter difficulty.

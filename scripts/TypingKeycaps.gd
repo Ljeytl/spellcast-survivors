@@ -13,6 +13,9 @@ var textures: Dictionary = {}
 var last_ticks = 0
 var feedback = ""
 var completion_remaining = 0.0
+var completion_duration = 0.28
+var completed_mega := false
+var completion_count := 0
 
 func _ready():
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -84,10 +87,29 @@ func shatter(index: int):
 				fragments.pop_front()
 			fragments.append({"texture": texture, "region": Rect2(x * 16, y * 16, 16, 16), "position": origin + Vector2(x, y) * (KEY_SIZE / 2), "velocity": Vector2((x * 2 - 1) * 65, -50 - y * 25), "age": 0.0, "floor_height": label.custom_minimum_size.y})
 
-func finish_cast(_spell: String = ""):
+func on_manual_release(_family: String, canonical: String, _typed: String):
+	completed_mega = canonical.begins_with("mega ")
+	complete_incantation()
+	var game = manager.game_manager
+	if is_instance_valid(game) and is_instance_valid(game.particle_manager):
+		var effect = game.particle_manager.create_spell_cast_effect(manager.player.global_position)
+		if is_instance_valid(effect):
+			effect.modulate = Color("ffe49b") if completed_mega else Color("79d9e8")
+			if completed_mega:
+				effect.scale *= 1.3
+
+func finish_cast(spell: String = ""):
+	if spell != "atomic":
+		return
+	completed_mega = false
+	complete_incantation()
+
+func complete_incantation():
 	if letters.is_empty():
 		return
-	completion_remaining = 0.22
+	completion_duration = 0.40 if completed_mega else 0.28
+	completion_remaining = completion_duration
+	completion_count += 1
 	get_parent().get_parent().get_parent().show()
 
 func _process(_delta):
@@ -123,14 +145,12 @@ func _draw():
 		var pos = key_position(i)
 		var progress = clampf(ages[i] / DROP_SECONDS, 0, 1)
 		pos.y -= 16 * (1 - progress) * (1 - progress)
-		var tint = Color.WHITE
-		if not manager.target_spell.is_empty() and (i >= manager.target_spell.length() or letters[i] != manager.target_spell[i]):
-			tint = Color("ff8175")
-		elif "No matching spell" in feedback or "unavailable" in feedback:
-			tint = Color("ff8175")
+		var tint = typed_letter_tint(i)
 		if completion_remaining > 0:
-			tint = Color("79d9e8")
-			tint.a = completion_remaining / 0.22
+			tint = Color("ffe49b") if completed_mega else Color("79d9e8")
+			tint.a = clampf(completion_remaining / completion_duration * 1.8, 0.0, 1.0)
+			if not manager.game_manager.particle_manager.reduced_effects:
+				pos.y -= (1.0 - completion_remaining / completion_duration) * (20 if completed_mega else 10)
 		draw_texture_rect(texture, Rect2(pos, Vector2.ONE * KEY_SIZE), false, tint)
 		if texture == BLANK and key != " ":
 			draw_string(font, pos + Vector2(0, 34), key, HORIZONTAL_ALIGNMENT_CENTER, KEY_SIZE, 27, Color("514f43"))
@@ -145,10 +165,10 @@ func _draw():
 
 func visible_caption() -> String:
 	if completion_remaining > 0:
-		return "Cast!"
+		return ""
 	if not manager.is_typing:
 		return label.text
-	var caption = "Cast: " + manager.target_spell if not manager.target_spell.is_empty() else "Type a learned spell"
+	var caption = manager.target_spell if not manager.target_spell.is_empty() else ""
 	if " · " in feedback:
 		var status = feedback.substr(feedback.find(" · ") + 3)
 		caption = caption + " · " + status if not manager.target_spell.is_empty() else status
@@ -162,3 +182,15 @@ func fitted_caption(font: Font) -> String:
 	while text.length() > 1 and font.get_string_size(text + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x > available:
 		text = text.left(text.length() - 1)
 	return text + "…"
+
+func typed_letter_tint(index: int) -> Color:
+	var tint = Color("dfbd76") if letters.begins_with("mega ") and index < 4 else Color.WHITE
+	if not manager.target_spell.is_empty():
+		var target = manager.target_spell
+		if ("mega " + target).begins_with(letters) or letters.begins_with("mega "):
+			target = "mega " + target
+		if index >= target.length() or letters[index] != target[index]:
+			return Color("ff8175")
+	elif "No matching spell" in feedback or "unavailable" in feedback:
+		return Color("ff8175")
+	return tint
