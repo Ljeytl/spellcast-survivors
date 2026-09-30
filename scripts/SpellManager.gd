@@ -41,9 +41,9 @@ const Targeting = preload("res://scripts/SpellTargeting.gd")
 var spell_projectile_scene = preload("res://scenes/SpellProjectile.tscn")
 
 const Synergies = preload("res://scripts/SynergyCatalog.gd")
-@export_range(0.1, 30.0, 0.1) var typing_slowdown_capacity: float = 3.0
+@export_range(0.1, 30.0, 0.1) var typing_slowdown_capacity: float = 1.5
 @export_range(0.1, 60.0, 0.1) var typing_slowdown_refill_seconds: float = 10.0
-var typing_slowdown_remaining: float = 3.0
+var typing_slowdown_remaining: float = 1.5
 var _scale_change_frame: int = -1
 var _scale_before_change: float = 1.0
 var space_casting = false

@@ -1,3 +1,9 @@
+# 0.2.0 — Approved local tuning integration
+
+- Commit the existing local tuning: double base damage for all twelve enemy variants and reduce the fresh per-cast slowdown duration from 3.0 to 1.5 seconds.
+- Preserve the local spell-design table revisions, including the possible Shillelagh/Life Lance distinction.
+- This captures only the three approved files; ongoing inventory, spellbook and test edits remain separate. No export or additional balance changes.
+
 # 0.2.0 — Combined development milestone
 
 - Identify the merged 0.1.45 casting-feel work, walkable rotating tower, inward-facing arches and E/Space interactions as development version 0.2.0 using the shared menu/gameplay version setting.
