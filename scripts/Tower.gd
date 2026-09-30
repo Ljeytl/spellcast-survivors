@@ -197,11 +197,11 @@ func open_archive():
 
 func update_prompt():
 	if orb_active:
-		label.text = "Turn: Left / Right   ·   E: Leave orb\n" + ("WOODLAND · Level 1" if selected == 0 else "Sealed doorway")
+		label.text = "Turn: Left / Right   ·   E / Space: Leave orb\n" + ("WOODLAND · Level 1" if selected == 0 else "Sealed doorway")
 	elif wizard.position.distance_to(Vector2.ZERO) < 95:
-		label.text = "E · Turn the tower"
+		label.text = "E / Space · Turn the tower"
 	elif wizard.position.distance_to(tome_position) < 85:
-		label.text = "E · Necronomicon"
+		label.text = "E / Space · Necronomicon"
 	elif wizard.position.distance_to(Vector2(0, -280)) < 75:
 		label.text = "Walk through · Woodland" if selected == 0 and settled() else "Sealed doorway"
 	else:
@@ -211,7 +211,7 @@ func _unhandled_key_input(event):
 	if not event.pressed or event.echo or is_instance_valid(archive) or transitioning:
 		return
 	var viewport = get_viewport()
-	if event.keycode == KEY_E:
+	if event.keycode in [KEY_E, KEY_SPACE]:
 		interact()
 	elif orb_active and event.keycode in [KEY_LEFT, KEY_A]:
 		turn(1)

@@ -6,7 +6,7 @@ Title Play → walkable tower → selected Level 1 doorway → run → death/ext
 
 The central floor, room-sized red carpet, cyan orb pedestal, tome, bed and table stay fixed. Twelve outer arches, continuous masonry and doorway book blockers rotate together. The top doorway is selected; only the woodland Level 1 portal is available. Blank destinations cannot start runs. Bookcase/pile removal on future unlocks is reserved, with no invented unlock rules.
 
-WASD/arrows move. E near the orb enters rotation control; Left/Right or A/D steps one doorway at a time. Repeated presses during a turn are ignored. E or Escape leaves the orb after it settles. Movement is disabled while operating it, keeping the player on the safe central floor. The selected Woodland corridor extends through its physical arch; crossing the top threshold starts the run once. E at the tome opens existing Necronomicon; its controls consume input and room movement stops until it closes. Escape elsewhere returns to title.
+WASD/arrows move. E or Space near the orb enters rotation control; Left/Right or A/D steps one doorway at a time. Repeated presses during a turn are ignored. E, Space or Escape leaves the orb after it settles. Movement is disabled while operating it, keeping the player on the safe central floor. The selected Woodland corridor extends through its physical arch; crossing the top threshold starts the run once. E or Space at the tome opens existing Necronomicon; its controls consume input and room movement stops until it closes. Escape elsewhere returns to title.
 
 ## Structure
 

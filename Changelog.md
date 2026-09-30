@@ -1,3 +1,7 @@
+# Tower 0.2.0 controls — Space interaction
+
+- Space works alongside E to enter/leave orb control and open the Necronomicon. Update nearby interaction prompts; keep rotation keys and gameplay casting unchanged.
+
 # 0.1.43 — Inward-facing tower arches
 
 - Replace four coarse tower view buckets with continuous inward-facing arch projection at all twelve clock positions and throughout rotation. Side views foreshorten naturally; southern positions show the outward back instead of repeating one front-facing frame.
