@@ -158,6 +158,27 @@ func collect_style_pickup() -> bool:
 	updated.emit()
 	return true
 
+var damage_by_spell: Dictionary = {}
+
+func record_damage(source: Dictionary, amount: float):
+	if finalized or amount <= 0.0:
+		return
+	var spell = str(source.get("spell", ""))
+	if spell.is_empty():
+		spell = "other"
+	damage_by_spell[spell] = float(damage_by_spell.get(spell, 0.0)) + amount
+
+func on_kill(points: float, source: Dictionary = {}):
+	if finalized or game.current_state != game.GameState.PLAYING:
+		return
+	var award = score.award_kill(points, DamageSource.combo_factor(source, clock))
+	if award.is_empty():
+		return
+	if award.rank > award.old_rank:
+		style_event.emit("gain", points, true)
+		feedback.emit("%s RANK" % Score.RANKS[award.rank], true)
+	updated.emit()
+
 func on_hit(_health_loss: float):
 	if finalized:
 		return
@@ -175,6 +196,7 @@ func finish(stats: Dictionary) -> Dictionary:
 		exclude("Invincibility")
 	result = score.summary()
 	result["special_casts"] = special_casts
+	result["damage_by_spell"] = damage_by_spell.duplicate()
 	result["run_id"] = run_id
 	result["eligible"] = eligible
 	result["exclusion_reason"] = exclusion_reason
@@ -197,6 +219,7 @@ func cast_atomic() -> bool:
 	score.combo -= Score.ATOMIC_COST
 	special_casts += 1
 	var blast = load("res://scripts/AtomicBlast.gd").new()
+	DamageSource.stamp(blast, DamageSource.make("atomic", clock))
 	blast.configure(game)
 	game.add_child(blast)
 	style_event.emit("atomic", Score.ATOMIC_COST, false)

@@ -1,5 +1,8 @@
 extends Node2D
 
+func _init():
+	DamageSource.stamp(self)
+
 var radius = 160.0
 var duration = 0.2
 var age = 0.0
@@ -26,7 +29,7 @@ func strike():
 			continue
 		if global_position.distance_to(enemy.global_position) <= radius:
 			hit_ids[enemy.get_instance_id()] = true
-			enemy.take_damage(damage, global_position)
+			enemy.take_damage(damage, global_position, DamageSource.of(self))
 
 func _physics_process(delta):
 	advance(delta)

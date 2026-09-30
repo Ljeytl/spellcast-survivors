@@ -43,11 +43,11 @@ func run():
 	manager.learn_spell("ember_trail")
 	manager.learn_spell("cinder_field")
 	manager.learn_spell("rune_trap")
-	game.show_gameplay_feedback("Firewalk learned · Press 2, then type firewalk")
+	game.show_gameplay_feedback("Fire Walk learned · Press 2, then type fire walk")
 	await settle()
 	check(not interface.guidance.is_visible_in_tree(), "Learned-spell instruction hidden")
 	var reference = game.hud.get_node("CastingReference")
-	check(reference.is_visible_in_tree() and reference.entries.ember_trail.text == "2  firewalk", "Exact spell names and numbers remain")
+	check(reference.is_visible_in_tree() and reference.entries.ember_trail.text == "2  fire walk", "Exact spell names and numbers remain")
 	manager.cast_spell_by_type(manager.find_spell_slot("ember_trail"))
 	var trail = get_nodes_in_group("build_spell_effects")[0]
 	trail.set_physics_process(false)

@@ -299,6 +299,7 @@ func run():
 	game.console_instance.execute_command("heal")
 	check(game.player.health == game.player.max_health, "Console heal uses supported player health API")
 	check(not session.eligible, "Console mutation permanently excludes run")
+	await verify_kill_points()
 	game.free()
 	await process_frame
 	for path in prior_scores:
@@ -310,3 +311,48 @@ func run():
 			restored.close()
 	print("Style integration: %d assertions, %d failures" % [checks, failures])
 	quit(1 if failures else 0)
+
+func kill(at: Vector2, source: Dictionary) -> float:
+	var monsters = game.get_node("MonsterManager")
+	var enemy = monsters.spawn_monster(monsters.get_available_variants(0)[0])
+	enemy.position = game.player.position + at
+	enemy.set_physics_process(false)
+	await process_frame
+	var xp = float(enemy.xp_value)
+	enemy.take_damage(100000, game.player.position, source)
+	for i in 4:
+		await process_frame
+	return xp
+
+func verify_kill_points():
+	fresh()
+	await process_frame
+	session.clock = 100.0
+	session.score.combo = 150.0
+	session.score.grace_remaining = 0.0
+	var run_before = session.score.run_score
+	var xp = await kill(Vector2(300, 0), DamageSource.make("bolt", 98.0))
+	check(xp > 0.0 and is_equal_approx(session.score.combo, 150.0 + xp), "Fresh spell kill adds the enemy XP value to combo")
+	check(session.score.run_score == run_before + int(round(xp * 1.25)), "Kill banks points times the current rank multiplier")
+	check(session.score.grace_remaining == 0.0, "Kill does not refresh combo decay grace")
+	var combo_before = session.score.combo
+	run_before = session.score.run_score
+	xp = await kill(Vector2(0, 300), DamageSource.make("mana_bolt", 100.0))
+	check(session.score.combo == combo_before and session.score.run_score > run_before, "Magic Missile kill banks score but adds no combo")
+	combo_before = session.score.combo
+	xp = await kill(Vector2(-300, 0), DamageSource.make("plague_seed", 90.0))
+	check(is_equal_approx(session.score.combo, combo_before + xp * 0.5), "Kill from a ten-second-old cast gives half combo")
+	combo_before = session.score.combo
+	await kill(Vector2(0, -300), DamageSource.make("plague_seed", 100.0 - 480.0))
+	check(session.score.combo - combo_before < 0.01, "Kill from an eight-minute-old cast gives effectively no combo")
+	check(session.damage_by_spell.has("bolt") and session.damage_by_spell.has("mana_bolt") and session.damage_by_spell.has("plague_seed"), "Damage is recorded by spell")
+	var monsters = game.get_node("MonsterManager")
+	var second = monsters.spawn_monster(monsters.get_available_variants(0)[0])
+	second.set_physics_process(false)
+	combo_before = session.score.combo
+	game.change_state(game.GameState.PAUSED)
+	second.take_damage(100000, game.player.position, DamageSource.make("bolt", session.clock))
+	for i in 4:
+		await process_frame
+	check(session.score.combo == combo_before, "No kill points outside active play")
+	game.change_state(game.GameState.PLAYING)

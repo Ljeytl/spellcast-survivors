@@ -84,7 +84,7 @@ func populate():
 		for ingredient in recipe.ingredients:
 			ingredients.append(ingredient_name(ingredient))
 		var status = "Discovered" if id in discoveries else "Undiscovered"
-		add_entry(id, recipe.name, recipe.incantation, COPY.EVOLUTIONS.get(id, ""), "%s · Bonus spell · no active slot\n%s\nLearn both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
+		add_entry(id, recipe.name, recipe.incantation, COPY.EVOLUTIONS.get(id, ""), "%s · Bonus spell · no active slot\n%s\nReach rank 8 in both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
 
 func add_heading(text: String):
 	var label = Label.new()

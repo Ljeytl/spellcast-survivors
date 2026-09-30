@@ -103,13 +103,13 @@ func run():
 	await process_frame
 	spells.learn_spell("meteor_shower")
 	var meteor_slot = spells.find_spell_slot("meteor_shower")
-	var counts = [2, 3, 3, 4, 5, 5, 6, 8]
+	var counts = [3, 4, 5, 6, 7, 8, 9, 10]
 	for rank in range(1, 9):
 		spells.spells[meteor_slot].level = rank
 		spells.cast_meteor_shower_spell(meteor_slot)
 		var warnings = get_nodes_in_group("spell_projectiles").filter(func(n): return n.projectile_type == "warning")
 		check(warnings.size() == counts[rank - 1], "Meteor real cast count at rank %d" % rank)
-		var radius = 220 if rank < 3 else (250 if rank < 6 else 280)
+		var radius = 110 if rank < 3 else (195 if rank < 6 else 280)
 		check(warnings.all(func(n): return is_equal_approx(n.effect_radius, radius)), "Meteor visible geometry at rank %d" % rank)
 		check(is_equal_approx(spells.calculate_spell_damage(spells.spells[meteor_slot]), 25), "Meteor ranks do not also increase damage")
 		for warning in warnings:

@@ -271,9 +271,9 @@
       "chars": 13,
       "type": "multi_aoe",
       "damage": 25,
-      "meteor_count": 2,
+      "meteor_count": 3,
       "delay_interval": 0.3,
-      "radius": 220,
+      "radius": 110,
       "color": [
         1,
         0.3,
@@ -342,34 +342,13 @@
       },
       "warning_duration": 0.65,
       "rank_steps": [
-        {
-          "meteor_count": 3,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "radius": 250,
-          "description": "Increase impact radius by 30."
-        },
-        {
-          "meteor_count": 4,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "meteor_count": 5,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "radius": 280,
-          "description": "Increase impact radius by 30."
-        },
-        {
-          "meteor_count": 6,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "meteor_count": 8,
-          "description": "Drop two extra meteors."
-        }
+        {"meteor_count": 4, "description": "Drop one extra meteor."},
+        {"meteor_count": 5, "radius": 195, "description": "Drop one extra meteor and increase impact radius by 85."},
+        {"meteor_count": 6, "description": "Drop one extra meteor."},
+        {"meteor_count": 7, "description": "Drop one extra meteor."},
+        {"meteor_count": 8, "radius": 280, "description": "Drop one extra meteor and increase impact radius by 85."},
+        {"meteor_count": 9, "description": "Drop one extra meteor."},
+        {"meteor_count": 10, "description": "Drop one extra meteor."}
       ]
     },
     "ember_lance": {
@@ -391,6 +370,10 @@
       "damage": 9,
       "duration": 5.0,
       "role": "Infect a target for 5 seconds; spread to nearby enemies.",
+      "spread_radius": 100.0,
+      "spread_speed": 345.0,
+      "spore_linger": 1.5,
+      "rank_growth": {"spread_radius": {"per_rank": 4.286, "max": 130.0}, "spread_speed": {"per_rank": 16.43, "max": 460.0}, "spore_linger": {"per_rank": 0.2143, "max": 3.0}},
       "unlock_condition": {
         "type": "default"
       }
@@ -929,7 +912,7 @@
     "ember_trail": {
       "id": "ember_trail",
       "recast_behavior": "extend",
-      "name": "Firewalk",
+      "name": "Fire Walk",
       "type": "trail",
       "damage": 24,
       "duration": 11.0,
@@ -938,10 +921,11 @@
       "unlock_condition": {
         "type": "default"
       },
-      "incantation": "firewalk",
+      "incantation": "fire walk",
       "emission_duration": 5.0,
       "patch_duration": 6.0,
-      "trail_radius": 65,
+      "trail_radius": 32.5,
+      "rank_growth": {"trail_radius": {"per_rank": 4.643, "max": 65.0}},
       "tick_interval": 0.5
     },
     "returning_blade": {

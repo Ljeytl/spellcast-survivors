@@ -133,7 +133,7 @@ func deal_damage(enemy, amount: float) -> float:
 	if not valid_target(enemy):
 		return 0
 	var before = float(enemy.current_health)
-	enemy.take_damage(amount, global_position)
+	enemy.take_damage(amount, global_position, DamageSource.of(self))
 	return maxf(0, before - float(enemy.current_health)) if is_instance_valid(enemy) else 0
 
 func closest_target(center: Vector2, radius: float):
@@ -325,6 +325,7 @@ func advance_returning(delta: float, player: Node2D):
 			var extra_duration = float(info.get("linger_duration", 0.9)) * (float(info.spell_duration_multiplier) - 1.0)
 			if extra_duration > 0.000001:
 				var echo = preload("res://scripts/LingeringArea.gd").new()
+				DamageSource.stamp(echo, DamageSource.of(self))
 				echo.tick_interval = float(info.get("linger_interval", 0.3))
 				echo.configure(global_position, radius, damage * float(info.get("linger_damage_multiplier", 0.5)), extra_duration, Color("c4b3eb"), "blade")
 				get_tree().current_scene.add_child(echo)

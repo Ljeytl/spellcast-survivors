@@ -1,3 +1,15 @@
+# Unreleased — Spell tuning, damage attribution and kill combo
+
+- Fire Walk: renamed from Firewalk, cast as "fire walk" only. Trail radius starts at 32.5 and grows to 65 by rank 8. New ember inventory icon.
+- Meteor Shower: impact radius 110 / 195 / 280 (was 220 / 250 / 280); meteors 3 at rank 1, +1 every rank to 10 (was 2,3,3,4,5,5,6,8).
+- Plague Seed: jump range 100, spread speed 345 and ground-spore time 1.5 s at rank 1, growing to 130 / 460 / 3 s by rank 8. Uses a new capped per-rank growth field in SpellProgression.
+- Cinder Field, Steam Field and Lightning only centre on enemies that are on screen.
+- Combinations are offered only once both ingredients reach rank 8.
+- Screen shake on kill is boss-only. Bosses drop three style runes.
+- Damage attribution (scripts/DamageSource.gd): every hit records its spell and cast time. Kills bank score equal to enemy XP × rank multiplier; combo gets the same XP at full value for 5 s after the cast, halving every 5 s after. Magic Missile and Atomic kills give score only. Kills never refresh combo grace.
+- End-of-run screen shows damage by spell with share of total; ending panel is taller.
+- Tests updated for the new radii, counts, rank-8 combinations and wrapped timers; new checks for kill combo, cast-age decay, Missile score-only, damage-by-spell and off-screen area targeting. 70-suite headless comparison against 9ae31a8: no new failing checks. Not hand-played.
+
 # Unreleased — HUD readability, MEGA archive entry and current-build page (checklist 5–7)
 
 - SEP30-10/11/12: passives read as words with totals ("Spell Power +20%") instead of two-letter glyphs; narrow windows use short names. HP bar is 34 px tall (was 15) and the XP bar 12 px (was 6); the XP label reads "Level N · XP current / needed". Windows shorter than 560 px keep the old compact bars.

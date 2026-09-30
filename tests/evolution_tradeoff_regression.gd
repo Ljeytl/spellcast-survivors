@@ -11,7 +11,7 @@ class Target extends Node2D:
 	var dying = false
 	var slow = 1.0
 	var hits = 0
-	func take_damage(amount, _source = Vector2.ZERO):
+	func take_damage(amount, _source = Vector2.ZERO, _damage_source = {}):
 		current_health = maxf(0, current_health - amount)
 		hits += 1
 	func apply_slow(amount, _duration):
@@ -79,8 +79,14 @@ func run():
 			continue
 		var base = fresh(id, false).duplicate(true)
 		var primary = CATALOG.RECIPES[id].ingredients[0]
+		var ingredients = CATALOG.RECIPES[id].ingredients
+		check(not manager.get_learnable_spell_cards().any(func(card): return card.effect.spell == id), "Evolution withheld below rank 8: " + id)
+		for ingredient in ingredients:
+			manager.get_spell_info(manager.find_spell_slot(ingredient)).level = manager.COMBINATION_RANK
 		var offers = manager.get_learnable_spell_cards()
 		check(offers.any(func(card): return card.effect.spell == id), "Eligible optional evolution offered: " + id)
+		for ingredient in ingredients:
+			manager.get_spell_info(manager.find_spell_slot(ingredient)).level = 1
 		game.level_up_screen.generate_upgrade_options({}, 8)
 		check(game.level_up_screen.current_upgrade_pool.any(func(card): return card.key == "rank:" + primary), "Basic rank investment remains available beside evolution: " + id)
 		var base_damage = manager.calculate_spell_damage(base)
@@ -264,6 +270,10 @@ func compare_optional_offers():
 	fresh("life_bolt", false)
 	for id in ["plague_seed", "cinder_field", "ice_blast", "regeneration"]:
 		manager.learn_spell(id)
+	# Combination cards need both ingredients at rank 8.
+	for info in manager.spells.values():
+		while manager.get_spell_rank(info.id) < manager.COMBINATION_RANK:
+			manager.upgrade_spell(info.id)
 	var screen = game.level_up_screen
 	for i in range(100):
 		seed(5000 + i)

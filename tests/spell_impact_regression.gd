@@ -11,7 +11,7 @@ class Target extends Node2D:
 	var slow = false
 	var pushed = false
 	signal enemy_died(enemy)
-	func take_damage(amount, _source = Vector2.ZERO):
+	func take_damage(amount, _source = Vector2.ZERO, _damage_source = {}):
 		current_health -= amount
 		if current_health <= 0:
 			dying = true

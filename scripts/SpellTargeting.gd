@@ -30,7 +30,9 @@ static func select(tree: SceneTree, origin: Vector2, maximum_range: float = INF,
 			useful_distance = distance
 	return useful if useful != null else fallback
 
-static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum_range: float = INF, planned_damage: Dictionary = {}):
+## Pass the visible viewport rect to centre the area only on an enemy the player can see;
+## nearby off-screen enemies still count toward that centre's coverage score.
+static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum_range: float = INF, planned_damage: Dictionary = {}, viewport: Rect2 = Rect2()):
 	var enemies = tree.get_nodes_in_group("enemies").filter(alive)
 	var weights = {}
 	for enemy in enemies:
@@ -41,6 +43,8 @@ static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum
 	for candidate in enemies:
 		var distance = origin.distance_to(candidate.global_position)
 		if distance > maximum_range:
+			continue
+		if viewport.has_area() and (not candidate.is_visible_in_tree() or not viewport.has_point(candidate.get_global_transform_with_canvas().origin)):
 			continue
 		var score = 0.0
 		for enemy in enemies:

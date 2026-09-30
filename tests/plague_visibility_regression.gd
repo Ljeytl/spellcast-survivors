@@ -40,6 +40,10 @@ func run():
 	check(game.spell_manager.cast_freeform_spell("plague seed"), "Owned typed Plague Seed casts on a real visible enemy")
 	var effect = get_nodes_in_group("build_spell_effects").back()
 	effect.set_physics_process(false)
+	# Lifecycle fixture: pin the full-rank spread so timings test transfer rules, not rank tuning.
+	effect.info.spread_radius = 130.0
+	effect.info.spread_speed = 460.0
+	effect.info.spore_linger = 3.0
 	effect.advance(0.25)
 	targets[0].take_damage(1000, game.player.position)
 	await process_frame

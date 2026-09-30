@@ -900,10 +900,12 @@ func setup_particle_manager():
 	add_child(particle_manager)
 
 # Particle effect functions
-func create_enemy_death_effect(position: Vector2):
+## Ordinary kills happen constantly in a horde; only a boss death shakes the camera.
+func create_enemy_death_effect(position: Vector2, boss: bool = false):
 	if particle_manager:
 		particle_manager.create_enemy_death_effect(position)
-		shake_medium()
+		if boss:
+			shake_medium()
 
 func create_spell_cast_effect(position: Vector2):
 	if particle_manager:

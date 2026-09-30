@@ -7,6 +7,11 @@ static func resolve(data: Dictionary) -> Dictionary:
 		for key in steps[index]:
 			if key != "description":
 				result[key] = steps[index][key]
+	# Optional capped linear growth per rank above one, e.g. Firewalk trail width.
+	var growth = data.get("rank_growth", {})
+	for key in growth:
+		var grown = float(result.get(key, 0.0)) + float(growth[key].get("per_rank", 0.0)) * maxi(0, int(data.get("level", 1)) - 1)
+		result[key] = minf(grown, float(growth[key].max)) if growth[key].has("max") else grown
 	return result
 
 static func can_upgrade(data: Dictionary) -> bool:

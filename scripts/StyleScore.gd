@@ -98,6 +98,19 @@ func award_pickup() -> Dictionary:
 	peak_combo = maxf(peak_combo, combo)
 	return {"points": PICKUP_POINTS, "banked": banked, "old_rank": before, "rank": rank_index()}
 
+## Kills bank score at full value and add combo scaled by combo_factor (cast age, 0 for
+## Magic Missile/Atomic). They never refresh decay grace. Points are the enemy's XP value.
+func award_kill(points: float, combo_factor: float = 1.0) -> Dictionary:
+	if not is_finite(points) or points <= 0.0:
+		return {}
+	var before := rank_index()
+	var banked := int(round(points * multiplier()))
+	combo = minf(CAP, combo + points * clampf(combo_factor, 0.0, 1.0))
+	run_score += banked
+	peak_rank = maxi(peak_rank, rank_index())
+	peak_combo = maxf(peak_combo, combo)
+	return {"points": points, "banked": banked, "old_rank": before, "rank": rank_index()}
+
 func take_hit() -> void:
 	var index := rank_index()
 	if index == 0:

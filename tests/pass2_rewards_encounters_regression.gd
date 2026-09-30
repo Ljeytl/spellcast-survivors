@@ -78,6 +78,7 @@ func run():
 	await process_frame
 	var rewards = get_nodes_in_group("boss_rewards")
 	check(rewards.size() == 1, "Real boss defeat drops exactly one reward")
+	check(get_nodes_in_group("style_pickups").size() == 3, "Boss defeat drops three style runes")
 	var potions = get_nodes_in_group("health_potions")
 	check(potions.size() == prior_potions + 1, "Boss guarantees exactly one potion even at ordinary drop cap")
 	var boss_potion = potions.back()

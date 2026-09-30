@@ -420,7 +420,10 @@ func handle_shooter_behavior(delta: float):
 # Called when enemy takes damage from spells or other sources
 var last_hit_feedback = -1000
 
-func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF):
+var last_damage_source: Dictionary = {}
+
+## source: which spell and cast dealt the hit (see DamageSource); drives kill combo and damage-by-spell.
+func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF, source: Dictionary = {}):
 	if dying:
 		return
 	# Apply armor reduction for armored elites
@@ -432,6 +435,11 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF):
 	# Reduce health, don't go below 0
 	current_health -= final_damage
 	current_health = max(0, current_health)
+	if not source.is_empty():
+		last_damage_source = source
+	var style_game = get_tree().get_first_node_in_group("game") if is_inside_tree() else null
+	if style_game and is_instance_valid(style_game.get("style_session")):
+		style_game.style_session.record_damage(source, previous_health - current_health)
 	
 	# Show floating damage number
 	enemy_damaged.emit(damage_amount, global_position)
@@ -481,8 +489,11 @@ func finish_death():
 	if scene_tree:
 		var game_node = scene_tree.get_first_node_in_group("game")
 		if game_node and game_node.has_method("create_enemy_death_effect"):
-			game_node.create_enemy_death_effect(global_position)
+			game_node.create_enemy_death_effect(global_position, is_in_group("bosses"))
 	
+	var style_game = get_tree().get_first_node_in_group("game") if get_tree() else null
+	if style_game and is_instance_valid(style_game.get("style_session")):
+		style_game.style_session.on_kill(xp_value, last_damage_source)
 	# Spawn XP orb for player to collect
 	drop_xp_orb()
 	if not is_in_group("bosses"):

@@ -1,5 +1,8 @@
 extends Node2D
 
+func _init():
+	DamageSource.stamp(self)
+
 const Visual = preload("res://scripts/ProjectileVisual.gd")
 var shards: Array = []
 var hit_ids: Dictionary = {}
@@ -56,7 +59,7 @@ func advance(delta: float):
 				continue
 			hit_ids[enemy.get_instance_id()] = true
 			var impact: Vector2 = start.lerp(end, candidates[0].fraction)
-			enemy.take_damage(damage, impact)
+			enemy.take_damage(damage, impact, DamageSource.of(self))
 			if is_instance_valid(enemy):
 				if enemy.has_method("apply_knockback"):
 					enemy.apply_knockback(shard.direction, knockback * (1.2 + (1.0 - distance / reach) * 0.8))

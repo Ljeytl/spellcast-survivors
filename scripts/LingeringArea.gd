@@ -1,5 +1,8 @@
 extends Node2D
 
+func _init():
+	DamageSource.stamp(self)
+
 var radius = 80.0
 var damage = 0.0
 var duration = 0.2
@@ -38,7 +41,7 @@ func strike():
 			next_hits[enemy.get_instance_id()] = age + tick_interval
 		else:
 			hit_ids[enemy.get_instance_id()] = true
-		enemy.take_damage(damage, global_position)
+		enemy.take_damage(damage, global_position, DamageSource.of(self))
 		if is_instance_valid(enemy) and slow_factor < 1.0 and enemy.has_method("apply_slow"):
 			enemy.apply_slow(slow_factor, slow_time)
 

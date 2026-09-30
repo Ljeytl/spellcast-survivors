@@ -86,9 +86,9 @@ func run():
 	game.spell_manager.learn_spell("meteor_shower")
 	check(game.spell_manager.cast_freeform_spell("meteor shower"), "Owned Meteor Shower casts")
 	var warnings = get_nodes_in_group("spell_projectiles").filter(func(node): return node.projectile_type == "warning")
-	check(warnings.size() == 2, "Meteor creates one telegraph per scheduled impact")
+	check(warnings.size() == 3, "Meteor creates one telegraph per scheduled impact")
 	check(warnings.all(func(node): return node.position in [weak_a.position, weak_b.position]), "Meteor targets visible enemy positions")
-	check(warnings.all(func(node): return node.lifetime >= 0.65 and node.effect_radius == 220), "Every meteor retains full warning and data impact geometry")
+	check(warnings.all(func(node): return node.lifetime >= 0.65 and node.effect_radius == 110), "Every meteor retains full warning and data impact geometry")
 	check(weak_a.current_health == 15 and weak_b.current_health == 15, "Warnings deal no damage before impact")
 	clear_combat()
 	var durable = enemy(Vector2(200, 0), true)
@@ -143,7 +143,7 @@ func run():
 		trail = spell("ember_trail")
 		game.player.position += Vector2(160, 0)
 		trail.advance(0.1)
-		check(trail.trail_contains(origin + Vector2(80, 64)) and not trail.trail_contains(origin + Vector2(80, 66)), "Connected trail has authoritative capsule boundary")
+		check(trail.trail_contains(origin + Vector2(80, 32)) and not trail.trail_contains(origin + Vector2(80, 34)), "Connected trail has authoritative capsule boundary")
 		for index in range(roundi(1.5 / step)):
 			trail.advance(step)
 		var total = 10000 - victim.current_health

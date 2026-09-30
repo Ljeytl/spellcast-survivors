@@ -5,7 +5,7 @@ class Host extends Node2D:
 	var current_health = 1000.0
 	var dying = false
 	var delayed = false
-	func take_damage(amount: float, _origin = Vector2.ZERO):
+	func take_damage(amount: float, _origin = Vector2.ZERO, _damage_source = {}):
 		current_health = maxf(0, current_health - amount)
 		if current_health <= 0:
 			dying = true

@@ -9,7 +9,7 @@ class Target extends Node2D:
 	var current_health = 1000.0
 	var dying = false
 	var slowed = false
-	func take_damage(amount, _source = Vector2.ZERO):
+	func take_damage(amount, _source = Vector2.ZERO, _damage_source = {}):
 		current_health -= amount
 	func apply_slow(_strength, _duration):
 		slowed = true
@@ -195,6 +195,9 @@ func run():
 	manager.learn_spell("lightning_arc")
 	var before_lightning = front.current_health
 	var neighbor_health = inside.current_health
+	# Area spells only centre on visible enemies; give the headless viewport a real screen size.
+	root.size = Vector2i(1280, 720)
+	await process_frame
 	manager.cast_freeform_spell("lightning")
 	check(front.current_health < before_lightning and side.current_health < 1000 and inside.current_health == neighbor_health, "Lightning strikes nearby group and excludes enemies beyond circle")
 	manager.cast_freeform_spell("bolt")

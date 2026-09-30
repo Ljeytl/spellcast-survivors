@@ -6,7 +6,7 @@ var failures = 0
 class Target extends Node2D:
 	var current_health = 1000.0
 	var dying = false
-	func take_damage(amount, _source = Vector2.ZERO):
+	func take_damage(amount, _source = Vector2.ZERO, _damage_source = {}):
 		current_health = maxf(0, current_health - amount)
 
 func _initialize():

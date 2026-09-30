@@ -406,7 +406,10 @@ func update_typing_display():
 func handle_auto_attack(delta):
 	mana_bolt_timer -= delta
 	if mana_bolt_timer <= 0.0:
+		var previous_source = DamageSource.current
+		DamageSource.current = DamageSource.make("mana_bolt", style_clock())
 		fire_mana_bolt()
+		DamageSource.current = previous_source
 		# Apply cast speed to Magic Missile cooldown (faster auto-attacks)
 		var cast_speed_bonus = cast_stat("cast_speed_multiplier") if player else 1.0
 		var adjusted_cooldown = mana_bolt_cooldown / cast_speed_bonus
@@ -452,7 +455,7 @@ func fire_mana_bolt():
 		
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				_delayed_mana_bolt.bind(weakref(target), damage, i)
+				DamageSource.wrap(_delayed_mana_bolt.bind(weakref(target), damage, i))
 			)
 		else:
 			create_mana_bolt_projectile(target, damage, i)
@@ -504,9 +507,17 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 func cast_spell_by_type(slot: int, keyword_multiplier: float = 1.0) -> bool:
 	var previous = cast_keyword_multiplier
 	cast_keyword_multiplier = keyword_multiplier
+	var previous_source = DamageSource.current
+	DamageSource.current = DamageSource.make(str(get_spell_info(slot).get("id", "")), style_clock())
 	var success = _dispatch_spell(slot)
+	DamageSource.current = previous_source
 	cast_keyword_multiplier = previous
 	return success
+
+## Active play time used to age casts; matches the style meter's clock.
+func style_clock() -> float:
+	var session = game_manager.get("style_session") if game_manager else null
+	return float(session.clock) if is_instance_valid(session) else 0.0
 
 func _dispatch_spell(slot: int) -> bool:
 	last_cast_failure = ""
@@ -638,7 +649,7 @@ func cast_enhanced_bolt_spell(slot: int):
 		# Create spread + homing projectile with delay
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier"))
+				DamageSource.wrap(_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier")))
 			)
 		else:
 			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier"))
@@ -775,7 +786,8 @@ func cast_earthshield_spell(slot: int):
 		"reach": float(info.get("retaliation_reach", 160.0)) * (float(cast_stat("spell_size_multiplier")) * cast_keyword_multiplier),
 		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
 		"knockback": float(info.get("retaliation_knockback", 500.0)),
-		"travel_time": float(info.get("retaliation_travel_time", 0.22))
+		"travel_time": float(info.get("retaliation_travel_time", 0.22)),
+		"damage_source": DamageSource.current
 	})
 
 func cast_lightning_arc_spell(slot: int):
@@ -783,7 +795,7 @@ func cast_lightning_arc_spell(slot: int):
 	info.keyword_size_multiplier = cast_keyword_multiplier
 	if not release_snapshot.is_empty():
 		info.keyword_stats = release_snapshot.stats.duplicate(true)
-	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)))
+	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)), INF, {}, get_viewport().get_visible_rect())
 	if not _live_spell_target(target):
 		return
 	var effect = preload("res://scripts/LightningArea.gd").new()
@@ -823,7 +835,7 @@ func cast_meteor_shower_spell(slot: int):
 			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
 				coverage[enemy.get_instance_id()] = float(coverage.get(enemy.get_instance_id(), 0)) + 1.0
 		create_meteor_warning(center, delay, radius)
-		get_tree().create_timer(delay).timeout.connect(create_meteor_strike.bind(center, damage * 0.8, radius, maxf(1.0, cast_stat("spell_duration_multiplier"))))
+		get_tree().create_timer(delay).timeout.connect(DamageSource.wrap(create_meteor_strike.bind(center, damage * 0.8, radius, maxf(1.0, cast_stat("spell_duration_multiplier")))))
 
 # Helper functions
 func get_closest_enemy():
@@ -935,7 +947,7 @@ func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: 
 		return
 	
 	# Damage current target
-	target.take_damage(damage)
+	target.take_damage(damage, Vector2.INF, DamageSource.current)
 	hit_enemies.append(target.get_instance_id())
 	
 	# Find next target
@@ -970,7 +982,7 @@ func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: 
 		var tree = get_tree()
 		if tree:
 			tree.create_timer(0.1).timeout.connect(
-				_delayed_chain.bind(weakref(next_target), damage * CHAIN_DAMAGE_REDUCTION, remaining_chains - 1, hit_enemies.duplicate())
+				DamageSource.wrap(_delayed_chain.bind(weakref(next_target), damage * CHAIN_DAMAGE_REDUCTION, remaining_chains - 1, hit_enemies.duplicate()))
 			)
 
 func create_lightning_arc_visual(from_pos: Vector2, to_pos: Vector2, target_enemy: Node2D = null, from_target: Node2D = null):
@@ -1325,7 +1337,7 @@ func get_learnable_spell_cards() -> Array:
 				"description": info.get("role", "Learn a new spell.") + "\nSlot %d of 6 · Type: %s" % [spells.size() + 1, info.display_name],
 				"icon": "+", "effect": {"type": "learn_spell", "spell": id}})
 	for id in Synergies.RECIPES:
-		if acquired_spells.has(id) or not synergy_eligible(id):
+		if acquired_spells.has(id) or not synergy_ready(id):
 			continue
 		var recipe = Synergies.RECIPES[id]
 		cards.append({"key": "learn:" + id, "name": "Learn " + recipe.name,
@@ -1338,6 +1350,17 @@ func synergy_eligible(id: String) -> bool:
 		return false
 	for ingredient in Synergies.RECIPES[id].ingredients:
 		if not acquired_spells.has(ingredient):
+			return false
+	return true
+
+const COMBINATION_RANK = 8
+
+## Combination cards are offered only once both ingredients reach COMBINATION_RANK.
+func synergy_ready(id: String) -> bool:
+	if not synergy_eligible(id):
+		return false
+	for ingredient in Synergies.RECIPES[id].ingredients:
+		if get_spell_rank(ingredient) < COMBINATION_RANK:
 			return false
 	return true
 
@@ -1364,6 +1387,10 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 			return prefix + damage + ", +25 radius, +50 knockback"
 		"earth_shield":
 			return prefix + "+15% of base retaliation damage"
+		"plague_seed":
+			return prefix + damage + (", faster and farther spread, longer-lasting spores" if rank < 8 else "")
+		"ember_trail":
+			return prefix + damage + (", wider trail" if rank < 8 else "")
 		"lightning_bolt":
 			return prefix + damage + ", +1 bounce"
 		"lightning_arc":
@@ -1385,7 +1412,7 @@ func cast_build_spell(slot: int) -> bool:
 		return true
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
 	if info.type == "field":
-		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)))
+		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
 	if info.type == "plague" and target == null:
 		last_cast_failure = "No target in range"
 		return false
@@ -1396,6 +1423,7 @@ func cast_build_spell(slot: int) -> bool:
 		for existing in active:
 			if existing.remaining > 0 and existing.caster and existing.caster.get_ref() == player:
 				var added = existing.queue_cast_extension(info, calculate_spell_damage(info))
+				DamageSource.stamp(existing)
 				spell_extended.emit(info.id, added)
 				return true
 	if active.size() >= int(info.get("active_limit", 3)):

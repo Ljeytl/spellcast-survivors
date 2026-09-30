@@ -177,13 +177,13 @@ func place_hazard(location: Vector2, radius: float, delay: float, amount: float)
 	hazard.source_position = global_position
 	get_parent().add_child(hazard)
 
-func take_damage(damage_amount: float, source_position: Vector2 = Vector2.INF):
+func take_damage(damage_amount: float, source_position: Vector2 = Vector2.INF, source: Dictionary = {}):
 	var amount = damage_amount
 	if variant == "shieldbearer" and source_position != Vector2.INF:
 		var incoming = (source_position - global_position).normalized()
 		if incoming.dot(facing) > 0.5:
 			amount *= 0.65
-	super.take_damage(amount, source_position)
+	super.take_damage(amount, source_position, source)
 
 func _draw():
 	var debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")

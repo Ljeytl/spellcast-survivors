@@ -6,7 +6,7 @@ var failures = 0
 class HitTarget extends Node2D:
 	var current_health = 20.0
 	var dying = false
-	func take_damage(amount, _position):
+	func take_damage(amount, _position, _damage_source = {}):
 		if not dying:
 			current_health = maxf(0.0, current_health - amount)
 
@@ -73,6 +73,10 @@ func run():
 	key(KEY_ESCAPE)
 	check(not spells.is_typing and not paused, "Escape cancels without pause")
 	check(spells.learn_spell("life"), "Learn second ingredient")
+	check(not spells.get_learnable_spell_cards().any(func(card): return card.key == "learn:life_bolt"), "Combination is not offered before both ingredients reach rank 8")
+	for id in ["bolt", "life"]:
+		for rank in range(7):
+			spells.upgrade_spell(id)
 	var cards = spells.get_learnable_spell_cards()
 	check(cards.any(func(card): return card.key == "learn:life_bolt"), "Ingredients reveal recipe as level-up option")
 	check(profile.discovered_synergies.is_empty(), "Eligibility alone does not persist discovery")
@@ -85,6 +89,9 @@ func run():
 		await process_frame
 	check(spells.acquired_spells.has("life_bolt") and not paused, "Selecting recipe card grants spell and resumes")
 	check(not spells.learn_spell("life_bolt"), "Duplicate acquisition rejected")
+	# Healing checks below use rank-1 ingredient values.
+	for id in ["bolt", "life"]:
+		spells.get_spell_info(spells.find_spell_slot(id)).level = 1
 	check(spells.spells[1].id == "bolt" and spells.spells[2].id == "life" and spells.bonus_spells.size() == 1, "Bonus preserves both ingredients")
 	check(spells.cast_freeform_spell("bolt"), "Ingredient remains castable")
 	check("life bolt" in spells.get_owned_incantations(), "Owned synergy appears in casting names")
