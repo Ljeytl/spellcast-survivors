@@ -9,8 +9,8 @@ This is the authoritative order approved by the player. Read this checklist befo
 | Order | Feedback | Status | Required result / evidence |
 |---|---|---|---|
 | 1 — First | SEP30-01: displayed 0 HP without death | Implemented and verified; export pending | Confirmed actual 0.4 HP displayed as 0; now displays <1. Lethal damage ends the run. Evidence: health_truth_regression (14 checks), native captures at 1280×720 and 640×480, console/shield regressions. Original playtest cause not definitively identified; reopen if actual zero survives. |
-| 2 — First | SEP30-02: performance collapses after travel | Open | Reproduce and profile accumulation, recycling, rendering and simulation; measure before/after without assuming rendering is the cause. |
-| Alongside 2 — Useful support | SEP30-20: FPS toggle | Open | Add a toggle in video settings; verify visible state, persistence and useful playtester measurements. |
+| 2 — First | SEP30-02: performance collapses after travel | Implemented; runtime profiling verified, integration/export pending | Confirmed repeated offscreen grove generation in enemy steering; bounded deterministic cache. Enemy cap and scenery node counts stayed bounded. See [profiling evidence](travel-performance.md); headless evidence does not establish a rendering defect. |
+| Alongside 2 — Useful support | SEP30-20: FPS toggle | Implemented; automated checks passed, operated native review pending | Graphics settings checkbox defaults off; live FPS display persists across scenes/restarts and updates on real time. See [verification](travel-performance.md). |
 | 3 — Next | SEP30-13/14/16: cast, MEGA and combo event feedback | Open | Distinct brief feedback for accepted casts, MEGA, combo gain and breaks; start with simple animation, clear visual changes and existing sound where useful. |
 | 4 — Next | SEP30-09/15: combo versus score; duration versus cooldown | Open | Separate banked score from live style; consistently identify active duration without adding cooldown mechanics. |
 | 5 — Next | SEP30-10/11/12: passive readability, XP label, larger HP | Open | Improve essential HUD readability without explanatory clutter. |
@@ -367,7 +367,7 @@ Source: Aditya's collected playtest feedback, with Brad explicitly attributed be
 | ID | Report | Disposition / next evidence needed |
 |---|---|---|
 | SEP30-01 | Player reached displayed 0 HP without dying | Confirmed display defect fixed and verified locally: damage leaving 0.4 actual HP displayed 0 / 100 on baseline. Positive fractions now display <1 in normal/debug/overheal labels. Actual lethal damage correctly enters paused GAME_OVER and cannot be healed back. Original playtest cause remains unconfirmed; this does not claim all possible death bugs excluded. See the ordered checklist for integration status. |
-| SEP30-02 | Walking a long distance without killing produces more enemies in new space while old enemies reportedly remain rendered; FPS tanks | Open; high-priority performance reproduction candidate. Reproduce travel-only play and measure retained enemies, spawning/recycling, rendering, simulation and frame time. Continued rendering is the reported explanation, not a confirmed root cause. |
+| SEP30-02 | Walking a long distance without killing produces more enemies in new space while old enemies reportedly remain rendered; FPS tanks | Confirmed simulation hotspot fixed: distant enemy steering repeatedly regenerated uncached groves. A bounded 256-layout cache preserves deterministic terrain; no spawn/rate changes. Runtime before/after profiling and scope limits are recorded in [travel performance](travel-performance.md). Rendering-specific cause remains unconfirmed. |
 | SEP30-03 | `laser` command does not work | Confirmed placeholder; command is now explicitly unavailable and hidden from help/autocomplete. Laser feature remains deferred. |
 | SEP30-04 | “big head” makes slimes smaller | Fixed `bighead`: doubles current enemy art relative to its actual size; repeated on is idempotent and off restores exact size. Collision unchanged; future spawns require reapplying on. |
 | SEP30-05 | “black hole” does not work | Confirmed placeholder; `blackhole` now explicitly unavailable and hidden. Feature deferred. |
@@ -395,7 +395,7 @@ Source: Aditya's collected playtest feedback, with Brad explicitly attributed be
 | ID | Report / idea | Disposition |
 |---|---|---|
 | SEP30-19 | Firewalk may be overtuned; Brad said it made the game pretty easy | Open balance hypothesis, not an approved nerf. Capture rank, passives, MEGA usage, encounter time and play pattern before tuning. |
-| SEP30-20 | Toggleable FPS meter in video settings | Requested diagnostic option; default and placement not selected. |
+| SEP30-20 | Toggleable FPS meter in video settings | Implemented in Graphics settings, default off, above the build label; session/reopen persistence tested. Native desktop/narrow operated review pending. |
 | SEP30-21 | Option to wipe the local leaderboard | Requested settings feature; scope of deletion, confirmation and handling of older scoring revisions need design before implementation. No scores deleted. |
 | SEP30-22 | Blessing spells: buffs such as Golden Vow in Elden Ring | Deferred spell-family/buff idea; preserve fantasy without inventing effects, numbers or recipes. |
 | SEP30-23 | A little hidden typing-speed statistic | Deferred statistics idea; measurement, where it is exposed and meaning of “hidden” undecided. |
