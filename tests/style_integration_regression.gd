@@ -194,7 +194,7 @@ func run():
 		var upper = model.THRESHOLDS[rank + 1] if rank < 8 else model.CAP
 		session.score.combo = (model.THRESHOLDS[rank] + upper) / 2.0
 		session.updated.emit()
-		check(rank_hud.label.text.begins_with(model.RANKS[rank]) and is_equal_approx(rank_hud.meter.value, 0.5), "Rank glyph, label and segment fill agree: " + model.RANKS[rank])
+		check(rank_hud.badge.texture == rank_hud.glyphs[rank] and rank_hud.label.text == "×%s" % str(session.score.multiplier()) and is_equal_approx(rank_hud.meter.value, 0.5), "Rank glyph, label and segment fill agree: " + model.RANKS[rank])
 	check(rank_hud.format_score(2500000) == "2.5M", "Large HUD scores use compact notation")
 	manager.casting_clock += 2.0
 	session.score.combo = 3700.0
@@ -226,7 +226,7 @@ func run():
 	for i in 8:
 		await process_frame
 	session.updated.emit()
-	check(rank_hud.score_label.get_rect().end.y <= rank_hud.note.position.y, "Narrow score and feedback never overlap")
+	check(not rank_hud.score_label.get_global_rect().intersects(rank_hud.get_global_rect()), "Narrow score is separate from combo meter")
 	check(rank_hud.special.get_rect().end.y <= rank_hud.size.y, "Atomic label fits HUD bounds")
 	await capture("game-narrow")
 	var hud = game.hud.get_node("StyleHUD")

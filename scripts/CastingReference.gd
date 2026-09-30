@@ -5,6 +5,8 @@ var game: Node
 var signature = ""
 var entries: Dictionary = {}
 var extensions: Dictionary = {}
+var status_bars: Dictionary = {}
+var status_maximums: Dictionary = {}
 
 func _ready():
 	name = "CastingReference"
@@ -28,10 +30,20 @@ func _process(_delta):
 	for id in entries:
 		var entry = entries[id]
 		var caption = ""
-		if states.has(id):
+		if states.has(id) and shows_status(manager.get_spell_info(manager.find_spell_slot(id))):
 			caption = preload("res://scripts/SpellDurationStatus.gd").caption(states[id])
+			if states[id].phase == "active":
+				caption = "active " + caption
 			if extensions.has(id) and Time.get_ticks_msec() < extensions[id].until:
 				caption += " · +%ds" % ceili(extensions[id].seconds)
+		var show_bar = not caption.is_empty() and states[id].phase not in ["charges", "armed", "arming"]
+		status_bars[id].visible = show_bar
+		if show_bar:
+			status_maximums[id] = maxf(float(status_maximums.get(id, 0.0)), states[id].seconds)
+			status_bars[id].max_value = status_maximums[id]
+			status_bars[id].value = states[id].seconds
+		else:
+			status_maximums.erase(id)
 		entry.text = entry.get_meta("incantation") + ("\n" + caption if not caption.is_empty() else "")
 		entry.tooltip_text = "Charges ready; time until the next charge expires" if id == "earth_shield" and states.has(id) else ("Longest remaining cast; × shows active casts" if states.has(id) and states[id].count > 1 else "")
 	size.x = minf(1160, game.hud.size.x - 36)
@@ -46,6 +58,8 @@ func rebuild():
 		remove_child(child)
 		child.queue_free()
 	entries.clear()
+	status_bars.clear()
+	status_maximums.clear()
 	var manager = game.spell_manager
 	for slot in manager.get_all_spells():
 		var info = manager.get_spell_info(slot)
@@ -59,9 +73,27 @@ func rebuild():
 		label.add_theme_color_override("font_color", STYLE.GOLD if combination else STYLE.PAPER)
 		var style = STYLE.panel_style(STYLE.GOLD if combination else Color("66705b"), Color("17231c"))
 		style.content_margin_top = 4
-		style.content_margin_bottom = 4
+		style.content_margin_bottom = 9
 		style.content_margin_left = 8
 		style.content_margin_right = 8
 		label.add_theme_stylebox_override("normal", style)
 		add_child(label)
 		entries[info.id] = label
+		var bar = ProgressBar.new()
+		bar.show_percentage = false
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bar.add_theme_stylebox_override("background", StyleBoxEmpty.new())
+		var fill = StyleBoxFlat.new()
+		fill.bg_color = STYLE.CYAN
+		bar.add_theme_stylebox_override("fill", fill)
+		label.add_child(bar)
+		bar.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		bar.offset_left = 8
+		bar.offset_right = -8
+		bar.offset_top = -5
+		bar.offset_bottom = -3
+		bar.hide()
+		status_bars[info.id] = bar
+
+static func shows_status(info: Dictionary) -> bool:
+	return info.get("recast_behavior", "") == "extend" or info.get("type", "") in ["shield", "trap", "field", "plague"]

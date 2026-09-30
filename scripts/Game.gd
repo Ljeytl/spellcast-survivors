@@ -417,6 +417,7 @@ func setup_ui():
 		typing_keycaps.manager = spell_manager
 		typing_label.add_child(typing_keycaps)
 		spell_manager.spell_cast.connect(typing_keycaps.finish_cast)
+		spell_manager.manual_spell_released.connect(typing_keycaps.on_manual_release)
 		
 		# Hide the typing UI initially (shown only when typing spells)
 		hide_typing_ui()
@@ -1067,11 +1068,10 @@ func _on_spell_queued(spell_name: String, slot: int):
 	highlight_spell_slot(slot - 1)  # Convert to 0-based index
 
 func _on_typing_started():
-	# Handle typing mode starting
-	pass  # Spell slot is already highlighted from _on_spell_queued
+	$UI/HUD/TypingPanel/SlowdownStatus.show()
 
 func _on_typing_ended():
-	# Handle typing mode ending
+	$UI/HUD/TypingPanel/SlowdownStatus.hide()
 	clear_spell_slot_highlights()
 	if current_state == GameState.PLAYING and not pending_level_ups.is_empty():
 		_show_pending_after_typing.call_deferred()
@@ -1172,7 +1172,9 @@ func hide_typing_ui():
 func update_typing_slowdown(remaining: float, _capacity: float):
 	var status = $UI/HUD/TypingPanel/SlowdownStatus
 	var instruction = "Enter casts" if spell_manager.space_casting else "Finish name to cast"
-	status.text = ("Slowdown %.1fs" % remaining if remaining > 0.0 else "Normal speed") + " · " + instruction + " · Esc cancels"
+	status.text = ("Focus %.1fs" % remaining if remaining > 0.0 else "Normal speed")
+	if interface_debug:
+		status.text += " · " + instruction + " · Esc cancels"
 
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer

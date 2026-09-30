@@ -38,11 +38,13 @@ static func collect(manager: Node) -> Dictionary:
 static func add(states: Dictionary, id: String, seconds: float, phase: String = "active"):
 	if not states.has(id):
 		states[id] = {"seconds": seconds, "count": 1, "phase": phase}
+	elif states[id].phase != phase:
+		var priority = {"ground": 0, "arming": 0, "active": 1, "armed": 1, "charges": 1}
+		if priority.get(phase, 0) > priority.get(states[id].phase, 0):
+			states[id] = {"seconds": seconds, "count": 1, "phase": phase}
 	else:
 		states[id].seconds = minf(states[id].seconds, seconds) if phase == "charges" else maxf(states[id].seconds, seconds)
 		states[id].count += 1
-		if phase == "armed":
-			states[id].phase = phase
 
 static func caption(state: Dictionary) -> String:
 	if state.phase == "charges":
