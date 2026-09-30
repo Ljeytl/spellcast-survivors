@@ -2,7 +2,7 @@
 
 - Implement the approved priority 3/4 presentation pass: incantation success/MEGA response, distinct style gain/loss, separated banked score, and selective active spell status; preserve scoring and spell mechanics.
 - Preserve carved-stone style assets and debug detail; omit normal-HUD tutorial prose and rank-progress fractions. Broader inventory readability remains a separate priority.
-- Verification is tracked in docs/UI_UX_PASS.md; baseline/final fixtures and operated native review are required before integration.
+- Targeted HUD/style/ground/MEGA checks pass; deliberate score-overlap/rank-fraction controls fail. Native review found and corrected typing/inventory overlap; final operated gate remains pending in docs/UI_UX_PASS.md. Implemented, not merged or shipped.
 
 # Unreleased — Travel performance and FPS diagnostics
 

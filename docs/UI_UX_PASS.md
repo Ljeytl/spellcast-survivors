@@ -60,3 +60,17 @@ Baseline e3c7b6b; priorities 3 and 4 of the player-feedback checklist. Preserve 
 - Remaining per-cast focus and the incantation remain visible. Diagnostics retain explanatory information behind the existing debug flag.
 
 Verification obligations: baseline/final desktop and narrow fixtures; normal/MEGA/Atomic success versus cancel/rejected casts; repeated awards/cap; gain/promotion/hit versus smooth decay; shield/overheal exclusions; mixed maintained instances and recast extension; reduced-effects behavior; clipping/overlap and next-state clearing. Regression assertions include deliberate broken-policy controls. Operated native casting/resize/modal journeys are a separate root review gate before integration. No balance, new art/audio, archive/tutorial or export work.
+
+### Focused pass verification in progress
+
+Runtime candidate 7734c68, then narrow-column repair 6e431c9. Baseline captures are render evidence only (zero assertions), not a test pass. Current regression: 81 assertions pass at 1280×720, 640×720 and 480×800, including six passive inventory entries. `--known-bad` deliberately places score over style and injects a rank fraction; the same suite returns exit 1 with nine expected failures. Ground-HUD 29, MEGA 51 and style-integration 52 checks pass; scoring tests still verify the original thresholds/formula.
+
+`tests/hud_feedback_regression.gd -- --interactive` is an assisted QA fixture using real game controls with a prepared six-spell kit, invincibility, stationary high-health targets, disabled automatic Magic Missile and held initial grace. It is not natural-run balance evidence. Native operations identified a full-width typing/inventory overlap and are still in progress; final disposition and exact tested runtime revision must be recorded before integration. Existing screenshots under `builds/hud-feedback-evidence` are candidate-specific, not proof of a later revision.
+
+### Final candidate gates (integration pending)
+
+The focused HUD implementation is complete; targeted automation passes: HUD feedback 84 checks, style integration 52, ground HUD 29 and MEGA 51. The identical HUD suite with `--known-bad` returns exit 1 with nine intentional failures for score overlap and rank-fraction contamination. Final fixtures exercise six spells, six passive references and a combination trap at 1280×720, 640×720 and 480×800; accepted ordinary/MEGA casts, promotion and hit have separate captures. These fixtures are assisted state setups, not natural play or balance evidence.
+
+Native operation of earlier candidates verified numbered and freeform MEGA acceptance and score gain, but found inventory/typing overlap. The final candidate hides inventory only when the visible typing/completion panel intersects it, restores it afterward, reads combination status from equipped recipe data, and counts only the phase currently displayed. Final operated retest remains required before merging priorities 3/4. No shareable export has been refreshed.
+
+For operated QA use `--script tests/hud_feedback_regression.gd -- --interactive`; add `--narrow` for 640×720. Add `--menu` to boot the actual main menu instead of the assisted prepared kit. The assisted fixture disables auto attack and raises its XP threshold to prevent incidental level-up interruptions, without changing released game mechanics.

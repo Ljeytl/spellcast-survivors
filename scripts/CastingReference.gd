@@ -30,7 +30,7 @@ func _process(_delta):
 	for id in entries:
 		var entry = entries[id]
 		var caption = ""
-		if states.has(id) and shows_status(DataManager.get_spell_data(id)):
+		if states.has(id) and shows_status(manager.get_spell_info(manager.find_spell_slot(id))):
 			caption = preload("res://scripts/SpellDurationStatus.gd").caption(states[id])
 			if states[id].phase == "active":
 				caption = "active " + caption

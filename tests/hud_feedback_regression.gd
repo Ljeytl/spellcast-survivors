@@ -7,6 +7,7 @@ var manager
 var interface
 var interactive = "--interactive" in OS.get_cmdline_user_args()
 var baseline = "--baseline" in OS.get_cmdline_user_args()
+var known_bad = "--known-bad" in OS.get_cmdline_user_args()
 
 func _initialize():
 	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
@@ -25,7 +26,7 @@ func settle():
 		await process_frame
 
 func capture(name: String):
-	if DisplayServer.get_name() == "headless":
+	if DisplayServer.get_name() == "headless" or known_bad:
 		return
 	await RenderingServer.frame_post_draw
 	var directory = "res://builds/hud-feedback-evidence"
@@ -35,10 +36,13 @@ func capture(name: String):
 func run():
 	root.get_node("AudioManager").quitting = true
 	root.mode = Window.MODE_WINDOWED
-	root.size = Vector2i(1280, 720)
+	root.size = Vector2i(640, 720) if "--narrow" in OS.get_cmdline_user_args() else Vector2i(1280, 720)
 	if not interactive:
 		root.set_flag(Window.FLAG_NO_FOCUS, true)
 		root.position = Vector2i(5000, 5000)
+	if "--menu" in OS.get_cmdline_user_args():
+		root.get_node("SceneManager").goto_scene("res://scenes/MainMenu.tscn")
+		return
 	game = load("res://scenes/Game.tscn").instantiate()
 	game.set_meta("bot_run", true)
 	root.add_child(game)
@@ -49,11 +53,13 @@ func run():
 	for id in ["ember_trail", "arcane_orbit", "earth_shield", "focus_ray", "regeneration"]:
 		manager.learn_spell(id)
 	game.style_session.score.combo = 95.0
+	game.style_session.score.grace_remaining = 3600.0
 	game.style_session.score.run_score = 12345
 	game.style_session.updated.emit()
 	await settle()
 	if interactive:
 		manager.mana_bolt_timer = 1000000.0
+		game.player.xp_to_next_level = 1000000.0
 		game.style_session.score.grace_remaining = 3600.0
 		var encounters = game.get_node("MonsterManager")
 		encounters.set_process(false)
@@ -86,6 +92,9 @@ func run():
 		if not baseline:
 			var style = game.hud.get_node("StyleHUD")
 			var inventory = game.hud.get_node("RunInventory")
+			if known_bad:
+				style.score_label.position = style.position
+				style.note.text = "100/800"
 			check(not style.score_label.get_global_rect().intersects(style.get_global_rect()), "score separated from style meter")
 			check(style.score_label.get_rect().end.y < inventory.position.y, "score does not overlap inventory")
 			check(game.hud.get_global_rect().encloses(style.get_global_rect()), "style stays within HUD")
@@ -118,7 +127,12 @@ func verify_feedback():
 	check(keys.completion_count == completion + 1 and not keys.completed_mega, "successful ordinary incantation cue")
 	check(keys.visible_caption().is_empty(), "no success toast")
 	check(style.pulse_kind == "gain", "cast award gives gain cue")
+	game.hud.get_node("RunInventory")._process(0)
+	var typing_panel = game.hud.get_node("TypingPanel")
+	var inventory = game.hud.get_node("RunInventory")
+	check(not inventory.visible or not typing_panel.get_global_rect().intersects(inventory.get_global_rect()), "completion panel does not cover inventory")
 	await capture("cast-normal")
+	await capture("combo-promotion")
 	prepare_cast("mega bolt")
 	for i in keys.letters.length():
 		check(keys.typed_letter_tint(i) != Color("ff8175"), "valid freeform MEGA not mismatch")
@@ -161,6 +175,8 @@ func verify_feedback():
 			blast.queue_free()
 	prepare_cast("bolt")
 	check(keys.completion_remaining == 0, "new typing clears prior completion")
+	await settle()
+	check(not inventory.visible or not typing_panel.get_global_rect().intersects(inventory.get_global_rect()), "active typing does not cover inventory")
 	manager.cancel_typing()
 	session.score.combo = 900
 	session.score.grace_remaining = 0
@@ -174,6 +190,7 @@ func verify_feedback():
 	game.player.overheal = 0
 	game.player.take_damage(1)
 	check(style.pulse_kind == "hit" and style.pulse_count == pulse + 1, "health loss distinct hit cue")
+	await capture("combo-hit")
 	game.player.is_invincible = true
 	game.particle_manager.reduced_effects = true
 	style.badge.scale = Vector2.ONE
@@ -185,13 +202,13 @@ func verify_feedback():
 		check(not policy.shows_status(root.get_node("DataManager").get_spell_data(id)), "no unnecessary timer: " + id)
 	for id in ["ember_trail", "arcane_orbit", "earth_shield", "regeneration", "rune_trap"]:
 		check(policy.shows_status(root.get_node("DataManager").get_spell_data(id)), "useful maintained status: " + id)
-	check(policy.shows_status({"type":"beam","recast_behavior":"extend"}), "negative control changed lifecycle changes timer policy")
+	check(policy.shows_status({"type":"beam","recast_behavior":"extend"}), "extendable lifecycle exposes useful status")
 	var status = load("res://scripts/SpellDurationStatus.gd")
 	for first in ["ground", "active"]:
 		var states = {}
 		status.add(states, "ember_trail", 6 if first == "ground" else 1, first)
 		status.add(states, "ember_trail", 1 if first == "ground" else 6, "active" if first == "ground" else "ground")
-		check(states.ember_trail.phase == "active" and states.ember_trail.seconds == 1, "mixed trail phase has honest remaining emission")
+		check(states.ember_trail.phase == "active" and states.ember_trail.seconds == 1 and states.ember_trail.count == 1, "mixed trail phase has honest remaining emission and count")
 	for id in ["ember_trail", "arcane_orbit", "earth_shield", "regeneration"]:
 		manager.cast_spell_by_type(manager.find_spell_slot(id))
 	await settle()
@@ -203,6 +220,18 @@ func verify_feedback():
 	manager.cast_spell_by_type(manager.find_spell_slot("ember_trail"))
 	reference._process(0)
 	check("+" in reference.entries.ember_trail.text, "recast extension remains observable")
+	var recipe = manager.Synergies.RECIPES.frost_sigil
+	var bonus = manager.spell_catalog.rune_trap.duplicate(true)
+	bonus.merge(recipe.overrides, true)
+	bonus.id = "frost_sigil"
+	bonus.name = recipe.name
+	bonus.display_name = recipe.incantation
+	manager.bonus_spells[7] = bonus
+	manager.acquired_spells.frost_sigil = true
+	manager.cast_spell_by_type(7)
+	await settle()
+	reference._process(0)
+	check("arming" in reference.entries.frost_sigil.text or "armed" in reference.entries.frost_sigil.text, "combination trap uses equipped recipe status")
 	pulse = style.pulse_count
 	game.player.is_invincible = false
 	game.player.take_damage(1, {"position":game.player.position + Vector2(10,0)})

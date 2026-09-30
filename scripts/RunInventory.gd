@@ -42,7 +42,8 @@ func _process(_delta):
 		var label = card.get_node("Rank")
 		label.position = Vector2(4, 20) if compact else Vector2(11, 30)
 		label.add_theme_font_size_override("font_size", 10 if compact else 12)
-	visible = not game.interface_debug and game.current_state == game.GameState.PLAYING and not (manager.is_typing and hud.size.x < 700)
+	var typing_panel = hud.get_node("TypingPanel")
+	visible = not game.interface_debug and game.current_state == game.GameState.PLAYING and not (typing_panel.visible and typing_panel.get_global_rect().intersects(get_global_rect()))
 
 func rebuild():
 	for child in get_children():
