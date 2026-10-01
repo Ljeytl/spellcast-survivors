@@ -211,18 +211,18 @@ func finish(stats: Dictionary) -> Dictionary:
 	return result
 
 func atomic_available() -> bool:
-	return not finalized and score.rank_index() >= Score.ATOMIC_RANK and score.combo >= Score.ATOMIC_COST
+	return not finalized and score.rank_index() >= Score.ATOMIC_RANK and score.atomic_charges > 0
 
 func cast_atomic() -> bool:
 	if not atomic_available() or game.current_state != game.GameState.PLAYING:
 		return false
-	score.combo -= Score.ATOMIC_COST
+	score.atomic_charges -= 1
 	special_casts += 1
 	var blast = load("res://scripts/AtomicBlast.gd").new()
 	DamageSource.stamp(blast, DamageSource.make("atomic", clock))
 	blast.configure(game)
 	game.add_child(blast)
-	style_event.emit("atomic", Score.ATOMIC_COST, false)
+	style_event.emit("atomic", 0.0, false)
 	feedback.emit("ATOMIC", true)
 	updated.emit()
 	return true

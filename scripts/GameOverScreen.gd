@@ -78,7 +78,7 @@ func display_stats(stats: Dictionary):
 	last_stats = stats.duplicate(true)
 	var style = stats.get("style", {})
 	var ranks = preload("res://scripts/StyleScore.gd").RANKS
-	style_label.text = "SCORE  %d  ·  BEST RANK  %s" % [style.get("run_score", 0), ranks[clampi(int(style.get("peak_rank", 0)), 0, 8)]]
+	style_label.text = "SCORE  %d  ·  BEST COMBO  %d  ·  BEST RANK  %s" % [style.get("run_score", 0), style.get("best_combo_score", 0), ranks[clampi(int(style.get("peak_rank", 0)), 0, 8)]]
 	if not style.get("eligible", false):
 		style_label.text += "\nPractice run · not ranked"
 	elif not style.get("saved", false):

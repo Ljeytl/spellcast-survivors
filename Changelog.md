@@ -1,3 +1,10 @@
+# Unreleased — Combo score and Atomic charges
+
+- Three style values: total score (whole run, never drops, leaderboard), combo score (banked points this combo; shown as "COMBO" under the rank bar) and the style rank bar itself. The bar's raw number is no longer shown.
+- A combo ends only when the bar is completely empty (decay to an empty F, or a hit at F). Hits above F still drop one rank and keep the combo.
+- Atomic: every 10,000 combo score earns a charge, up to 3 (placeholder numbers). Casting needs rank S or better and spends one charge; it no longer costs combo. Below S, charges are kept but cannot be used; when the combo ends, unspent charges are lost. Pips beside the bar show charges, bright when castable.
+- Results show best combo score. Not hand-played.
+
 # Unreleased — Training Grounds
 
 - New tower doorway (one step left of Woodland, violet glass) opens Training Grounds in the normal game scene.
