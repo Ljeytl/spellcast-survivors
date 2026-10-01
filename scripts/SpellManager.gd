@@ -1198,6 +1198,10 @@ func attempt_freeform_cast():
 
 func cast_freeform_spell(spell_name: String) -> bool:
 	last_cast_failure = ""
+	var ley = get_tree().get_first_node_in_group("ley_lines")
+	if ley and ley.try_word(spell_name):
+		end_typing()
+		return true
 	if spell_name == "atomic" and is_instance_valid(game_manager.style_session):
 		if not game_manager.style_session.cast_atomic():
 			last_cast_failure = "Atomic requires S rank and 10,000 combo"

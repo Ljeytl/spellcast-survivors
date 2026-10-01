@@ -1,21 +1,22 @@
 extends Node2D
-## One ley-line site in the world: a glowing circle the player stands in to start a ritual.
-## LeyLines owns the logic; this node only stores its state and draws it.
+## One ley-line site in the world. LeyLines owns the logic; this node stores the
+## site's progress and draws it.
 
-enum State { DORMANT, RITUAL, COOLING, ATTUNED }
+enum State { DORMANT, SIEGE, GUARDIAN, ATTUNED }
 
 const RADIUS = 90.0
 const COLORS = {
 	State.DORMANT: Color("b48cff"),
-	State.RITUAL: Color("e2d0ff"),
-	State.COOLING: Color("6f6a80"),
+	State.SIEGE: Color("e2d0ff"),
+	State.GUARDIAN: Color("ff8175"),
 	State.ATTUNED: Color("f7d87a"),
 }
 
 var state: int = State.DORMANT
-## A site only wakes again after the player has stepped out of it.
-var needs_exit := false
-var cooldown := 0.0
+var words: Array[String] = []
+var bound: Array[String] = []
+var wave_timer := 0.0
+var guardian: Node = null
 var dwell := 0.0
 var spin := 0.0
 
@@ -27,14 +28,14 @@ func contains(point: Vector2) -> bool:
 	return global_position.distance_to(point) <= RADIUS
 
 func _process(delta):
-	spin += delta * (2.4 if state == State.RITUAL else 0.5)
+	spin += delta * (2.4 if state == State.SIEGE else 0.5)
 	queue_redraw()
 
 func _draw():
 	var color: Color = COLORS[state]
 	var pulse = 0.5 + 0.5 * sin(spin * 2.0)
 	var fill = color
-	fill.a = 0.10 + (0.12 * pulse if state == State.DORMANT else 0.18 if state == State.RITUAL else 0.06)
+	fill.a = 0.10 + (0.12 * pulse if state == State.DORMANT else 0.18 if state == State.SIEGE else 0.06)
 	draw_circle(Vector2.ZERO, RADIUS, fill)
 	draw_arc(Vector2.ZERO, RADIUS, 0, TAU, 64, color, 3.0)
 	draw_arc(Vector2.ZERO, RADIUS * 0.72, spin, spin + TAU, 48, Color(color, 0.55), 2.0)

@@ -1,9 +1,10 @@
 # Unreleased — Ley lines (cut-down)
 
-- Three ley-line sites per normal run (none in Training), placed 1500–2200 units from the start in different directions. Violet edge arrows point to sites that are still available.
-- Stand in a site for 0.6 s to start its ritual: type three long words in a row, each against its own timer (1.5 s + 0.4 s per letter). A wrong letter resets only the current word; you cannot move while typing; no casting slowdown applies. A ring of enemies (6 + 1 per minute, max 16) is summoned when it starts.
-- Success attunes the site and grants one extra upgrade pick (the boss-chest flow). Running out of time or Escape fails it; the site cools for 10 s and only wakes again after you step out and back in.
-- All tunables are constants at the top of scripts/LeyLines.gd. Later the reward becomes a permanent spell/keyword discovery (M3 in docs/expedition-design).
+- Three ley-line sites per normal run (none in Training), 1500–2200 units from the start in different directions, each with four words. Edge arrows point to unfinished sites (violet asleep, gold awake, red guardian).
+- Standing in a site for 0.4 s wakes it. While awake, a wave arrives every 8 s (4 enemies plus one per two minutes, max 12) as long as the player is within 900 units. Walking away pauses the site; bound words are kept.
+- Words are typed only inside the circle: Space, the word, Enter (SpellManager.cast_freeform_spell hands the text to LeyLines.try_word first). A panel lists the words and marks bound ones.
+- Binding the last word stops the waves and summons the Ley Guardian (juggernaut boss, 900 HP + 100 per minute). Killing it attunes the site; it drops the normal boss rewards: one bonus chest, a health potion and three style runes.
+- Tunables are constants at the top of scripts/LeyLines.gd. Later the reward becomes a permanent spell/keyword discovery (M3 in docs/expedition-design).
 - Tests: new ley_lines_regression.
 
 # Unreleased — Property upgrades past rank 8

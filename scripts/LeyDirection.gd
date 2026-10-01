@@ -10,7 +10,7 @@ func _ready():
 func _process(_delta):
 	marks.clear()
 	var game = ley.game
-	if game.current_state == game.GameState.PLAYING and not ley.ritual_active():
+	if game.current_state == game.GameState.PLAYING:
 		var rect = Rect2(Vector2.ZERO, size)
 		for site in ley.sites:
 			if not is_instance_valid(site) or site.state == site.State.ATTUNED:
@@ -21,16 +21,15 @@ func _process(_delta):
 			var direction = screen - rect.get_center()
 			var bounds = rect.size / 2 - Vector2(44, 56)
 			var factor = minf(bounds.x / maxf(absf(direction.x), 0.01), bounds.y / maxf(absf(direction.y), 0.01))
-			marks.append({"at": rect.get_center() + direction * factor, "angle": direction.angle(), "ready": site.state == site.State.DORMANT})
+			marks.append({"at": rect.get_center() + direction * factor, "angle": direction.angle(), "color": Color("f7d87a") if site.state == site.State.SIEGE else Color("ff8175") if site.state == site.State.GUARDIAN else Color("b48cff")})
 	queue_redraw()
 
 func _draw():
 	for mark in marks:
 		draw_set_transform(mark.at, mark.angle)
-		if mark.ready:
-			draw_circle(Vector2.ZERO, 15.0, Color(0.7, 0.55, 1.0, 0.25))
+		draw_circle(Vector2.ZERO, 15.0, Color(mark.color, 0.25))
 		var shape = PackedVector2Array([Vector2(16, 0), Vector2(-10, -12), Vector2(-4, 0), Vector2(-10, 12)])
-		draw_colored_polygon(shape, Color("b48cff") if mark.ready else Color("6f6a80"))
+		draw_colored_polygon(shape, mark.color)
 		shape.append(shape[0])
 		draw_polyline(shape, Color("17101f"), 2.5)
 	draw_set_transform(Vector2.ZERO)

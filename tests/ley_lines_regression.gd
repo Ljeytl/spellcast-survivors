@@ -46,53 +46,56 @@ func run():
 	check(ley.sites.all(func(s): return s.global_position.distance_to(origin) >= ley.SITE_DISTANCE_MIN - 1.0), "Sites are placed away from the start")
 	var site = ley.sites[0]
 	var LeySite = load("res://scripts/LeySite.gd")
-	# Standing briefly in the circle starts the ritual and summons an ambush.
-	var before = game.get_tree().get_nodes_in_group("enemies").size()
+	var monsters = game.get_node("MonsterManager")
+	check(ley.sites.all(func(s): return s.words.size() == ley.WORDS_PER_SITE), "Each site has its words")
+	# Walking in wakes the site and the first wave arrives.
+	var before = monsters.monsters_alive
 	game.player.global_position = site.global_position
-	ley._process(0.2)
-	check(not ley.ritual_active(), "A brief step does not start the ritual")
-	ley._process(0.5)
-	check(ley.ritual_active() and site.state == LeySite.State.RITUAL, "Dwelling in the circle starts the ritual")
-	await process_frame
-	check(game.get_tree().get_nodes_in_group("enemies").size() > before, "The ritual summons an ambush")
-	game.player.handle_movement()
-	check(game.player.velocity == Vector2.ZERO, "The player cannot move while typing a ritual")
-	# Keys go to the ritual, not to spell casting.
-	key("1", KEY_1)
-	await process_frame
-	check(not game.spell_manager.is_typing, "Number keys do not start a spell during a ritual")
-	var word = ley.words[0]
-	type_word(word.substr(0, 3))
-	check(ley.typed == word.substr(0, 3), "Correct letters advance the word")
-	var wrong = "q" if word[3] != "q" else "z"
-	key(wrong)
-	check(ley.typed == "" and ley.word_index == 0, "A typo resets only the current word")
-	for w in ley.words.duplicate():
-		type_word(w)
-	check(site.state == LeySite.State.ATTUNED and not ley.ritual_active(), "Typing every word attunes the site")
-	await process_frame
-	check(game.current_state == game.GameState.LEVEL_UP, "Attuning grants an upgrade pick")
-	game.level_up_screen.hide()
-	game.pending_level_ups.clear()
-	game.change_state(game.GameState.PLAYING)
-	# Running out of time fails; the site cools, then needs the player to step out and back in.
-	var second = ley.sites[1]
-	game.player.global_position = second.global_position
-	ley._process(0.7)
-	check(ley.ritual_active(), "Second site starts")
-	ley._process(ley.word_time_total + 0.1)
-	check(not ley.ritual_active() and second.state == LeySite.State.COOLING, "Running out of time fails the ritual")
-	ley._process(ley.RETRY_SECONDS + 0.1)
-	ley._process(1.0)
-	check(second.state == LeySite.State.DORMANT and not ley.ritual_active(), "A cooled site does not restart while the player stays inside")
-	game.player.global_position = second.global_position + Vector2(400, 0)
 	ley._process(0.1)
-	game.player.global_position = second.global_position
-	ley._process(0.7)
-	check(ley.ritual_active(), "Stepping out and back in retries")
-	key("", KEY_ESCAPE)
-	check(not ley.ritual_active() and second.state == LeySite.State.COOLING, "Escape cancels the ritual")
-	check(game.current_state == game.GameState.PLAYING, "Escape during a ritual does not pause")
+	check(site.state == LeySite.State.DORMANT, "A brief step does not wake the site")
+	ley._process(0.4)
+	check(site.state == LeySite.State.SIEGE, "Standing in the circle wakes the site")
+	ley._process(0.01)
+	check(monsters.monsters_alive > before, "A wave arrives when the site wakes")
+	# Words bind through Space casting, only inside the circle.
+	var m = game.spell_manager
+	m.last_spell_cast_time = -100.0
+	m.space_casting = true
+	m.start_freeform_typing()
+	m.current_typing_text = site.words[0]
+	m.attempt_freeform_cast()
+	check(site.bound == [site.words[0]], "Typing a word in the circle binds it")
+	check(not m.is_typing, "Binding a word ends typing")
+	check(not ley.try_word(site.words[0]), "A bound word cannot be bound twice")
+	check(not ley.try_word("notaword"), "Other text does not bind")
+	game.player.global_position = site.global_position + Vector2(300, 0)
+	check(not ley.try_word(site.words[1]), "Words cannot be typed outside the circle")
+	# Walking far away pauses the site: progress is kept and waves stop.
+	game.player.global_position = site.global_position + Vector2(ley.ENGAGE_RADIUS + 200, 0)
+	var alive = monsters.monsters_alive
+	ley._process(ley.WAVE_INTERVAL * 3)
+	check(monsters.monsters_alive == alive, "No waves while the player is away")
+	check(site.state == LeySite.State.SIEGE and site.bound.size() == 1, "Leaving keeps the site's progress")
+	game.player.global_position = site.global_position
+	ley._process(ley.WAVE_INTERVAL + 0.1)
+	check(monsters.monsters_alive > alive, "Waves resume when the player returns")
+	# Binding every word summons the guardian.
+	for w in site.words.slice(1):
+		check(ley.try_word(w), "Binds " + w)
+	check(site.state == LeySite.State.GUARDIAN and is_instance_valid(site.guardian), "The last word summons the guardian")
+	check(site.guardian.boss and site.guardian.is_in_group("bosses"), "The guardian is a boss")
+	alive = monsters.monsters_alive
+	ley._process(ley.WAVE_INTERVAL * 2)
+	check(monsters.monsters_alive == alive, "Waves stop once the guardian rises")
+	# Killing the guardian attunes the site and drops the boss rewards.
+	site.guardian.take_damage(1.0e9, game.player.global_position)
+	for i in 30:
+		await process_frame
+	ley._process(0.1)
+	check(site.state == LeySite.State.ATTUNED, "Killing the guardian attunes the site")
+	check(get_nodes_in_group("boss_rewards").size() == 1, "The guardian drops one bonus chest")
+	check(get_nodes_in_group("style_pickups").size() >= 3, "The guardian drops combo runes")
+	check(get_nodes_in_group("health_potions").size() >= 1, "The guardian drops a health potion")
 	game.free()
 	await process_frame
 	load("res://scripts/RunMode.gd").training = true
