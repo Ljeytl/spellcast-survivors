@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 GODOT = "/Applications/Godot.app/Contents/MacOS/Godot"
 # Godot prints these at shutdown on every export; they are not build failures.
 BENIGN = [
-    re.compile(r"ERROR: \d+ resources? still in use at exit"),
-    re.compile(r"ERROR: .*(leaked|still in use|ObjectDB instances)"),
+    re.compile(r"ERROR:.*\d+ resources? still in use at exit"),
+    re.compile(r"ERROR:.*(leaked|still in use|ObjectDB instances)"),
     re.compile(r"^\s+at: "),
 ]
 
