@@ -12,6 +12,7 @@ var notice: Label
 const COPY = preload("res://scripts/UpgradeCopy.gd")
 const ART = preload("res://scripts/AuthoredInterface.gd")
 const READABILITY = preload("res://scripts/GameplayReadability.gd")
+const SUMMARY = preload("res://scripts/BuildSummary.gd")
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -83,22 +84,25 @@ func populate():
 	spell_buttons.clear()
 	var manager = game.spell_manager
 	section("Active spells · %d / 6" % manager.spells.size())
-	text_row("Type MEGA before any learned spell: +50% power and size. Example: mega bolt.", READABILITY.MUTED)
 	add_spell_rows(manager.spells)
 	section("Combination spells · no slots")
 	if manager.bonus_spells.is_empty():
 		text_row("Discover combinations as you level up.", READABILITY.MUTED)
 	else:
 		add_spell_rows(manager.bonus_spells)
+	var data = get_tree().root.get_node_or_null("DataManager")
+	section("Keywords")
+	for word in SUMMARY.KEYWORDS.DEFINITIONS:
+		text_row("%s\nType it before any learned spell or combination. Example: %s bolt." % [SUMMARY.keyword_line(word), word])
 	section("Passives · %d / 6" % game.player.passive_ranks.size())
-	var families = game.player.passive_ranks.keys()
-	families.sort()
-	for family in families:
-		text_row("%s · Rank %d" % [passive_name(family), game.player.passive_ranks[family]])
-	if families.is_empty():
+	var lines = SUMMARY.global_lines(data, game.player)
+	for line in lines:
+		text_row(line)
+	if lines.is_empty():
 		text_row("No passive upgrades yet.", READABILITY.MUTED)
 	section("Automatic attack")
-	text_row("Magic Missile · Rank %d" % manager.get_spell_rank("mana_bolt"))
+	var interval = manager.mana_bolt_cooldown / maxf(0.01, float(game.player.cast_speed_multiplier))
+	text_row("Magic Missile · Rank %d\nNow: %s damage every %.2fs" % [manager.get_spell_rank("mana_bolt"), SUMMARY.number(manager.get_mana_bolt_damage()), interval])
 
 func add_spell_rows(spells: Dictionary):
 	var slots = spells.keys()
@@ -117,7 +121,11 @@ func add_spell_rows(spells: Dictionary):
 		button.resized.connect(func(): ART.fit_words(button, button.size.x - 24))
 		spell_buttons[slot] = button
 		var description = COPY.EVOLUTIONS.get(info.id, COPY.SPELLS.get(info.id, ""))
+		var now = SUMMARY.spell_now(game.spell_manager, game.player, info)
 		text_row("Type: %s · Rank %d\n%s" % [info.display_name, game.spell_manager.get_spell_rank(info.id), description])
+		if not now.is_empty():
+			var current = text_row("Now: " + now, READABILITY.GOLD)
+			current.name = "Now_" + str(info.id)
 
 func spell_name(id: String) -> String:
 	var info = get_tree().root.get_node("DataManager").get_spell_data(id)

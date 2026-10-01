@@ -48,6 +48,17 @@ func run():
 	check(second.target == enemies[1], "Rapid cast avoids lethally reserved enemy")
 	check(not first.is_homing and not second.is_homing, "Bolt remains straight")
 	check(Targeting.select_area(self, game.player.position, 50) == enemies[1], "Area selection favors useful clustered coverage")
+	var distant = []
+	for offset in [Vector2(5000, 0), Vector2(5010, 0), Vector2(5020, 0), Vector2(5030, 0)]:
+		var far = manager.spawn_monster(manager.get_available_variants(0)[0])
+		far.position = game.player.position + offset
+		far.set_physics_process(false)
+		distant.append(far)
+	var view = game.get_viewport().get_visible_rect()
+	check(Targeting.select_area(self, game.player.position, 50) in distant, "Known-bad control: unrestricted area selection prefers the larger off-screen cluster")
+	check(Targeting.select_area(self, game.player.position, 50, INF, {}, view) == enemies[1], "Visible-only area selection ignores the off-screen cluster")
+	for far in distant:
+		far.free()
 	first.reservation_remaining = 0
 	check(Targeting.select(self, game.player.position) == enemies[0], "Expired estimate releases target")
 	first.assign_target(enemies[0])

@@ -101,7 +101,7 @@ func run():
 		manager.update_freeform_typing_display()
 		await settle()
 		check(caps.key_position(caps.letters.length() - 1).y == caps.key_position(0).y, "Long incantations stay on one line")
-		check(caps.key_position(caps.letters.length() - 1).x + caps.KEY_SIZE <= caps.size.x, "Horizontal overflow reveals the newest key")
+		check(caps.key_position(caps.letters.length() - 1).x + caps.fitted_key_size() <= caps.size.x and caps.key_position(caps.letters.length() - 1).x >= 0, "Horizontal overflow reveals the newest key")
 		check(game.get_node("UI/HUD").get_global_rect().encloses(game.get_node("UI/HUD/TypingPanel").get_global_rect()), "Typing panel stays in viewport")
 	manager.cancel_typing()
 	check(caps.letters.is_empty() and caps.fragments.is_empty(), "Cancellation clears keys and fragments")

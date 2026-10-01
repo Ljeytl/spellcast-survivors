@@ -48,7 +48,8 @@ func run():
 	var prior_damage = orbit.damage
 	manager.upgrade_spell("arcane_orbit")
 	manager.cast_spell_by_type(1)
-	check(orbit.damage > prior_damage and effects("arcane_orbit").size() == 1, "Recast applies earned rank without stacking effects")
+	# Extend recasts queue a segment with its own per-cast power (MEGA); the earned rank applies when that segment starts.
+	check(not orbit.queued_casts.is_empty() and float(orbit.queued_casts.back().damage) > prior_damage and effects("arcane_orbit").size() == 1, "Recast applies earned rank without stacking effects")
 	manager.cast_spell_by_type(2)
 	var trail = effects("ember_trail")[0]
 	trail.set_physics_process(false)
@@ -56,7 +57,7 @@ func run():
 	var patch_age = trail.trail_points[0].age
 	manager.cast_spell_by_type(2)
 	check(trail.emission_deadline == 10, "Firewalk extends laying fire by five seconds")
-	check(trail.trail_points[0].age == patch_age and trail.info.patch_duration == 6, "Existing fire age and linger stay unchanged")
+	check(trail.trail_points[0].age == patch_age and is_equal_approx(float(trail.info.patch_duration), float(manager.spell_catalog["ember_trail"].patch_duration)), "Existing fire age and linger stay unchanged")
 	trail.advance(7.5)
 	game.player.position += Vector2(40, 0)
 	trail.advance(0.1)
@@ -117,7 +118,7 @@ func run():
 	check(not Status.collect(manager).has("ember_trail"), "No ground timer after last patch expires")
 	orbit.remaining = 0
 	check(not Status.collect(manager).has("arcane_orbit"), "Expired timer removed")
-	check(preload("res://scripts/BuildVersion.gd").text() == "v0.1.36 · Playtest", "Requested version")
+	check(preload("res://scripts/BuildVersion.gd").text() == "v%s · Playtest" % ProjectSettings.get_setting("application/config/version"), "Requested version")
 	game.queue_free()
 	await process_frame
 	print("LASTING_RECASTS: %d checks, %d failures" % [checks, failures])

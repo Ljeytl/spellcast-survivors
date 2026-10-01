@@ -48,6 +48,7 @@ func block(source: Dictionary) -> bool:
 
 func release_eruption(charge: Dictionary, origin: Vector2, aim: Vector2):
 	var eruption = Eruption.new()
+	DamageSource.stamp(eruption, charge.get("damage_source", {}))
 	eruption.position = origin
 	eruption.direction = aim
 	eruption.damage = charge.damage

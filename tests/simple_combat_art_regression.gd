@@ -18,7 +18,7 @@ class Target extends Node2D:
 	var current_health = 1000.0
 	var dying = false
 	var hits = 0
-	func take_damage(amount, _from = Vector2.ZERO):
+	func take_damage(amount, _from = Vector2.ZERO, _damage_source = {}):
 		current_health = maxf(0, current_health - amount)
 		hits += 1
 
@@ -74,8 +74,9 @@ func run():
 	var plague = effect({"type": "plague", "duration": 5.0}, enemy)
 	check(plague.infection_links.size() == 1, "Seed-to-host link exists at cast")
 	var neighbor = target_at(Vector2(150, 0))
-	plague.advance(0.5)
-	check(plague.infections.size() == 2 and plague.infection_links.size() == 1, "Spread produces a real transfer link")
+	# A new host's first tick (and so its first spread) waits a full tick interval after the seed lands.
+	plague.advance(1.0)
+	check(plague.infections.size() == 1 and plague.infection_links.size() == 1 and enemy.hits == 1, "Spread produces a real transfer link")
 	plague.advance(0.4)
 	check(plague.infection_links.is_empty(), "Transfer feedback expires")
 	clear_effects()

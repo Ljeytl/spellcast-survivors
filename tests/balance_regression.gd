@@ -38,7 +38,8 @@ func run():
 		check(manager.calculate_spawn_interval() <= 3.0, "Opening never falls below initial spawn pressure at %s" % time)
 	for pair in [[0.0, 3.0], [14.9, 3.0], [15.0, 1.0], [44.9, 1.0], [45.0, 2.0], [60.0, 3.0], [70.0, 2.0], [80.0, 1.0], [110.0, 2.0], [120.0, 3.0], [135.0, 1.0], [180.0, 3.0]]:
 		manager.game_time = pair[0]
-		check(is_equal_approx(manager.calculate_spawn_interval(), pair[1]), "Opening pressure transition at %s" % pair[0])
+		check(is_equal_approx(manager.spawn_phase_interval(pair[0]), pair[1]), "Opening pressure rhythm at %s" % pair[0])
+		check(is_equal_approx(manager.calculate_spawn_interval(), pair[1] / manager.spawn_difficulty_multiplier()), "Opening pressure transition at %s" % pair[0])
 	manager.game_time = 240.0
 	check(manager.calculate_spawn_interval() < 3.0, "Next light phase is denser as difficulty rises")
 	for pair in [[300.0, 2], [600.0, 3], [900.0, 4]]:

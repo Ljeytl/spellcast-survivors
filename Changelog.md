@@ -1,3 +1,74 @@
+# Unreleased — Property upgrades past rank 8
+
+- Once every slot is filled and every equipped spell is rank 8, rank-up cards raise one of that spell's own passive properties: Spell Power, Spell Size, Spell Duration or Velocity, +10% per pick (SpellProgression.OVERFLOW_STEP), stacking. Replaces the flat +10% damage per overflow rank.
+- It is a per-spell layer on the existing passives: SpellManager.cast_stat and SpellGeometry's size/duration/power readers multiply in the casting spell's picks (identified by DamageSource.current). Anything that already scales with a passive, including healing and Earth Shield retaliation, scales with the pick.
+- Cards offered are the properties the spell has actually read while casting (SpellManager.spell_properties); a never-cast spell offers Spell Power. Counts are never offered.
+- Training bench ranks now stop at 8.
+- Tests: rank_overflow_regression rewritten for property cards.
+
+# Unreleased — Combo score and Atomic charges
+
+- Three style values: total score (whole run, never drops, leaderboard), combo score (banked points this combo; shown as "COMBO" under the rank bar) and the style rank bar itself. The bar's raw number is no longer shown.
+- A combo ends only when the bar is completely empty (decay to an empty F, or a hit at F). Hits above F still drop one rank and keep the combo.
+- Atomic: every 10,000 combo score earns a charge, up to 3 (placeholder numbers). Casting needs rank S or better and spends one charge; it no longer costs combo. Below S, charges are kept but cannot be used; when the combo ends, unspent charges are lost. Pips beside the bar show charges, bright when castable.
+- Results show best combo score. Not hand-played.
+
+# Unreleased — Training Grounds
+
+- New tower doorway (one step left of Woodland, violet glass) opens Training Grounds in the normal game scene.
+- Dummies with effectively infinite HP that deal no damage: one single target, a tight trio for area spells, and a loose cluster of ten that drifts on a figure-eight around the arena.
+- Spell bench (right side, Tab hides it): every spell and combination the Necronomicon lists is equipped at once (everything for now; filter in TrainingGrounds.available_ids() once discovery gating exists). Space casts any of them by name, 1-6 cast the first six; clicking a name switches it off; ranks 1 to 8 per spell. SpellManager.slot_limit lifts the six-slot cap only in training; the bottom spell reference is hidden there.
+- Live readout: damage per second over the last 5 s, total, and top spells; Reset damage and Return home buttons.
+- Safe by construction: no enemy spawns, chests, XP or level-ups; player cannot be hurt; the run is excluded from scores; equipping combinations does not record Necronomicon discoveries (learn_spell gains a record_discovery flag).
+- Dummies react to slows and knockback: they walk back to their spot at a speed slows cut, knockback shoves them off it, and the frozen tint shows and clears.
+- Tests: new training_grounds_regression; tower_regression updated for the open training doorway. Not hand-played.
+
+# Unreleased — Spell scaling pass, MEGA charge, Earth Shield grace, rank-8 cap
+
+Spells start smaller and weaker at rank 1 and grow to their rank-8 values. Damage per hit or tick, rank 1 → rank 8:
+
+| Spell | Damage | Size / count / time |
+|---|---|---|
+| Ice Blast | 15 → 45 per shard | 5 → 13 shards, 50° → 90° cone, reach 250 → 400 |
+| Lightning | 60 → 180 | radius 100 → 160 |
+| Meteor Shower | 30 per meteor (flat) | radius 75 → 145 (r3) → 215 (r6) → 280 (r8); 3 → 10 meteors |
+| Ember Lance | 45, +15% per rank | unchanged |
+| Rune Trap | 45, +15% per rank | blast 90 → 130, trigger 50 → 70 |
+| Cross Blade | 15 outbound, 30 on return (flat) | 1 → 6 blades, blade radius 20 → 40, travel 350 → 460; volley aims at the nearest enemy |
+| Fire Walk | 12 → 36 per tick | trail radius 25 → 65 |
+| Cinder Field | 12 → 36 per tick | radius 100 → 150 |
+| Arcane Orbit | 20 → 60 per hit | 2 → 4 orbs, orbit radius 100 → 130 |
+| Focus Ray | 9 → 27 per tick | 2 → 3 beams |
+| Plague Seed | 4 → 12 per tick | infected 3 → 5 s; jump range 60 → 130; spread speed 300 → 460; ground spores 1.5 → 3 s; spread still unlimited |
+| Seeker | 15 → 45 per hit | hits each enemy at most once per second; speed 220; lasts 8 → 10 s; 2 → 3 spirits |
+
+- Earth Shield, Magic Missile, Life and Regeneration unchanged. Combinations unchanged except Soul Bloom and Steam Field now follow Plague Seed's and Cinder Field's damage curves; combinations inherit full ingredient sizes.
+- Rank cap: spells stop at rank 8 until every spell slot (MAX_EQUIPPED_SPELLS) is filled and every equipped spell is rank 8. Past that, each extra rank adds +10% of rank-8 damage; sizes and counts stop at rank 8.
+- MEGA: charge 0.12 s → 0.35 s, charge and release sounds, roughly 3× the charge particles plus an orbiting halo, larger release burst and ring.
+- Earth Shield: a blocked hit grants 0.25 s of invulnerability, so one crowd contact cannot strip every charge. Blocked hits still cost no combo.
+- New rank_growth support for integer counts and damage; SpellProgression.resolve is idempotent; upgrade cards describe per-rank damage and size growth.
+- Tests: suites asserting old tuning values updated to the new numbers or pinned to fixed fixture values where they test behaviour; new rank_overflow_regression. 71-suite headless comparison against e7875b1: no new failing checks. Not hand-played.
+
+# Unreleased — Spell tuning, damage attribution and kill combo
+
+- Fire Walk: renamed from Firewalk, cast as "fire walk" only. Trail radius starts at 32.5 and grows to 65 by rank 8. New ember inventory icon.
+- Meteor Shower: impact radius 110 / 195 / 280 (was 220 / 250 / 280); meteors 3 at rank 1, +1 every rank to 10 (was 2,3,3,4,5,5,6,8).
+- Plague Seed: jump range 100, spread speed 345 and ground-spore time 1.5 s at rank 1, growing to 130 / 460 / 3 s by rank 8. Uses a new capped per-rank growth field in SpellProgression.
+- Cinder Field, Steam Field and Lightning only centre on enemies that are on screen.
+- Combinations are offered only once both ingredients reach rank 8.
+- Screen shake on kill is boss-only. Bosses drop three style runes.
+- Damage attribution (scripts/DamageSource.gd): every hit records its spell and cast time. Kills bank score equal to enemy XP × rank multiplier; combo gets the same XP at full value for 5 s after the cast, halving every 5 s after. Magic Missile and Atomic kills give score only. Kills never refresh combo grace.
+- End-of-run screen shows damage by spell with share of total; ending panel is taller.
+- Tests updated for the new radii, counts, rank-8 combinations and wrapped timers; new checks for kill combo, cast-age decay, Missile score-only, damage-by-spell and off-screen area targeting. 70-suite headless comparison against 9ae31a8: no new failing checks. Not hand-played.
+
+# Unreleased — HUD readability, MEGA archive entry and current-build page (checklist 5–7)
+
+- SEP30-10/11/12: passives read as words with totals ("Spell Power +20%") instead of two-letter glyphs; narrow windows use short names. HP bar is 34 px tall (was 15) and the XP bar 12 px (was 6); the XP label reads "Level N · XP current / needed". Windows shorter than 560 px keep the old compact bars.
+- SEP30-17: Necronomicon opens with a KEYWORDS section documenting MEGA, read from KeywordRules so the numbers cannot drift.
+- SEP30-18: the run spellbook shows each owned spell's current numbers ("Now: 62.4 damage"), passive totals with what they affect, the live keyword, and Magic Missile's current damage and interval. No new menu. Shared logic lives in scripts/BuildSummary.gd.
+- Tests: update four suites that hardcoded the 3.0 s slowdown or 4 contact damage to the committed 1.5 s and doubled damage; add archive, spellbook and passive-chip checks. Against the previous commit, 70 headless suites show no new failing check names. playtest_ux "Reference clears inventory" already failed for the 16-card boss fixture at 640×480 and 480×640 and now reports 11 intersections instead of 7.
+- Rendered captures under builds/claude-shots/. Uncommitted; no version bump or export.
+
 # 0.2.0 — Approved local tuning integration
 
 - Commit the existing local tuning: double base damage for all twelve enemy variants and reduce the fresh per-cast slowdown duration from 3.0 to 1.5 seconds.

@@ -127,6 +127,10 @@ func _ready():
 	var xp_consolidation = preload("res://scripts/XPConsolidation.gd").new()
 	xp_consolidation.name = "XPConsolidation"
 	add_child(xp_consolidation)
+	if preload("res://scripts/RunMode.gd").training:
+		var training = preload("res://scripts/TrainingGrounds.gd").new()
+		training.game = self
+		add_child(training)
 	
 
 # Master setup function that initializes all game systems
@@ -593,7 +597,7 @@ func _on_player_xp_changed(current_xp: float, xp_needed: float):
 	
 	# Update XP text label
 	if xp_label:
-		xp_label.text = "Level %d · XP %d/%d" % [player.level, int(current_xp), int(xp_needed)] if interface_debug else "Level %d" % player.level
+		xp_label.text = "Level %d · XP %d/%d" % [player.level, int(current_xp), int(xp_needed)] if interface_debug else "Level %d · XP %d / %d" % [player.level, int(current_xp), int(xp_needed)]
 
 func update_xp_bar_effects(xp_percent: float):
 	var xp_bar_fill = get_or_create_progress_bar_style(xp_bar)
@@ -808,7 +812,10 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 	if effect.get("type") == "spell_upgrade":
 		if spell_manager and spell_manager.has_method("upgrade_spell"):
 			var spell_name = effect.get("spell", "")
+			var rank_before = spell_manager.get_spell_rank(spell_name)
 			spell_manager.upgrade_spell(spell_name)
+			if effect.has("stat") and spell_manager.get_spell_rank(spell_name) > rank_before:
+				preload("res://scripts/SpellProgression.gd").add_overflow(spell_manager.get_spell_info(spell_manager.find_spell_slot(spell_name)), str(effect.stat))
 	
 	if effect.get("type") == "learn_spell":
 		if not spell_manager.learn_spell(effect.get("spell", "")):
@@ -819,8 +826,10 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 		var slot = spell_manager.find_spell_slot(effect.get("spell", ""))
 		if slot > 0:
 			var learned = spell_manager.get_spell_info(slot)
-			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)
+			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)  # training slots past 6 cast with Space
 			acknowledgement = learned.name + " learned · Press %s, then type %s" % [cast_hint, learned.display_name]
+	elif effect.get("type") == "spell_upgrade" and effect.has("stat"):
+		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (now")[0]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
 	else:
@@ -900,10 +909,12 @@ func setup_particle_manager():
 	add_child(particle_manager)
 
 # Particle effect functions
-func create_enemy_death_effect(position: Vector2):
+## Ordinary kills happen constantly in a horde; only a boss death shakes the camera.
+func create_enemy_death_effect(position: Vector2, boss: bool = false):
 	if particle_manager:
 		particle_manager.create_enemy_death_effect(position)
-		shake_medium()
+		if boss:
+			shake_medium()
 
 func create_spell_cast_effect(position: Vector2):
 	if particle_manager:

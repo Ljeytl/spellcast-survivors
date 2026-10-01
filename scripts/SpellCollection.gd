@@ -7,9 +7,11 @@ const ART = preload("res://scripts/AuthoredInterface.gd")
 const READABILITY = preload("res://scripts/GameplayReadability.gd")
 const PREVIEW = preload("res://scripts/SpellBookPreview.gd")
 const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
+const KEYWORDS = preload("res://scripts/KeywordRules.gd")
 
 var entries: VBoxContainer
 var catalog_ids: Array[String] = []
+var keyword_ids: Array[String] = []
 var back: Button
 
 func _ready():
@@ -34,7 +36,7 @@ func _ready():
 	ART.apply_heading(title, 36)
 	column.add_child(title)
 	var summary = Label.new()
-	summary.text = "All spells & combinations. Learn spells during a run to cast them."
+	summary.text = "All keywords, spells & combinations. Learn spells during a run to cast them."
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	summary.add_theme_font_size_override("font_size", 20)
 	column.add_child(summary)
@@ -61,6 +63,14 @@ func _ready():
 	update_typography.call_deferred()
 
 func populate():
+	add_heading("KEYWORDS")
+	for word in KEYWORDS.DEFINITIONS:
+		var rule = KEYWORDS.DEFINITIONS[word]
+		keyword_ids.append(word)
+		add_entry("keyword_" + word, word.to_upper(), "%s + spell name, for example %s bolt" % [word, word],
+			"Say it before any spell or combination you have learned: +%d%% Spell Power and +%d%% Spell Size for that cast." % [int(round((float(rule.power) - 1.0) * 100.0)), int(round((float(rule.size) - 1.0) * 100.0))],
+			"Keyword · always available · no slot\nWorks with numbered and Space casting. Not accepted by Magic Missile or Atomic.", false)
+	add_heading("SPELLS & COMBINATIONS")
 	for id in load("res://scripts/SpellManager.gd").BASE_SPELL_IDS:
 		var data = get_tree().root.get_node("DataManager").get_spell_data(id)
 		add_entry(id, data.name, data.get("incantation", id.replace("_", " ")), COPY.SPELLS.get(id, ""), "Starting spell" if id == "bolt" else "Learn during a run")
@@ -74,10 +84,19 @@ func populate():
 		for ingredient in recipe.ingredients:
 			ingredients.append(ingredient_name(ingredient))
 		var status = "Discovered" if id in discoveries else "Undiscovered"
-		add_entry(id, recipe.name, recipe.incantation, COPY.EVOLUTIONS.get(id, ""), "%s · Bonus spell · no active slot\n%s\nLearn both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
+		add_entry(id, recipe.name, recipe.incantation, COPY.EVOLUTIONS.get(id, ""), "%s · Bonus spell · no active slot\n%s\nReach rank 8 in both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
 
-func add_entry(id: String, spell_name: String, incantation: String, description: String, status: String):
-	catalog_ids.append(id)
+func add_heading(text: String):
+	var label = Label.new()
+	label.name = "Heading_" + text.to_lower().replace(" ", "_").replace("&", "and")
+	label.text = text
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", READABILITY.GOLD)
+	entries.add_child(label)
+
+func add_entry(id: String, spell_name: String, incantation: String, description: String, status: String, spell: bool = true):
+	if spell:
+		catalog_ids.append(id)
 	var card = PanelContainer.new()
 	card.name = "Entry_" + id
 	card.add_theme_stylebox_override("panel", READABILITY.panel_style(READABILITY.GOLD))

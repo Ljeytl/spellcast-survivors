@@ -6,13 +6,21 @@ const THRESHOLDS := [0.0, 100.0, 300.0, 700.0, 1300.0, 2100.0, 3100.0, 4300.0, 5
 const MULTIPLIERS := [1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0]
 const DECAY := [5.0, 8.0, 12.0, 18.0, 25.0, 35.0, 50.0, 65.0, 80.0]
 const CAP := 12000.0
-const ATOMIC_COST := 10000.0
+## Atomic: every ATOMIC_COMBO_PER_CHARGE combo score earns a charge (max ATOMIC_MAX_CHARGES).
+## Casting needs rank S or better and spends one charge. Charges are lost when the combo ends.
+const ATOMIC_COMBO_PER_CHARGE := 10000
+const ATOMIC_MAX_CHARGES := 3
 const ATOMIC_RANK := 6
 const GRACE := 5.0
 const PICKUP_POINTS := 200
 
 var combo := 0.0
 var run_score := 0
+## Banked points earned during the current combo; resets when the bar empties completely.
+var combo_score := 0
+var best_combo_score := 0
+var atomic_charges := 0
+var next_charge_at := ATOMIC_COMBO_PER_CHARGE
 var peak_rank := 0
 var peak_combo := 0.0
 var manual_casts := 0
@@ -54,6 +62,7 @@ func advance(seconds: float) -> void:
 		else:
 			combo -= remaining * DECAY[index]
 			remaining = 0.0
+	end_combo_if_empty()
 
 func award_cast(family: String, canonical: String, elapsed: float, mistakes: int, receipt: int) -> Dictionary:
 	if family.is_empty() or receipts.has(receipt) or not is_finite(elapsed) or elapsed < 0.0 or mistakes < 0:
@@ -80,7 +89,7 @@ func award_cast(family: String, canonical: String, elapsed: float, mistakes: int
 	var old_rank := rank_index()
 	combo = minf(CAP, combo + points)
 	var banked := int(floor(points * multiplier() + 0.5))
-	run_score += banked
+	bank(banked)
 	manual_casts += 1
 	if mistakes == 0:
 		clean_casts += 1
@@ -93,18 +102,49 @@ func award_pickup() -> Dictionary:
 	var before := rank_index()
 	var banked := int(round(PICKUP_POINTS * multiplier()))
 	combo = minf(CAP, combo + PICKUP_POINTS)
-	run_score += banked
+	bank(banked)
 	peak_rank = maxi(peak_rank, rank_index())
 	peak_combo = maxf(peak_combo, combo)
 	return {"points": PICKUP_POINTS, "banked": banked, "old_rank": before, "rank": rank_index()}
+
+## Kills bank score at full value and add combo scaled by combo_factor (cast age, 0 for
+## Magic Missile/Atomic). They never refresh decay grace. Points are the enemy's XP value.
+func award_kill(points: float, combo_factor: float = 1.0) -> Dictionary:
+	if not is_finite(points) or points <= 0.0:
+		return {}
+	var before := rank_index()
+	var banked := int(round(points * multiplier()))
+	combo = minf(CAP, combo + points * clampf(combo_factor, 0.0, 1.0))
+	bank(banked)
+	peak_rank = maxi(peak_rank, rank_index())
+	peak_combo = maxf(peak_combo, combo)
+	return {"points": points, "banked": banked, "old_rank": before, "rank": rank_index()}
+
+## Adds banked points to total score and to the current combo, earning Atomic charges.
+func bank(points: int) -> void:
+	run_score += points
+	combo_score += points
+	best_combo_score = maxi(best_combo_score, combo_score)
+	while combo_score >= next_charge_at:
+		next_charge_at += ATOMIC_COMBO_PER_CHARGE
+		atomic_charges = mini(ATOMIC_MAX_CHARGES, atomic_charges + 1)
+
+## The combo ends only when the bar is completely empty: combo score and unspent charges go with it.
+func end_combo_if_empty() -> void:
+	if combo > 0.0 or combo_score == 0:
+		return
+	combo_score = 0
+	atomic_charges = 0
+	next_charge_at = ATOMIC_COMBO_PER_CHARGE
 
 func take_hit() -> void:
 	var index := rank_index()
 	if index == 0:
 		combo = 0.0
+		end_combo_if_empty()
 		return
 	var fraction := minf(progress(), 0.999999)
 	combo = THRESHOLDS[index - 1] + fraction * (THRESHOLDS[index] - THRESHOLDS[index - 1])
 
 func summary() -> Dictionary:
-	return {"scoring_version": VERSION, "run_score": run_score, "peak_rank": peak_rank, "peak_combo": peak_combo, "manual_casts": manual_casts, "clean_casts": clean_casts, "final_combo": combo}
+	return {"scoring_version": VERSION, "run_score": run_score, "best_combo_score": best_combo_score, "peak_rank": peak_rank, "peak_combo": peak_combo, "manual_casts": manual_casts, "clean_casts": clean_casts, "final_combo": combo}

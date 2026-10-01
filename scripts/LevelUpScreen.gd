@@ -177,9 +177,20 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		if spell_name == "mana_bolt":
 			continue
 		var slot = manager.find_spell_slot(spell_name)
-		if not preload("res://scripts/SpellProgression.gd").can_upgrade(manager.get_spell_info(slot)):
+		if not manager.can_rank_up(spell_name):
 			continue
 		var title = "Magic Missile" if spell_name == "mana_bolt" else manager.get_spell_info(slot).name
+		var Progression = preload("res://scripts/SpellProgression.gd")
+		if manager.get_spell_rank(spell_name) >= Progression.RANK_CAP:
+			# Past rank 8 every card raises one property of the spell by a percentage.
+			var picks = manager.get_spell_info(slot).get("overflow", {})
+			for stat in manager.spell_properties(spell_name):
+				var step = int(Progression.OVERFLOW_STEP * 100)
+				var now = step * int(picks.get(stat, 0))
+				all_upgrades.append({"key": "rank:%s:%s" % [spell_name, stat], "name": "%s · %s" % [title, Progression.OVERFLOW_NAMES[stat]], "icon": "⭐",
+					"description": "+%d%% %s for this spell (now +%d%%)" % [step, Progression.OVERFLOW_NAMES[stat], now],
+					"effect": {"type": "spell_upgrade", "spell": spell_name, "stat": stat}})
+			continue
 		all_upgrades.append({"key": "rank:" + spell_name, "name": title + "+", "icon": "⭐",
 			"description": manager.get_rank_upgrade_description(spell_name),
 			"effect": {"type": "spell_upgrade", "spell": spell_name}})
@@ -217,7 +228,9 @@ func ensure_optional_evolutions(options: Array, locked: Array = []):
 	var preferred: Array = []
 	for card in options:
 		preferred.append("rank:" + preload("res://scripts/SynergyCatalog.gd").RECIPES[card.effect.spell].ingredients[0])
-	alternatives.sort_custom(func(a, b): return get_upgrade_key(a) in preferred and get_upgrade_key(b) not in preferred)
+	# Past rank 8 rank keys carry a property ("rank:bolt:power"), so match the spell part.
+	var prefers = func(card): return get_upgrade_key(card).get_slice(":", 0) + ":" + get_upgrade_key(card).get_slice(":", 1) in preferred
+	alternatives.sort_custom(func(a, b): return prefers.call(a) and not prefers.call(b))
 	for i in range(options.size() - 1, -1, -1):
 		if i not in locked:
 			options[i] = alternatives[0]
@@ -272,7 +285,7 @@ func update_upgrade_button(button: Button, upgrade: Dictionary):
 	var game = get_tree().get_first_node_in_group("game")
 	var debug = game != null and game.interface_debug
 	var title_line = category if debug else ""
-	if not debug:
+	if not debug and not effect.has("stat"):
 		description = preload("res://scripts/UpgradeCopy.gd").description(upgrade, game.spell_manager)
 	button.text = ""
 	var copy = button.get_node_or_null("CardText") as Label

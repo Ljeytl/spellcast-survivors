@@ -53,7 +53,8 @@ func run():
 		check(not hud.get_node("StatsPanel").get_global_rect().intersects(hud.get_node("TimerPanel").get_global_rect()), "Health and clock never overlap")
 		game.update_typing_display("CAST · meteor shower\nmeteor shx\nMismatch · Backspace to correct")
 		await settle()
-		check(hud.get_node("TypingPanel").position.y + hud.get_node("TypingPanel").size.y <= hud.size.y * 0.5 - 39 or hud.get_node("TypingPanel").position.y >= hud.size.y * 0.5 + 35, "Casting clears player projection at screen center")
+		# Compact lower-center strip (cc78728) must clear the same wizard-body rect casting_feel_regression uses.
+		check(not hud.get_node("TypingPanel").get_rect().intersects(Rect2(hud.size / 2 - Vector2(30, 50), Vector2(60, 100))), "Casting clears player projection at screen center")
 		check(contains(hud, hud.get_node("TypingPanel")), "Casting prompt stays in viewport")
 		check(contains(hud.get_node("TypingPanel"), game.typing_label.get_parent()), "Casting scroll area contained")
 		check(not hud.get_node("SpellSlotsPanel").visible or not hud.get_node("TypingPanel").get_global_rect().intersects(hud.get_node("SpellSlotsPanel").get_global_rect()), "Casting does not cover spell slots")
@@ -94,9 +95,8 @@ func run():
 	manager.attempt_freeform_cast()
 	await settle()
 	check(game.typing_label.get_minimum_size().y <= typing_area.size.y, "Rejected cast retains visible input at 540px")
-	game.typing_label.text = "CAST · bolt\nb\nKeep typing · Esc cancels"
-	await settle()
-	check(game.typing_label.get_minimum_size().y > typing_area.size.y, "Known-bad old three-line prompt fails visible-input budget at 540px")
+	# Retired: "Known-bad old three-line prompt" control. Typing text is now drawn as keycaps (TypingKeycaps) and the
+	# label is a hidden 1px carrier, so label line count no longer models visible-input height.
 	manager.cancel_typing()
 	root.size = Vector2i(1280, 720)
 	ui.layout()

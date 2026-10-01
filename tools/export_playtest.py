@@ -1,4 +1,5 @@
 import argparse
+import re
 import hashlib
 import json
 import shutil
@@ -8,17 +9,34 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GODOT = "/Applications/Godot.app/Contents/MacOS/Godot"
+# Godot prints these at shutdown on every export; they are not build failures.
+BENIGN = [
+    re.compile(r"ERROR:.*\d+ resources? still in use at exit"),
+    re.compile(r"ERROR:.*(leaked|still in use|ObjectDB instances)"),
+    re.compile(r"^\s+at: "),
+]
 
 
 def run(command, log):
     with log.open("w") as stream:
         subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, check=True)
-    output = log.read_text()
-    if "SCRIPT ERROR" in output or "ERROR:" in output:
-        raise RuntimeError(f"Build reported errors; inspect {log}")
+    lines = log.read_text().splitlines()
+    errors = []
+    for index, line in enumerate(lines):
+        if "SCRIPT ERROR" in line:
+            errors.append(line)
+        elif "ERROR:" in line and not any(p.search(line) for p in BENIGN):
+            errors.append(line)
+    if errors:
+        raise RuntimeError(f"Build reported errors; inspect {log}:\n" + "\n".join(errors[:10]))
+
+
+ALLOW_DIRTY = False
 
 
 def clean_source():
+    if ALLOW_DIRTY:
+        return
     state = subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=all"], cwd=ROOT, text=True)
     if state.strip():
         raise RuntimeError("Export requires a clean dedicated checkout; commit source changes first.")
@@ -27,7 +45,10 @@ def clean_source():
 def build(godot):
     clean_source()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    output = ROOT / "builds" / ("playtest-" + revision[:7] + "-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"))
+    dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip())
+    version = re.search(r'^config/version="(.*)"$', (ROOT / "project.godot").read_text(), re.MULTILINE)
+    label = (version.group(1) if version else revision[:7]) + ("-dirty" if dirty else "")
+    output = ROOT / "builds" / ("playtest-" + label + "-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"))
     output.mkdir(parents=True, exist_ok=False)
     logs = output / "logs"
     logs.mkdir()
@@ -45,7 +66,7 @@ def build(godot):
         raise RuntimeError("Expected exactly one Mac application")
     subprocess.run(["codesign", "--verify", "--deep", "--strict", str(apps[0])], check=True)
     readme = f"""SPELLCAST SURVIVORS / TYPECAST — PLAYTEST
-Build: {revision[:7]}
+Build: {label} ({revision[:7]})
 
 Windows: Extract the entire ZIP, then open SpellCast Survivors.exe.
 Keep the EXE and PCK game-data file together. Godot is not required.
@@ -69,14 +90,14 @@ screenshot/video if possible. Saves and settings stay on your own computer.
         (folder / "README.txt").write_text(readme)
         shutil.copy2(ROOT / "audio/tactile/CREDITS.md", folder / "SOUND-CREDITS.txt")
     (mac / "Applications").symlink_to("/Applications", target_is_directory=True)
-    win_zip = Path(shutil.make_archive(str(output / "SpellCast-Survivors-Windows"), "zip", windows.parent))
-    dmg = output / "SpellCast-Survivors-Mac.dmg"
+    win_zip = Path(shutil.make_archive(str(output / ("SpellCast-Survivors-" + label + "-Windows")), "zip", windows.parent))
+    dmg = output / ("SpellCast-Survivors-" + label + "-Mac.dmg")
     run(["hdiutil", "create", "-volname", "SpellCast Playtest", "-srcfolder", str(mac), "-ov", "-format", "UDZO", str(dmg)], logs / "dmg.log")
     clean_source()
     if subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() != revision:
         raise RuntimeError("Source revision changed during export")
     files = [{"name": p.name, "bytes": p.stat().st_size, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in [win_zip, dmg]]
-    manifest = {"source_revision": revision, "artifacts": files, "windows": "x86_64; exported, requires Windows launch verification", "mac": "universal Intel/Apple Silicon; ad-hoc signed, not notarized", "runtime_verification": "pending"}
+    manifest = {"source_revision": revision, "uncommitted_changes": dirty, "artifacts": files, "windows": "x86_64; exported, requires Windows launch verification", "mac": "universal Intel/Apple Silicon; ad-hoc signed, not notarized", "runtime_verification": "pending"}
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2))
     print(output)
 
@@ -84,4 +105,7 @@ screenshot/video if possible. Saves and settings stay on your own computer.
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--godot", default=GODOT)
-    build(parser.parse_args().godot)
+    parser.add_argument("--allow-dirty", action="store_true", help="Build with uncommitted changes; the build ID gets a -dirty suffix")
+    args = parser.parse_args()
+    ALLOW_DIRTY = args.allow_dirty
+    build(args.godot)

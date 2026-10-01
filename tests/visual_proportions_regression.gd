@@ -60,7 +60,7 @@ func run():
 	check(xp.particle_size < hit.particle_size and hit.particle_size <= death.particle_size and death.particle_size < boss_death.particle_size, "Effect importance has readable size hierarchy")
 	check(xp.radius == 12 and xp.duration == 0.25, "XP sparkle remains restrained")
 	check(hit.get_child_count() == 0 and death.get_child_count() == 0, "Cosmetic bursts have no collision nodes")
-	check(game.camera.zoom == Vector2.ONE * 1.5 and game.player.get_node("Sprite2D").scale == Vector2.ONE * 2, "Reviewed camera and wizard proportions")
+	check(game.camera.zoom == Vector2.ONE * preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM and is_equal_approx(preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM, 1.3875) and game.player.get_node("Sprite2D").scale == Vector2.ONE * 2, "Reviewed camera and wizard proportions")
 	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(64,64), "Player navigation shape preserved")
 	game.queue_free()
 	await process_frame

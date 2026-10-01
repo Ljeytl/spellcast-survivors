@@ -18,6 +18,7 @@ var keyboard_armed_at = 0
 var last_stats: Dictionary = {}
 var style_label: Label
 var defeat_label: Label
+var damage_label: Label
 
 func _ready():
 	preload("res://scripts/BuildVersion.gd").attach(self)
@@ -77,7 +78,7 @@ func display_stats(stats: Dictionary):
 	last_stats = stats.duplicate(true)
 	var style = stats.get("style", {})
 	var ranks = preload("res://scripts/StyleScore.gd").RANKS
-	style_label.text = "SCORE  %d  ·  BEST RANK  %s" % [style.get("run_score", 0), ranks[clampi(int(style.get("peak_rank", 0)), 0, 8)]]
+	style_label.text = "SCORE  %d  ·  BEST COMBO  %d  ·  BEST RANK  %s" % [style.get("run_score", 0), style.get("best_combo_score", 0), ranks[clampi(int(style.get("peak_rank", 0)), 0, 8)]]
 	if not style.get("eligible", false):
 		style_label.text += "\nPractice run · not ranked"
 	elif not style.get("saved", false):
@@ -94,6 +95,8 @@ func display_stats(stats: Dictionary):
 	kit_label.text = "FINAL SPELL KIT\n" + "\n".join(stats.get("final_kit", [])) + "\nAutomatic Magic Missile · Rank %d" % stats.get("mana_bolt_rank", 1)
 	var discoveries = stats.get("discoveries", [])
 	discovery_label.visible = debug or not discoveries.is_empty()
+	damage_label.text = damage_summary(style.get("damage_by_spell", {}))
+	damage_label.visible = not damage_label.text.is_empty()
 	discovery_label.text = "NEW DISCOVERIES\n" + (", ".join(discoveries) if not discoveries.is_empty() else "No new evolutions discovered this run.")
 	# Format survival time
 	var total_seconds = stats.get("survival_time", 0.0)
@@ -146,12 +149,33 @@ func setup_run_summary():
 	kit_label.name = "FinalKit"
 	discovery_label = Label.new()
 	discovery_label.name = "Discoveries"
-	for label in [style_label, defeat_label, kit_label, discovery_label]:
+	damage_label = Label.new()
+	damage_label.name = "DamageBySpell"
+	for label in [style_label, damage_label, defeat_label, kit_label, discovery_label]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 18)
 		label.add_theme_color_override("font_color", Color("eee8d8"))
 		summary.add_child(label)
 	content.add_theme_constant_override("separation", 12)
+
+## "DAMAGE BY SPELL" block, largest first, with share of total damage dealt.
+func damage_summary(totals: Dictionary) -> String:
+	var total = 0.0
+	for value in totals.values():
+		total += float(value)
+	if total <= 0.0:
+		return ""
+	var ids = totals.keys()
+	ids.sort_custom(func(a, b): return float(totals[a]) > float(totals[b]))
+	var data = get_tree().root.get_node_or_null("DataManager")
+	var lines: Array[String] = ["DAMAGE BY SPELL"]
+	for id in ids:
+		var name = {"mana_bolt": "Magic Missile", "atomic": "Atomic", "other": "Other"}.get(id, "")
+		if name.is_empty():
+			var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
+			name = str(recipes[id].name) if recipes.has(id) else str(data.get_spell_data(id).get("name", id)) if data else str(id)
+		lines.append("%s  %d  (%d%%)" % [name, int(round(float(totals[id]))), int(round(100.0 * float(totals[id]) / total))])
+	return "\n".join(lines)
 
 func describe_final_hit(context: Dictionary) -> String:
 	var cause = "Damage source not recorded"

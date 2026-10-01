@@ -1,5 +1,8 @@
 extends Node2D
 
+func _init():
+	DamageSource.stamp(self)
+
 var queued_casts: Array = []
 var current_cast_remaining = -1.0
 var info: Dictionary
@@ -23,6 +26,7 @@ var resting_spores: Array = []
 var infection_duration = 5.0
 var hosts_started = 0
 const SPORE_LINGER = 3.0
+const RESTING_SPREAD_MULTIPLIER = 1.3
 const HOST_LIMIT = 8
 const ENFORCE_HOST_LIMIT = false
 const Geometry = preload("res://scripts/SpellGeometry.gd")
@@ -122,6 +126,7 @@ func advance(delta: float):
 				deal_damage(enemy, damage)
 				if info.get("explosive", false):
 					var blast = preload("res://scripts/LingeringArea.gd").new()
+					DamageSource.stamp(blast, DamageSource.of(self))
 					blast.configure(enemy.global_position, float(info.get("explosion_radius", 90.0 * float(info.spell_size_multiplier))), float(info.get("explosion_damage", damage * 0.5)), float(info.get("explosion_duration", 0.2 * float(info.spell_duration_multiplier))), Color("ee6257"), "meteor", {enemy.get_instance_id(): true})
 					get_parent().add_child(blast)
 	else:
@@ -164,7 +169,7 @@ func deal_damage(enemy, amount: float) -> float:
 	if not valid_target(enemy):
 		return 0.0
 	var before = float(enemy.current_health)
-	enemy.take_damage(amount, global_position)
+	enemy.take_damage(amount, global_position, DamageSource.of(self))
 	var lost = maxf(0.0, before - float(enemy.current_health))
 	var player = caster.get_ref()
 	if is_instance_valid(player) and info.get("lifesteal", 0.0) > 0.0 and lost > 0.0:
@@ -197,8 +202,16 @@ func show_area(center: Vector2, radius: float, tint: Color):
 	get_parent().add_child(effect)
 	effect.global_position = center
 
+## Reach of each infection jump; Plague Seed starts shorter and grows with rank.
+func spread_radius() -> float:
+	return float(info.get("spread_radius", 130.0)) * float(info.spell_size_multiplier)
+
+## A spore left on the ground after a kill reaches this much farther than a live jump.
+func resting_spread_radius() -> float:
+	return spread_radius() * float(info.get("resting_spread_multiplier", RESTING_SPREAD_MULTIPLIER))
+
 func spore_lifetime() -> float:
-	return float(info.get("orphan_lifetime", SPORE_LINGER * float(info.get("spell_duration_multiplier", 1.0))))
+	return float(info.get("orphan_lifetime", float(info.get("spore_linger", SPORE_LINGER)) * float(info.get("spell_duration_multiplier", 1.0))))
 
 func infect(enemy, source: Vector2 = Vector2.INF, search_range: float = 130.0, expires: float = -1.0):
 	if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()) or (ENFORCE_HOST_LIMIT and hosts_started + infection_links.size() >= HOST_LIMIT):
@@ -250,10 +263,10 @@ func advance_spores(delta: float):
 		if elapsed_time >= spore.expires:
 			resting_spores.erase(spore)
 			continue
-		var host = nearest_host(spore.position, 130.0 * float(info.spell_size_multiplier))
+		var host = nearest_host(spore.position, resting_spread_radius())
 		if host:
 			resting_spores.erase(spore)
-			infect(host, spore.position, 130.0 * float(info.spell_size_multiplier), elapsed_time + spore_lifetime() if spore.fresh else spore.expires)
+			infect(host, spore.position, resting_spread_radius(), elapsed_time + spore_lifetime() if spore.fresh else spore.expires)
 	for link in infection_links.duplicate():
 		if elapsed_time >= link.expires:
 			infection_links.erase(link)
@@ -267,7 +280,7 @@ func advance_spores(delta: float):
 			else:
 				rest_spore(link.position, link.expires)
 			continue
-		link.position = link.position.move_toward(enemy.global_position, 460.0 * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
+		link.position = link.position.move_toward(enemy.global_position, float(info.get("spread_speed", 460.0)) * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
 		if link.position.distance_to(enemy.global_position) <= 0.001:
 			hosts_started += 1
 			infections.append(weakref(enemy))
@@ -311,9 +324,9 @@ func _on_infected_host_died(enemy):
 func spread_from(center: Vector2) -> bool:
 	if ENFORCE_HOST_LIMIT and hosts_started >= HOST_LIMIT:
 		return false
-	var other = nearest_host(center, 130.0 * float(info.spell_size_multiplier))
+	var other = nearest_host(center, spread_radius())
 	if other:
-		infect(other, center, 130.0 * float(info.spell_size_multiplier))
+		infect(other, center, spread_radius())
 		return true
 	return false
 

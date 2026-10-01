@@ -76,11 +76,12 @@ func run():
 	for index in range(4):
 		spells.cast_build_spell(focus_slot)
 	var surviving_focus = get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.id == "focus_ray" and not e.is_queued_for_deletion())
-	check(surviving_focus.size() == 3, "Repeated recasts retain exactly three Focus beams")
+	var focus_limit = int(preload("res://scripts/SpellProgression.gd").resolve(spells.spells[focus_slot]).active_limit)
+	check(surviving_focus.size() == focus_limit, "Repeated recasts retain exactly the rank's Focus beam limit")
 	var lanes = {}
 	for beam in surviving_focus:
 		lanes[beam.info.beam_lane] = true
-	check(lanes.size() == 3, "Replacement keeps three distinct visual emission lanes")
+	check(lanes.size() == focus_limit, "Replacement keeps distinct visual emission lanes")
 	for beam in get_nodes_in_group("build_spell_effects"):
 		beam.queue_free()
 	await process_frame
@@ -96,11 +97,11 @@ func run():
 	blade.linger_remaining = 0
 	blade.advance_returning(0.5, game.player)
 	for enemy in enemies:
-		check(is_equal_approx(enemy.current_health, 980), "Return pierces and damages each enemy once")
+		check(is_equal_approx(enemy.current_health, 960), "Return pierces and damages each enemy once at double strength")
 	blade.advance_returning(0, game.player)
-	check(is_equal_approx(enemies[0].current_health, 980), "Return does not double-hit same enemy")
+	check(is_equal_approx(enemies[0].current_health, 960), "Return does not double-hit same enemy")
 	blade.queue_free()
-	check(spells.spell_catalog.seeking_spirit.damage == 18, "Seeker contact nerf")
+	check(spells.spell_catalog.seeking_spirit.damage == 10 and spells.spell_catalog.seeking_spirit.hit_interval == 1.0, "Seeker hits for 10 at most once per second at rank 1")
 	for id in spells.Synergies.RECIPES:
 		if not spells.Synergies.RECIPES[id].get("enabled", true):
 			continue
@@ -111,21 +112,27 @@ func run():
 			spells.learn_spell(ingredient)
 		spells.learn_spell(id)
 		var slot = spells.find_spell_slot(id)
-		var base = spells.calculate_spell_damage(spells.get_spell_info(slot))
+		# Combinations scale per component: each ingredient improves the stat it governs
+		# (damage, splash, explosion, healing, slow or area), not necessarily direct damage.
+		var base_info = spells.resolve_cast_info(slot)
 		for ingredient in spells.Synergies.RECIPES[id].ingredients:
 			spells.upgrade_spell(ingredient)
-			var improved = spells.calculate_spell_damage(spells.get_spell_info(slot))
-			check(improved > base, id + " benefits from " + ingredient)
-			base = improved
+			var improved_info = spells.resolve_cast_info(slot)
+			var improved_any = false
+			for key in improved_info:
+				if typeof(improved_info[key]) in [TYPE_FLOAT, TYPE_INT] and typeof(base_info.get(key)) in [TYPE_FLOAT, TYPE_INT] and float(improved_info[key]) > float(base_info[key]) + 0.0001:
+					improved_any = true
+			check(improved_any, id + " benefits from " + ingredient)
+			base_info = improved_info
 		check(spells.get_spell_rank(id) == 1, "Inherited bonuses do not mutate combo own rank")
 		var before_buff = spells.calculate_spell_damage(spells.get_spell_info(slot))
 		game.player.spell_damage_multiplier *= 2
 		check(is_equal_approx(spells.calculate_spell_damage(spells.get_spell_info(slot)), before_buff * 2), "Player buff applies once")
 		game.player.spell_damage_multiplier /= 2
 		if id == "steam_field":
-			check(spells.resolve_cast_info(slot).radius > 150, "Ice improves steam area")
+			check(spells.resolve_cast_info(slot).slow > 0.4, "Ice improves steam slow")
 		if id == "soul_bloom":
-			check(spells.resolve_cast_info(slot).healing_tick_cap > 2, "Regeneration improves capped recovery")
+			check(spells.resolve_cast_info(slot).healing_bloom_amount > 6.0, "Regeneration improves bloom healing")
 	game.queue_free()
 	await process_frame
 	print("CASTING_FEEDBACK checks=%d failures=%d" % [checks, failures])

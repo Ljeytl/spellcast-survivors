@@ -49,7 +49,8 @@ func _process(_delta):
 	size.x = minf(1160, game.hud.size.x - 36)
 	size.y = get_combined_minimum_size().y
 	position = Vector2((game.hud.size.x - size.x) / 2, game.hud.size.y - size.y - 34)
-	visible = not game.interface_debug and game.current_state == game.GameState.PLAYING
+	# Training Grounds lists every spell on its bench, so the bottom strip would only clutter it.
+	visible = not game.interface_debug and game.current_state == game.GameState.PLAYING and not game.has_node("TrainingGrounds")
 	if manager.is_typing and game.hud.get_node("TypingPanel").get_global_rect().intersects(get_global_rect()):
 		visible = false
 

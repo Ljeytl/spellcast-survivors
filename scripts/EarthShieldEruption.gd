@@ -1,5 +1,8 @@
 extends Node2D
 
+func _init():
+	DamageSource.stamp(self)
+
 var direction: Vector2 = Vector2.RIGHT
 var damage: float = 60.0
 var reach: float = 160.0
@@ -27,7 +30,7 @@ func advance(delta: float):
 			var offset = enemy.global_position - global_position
 			if offset.length() <= front and (offset.is_zero_approx() or absf(direction.angle_to(offset)) <= half_angle):
 				hit_ids[enemy.get_instance_id()] = true
-				enemy.take_damage(damage, global_position)
+				enemy.take_damage(damage, global_position, DamageSource.of(self))
 				if is_instance_valid(enemy) and enemy.has_method("apply_knockback"):
 					enemy.apply_knockback(offset.normalized() if not offset.is_zero_approx() else direction, knockback)
 	if age >= travel_time + 0.24:

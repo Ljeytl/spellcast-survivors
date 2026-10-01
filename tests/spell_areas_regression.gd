@@ -76,7 +76,7 @@ func run():
 	var cluster = [enemy(Vector2(300, 0)), enemy(Vector2(310, 60)), enemy(Vector2(300, -60))]
 	game.spell_manager.learn_spell("lightning_arc")
 	check(game.spell_manager.cast_freeform_spell("lightning"), "Owned typed Lightning casts")
-	check(close.current_health == 10000 and cluster.all(func(node): return node.current_health == 9920), "Lightning favors useful group coverage over isolated nearest enemy")
+	check(close.current_health == 10000 and cluster.all(func(node): return node.current_health == 9940), "Lightning favors useful group coverage over isolated nearest enemy")
 	check(get_nodes_in_group("lightning_areas").size() == 1, "Lightning uses circular burst, not bouncing projectile")
 	clear_combat()
 	var weak_a = enemy(Vector2(-350, 0))
@@ -86,9 +86,9 @@ func run():
 	game.spell_manager.learn_spell("meteor_shower")
 	check(game.spell_manager.cast_freeform_spell("meteor shower"), "Owned Meteor Shower casts")
 	var warnings = get_nodes_in_group("spell_projectiles").filter(func(node): return node.projectile_type == "warning")
-	check(warnings.size() == 2, "Meteor creates one telegraph per scheduled impact")
+	check(warnings.size() == 3, "Meteor creates one telegraph per scheduled impact")
 	check(warnings.all(func(node): return node.position in [weak_a.position, weak_b.position]), "Meteor targets visible enemy positions")
-	check(warnings.all(func(node): return node.lifetime >= 0.65 and node.effect_radius == 220), "Every meteor retains full warning and data impact geometry")
+	check(warnings.all(func(node): return node.lifetime >= 0.65 and is_equal_approx(node.effect_radius, float(game.spell_manager.spell_catalog["meteor_shower"].radius))), "Every meteor retains full warning and data impact geometry")
 	check(weak_a.current_health == 15 and weak_b.current_health == 15, "Warnings deal no damage before impact")
 	clear_combat()
 	var durable = enemy(Vector2(200, 0), true)
@@ -98,7 +98,7 @@ func run():
 	clear_combat()
 	var orbit_target = enemy(Vector2(145, 0))
 	var orbit_outside = enemy(Vector2(174, 0))
-	var orbit = spell("arcane_orbit")
+	var orbit = spell("arcane_orbit", null, {"orbit_radius": 130})  # full-rank geometry
 	if "--known-bad-small-orbit" in OS.get_cmdline_user_args():
 		orbit.info.orbit_radius = 65
 		orbit.info.body_radius = 24
@@ -112,14 +112,15 @@ func run():
 	var linger_target = enemy(Vector2(350, 0))
 	var blade = spell("returning_blade", pass_target)
 	blade.direction = Vector2.RIGHT
+	var blade_damage = float(blade.info.damage)
 	blade.advance(0.7)
-	check(pass_target.current_health == 9980, "Cross Blade sweeps a target inside the reduced body once")
+	check(is_equal_approx(pass_target.current_health, 10000 - blade_damage), "Cross Blade sweeps a target inside the reduced body once")
 	blade.advance(0.9)
-	check(linger_target.current_health >= 9950 and linger_target.current_health <= 9960, "Linger provides two or three controlled half-damage ticks plus outbound")
+	check(linger_target.current_health >= 10000 - blade_damage * 2.5 - 0.001 and linger_target.current_health <= 10000 - blade_damage * 2.0 + 0.001, "Linger provides two or three controlled half-damage ticks plus outbound")
 	blade.advance(0.8)
-	check(pass_target.current_health == 9960, "Return adds one real enemy hit")
+	check(is_equal_approx(pass_target.current_health, 10000 - blade_damage * 3.0), "Return adds one double-strength enemy hit")
 	check(outside_blade.current_health == 10000, "Reduced blade misses a target inside its former width")
-	check(linger_target.current_health >= 9930, "Linger and return cannot multiply per-frame damage")
+	check(linger_target.current_health >= 10000 - blade_damage * 14.0 / 3.0, "Linger and return cannot multiply per-frame damage")
 	check(blade.is_queued_for_deletion(), "Cross Blade returns and expires")
 	clear_combat()
 	for speed in [1.0, 2.0]:
@@ -143,11 +144,11 @@ func run():
 		trail = spell("ember_trail")
 		game.player.position += Vector2(160, 0)
 		trail.advance(0.1)
-		check(trail.trail_contains(origin + Vector2(80, 64)) and not trail.trail_contains(origin + Vector2(80, 66)), "Connected trail has authoritative capsule boundary")
+		check(trail.trail_contains(origin + Vector2(80, 25)) and not trail.trail_contains(origin + Vector2(80, 27)), "Connected trail has authoritative capsule boundary")
 		for index in range(roundi(1.5 / step)):
 			trail.advance(step)
 		var total = 10000 - victim.current_health
-		check(total == 72, "Overlapping samples deal one damage tick, independent of step " + str(step))
+		check(is_equal_approx(total, 3.0 * float(trail.info.damage)), "Overlapping samples deal one damage tick, independent of step " + str(step))
 		first_total = total
 		trail.advance(20)
 		check(trail.is_queued_for_deletion(), "Firewalk and patches expire")
@@ -160,14 +161,15 @@ func run():
 	check(trail.trail_contains(origin + Vector2(120, 0)), "Closed Firewalk retains traversed edge coverage")
 	clear_combat()
 	var trigger = enemy(Vector2(300, 0))
-	var trap = spell("rune_trap", trigger)
+	var trap = spell("rune_trap", trigger, {"trap_radius": 130, "trigger_radius": 70})  # full-rank geometry
 	trap.advance(10)
 	check(not trap.triggered and not trap.is_queued_for_deletion(), "Visible armed trap persists without an enemy in trigger circle")
 	trigger.position = trap.position + Vector2(70, 0)
 	trap.advance(0.05)
-	check(trap.triggered and trigger.current_health == 9960, "Real enemy at visible trigger boundary detonates trap once")
+	var trap_damage = float(trap.info.damage)
+	check(trap.triggered and is_equal_approx(trigger.current_health, 10000 - trap_damage), "Real enemy at visible trigger boundary detonates trap once")
 	trap.advance(1)
-	check(trigger.current_health == 9960 and trap.is_queued_for_deletion(), "Trap burst is once-only and expires")
+	check(is_equal_approx(trigger.current_health, 10000 - trap_damage) and trap.is_queued_for_deletion(), "Trap burst is once-only and expires")
 	clear_combat()
 	print("Spell areas: ", checks, " assertions, ", failures, " failures")
 	game.queue_free()

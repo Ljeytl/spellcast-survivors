@@ -50,6 +50,8 @@ var space_casting = false
 var last_cast_failure: String = ""
 
 const MAX_EQUIPPED_SPELLS = 6
+## How many base spells learn_spell accepts. Training Grounds raises it to equip everything.
+var slot_limit: int = MAX_EQUIPPED_SPELLS
 const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
 var spell_catalog: Dictionary = {}
 var evolved_ingredients: Dictionary = {}
@@ -328,7 +330,33 @@ func cast_spell() -> bool:
 	return true
 
 func cast_stat(key: String) -> float:
-	return float(release_snapshot.stats[key]) if not release_snapshot.is_empty() and release_snapshot.stats.has(key) else float(player.get(key))
+	var value = float(release_snapshot.stats[key]) if not release_snapshot.is_empty() and release_snapshot.stats.has(key) else float(player.get(key))
+	return value * spell_property_multiplier(key)
+
+## Per-spell layer over the four spell passives, bought with level-ups past rank 8.
+## Applies to whichever spell is casting (DamageSource.current), and records which
+## properties each spell reads so its level-up cards match what it actually uses.
+const SPELL_PROPERTIES = {"spell_damage_multiplier": "power", "spell_size_multiplier": "size", "spell_duration_multiplier": "duration", "projectile_speed_multiplier": "velocity"}
+var property_reads: Dictionary = {}
+
+func spell_property_multiplier(key: String) -> float:
+	var property = SPELL_PROPERTIES.get(key, "")
+	var spell = str(DamageSource.current.get("spell", ""))
+	if property == "" or spell == "":
+		return 1.0
+	if not property_reads.has(spell):
+		property_reads[spell] = {}
+	property_reads[spell][property] = true
+	for info in spells.values():
+		if str(info.get("id", "")) == spell:
+			return 1.0 + preload("res://scripts/SpellProgression.gd").OVERFLOW_STEP * int(info.get("overflow", {}).get(property, 0))
+	return 1.0
+
+## Properties a spell has read while casting, in passive order. Power if it has never been cast.
+func spell_properties(spell_id: String) -> Array:
+	var read = property_reads.get(spell_id, {})
+	var result = SPELL_PROPERTIES.values().filter(func(property): return read.has(property))
+	return result if not result.is_empty() else ["power"]
 
 func discard_pending_casts():
 	for payload in pending_keyword_casts:
@@ -406,7 +434,10 @@ func update_typing_display():
 func handle_auto_attack(delta):
 	mana_bolt_timer -= delta
 	if mana_bolt_timer <= 0.0:
+		var previous_source = DamageSource.current
+		DamageSource.current = DamageSource.make("mana_bolt", style_clock())
 		fire_mana_bolt()
+		DamageSource.current = previous_source
 		# Apply cast speed to Magic Missile cooldown (faster auto-attacks)
 		var cast_speed_bonus = cast_stat("cast_speed_multiplier") if player else 1.0
 		var adjusted_cooldown = mana_bolt_cooldown / cast_speed_bonus
@@ -452,7 +483,7 @@ func fire_mana_bolt():
 		
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				_delayed_mana_bolt.bind(weakref(target), damage, i)
+				DamageSource.wrap(_delayed_mana_bolt.bind(weakref(target), damage, i))
 			)
 		else:
 			create_mana_bolt_projectile(target, damage, i)
@@ -504,9 +535,17 @@ func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index
 func cast_spell_by_type(slot: int, keyword_multiplier: float = 1.0) -> bool:
 	var previous = cast_keyword_multiplier
 	cast_keyword_multiplier = keyword_multiplier
+	var previous_source = DamageSource.current
+	DamageSource.current = DamageSource.make(str(get_spell_info(slot).get("id", "")), style_clock())
 	var success = _dispatch_spell(slot)
+	DamageSource.current = previous_source
 	cast_keyword_multiplier = previous
 	return success
+
+## Active play time used to age casts; matches the style meter's clock.
+func style_clock() -> float:
+	var session = game_manager.get("style_session") if game_manager else null
+	return float(session.clock) if is_instance_valid(session) else 0.0
 
 func _dispatch_spell(slot: int) -> bool:
 	last_cast_failure = ""
@@ -638,7 +677,7 @@ func cast_enhanced_bolt_spell(slot: int):
 		# Create spread + homing projectile with delay
 		if delay > 0:
 			scene_tree.create_timer(delay).timeout.connect(
-				_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier"))
+				DamageSource.wrap(_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier")))
 			)
 		else:
 			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier"))
@@ -756,15 +795,15 @@ func cast_life_spell(slot: int):
 
 func cast_ice_blast_spell(slot: int):
 	print("🧊 cast_ice_blast_spell called!")
-	var spell_info = get_spell_info(slot)
+	var spell_info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
 	var damage = calculate_spell_damage(spell_info)
-	var radius = spell_info.get("radius", 400) + (spell_info["level"] - 1) * 25  # Radius grows with level
+	var radius = float(spell_info.get("radius", 400))  # Reach, shards and cone grow through rank_growth
 	var knockback = spell_info.get("knockback", 400) + (spell_info["level"] - 1) * 50  # Knockback grows with level
 	var slow_duration = spell_info.get("slow_duration", 2.0)
 	var slow_strength = spell_info.get("slow_effect", 0.3)
 	
 	print("🧊 Ice blast: radius=", radius, " damage=", damage, " player_pos=", player.global_position)
-	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength)
+	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength, int(spell_info.get("shard_count", 13)), float(spell_info.get("cone_degrees", 90.0)))
 
 func cast_earthshield_spell(slot: int):
 	var info = get_spell_info(slot)
@@ -775,15 +814,16 @@ func cast_earthshield_spell(slot: int):
 		"reach": float(info.get("retaliation_reach", 160.0)) * (float(cast_stat("spell_size_multiplier")) * cast_keyword_multiplier),
 		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
 		"knockback": float(info.get("retaliation_knockback", 500.0)),
-		"travel_time": float(info.get("retaliation_travel_time", 0.22))
+		"travel_time": float(info.get("retaliation_travel_time", 0.22)),
+		"damage_source": DamageSource.current
 	})
 
 func cast_lightning_arc_spell(slot: int):
-	var info = get_spell_info(slot).duplicate(true)
+	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
 	info.keyword_size_multiplier = cast_keyword_multiplier
 	if not release_snapshot.is_empty():
 		info.keyword_stats = release_snapshot.stats.duplicate(true)
-	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)))
+	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)), INF, {}, get_viewport().get_visible_rect())
 	if not _live_spell_target(target):
 		return
 	var effect = preload("res://scripts/LightningArea.gd").new()
@@ -823,7 +863,7 @@ func cast_meteor_shower_spell(slot: int):
 			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
 				coverage[enemy.get_instance_id()] = float(coverage.get(enemy.get_instance_id(), 0)) + 1.0
 		create_meteor_warning(center, delay, radius)
-		get_tree().create_timer(delay).timeout.connect(create_meteor_strike.bind(center, damage * 0.8, radius, maxf(1.0, cast_stat("spell_duration_multiplier"))))
+		get_tree().create_timer(delay).timeout.connect(DamageSource.wrap(create_meteor_strike.bind(center, damage, radius, maxf(1.0, cast_stat("spell_duration_multiplier")))))
 
 # Helper functions
 func get_closest_enemy():
@@ -848,9 +888,13 @@ func get_closest_enemy():
 	return closest_enemy
 
 func calculate_spell_damage(spell_info: Dictionary) -> float:
+	# Spells with damage in rank_growth use that curve instead of the flat +15% per rank.
+	var grows_damage = spell_info.get("rank_growth", {}).has("damage")
+	if grows_damage and not spell_info.get("rank_resolved", false):
+		spell_info = preload("res://scripts/SpellProgression.gd").resolve(spell_info)
 	var base_damage = spell_info["damage"]
 	var spell_level = spell_info["level"]
-	var damage_ranks = 0.0 if spell_info.has("rank_steps") else float(spell_level - 1)
+	var damage_ranks = 0.0 if spell_info.has("rank_steps") or grows_damage else float(mini(spell_level, 8) - 1)
 	var level_multiplier = 1.0 + 0.15 * damage_ranks
 	if Synergies.RECIPES.has(str(spell_info.get("id", ""))):
 		var resolved = spell_info if spell_info.get("combination_scaled", false) else CombinationScaling.resolve(spell_info, get_combination_ingredient_ranks(str(spell_info.id)))
@@ -923,11 +967,11 @@ func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 	warning.lifetime = delay
 	get_parent().add_child(warning)
 
-func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6):
+func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6, shard_count: int = 13, cone_degrees: float = 90.0):
 	var target = get_closest_enemy()
 	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
 	var effect = preload("res://scripts/IceBlast.gd").new()
-	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, cast_stat("projectile_speed_multiplier"), (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier))
+	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, cast_stat("projectile_speed_multiplier"), (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier), shard_count, cone_degrees)
 	get_parent().add_child(effect)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
@@ -935,7 +979,7 @@ func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: 
 		return
 	
 	# Damage current target
-	target.take_damage(damage)
+	target.take_damage(damage, Vector2.INF, DamageSource.current)
 	hit_enemies.append(target.get_instance_id())
 	
 	# Find next target
@@ -970,7 +1014,7 @@ func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: 
 		var tree = get_tree()
 		if tree:
 			tree.create_timer(0.1).timeout.connect(
-				_delayed_chain.bind(weakref(next_target), damage * CHAIN_DAMAGE_REDUCTION, remaining_chains - 1, hit_enemies.duplicate())
+				DamageSource.wrap(_delayed_chain.bind(weakref(next_target), damage * CHAIN_DAMAGE_REDUCTION, remaining_chains - 1, hit_enemies.duplicate()))
 			)
 
 func create_lightning_arc_visual(from_pos: Vector2, to_pos: Vector2, target_enemy: Node2D = null, from_target: Node2D = null):
@@ -1000,8 +1044,26 @@ func upgrade_spell(spell_name: String):
 		mana_bolt_level += 1
 		return
 	var slot = find_spell_slot(spell_name)
-	if is_spell_unlocked(slot) and preload("res://scripts/SpellProgression.gd").can_upgrade(get_spell_info(slot)):
+	if is_spell_unlocked(slot) and can_rank_up(spell_name):
 		get_spell_info(slot).level += 1
+
+## Ranks stop at 8 until every spell slot is filled and every equipped spell is rank 8.
+## After that, any equipped spell can keep ranking up for percentage damage.
+func overflow_unlocked() -> bool:
+	if spells.size() < MAX_EQUIPPED_SPELLS:
+		return false
+	for info in spells.values():
+		if int(info.get("level", 1)) < preload("res://scripts/SpellProgression.gd").RANK_CAP:
+			return false
+	return true
+
+func can_rank_up(spell_name: String) -> bool:
+	var info = get_spell_info(find_spell_slot(spell_name))
+	if info.is_empty():
+		return false
+	if preload("res://scripts/SpellProgression.gd").can_upgrade(info):
+		return true
+	return int(info.get("level", 1)) >= preload("res://scripts/SpellProgression.gd").RANK_CAP and spells.values().has(info) and overflow_unlocked()
 
 func get_mana_bolt_damage() -> float:
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
@@ -1255,7 +1317,8 @@ func find_cast_spell_slot(spell_name: String) -> int:
 			return slot
 	return 0
 
-func learn_spell(spell_id: String) -> bool:
+## record_discovery=false is for Training Grounds, which must not unlock Necronomicon entries.
+func learn_spell(spell_id: String, record_discovery: bool = true) -> bool:
 	if acquired_spells.has(spell_id):
 		return false
 	if spell_id in Synergies.RECIPES:
@@ -1268,16 +1331,24 @@ func learn_spell(spell_id: String) -> bool:
 		var bonus = ingredient.duplicate(true)
 		bonus.merge(recipe.overrides, true)
 		bonus.erase("rank_steps")
+		# Combinations need rank-8 ingredients, so they start at the ingredient's full size.
+		var growth = bonus.get("rank_growth", {})
+		for key in growth:
+			if growth[key].has("max"):
+				bonus[key] = growth[key].max
+		bonus.erase("rank_growth")
+		bonus.erase("growth_description")
 		bonus.id = spell_id
 		bonus.name = recipe.name
 		bonus.display_name = recipe.incantation
 		bonus.chars = recipe.incantation.length()
 		bonus.level = 1
-		bonus_spells[MAX_EQUIPPED_SPELLS + bonus_spells.size() + 1] = bonus
+		bonus_spells[slot_limit + bonus_spells.size() + 1] = bonus
 		acquired_spells[spell_id] = true
-		CharacterManager.discover_synergy(spell_id)
+		if record_discovery:
+			CharacterManager.discover_synergy(spell_id)
 	else:
-		if not spell_catalog.has(spell_id) or spells.size() >= MAX_EQUIPPED_SPELLS:
+		if not spell_catalog.has(spell_id) or spells.size() >= slot_limit:
 			return false
 		spells[spells.size() + 1] = spell_catalog[spell_id].duplicate(true)
 		acquired_spells[spell_id] = true
@@ -1325,7 +1396,7 @@ func get_learnable_spell_cards() -> Array:
 				"description": info.get("role", "Learn a new spell.") + "\nSlot %d of 6 · Type: %s" % [spells.size() + 1, info.display_name],
 				"icon": "+", "effect": {"type": "learn_spell", "spell": id}})
 	for id in Synergies.RECIPES:
-		if acquired_spells.has(id) or not synergy_eligible(id):
+		if acquired_spells.has(id) or not synergy_ready(id):
 			continue
 		var recipe = Synergies.RECIPES[id]
 		cards.append({"key": "learn:" + id, "name": "Learn " + recipe.name,
@@ -1341,36 +1412,65 @@ func synergy_eligible(id: String) -> bool:
 			return false
 	return true
 
+const COMBINATION_RANK = 8
+
+## Combination cards are offered only once both ingredients reach COMBINATION_RANK.
+func synergy_ready(id: String) -> bool:
+	if not synergy_eligible(id):
+		return false
+	for ingredient in Synergies.RECIPES[id].ingredients:
+		if get_spell_rank(ingredient) < COMBINATION_RANK:
+			return false
+	return true
+
 func get_rank_upgrade_description(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)
-	var prefix = "Rank %d → %d: " % [rank, rank + 1]
+	return "Rank %d → %d: " % [rank, rank + 1] + rank_change_summary(spell_id)
+
+## Short rank-card text listing what the next rank changes, e.g. "+1 meteor, +damage, +area". No numbers.
+const RANK_COUNT_WORDS = {"projectile_count": "projectile", "blade_count": "blade", "meteor_count": "meteor", "shard_count": "shard", "orb_count": "orb", "chain_count": "chain"}
+const RANK_AREA_KEYS = ["radius", "trail_radius", "trap_radius", "trigger_radius", "orbit_radius", "blade_radius", "cone_degrees", "spread_radius", "travel_distance", "beam_radius"]
+const RANK_DURATION_KEYS = ["duration", "patch_duration", "spore_linger"]
+func rank_change_summary(spell_id: String) -> String:
+	var rank = get_spell_rank(spell_id)
+	if rank >= preload("res://scripts/SpellProgression.gd").RANK_CAP and spell_id != "mana_bolt":
+		return "+10% damage"
 	var combination_description = CombinationScaling.next_description(spell_id, rank)
 	if not combination_description.is_empty():
-		return prefix + combination_description
-	var ranked_info = get_spell_info(find_spell_slot(spell_id))
-	if ranked_info.has("rank_steps"):
-		return prefix + preload("res://scripts/SpellProgression.gd").next_description(ranked_info)
-	var damage = "+15% of evolved base damage" if Synergies.RECIPES.has(spell_id) and float(Synergies.RECIPES[spell_id].overrides.get("damage_multiplier", 1.0)) != 1.0 else "+15% of base damage"
+		return combination_description
+	var raw = get_spell_info(find_spell_slot(spell_id)).duplicate(true)
+	raw.erase("rank_resolved")
+	var now_info = raw.duplicate(true)
+	now_info.level = rank
+	var next_info = raw.duplicate(true)
+	next_info.level = rank + 1
+	now_info = preload("res://scripts/SpellProgression.gd").resolve(now_info)
+	next_info = preload("res://scripts/SpellProgression.gd").resolve(next_info)
+	var parts: Array = []
+	var extra_projectiles = {"bolt": [3, 6], "mana_bolt": [3, 6, 10]}
+	if extra_projectiles.has(spell_id) and rank + 1 in extra_projectiles[spell_id]:
+		parts.append("+1 projectile")
+	for key in RANK_COUNT_WORDS:
+		var gained = int(next_info.get(key, 0)) - int(now_info.get(key, 0))
+		if gained > 0:
+			parts.append("+%d %s%s" % [gained, RANK_COUNT_WORDS[key], "s" if gained > 1 else ""])
+	if int(next_info.get("active_limit", 0)) > int(now_info.get("active_limit", 0)):
+		parts.append("+1 at once")
 	match spell_id:
-		"mana_bolt":
-			return prefix + damage + (", +1 missile" if rank + 1 in [3, 6, 10] else "")
-		"bolt":
-			return prefix + damage + (", +1 projectile" if rank < 5 else "")
-		"life":
-			return prefix + "+15% of base instant healing"
-		"regeneration":
-			return prefix + "+15% of base healing per second"
-		"ice_blast":
-			return prefix + damage + ", +25 radius, +50 knockback"
+		"life", "regeneration":
+			parts.append("+healing")
 		"earth_shield":
-			return prefix + "+15% of base retaliation damage"
-		"lightning_bolt":
-			return prefix + damage + ", +1 bounce"
-		"lightning_arc":
-			return prefix + damage
-		"meteor_shower":
-			return prefix + ("+1 meteor" if (rank + 1) % 2 == 0 else damage)
-	return prefix + damage
+			parts.append("+damage")
+		_:
+			if float(next_info.get("damage", 0.0)) > float(now_info.get("damage", 0.0)) or not (raw.has("rank_steps") or raw.get("rank_growth", {}).has("damage")):
+				parts.append("+damage")
+	if RANK_AREA_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
+		parts.append("+area")
+	if RANK_DURATION_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
+		parts.append("+duration")
+	if spell_id == "ice_blast":
+		parts.append("+push")
+	return ", ".join(parts) if not parts.is_empty() else "+damage"
 
 func cast_build_spell(slot: int) -> bool:
 	var info = resolve_cast_info(slot)
@@ -1385,7 +1485,7 @@ func cast_build_spell(slot: int) -> bool:
 		return true
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
 	if info.type == "field":
-		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)))
+		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
 	if info.type == "plague" and target == null:
 		last_cast_failure = "No target in range"
 		return false
@@ -1396,6 +1496,7 @@ func cast_build_spell(slot: int) -> bool:
 		for existing in active:
 			if existing.remaining > 0 and existing.caster and existing.caster.get_ref() == player:
 				var added = existing.queue_cast_extension(info, calculate_spell_damage(info))
+				DamageSource.stamp(existing)
 				spell_extended.emit(info.id, added)
 				return true
 	if active.size() >= int(info.get("active_limit", 3)):

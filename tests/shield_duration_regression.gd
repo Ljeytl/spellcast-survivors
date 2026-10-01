@@ -73,6 +73,7 @@ func run():
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://builds/earth-shield-0136/charges.png")
 	game.style_session.score.combo = 5000
+	player.shield_grace_remaining=0
 	player.take_damage(999999,{"attacker":weakref(attacker),"source_position":attacker.global_position})
 	check(player.health==100 and player.earth_shield.charges.size()==1,"Any hit fully blocked by one charge")
 	check(player.last_damage_context.blocked and player.last_damage_context.health_loss==0,"Blocked context has no health loss")
@@ -102,28 +103,39 @@ func run():
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://builds/earth-shield-0136/retaliation.png")
 	clear_eruptions()
+	player.shield_grace_remaining=0
 	player.take_damage(0)
+	player.shield_grace_remaining=0
 	player.take_damage(-20)
 	player.is_invincible=true
+	player.shield_grace_remaining=0
 	player.take_damage(20)
 	player.is_invincible=false
 	check(player.earth_shield.charges.size()==1,"Zero negative and invincible hits do not consume")
 	player.health=0
+	player.shield_grace_remaining=0
 	player.take_damage(20)
 	check(player.earth_shield.charges.size()==1,"Dead player does not consume")
 	player.health=100
 	player.earth_shield.advance(16)
 	check(player.earth_shield.charges.is_empty(),"Lifetime expires protection")
 	check(not preload("res://scripts/SpellDurationStatus.gd").collect(manager).has("earth_shield"),"Expired charges removed from UI")
+	player.shield_grace_remaining=0
 	player.take_damage(5,{"source_position":attacker.global_position})
 	check(player.health==95 and game.style_session.score.combo<5000,"Unprotected hit damages health and combo")
 	player.health=100
 	cast()
 	player.touching_enemies=[attacker,behind]
 	player.damage_timer=0
+	player.shield_grace_remaining=0
 	player.process_enemy_contact_damage(0.1)
 	check(player.earth_shield.charges.is_empty(),"Crowd consumes available charge")
-	check(player.health==100-behind.base_damage,"One charge cannot absorb entire crowd tick")
+	check(player.health==100,"Block grace also covers the rest of the same crowd tick")
+	check(is_equal_approx(player.shield_grace_remaining, player.SHIELD_BLOCK_GRACE),"Block grants a quarter second of invulnerability")
+	player._physics_process(0.3)
+	player.damage_timer=0
+	player.process_enemy_contact_damage(0.1)
+	check(player.health==100-attacker.base_damage-behind.base_damage,"Grace expires and the crowd hits again")
 	player.health=100
 	game.style_session.score.combo=5000
 	var score_model=preload("res://scripts/StyleScore.gd").new()
@@ -131,6 +143,7 @@ func run():
 	score_model.take_hit()
 	player.touching_enemies=[attacker,behind,beside]
 	player.damage_timer=0
+	player.shield_grace_remaining=0
 	player.process_enemy_contact_damage(0.1)
 	check(game.style_session.score.combo==score_model.combo,"Unshielded crowd applies one style penalty per contact tick")
 	player.touching_enemies.clear()
@@ -161,6 +174,7 @@ func run():
 	eruption.set_physics_process(false)
 	check(eruption.direction.dot(Vector2.LEFT)>0.99,"Projectile retaliation uses shooter direction")
 	clear_eruptions()
+	player.shield_grace_remaining=0
 	cast()
 	var explosive = target(Vector2(50,0))
 	explosive.explosion_range = 150

@@ -45,9 +45,10 @@ func _ready():
 		var portal = Node2D.new()
 		var arch = preload("res://scripts/TowerArch.gd").new()
 		arch.woodland = i == 0
+		arch.training = i == TRAINING_PORTAL
 		arch.name = "Arch"
 		portal.add_child(arch)
-		if i != 0:
+		if not is_open(i):
 			var blocker = ART.sprite(12 if i % 3 == 0 else 13, 65)
 			blocker.name = "Blocker"
 			blocker.position.y = -10
@@ -129,24 +130,31 @@ func _physics_process(delta):
 		var motion = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 		motion += Vector2(float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A)), float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W)))
 		move_wizard(motion.limit_length(), delta)
-	if not orb_active and settled() and selected == 0 and wizard.position.y < -298 and absf(wizard.position.x) < 48:
+	if not orb_active and settled() and is_open(selected) and wizard.position.y < -298 and absf(wizard.position.x) < 48:
 		depart()
 	update_prompt()
 
+const TRAINING_PORTAL = 11  # left of Woodland: turn the orb left once
+
+## Doorways that lead somewhere: 0 is Woodland Level 1, TRAINING_PORTAL is Training Grounds.
+func is_open(index: int) -> bool:
+	return index == 0 or index == TRAINING_PORTAL
+
 func depart():
-	if transitioning or selected != 0 or not settled():
+	if transitioning or not is_open(selected) or not settled():
 		return
 	transitioning = true
+	preload("res://scripts/RunMode.gd").training = selected == TRAINING_PORTAL
 	SceneManager.goto_scene("res://scenes/Game.tscn")
 
 func move_wizard(direction: Vector2, _delta: float):
 	var before = wizard.position
 	wizard.velocity = direction * SPEED
 	wizard.move_and_slide()
-	if selected == 0 and settled() and before.y < 0 and (before / Vector2(370,245)).length() > 1 and absf(before.x) <= 48:
+	if is_open(selected) and settled() and before.y < 0 and (before / Vector2(370,245)).length() > 1 and absf(before.x) <= 48:
 		wizard.position.x = clampf(wizard.position.x, -47.9, 47.9)
 	var normalized = wizard.position / Vector2(370, 245)
-	var exit_corridor = selected == 0 and settled() and absf(wizard.position.x) < 48 and wizard.position.y < 0
+	var exit_corridor = is_open(selected) and settled() and absf(wizard.position.x) < 48 and wizard.position.y < 0
 	if normalized.length() > 1 and not exit_corridor:
 		wizard.position = normalized.normalized() * Vector2(370, 245)
 	wizard.z_index = int(wizard.position.y + 400)
@@ -197,13 +205,13 @@ func open_archive():
 
 func update_prompt():
 	if orb_active:
-		label.text = "Turn: Left / Right   ·   E / Space: Leave orb\n" + ("WOODLAND · Level 1" if selected == 0 else "Sealed doorway")
+		label.text = "Turn: Left / Right   ·   E / Space: Leave orb\n" + ("WOODLAND · Level 1" if selected == 0 else "TRAINING GROUNDS" if selected == TRAINING_PORTAL else "Sealed doorway")
 	elif wizard.position.distance_to(Vector2.ZERO) < 95:
 		label.text = "E / Space · Turn the tower"
 	elif wizard.position.distance_to(tome_position) < 85:
 		label.text = "E / Space · Necronomicon"
 	elif wizard.position.distance_to(Vector2(0, -280)) < 75:
-		label.text = "Walk through · Woodland" if selected == 0 and settled() else "Sealed doorway"
+		label.text = ("Walk through · Woodland" if selected == 0 else "Walk through · Training Grounds") if is_open(selected) and settled() else "Sealed doorway"
 	else:
 		label.text = ""
 

@@ -55,6 +55,9 @@ var debug_x_pressed: bool = false
 # Invincibility cheat system
 var last_damage_context: Dictionary = {}
 var is_invincible: bool = false     # When true, player takes no damage
+## Brief invulnerability after Earth Shield blocks a hit, so one crowd contact does not eat every charge.
+const SHIELD_BLOCK_GRACE: float = 0.25
+var shield_grace_remaining: float = 0.0
 
 # Called when player scene is first loaded
 func _ready():
@@ -75,6 +78,7 @@ func _exit_tree():
 
 # Called every physics frame (60 FPS) for movement and visual effects
 func _physics_process(delta):
+	shield_grace_remaining = maxf(0.0, shield_grace_remaining - delta)
 	# Process WASD movement input and apply velocity
 	handle_movement()
 	# Actually move the player using Godot's built-in physics
@@ -139,7 +143,10 @@ func take_damage(damage: float, source: Dictionary = {}):
 
 	if damage <= 0:
 		return
+	if shield_grace_remaining > 0.0:
+		return
 	if is_instance_valid(earth_shield) and earth_shield.block(source):
+		shield_grace_remaining = SHIELD_BLOCK_GRACE
 		last_damage_context = source.duplicate(true)
 		last_damage_context.merge({"kind": source.get("kind", "unknown"), "damage": 0.0, "health_loss": 0.0, "overheal_loss": 0.0, "blocked": true}, true)
 		return

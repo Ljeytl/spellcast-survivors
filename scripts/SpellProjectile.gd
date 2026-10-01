@@ -90,6 +90,7 @@ func _process(delta):
 
 
 func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: Color = Color.WHITE, type: String = "basic"):
+	DamageSource.stamp(self)
 	# Ensure we have valid parameters
 	if target_dir == Vector2.ZERO:
 		print("⚠️  Warning: setup() called with zero direction, using Vector2.RIGHT")
@@ -112,6 +113,7 @@ func setup(start_pos: Vector2, target_dir: Vector2, spell_damage: float, color: 
 	call_deferred("update_visual")
 
 func setup_homing(start_pos: Vector2, homing_target: Node2D, spell_damage: float, color: Color = Color.WHITE, type: String = "homing"):
+	DamageSource.stamp(self)
 	global_position = start_pos
 	target = homing_target
 	damage = spell_damage
@@ -236,7 +238,7 @@ func hit_enemy(enemy):
 	hit_ids[enemy.get_instance_id()] = true
 	var center = enemy.global_position
 	var health_before = float(enemy.current_health)
-	enemy.take_damage(damage, global_position)
+	enemy.take_damage(damage, global_position, DamageSource.of(self))
 	var dealt = maxf(0.0, health_before - float(enemy.current_health)) if is_instance_valid(enemy) else health_before
 	if projectile_type == "life_bolt" and dealt > 0:
 		spawn_healing_seed()
@@ -316,7 +318,7 @@ func setup_for_pool():
 
 func reset_for_pool():
 	remove_meta("cast_size_snapshot")
-	for key in ["attacker", "source_position"]:
+	for key in ["attacker", "source_position", "damage_source"]:
 		if has_meta(key):
 			remove_meta(key)
 	impact_generation += 1

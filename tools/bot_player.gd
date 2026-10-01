@@ -6,6 +6,12 @@ var rng = RandomNumberGenerator.new()
 var run_seed = 11
 var limit = 1200.0
 var behavior_mode = "active"
+## Debug: spell ids the bot levels evenly and casts exclusively (e.g. --focus=meteor_shower,plague_seed,ice_blast).
+var focus_spells: Array = []
+## Debug: passives taken when no focus card is offered, in priority order.
+var focus_passives: Array = ["spell_damage"]
+## Debug: player takes no damage, for measuring pace and kills without dying.
+var invulnerable = false
 var first_damage_seconds = -1.0
 var report_path = ""
 var reaction = 0.0
@@ -47,6 +53,9 @@ func _initialize():
 			"--limit": limit = clampf(float(parts[1]), 1.0, 1200.0)
 			"--report": report_path = parts[1]
 			"--mode": behavior_mode = parts[1]
+			"--focus": focus_spells = Array(parts[1].split(",", false))
+			"--passives": focus_passives = Array(parts[1].split(",", false))
+			"--invulnerable": invulnerable = parts[1] in ["1", "true", "yes"]
 	if not OS.get_user_data_dir().contains("SpellCast Survivors Bot/") or report_path.is_empty():
 		printerr("Bot requires isolated saves and report path; actual save directory: ", OS.get_user_data_dir())
 		quit(2)
@@ -63,6 +72,7 @@ func start():
 	game.set_meta("bot_run", true)
 	root.add_child(game)
 	current_scene = game
+	game.player.is_invincible = invulnerable
 	previous_position = game.player.global_position
 	previous_health = game.player.health
 	previous_overheal = game.player.overheal
@@ -103,7 +113,7 @@ func _process(delta):
 		finish("watchdog")
 		return false
 	if time >= next_checkpoint:
-		checkpoints.append({"seconds": time, "level": game.player.level, "health": game.player.health, "kills": game.enemies_killed, "enemies_alive": get_nodes_in_group("enemies").size(), "uncollected_xp": uncollected_xp(), "bosses": boss_snapshot(), "damage_by_kind": damage_by_kind.duplicate(), "damage_while_typing": damage_while_typing})
+		checkpoints.append({"seconds": time, "level": game.player.level, "health": game.player.health, "kills": game.enemies_killed, "enemies_alive": get_nodes_in_group("enemies").size(), "uncollected_xp": uncollected_xp(), "bosses": boss_snapshot(), "focus_ranks": focus_ranks(), "spell_damage_multiplier": game.player.spell_damage_multiplier, "damage_by_kind": damage_by_kind.duplicate(), "damage_while_typing": damage_while_typing})
 		print("BOT checkpoint ", checkpoints.back())
 		next_checkpoint += 60.0
 	var input_delta = delta / maxf(Engine.time_scale, 0.01)
@@ -112,7 +122,10 @@ func _process(delta):
 		choice_wait -= input_delta
 		var screen = game.level_up_screen
 		if choice_wait <= 0.0 and screen.visible and not screen.selecting_upgrade and not screen.available_upgrades.is_empty():
-			var index = rng.randi_range(0, screen.available_upgrades.size() - 1)
+			if not focus_spells.is_empty() and steer_offer(screen):
+				choice_wait = 0.3
+				return false
+			var index = choose_upgrade(screen.available_upgrades) if not focus_spells.is_empty() else rng.randi_range(0, screen.available_upgrades.size() - 1)
 			var button = screen.upgrade_buttons[index]
 			if not button.disabled:
 				upgrades.append({"seconds": time, "choice": screen.available_upgrades[index].key})
@@ -154,6 +167,11 @@ func _process(delta):
 		var owned = spells.get_owned_incantations()
 		if not owned.is_empty():
 			attempts += 1
+			if not focus_spells.is_empty():
+				var focused = focus_incantations()
+				var pool = owned.filter(func(name): return name in focused)
+				if not pool.is_empty():
+					owned = pool
 			var selected = owned[rng.randi_range(0, owned.size() - 1)]
 			press_key(KEY_SPACE)
 			if spells.is_typing:
@@ -163,6 +181,65 @@ func _process(delta):
 			else:
 				failures += 1
 	return false
+
+## Focus mode: banish a non-focus spell card, or reroll, when the offer has nothing useful. Returns true if it acted.
+func steer_offer(screen) -> bool:
+	var cards = screen.available_upgrades
+	if card_score(cards[choose_upgrade(cards)]) >= 0.0:
+		return false
+	if screen.banishes_remaining > 0:
+		for i in cards.size():
+			var key = str(cards[i].get("key", ""))
+			if key.begins_with("learn:") and key.get_slice(":", 1) not in focus_spells:
+				screen.banish_upgrade(i)
+				upgrades.append({"seconds": game.get_node("MonsterManager").game_time, "choice": "banish:" + key})
+				return true
+	if screen.rerolls_remaining > 0:
+		screen._on_reroll_pressed()
+		upgrades.append({"seconds": game.get_node("MonsterManager").game_time, "choice": "reroll"})
+		return true
+	return false
+
+## Focus mode card choice: learn a focus spell, else rank the lowest-ranked focus spell, else a listed passive, else any passive.
+func choose_upgrade(cards: Array) -> int:
+	var best = 0
+	var best_score = -INF
+	for i in cards.size():
+		var score = card_score(cards[i])
+		if score > best_score:
+			best_score = score
+			best = i
+	return best
+
+func card_score(card: Dictionary) -> float:
+	var key = str(card.get("key", ""))
+	var kind = key.get_slice(":", 0)
+	var id = key.get_slice(":", 1)
+	if kind == "learn" and id in focus_spells:
+		return 1000.0
+	if kind == "rank" and id in focus_spells:
+		return 500.0 - game.spell_manager.get_spell_rank(id)
+	if kind == "passive" and id in focus_passives:
+		return 100.0 - focus_passives.find(id)
+	if kind == "passive":
+		return 10.0
+	if kind == "learn":
+		return -100.0
+	return -10.0
+
+func focus_incantations() -> Array:
+	var names: Array = []
+	for id in focus_spells:
+		var info = game.spell_manager.spell_catalog.get(id, {})
+		if not info.is_empty():
+			names.append(str(info.display_name))
+	return names
+
+func focus_ranks() -> Dictionary:
+	var ranks = {}
+	for id in focus_spells:
+		ranks[id] = game.spell_manager.get_spell_rank(id)
+	return ranks
 
 func move_decision():
 	var position = game.player.global_position
@@ -255,7 +332,9 @@ func observe_damage():
 func finish(outcome: String):
 	finished = true
 	release_movement()
-	var report = {"behavior_mode": behavior_mode, "first_damage_seconds": first_damage_seconds, "schema_version": 2, "seed": run_seed, "outcome": outcome,
+	var report = {"focus_spells": focus_spells, "focus_passives": focus_passives, "invulnerable": invulnerable, "focus_ranks": focus_ranks(),
+		"damage_by_spell": game.style_session.damage_by_spell.duplicate() if game.get("style_session") else {},
+		"behavior_mode": behavior_mode, "first_damage_seconds": first_damage_seconds, "schema_version": 2, "seed": run_seed, "outcome": outcome,
 		"survival_seconds": game.get_node("MonsterManager").game_time,
 		"wall_seconds": (Time.get_ticks_msec() - started) / 1000.0,
 		"level": game.player.level, "health": game.player.health,

@@ -33,5 +33,5 @@ func _draw():
 		if entry[0] in item_id:
 			kind = entry[1]
 			break
-	kind = {"bolt": "mana", "life_bolt": "heal", "lightning_bolt": "lightning", "meteor_lance": "lance"}.get(item_id, kind)
+	kind = {"bolt": "mana", "ember_trail": "ember", "life_bolt": "heal", "lightning_bolt": "lightning", "meteor_lance": "lance"}.get(item_id, kind)
 	preload("res://scripts/EffectArt.gd").stamp(self, kind, size / 2, Vector2.ONE * minf(27, size.x))

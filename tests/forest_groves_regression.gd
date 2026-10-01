@@ -116,7 +116,9 @@ func run():
 		terrain.refresh_decorations()
 		await process_frame
 		await physics_frame
-		check(terrain.layouts.size() == terrain.decorations.size(), "Streaming drops matching layout and scenery caches")
+		# Since c15d606 layouts are a bounded LRU independent of scenery nodes (travel-performance fix); scenery still unloads.
+		check(terrain.layouts.size() <= terrain.MAX_CACHED_LAYOUTS, "Streaming keeps the layout cache bounded")
+		check(terrain.decorations.keys().all(func(cell): return terrain.layouts.has(cell)), "Every streamed scenery cell has a cached layout")
 		check(terrain.decorations.size() < 100, "Streaming remains bounded after long travel")
 		var expected_bodies = 0
 		for cell in terrain.decorations:

@@ -175,12 +175,15 @@ func refresh():
 	score_label.text = "Score %d" % session.score.run_score
 	note.position = Vector2(bar_x, bar_y + 33)
 	note.size = Vector2(bar_width, 22)
-	note.text = "COMBO %d" % int(session.score.combo)
+	note.text = "COMBO %s" % format_score(session.score.combo_score)
 	keyword_stamp.position = Vector2(0, note.position.y + 24)
 	keyword_stamp.size = Vector2(width, 20)
 	special.position = Vector2(0, note.position.y + note.size.y + 28)
 	special.size = Vector2(width, 42)
-	special.text = "ATOMIC" if session.atomic_available() else ""
+	# Charge pips: lit when castable (S or better), dim while banked below S.
+	var charges = session.score.atomic_charges
+	special.text = ("ATOMIC " + "●".repeat(charges) + "○".repeat(session.Score.ATOMIC_MAX_CHARGES - charges)) if charges > 0 else ""
+	special.modulate.a = 1.0 if session.atomic_available() else 0.45
 	special.modulate = Color("ffe49b")
 	seal.visible = session.atomic_available()
 	seal.position = Vector2(width - 150, special.position.y - 3)

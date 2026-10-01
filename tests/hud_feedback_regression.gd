@@ -98,7 +98,7 @@ func run():
 			check(not style.score_label.get_global_rect().intersects(style.get_global_rect()), "score separated from style meter")
 			check(style.score_label.get_rect().end.y < inventory.position.y, "score does not overlap inventory")
 			check(game.hud.get_global_rect().encloses(style.get_global_rect()), "style stays within HUD")
-			check(style.note.text == "COMBO %d" % int(game.style_session.score.combo), "exact combo remains visible")
+			check(style.note.text == "COMBO %s" % style.format_score(game.style_session.score.combo_score), "combo score shows under the bar")
 			check(not "/" in style.note.text and not "/" in style.label.text, "no rank fraction")
 			check(not interface.guidance.is_visible_in_tree(), "normal HUD has no tutorial instructions")
 	game.free()
@@ -140,7 +140,7 @@ func verify_feedback():
 	for i in keys.letters.length():
 		check(keys.typed_letter_tint(i) != Color("ff8175"), "valid freeform MEGA not mismatch")
 	check(manager.cast_freeform_spell("mega bolt"), "MEGA cast accepted")
-	manager.advance_pending_casts(0.121)
+	manager.advance_pending_casts(0.351)
 	check(keys.completed_mega and keys.completion_duration > 0.28, "MEGA distinct emphasis")
 	await capture("cast-mega")
 	prepare_cast("mega bolt")
@@ -171,6 +171,7 @@ func verify_feedback():
 	check(style.pulse_count == pulse, "zero actual combo gain does not pulse")
 	check(keys.completion_count == completion + 1, "cast success independent of combo award")
 	session.score.combo = 10000
+	session.score.atomic_charges = 1
 	prepare_cast("atomic")
 	check(manager.cast_freeform_spell("atomic"), "Atomic accepted")
 	check(style.pulse_kind == "atomic" and keys.completion_count == completion + 2, "Atomic cue distinct from damage")

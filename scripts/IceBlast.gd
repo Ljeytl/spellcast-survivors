@@ -1,5 +1,8 @@
 extends Node2D
 
+func _init():
+	DamageSource.stamp(self)
+
 const Visual = preload("res://scripts/ProjectileVisual.gd")
 var shards: Array = []
 var hit_ids: Dictionary = {}
@@ -12,7 +15,7 @@ var slow_duration = 2.0
 var slow_strength = 0.6
 var shard_radius = 12.0
 
-func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, push: float, slow_time: float, slow: float, speed_multiplier: float, size_multiplier: float = 1.0):
+func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, push: float, slow_time: float, slow: float, speed_multiplier: float, size_multiplier: float = 1.0, shard_count: int = 13, cone_degrees: float = 90.0):
 	shard_radius = 12.0 * size_multiplier
 	position = origin
 	reach = radius * size_multiplier
@@ -21,8 +24,11 @@ func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, 
 	slow_duration = slow_time
 	slow_strength = slow
 	speed *= speed_multiplier
-	for index in range(13):
-		shards.append({"direction": heading.rotated(lerpf(-PI / 4, PI / 4, index / 12.0)), "position": Vector2.ZERO, "active": true})
+	var half_cone = deg_to_rad(cone_degrees) / 2.0
+	var count = maxi(1, shard_count)
+	for index in range(count):
+		var t = 0.5 if count == 1 else index / float(count - 1)
+		shards.append({"direction": heading.rotated(lerpf(-half_cone, half_cone, t)), "position": Vector2.ZERO, "active": true})
 
 func _ready():
 	add_to_group("ice_blasts")
@@ -52,12 +58,12 @@ func advance(delta: float):
 		if not candidates.is_empty():
 			var enemy = candidates[0].enemy
 			shard.active = false
-			if hit_ids.has(enemy.get_instance_id()):
-				continue
+			# Every shard deals full damage, so several shards on one enemy stack; knockback and slow apply once per enemy.
+			var first_hit = not hit_ids.has(enemy.get_instance_id())
 			hit_ids[enemy.get_instance_id()] = true
 			var impact: Vector2 = start.lerp(end, candidates[0].fraction)
-			enemy.take_damage(damage, impact)
-			if is_instance_valid(enemy):
+			enemy.take_damage(damage, impact, DamageSource.of(self))
+			if first_hit and is_instance_valid(enemy):
 				if enemy.has_method("apply_knockback"):
 					enemy.apply_knockback(shard.direction, knockback * (1.2 + (1.0 - distance / reach) * 0.8))
 				if enemy.has_method("apply_slow"):

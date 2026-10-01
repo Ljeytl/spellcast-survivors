@@ -35,13 +35,14 @@
       }
     },
     "bolt": {
+      "rank_growth": {"damage": {"per_rank": 14.2857}},
       "role": "Fire a straight bolt toward the nearest enemy.",
       "id": "bolt",
       "name": "Bolt",
       "slot": 1,
       "chars": 4,
       "type": "projectile",
-      "damage": 40,
+      "damage": 50,
       "speed": 600,
       "color": [1, 1, 0, 1],
       "unlock_condition": {"type": "default"},
@@ -115,12 +116,13 @@
     "ice_blast": {
       "role": "Push nearby enemies back and slow them.",
       "id": "ice_blast",
+      "shard_count": 3, "cone_degrees": 30, "growth_description": "more shards, wider and longer cone", "rank_growth": {"radius": {"per_rank": 21.43, "max": 400}, "shard_count": {"per_rank": 1.4286, "max": 13, "integer": true}, "cone_degrees": {"per_rank": 8.5714, "max": 90}, "damage": {"per_rank": 9.4286}},
       "name": "Ice Blast",
       "slot": 3,
       "chars": 9,
       "type": "aoe",
-      "damage": 11,
-      "radius": 400,
+      "damage": 34,
+      "radius": 250,
       "knockback": 400,
       "slow_effect": 0.3,
       "slow_duration": 2.0,
@@ -215,11 +217,12 @@
     "lightning_arc": {
       "role": "Strike a group with a brief circle of lightning.",
       "id": "lightning_arc",
+      "growth_description": "wider strike", "rank_growth": {"radius": {"per_rank": 8.5714, "max": 160}, "damage": {"per_rank": 17.1429}},
       "name": "Lightning",
       "slot": 5,
       "chars": 13,
       "type": "direct_strike",
-      "damage": 80,
+      "damage": 60,
       "chain_count": 2,
       "chain_range": 200,
       "chain_damage_reduction": 0.8,
@@ -260,20 +263,21 @@
         }
       },
       "incantation": "lightning",
-      "radius": 160,
+      "radius": 100,
       "active_duration": 0.2
     },
     "meteor_shower": {
+      "rank_growth": {"damage": {"per_rank": 9.1429}, "radius": {"per_rank": 2.8571, "max": 65}},
       "role": "Bombard enemies with delayed area attacks.",
       "id": "meteor_shower",
       "name": "Meteor Shower",
       "slot": 6,
       "chars": 13,
       "type": "multi_aoe",
-      "damage": 25,
-      "meteor_count": 2,
+      "damage": 32,
+      "meteor_count": 3,
       "delay_interval": 0.3,
-      "radius": 220,
+      "radius": 45,
       "color": [
         1,
         0.3,
@@ -342,41 +346,21 @@
       },
       "warning_duration": 0.65,
       "rank_steps": [
-        {
-          "meteor_count": 3,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "radius": 250,
-          "description": "Increase impact radius by 30."
-        },
-        {
-          "meteor_count": 4,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "meteor_count": 5,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "radius": 280,
-          "description": "Increase impact radius by 30."
-        },
-        {
-          "meteor_count": 6,
-          "description": "Drop one extra meteor."
-        },
-        {
-          "meteor_count": 8,
-          "description": "Drop two extra meteors."
-        }
+        {"description": "Heavier, wider meteors."},
+        {"meteor_count": 4, "description": "Drop one extra meteor."},
+        {"description": "Heavier, wider meteors."},
+        {"meteor_count": 5, "description": "Drop one extra meteor."},
+        {"description": "Heavier, wider meteors."},
+        {"meteor_count": 6, "description": "Drop one extra meteor."},
+        {"description": "Heavier, wider meteors."}
       ]
     },
     "ember_lance": {
+      "rank_growth": {"damage": {"per_rank": 11.8571}},
       "id": "ember_lance",
       "name": "Ember Lance",
       "type": "piercing",
-      "damage": 45,
+      "damage": 42,
       "duration": 5.0,
       "role": "Pierce a line of enemies with a straight lance.",
       "unlock_condition": {
@@ -388,41 +372,47 @@
       "recast_behavior": "stack",
       "name": "Plague Seed",
       "type": "plague",
-      "damage": 9,
-      "duration": 5.0,
-      "role": "Infect a target for 5 seconds; spread to nearby enemies.",
+      "damage": 4,
+      "duration": 3.0,
+      "role": "Infect a target for 3 to 5 seconds; spread to nearby enemies.",
+      "spread_radius": 60.0,
+      "spread_speed": 300.0,
+      "spore_linger": 1.5,
+      "rank_growth": {"spread_radius": {"per_rank": 7.1429, "max": 110.0}, "spread_speed": {"per_rank": 22.8571, "max": 460.0}, "spore_linger": {"per_rank": 0.2143, "max": 3.0}, "duration": {"per_rank": 0.1429, "max": 4.0}, "damage": {"per_rank": 1.1429}},
       "unlock_condition": {
         "type": "default"
       }
     },
     "cinder_field": {
       "id": "cinder_field",
+      "growth_description": "larger field", "rank_growth": {"radius": {"per_rank": 7.143, "max": 150}, "damage": {"per_rank": 2.2857}},
       "recast_behavior": "stack",
       "name": "Cinder Field",
       "type": "field",
-      "damage": 12,
+      "damage": 8,
       "duration": 5.0,
       "role": "Burn a stationary area for 5 seconds.",
       "unlock_condition": {
         "type": "default"
       },
-      "radius": 150,
+      "radius": 100,
       "tick_interval": 0.5
     },
     "arcane_orbit": {
       "id": "arcane_orbit",
+      "growth_description": "wider orbit, extra spark at ranks 5 and 8", "rank_growth": {"orbit_radius": {"per_rank": 4.286, "max": 130}, "orb_count": {"per_rank": 0.2857, "max": 4, "integer": true}, "damage": {"per_rank": 3.5714}},
       "recast_behavior": "extend",
       "name": "Arcane Orbit",
       "type": "orbit",
-      "damage": 28,
+      "damage": 12,
       "duration": 6.0,
       "role": "Large arcane sparks circle you for 6 seconds.",
       "unlock_condition": {
         "type": "default"
       },
-      "orbit_radius": 130,
+      "orbit_radius": 100,
       "body_radius": 42,
-      "orb_count": 3,
+      "orb_count": 2,
       "angular_speed": 4,
       "tick_interval": 0.5
     },
@@ -884,12 +874,13 @@
     },
     "focus_ray": {
       "id": "focus_ray",
+      "growth_description": "third beam at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "damage": {"per_rank": 3.5714}},
       "recast_behavior": "stack",
       "name": "Focus Ray",
       "type": "beam",
-      "damage": 12,
+      "damage": 13,
       "duration": 2.0,
-      "active_limit": 3,
+      "active_limit": 2,
       "beam_radius": 12.0,
       "turn_speed": 4.0,
       "role": "Track one enemy with a focused beam; recast to sustain up to three beams.",
@@ -899,28 +890,32 @@
     },
     "rune_trap": {
       "id": "rune_trap",
+      "growth_description": "larger blast and trigger", "rank_growth": {"trap_radius": {"per_rank": 8.5714, "max": 150}, "trigger_radius": {"per_rank": 2.857, "max": 70}, "damage": {"per_rank": 13.8571}},
       "recast_behavior": "stack",
       "name": "Rune Trap",
       "type": "trap",
-      "damage": 40,
+      "damage": 48,
       "duration": 6.0,
       "active_limit": 3,
       "role": "Place a trap that waits until triggered; up to three traps, oldest replaced.",
       "unlock_condition": {
         "type": "default"
       },
-      "trigger_radius": 70,
-      "trap_radius": 130
+      "trigger_radius": 50,
+      "trap_radius": 90
     },
     "seeking_spirit": {
       "id": "seeking_spirit",
+      "growth_description": "longer-lasting spirits, third spirit at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "duration": {"per_rank": 0.2857, "max": 10.0}, "damage": {"per_rank": 2.5714}},
       "recast_behavior": "stack",
       "name": "Seeker",
       "type": "spirit",
-      "damage": 18,
-      "duration": 5.0,
-      "active_limit": 3,
-      "role": "A spirit pursues nearby enemies for 5 seconds, striking one every 0.5 seconds on contact. Up to 3 spirits.",
+      "damage": 10,
+      "hit_interval": 1.0,
+      "move_speed": 220,
+      "duration": 8.0,
+      "active_limit": 2,
+      "role": "A slow spirit pursues nearby enemies for 8 to 10 seconds, striking each enemy at most once per second. Up to 2 spirits, 3 at rank 8.",
       "unlock_condition": {
         "type": "default"
       },
@@ -929,26 +924,29 @@
     "ember_trail": {
       "id": "ember_trail",
       "recast_behavior": "extend",
-      "name": "Firewalk",
+      "name": "Fire Walk",
       "type": "trail",
-      "damage": 24,
-      "duration": 11.0,
+      "damage": 8,
+      "duration": 9.0,
       "active_limit": 3,
       "role": "Leave a wide burning trail that lasts long enough to catch pursuers.",
       "unlock_condition": {
         "type": "default"
       },
-      "incantation": "firewalk",
+      "incantation": "fire walk",
       "emission_duration": 5.0,
-      "patch_duration": 6.0,
-      "trail_radius": 65,
+      "patch_duration": 4.0,
+      "trail_radius": 25,
+      "rank_growth": {"trail_radius": {"per_rank": 1.4286, "max": 35.0}, "damage": {"per_rank": 2.2857}},
       "tick_interval": 0.5
     },
     "returning_blade": {
+      "rank_growth": {"damage": {"per_rank": 3.0}},
       "id": "returning_blade",
       "name": "Cross Blade",
       "type": "returning",
-      "damage": 20,
+      "damage": 11,
+      "return_damage_multiplier": 2.0,
       "duration": 4.0,
       "active_limit": 3,
       "role": "Send a ring of spinning blades outward, then back to you.",
@@ -956,42 +954,21 @@
         "type": "default"
       },
       "incantation": "cross blade",
-      "blade_radius": 22,
+      "blade_radius": 20,
       "travel_distance": 350,
       "linger_duration": 0.9,
       "linger_interval": 0.3,
       "linger_damage_multiplier": 0.5,
       "speed": 500,
-      "blade_count": 3,
+      "blade_count": 1,
       "rank_steps": [
-        {
-          "blade_count": 4,
-          "description": "Throw four blades in an X."
-        },
-        {
-          "blade_radius": 26,
-          "description": "Increase blade radius by 4."
-        },
-        {
-          "travel_distance": 400,
-          "description": "Increase outward travel by 50."
-        },
-        {
-          "blade_radius": 29,
-          "description": "Increase blade radius by 3."
-        },
-        {
-          "blade_count": 5,
-          "description": "Throw five blades in a pentagon."
-        },
-        {
-          "travel_distance": 460,
-          "description": "Increase outward travel by 60."
-        },
-        {
-          "blade_count": 6,
-          "description": "Throw six blades in a hexagon."
-        }
+        {"blade_count": 2, "description": "Throw two blades."},
+        {"blade_count": 3, "description": "Throw three blades in a triangle."},
+        {"blade_count": 4, "blade_radius": 27, "travel_distance": 400, "description": "Throw four larger blades in an X that travel 50 farther."},
+        {"blade_count": 5, "description": "Throw five blades."},
+        {"blade_radius": 33, "description": "Larger blades."},
+        {"blade_count": 6, "travel_distance": 460, "description": "Throw six blades in a hexagon that travel 60 farther."},
+        {"blade_radius": 40, "description": "Larger blades."}
       ],
       "upgrades": {
         "max_level": 8

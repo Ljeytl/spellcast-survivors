@@ -265,6 +265,9 @@ func _on_monster_died(monster: CharacterBody2D):
 		reward.position = monster.global_position
 		get_parent().add_child(reward)
 		preload("res://scripts/HealthPotion.gd").try_drop(get_parent(), monster.global_position + Vector2(48, 0), -1.0, true)
+		# Bosses always drop three style runes around the chest.
+		for offset in [Vector2(-48, 0), Vector2(0, 48), Vector2(0, -48)]:
+			preload("res://scripts/StylePickup.gd").try_drop(get_parent(), monster.global_position + offset, -1.0, true)
 	monster_died.emit({"variant": monster.variant, "boss": monster.boss})
 
 func add_game_time(additional_time: float):
