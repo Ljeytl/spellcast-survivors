@@ -46,7 +46,8 @@ def build(godot):
     clean_source()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip())
-    label = revision[:7] + ("-dirty" if dirty else "")
+    version = re.search(r'^config/version="(.*)"$', (ROOT / "project.godot").read_text(), re.MULTILINE)
+    label = (version.group(1) if version else revision[:7]) + ("-dirty" if dirty else "")
     output = ROOT / "builds" / ("playtest-" + label + "-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"))
     output.mkdir(parents=True, exist_ok=False)
     logs = output / "logs"
@@ -65,7 +66,7 @@ def build(godot):
         raise RuntimeError("Expected exactly one Mac application")
     subprocess.run(["codesign", "--verify", "--deep", "--strict", str(apps[0])], check=True)
     readme = f"""SPELLCAST SURVIVORS / TYPECAST — PLAYTEST
-Build: {label}
+Build: {label} ({revision[:7]})
 
 Windows: Extract the entire ZIP, then open SpellCast Survivors.exe.
 Keep the EXE and PCK game-data file together. Godot is not required.
@@ -89,8 +90,8 @@ screenshot/video if possible. Saves and settings stay on your own computer.
         (folder / "README.txt").write_text(readme)
         shutil.copy2(ROOT / "audio/tactile/CREDITS.md", folder / "SOUND-CREDITS.txt")
     (mac / "Applications").symlink_to("/Applications", target_is_directory=True)
-    win_zip = Path(shutil.make_archive(str(output / "SpellCast-Survivors-Windows"), "zip", windows.parent))
-    dmg = output / "SpellCast-Survivors-Mac.dmg"
+    win_zip = Path(shutil.make_archive(str(output / ("SpellCast-Survivors-" + label + "-Windows")), "zip", windows.parent))
+    dmg = output / ("SpellCast-Survivors-" + label + "-Mac.dmg")
     run(["hdiutil", "create", "-volname", "SpellCast Playtest", "-srcfolder", str(mac), "-ov", "-format", "UDZO", str(dmg)], logs / "dmg.log")
     clean_source()
     if subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() != revision:
