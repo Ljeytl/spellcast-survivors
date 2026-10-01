@@ -184,11 +184,11 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		if manager.get_spell_rank(spell_name) >= Progression.RANK_CAP:
 			# Past rank 8 every card raises one property of the spell by a percentage.
 			var picks = manager.get_spell_info(slot).get("overflow", {})
-			for stat in Progression.overflow_stats(spell_name):
+			for stat in manager.spell_properties(spell_name):
 				var step = int(Progression.OVERFLOW_STEP * 100)
 				var now = step * int(picks.get(stat, 0))
 				all_upgrades.append({"key": "rank:%s:%s" % [spell_name, stat], "name": "%s · %s" % [title, Progression.OVERFLOW_NAMES[stat]], "icon": "⭐",
-					"description": "+%d%% %s (now +%d%%)" % [step, Progression.OVERFLOW_NAMES[stat].to_lower(), now],
+					"description": "+%d%% %s for this spell (now +%d%%)" % [step, Progression.OVERFLOW_NAMES[stat], now],
 					"effect": {"type": "spell_upgrade", "spell": spell_name, "stat": stat}})
 			continue
 		all_upgrades.append({"key": "rank:" + spell_name, "name": title + "+", "icon": "⭐",

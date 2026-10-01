@@ -1,9 +1,8 @@
 # Unreleased — Property upgrades past rank 8
 
-- Once every slot is filled and every equipped spell is rank 8, rank-up cards name one property of one spell: Power, Area, Duration or Speed, each +10% per pick (SpellProgression.OVERFLOW_STEP). Replaces the flat +10% damage per overflow rank.
-- Which data keys each property scales is a per-spell table, SpellProgression.OVERFLOW_KEYS. Power scales damage for every spell. Counts (shards, orbs, meteors, active limits) are never scaled.
-- Bolt offers Power only: its projectile speed is hardcoded in SpellManager, so a Speed card would do nothing until that reads the spell's data. Ember Lance and Meteor have no duration or speed property in data.
-- Picks are stored per spell under "overflow" and applied in SpellProgression.resolve; the card text and pick acknowledgement show the percentage.
+- Once every slot is filled and every equipped spell is rank 8, rank-up cards raise one of that spell's own passive properties: Spell Power, Spell Size, Spell Duration or Velocity, +10% per pick (SpellProgression.OVERFLOW_STEP), stacking. Replaces the flat +10% damage per overflow rank.
+- It is a per-spell layer on the existing passives: SpellManager.cast_stat and SpellGeometry's size/duration/power readers multiply in the casting spell's picks (identified by DamageSource.current). Anything that already scales with a passive, including healing and Earth Shield retaliation, scales with the pick.
+- Cards offered are the properties the spell has actually read while casting (SpellManager.spell_properties); a never-cast spell offers Spell Power. Counts are never offered.
 - Training bench ranks now stop at 8.
 - Tests: rank_overflow_regression rewritten for property cards.
 

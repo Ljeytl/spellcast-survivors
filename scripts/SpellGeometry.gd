@@ -6,23 +6,29 @@ const BEAM_RADIUS = 20.0
 const SPIRIT_RADIUS = 24.0
 const Art = preload("res://scripts/EffectArt.gd")
 
+## The casting spell's own past-rank-8 picks layered on a passive (see SpellManager.cast_stat).
+static func spell_layer(player: Node, key: String) -> float:
+	var game = player.get_tree().get_first_node_in_group("game") if is_instance_valid(player) and player.is_inside_tree() else null
+	var manager = game.get("spell_manager") if game else null
+	return manager.spell_property_multiplier(key) if manager and manager.has_method("spell_property_multiplier") else 1.0
+
 static func multiplier(player: Node) -> float:
 	if not is_instance_valid(player):
 		return 1.0
 	var value = player.get("spell_size_multiplier")
-	return maxf(0.1, float(value)) if value != null else 1.0
+	return maxf(0.1, float(value)) * spell_layer(player, "spell_size_multiplier") if value != null else 1.0
 
 static func duration_multiplier(player: Node) -> float:
 	if not is_instance_valid(player):
 		return 1.0
 	var value = player.get("spell_duration_multiplier")
-	return maxf(1.0, float(value)) if value != null else 1.0
+	return maxf(1.0, float(value)) * spell_layer(player, "spell_duration_multiplier") if value != null else 1.0
 
 static func power_multiplier(player: Node) -> float:
 	if not is_instance_valid(player):
 		return 1.0
 	var value = player.get("spell_damage_multiplier")
-	return maxf(0.0, float(value)) if value != null else 1.0
+	return maxf(0.0, float(value)) * spell_layer(player, "spell_damage_multiplier") if value != null else 1.0
 
 static func scaled_data(data: Dictionary, player: Node) -> Dictionary:
 	var result = data.duplicate(true)

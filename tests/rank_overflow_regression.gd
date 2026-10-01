@@ -35,38 +35,57 @@ func run():
 		while manager.get_spell_rank(info.id) < 8:
 			manager.upgrade_spell(info.id)
 	check(manager.overflow_unlocked(), "Every slot filled at rank 8 unlocks overflow")
-	var bolt = manager.spells[manager.find_spell_slot("bolt")]
-	var rank8 = manager.calculate_spell_damage(bolt)
+	var DS = load("res://scripts/DamageSource.gd")
+	# Casting records which passive properties each spell reads; those become its cards.
+	for words in ["bolt", "cinder field", "life", "plague seed"]:
+		manager.cast_freeform_spell(words)
+		await process_frame
+	check(manager.spell_properties("cinder_field").has("power") and manager.spell_properties("cinder_field").has("size"), "Cinder Field reads Spell Power and Spell Size")
+	check(manager.spell_properties("life").has("power"), "Life reads Spell Power for healing")
+	check(manager.spell_properties("never_cast") == ["power"], "An uncast spell falls back to Power")
 	var screen = game.level_up_screen
 	screen.generate_upgrade_options({}, 20)
-	var pool = screen.current_upgrade_pool
-	var stat_keys = pool.map(func(card): return str(card.get("key", ""))).filter(func(key): return key.begins_with("rank:"))
-	check(stat_keys.size() > 0 and stat_keys.all(func(key): return key.count(":") == 2), "Past rank 8 every rank card names a property")
-	check("rank:cinder_field:area" in stat_keys and "rank:cinder_field:duration" in stat_keys and "rank:cinder_field:power" in stat_keys, "Cinder Field offers power, area and duration")
-	check(not stat_keys.any(func(key): return key.ends_with(":count")), "Counts are never offered")
+	var keys = screen.current_upgrade_pool.map(func(card): return str(card.get("key", ""))).filter(func(key): return key.begins_with("rank:"))
+	check(keys.size() > 0 and keys.all(func(key): return key.count(":") == 2), "Past rank 8 every rank card names a property")
+	for property in manager.spell_properties("cinder_field"):
+		check(("rank:cinder_field:" + property) in keys, "Cinder Field offers " + property)
+	check(not keys.any(func(key): return key.ends_with(":count")), "Counts are never offered")
+	var bolt = manager.spells[manager.find_spell_slot("bolt")]
+	DS.current = DS.make("bolt", 0.0)
+	var power8 = manager.cast_stat("spell_damage_multiplier")
+	var damage8 = manager.calculate_spell_damage(bolt)
+	var size8 = manager.cast_stat("spell_size_multiplier")
+	DS.current = {}
 	game.change_state(game.GameState.PLAYING)
-	game._on_upgrade_selected({"name": "Bolt · Power", "description": "+10% power (now +0%)", "effect": {"type": "spell_upgrade", "spell": "bolt", "stat": "power"}})
-	check(int(bolt.get("overflow", {}).get("power", 0)) == 1, "Choosing a property card records the pick")
-	check(manager.get_spell_rank("bolt") == 9, "Overflow allows rank 9")
-	check(is_equal_approx(manager.calculate_spell_damage(bolt), rank8 * (1.0 + Progression.OVERFLOW_DAMAGE_PER_RANK)), "A power pick adds ten percent of rank-8 damage")
+	game._on_upgrade_selected({"name": "Bolt · Spell Power", "description": "+10% Spell Power for this spell (now +0%)", "effect": {"type": "spell_upgrade", "spell": "bolt", "stat": "power"}})
+	check(manager.get_spell_rank("bolt") == 9 and int(bolt.get("overflow", {}).get("power", 0)) == 1, "Choosing a property card ranks up and records the pick")
+	DS.current = DS.make("bolt", 0.0)
+	check(is_equal_approx(manager.cast_stat("spell_damage_multiplier"), power8 * 1.1), "A Power pick raises that spell's Spell Power by ten percent")
+	check(is_equal_approx(manager.calculate_spell_damage(bolt), damage8 * 1.1), "Bolt damage follows its Spell Power")
+	check(is_equal_approx(manager.cast_stat("spell_size_multiplier"), size8), "A Power pick leaves Spell Size alone")
+	DS.current = DS.make("cinder_field", 0.0)
+	check(is_equal_approx(manager.cast_stat("spell_damage_multiplier"), power8), "Picks stay with their own spell")
+	DS.current = {}
+	check(is_equal_approx(manager.cast_stat("spell_damage_multiplier"), power8), "Outside a cast the passive is unchanged")
+	var life = manager.spells[manager.find_spell_slot("life")]
+	manager.upgrade_spell("life")
+	Progression.add_overflow(life, "power")
+	game.player.health = 10.0
+	manager.cast_freeform_spell("life")
+	await process_frame
+	var healed_with = game.player.health
+	check(healed_with > 10.0, "Life still heals with a Power pick")
 	var cinder = manager.spells[manager.find_spell_slot("cinder_field")]
-	var size8 = float(Progression.resolve(cinder).radius)
-	var duration8 = float(Progression.resolve(cinder).duration)
-	var damage8 = manager.calculate_spell_damage(cinder)
+	var radius8 = float(Progression.resolve(cinder).radius)
 	manager.upgrade_spell("cinder_field")
-	Progression.add_overflow(cinder, "area")
-	check(is_equal_approx(float(Progression.resolve(cinder).radius), size8 * 1.1), "An area pick widens by ten percent")
-	check(is_equal_approx(float(Progression.resolve(cinder).duration), duration8), "An area pick leaves duration alone")
-	check(is_equal_approx(manager.calculate_spell_damage(cinder), damage8), "An area pick leaves damage alone")
-	manager.upgrade_spell("cinder_field")
-	Progression.add_overflow(cinder, "area")
-	check(is_equal_approx(float(Progression.resolve(cinder).radius), size8 * 1.2), "Area picks stack linearly")
-	var plague = manager.spells[manager.find_spell_slot("plague_seed")]
-	var linger8 = float(Progression.resolve(plague).spore_linger)
-	manager.upgrade_spell("plague_seed")
-	Progression.add_overflow(plague, "duration")
-	check(is_equal_approx(float(Progression.resolve(plague).spore_linger), linger8 * 1.1), "Duration picks lengthen Plague's spores")
-	check(int(Progression.resolve(Progression.resolve(plague)).get("shard_count", 0)) == 0 and is_equal_approx(float(Progression.resolve(Progression.resolve(plague)).spore_linger), linger8 * 1.1), "Resolve stays idempotent with picks")
+	check(is_equal_approx(float(Progression.resolve(cinder).radius), radius8), "Rank data stops growing past rank 8")
+	# A Size pick widens the field the spell actually places.
+	var Geometry = load("res://scripts/SpellGeometry.gd")
+	DS.current = DS.make("cinder_field", 0.0)
+	var placed8 = float(Geometry.scaled_data(Progression.resolve(cinder), game.player).radius)
+	Progression.add_overflow(cinder, "size")
+	check(is_equal_approx(float(Geometry.scaled_data(Progression.resolve(cinder), game.player).radius), placed8 * 1.1), "A Size pick widens the placed field by ten percent")
+	DS.current = {}
 	game.free()
 	await process_frame
 	print("Rank overflow: %d checks, %d failures" % [checks, failures])

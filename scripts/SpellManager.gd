@@ -330,7 +330,33 @@ func cast_spell() -> bool:
 	return true
 
 func cast_stat(key: String) -> float:
-	return float(release_snapshot.stats[key]) if not release_snapshot.is_empty() and release_snapshot.stats.has(key) else float(player.get(key))
+	var value = float(release_snapshot.stats[key]) if not release_snapshot.is_empty() and release_snapshot.stats.has(key) else float(player.get(key))
+	return value * spell_property_multiplier(key)
+
+## Per-spell layer over the four spell passives, bought with level-ups past rank 8.
+## Applies to whichever spell is casting (DamageSource.current), and records which
+## properties each spell reads so its level-up cards match what it actually uses.
+const SPELL_PROPERTIES = {"spell_damage_multiplier": "power", "spell_size_multiplier": "size", "spell_duration_multiplier": "duration", "projectile_speed_multiplier": "velocity"}
+var property_reads: Dictionary = {}
+
+func spell_property_multiplier(key: String) -> float:
+	var property = SPELL_PROPERTIES.get(key, "")
+	var spell = str(DamageSource.current.get("spell", ""))
+	if property == "" or spell == "":
+		return 1.0
+	if not property_reads.has(spell):
+		property_reads[spell] = {}
+	property_reads[spell][property] = true
+	for info in spells.values():
+		if str(info.get("id", "")) == spell:
+			return 1.0 + preload("res://scripts/SpellProgression.gd").OVERFLOW_STEP * int(info.get("overflow", {}).get(property, 0))
+	return 1.0
+
+## Properties a spell has read while casting, in passive order. Power if it has never been cast.
+func spell_properties(spell_id: String) -> Array:
+	var read = property_reads.get(spell_id, {})
+	var result = SPELL_PROPERTIES.values().filter(func(property): return read.has(property))
+	return result if not result.is_empty() else ["power"]
 
 func discard_pending_casts():
 	for payload in pending_keyword_casts:
@@ -869,7 +895,7 @@ func calculate_spell_damage(spell_info: Dictionary) -> float:
 	var base_damage = spell_info["damage"]
 	var spell_level = spell_info["level"]
 	var damage_ranks = 0.0 if spell_info.has("rank_steps") or grows_damage else float(mini(spell_level, 8) - 1)
-	var level_multiplier = (1.0 + 0.15 * damage_ranks) * (1.0 + preload("res://scripts/SpellProgression.gd").OVERFLOW_DAMAGE_PER_RANK * preload("res://scripts/SpellProgression.gd").overflow_ranks(spell_info))
+	var level_multiplier = 1.0 + 0.15 * damage_ranks
 	if Synergies.RECIPES.has(str(spell_info.get("id", ""))):
 		var resolved = spell_info if spell_info.get("combination_scaled", false) else CombinationScaling.resolve(spell_info, get_combination_ingredient_ranks(str(spell_info.id)))
 		return float(resolved.damage) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
