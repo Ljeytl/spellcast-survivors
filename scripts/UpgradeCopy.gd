@@ -65,30 +65,4 @@ static func description(upgrade: Dictionary, manager: Node) -> String:
 	return str(upgrade.get("description", "")).split("\n")[0]
 
 static func rank_description(id: String, manager: Node) -> String:
-	var rank = manager.get_spell_rank(id)
-	if preload("res://scripts/SynergyCatalog.gd").RECIPES.has(id):
-		return preload("res://scripts/CombinationScaling.gd").next_description(id, rank)
-	var slot = manager.find_spell_slot(id)
-	var info = manager.get_spell_info(slot)
-	if info.has("rank_steps"):
-		return preload("res://scripts/SpellProgression.gd").next_description(info)
-	if id == "life":
-		return "Restore %s more health per cast." % number(float(info.heal_amount) * 0.15 * manager.player.spell_damage_multiplier)
-	if id == "regeneration":
-		return "Restore %s more health each second." % number(float(info.heal_amount) * 0.15 * manager.player.spell_damage_multiplier)
-	if id == "earth_shield":
-		return "Deal %s more retaliation damage." % number(float(info.get("retaliation_damage", 60)) * 0.15 * manager.player.spell_damage_multiplier)
-	var base = manager.mana_bolt_damage if id == "mana_bolt" else float(info.get("damage", 0)) * float(info.get("damage_multiplier", 1))
-	var gain = base * 0.15 * manager.player.spell_damage_multiplier
-	var extra = ""
-	if id == "mana_bolt" and rank + 1 in [3, 6, 10]:
-		extra = " and fire one extra bolt"
-	elif id == "bolt" and rank < 5:
-		extra = " and fire one extra bolt"
-	elif id == "lightning_bolt":
-		extra = " and bounce to one more enemy"
-	elif id == "meteor_shower":
-		extra = " and drop one extra meteor"
-	elif id == "ice_blast":
-		extra = " with a wider, stronger push"
-	return "Deal %s more damage per hit%s." % [number(gain), extra]
+	return manager.rank_change_summary(id)

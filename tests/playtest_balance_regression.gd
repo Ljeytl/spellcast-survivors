@@ -69,9 +69,10 @@ func run():
 	trap.set_process(false)
 	trap.age = 1
 	trap.advance_trap()
-	check(is_equal_approx(enemy.current_health, 455), "Trap deals forty-five damage")
+	var trap_health = 500.0 - float(spells.spell_catalog.rune_trap.damage)
+	check(is_equal_approx(enemy.current_health, trap_health), "Trap deals its data damage")
 	trap.advance_trap()
-	check(is_equal_approx(enemy.current_health, 455), "Trap cannot trigger twice")
+	check(is_equal_approx(enemy.current_health, trap_health), "Trap cannot trigger twice")
 	check(enemy.knockback_velocity == Vector2.ZERO, "Trap does not add knockback")
 	check(Targeting.meteor_weight(100, 100, 0) > Targeting.meteor_weight(500, 100, 0), "Closer enemies have higher weight")
 	check(Targeting.meteor_weight(100, 500, 0) > Targeting.meteor_weight(100, 30, 0), "Stronger enemies have higher weight")
@@ -103,21 +104,25 @@ func run():
 	await process_frame
 	spells.learn_spell("meteor_shower")
 	var meteor_slot = spells.find_spell_slot("meteor_shower")
-	var counts = [3, 4, 5, 6, 7, 8, 9, 10]
+	var counts = [3, 3, 4, 4, 5, 5, 6, 6]
+	var meteor_data = spells.spell_catalog.meteor_shower
+	var previous_meteor_damage = 0.0
 	for rank in range(1, 9):
 		spells.spells[meteor_slot].level = rank
 		spells.cast_meteor_shower_spell(meteor_slot)
 		var warnings = get_nodes_in_group("spell_projectiles").filter(func(n): return n.projectile_type == "warning")
 		check(warnings.size() == counts[rank - 1], "Meteor real cast count at rank %d" % rank)
-		var radius = 75 if rank < 3 else (145 if rank < 6 else (215 if rank < 8 else 280))
+		var radius = minf(float(meteor_data.radius) + float(meteor_data.rank_growth.radius.per_rank) * (rank - 1), float(meteor_data.rank_growth.radius.max))
 		check(warnings.all(func(n): return is_equal_approx(n.effect_radius, radius)), "Meteor visible geometry at rank %d" % rank)
-		check(is_equal_approx(spells.calculate_spell_damage(spells.spells[meteor_slot]), 30), "Meteor ranks do not also increase damage")
+		var meteor_damage = spells.calculate_spell_damage(spells.spells[meteor_slot])
+		check(is_equal_approx(meteor_damage, float(meteor_data.damage) + float(meteor_data.rank_growth.damage.per_rank) * (rank - 1)) and meteor_damage > previous_meteor_damage, "Meteor ranks also increase damage at rank %d" % rank)
+		previous_meteor_damage = meteor_damage
 		for warning in warnings:
 			warning.free()
-	spells.spells[meteor_slot].level = 2
-	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells).contains("radius"), "Real upgrade copy describes area rank")
 	spells.spells[meteor_slot].level = 1
-	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells) == "Drop one extra meteor.", "Real upgrade copy describes count rank only")
+	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells) == "+damage, +area", "Real upgrade copy describes area rank")
+	spells.spells[meteor_slot].level = 2
+	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells) == "+1 meteor, +damage, +area", "Real upgrade copy describes count rank")
 	spells.learn_spell("returning_blade")
 	var blade_slot = spells.find_spell_slot("returning_blade")
 	spells.spells[blade_slot].level = 1
@@ -128,10 +133,11 @@ func run():
 	for blade in first_volley.get_children():
 		blade.set_physics_process(false)
 		blade.advance(0.4)
-	check(is_equal_approx(enemy.current_health, 485), "Rank-1 single blade aims at the enemy and hits outbound for 15")
+	var blade_damage = spells.calculate_spell_damage(spells.spells[blade_slot])
+	check(is_equal_approx(enemy.current_health, 500.0 - blade_damage), "Rank-1 single blade aims at the enemy and hits outbound for its data damage")
 	for blade in first_volley.get_children():
 		blade.advance(2.0)
-	check(is_equal_approx(enemy.current_health, 455), "Return hit deals double damage")
+	check(is_equal_approx(enemy.current_health, 500.0 - blade_damage * 3.0), "Return hit deals double damage")
 	first_volley.free()
 	for rank in range(1, 9):
 		spells.spells[blade_slot].level = rank
@@ -139,14 +145,15 @@ func run():
 		var volleys = get_nodes_in_group("cross_blade_volleys")
 		var volley = volleys.back()
 		var blades = volley.get_children()
-		var count = [1, 2, 3, 3, 4, 5, 5, 6][rank - 1]
+		var count = [1, 2, 3, 4, 5, 5, 6, 6][rank - 1]
+		var rank_blade_damage = spells.calculate_spell_damage(spells.spells[blade_slot])
 		check(blades.size() == count, "Blade count at rank %d" % rank)
 		for index in range(count):
-			check(is_equal_approx(blades[index].damage, 15), "Each blade deals 15 outbound, independent of count rank")
+			check(is_equal_approx(blades[index].damage, rank_blade_damage) and is_equal_approx(rank_blade_damage, blade_damage + float(spells.spell_catalog.returning_blade.rank_growth.damage.per_rank) * (rank - 1)), "Each blade deals its rank damage outbound at rank %d" % rank)
 			var next = blades[(index + 1) % count]
 			if count > 1:
 				check(is_equal_approx(fposmod(next.direction.angle() - blades[index].direction.angle(), TAU), TAU / count), "Blades form evenly spaced polygon")
-		if rank == 5:
+		if rank == 4:
 			check(blades.all(func(b): return is_equal_approx(absf(b.direction.x), absf(b.direction.y))), "Four blades form X rather than plus")
 		if rank == 8:
 			check(is_equal_approx(blades[0].info.blade_radius, 40) and is_equal_approx(blades[0].outbound_distance, 460), "Size and range ranks reach authored values")
@@ -171,7 +178,12 @@ func run():
 	await process_frame
 	await process_frame
 	check(get_nodes_in_group("cross_blade_volleys").is_empty(), "Completed volleys and their children expire")
-	for pair in [[0, 1.0], [180, 1.0], [300, 1.2], [600, 1.65], [780, 2.0], [1020, 10.0 / 3.0], [1200, 4.5]]:
+	var pacing_scaling = manager.encounter_config.get("scaling", {})
+	var pacing_points = []
+	for point in pacing_scaling.get("spawn_difficulty_points", []):
+		pacing_points.append([float(point.time), minf(float(pacing_scaling.get("maximum_spawn_difficulty", INF)), maxf(1.0, float(point.multiplier)))])
+	check(pacing_points.size() >= 2, "Spawn curve has authored pacing milestones")
+	for pair in pacing_points:
 		manager.game_time = pair[0]
 		check(is_equal_approx(manager.spawn_difficulty_multiplier(), pair[1]), "Spawn curve passes authored pacing milestone")
 		manager.game_time = pair[0] - 0.001
@@ -179,7 +191,7 @@ func run():
 		manager.game_time = pair[0] + 0.001
 		check(absf(manager.spawn_difficulty_multiplier() - before) < 0.001, "Spawn curve continuous across milestone")
 	manager.game_time = 1020
-	check(is_equal_approx(manager.spawn_difficulty_multiplier(), 10.0 / 3.0), "Minute seventeen reaches requested interval compression")
+	check(is_equal_approx(manager.spawn_difficulty_multiplier(), float(pacing_scaling.get("maximum_spawn_difficulty", 0.0))), "Minute seventeen holds the authored maximum interval compression")
 	game.queue_free()
 	await process_frame
 	print("Playtest balance: %d checks, %d failures" % [checks, failures])

@@ -229,7 +229,9 @@ func run():
 	result.keyboard_armed_at = Time.get_ticks_msec() + 350
 	check("2 enemies" in result.defeat_label.text and "9.0 health + 4.0 bonus health" in result.defeat_label.text, "Defeat explains aggregate contact and actual loss")
 	check("not recorded" in result.describe_final_hit({}), "Unknown source is explicit rather than fabricated")
-	result.restart_game.disconnect(game._on_restart_game)
+	# Since the tower home (5bf3472) restart_game routes to _on_return_to_tower; isolate the screen from any handler.
+	for connection in result.restart_game.get_connections():
+		result.restart_game.disconnect(connection.callable)
 	result.restart_game.connect(func(): restart_count += 1)
 	for code in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]:
 		key(code)

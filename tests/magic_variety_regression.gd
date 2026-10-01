@@ -88,7 +88,7 @@ func run():
 		var original_damage = manager.calculate_spell_damage(manager.spells[slot])
 		manager.upgrade_spell(id)
 		if id == "returning_blade":
-			check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage), "Blade count upgrade does not also increase damage")
+			check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage + float(manager.spells[slot].rank_growth.damage.per_rank)), "Blade count upgrade also adds its per-rank damage")
 			check("blade" in manager.get_rank_upgrade_description(id), "Next blade rank describes the volley")
 		else:
 			var growth = manager.spells[slot].get("rank_growth", {}).get("damage", {})
@@ -97,7 +97,7 @@ func run():
 				check("+15% of base damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
 			else:
 				check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage + float(growth.per_rank)), "New spell rank adds its per-rank damage: " + id)
-				check(" damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
+				check("+damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
 		var enemy = target(Vector2(130, 0))
 		key(KEY_SPACE)
 		type_name(manager.spells[slot].display_name)
@@ -111,11 +111,13 @@ func run():
 			manager.cast_spell_by_type(slot)
 		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion() and not node.get_parent().is_queued_for_deletion())
 		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "returning_blade" else active.size()
-		check(capped == manager.spells[slot].active_limit, "Per-spell concurrent cap: " + id)
+		# Extend-recast spells (Fire Walk) lengthen one instance instead of stacking up to active_limit.
+		var expected_cap = 1 if manager.spells[slot].get("recast_behavior", "stack") == "extend" else int(manager.spells[slot].active_limit)
+		check(capped == expected_cap, "Per-spell concurrent cap: " + id)
 		enemy.free()
 		for node in active:
 			node.set_physics_process(false)
-			node.advance(20)
+			node.advance(maxf(20.0, float(node.remaining) + 1.0))  # extended recasts accumulate duration
 			if node.info.type == "trap":
 				check(not node.is_queued_for_deletion() and not node.triggered, "Untriggered trap remains prepared in empty arena")
 			else:
@@ -188,6 +190,7 @@ func run():
 	trap.advance(0.05)
 	check(trap.triggered and near.hits == 1, "Armed trap triggers on later proximity")
 	fresh()
+	await process_frame  # Seeker only targets on-screen enemies; let the new camera settle first
 	near = target(Vector2(100, 0))
 	var spirit = effect("seeking_spirit", near, {"move_speed": 320, "hit_interval": 0.5})  # pursuit timing fixture
 	spirit.advance(0.2)
@@ -198,16 +201,17 @@ func run():
 	far = target(Vector2(250, 0))
 	near.free()
 	spirit.advance(0.1)
-	check(spirit.target_ref.get_ref() == far, "Spirit reacquires after target freed")
+	check(spirit.target_ref != null and spirit.target_ref.get_ref() == far, "Spirit reacquires after target freed")
 	fresh()
+	await process_frame
 	near = target(Vector2(30, 0))
 	far = target(Vector2(80, 0))
-	spirit = effect("seeking_spirit", near, {"reaping": true})
+	spirit = effect("seeking_spirit", near, {"reaping": true, "hit_interval": 0.5})  # pre-1.0s-interval fixture timing
 	spirit.advance(0.05)
 	check(near.hits == 1 and far.hits == 0 and spirit.burst_remaining == 0, "Reaping spirit survivor hit does not burst or flash")
 	near.current_health = 1
-	spirit.advance(0.5)
-	check(near.hits == 2 and far.hits == 1 and far.current_health == 10000 - 9, "Actual spirit kill bursts half damage once, excluding primary")
+	spirit.advance(0.6)  # past the 0.5s re-hit boundary without relying on exact float accumulation
+	check(near.hits == 2 and far.hits == 1 and is_equal_approx(far.current_health, 10000 - spirit.damage * 0.5), "Actual spirit kill bursts half damage once, excluding primary")
 	check(spirit.burst_remaining > 0 and spirit.burst_position == near.global_position, "Only actual kill creates a flash at the damage center")
 	spirit.advance(0.3)
 	check(spirit.burst_remaining == 0, "Burst flash expires within the owning spirit without extra nodes")
@@ -220,7 +224,7 @@ func run():
 	check(trail.trail_points.is_empty() and near.hits == stationary_hits, "Standing still cannot keep regenerating a stationary field")
 	game.player.position += Vector2(40, 0)
 	trail.advance(0.4)
-	check(trail.trail_points.size() == 1, "Movement creates a new spaced patch")
+	check(trail.trail_points.size() == maxi(1, ceili(40.0 / float(trail.info.trail_radius))), "Movement creates a new spaced patch")
 	game.player.position += Vector2(40, 0)
 	trail.advance(0.2)
 	near.position = game.player.position - Vector2(20, 0)
@@ -296,7 +300,8 @@ func test_ordinary_offers():
 			seed(run_seed)
 			var desired = manager.Synergies.RECIPES[goal].ingredients + [goal] if goal in NEW_RECIPES else [goal]
 			var last_level = 1
-			for level in range(2, 32):
+			# Combinations unlock only at ingredient rank 8, so recipe goals need a longer ordinary run.
+			for level in range(2, 62 if goal in NEW_RECIPES else 32):
 				last_level = level
 				var options = game.level_up_screen.generate_upgrade_options({}, level)
 				var choice = {}
@@ -305,6 +310,12 @@ func test_ordinary_offers():
 						offered[card.effect.spell] = true
 						if card.effect.spell in desired:
 							choice = card
+				if choice.is_empty():
+					# Combinations unlock at ingredient rank 8, so a goal-seeking player ranks its ingredients up.
+					for card in options:
+						if card.effect.type == "spell_upgrade" and card.effect.get("spell", "") in desired and card.effect.spell != goal:
+							choice = card
+							break
 				if choice.is_empty():
 					for card in options:
 						if card.effect.type != "learn_spell":

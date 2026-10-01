@@ -168,16 +168,19 @@ func run():
 	manager.get_spell_info(manager.find_spell_slot("bolt")).level = 3
 	manager.get_spell_info(manager.find_spell_slot("lightning_arc")).level = 4
 	var info = manager.resolve_cast_info(manager.find_spell_slot("lightning_bolt"))
-	check(is_equal_approx(manager.calculate_spell_damage(info),104), "Combination impact gets ingredient and Power once")
-	check(is_equal_approx(info.splash_damage,232), "Combination splash gets Lightning and Power once")
+	var Scaling = preload("res://scripts/CombinationScaling.gd")
+	var expected_impact = 2.0 * Scaling.ingredient_damage("bolt", 3, 0.0)
+	var expected_splash = 2.0 * Scaling.ingredient_damage("lightning_arc", 4, 0.0)
+	check(is_equal_approx(manager.calculate_spell_damage(info),expected_impact), "Combination impact gets ingredient and Power once")
+	check(is_equal_approx(info.splash_damage,expected_splash), "Combination splash gets Lightning and Power once")
 	var direct = host(origin + Vector2(100,0))
 	var crowd = host(origin + Vector2(120,0))
 	manager.cast_bouncing_bolt(manager.find_spell_slot("lightning_bolt"))
 	var bolt = get_nodes_in_group("spell_projectiles")[-1]
 	bolt.set_process(false)
 	bolt.hit_enemy(direct)
-	check(is_equal_approx(direct.current_health,9664), "Direct lightning target takes impact and splash")
-	check(is_equal_approx(crowd.current_health,9768), "Lightning splash reaches crowd")
+	check(is_equal_approx(direct.current_health,10000.0 - expected_impact - expected_splash), "Direct lightning target takes impact and splash")
+	check(is_equal_approx(crowd.current_health,10000.0 - expected_splash), "Lightning splash reaches crowd")
 	check(is_equal_approx(get_nodes_in_group("lingering_spell_areas")[-1].duration,0.4), "Lightning Bolt splash duration scales once")
 	clear_effects()
 	learn(["plague_seed", "regeneration", "soul_bloom"])
@@ -280,7 +283,7 @@ func run():
 	check(victims[0].current_health==9975 and victims[1].current_health==9975,"Enlarged projectile physics hits simultaneous hurtboxes")
 	check(victims[2].current_health==10000,"Enlarged projectile does not gain line piercing")
 	for enemy in victims: enemy.free()
-	check(preload("res://scripts/BuildVersion.gd").text()=="v0.1.36 · Playtest", "Game version0.1.36")
+	check(preload("res://scripts/BuildVersion.gd").text()=="v%s · Playtest" % ProjectSettings.get_setting("application/config/version"), "Game version label matches project version")
 	game.queue_free()
 	await process_frame
 	print("SCALING0135: %d checks, %d failures" % [checks,failures])

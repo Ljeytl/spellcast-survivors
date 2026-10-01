@@ -428,3 +428,15 @@ Native candidate review found immediate next input blocked by the old cooldown a
 Final verification: **313 passing assertions** (casting 121, HUD 87, MEGA 51, style integration 54). The same casting suite with known-bad pre-release scoring and wizard obstruction reports 16 expected failures and exits 1. Operated desktop/narrow input verified invalid `zz` without a scrollbar, immediate next numbered/Space incantations, ordinary Bolt, MEGA Meteor Shower/Regeneration/Earth Shield release and scoring, focus expiry, pause/resume, and Main Menu → Tower. Runtime logs were clean.
 
 Coverage limit: full native Tower walking and held movement were not operated because the UI input tool could not hold keys. Automated lifecycle/Tower coverage supports mechanics; these results do not claim a full gameplay walkthrough, balance qualification or release-platform certification. Evidence and the explicit boundary are preserved under `/Users/ljeytl/.codex/verification/spellcast/casting-feel-0145/`, including `native-observations.txt`. Runtime evidence is bound to `0f9179b`; subsequent verification commits change documentation only. No export was refreshed.
+
+## Known UI bugs from test triage — 2026-10-01
+
+Found while retiring and fixing stale regression checks. Logged for later; not yet fixed. Each still fails its regression check on purpose.
+
+| ID | Bug | Evidence | Failing check |
+|---|---|---|---|
+| OCT01-01 | Casting strip covers the wizard on short windows | At 960×540 the strip spans y 290–410 while the wizard body spans y 220–320. Placement is `screen_h - panel_h - 130` (`Game.gd` `position_typing_ui_upper_screen`) with no wizard clearance. 720 px and taller windows are clear. The approved casting design requires no overlap with the wizard body. | `readability_regression`: "Casting clears player projection at screen center" |
+| OCT01-02 | Casting strip overlaps the spell bar in the debug interface (minor) | With debug view on at 1280×720 the strip ends at y 590 and the spell bar starts at y 573. Placement only avoids the normal-play reference chips. | `readability_regression`: "Casting does not cover spell slots" |
+| OCT01-03 | Spell reference chips overlap passive inventory cards with a full kit on small screens | With 16 cards at 640×480 and 480×640, e.g. a chip at y 969–1083 overlaps a passive at y 963–1023. Training Grounds now equips every spell, so players can reach this. Pre-existing (362f33f noted 7 → 11 intersections). | `playtest_ux_regression` |
+
+Test runner notes: `art_world_regression` needs about 40 s; `area_rendering_regression` reads rendered pixels and needs a display (`xvfb-run`, `--rendering-driver opengl3`); `tactile_audio_regression` only runs with the user-data directory "SpellCast Survivors Audio Test".

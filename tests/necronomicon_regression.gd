@@ -85,7 +85,7 @@ func run():
 	check(not copy.contains("Discovered recipes"), "Run book excludes permanent archive")
 	check(copy.contains("Type: life bolt"), "Run book gives exact bonus incantation")
 	check(copy.contains("MEGA · +50% power, +50% size"), "Run book lists the live keyword and its effect")
-	check(copy.contains("Now: 40 damage"), "Run book shows Bolt's current damage")
+	check(copy.contains("Now: %d damage" % int(round(manager.calculate_spell_damage(manager.spells[manager.find_spell_slot("bolt")])))), "Run book shows Bolt's current damage")
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://builds/book-evidence/run-book-800.png")

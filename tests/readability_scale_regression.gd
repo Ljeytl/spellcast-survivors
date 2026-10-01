@@ -32,7 +32,9 @@ func run():
 	game.get_node("MonsterManager").spawn_timer.stop()
 	game.get_node("MonsterManager").set_process(false)
 	game.player.is_invincible = true
-	check(game.get_node("Camera2D").zoom == Vector2.ONE * 1.5, "Camera uses reviewed 1.5 zoom")
+	var reviewed_zoom = preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM
+	check(is_equal_approx(reviewed_zoom, 1.3875), "Reviewed camera zoom remains 1.3875")
+	check(game.get_node("Camera2D").zoom == Vector2.ONE * reviewed_zoom, "Camera uses reviewed zoom")
 	check(game.player.get_node("Sprite2D").scale == Vector2.ONE * 2.0, "Player retains baseline art proportions")
 	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(64, 64), "Trunk navigation footprint remains deliberate baseline")
 	if visual:
@@ -66,7 +68,7 @@ func run():
 		await settle()
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://builds/readability-evidence/scale-baseline-reference.png")
-		game.camera.zoom = Vector2.ONE * 1.5
+		game.camera.zoom = Vector2.ONE * reviewed_zoom
 		game.player.get_node("Sprite2D").scale /= 1.75
 		for enemy in get_nodes_in_group("enemies"):
 			enemy.queue_free()
@@ -86,9 +88,9 @@ func run():
 				await RenderingServer.frame_post_draw
 				root.get_texture().get_image().save_png("res://builds/readability-evidence/%s-%s.png" % [geometry.x, name.replace(" ", "-")])
 			check(keys.key_position(0).y == keys.key_position(name.length() - 1).y, "One line at %s for %s" % [geometry, name])
-			check(keys.key_position(name.length() - 1).x + keys.KEY_SIZE <= keys.size.x, "Newest key remains inside prompt")
+			check(keys.key_position(name.length() - 1).x + keys.fitted_key_size() <= keys.size.x, "Newest key remains inside prompt")
 			check(keys.key_position(name.length() - 1).x >= 0, "Newest key remains fully visible")
-			check(game.typing_label.custom_minimum_size.y == 88, "Typing height is fixed")
+			check(game.typing_label.custom_minimum_size.y == 62, "Compact typing height is fixed")
 			manager.current_typing_text = name.left(name.length() - 1)
 			game.update_typing_display(manager.current_typing_text)
 			await settle()

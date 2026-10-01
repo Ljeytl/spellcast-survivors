@@ -25,17 +25,22 @@ func run():
 	manager.spawn_timer.stop()
 	var rows = []
 	var previous_difficulty = 1.0
+	var previous_batch = 1.0
 	for seconds in range(1200):
 		manager.game_time = seconds
 		var difficulty = manager.spawn_difficulty_multiplier()
 		check(difficulty >= previous_difficulty, "Difficulty never reverses at %s" % seconds)
 		previous_difficulty = difficulty
 		check(is_equal_approx(manager.calculate_spawn_interval() * difficulty, manager.spawn_phase_interval(seconds)), "Every phase shares the same difficulty factor")
-		check(manager.calculate_spawn_batch_size() == 1, "Current tuning keeps one regular roll per tick")
+		var batch_amount = manager.spawn_batch_amount()
+		check(batch_amount >= previous_batch - 0.000001, "Batch amount never shrinks at %s" % seconds)
+		previous_batch = batch_amount
+		check(seconds >= 300 or manager.calculate_spawn_batch_size() == 1, "Opening keeps one regular roll per tick at %s" % seconds)
 		if seconds % 120 == 0:
 			rows.append({"seconds": seconds, "interval": manager.calculate_spawn_interval(), "difficulty": difficulty})
 		check(manager.get_available_variants(seconds).all(func(item): return seconds >= 600 or item.family != "shooter"), "Ranged timing preserved")
-	manager.encounter_config.scaling.spawn_batches = [{"difficulty": 2.0, "count": 3}, {"difficulty": 1.0, "count": 1}]
+	manager.encounter_config.scaling.spawn_batch_points = [{"time": 0, "count": 1.0}, {"time": 600, "count": 3.0}, {"time": 1200, "count": 3.0}]
+	manager.spawn_batch_fraction = 0.0
 	manager.game_time = 0
 	check(manager.calculate_spawn_batch_size() == 1, "Future batch configuration does not affect opening")
 	manager.game_time = 900

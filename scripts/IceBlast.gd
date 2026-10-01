@@ -58,12 +58,12 @@ func advance(delta: float):
 		if not candidates.is_empty():
 			var enemy = candidates[0].enemy
 			shard.active = false
-			if hit_ids.has(enemy.get_instance_id()):
-				continue
+			# Every shard deals full damage, so several shards on one enemy stack; knockback and slow apply once per enemy.
+			var first_hit = not hit_ids.has(enemy.get_instance_id())
 			hit_ids[enemy.get_instance_id()] = true
 			var impact: Vector2 = start.lerp(end, candidates[0].fraction)
 			enemy.take_damage(damage, impact, DamageSource.of(self))
-			if is_instance_valid(enemy):
+			if first_hit and is_instance_valid(enemy):
 				if enemy.has_method("apply_knockback"):
 					enemy.apply_knockback(shard.direction, knockback * (1.2 + (1.0 - distance / reach) * 0.8))
 				if enemy.has_method("apply_slow"):

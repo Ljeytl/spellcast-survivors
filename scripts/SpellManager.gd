@@ -1425,48 +1425,53 @@ func synergy_ready(id: String) -> bool:
 
 func get_rank_upgrade_description(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)
-	var prefix = "Rank %d → %d: " % [rank, rank + 1]
+	return "Rank %d → %d: " % [rank, rank + 1] + rank_change_summary(spell_id)
+
+## Short rank-card text listing what the next rank changes, e.g. "+1 meteor, +damage, +area". No numbers.
+const RANK_COUNT_WORDS = {"projectile_count": "projectile", "blade_count": "blade", "meteor_count": "meteor", "shard_count": "shard", "orb_count": "orb", "chain_count": "chain"}
+const RANK_AREA_KEYS = ["radius", "trail_radius", "trap_radius", "trigger_radius", "orbit_radius", "blade_radius", "cone_degrees", "spread_radius", "travel_distance", "beam_radius"]
+const RANK_DURATION_KEYS = ["duration", "patch_duration", "spore_linger"]
+func rank_change_summary(spell_id: String) -> String:
+	var rank = get_spell_rank(spell_id)
 	if rank >= preload("res://scripts/SpellProgression.gd").RANK_CAP and spell_id != "mana_bolt":
-		return prefix + "+10% damage"
+		return "+10% damage"
 	var combination_description = CombinationScaling.next_description(spell_id, rank)
 	if not combination_description.is_empty():
-		return prefix + combination_description
-	var ranked_info = get_spell_info(find_spell_slot(spell_id))
-	if ranked_info.has("rank_steps"):
-		return prefix + preload("res://scripts/SpellProgression.gd").next_description(ranked_info)
-	var growth_damage = float(ranked_info.get("rank_growth", {}).get("damage", {}).get("per_rank", 0.0))
-	var damage = ("+%s damage" % str(snappedf(growth_damage, 0.1))) if growth_damage > 0.0 else "+15% of evolved base damage" if Synergies.RECIPES.has(spell_id) and float(Synergies.RECIPES[spell_id].overrides.get("damage_multiplier", 1.0)) != 1.0 else "+15% of base damage"
+		return combination_description
+	var raw = get_spell_info(find_spell_slot(spell_id)).duplicate(true)
+	raw.erase("rank_resolved")
+	var now_info = raw.duplicate(true)
+	now_info.level = rank
+	var next_info = raw.duplicate(true)
+	next_info.level = rank + 1
+	now_info = preload("res://scripts/SpellProgression.gd").resolve(now_info)
+	next_info = preload("res://scripts/SpellProgression.gd").resolve(next_info)
+	var parts: Array = []
+	var extra_projectiles = {"bolt": [3, 6], "mana_bolt": [3, 6, 10]}
+	if extra_projectiles.has(spell_id) and rank + 1 in extra_projectiles[spell_id]:
+		parts.append("+1 projectile")
+	for key in RANK_COUNT_WORDS:
+		var gained = int(next_info.get(key, 0)) - int(now_info.get(key, 0))
+		if gained > 0:
+			parts.append("+%d %s%s" % [gained, RANK_COUNT_WORDS[key], "s" if gained > 1 else ""])
+	if int(next_info.get("active_limit", 0)) > int(now_info.get("active_limit", 0)):
+		parts.append("+1 at once")
 	match spell_id:
-		"mana_bolt":
-			return prefix + damage + (", +1 missile" if rank + 1 in [3, 6, 10] else "")
-		"bolt":
-			return prefix + damage + (", +1 projectile" if rank < 5 else "")
-		"life":
-			return prefix + "+15% of base instant healing"
-		"regeneration":
-			return prefix + "+15% of base healing per second"
-		"ice_blast":
-			return prefix + damage + ", +50 knockback" + growth_suffix(spell_id, rank)
+		"life", "regeneration":
+			parts.append("+healing")
 		"earth_shield":
-			return prefix + "+15% of base retaliation damage"
-		"plague_seed":
-			return prefix + damage + (", farther and faster spread, longer infection and spores" if rank < 8 else "")
-		"ember_trail":
-			return prefix + damage + (", wider trail" if rank < 8 else "")
-		"lightning_bolt":
-			return prefix + damage + ", +1 bounce"
-		"lightning_arc":
-			return prefix + damage + growth_suffix(spell_id, rank)
-		"meteor_shower":
-			return prefix + ("+1 meteor" if (rank + 1) % 2 == 0 else damage)
-	return prefix + damage + growth_suffix(spell_id, rank)
+			parts.append("+damage")
+		_:
+			if float(next_info.get("damage", 0.0)) > float(now_info.get("damage", 0.0)) or not (raw.has("rank_steps") or raw.get("rank_growth", {}).has("damage")):
+				parts.append("+damage")
+	if RANK_AREA_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
+		parts.append("+area")
+	if RANK_DURATION_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
+		parts.append("+duration")
+	if spell_id == "ice_blast":
+		parts.append("+push")
+	return ", ".join(parts) if not parts.is_empty() else "+damage"
 
-## Upgrade-card text for spells whose size or count grows until rank 8.
-func growth_suffix(spell_id: String, rank: int) -> String:
-	var info = get_spell_info(find_spell_slot(spell_id))
-	if rank >= 8 or not info.has("growth_description"):
-		return ""
-	return ", " + str(info.growth_description)
 func cast_build_spell(slot: int) -> bool:
 	var info = resolve_cast_info(slot)
 	if info.id == "returning_blade":

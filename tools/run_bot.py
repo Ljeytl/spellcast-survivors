@@ -67,6 +67,9 @@ def main():
     parser.add_argument("--mode", choices=["idle", "movement", "casting", "active"], default="active")
     parser.add_argument("--fast", action="store_true", help="Fixed 60 FPS simulation without wall-clock pacing; not identical to realtime")
     parser.add_argument("--output", type=Path, default=Path("builds/bot"))
+    parser.add_argument("--focus", default="", help="Debug: comma-separated spell ids to level evenly and cast exclusively")
+    parser.add_argument("--passives", default="spell_damage", help="Debug: comma-separated passives to prefer when no focus card is offered")
+    parser.add_argument("--invulnerable", action="store_true", help="Debug: player takes no damage")
     args = parser.parse_args()
     if not 0 < args.seconds <= 1200:
         parser.error("--seconds must be between 0 and 1200")
@@ -95,7 +98,7 @@ def main():
                 command += ["--headless"]
             if args.fast:
                 command += ["--fixed-fps", "60", "--disable-render-loop"]
-            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}"]
+            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}", f"--focus={args.focus}", f"--passives={args.passives}", f"--invulnerable={'1' if args.invulnerable else '0'}"]
             print(f"Running seed {seed}; results: {output}", flush=True)
             with (output / f"{seed}.log").open("w") as log:
                 subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=3700)
@@ -104,6 +107,8 @@ def main():
             result.update(revision=revision, dirty_source=dirty, accelerated=args.fast, fixed_fps=60 if args.fast else None, runtime_errors=errors, command=command)
             report.write_text(json.dumps(result, indent=2) + "\n")
             print(f"Seed {seed}: {result['outcome']} at {result['survival_seconds']:.1f}s, level {result['level']}, {result['successful_casts']} casts", flush=True)
+            if result.get("focus_spells"):
+                print(f"  focus ranks {result.get('focus_ranks')}; damage by spell {dict(sorted(result.get('damage_by_spell', {}).items(), key=lambda kv: -kv[1]))}", flush=True)
             validate_report(result, args.mode)
 
 
