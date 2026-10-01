@@ -1,6 +1,7 @@
 # Unreleased — Ley lines (cut-down)
 
 - Three ley-line sites per normal run (none in Training), 1500–2200 units from the start in different directions, each with four words. Edge arrows point to unfinished sites (violet asleep, gold awake, red guardian).
+- Ley words are made-up incantations generated from syllables each run (e.g. grunothor, broxethoth, kruzugon): 6–11 letters, never repeated in a run, never a spell name. GENERATED_WORDS = false switches back to the fixed WORDS list.
 - Standing in a site for 0.4 s wakes it. While awake, a wave arrives every 8 s (4 enemies plus one per two minutes, max 12) as long as the player is within 900 units. Walking away pauses the site; bound words are kept.
 - Words are typed only inside the circle: Space, the word, Enter (SpellManager.cast_freeform_spell hands the text to LeyLines.try_word first). A panel lists the words and marks bound ones.
 - Binding the last word stops the waves and summons the Ley Guardian (juggernaut boss, 900 HP + 100 per minute). Killing it attunes the site; it drops the normal boss rewards: one bonus chest, a health potion and three style runes.

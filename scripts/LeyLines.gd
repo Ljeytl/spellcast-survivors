@@ -21,6 +21,14 @@ const GUARDIAN_VARIANT = "juggernaut"
 const GUARDIAN_NAME = "Ley Guardian"
 const GUARDIAN_HEALTH = 900.0
 const GUARDIAN_HEALTH_PER_MINUTE = 100.0
+## Ley words are made-up incantations built from these syllables, fresh every run.
+## Set GENERATED_WORDS false to draw from WORDS instead.
+const GENERATED_WORDS = true
+const WORD_LENGTH_MIN = 6
+const WORD_LENGTH_MAX = 11
+const ONSETS = ["v", "th", "k", "qu", "z", "dr", "m", "s", "r", "gr", "x", "l", "n", "br", "sh", "kr", "t", "f", "g", "vr"]
+const NUCLEI = ["a", "e", "i", "o", "u", "a", "e", "o", "ae", "ei"]
+const CODAS = ["r", "n", "x", "th", "l", "k", "s", "m", "rn", "sh"]
 const WORDS = ["kindle", "awaken", "entwine", "restore", "temper", "conjure", "radiance", "starfall", "moonwell", "everglow", "thornwood", "emberheart", "stormcall", "wellspring", "runestone", "nightbloom", "skyforge", "spellbind", "lodestar", "evensong", "brightwater", "ironroot", "sunspire", "wildheart"]
 
 var game: Node
@@ -53,9 +61,29 @@ func place_sites():
 		var site = LeySite.new()
 		site.global_position = point
 		for w in WORDS_PER_SITE:
-			site.words.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
+			site.words.append(make_word() if GENERATED_WORDS else pool.pop_at(rng.randi_range(0, pool.size() - 1)))
 		game.add_child(site)
 		sites.append(site)
+
+var used_words: Dictionary = {}
+
+## A pronounceable nonsense word, e.g. "vorthaxil". Never repeats within a run
+## and never matches a spell incantation.
+func make_word() -> String:
+	var taken = game.spell_manager.get_owned_incantations() if game.spell_manager.has_method("get_owned_incantations") else []
+	for attempt in 50:
+		var word = ""
+		var syllables = rng.randi_range(2, 3)
+		for i in syllables:
+			word += ONSETS[rng.randi() % ONSETS.size()] + NUCLEI[rng.randi() % NUCLEI.size()]
+			# Closing consonants mostly at the end, so the word does not jam up.
+			if i == syllables - 1 or rng.randf() < 0.25:
+				word += CODAS[rng.randi() % CODAS.size()]
+		if word.length() < WORD_LENGTH_MIN or word.length() > WORD_LENGTH_MAX or used_words.has(word) or word in taken or word in ["atomic", "mega"]:
+			continue
+		used_words[word] = true
+		return word
+	return "vorthaxil%d" % used_words.size()
 
 ## The awake site whose circle the player is standing in, if any.
 func site_under_player():

@@ -48,6 +48,14 @@ func run():
 	var LeySite = load("res://scripts/LeySite.gd")
 	var monsters = game.get_node("MonsterManager")
 	check(ley.sites.all(func(s): return s.words.size() == ley.WORDS_PER_SITE), "Each site has its words")
+	var all_words: Array = []
+	for s in ley.sites:
+		all_words.append_array(s.words)
+	check(all_words.all(func(w): return w.length() >= ley.WORD_LENGTH_MIN and w.length() <= ley.WORD_LENGTH_MAX), "Generated words fit the length range")
+	var unique = {}
+	for w in all_words:
+		unique[w] = true
+	check(unique.size() == all_words.size(), "Generated words never repeat in a run")
 	# Walking in wakes the site and the first wave arrives.
 	var before = monsters.monsters_alive
 	game.player.global_position = site.global_position
