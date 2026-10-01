@@ -1,3 +1,12 @@
+# Unreleased — Property upgrades past rank 8
+
+- Once every slot is filled and every equipped spell is rank 8, rank-up cards name one property of one spell: Power, Area, Duration or Speed, each +10% per pick (SpellProgression.OVERFLOW_STEP). Replaces the flat +10% damage per overflow rank.
+- Which data keys each property scales is a per-spell table, SpellProgression.OVERFLOW_KEYS. Power scales damage for every spell. Counts (shards, orbs, meteors, active limits) are never scaled.
+- Bolt offers Power only: its projectile speed is hardcoded in SpellManager, so a Speed card would do nothing until that reads the spell's data. Ember Lance and Meteor have no duration or speed property in data.
+- Picks are stored per spell under "overflow" and applied in SpellProgression.resolve; the card text and pick acknowledgement show the percentage.
+- Training bench ranks now stop at 8.
+- Tests: rank_overflow_regression rewritten for property cards.
+
 # Unreleased — Combo score and Atomic charges
 
 - Three style values: total score (whole run, never drops, leaderboard), combo score (banked points this combo; shown as "COMBO" under the rank bar) and the style rank bar itself. The bar's raw number is no longer shown.
@@ -9,7 +18,7 @@
 
 - New tower doorway (one step left of Woodland, violet glass) opens Training Grounds in the normal game scene.
 - Dummies with effectively infinite HP that deal no damage: one single target, a tight trio for area spells, and a loose cluster of ten that drifts on a figure-eight around the arena.
-- Spell bench (right side, Tab hides it): every spell and combination the Necronomicon lists is equipped at once (everything for now; filter in TrainingGrounds.available_ids() once discovery gating exists). Space casts any of them by name, 1-6 cast the first six; clicking a name switches it off; ranks 1 to 12 per spell. SpellManager.slot_limit lifts the six-slot cap only in training; the bottom spell reference is hidden there.
+- Spell bench (right side, Tab hides it): every spell and combination the Necronomicon lists is equipped at once (everything for now; filter in TrainingGrounds.available_ids() once discovery gating exists). Space casts any of them by name, 1-6 cast the first six; clicking a name switches it off; ranks 1 to 8 per spell. SpellManager.slot_limit lifts the six-slot cap only in training; the bottom spell reference is hidden there.
 - Live readout: damage per second over the last 5 s, total, and top spells; Reset damage and Return home buttons.
 - Safe by construction: no enemy spawns, chests, XP or level-ups; player cannot be hurt; the run is excluded from scores; equipping combinations does not record Necronomicon discoveries (learn_spell gains a record_discovery flag).
 - Dummies react to slows and knockback: they walk back to their spot at a speed slows cut, knockback shoves them off it, and the frozen tint shows and clears.

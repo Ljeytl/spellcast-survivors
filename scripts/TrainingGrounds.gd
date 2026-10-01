@@ -7,7 +7,7 @@ const SpellManagerScript = preload("res://scripts/SpellManager.gd")
 const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
 const READABILITY = preload("res://scripts/GameplayReadability.gd")
 const DUMMY_HEALTH = 1.0e12
-const MAX_RANK = 12
+const MAX_RANK = 8
 const CLUSTER_SIZE = 10
 
 var game: Node

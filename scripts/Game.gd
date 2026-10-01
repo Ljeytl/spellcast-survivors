@@ -812,7 +812,10 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 	if effect.get("type") == "spell_upgrade":
 		if spell_manager and spell_manager.has_method("upgrade_spell"):
 			var spell_name = effect.get("spell", "")
+			var rank_before = spell_manager.get_spell_rank(spell_name)
 			spell_manager.upgrade_spell(spell_name)
+			if effect.has("stat") and spell_manager.get_spell_rank(spell_name) > rank_before:
+				preload("res://scripts/SpellProgression.gd").add_overflow(spell_manager.get_spell_info(spell_manager.find_spell_slot(spell_name)), str(effect.stat))
 	
 	if effect.get("type") == "learn_spell":
 		if not spell_manager.learn_spell(effect.get("spell", "")):
@@ -825,6 +828,8 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 			var learned = spell_manager.get_spell_info(slot)
 			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)  # training slots past 6 cast with Space
 			acknowledgement = learned.name + " learned · Press %s, then type %s" % [cast_hint, learned.display_name]
+	elif effect.get("type") == "spell_upgrade" and effect.has("stat"):
+		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (now")[0]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
 	else:
