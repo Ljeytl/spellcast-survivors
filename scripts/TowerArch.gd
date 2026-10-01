@@ -11,6 +11,8 @@ const GLASS_POINTS = [Vector2(73,173), Vector2(73,114), Vector2(84,89), Vector2(
 static var edges: Array[Dictionary] = []
 var phase = 0.0
 var woodland = false
+## Training Grounds doorway: glows violet instead of showing the woodland scene.
+var training = false
 
 static func inward(at_phase: float) -> Vector2:
 	return Vector2(-sin(at_phase), cos(at_phase))
@@ -63,6 +65,11 @@ func draw_face(depth: float, front: bool):
 			draw_polygon(points, PackedColorArray([Color.WHITE]), uvs, ART.ATLAS)
 		else:
 			draw_colored_polygon(points, Color("41494d"))
+	if training:
+		var glow = PackedVector2Array()
+		for point in GLASS_POINTS:
+			glow.append(source_point(point))
+		draw_colored_polygon(glow, Color("7b5cc4") if front else Color("41394d"))
 	draw_texture_rect(ART.texture(4), Rect2(source_point(Vector2.ZERO), Vector2(SOURCE.size) * SOURCE_SCALE), false, Color.WHITE if front else Color("b6bdb7"))
 	draw_set_transform_matrix(Transform2D.IDENTITY)
 

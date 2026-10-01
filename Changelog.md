@@ -1,3 +1,12 @@
+# Unreleased — Training Grounds
+
+- New tower doorway (one step right of Woodland, violet glass) opens Training Grounds in the normal game scene.
+- Dummies with effectively infinite HP that deal no damage: one single target, a tight trio for area spells, and a loose cluster of ten that drifts on a figure-eight around the arena.
+- Spell bench (right side, Tab hides it): every spell and combination the Necronomicon lists (everything for now; filter in TrainingGrounds.available_ids() once discovery gating exists). Equip up to MAX_EQUIPPED_SPELLS base spells, combinations when both ingredients are equipped, and set any rank from 1 to 12.
+- Live readout: damage per second over the last 5 s, total, and top spells; Reset damage and Return home buttons.
+- Safe by construction: no enemy spawns, chests, XP or level-ups; player cannot be hurt; the run is excluded from scores; equipping combinations does not record Necronomicon discoveries (learn_spell gains a record_discovery flag).
+- Tests: new training_grounds_regression; tower_regression updated for the open training doorway. Not hand-played.
+
 # Unreleased — Spell scaling pass, MEGA charge, Earth Shield grace, rank-8 cap
 
 Spells start smaller and weaker at rank 1 and grow to their rank-8 values. Damage per hit or tick, rank 1 → rank 8:

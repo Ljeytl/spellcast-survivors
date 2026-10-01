@@ -1289,7 +1289,8 @@ func find_cast_spell_slot(spell_name: String) -> int:
 			return slot
 	return 0
 
-func learn_spell(spell_id: String) -> bool:
+## record_discovery=false is for Training Grounds, which must not unlock Necronomicon entries.
+func learn_spell(spell_id: String, record_discovery: bool = true) -> bool:
 	if acquired_spells.has(spell_id):
 		return false
 	if spell_id in Synergies.RECIPES:
@@ -1316,7 +1317,8 @@ func learn_spell(spell_id: String) -> bool:
 		bonus.level = 1
 		bonus_spells[MAX_EQUIPPED_SPELLS + bonus_spells.size() + 1] = bonus
 		acquired_spells[spell_id] = true
-		CharacterManager.discover_synergy(spell_id)
+		if record_discovery:
+			CharacterManager.discover_synergy(spell_id)
 	else:
 		if not spell_catalog.has(spell_id) or spells.size() >= MAX_EQUIPPED_SPELLS:
 			return false

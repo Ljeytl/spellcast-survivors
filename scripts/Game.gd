@@ -127,6 +127,10 @@ func _ready():
 	var xp_consolidation = preload("res://scripts/XPConsolidation.gd").new()
 	xp_consolidation.name = "XPConsolidation"
 	add_child(xp_consolidation)
+	if preload("res://scripts/RunMode.gd").training:
+		var training = preload("res://scripts/TrainingGrounds.gd").new()
+		training.game = self
+		add_child(training)
 	
 
 # Master setup function that initializes all game systems
