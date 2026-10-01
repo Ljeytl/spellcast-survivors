@@ -1,3 +1,29 @@
+# Unreleased — Spell scaling pass, MEGA charge, Earth Shield grace, rank-8 cap
+
+Spells start smaller and weaker at rank 1 and grow to their rank-8 values. Damage per hit or tick, rank 1 → rank 8:
+
+| Spell | Damage | Size / count / time |
+|---|---|---|
+| Ice Blast | 15 → 45 per shard | 5 → 13 shards, 50° → 90° cone, reach 250 → 400 |
+| Lightning | 60 → 180 | radius 100 → 160 |
+| Meteor Shower | 30 per meteor (flat) | radius 75 → 145 (r3) → 215 (r6) → 280 (r8); 3 → 10 meteors |
+| Ember Lance | 45, +15% per rank | unchanged |
+| Rune Trap | 45, +15% per rank | blast 90 → 130, trigger 50 → 70 |
+| Cross Blade | 15 outbound, 30 on return (flat) | 1 → 6 blades, blade radius 20 → 40, travel 350 → 460; volley aims at the nearest enemy |
+| Fire Walk | 12 → 36 per tick | trail radius 25 → 65 |
+| Cinder Field | 12 → 36 per tick | radius 100 → 150 |
+| Arcane Orbit | 20 → 60 per hit | 2 → 4 orbs, orbit radius 100 → 130 |
+| Focus Ray | 9 → 27 per tick | 2 → 3 beams |
+| Plague Seed | 4 → 12 per tick | infected 3 → 5 s; jump range 60 → 130; spread speed 300 → 460; ground spores 1.5 → 3 s; spread still unlimited |
+| Seeker | 15 → 45 per hit | hits each enemy at most once per second; speed 220; lasts 8 → 10 s; 2 → 3 spirits |
+
+- Earth Shield, Magic Missile, Life and Regeneration unchanged. Combinations unchanged except Soul Bloom and Steam Field now follow Plague Seed's and Cinder Field's damage curves; combinations inherit full ingredient sizes.
+- Rank cap: spells stop at rank 8 until every spell slot (MAX_EQUIPPED_SPELLS) is filled and every equipped spell is rank 8. Past that, each extra rank adds +10% of rank-8 damage; sizes and counts stop at rank 8.
+- MEGA: charge 0.12 s → 0.35 s, charge and release sounds, roughly 3× the charge particles plus an orbiting halo, larger release burst and ring.
+- Earth Shield: a blocked hit grants 0.25 s of invulnerability, so one crowd contact cannot strip every charge. Blocked hits still cost no combo.
+- New rank_growth support for integer counts and damage; SpellProgression.resolve is idempotent; upgrade cards describe per-rank damage and size growth.
+- Tests: suites asserting old tuning values updated to the new numbers or pinned to fixed fixture values where they test behaviour; new rank_overflow_regression. 71-suite headless comparison against e7875b1: no new failing checks. Not hand-played.
+
 # Unreleased — Spell tuning, damage attribution and kill combo
 
 - Fire Walk: renamed from Firewalk, cast as "fire walk" only. Trail radius starts at 32.5 and grows to 65 by rank 8. New ember inventory icon.

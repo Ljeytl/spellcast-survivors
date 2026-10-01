@@ -1,7 +1,7 @@
 extends RefCounted
 
 const DEFINITIONS = {
-	"mega": {"power": 1.5, "size": 1.5, "charge_seconds": 0.12, "style": 1.1, "color": Color("ffe49b")}
+	"mega": {"power": 1.5, "size": 1.5, "charge_seconds": 0.35, "style": 1.1, "color": Color("ffe49b")}
 }
 
 static func for_incantation(text: String) -> Dictionary:

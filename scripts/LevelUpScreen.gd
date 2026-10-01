@@ -177,7 +177,7 @@ func generate_upgrade_options(player_stats: Dictionary, player_level: int) -> Ar
 		if spell_name == "mana_bolt":
 			continue
 		var slot = manager.find_spell_slot(spell_name)
-		if not preload("res://scripts/SpellProgression.gd").can_upgrade(manager.get_spell_info(slot)):
+		if not manager.can_rank_up(spell_name):
 			continue
 		var title = "Magic Missile" if spell_name == "mana_bolt" else manager.get_spell_info(slot).name
 		all_upgrades.append({"key": "rank:" + spell_name, "name": title + "+", "icon": "⭐",

@@ -50,7 +50,7 @@ func run():
 	base_damage = manager.calculate_spell_damage(manager.get_spell_info(1))
 	manager.current_typing_text = "mega bolt"
 	check(manager.cast_freeform_spell("mega bolt"), "Freeform commits MEGA")
-	manager.advance_pending_casts(0.121)
+	manager.advance_pending_casts(0.351)
 	var mega = projectiles(game)[0]
 	check(is_equal_approx(mega.damage, base_damage * 1.5), "MEGA damage snapshot")
 	var mega_size = mega.spell_size
@@ -182,7 +182,7 @@ func run():
 		style.clock += 0.1
 	check(style.mistakes == 0, "MEGA prefixes are not typos")
 	manager.attempt_cast()
-	manager.advance_pending_casts(0.121)
+	manager.advance_pending_casts(0.351)
 	check(not manager.is_typing, "Numbered MEGA cast completes")
 	check(style.score.run_score > 0, "MEGA receives style credit")
 	check(style.score.freshness.has("bolt") and not style.score.freshness.has("mega bolt"), "Same base repetition identity")

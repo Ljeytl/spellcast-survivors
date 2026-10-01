@@ -1,5 +1,20 @@
 extends RefCounted
 
+static var _spells: Dictionary = {}
+
+## Damage an ingredient deals at a rank, following its own curve (rank_growth or +15% per rank).
+static func ingredient_damage(id: String, rank: int, fallback: float) -> float:
+	if _spells.is_empty():
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+		_spells = parsed.get("spells", {}) if parsed is Dictionary else {}
+	var data = _spells.get(id, {})
+	if data.is_empty():
+		return fallback * (1.0 + 0.15 * maxi(0, rank - 1))
+	var growth = data.get("rank_growth", {}).get("damage", {})
+	if growth.is_empty():
+		return float(data.get("damage", fallback)) * (1.0 + 0.15 * maxi(0, rank - 1))
+	return float(data.damage) + float(growth.get("per_rank", 0.0)) * maxi(0, rank - 1)
+
 static func resolve(data: Dictionary, ranks: Dictionary) -> Dictionary:
 	var info = data.duplicate(true)
 	var own = maxi(0, int(info.get("level", 1)) - 1)
@@ -25,14 +40,14 @@ static func resolve(data: Dictionary, ranks: Dictionary) -> Dictionary:
 			info.explosion_duration = 0.2
 			info.body_size_multiplier = 1.0 + 0.1 * own
 		"soul_bloom":
-			info.damage = 9.0 * (1.0 + 0.15 * bonus.call("plague_seed"))
+			info.damage = ingredient_damage("plague_seed", int(ranks.get("plague_seed", 1)), 9.0)
 			info.healing_bloom_amount = 6.0 * (1.0 + 0.15 * bonus.call("regeneration"))
 			info.healing_bloom_radius = 60.0
 			info.healing_bloom_lifetime = 10.0 * (1.0 + 0.1 * own)
 			info.duration = 5.0 * (1.0 + 0.1 * own)
 			info.orphan_lifetime = 5.0 * (1.0 + 0.1 * own)
 		"steam_field":
-			info.damage = 12.0 * (1.0 + 0.15 * bonus.call("cinder_field"))
+			info.damage = ingredient_damage("cinder_field", int(ranks.get("cinder_field", 1)), 12.0)
 			info.slow = minf(0.75, 0.4 + 0.025 * bonus.call("ice_blast"))
 			info.radius = 150.0 * (1.0 + 0.1 * own)
 			info.duration = 5.0 * (1.0 + 0.1 * own)

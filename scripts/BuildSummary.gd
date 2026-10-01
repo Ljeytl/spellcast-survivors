@@ -69,7 +69,7 @@ static func spell_now(manager: Node, player: Node, raw: Dictionary) -> String:
 		if float(info.get("damage", 0)) > 0:
 			parts.append("%s damage" % number(float(info.damage) * power))
 	elif float(raw.get("damage", 0)) > 0:
-		parts.append("%s damage" % number(float(raw.damage) * (1.0 if raw.has("rank_steps") else rank_multiplier) * power))
+		parts.append("%s damage" % number(manager.calculate_spell_damage(raw)))
 	for key in ["splash_damage", "explosion_damage"]:
 		if info.has(key):
 			parts.append("%s blast" % number(float(info[key]) * power))

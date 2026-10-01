@@ -44,6 +44,8 @@ func run():
 	effect.info.spread_radius = 130.0
 	effect.info.spread_speed = 460.0
 	effect.info.spore_linger = 3.0
+	effect.damage = 9.0
+	effect.infection_duration = 5.0
 	effect.advance(0.25)
 	targets[0].take_damage(1000, game.player.position)
 	await process_frame

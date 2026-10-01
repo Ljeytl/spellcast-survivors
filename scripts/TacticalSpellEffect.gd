@@ -252,7 +252,7 @@ func advance_trap():
 func advance_spirit(delta: float, player: Node2D):
 	var target = tracking_target(player.global_position, 600)
 	var destination = target.global_position if target else player.global_position
-	global_position = global_position.move_toward(destination, 320 * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
+	global_position = global_position.move_toward(destination, float(info.get("move_speed", 320.0)) * float(info.get("projectile_speed_multiplier", 1.0)) * delta)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not valid_target(enemy) or age < float(spirit_hit_times.get(enemy.get_instance_id(), -INF)):
 			continue
@@ -263,7 +263,7 @@ func advance_spirit(delta: float, player: Node2D):
 		var center = enemy.global_position
 		var before = float(enemy.current_health)
 		deal_damage(enemy, damage)
-		spirit_hit_times[enemy.get_instance_id()] = age + 0.5
+		spirit_hit_times[enemy.get_instance_id()] = age + float(info.get("hit_interval", 0.5))
 		if info.get("reaping", false) and before > 0 and is_instance_valid(enemy) and float(enemy.current_health) <= 0:
 			pulse(center, 100 * float(info.spell_size_multiplier), damage * 0.5, enemy)
 			burst_position = center
@@ -333,7 +333,8 @@ func advance_returning(delta: float, player: Node2D):
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if valid_target(enemy) and not leg_hits[leg].has(enemy.get_instance_id()) and Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= radius:
 			leg_hits[leg][enemy.get_instance_id()] = true
-			deal_damage(enemy, damage)
+			# The return pass hits harder, rewarding positioning for the catch.
+			deal_damage(enemy, damage * (float(info.get("return_damage_multiplier", 1.0)) if leg == 1 else 1.0))
 	if leg == 0 and outbound_distance <= 0.000001:
 		leg = 1
 	elif leg == 1 and global_position.distance_to(player.global_position) <= 18:

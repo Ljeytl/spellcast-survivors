@@ -184,6 +184,8 @@ func run():
 	var beyond = target_at(Vector2(425, 0))
 	var boundary = target_at(Vector2(400, 0))
 	manager.learn_spell("ice_blast")
+	# Cone contract at full rank: 13 shards, 90 degrees, reach 400.
+	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 8
 	manager.cast_freeform_spell("ice blast")
 	check(front.current_health == 1000 and inside.current_health == 1000, "Ice shards do not damage before arrival")
 	var ice = get_nodes_in_group("ice_blasts").back()

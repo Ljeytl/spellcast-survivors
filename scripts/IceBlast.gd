@@ -15,7 +15,7 @@ var slow_duration = 2.0
 var slow_strength = 0.6
 var shard_radius = 12.0
 
-func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, push: float, slow_time: float, slow: float, speed_multiplier: float, size_multiplier: float = 1.0):
+func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, push: float, slow_time: float, slow: float, speed_multiplier: float, size_multiplier: float = 1.0, shard_count: int = 13, cone_degrees: float = 90.0):
 	shard_radius = 12.0 * size_multiplier
 	position = origin
 	reach = radius * size_multiplier
@@ -24,8 +24,11 @@ func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, 
 	slow_duration = slow_time
 	slow_strength = slow
 	speed *= speed_multiplier
-	for index in range(13):
-		shards.append({"direction": heading.rotated(lerpf(-PI / 4, PI / 4, index / 12.0)), "position": Vector2.ZERO, "active": true})
+	var half_cone = deg_to_rad(cone_degrees) / 2.0
+	var count = maxi(1, shard_count)
+	for index in range(count):
+		var t = 0.5 if count == 1 else index / float(count - 1)
+		shards.append({"direction": heading.rotated(lerpf(-half_cone, half_cone, t)), "position": Vector2.ZERO, "active": true})
 
 func _ready():
 	add_to_group("ice_blasts")

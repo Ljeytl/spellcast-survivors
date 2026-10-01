@@ -69,9 +69,9 @@ func run():
 	trap.set_process(false)
 	trap.age = 1
 	trap.advance_trap()
-	check(is_equal_approx(enemy.current_health, 460), "Trap deals forty damage")
+	check(is_equal_approx(enemy.current_health, 455), "Trap deals forty-five damage")
 	trap.advance_trap()
-	check(is_equal_approx(enemy.current_health, 460), "Trap cannot trigger twice")
+	check(is_equal_approx(enemy.current_health, 455), "Trap cannot trigger twice")
 	check(enemy.knockback_velocity == Vector2.ZERO, "Trap does not add knockback")
 	check(Targeting.meteor_weight(100, 100, 0) > Targeting.meteor_weight(500, 100, 0), "Closer enemies have higher weight")
 	check(Targeting.meteor_weight(100, 500, 0) > Targeting.meteor_weight(100, 30, 0), "Stronger enemies have higher weight")
@@ -109,9 +109,9 @@ func run():
 		spells.cast_meteor_shower_spell(meteor_slot)
 		var warnings = get_nodes_in_group("spell_projectiles").filter(func(n): return n.projectile_type == "warning")
 		check(warnings.size() == counts[rank - 1], "Meteor real cast count at rank %d" % rank)
-		var radius = 110 if rank < 3 else (195 if rank < 6 else 280)
+		var radius = 75 if rank < 3 else (145 if rank < 6 else (215 if rank < 8 else 280))
 		check(warnings.all(func(n): return is_equal_approx(n.effect_radius, radius)), "Meteor visible geometry at rank %d" % rank)
-		check(is_equal_approx(spells.calculate_spell_damage(spells.spells[meteor_slot]), 25), "Meteor ranks do not also increase damage")
+		check(is_equal_approx(spells.calculate_spell_damage(spells.spells[meteor_slot]), 30), "Meteor ranks do not also increase damage")
 		for warning in warnings:
 			warning.free()
 	spells.spells[meteor_slot].level = 2
@@ -128,10 +128,10 @@ func run():
 	for blade in first_volley.get_children():
 		blade.set_physics_process(false)
 		blade.advance(0.4)
-	check(is_equal_approx(enemy.current_health, 480), "Actual triangle volley hits outbound with one weaker blade")
+	check(is_equal_approx(enemy.current_health, 485), "Rank-1 single blade aims at the enemy and hits outbound for 15")
 	for blade in first_volley.get_children():
 		blade.advance(2.0)
-	check(is_equal_approx(enemy.current_health, 460), "Actual triangle volley hits again on return")
+	check(is_equal_approx(enemy.current_health, 455), "Return hit deals double damage")
 	first_volley.free()
 	for rank in range(1, 9):
 		spells.spells[blade_slot].level = rank
@@ -139,16 +139,17 @@ func run():
 		var volleys = get_nodes_in_group("cross_blade_volleys")
 		var volley = volleys.back()
 		var blades = volley.get_children()
-		var count = 3 if rank == 1 else (4 if rank < 6 else (5 if rank < 8 else 6))
+		var count = [1, 2, 3, 3, 4, 5, 5, 6][rank - 1]
 		check(blades.size() == count, "Blade count at rank %d" % rank)
 		for index in range(count):
-			check(is_equal_approx(blades[index].damage, 20), "Each blade is weaker, independent of count rank")
+			check(is_equal_approx(blades[index].damage, 15), "Each blade deals 15 outbound, independent of count rank")
 			var next = blades[(index + 1) % count]
-			check(is_equal_approx(fposmod(next.direction.angle() - blades[index].direction.angle(), TAU), TAU / count), "Blades form evenly spaced polygon")
-		if rank == 2:
+			if count > 1:
+				check(is_equal_approx(fposmod(next.direction.angle() - blades[index].direction.angle(), TAU), TAU / count), "Blades form evenly spaced polygon")
+		if rank == 5:
 			check(blades.all(func(b): return is_equal_approx(absf(b.direction.x), absf(b.direction.y))), "Four blades form X rather than plus")
 		if rank == 8:
-			check(is_equal_approx(blades[0].info.blade_radius, 29) and is_equal_approx(blades[0].outbound_distance, 460), "Size and range ranks reach authored values")
+			check(is_equal_approx(blades[0].info.blade_radius, 40) and is_equal_approx(blades[0].outbound_distance, 460), "Size and range ranks reach authored values")
 		volley.free()
 	spells.spells[blade_slot].level = 8
 	spells.upgrade_spell("returning_blade")

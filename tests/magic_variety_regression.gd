@@ -89,10 +89,15 @@ func run():
 		manager.upgrade_spell(id)
 		if id == "returning_blade":
 			check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage), "Blade count upgrade does not also increase damage")
-			check("radius" in manager.get_rank_upgrade_description(id), "Next blade rank describes size")
+			check("blade" in manager.get_rank_upgrade_description(id), "Next blade rank describes the volley")
 		else:
-			check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage * 1.15), "New spell rank increases actual damage: " + id)
-			check("+15% of base damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
+			var growth = manager.spells[slot].get("rank_growth", {}).get("damage", {})
+			if growth.is_empty():
+				check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage * 1.15), "New spell rank increases actual damage: " + id)
+				check("+15% of base damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
+			else:
+				check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage + float(growth.per_rank)), "New spell rank adds its per-rank damage: " + id)
+				check(" damage" in manager.get_rank_upgrade_description(id), "Rank copy matches damage rule")
 		var enemy = target(Vector2(130, 0))
 		key(KEY_SPACE)
 		type_name(manager.spells[slot].display_name)
@@ -184,7 +189,7 @@ func run():
 	check(trap.triggered and near.hits == 1, "Armed trap triggers on later proximity")
 	fresh()
 	near = target(Vector2(100, 0))
-	var spirit = effect("seeking_spirit", near)
+	var spirit = effect("seeking_spirit", near, {"move_speed": 320, "hit_interval": 0.5})  # pursuit timing fixture
 	spirit.advance(0.2)
 	check(spirit.global_position.x > game.player.position.x and near.hits == 0, "Spirit travels instead of remote damage")
 	near.position += Vector2(60, 0)

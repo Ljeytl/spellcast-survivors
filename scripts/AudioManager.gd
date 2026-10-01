@@ -66,7 +66,9 @@ enum SoundType {
 	# Environment
 	MUSIC_GAMEPLAY,
 	MUSIC_MENU,
-	ENEMY_HIT
+	ENEMY_HIT,
+	MEGA_CHARGE,
+	MEGA_RELEASE
 }
 
 # Audio pools - grouped by type for performance
@@ -175,6 +177,8 @@ func load_audio_resources():
 	audio_resources[SoundType.SPELL_IMPACT_LIGHTNING] = ["res://audio/tactile/spell_01.wav"]
 	audio_resources[SoundType.SPELL_IMPACT_EARTH] = ["res://audio/tactile/stones_01.wav"]
 	audio_resources[SoundType.SPELL_CHARGING] = ["res://audio/tactile/book_01.wav"]
+	audio_resources[SoundType.MEGA_CHARGE] = ["res://audio/tactile/spell_02.wav"]
+	audio_resources[SoundType.MEGA_RELEASE] = ["res://audio/tactile/spell_fire_07.wav", "res://audio/tactile/stones_03.wav"]
 	audio_resources[SoundType.UI_BUTTON_CLICK] = ["res://audio/tactile/item_stone_01.wav"]
 	audio_resources[SoundType.UI_BUTTON_HOVER] = ["res://audio/tactile/book_02.wav"]
 	audio_resources[SoundType.UI_MENU_OPEN] = ["res://audio/tactile/book_01.wav"]
@@ -212,10 +216,12 @@ func sound_profile(sound_type: SoundType) -> Dictionary:
 		SoundType.UI_BUTTON_HOVER: return {"gain": 0.12, "interval": 100}
 		SoundType.DAMAGE_TAKEN: return {"gain": 0.55, "interval": 100}
 		SoundType.LEVEL_UP, SoundType.CHEST_OPEN: return {"gain": 0.55, "interval": 150}
+		SoundType.MEGA_CHARGE: return {"gain": 0.50, "interval": 40}
+		SoundType.MEGA_RELEASE: return {"gain": 0.75, "interval": 40}
 		_: return {"gain": 0.40, "interval": 60}
 
 func is_priority_sound(sound_type: SoundType) -> bool:
-	return sound_type in [SoundType.DAMAGE_TAKEN, SoundType.LEVEL_UP, SoundType.CHEST_OPEN, SoundType.UI_BUTTON_CLICK, SoundType.TYPING_ERROR]
+	return sound_type in [SoundType.DAMAGE_TAKEN, SoundType.LEVEL_UP, SoundType.CHEST_OPEN, SoundType.UI_BUTTON_CLICK, SoundType.TYPING_ERROR, SoundType.MEGA_CHARGE, SoundType.MEGA_RELEASE]
 
 func play_sound(sound_type: SoundType, volume_override: float = -1.0, pitch_override: float = -1.0):
 	if quitting:

@@ -76,11 +76,12 @@ func run():
 	for index in range(4):
 		spells.cast_build_spell(focus_slot)
 	var surviving_focus = get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.id == "focus_ray" and not e.is_queued_for_deletion())
-	check(surviving_focus.size() == 3, "Repeated recasts retain exactly three Focus beams")
+	var focus_limit = int(preload("res://scripts/SpellProgression.gd").resolve(spells.spells[focus_slot]).active_limit)
+	check(surviving_focus.size() == focus_limit, "Repeated recasts retain exactly the rank's Focus beam limit")
 	var lanes = {}
 	for beam in surviving_focus:
 		lanes[beam.info.beam_lane] = true
-	check(lanes.size() == 3, "Replacement keeps three distinct visual emission lanes")
+	check(lanes.size() == focus_limit, "Replacement keeps distinct visual emission lanes")
 	for beam in get_nodes_in_group("build_spell_effects"):
 		beam.queue_free()
 	await process_frame
@@ -96,11 +97,11 @@ func run():
 	blade.linger_remaining = 0
 	blade.advance_returning(0.5, game.player)
 	for enemy in enemies:
-		check(is_equal_approx(enemy.current_health, 980), "Return pierces and damages each enemy once")
+		check(is_equal_approx(enemy.current_health, 960), "Return pierces and damages each enemy once at double strength")
 	blade.advance_returning(0, game.player)
-	check(is_equal_approx(enemies[0].current_health, 980), "Return does not double-hit same enemy")
+	check(is_equal_approx(enemies[0].current_health, 960), "Return does not double-hit same enemy")
 	blade.queue_free()
-	check(spells.spell_catalog.seeking_spirit.damage == 18, "Seeker contact nerf")
+	check(spells.spell_catalog.seeking_spirit.damage == 15 and spells.spell_catalog.seeking_spirit.hit_interval == 1.0, "Seeker hits for 15 at most once per second at rank 1")
 	for id in spells.Synergies.RECIPES:
 		if not spells.Synergies.RECIPES[id].get("enabled", true):
 			continue
