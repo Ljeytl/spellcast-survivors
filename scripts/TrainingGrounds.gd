@@ -8,7 +8,6 @@ const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
 const READABILITY = preload("res://scripts/GameplayReadability.gd")
 const DUMMY_HEALTH = 1.0e12
 const MAX_RANK = 12
-const DEFAULT_LOADOUT = ["bolt", "ice_blast", "lightning_arc", "meteor_shower", "ember_trail", "plague_seed"]
 const CLUSTER_SIZE = 10
 
 var game: Node
@@ -48,9 +47,14 @@ func _ready():
 	game.player.is_invincible = true
 	game.style_session.exclude("Training")
 	center = game.player.global_position
+	# Every spell is equipped at once: 1-6 cast the first six, Space casts anything by name.
+	game.spell_manager.slot_limit = 99
 	for id in available_ids():
 		ranks[id] = 1
-	equipped.assign(DEFAULT_LOADOUT)
+		if RECIPES.has(id):
+			combos.append(id)
+		else:
+			equipped.append(id)
 	apply_loadout()
 	build_panel()
 	spawn_dummies.call_deferred()
@@ -152,8 +156,8 @@ func spell_name(id: String) -> String:
 	var data = get_tree().root.get_node("DataManager").get_spell_data(id)
 	return str(data.get("name", id))
 
-## Rebuilds the run's spells from the bench: up to MAX_EQUIPPED_SPELLS base spells,
-## plus any combination whose ingredients are both equipped. Discoveries are not recorded.
+## Rebuilds the run's spells from the bench: every base spell switched on, plus any
+## combination whose ingredients are both on. Discoveries are not recorded.
 func apply_loadout():
 	var manager = game.spell_manager
 	if manager.is_typing:
@@ -180,7 +184,7 @@ func toggle(id: String):
 			combos.append(id)
 	elif id in equipped:
 		equipped.erase(id)
-	elif equipped.size() < game.spell_manager.MAX_EQUIPPED_SPELLS:
+	else:
 		equipped.append(id)
 	apply_loadout()
 
@@ -214,7 +218,7 @@ func build_panel():
 	actions.add_child(small_button("Reset damage", reset_damage))
 	actions.add_child(small_button("Return home", return_home))
 	var hint = Label.new()
-	hint.text = "Click a spell to equip (max %d). Combos need both ingredients." % game.spell_manager.MAX_EQUIPPED_SPELLS
+	hint.text = "All spells are on. Space, then type any name; 1-6 cast the first six. Click a name to switch it off."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", READABILITY.MUTED)

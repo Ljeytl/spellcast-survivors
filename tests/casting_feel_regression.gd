@@ -137,7 +137,7 @@ func run():
 	check(manager.pending_keyword_casts.is_empty() and session.score.manual_casts==count+1,"release scores original receipt after newer attempt")
 	check(game.player.spell_damage_multiplier==7,"release preserves live stats")
 	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type")=="bolt")
-	check(bolts.any(func(node): return is_equal_approx(node.damage, 40.0*original_damage*1.5)),"emitted projectile uses committed power and rank")
+	check(bolts.any(func(node): return is_equal_approx(node.damage, float(game.spell_manager.spell_catalog.bolt.damage)*original_damage*1.5)),"emitted projectile uses committed power and rank")
 	check(bolts.any(func(node): return is_equal_approx(float(node.get_meta("cast_size_snapshot",0)),1.5)),"emitted projectile keeps committed size")
 	check(game.hud.get_node("StyleHUD").keyword_stamp.text=="MEGA ×1.1","separate MEGA style stamp")
 	await capture("charge-release")

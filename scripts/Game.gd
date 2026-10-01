@@ -823,7 +823,7 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 		var slot = spell_manager.find_spell_slot(effect.get("spell", ""))
 		if slot > 0:
 			var learned = spell_manager.get_spell_info(slot)
-			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)
+			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)  # training slots past 6 cast with Space
 			acknowledgement = learned.name + " learned · Press %s, then type %s" % [cast_hint, learned.display_name]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))

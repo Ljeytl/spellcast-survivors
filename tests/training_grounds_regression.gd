@@ -31,7 +31,8 @@ func run():
 	check(training != null, "Training flag starts Training Grounds")
 	var manager = game.spell_manager
 	check(not game.style_session.eligible, "Training never reaches the leaderboard")
-	check(manager.spells.size() == 6, "Default bench equips six spells")
+	check(manager.spells.size() == 16 and manager.bonus_spells.size() == training.available_ids().size() - 16, "Every spell and combination is equipped")
+	check(manager.cast_freeform_spell("cross blade") and manager.cast_freeform_spell("soul bloom"), "Spells past slot six and combinations cast by name")
 	var dummies = get_nodes_in_group("training_dummies")
 	check(dummies.size() == 4 + training.CLUSTER_SIZE, "Static dummies and moving cluster spawn")
 	var target = training.static_dummies[0]
@@ -42,13 +43,11 @@ func run():
 	var start = training.cluster[0].global_position
 	training._process(1.0)
 	check(training.cluster[0].global_position.distance_to(start) > 1.0, "Cluster moves")
-	training.toggle("ember_lance")
-	check(not manager.acquired_spells.has("ember_lance"), "Seventh base spell is refused while six are equipped")
-	training.toggle("ice_blast")
-	training.toggle("ember_lance")
-	check(manager.acquired_spells.has("ember_lance") and not manager.acquired_spells.has("ice_blast"), "Bench swaps spells")
+	training.toggle("lightning_arc")
+	check(not manager.acquired_spells.has("lightning_arc") and not manager.acquired_spells.has("lightning_bolt"), "Switching off an ingredient removes its combination")
+	training.toggle("lightning_arc")
 	training.toggle("lightning_bolt")
-	check(manager.acquired_spells.has("lightning_bolt"), "Combination equips when both ingredients are on the bench")
+	check(manager.acquired_spells.has("lightning_bolt"), "Combination switches back on with both ingredients")
 	check(character.discovered_synergies == discoveries, "Training combinations are not recorded as discoveries")
 	training.change_rank("bolt", 20)
 	check(manager.get_spell_rank("bolt") == training.MAX_RANK, "Rank control clamps at the training maximum")
@@ -60,7 +59,7 @@ func run():
 	var normal = load("res://scenes/Game.tscn").instantiate()
 	root.add_child(normal)
 	await process_frame
-	check(normal.get_node_or_null("TrainingGrounds") == null, "Normal runs have no training bench")
+	check(normal.get_node_or_null("TrainingGrounds") == null and normal.spell_manager.slot_limit == 6, "Normal runs keep the bench out and six slots")
 	normal.free()
 	await process_frame
 	print("Training grounds: %d checks, %d failures" % [checks, failures])

@@ -50,6 +50,8 @@ var space_casting = false
 var last_cast_failure: String = ""
 
 const MAX_EQUIPPED_SPELLS = 6
+## How many base spells learn_spell accepts. Training Grounds raises it to equip everything.
+var slot_limit: int = MAX_EQUIPPED_SPELLS
 const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
 var spell_catalog: Dictionary = {}
 var evolved_ingredients: Dictionary = {}
@@ -1315,12 +1317,12 @@ func learn_spell(spell_id: String, record_discovery: bool = true) -> bool:
 		bonus.display_name = recipe.incantation
 		bonus.chars = recipe.incantation.length()
 		bonus.level = 1
-		bonus_spells[MAX_EQUIPPED_SPELLS + bonus_spells.size() + 1] = bonus
+		bonus_spells[slot_limit + bonus_spells.size() + 1] = bonus
 		acquired_spells[spell_id] = true
 		if record_discovery:
 			CharacterManager.discover_synergy(spell_id)
 	else:
-		if not spell_catalog.has(spell_id) or spells.size() >= MAX_EQUIPPED_SPELLS:
+		if not spell_catalog.has(spell_id) or spells.size() >= slot_limit:
 			return false
 		spells[spells.size() + 1] = spell_catalog[spell_id].duplicate(true)
 		acquired_spells[spell_id] = true

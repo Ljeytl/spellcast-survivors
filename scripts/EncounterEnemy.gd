@@ -7,6 +7,9 @@ var variant: String = "pursuer"
 var family: String = "grunt"
 var boss: bool = false
 var encounter_name: String = "Pursuer"
+## Shieldbearer shield: turns toward the player at this rate (rad/s) and blocks 35% within this half-angle of its facing.
+const SHIELD_TURN_SPEED = 0.9
+const SHIELD_HALF_ARC = PI / 3.0
 var facing: Vector2 = Vector2.DOWN
 var behavior_time: float = 0.0
 var action_time: float = 2.0
@@ -73,7 +76,7 @@ func _physics_process(delta):
 	action_time -= delta
 	var offset = player.global_position - global_position
 	var toward = offset.normalized()
-	facing = facing.rotated(clampf(facing.angle_to(toward), -1.8 * delta, 1.8 * delta))
+	facing = facing.rotated(clampf(facing.angle_to(toward), -SHIELD_TURN_SPEED * delta, SHIELD_TURN_SPEED * delta))
 	velocity = toward * speed * slow_multiplier
 	var charging_this_step = charge_remaining > 0.0
 	match variant:
@@ -181,7 +184,7 @@ func take_damage(damage_amount: float, source_position: Vector2 = Vector2.INF, s
 	var amount = damage_amount
 	if variant == "shieldbearer" and source_position != Vector2.INF:
 		var incoming = (source_position - global_position).normalized()
-		if incoming.dot(facing) > 0.5:
+		if incoming.dot(facing) > cos(SHIELD_HALF_ARC):
 			amount *= 0.65
 	super.take_damage(amount, source_position, source)
 
@@ -194,7 +197,7 @@ func _draw():
 	if boss and debug_archetypes:
 		draw_arc(Vector2.ZERO, 30, 0, TAU, 32, Color.GOLD, 3.0)
 	if variant == "shieldbearer":
-		draw_arc(Vector2.ZERO, 32, facing.angle() - 0.95, facing.angle() + 0.95, 16, Color(0.7, 0.85, 1), 5.0)
+		draw_arc(Vector2.ZERO, 32, facing.angle() - SHIELD_HALF_ARC, facing.angle() + SHIELD_HALF_ARC, 16, Color(0.7, 0.85, 1), 5.0)
 	if warning > 0.0:
 		var line_direction = action_direction if variant != "mortar" else (action_direction - global_position).normalized()
 		var reach = 100.0

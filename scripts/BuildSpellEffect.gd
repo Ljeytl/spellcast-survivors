@@ -26,6 +26,7 @@ var resting_spores: Array = []
 var infection_duration = 5.0
 var hosts_started = 0
 const SPORE_LINGER = 3.0
+const RESTING_SPREAD_MULTIPLIER = 1.3
 const HOST_LIMIT = 8
 const ENFORCE_HOST_LIMIT = false
 const Geometry = preload("res://scripts/SpellGeometry.gd")
@@ -205,6 +206,10 @@ func show_area(center: Vector2, radius: float, tint: Color):
 func spread_radius() -> float:
 	return float(info.get("spread_radius", 130.0)) * float(info.spell_size_multiplier)
 
+## A spore left on the ground after a kill reaches this much farther than a live jump.
+func resting_spread_radius() -> float:
+	return spread_radius() * float(info.get("resting_spread_multiplier", RESTING_SPREAD_MULTIPLIER))
+
 func spore_lifetime() -> float:
 	return float(info.get("orphan_lifetime", float(info.get("spore_linger", SPORE_LINGER)) * float(info.get("spell_duration_multiplier", 1.0))))
 
@@ -258,10 +263,10 @@ func advance_spores(delta: float):
 		if elapsed_time >= spore.expires:
 			resting_spores.erase(spore)
 			continue
-		var host = nearest_host(spore.position, spread_radius())
+		var host = nearest_host(spore.position, resting_spread_radius())
 		if host:
 			resting_spores.erase(spore)
-			infect(host, spore.position, spread_radius(), elapsed_time + spore_lifetime() if spore.fresh else spore.expires)
+			infect(host, spore.position, resting_spread_radius(), elapsed_time + spore_lifetime() if spore.fresh else spore.expires)
 	for link in infection_links.duplicate():
 		if elapsed_time >= link.expires:
 			infection_links.erase(link)
