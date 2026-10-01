@@ -20,6 +20,10 @@ var recoil_remaining = 0.0
 var recoil_velocity = Vector2.ZERO
 var spawn_data: Dictionary = {}
 var normal_collision_mask = 34
+## Training dummies walk back to this point instead of chasing; INF means a normal enemy.
+var training_anchor := Vector2.INF
+const TRAINING_PULL = 6.0
+const TRAINING_MAX_SPEED = 260.0
 
 func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false):
 	spawn_data = definition
@@ -66,6 +70,9 @@ func _physics_process(delta):
 	if dying or not is_instance_valid(player):
 		return
 	process_status_effects(delta)
+	if training_anchor != Vector2.INF:
+		training_step(delta)
+		return
 	if recoil_remaining > 0.0:
 		recoil_remaining = maxf(0.0, recoil_remaining - delta)
 		velocity = recoil_velocity
@@ -102,6 +109,14 @@ func _physics_process(delta):
 	var terrain = get_parent().get_node_or_null("Background")
 	if terrain and terrain.has_method("steer") and not charging_this_step:
 		velocity = terrain.steer(global_position, velocity, 29.0 * scale.x)
+	velocity += knockback_velocity
+	move_and_slide()
+	knockback_velocity *= pow(knockback_decay, delta * 60.0)
+	queue_redraw()
+
+## Slows cap how fast a dummy can get back home; knockback shoves it off its spot.
+func training_step(delta: float):
+	velocity = ((training_anchor - global_position) * TRAINING_PULL).limit_length(TRAINING_MAX_SPEED * slow_multiplier)
 	velocity += knockback_velocity
 	move_and_slide()
 	knockback_velocity *= pow(knockback_decay, delta * 60.0)

@@ -42,7 +42,33 @@ func run():
 	check(game.style_session.damage_by_spell.get("bolt", 0.0) >= 1.0e6, "Dummy damage feeds the readout")
 	var start = training.cluster[0].global_position
 	training._process(1.0)
+	for i in 10:
+		await physics_frame
 	check(training.cluster[0].global_position.distance_to(start) > 1.0, "Cluster moves")
+	# Knockback shoves a dummy off its spot and it walks back.
+	var pushed = training.static_dummies[1]
+	var home = pushed.training_anchor
+	pushed.apply_knockback(Vector2.UP, 600.0)
+	for i in 4:
+		await physics_frame
+	check(pushed.global_position.distance_to(home) > 20.0, "Knockback moves a dummy")
+	for i in 90:
+		await physics_frame
+	check(pushed.global_position.distance_to(home) < 3.0, "Dummy returns home after knockback")
+	# A slowed dummy covers less ground than an unslowed one chasing the same offset.
+	var slowed = training.static_dummies[2]
+	var normal_dummy = training.static_dummies[3]
+	slowed.apply_slow(0.25, 2.0)
+	var slowed_start = slowed.global_position
+	var normal_start = normal_dummy.global_position
+	slowed.training_anchor += Vector2(300, 0)
+	normal_dummy.training_anchor += Vector2(300, 0)
+	for i in 30:
+		await physics_frame
+	var slowed_moved = slowed.global_position.distance_to(slowed_start)
+	var normal_moved = normal_dummy.global_position.distance_to(normal_start)
+	check(slowed_moved > 1.0 and slowed_moved < normal_moved * 0.5, "Slow cuts a dummy's speed (%.0f vs %.0f)" % [slowed_moved, normal_moved])
+	check(slowed.slow_multiplier < 1.0 and slowed.slow_timer < 2.0, "Slow timer runs down on dummies")
 	training.toggle("lightning_arc")
 	check(not manager.acquired_spells.has("lightning_arc") and not manager.acquired_spells.has("lightning_bolt"), "Switching off an ingredient removes its combination")
 	training.toggle("lightning_arc")

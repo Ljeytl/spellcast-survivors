@@ -66,7 +66,9 @@ func make_dummy(at: Vector2):
 	if not is_instance_valid(dummy):
 		return null
 	dummy.global_position = at
-	dummy.set_physics_process(false)
+	# Physics stays on so slows, knockback and their tints play out; the dummy walks home.
+	dummy.training_anchor = at
+	dummy.collision_mask = 0
 	dummy.max_health = DUMMY_HEALTH
 	dummy.current_health = DUMMY_HEALTH
 	dummy.base_damage = 0.0
@@ -109,7 +111,7 @@ func _process(delta):
 		var dummy = cluster[i]
 		if is_instance_valid(dummy):
 			var wobble = Vector2(sin(path_time * 1.7 + i), cos(path_time * 1.3 + i * 0.7)) * 10.0
-			dummy.global_position = anchor + cluster_offsets[i] + wobble
+			dummy.training_anchor = anchor + cluster_offsets[i] + wobble
 	for dummy in static_dummies + cluster:
 		if is_instance_valid(dummy) and dummy.current_health < DUMMY_HEALTH * 0.5:
 			dummy.current_health = DUMMY_HEALTH
