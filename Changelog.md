@@ -1,3 +1,11 @@
+# Unreleased — Ley lines (cut-down)
+
+- Three ley-line sites per normal run (none in Training), placed 1500–2200 units from the start in different directions. Violet edge arrows point to sites that are still available.
+- Stand in a site for 0.6 s to start its ritual: type three long words in a row, each against its own timer (1.5 s + 0.4 s per letter). A wrong letter resets only the current word; you cannot move while typing; no casting slowdown applies. A ring of enemies (6 + 1 per minute, max 16) is summoned when it starts.
+- Success attunes the site and grants one extra upgrade pick (the boss-chest flow). Running out of time or Escape fails it; the site cools for 10 s and only wakes again after you step out and back in.
+- All tunables are constants at the top of scripts/LeyLines.gd. Later the reward becomes a permanent spell/keyword discovery (M3 in docs/expedition-design).
+- Tests: new ley_lines_regression.
+
 # Unreleased — Property upgrades past rank 8
 
 - Once every slot is filled and every equipped spell is rank 8, rank-up cards raise one of that spell's own passive properties: Spell Power, Spell Size, Spell Duration or Velocity, +10% per pick (SpellProgression.OVERFLOW_STEP), stacking. Replaces the flat +10% damage per overflow rank.

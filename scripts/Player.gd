@@ -99,7 +99,8 @@ func _physics_process(delta):
 # Process WASD movement input and set player velocity
 func handle_movement():
 	var spells = get_parent().get_node_or_null("SpellManager")
-	if spells and spells.is_typing:
+	var ley = get_tree().get_first_node_in_group("ley_lines")
+	if (spells and spells.is_typing) or (ley and ley.ritual_active()):
 		velocity = Vector2.ZERO
 		return
 	var input_dir = Vector2.ZERO
