@@ -1,6 +1,6 @@
 # Unreleased — Training Grounds
 
-- New tower doorway (one step right of Woodland, violet glass) opens Training Grounds in the normal game scene.
+- New tower doorway (one step left of Woodland, violet glass) opens Training Grounds in the normal game scene.
 - Dummies with effectively infinite HP that deal no damage: one single target, a tight trio for area spells, and a loose cluster of ten that drifts on a figure-eight around the arena.
 - Spell bench (right side, Tab hides it): every spell and combination the Necronomicon lists is equipped at once (everything for now; filter in TrainingGrounds.available_ids() once discovery gating exists). Space casts any of them by name, 1-6 cast the first six; clicking a name switches it off; ranks 1 to 12 per spell. SpellManager.slot_limit lifts the six-slot cap only in training; the bottom spell reference is hidden there.
 - Live readout: damage per second over the last 5 s, total, and top spells; Reset damage and Return home buttons.

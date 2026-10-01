@@ -69,7 +69,7 @@ func run():
 	await tap(KEY_LEFT)
 	await screenshot("journey-rotating")
 	await settle()
-	check(tower.selected == 11, "Left selects blank destination")
+	check(tower.selected == 11, "Left selects Training Grounds")
 	await tap(KEY_RIGHT)
 	await settle()
 	check(tower.selected == 0, "Right restores Woodland")

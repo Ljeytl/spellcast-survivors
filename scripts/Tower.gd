@@ -134,7 +134,7 @@ func _physics_process(delta):
 		depart()
 	update_prompt()
 
-const TRAINING_PORTAL = 1
+const TRAINING_PORTAL = 11  # left of Woodland: turn the orb left once
 
 ## Doorways that lead somewhere: 0 is Woodland Level 1, TRAINING_PORTAL is Training Grounds.
 func is_open(index: int) -> bool:
