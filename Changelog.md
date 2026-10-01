@@ -5,6 +5,7 @@
 - Standing in a site for 0.4 s wakes it. While awake, a wave arrives every 8 s (4 enemies plus one per two minutes, max 12) as long as the player is within 900 units. Walking away pauses the site; bound words are kept.
 - Words are typed only inside the circle: Space, the word, Enter (SpellManager.cast_freeform_spell hands the text to LeyLines.try_word first). A panel lists the words and marks bound ones.
 - Binding the last word stops the waves and summons the Ley Guardian (juggernaut boss, 900 HP + 100 per minute). Killing it attunes the site; it drops the normal boss rewards: one bonus chest, a health potion and three style runes.
+- Standing in an attuned circle gives +20% Spell Power (through SpellManager.spell_property_multiplier, so it reaches every spell) and stops combo decay (the site counts as an active style channel).
 - Tunables are constants at the top of scripts/LeyLines.gd. Later the reward becomes a permanent spell/keyword discovery (M3 in docs/expedition-design).
 - Tests: new ley_lines_regression.
 

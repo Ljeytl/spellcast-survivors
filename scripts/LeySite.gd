@@ -22,10 +22,19 @@ var spin := 0.0
 
 func _ready():
 	add_to_group("ley_sites")
+	# An attuned circle counts as an active style channel: combo does not decay inside it.
+	add_to_group("active_spell_channels")
 	z_index = -1
 
 func contains(point: Vector2) -> bool:
 	return global_position.distance_to(point) <= RADIUS
+
+func is_style_channel_active() -> bool:
+	return state == State.ATTUNED and player_inside()
+
+func player_inside() -> bool:
+	var player = get_tree().get_first_node_in_group("player")
+	return is_instance_valid(player) and contains(player.global_position)
 
 func _process(delta):
 	spin += delta * (2.4 if state == State.SIEGE else 0.5)

@@ -104,6 +104,25 @@ func run():
 	check(get_nodes_in_group("boss_rewards").size() == 1, "The guardian drops one bonus chest")
 	check(get_nodes_in_group("style_pickups").size() >= 3, "The guardian drops combo runes")
 	check(get_nodes_in_group("health_potions").size() >= 1, "The guardian drops a health potion")
+	# Standing in an attuned circle: +20% Spell Power and no combo decay.
+	var DS = load("res://scripts/DamageSource.gd")
+	DS.current = DS.make("bolt", 0.0)
+	game.player.global_position = site.global_position + Vector2(400, 0)
+	var outside = m.cast_stat("spell_damage_multiplier")
+	game.player.global_position = site.global_position
+	check(is_equal_approx(m.cast_stat("spell_damage_multiplier"), outside * 1.2), "An attuned circle gives +20% Spell Power")
+	DS.current = {}
+	var style = game.style_session
+	style.score.combo = 500.0
+	style.score.grace_remaining = 0.0
+	style.advance(5.0)
+	check(style.score.combo >= 500.0, "Combo does not decay inside an attuned circle")
+	game.player.global_position = site.global_position + Vector2(400, 0)
+	style.advance(0.016)
+	style.score.grace_remaining = 0.0
+	var held = style.score.combo
+	style.advance(3.0)
+	check(style.score.combo < held, "Combo decays again outside the circle")
 	game.free()
 	await process_frame
 	load("res://scripts/RunMode.gd").training = true

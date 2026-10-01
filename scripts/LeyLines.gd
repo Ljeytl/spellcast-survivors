@@ -17,6 +17,8 @@ const WAVE_INTERVAL = 8.0
 ## Enemies per wave: base plus one per two minutes of run time.
 const WAVE_BASE = 4
 const WAVE_MAX = 12
+## Standing in an attuned circle: Spell Power bonus, and combo does not decay.
+const ATTUNED_POWER_BONUS = 0.20
 const GUARDIAN_VARIANT = "juggernaut"
 const GUARDIAN_NAME = "Ley Guardian"
 const GUARDIAN_HEALTH = 900.0
@@ -84,6 +86,13 @@ func make_word() -> String:
 		used_words[word] = true
 		return word
 	return "vorthaxil%d" % used_words.size()
+
+## Spell Power multiplier from standing in an attuned circle (SpellManager applies it).
+func power_multiplier() -> float:
+	for site in sites:
+		if site.state == LeySite.State.ATTUNED and site.contains(game.player.global_position):
+			return 1.0 + ATTUNED_POWER_BONUS
+	return 1.0
 
 ## The awake site whose circle the player is standing in, if any.
 func site_under_player():
@@ -179,7 +188,7 @@ func summon_guardian(site):
 func attune(site):
 	site.state = LeySite.State.ATTUNED
 	site.guardian = null
-	game.show_gameplay_feedback("Ley line attuned")
+	game.show_gameplay_feedback("Ley line attuned · Stand in it for +%d%% Spell Power and no combo decay" % int(ATTUNED_POWER_BONUS * 100))
 
 func build_hud():
 	hud = Control.new()
