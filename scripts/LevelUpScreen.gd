@@ -228,7 +228,9 @@ func ensure_optional_evolutions(options: Array, locked: Array = []):
 	var preferred: Array = []
 	for card in options:
 		preferred.append("rank:" + preload("res://scripts/SynergyCatalog.gd").RECIPES[card.effect.spell].ingredients[0])
-	alternatives.sort_custom(func(a, b): return get_upgrade_key(a) in preferred and get_upgrade_key(b) not in preferred)
+	# Past rank 8 rank keys carry a property ("rank:bolt:power"), so match the spell part.
+	var prefers = func(card): return get_upgrade_key(card).get_slice(":", 0) + ":" + get_upgrade_key(card).get_slice(":", 1) in preferred
+	alternatives.sort_custom(func(a, b): return prefers.call(a) and not prefers.call(b))
 	for i in range(options.size() - 1, -1, -1):
 		if i not in locked:
 			options[i] = alternatives[0]

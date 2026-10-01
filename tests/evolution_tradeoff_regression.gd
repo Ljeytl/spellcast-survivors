@@ -285,7 +285,7 @@ func compare_optional_offers():
 	if "--known-bad-forced-evolution" not in OS.get_cmdline_user_args():
 		screen.ensure_optional_evolutions(forced)
 	check(not forced.all(screen.is_evolution_card), "All-evolution composition must be repaired")
-	check(forced.any(func(card): return screen.get_upgrade_key(card) in ["rank:bolt", "rank:plague_seed", "rank:cinder_field"]), "Repair prefers a primary rank alternative")
+	check(forced.any(func(card): return ["rank:bolt", "rank:plague_seed", "rank:cinder_field"].any(func(key): return screen.get_upgrade_key(card) == key or screen.get_upgrade_key(card).begins_with(key + ":"))), "Repair prefers a primary rank alternative")
 	var locked = evolutions.duplicate(true)
 	screen.ensure_optional_evolutions(locked, [0, 1, 2])
 	check(locked == evolutions, "Explicitly locking all three choices preserves user choices")
