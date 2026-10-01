@@ -113,7 +113,7 @@ func _process(delta):
 		finish("watchdog")
 		return false
 	if time >= next_checkpoint:
-		checkpoints.append({"seconds": time, "level": game.player.level, "health": game.player.health, "kills": game.enemies_killed, "enemies_alive": get_nodes_in_group("enemies").size(), "uncollected_xp": uncollected_xp(), "bosses": boss_snapshot(), "focus_ranks": focus_ranks(), "spell_damage_multiplier": game.player.spell_damage_multiplier, "damage_by_kind": damage_by_kind.duplicate(), "damage_while_typing": damage_while_typing})
+		checkpoints.append({"seconds": time, "level": game.player.level, "health": game.player.health, "kills": game.enemies_killed, "enemies_alive": get_nodes_in_group("enemies").size(), "uncollected_xp": uncollected_xp(), "bosses": boss_snapshot(), "focus_ranks": focus_ranks(), "damage_by_spell": game.style_session.damage_by_spell.duplicate() if game.get("style_session") else {}, "spell_damage_multiplier": game.player.spell_damage_multiplier, "damage_by_kind": damage_by_kind.duplicate(), "damage_while_typing": damage_while_typing})
 		print("BOT checkpoint ", checkpoints.back())
 		next_checkpoint += 60.0
 	var input_delta = delta / maxf(Engine.time_scale, 0.01)
