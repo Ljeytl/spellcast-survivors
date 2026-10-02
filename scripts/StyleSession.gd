@@ -159,6 +159,7 @@ func collect_style_pickup() -> bool:
 	return true
 
 var damage_by_spell: Dictionary = {}
+var kills_by_spell: Dictionary = {}
 
 func record_damage(source: Dictionary, amount: float):
 	if finalized or amount <= 0.0:
@@ -169,7 +170,11 @@ func record_damage(source: Dictionary, amount: float):
 	damage_by_spell[spell] = float(damage_by_spell.get(spell, 0.0)) + amount
 
 func on_kill(points: float, source: Dictionary = {}):
-	if finalized or game.current_state != game.GameState.PLAYING:
+	if finalized:
+		return
+	var killer = str(source.get("spell", ""))
+	kills_by_spell[killer if not killer.is_empty() else "other"] = int(kills_by_spell.get(killer if not killer.is_empty() else "other", 0)) + 1
+	if game.current_state != game.GameState.PLAYING:
 		return
 	var award = score.award_kill(points, DamageSource.combo_factor(source, clock))
 	if award.is_empty():

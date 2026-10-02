@@ -37,7 +37,7 @@ func run():
 		enemy.current_health = 100
 		targets.append(enemy)
 	game.spell_manager.learn_spell("plague_seed")
-	check(game.spell_manager.cast_freeform_spell("plague seed"), "Owned typed Plague Seed casts on a real visible enemy")
+	check(game.spell_manager.cast_freeform_spell("infection"), "Owned typed Plague Seed casts on a real visible enemy")
 	var effect = get_nodes_in_group("build_spell_effects").back()
 	effect.set_physics_process(false)
 	# Lifecycle fixture: pin the full-rank spread so timings test transfer rules, not rank tuning.

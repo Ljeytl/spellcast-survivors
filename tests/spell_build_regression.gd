@@ -151,7 +151,8 @@ func run():
 	check(effect.infections.size() > 1, "Infection spreads to neighbor")
 	for i in range(15):
 		make_target(game, start + Vector2(70 + i, 0))
-	for i in range(8):
+	# Plague grows as a chain (one jump per host), so give it time to pass the old eight-host cap.
+	for i in range(16):
 		effect.advance(0.5)
 	check(effect.hosts_started > 8, "Soul Bloom spreads beyond eight lifetime hosts")
 	a.current_health = 0.0

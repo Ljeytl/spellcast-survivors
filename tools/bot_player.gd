@@ -9,9 +9,19 @@ var behavior_mode = "active"
 ## Debug: spell ids the bot levels evenly and casts exclusively (e.g. --focus=meteor_shower,plague_seed,ice_blast).
 var focus_spells: Array = []
 ## Debug: passives taken when no focus card is offered, in priority order.
-var focus_passives: Array = ["spell_damage"]
+var focus_passives: Array = ["spell_damage", "area_size", "spell_duration", "projectile_speed"]
 ## Debug: player takes no damage, for measuring pace and kills without dying.
 var invulnerable = false
+## Debug: pull every XP orb on the map, so level pace does not depend on bot pathing.
+var magnet = false
+## Debug: switch off the automatic Magic Missile so only the focus spells deal damage.
+var no_missile = false
+## Debug: fire an Atomic every ATOMIC_INTERVAL seconds, ignoring rank and charges, to measure the kill ceiling.
+var unlimited_atomic = false
+const ATOMIC_INTERVAL = 3.0
+var atomic_wait = ATOMIC_INTERVAL
+var atomics_fired = 0
+const MAGNET_RANGE_MULTIPLIER = 1000.0
 var first_damage_seconds = -1.0
 var report_path = ""
 var reaction = 0.0
@@ -56,6 +66,9 @@ func _initialize():
 			"--focus": focus_spells = Array(parts[1].split(",", false))
 			"--passives": focus_passives = Array(parts[1].split(",", false))
 			"--invulnerable": invulnerable = parts[1] in ["1", "true", "yes"]
+			"--magnet": magnet = parts[1] in ["1", "true", "yes"]
+			"--no-missile": no_missile = parts[1] in ["1", "true", "yes"]
+			"--unlimited-atomic": unlimited_atomic = parts[1] in ["1", "true", "yes"]
 	if not OS.get_user_data_dir().contains("SpellCast Survivors Bot/") or report_path.is_empty():
 		printerr("Bot requires isolated saves and report path; actual save directory: ", OS.get_user_data_dir())
 		quit(2)
@@ -73,6 +86,11 @@ func start():
 	root.add_child(game)
 	current_scene = game
 	game.player.is_invincible = invulnerable
+	# Focus mode starts with its spells learned at rank 1, so every spell is measured from minute 0.
+	for id in focus_spells:
+		game.spell_manager.learn_spell(id, false)
+	if magnet:
+		game.player.xp_range_multiplier = MAGNET_RANGE_MULTIPLIER
 	previous_position = game.player.global_position
 	previous_health = game.player.health
 	previous_overheal = game.player.overheal
@@ -117,6 +135,17 @@ func _process(delta):
 		print("BOT checkpoint ", checkpoints.back())
 		next_checkpoint += 60.0
 	var input_delta = delta / maxf(Engine.time_scale, 0.01)
+	if no_missile:
+		game.spell_manager.mana_bolt_timer = 999.0
+	if unlimited_atomic and game.current_state == game.GameState.PLAYING:
+		atomic_wait -= delta
+		if atomic_wait <= 0.0:
+			atomic_wait = ATOMIC_INTERVAL
+			var blast = load("res://scripts/AtomicBlast.gd").new()
+			DamageSource.stamp(blast, DamageSource.make("atomic", game.style_session.clock))
+			blast.configure(game)
+			game.add_child(blast)
+			atomics_fired += 1
 	if game.current_state == game.GameState.LEVEL_UP:
 		release_movement()
 		choice_wait -= input_delta
@@ -165,13 +194,12 @@ func _process(delta):
 	if cast_wait <= 0.0 and behavior_mode in ["casting", "active"]:
 		cast_wait = rng.randf_range(2.0, 4.0)
 		var owned = spells.get_owned_incantations()
+		if not focus_spells.is_empty():
+			# Focus mode casts only the focus spells; until one is learned it casts nothing.
+			var focused = focus_incantations()
+			owned = owned.filter(func(name): return name in focused)
 		if not owned.is_empty():
 			attempts += 1
-			if not focus_spells.is_empty():
-				var focused = focus_incantations()
-				var pool = owned.filter(func(name): return name in focused)
-				if not pool.is_empty():
-					owned = pool
 			var selected = owned[rng.randi_range(0, owned.size() - 1)]
 			press_key(KEY_SPACE)
 			if spells.is_typing:
@@ -222,7 +250,13 @@ func card_score(card: Dictionary) -> float:
 	if kind == "passive" and id in focus_passives:
 		return 100.0 - focus_passives.find(id)
 	if kind == "passive":
-		return 10.0
+		# Passives that do nothing in this test (survival while invulnerable, pickup range with the magnet, missile while it is off) rank last.
+		var useless = ["max_health"] if invulnerable else []
+		if magnet:
+			useless.append("xp_range")
+		if no_missile:
+			useless.append_array(["mana_bolt_mastery", "cast_speed"])
+		return 1.0 if id in useless else 10.0
 	if kind == "learn":
 		return -100.0
 	return -10.0
@@ -332,7 +366,7 @@ func observe_damage():
 func finish(outcome: String):
 	finished = true
 	release_movement()
-	var report = {"focus_spells": focus_spells, "focus_passives": focus_passives, "invulnerable": invulnerable, "focus_ranks": focus_ranks(),
+	var report = {"focus_spells": focus_spells, "focus_passives": focus_passives, "invulnerable": invulnerable, "magnet": magnet, "no_missile": no_missile, "unlimited_atomic": unlimited_atomic, "atomics_fired": atomics_fired, "focus_ranks": focus_ranks(),
 		"damage_by_spell": game.style_session.damage_by_spell.duplicate() if game.get("style_session") else {},
 		"behavior_mode": behavior_mode, "first_damage_seconds": first_damage_seconds, "schema_version": 2, "seed": run_seed, "outcome": outcome,
 		"survival_seconds": game.get_node("MonsterManager").game_time,

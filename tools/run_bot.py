@@ -68,8 +68,11 @@ def main():
     parser.add_argument("--fast", action="store_true", help="Fixed 60 FPS simulation without wall-clock pacing; not identical to realtime")
     parser.add_argument("--output", type=Path, default=Path("builds/bot"))
     parser.add_argument("--focus", default="", help="Debug: comma-separated spell ids to level evenly and cast exclusively")
-    parser.add_argument("--passives", default="spell_damage", help="Debug: comma-separated passives to prefer when no focus card is offered")
+    parser.add_argument("--passives", default="spell_damage,area_size,spell_duration,projectile_speed", help="Debug: comma-separated passives to prefer when no focus card is offered")
     parser.add_argument("--invulnerable", action="store_true", help="Debug: player takes no damage")
+    parser.add_argument("--magnet", action="store_true", help="Debug: collect XP from the whole map")
+    parser.add_argument("--no-missile", action="store_true", help="Debug: switch off the automatic Magic Missile")
+    parser.add_argument("--unlimited-atomic", action="store_true", help="Debug: fire an Atomic every 3 seconds, ignoring rank and charges")
     args = parser.parse_args()
     if not 0 < args.seconds <= 1200:
         parser.error("--seconds must be between 0 and 1200")
@@ -98,7 +101,7 @@ def main():
                 command += ["--headless"]
             if args.fast:
                 command += ["--fixed-fps", "60", "--disable-render-loop"]
-            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}", f"--focus={args.focus}", f"--passives={args.passives}", f"--invulnerable={'1' if args.invulnerable else '0'}"]
+            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}", f"--focus={args.focus}", f"--passives={args.passives}", f"--invulnerable={'1' if args.invulnerable else '0'}", f"--magnet={'1' if args.magnet else '0'}", f"--no-missile={'1' if args.no_missile else '0'}", f"--unlimited-atomic={'1' if args.unlimited_atomic else '0'}", f"--telemetry={output / f'{seed}-telemetry.json'}"]
             print(f"Running seed {seed}; results: {output}", flush=True)
             with (output / f"{seed}.log").open("w") as log:
                 subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=3700)

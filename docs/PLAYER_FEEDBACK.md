@@ -440,3 +440,47 @@ Found while retiring and fixing stale regression checks. Logged for later; not y
 | OCT01-03 | Spell reference chips overlap passive inventory cards with a full kit on small screens | With 16 cards at 640×480 and 480×640, e.g. a chip at y 969–1083 overlaps a passive at y 963–1023. Training Grounds now equips every spell, so players can reach this. Pre-existing (362f33f noted 7 → 11 intersections). | `playtest_ux_regression` |
 
 Test runner notes: `art_world_regression` needs about 40 s; `area_rendering_regression` reads rendered pixels and needs a display (`xvfb-run`, `--rendering-driver opengl3`); `tactile_audio_regression` only runs with the user-data directory "SpellCast Survivors Audio Test".
+
+## Ideas for later — 2026-10-01
+
+| ID | Idea | Status |
+|---|---|---|
+| OCT01-04 | Prism Ray rank-8 unlock: on hit, the beam splits into a second beam angled 30° away and pierces. | Idea from LJ; not scheduled. |
+| OCT01-05 | Black Hole / Gravity Well spell: pulls enemies into a point and crushes them. Fantasy: the horde gets sucked in. Pairs naturally with area spells (Meteor, Lightning, Cinder) landing on the clump. | Idea from LJ; not designed. |
+| OCT01-06 | Dash as a rechargeable item-spell: a short dash you cast like a spell; it has charges that recharge, and the dash itself has an effect (e.g. leaves a trail, knocks back, or briefly phases through enemies). | Idea from LJ; explore. |
+| OCT01-07 | More rechargeable cast-items in the same slot family as Dash: Potion of Swiftness (short speed burst), Shield (block the next hits), and others to explore. | Idea from LJ; brainstorm. |
+
+## Balance pass log — 2026-10-01
+
+Balance means every spell has a place and feels good, not equal damage. Measured with the focus bot (invulnerable, full-map XP magnet, 20-minute games); each spell is now tested alone with Magic Missile off so spells do not compete for kills. Reports: `builds/balance/`, summarized by `tools/summarize_bot.py` (totals, damage per cast, damage per minute + CSV).
+
+| Spell | Change | Why |
+|---|---|---|
+| Infection (was Plague Seed; id stays `plague_seed`) | Each infected enemy jumps once while alive plus once on death; ground spores last 1.5→2.5 s | Spread was exponential (~4,000+ damage per cast, 5–8× other spells). The name Plague Seed is reserved for a different idea. |
+| Seeker | Lasts 12→24 s (was 8→10) | Long-lived hunting spirit rather than more spirits |
+| Ember Lance | Damage 42→460, width 24→60 | At max, the line of enemies is gone, including a shielded Shieldbearer at minute 15; not a boss killer |
+| Focus Ray | 16→48 per tick, 2→3 s, beam 12→24 wide | Boss killer; needs a distinct identity from Ember Lance (idea pending) |
+| Rune Trap | Damage 55→165, blast 120→240, trigger 60→90, unlimited traps | Bigger, better AoE |
+| Ice Blast | Damage 45→170 per shard; cone 30→45→60→90→120→180→240→360° (full ring at rank 8); shards 3→21; reach 250→500; knockback 550 + 50/rank; slow 0.35→0.15 speed for 2→4 s | Much more utility plus damage; every shard deals full damage |
+| Meteor Shower | Radius 45→78 | Size, not damage, was the limit |
+| Lightning | Radius 100→175 | A tad more coverage |
+| Cinder Field | 3-field cap; a cast at the cap extends the field with the least time left | |
+| Fire Walk | 8→24 per tick (matches Cinder), trail 25→50, 5 s patches | Tabled: needs a walking bot to measure fairly |
+| Arcane Orbit | Unchanged (recasts extend without limit) | Fine as is |
+
+## Spell fantasies — 2026-10-01 (LJ)
+
+Every spell should feel really strong and fulfill its fantasy; the player should feel like an awesome wizard. Feeling strong is not the same as being busted: balance still matters, measured by the solo bot runs (aim for time to kill at minute 10 ≈ minute 19).
+
+| Spell | Fantasy |
+|---|---|
+| Infection | It infects everybody, and the disease gets more infectious later in the game. |
+| Arcane Orbit | An area around you; getting hit by it really sucks. |
+| Lightning | Bam — an area. |
+| Meteor Shower | Bam — an area. |
+| Cinder Field | That area is on fire; it is safer for you. |
+| Ice Blast | Get away from me. Die. (Control first, still good damage.) |
+| Seeker | A ghost coming to kill you. |
+| Ember Lance | That entire line of enemies is gone. |
+| Cross Blade | If the boomerang return hits you, you are done. |
+| Focus Ray | The boss killer; kills a Shieldbearer from behind. |

@@ -803,7 +803,7 @@ func cast_ice_blast_spell(slot: int):
 	var slow_strength = spell_info.get("slow_effect", 0.3)
 	
 	print("🧊 Ice blast: radius=", radius, " damage=", damage, " player_pos=", player.global_position)
-	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength, int(spell_info.get("shard_count", 13)), float(spell_info.get("cone_degrees", 90.0)))
+	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength, ice_shard_count(spell_info), float(spell_info.get("cone_degrees", 90.0)), int(spell_info.get("shard_pierce", 0)))
 
 func cast_earthshield_spell(slot: int):
 	var info = get_spell_info(slot)
@@ -967,11 +967,18 @@ func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 	warning.lifetime = delay
 	get_parent().add_child(warning)
 
-func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6, shard_count: int = 13, cone_degrees: float = 90.0):
+## Ice Blast shard count: one shard per degrees_per_shard of cone when the spell sets it, so wider cones stay just as dense.
+func ice_shard_count(spell_info: Dictionary) -> int:
+	if spell_info.has("degrees_per_shard"):
+		return maxi(1, int(round(float(spell_info.get("cone_degrees", 90.0)) / float(spell_info.degrees_per_shard))))
+	return int(spell_info.get("shard_count", 13))
+
+func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6, shard_count: int = 13, cone_degrees: float = 90.0, shard_pierce: int = 0):
 	var target = get_closest_enemy()
 	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
 	var effect = preload("res://scripts/IceBlast.gd").new()
 	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, cast_stat("projectile_speed_multiplier"), (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier), shard_count, cone_degrees)
+	effect.shard_pierce = shard_pierce
 	get_parent().add_child(effect)
 
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
@@ -1428,8 +1435,8 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 	return "Rank %d → %d: " % [rank, rank + 1] + rank_change_summary(spell_id)
 
 ## Short rank-card text listing what the next rank changes, e.g. "+1 meteor, +damage, +area". No numbers.
-const RANK_COUNT_WORDS = {"projectile_count": "projectile", "blade_count": "blade", "meteor_count": "meteor", "shard_count": "shard", "orb_count": "orb", "chain_count": "chain"}
-const RANK_AREA_KEYS = ["radius", "trail_radius", "trap_radius", "trigger_radius", "orbit_radius", "blade_radius", "cone_degrees", "spread_radius", "travel_distance", "beam_radius"]
+const RANK_COUNT_WORDS = {"shard_pierce": "pierce", "projectile_count": "projectile", "blade_count": "blade", "meteor_count": "meteor", "shard_count": "shard", "orb_count": "orb", "chain_count": "chain"}
+const RANK_AREA_KEYS = ["radius", "trail_radius", "trap_radius", "trigger_radius", "orbit_radius", "blade_radius", "cone_degrees", "spread_radius", "travel_distance", "beam_radius", "lance_radius"]
 const RANK_DURATION_KEYS = ["duration", "patch_duration", "spore_linger"]
 func rank_change_summary(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)
@@ -1500,6 +1507,15 @@ func cast_build_spell(slot: int) -> bool:
 				spell_extended.emit(info.id, added)
 				return true
 	if active.size() >= int(info.get("active_limit", 3)):
+		if info.get("extend_at_cap", false):
+			var weakest = active[0]
+			for existing in active:
+				if existing.remaining < weakest.remaining:
+					weakest = existing
+			var added = weakest.queue_cast_extension(info, calculate_spell_damage(info))
+			DamageSource.stamp(weakest)
+			spell_extended.emit(info.id, added)
+			return true
 		active[0].queue_free()
 	if tactical:
 		target = null
