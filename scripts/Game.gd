@@ -138,6 +138,10 @@ func _ready():
 		var training = preload("res://scripts/TrainingGrounds.gd").new()
 		training.game = self
 		add_child(training)
+	else:
+		var ley_lines = preload("res://scripts/LeyLines.gd").new()
+		ley_lines.game = self
+		add_child(ley_lines)
 	
 
 # Master setup function that initializes all game systems

@@ -67,7 +67,7 @@ func advance(seconds: float):
 		return
 	clock += seconds
 	var channel_active := false
-	for channel in get_tree().get_nodes_in_group("active_spell_channels"):
+	for channel in get_tree().get_nodes_in_group("active_spell_channels") + get_tree().get_nodes_in_group("style_holds"):
 		if channel.has_method("is_style_channel_active") and channel.is_style_channel_active():
 			channel_active = true
 			break

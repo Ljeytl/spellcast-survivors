@@ -340,6 +340,10 @@ const SPELL_PROPERTIES = {"spell_damage_multiplier": "power", "spell_size_multip
 var property_reads: Dictionary = {}
 
 func spell_property_multiplier(key: String) -> float:
+	var ley = get_tree().get_first_node_in_group("ley_lines") if key == "spell_damage_multiplier" else null
+	return (ley.power_multiplier() if ley else 1.0) * spell_own_multiplier(key)
+
+func spell_own_multiplier(key: String) -> float:
 	var property = SPELL_PROPERTIES.get(key, "")
 	var spell = str(DamageSource.current.get("spell", ""))
 	if property == "" or spell == "":
@@ -1205,6 +1209,10 @@ func attempt_freeform_cast():
 
 func cast_freeform_spell(spell_name: String) -> bool:
 	last_cast_failure = ""
+	var ley = get_tree().get_first_node_in_group("ley_lines")
+	if ley and ley.try_word(spell_name):
+		end_typing()
+		return true
 	if spell_name == "atomic" and is_instance_valid(game_manager.style_session):
 		if not game_manager.style_session.cast_atomic():
 			last_cast_failure = "Atomic requires S rank and 10,000 combo"
