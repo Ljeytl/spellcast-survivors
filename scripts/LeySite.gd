@@ -22,8 +22,8 @@ var spin := 0.0
 
 func _ready():
 	add_to_group("ley_sites")
-	# An attuned circle counts as an active style channel: combo does not decay inside it.
-	add_to_group("active_spell_channels")
+	# An attuned circle holds the combo like a channelled spell: no decay inside it.
+	add_to_group("style_holds")
 	z_index = -1
 
 func contains(point: Vector2) -> bool:
