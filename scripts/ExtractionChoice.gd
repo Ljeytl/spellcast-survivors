@@ -23,6 +23,7 @@ func _ready():
 	column.add_theme_constant_override("separation", 20)
 	center.add_child(column)
 	var title = Label.new()
+	title.name = "Title"
 	title.text = "20:00 SURVIVED"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 28)

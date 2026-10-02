@@ -1,3 +1,12 @@
+# Experiment (experiment/day-cycle) — Four-day expedition
+
+- A run is four days of 5 minutes of daylight each (the wizard sleeps till 3 pm). The world's colour grade shifts from plain afternoon through golden hour and dusk to night; a "Dusk falls" warning comes at 80% of the day.
+- When daylight runs out it turns to night and that day's boss emerges (The Gatekeeper, The Pursuer, The Iron Guard, then The Warden). The day clock stops at night; the run timer keeps counting, so runs last longer than 20 minutes.
+- Killing the boss opens a camp screen: the game pauses, combo is kept. Waking up starts the next day at 3 pm with a 10 s no-decay grace. The fourth boss leads to extraction ("4 DAYS SURVIVED"); continuing into endless keeps the days going with tougher repeat bosses.
+- MonsterManager.day_cycle_driven turns off the fixed 5/10/15-minute bosses and the 20:00 end. New GameState.CAMP. Training has no day cycle.
+- The grade is a screen shader (shaders/day_grade.gdshader) that tints like coloured light and restores each pixel's brightness, so night reads through colour, not darkness. The HUD is above it and never tinted. Colours are a Gradient in data/day_sky.tres, editable in the Godot editor (colour = hue, alpha = strength).
+- Tests: new day_cycle_regression.
+
 # Unreleased — Ley lines (cut-down)
 
 - Three ley-line sites per normal run (none in Training), 1500–2200 units from the start in different directions, each with four words. Edge arrows point to unfinished sites (violet asleep, gold awake, red guardian).

@@ -7,6 +7,8 @@ signal run_completed
 
 var run_finished: bool = false
 var awaiting_extraction: bool = false
+## Set by DayCycle: bosses and extraction follow the days instead of fixed run times.
+var day_cycle_driven: bool = false
 var endless_mode: bool = false
 
 const EnemyScene = preload("res://scenes/EncounterEnemy.tscn")
@@ -273,6 +275,13 @@ func _on_monster_died(monster: CharacterBody2D):
 func add_game_time(additional_time: float):
 	advance_time(additional_time)
 
+func begin_extraction():
+	if run_finished or awaiting_extraction:
+		return
+	awaiting_extraction = true
+	spawn_timer.stop()
+	run_completed.emit()
+
 func continue_endless():
 	if run_finished or not awaiting_extraction:
 		return
@@ -285,7 +294,7 @@ func advance_time(delta: float):
 		return
 	var previous_phase = spawn_phase_interval(game_time)
 	game_time = maxf(0.0, game_time + delta)
-	if not endless_mode and game_time >= float(encounter_config.run_duration):
+	if not endless_mode and not day_cycle_driven and game_time >= float(encounter_config.run_duration):
 		game_time = float(encounter_config.run_duration)
 		awaiting_extraction = true
 		spawn_timer.stop()
@@ -293,7 +302,8 @@ func advance_time(delta: float):
 		return
 	if not is_equal_approx(previous_phase, spawn_phase_interval(game_time)) and not spawn_timer.is_stopped():
 		spawn_timer.start(calculate_spawn_interval())
-	check_boss_milestones()
+	if not day_cycle_driven:
+		check_boss_milestones()
 	encounter_director.update(delta)
 	if not spawn_timer.is_stopped():
 		replenish_population(delta)
