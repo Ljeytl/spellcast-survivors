@@ -145,6 +145,7 @@ func _process(delta):
 
 func wake(site):
 	site.state = LeySite.State.SIEGE
+	site.pulse_flash()
 	site.wave_timer = 0.0
 	game.show_gameplay_feedback("Ley line awakens · In the circle, press Space and type its words")
 
@@ -166,6 +167,7 @@ func try_word(text: String) -> bool:
 	if word not in site.words or word in site.bound:
 		return false
 	site.bound.append(word)
+	site.pulse_flash()
 	if AudioManager:
 		AudioManager.on_typing_complete()
 	if site.bound.size() >= site.words.size():
@@ -191,6 +193,7 @@ func summon_guardian(site):
 
 func attune(site):
 	site.state = LeySite.State.ATTUNED
+	site.pulse_flash()
 	site.guardian = null
 	game.show_gameplay_feedback("Ley line attuned · Stand in it for +%d%% Spell Power and no combo decay" % int(ATTUNED_POWER_BONUS * 100))
 
