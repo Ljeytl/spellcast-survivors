@@ -44,6 +44,12 @@ func run():
 	check(ley.sites.size() == ley.SITE_COUNT, "Three sites are placed")
 	var origin = game.player.global_position
 	check(ley.sites.all(func(s): return s.global_position.distance_to(origin) >= ley.SITE_DISTANCE_MIN - 1.0), "Sites are placed away from the start")
+	for i in ley.SITE_COUNT:
+		check(ley.sites[i].global_position.distance_to(origin + ley.SITE_OFFSETS[i]) < 400.0, "Site %d sits at its fixed position" % i)
+	var minimap = game.hud.get_node_or_null("Minimap")
+	check(minimap != null, "The minimap is on the HUD")
+	var edge = minimap.to_map(origin + Vector2(1.0e6, 0))
+	check(edge.distance_to(Vector2(minimap.SIZE, minimap.SIZE) / 2.0) <= minimap.SIZE / 2.0, "Far sites pin to the minimap edge")
 	var site = ley.sites[0]
 	var LeySite = load("res://scripts/LeySite.gd")
 	var monsters = game.get_node("MonsterManager")
@@ -76,7 +82,7 @@ func run():
 	check(not m.is_typing, "Binding a word ends typing")
 	check(not ley.try_word(site.words[0]), "A bound word cannot be bound twice")
 	check(not ley.try_word("notaword"), "Other text does not bind")
-	game.player.global_position = site.global_position + Vector2(300, 0)
+	game.player.global_position = site.global_position + Vector2(LeySite.RADIUS + 40, 0)
 	check(not ley.try_word(site.words[1]), "Words cannot be typed outside the circle")
 	# Walking far away pauses the site: progress is kept and waves stop.
 	game.player.global_position = site.global_position + Vector2(ley.ENGAGE_RADIUS + 200, 0)
@@ -107,7 +113,7 @@ func run():
 	# Standing in an attuned circle: +20% Spell Power and no combo decay.
 	var DS = load("res://scripts/DamageSource.gd")
 	DS.current = DS.make("bolt", 0.0)
-	game.player.global_position = site.global_position + Vector2(400, 0)
+	game.player.global_position = site.global_position + Vector2(LeySite.RADIUS + 120, 0)
 	var outside = m.cast_stat("spell_damage_multiplier")
 	game.player.global_position = site.global_position
 	check(is_equal_approx(m.cast_stat("spell_damage_multiplier"), outside * 1.2), "An attuned circle gives +20% Spell Power")
@@ -117,7 +123,7 @@ func run():
 	style.score.grace_remaining = 0.0
 	style.advance(5.0)
 	check(style.score.combo >= 500.0, "Combo does not decay inside an attuned circle")
-	game.player.global_position = site.global_position + Vector2(400, 0)
+	game.player.global_position = site.global_position + Vector2(LeySite.RADIUS + 120, 0)
 	style.advance(0.016)
 	style.score.grace_remaining = 0.0
 	var held = style.score.combo

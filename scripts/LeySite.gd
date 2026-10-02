@@ -4,7 +4,8 @@ extends Node2D
 
 enum State { DORMANT, SIEGE, GUARDIAN, ATTUNED }
 
-const RADIUS = 90.0
+## Big enough to move and fight inside while typing words.
+const RADIUS = 340.0
 const COLORS = {
 	State.DORMANT: Color("b48cff"),
 	State.SIEGE: Color("e2d0ff"),
@@ -46,11 +47,11 @@ func _draw():
 	var fill = color
 	fill.a = 0.10 + (0.12 * pulse if state == State.DORMANT else 0.18 if state == State.SIEGE else 0.06)
 	draw_circle(Vector2.ZERO, RADIUS, fill)
-	draw_arc(Vector2.ZERO, RADIUS, 0, TAU, 64, color, 3.0)
-	draw_arc(Vector2.ZERO, RADIUS * 0.72, spin, spin + TAU, 48, Color(color, 0.55), 2.0)
+	draw_arc(Vector2.ZERO, RADIUS, 0, TAU, 128, color, 5.0)
+	draw_arc(Vector2.ZERO, RADIUS * 0.72, spin, spin + TAU, 96, Color(color, 0.55), 3.0)
 	for i in 6:
 		var angle = spin + i * TAU / 6.0
 		var mark = Vector2.from_angle(angle) * RADIUS * 0.86
-		draw_line(mark - Vector2.from_angle(angle) * 7.0, mark + Vector2.from_angle(angle) * 7.0, color, 3.0)
+		draw_line(mark - Vector2.from_angle(angle) * 18.0, mark + Vector2.from_angle(angle) * 18.0, color, 4.0)
 	if state != State.ATTUNED:
-		draw_circle(Vector2.ZERO, 10.0 + 4.0 * pulse, Color(color, 0.8))
+		draw_circle(Vector2.ZERO, 18.0 + 6.0 * pulse, Color(color, 0.8))

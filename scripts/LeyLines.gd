@@ -6,13 +6,14 @@ extends Node
 ## death attunes the site; the boss drops the usual chest, potion and style runes.
 
 const LeySite = preload("res://scripts/LeySite.gd")
+## Fixed site positions, relative to where the run starts. Same map every run.
+const SITE_OFFSETS = [Vector2(-1900, -900), Vector2(1800, -1300), Vector2(300, 2100)]
 const SITE_COUNT = 3
 const SITE_DISTANCE_MIN = 1500.0
-const SITE_DISTANCE_MAX = 2200.0
 const WORDS_PER_SITE = 4
 const DWELL_SECONDS = 0.4
 ## Waves only advance while the player is this close to an awake site.
-const ENGAGE_RADIUS = 900.0
+const ENGAGE_RADIUS = 1200.0
 const WAVE_INTERVAL = 8.0
 ## Enemies per wave: base plus one per two minutes of run time.
 const WAVE_BASE = 4
@@ -47,17 +48,20 @@ func _ready():
 	rng.randomize()
 	build_hud()
 	place_sites.call_deferred()
+	var minimap = preload("res://scripts/Minimap.gd").new()
+	minimap.game = game
+	minimap.ley = self
+	game.hud.add_child(minimap)
 
 func place_sites():
 	var origin = game.player.global_position
 	var terrain = game.get_node_or_null("Background")
-	var start = rng.randf() * TAU
 	var pool = WORDS.duplicate()
 	for i in SITE_COUNT:
-		var angle = start + i * TAU / SITE_COUNT + rng.randf_range(-0.35, 0.35)
-		var point = origin + Vector2.from_angle(angle) * rng.randf_range(SITE_DISTANCE_MIN, SITE_DISTANCE_MAX)
+		var angle = SITE_OFFSETS[i].angle()
+		var point = origin + SITE_OFFSETS[i]
 		for attempt in 12:
-			if not terrain or not terrain.has_method("is_spawn_clear") or terrain.is_spawn_clear(point, LeySite.RADIUS):
+			if not terrain or not terrain.has_method("is_spawn_clear") or terrain.is_spawn_clear(point, 140.0):
 				break
 			point += Vector2.from_angle(angle) * 80.0
 		var site = LeySite.new()
