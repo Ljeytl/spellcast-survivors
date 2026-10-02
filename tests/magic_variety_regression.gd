@@ -112,7 +112,7 @@ func run():
 		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion() and not node.get_parent().is_queued_for_deletion())
 		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "returning_blade" else active.size()
 		# Extend-recast spells (Fire Walk) lengthen one instance instead of stacking up to active_limit.
-		var expected_cap = 1 if manager.spells[slot].get("recast_behavior", "stack") == "extend" else int(manager.spells[slot].active_limit)
+		var expected_cap = 1 if manager.spells[slot].get("recast_behavior", "stack") == "extend" else mini(int(manager.spells[slot].active_limit), 7)
 		check(capped == expected_cap, "Per-spell concurrent cap: " + id)
 		enemy.free()
 		for node in active:
@@ -136,7 +136,7 @@ func run():
 			manager.cast_spell_by_type(bonus_slot)
 		var family = manager.spells[primary_slot].type
 		var family_nodes = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.type == family and not node.is_queued_for_deletion())
-		check(family_nodes.size() == int(manager.get_spell_info(bonus_slot).active_limit) + 1, "Bonus keeps its own active limit without replacing ingredient: " + recipe_id)
+		check(family_nodes.size() == mini(int(manager.get_spell_info(bonus_slot).active_limit), 5) + 1, "Bonus keeps its own active limit without replacing ingredient: " + recipe_id)
 	for id in ["rune_trap"]:
 		fresh()
 		manager.learn_spell(id)

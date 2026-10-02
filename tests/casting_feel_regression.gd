@@ -165,16 +165,16 @@ func run():
 	check(not manager.cast_freeform_spell("mega not owned") and manager.pending_keyword_casts.is_empty(),"invalid no pending")
 	for enemy in get_nodes_in_group("enemies"):
 		enemy.remove_from_group("enemies")
-	type_spell("mega plague seed")
-	check(not manager.cast_freeform_spell("mega plague seed"),"plague preflight rejects no host")
+	type_spell("mega infection")
+	check(not manager.cast_freeform_spell("mega infection"),"plague preflight rejects no host")
 	check(manager.is_typing and manager.pending_keyword_casts.is_empty(),"failed preflight keeps incantation")
 	check(game.typing_keycaps.error_caption()=="No target in range","preflight error rendered")
 	await capture("preflight-no-target")
 	for enemy in game.get_children():
 		if enemy.get("current_health") != null:
 			enemy.add_to_group("enemies")
-	type_spell("mega plague seed")
-	check(manager.cast_freeform_spell("mega plague seed"),"plague commits with host")
+	type_spell("mega infection")
+	check(manager.cast_freeform_spell("mega infection"),"plague commits with host")
 	for enemy in get_nodes_in_group("enemies"):
 		enemy.remove_from_group("enemies")
 	count = session.score.manual_casts

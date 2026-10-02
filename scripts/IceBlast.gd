@@ -14,6 +14,8 @@ var knockback = 200.0
 var slow_duration = 2.0
 var slow_strength = 0.6
 var shard_radius = 12.0
+## Each shard passes through this many enemies before stopping (it never hits the same enemy twice).
+var shard_pierce = 0
 
 func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, push: float, slow_time: float, slow: float, speed_multiplier: float, size_multiplier: float = 1.0, shard_count: int = 13, cone_degrees: float = 90.0):
 	shard_radius = 12.0 * size_multiplier
@@ -28,7 +30,10 @@ func configure(origin: Vector2, heading: Vector2, radius: float, amount: float, 
 	var count = maxi(1, shard_count)
 	for index in range(count):
 		var t = 0.5 if count == 1 else index / float(count - 1)
-		shards.append({"direction": heading.rotated(lerpf(-half_cone, half_cone, t)), "position": Vector2.ZERO, "active": true})
+		var angle = lerpf(-half_cone, half_cone, t)
+		if cone_degrees >= 359.0:
+			angle = TAU * index / float(count)
+		shards.append({"direction": heading.rotated(angle), "position": Vector2.ZERO, "active": true})
 
 func _ready():
 	add_to_group("ice_blasts")
@@ -50,6 +55,8 @@ func advance(delta: float):
 		for enemy in enemies:
 			if not preload("res://scripts/SpellTargeting.gd").alive(enemy):
 				continue
+			if shard.get("hit", {}).has(enemy.get_instance_id()):
+				continue
 			var fraction = contact_fraction(enemy, start, end)
 			if fraction >= 0:
 				candidates.append({"enemy": enemy, "fraction": fraction})
@@ -57,7 +64,11 @@ func advance(delta: float):
 		shard.position += shard.direction * travel
 		if not candidates.is_empty():
 			var enemy = candidates[0].enemy
-			shard.active = false
+			if not shard.has("hit"):
+				shard.hit = {}
+			shard.hit[enemy.get_instance_id()] = true
+			if shard.hit.size() > shard_pierce:
+				shard.active = false
 			# Every shard deals full damage, so several shards on one enemy stack; knockback and slow apply once per enemy.
 			var first_hit = not hit_ids.has(enemy.get_instance_id())
 			hit_ids[enemy.get_instance_id()] = true

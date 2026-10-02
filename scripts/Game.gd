@@ -32,6 +32,7 @@ var game_time: float = 0.0
 var pending_level_ups: Array[int] = []
 var interface_debug = false
 var style_session: Node
+var telemetry: Node
 
 # Developer console system
 var console_scene = preload("res://scenes/Console.tscn")
@@ -96,6 +97,12 @@ func _ready():
 	style_session = preload("res://scripts/StyleSession.gd").new()
 	style_session.game = self
 	add_child(style_session)
+	telemetry = preload("res://scripts/CombatTelemetry.gd").new()
+	telemetry.name = "CombatTelemetry"
+	add_child(telemetry)
+	var debug_panel = preload("res://scripts/DebugCombatPanel.gd").new()
+	debug_panel.telemetry = telemetry
+	add_child(debug_panel)
 	var style_hud = preload("res://scripts/StyleHUD.gd").new()
 	style_hud.session = style_session
 	hud.add_child(style_hud)

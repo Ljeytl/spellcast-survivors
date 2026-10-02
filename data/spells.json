@@ -35,7 +35,7 @@
       }
     },
     "bolt": {
-      "rank_growth": {"damage": {"per_rank": 14.2857}},
+      "rank_growth": {"damage": {"per_rank": 21.4286}},
       "role": "Fire a straight bolt toward the nearest enemy.",
       "id": "bolt",
       "name": "Bolt",
@@ -114,17 +114,18 @@
       "incantation": "regeneration"
     },
     "ice_blast": {
+      "degrees_per_shard": 6,
       "role": "Push nearby enemies back and slow them.",
       "id": "ice_blast",
-      "shard_count": 3, "cone_degrees": 30, "growth_description": "more shards, wider and longer cone", "rank_growth": {"radius": {"per_rank": 21.43, "max": 400}, "shard_count": {"per_rank": 1.4286, "max": 13, "integer": true}, "cone_degrees": {"per_rank": 8.5714, "max": 90}, "damage": {"per_rank": 9.4286}},
+      "shard_count": 3, "cone_degrees": 45, "growth_description": "more shards, wider and longer cone", "rank_growth": {"radius": {"per_rank": 35.7143, "max": 500}, "damage": {"per_rank": 10.7143}, "slow_duration": {"per_rank": 0.2857, "max": 4.0}, "slow_effect": {"per_rank": -0.0286}, "cone_degrees": {"per_rank": 45, "max": 360}},
       "name": "Ice Blast",
       "slot": 3,
       "chars": 9,
       "type": "aoe",
-      "damage": 34,
+      "damage": 35,
       "radius": 250,
-      "knockback": 400,
-      "slow_effect": 0.3,
+      "knockback": 550,
+      "slow_effect": 0.35,
       "slow_duration": 2.0,
       "color": [0.5, 0.8, 1, 1],
       "unlock_condition": {"type": "level", "value": 5},
@@ -217,7 +218,7 @@
     "lightning_arc": {
       "role": "Strike a group with a brief circle of lightning.",
       "id": "lightning_arc",
-      "growth_description": "wider strike", "rank_growth": {"radius": {"per_rank": 8.5714, "max": 160}, "damage": {"per_rank": 17.1429}},
+      "growth_description": "wider strike", "rank_growth": {"radius": {"per_rank": 10.7143, "max": 175}, "damage": {"per_rank": 17.1429}},
       "name": "Lightning",
       "slot": 5,
       "chars": 13,
@@ -267,7 +268,7 @@
       "active_duration": 0.2
     },
     "meteor_shower": {
-      "rank_growth": {"damage": {"per_rank": 9.1429}, "radius": {"per_rank": 2.8571, "max": 65}},
+      "rank_growth": {"damage": {"per_rank": 9.1429}, "radius": {"per_rank": 4.7143, "max": 78}},
       "role": "Bombard enemies with delayed area attacks.",
       "id": "meteor_shower",
       "name": "Meteor Shower",
@@ -356,11 +357,12 @@
       ]
     },
     "ember_lance": {
-      "rank_growth": {"damage": {"per_rank": 11.8571}},
+      "lance_radius": 24.0,
+      "rank_growth": {"damage": {"per_rank": 48.5714}, "lance_radius": {"per_rank": 5.1429, "max": 60.0}},
       "id": "ember_lance",
       "name": "Ember Lance",
       "type": "piercing",
-      "damage": 42,
+      "damage": 120,
       "duration": 5.0,
       "role": "Pierce a line of enemies with a straight lance.",
       "unlock_condition": {
@@ -368,9 +370,10 @@
       }
     },
     "plague_seed": {
+      "incantation": "infection",
       "id": "plague_seed",
       "recast_behavior": "stack",
-      "name": "Plague Seed",
+      "name": "Infection",
       "type": "plague",
       "damage": 4,
       "duration": 3.0,
@@ -378,12 +381,14 @@
       "spread_radius": 60.0,
       "spread_speed": 300.0,
       "spore_linger": 1.5,
-      "rank_growth": {"spread_radius": {"per_rank": 7.1429, "max": 110.0}, "spread_speed": {"per_rank": 22.8571, "max": 460.0}, "spore_linger": {"per_rank": 0.2143, "max": 3.0}, "duration": {"per_rank": 0.1429, "max": 4.0}, "damage": {"per_rank": 1.1429}},
+      "rank_growth": {"spread_radius": {"per_rank": 7.1429, "max": 110.0}, "spread_speed": {"per_rank": 22.8571, "max": 460.0}, "spore_linger": {"per_rank": 0.1429, "max": 2.5}, "duration": {"per_rank": 0.1429, "max": 4.0}, "damage": {"per_rank": 1.1429}},
       "unlock_condition": {
         "type": "default"
       }
     },
     "cinder_field": {
+      "extend_at_cap": true,
+      "active_limit": 3,
       "id": "cinder_field",
       "growth_description": "larger field", "rank_growth": {"radius": {"per_rank": 7.143, "max": 150}, "damage": {"per_rank": 2.2857}},
       "recast_behavior": "stack",
@@ -874,11 +879,11 @@
     },
     "focus_ray": {
       "id": "focus_ray",
-      "growth_description": "third beam at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "damage": {"per_rank": 3.5714}},
+      "growth_description": "third beam at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "damage": {"per_rank": 3.4286}, "duration": {"per_rank": 0.1429, "max": 3.0}, "beam_radius": {"per_rank": 1.7143, "max": 24.0}},
       "recast_behavior": "stack",
       "name": "Focus Ray",
       "type": "beam",
-      "damage": 13,
+      "damage": 24,
       "duration": 2.0,
       "active_limit": 2,
       "beam_radius": 12.0,
@@ -890,30 +895,30 @@
     },
     "rune_trap": {
       "id": "rune_trap",
-      "growth_description": "larger blast and trigger", "rank_growth": {"trap_radius": {"per_rank": 8.5714, "max": 150}, "trigger_radius": {"per_rank": 2.857, "max": 70}, "damage": {"per_rank": 13.8571}},
+      "growth_description": "larger blast and trigger", "rank_growth": {"trap_radius": {"per_rank": 17.1429, "max": 240}, "trigger_radius": {"per_rank": 4.2857, "max": 90}, "damage": {"per_rank": 15.7143}},
       "recast_behavior": "stack",
       "name": "Rune Trap",
       "type": "trap",
-      "damage": 48,
+      "damage": 55,
       "duration": 6.0,
-      "active_limit": 3,
+      "active_limit": 999,
       "role": "Place a trap that waits until triggered; up to three traps, oldest replaced.",
       "unlock_condition": {
         "type": "default"
       },
-      "trigger_radius": 50,
-      "trap_radius": 90
+      "trigger_radius": 60,
+      "trap_radius": 120
     },
     "seeking_spirit": {
       "id": "seeking_spirit",
-      "growth_description": "longer-lasting spirits, third spirit at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "duration": {"per_rank": 0.2857, "max": 10.0}, "damage": {"per_rank": 2.5714}},
+      "growth_description": "longer-lasting spirits, third spirit at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "duration": {"per_rank": 1.7143, "max": 24.0}, "damage": {"per_rank": 3.5714}},
       "recast_behavior": "stack",
       "name": "Seeker",
       "type": "spirit",
-      "damage": 10,
+      "damage": 15,
       "hit_interval": 1.0,
       "move_speed": 220,
-      "duration": 8.0,
+      "duration": 12.0,
       "active_limit": 2,
       "role": "A slow spirit pursues nearby enemies for 8 to 10 seconds, striking each enemy at most once per second. Up to 2 spirits, 3 at rank 8.",
       "unlock_condition": {
@@ -927,7 +932,7 @@
       "name": "Fire Walk",
       "type": "trail",
       "damage": 8,
-      "duration": 9.0,
+      "duration": 10.0,
       "active_limit": 3,
       "role": "Leave a wide burning trail that lasts long enough to catch pursuers.",
       "unlock_condition": {
@@ -935,9 +940,9 @@
       },
       "incantation": "fire walk",
       "emission_duration": 5.0,
-      "patch_duration": 4.0,
+      "patch_duration": 5.0,
       "trail_radius": 25,
-      "rank_growth": {"trail_radius": {"per_rank": 1.4286, "max": 35.0}, "damage": {"per_rank": 2.2857}},
+      "rank_growth": {"trail_radius": {"per_rank": 3.5714, "max": 50.0}, "damage": {"per_rank": 2.2857}},
       "tick_interval": 0.5
     },
     "returning_blade": {

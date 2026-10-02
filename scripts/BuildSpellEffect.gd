@@ -22,12 +22,18 @@ var orbit_hit_times: Dictionary = {}
 var elapsed_time = 0.0
 var infected_at: Dictionary = {}
 var infection_expires: Dictionary = {}
+## Infection: jumps each host has made while alive, and hosts whose death jump is spent.
+var jumps_made: Dictionary = {}
+var death_jumps_made: Dictionary = {}
 var resting_spores: Array = []
 var infection_duration = 5.0
 var hosts_started = 0
 const SPORE_LINGER = 3.0
 const RESTING_SPREAD_MULTIPLIER = 1.3
 const HOST_LIMIT = 8
+## Each infected enemy passes the infection on this many times while alive, plus this many times when it dies, so one cast grows as a chain, not exponentially.
+const JUMPS_PER_HOST = 1
+const JUMPS_ON_DEATH = 1
 const ENFORCE_HOST_LIMIT = false
 const Geometry = preload("res://scripts/SpellGeometry.gd")
 const Visual = preload("res://scripts/ProjectileVisual.gd")
@@ -67,7 +73,8 @@ func queue_cast_extension(data: Dictionary, amount: float) -> float:
 	if current_cast_remaining < 0:
 		current_cast_remaining = remaining
 	var added = extend_duration(data)
-	queued_casts.append({"info": Geometry.scaled_data(data, caster.get_ref()), "damage": amount, "duration": added})
+	if added > 0.0:
+		queued_casts.append({"info": Geometry.scaled_data(data, caster.get_ref()), "damage": amount, "duration": added})
 	return added
 
 func advance_cast_segments(delta: float):
@@ -80,8 +87,12 @@ func advance_cast_segments(delta: float):
 		damage = next.damage
 		current_cast_remaining += next.duration
 
+## Recasts add a full cast's duration, but banked time never exceeds max_banked_casts × one cast (when the spell sets it).
 func extend_duration(data: Dictionary) -> float:
-	var added = float(Geometry.scaled_data(data, caster.get_ref()).get("duration", 0.0))
+	var one_cast = float(Geometry.scaled_data(data, caster.get_ref()).get("duration", 0.0))
+	var added = one_cast
+	if data.has("max_banked_casts"):
+		added = clampf(one_cast * float(data.max_banked_casts) - remaining, 0.0, one_cast)
 	remaining += added
 	return added
 
@@ -121,7 +132,7 @@ func advance(delta: float):
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()):
 				continue
-			if Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= Geometry.LANCE_RADIUS * float(info.projectile_size_multiplier):
+			if Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= float(info.get("lance_radius", Geometry.LANCE_RADIUS)) * float(info.projectile_size_multiplier):
 				hit_ids[enemy.get_instance_id()] = true
 				deal_damage(enemy, damage)
 				if info.get("explosive", false):
@@ -299,7 +310,8 @@ func tick_infections():
 		var center = enemy.global_position
 		deal_damage(enemy, damage)
 		if valid_target(enemy):
-			spread_from(center)
+			if can_jump(enemy.get_instance_id()) and spread_from(center):
+				jumps_made[enemy.get_instance_id()] = int(jumps_made.get(enemy.get_instance_id(), 0)) + 1
 		else:
 			_on_infected_host_died(enemy)
 
@@ -318,8 +330,14 @@ func _on_infected_host_died(enemy):
 		get_parent().add_child(bloom)
 	infections = infections.filter(func(reference): return reference.get_ref() != enemy)
 	infection_expires.erase(id)
+	if int(death_jumps_made.get(id, 0)) >= int(info.get("jumps_on_death", JUMPS_ON_DEATH)):
+		return
+	death_jumps_made[id] = int(death_jumps_made.get(id, 0)) + 1
 	if not spread_from(enemy.global_position):
 		rest_spore(enemy.global_position)
+
+func can_jump(id: int) -> bool:
+	return int(jumps_made.get(id, 0)) < int(info.get("jumps_per_host", JUMPS_PER_HOST))
 
 func spread_from(center: Vector2) -> bool:
 	if ENFORCE_HOST_LIMIT and hosts_started >= HOST_LIMIT:
@@ -334,7 +352,7 @@ func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	match info.type:
 		"piercing":
-			art.stamp(self, "lance", direction * Geometry.stamp_offset("lance", Geometry.LANCE_RADIUS * float(info.projectile_size_multiplier)).x, Visual.size(self, Geometry.stamp_dimensions("lance", Geometry.LANCE_RADIUS * float(info.projectile_size_multiplier))), Color.WHITE, direction.angle())
+			art.stamp(self, "lance", direction * Geometry.stamp_offset("lance", float(info.get("lance_radius", Geometry.LANCE_RADIUS)) * float(info.projectile_size_multiplier)).x, Visual.size(self, Geometry.stamp_dimensions("lance", float(info.get("lance_radius", Geometry.LANCE_RADIUS)) * float(info.projectile_size_multiplier))), Color.WHITE, direction.angle())
 			if info.get("explosive", false):
 				art.stamp(self, "meteor", -direction * 18, Visual.size(self, Vector2.ONE * 24 * float(info.spell_size_multiplier)))
 		"field":

@@ -37,7 +37,7 @@ func run():
 	check(manager.overflow_unlocked(), "Every slot filled at rank 8 unlocks overflow")
 	var DS = load("res://scripts/DamageSource.gd")
 	# Casting records which passive properties each spell reads; those become its cards.
-	for words in ["bolt", "cinder field", "life", "plague seed"]:
+	for words in ["bolt", "cinder field", "life", "infection"]:
 		manager.cast_freeform_spell(words)
 		await process_frame
 	check(manager.spell_properties("cinder_field").has("power") and manager.spell_properties("cinder_field").has("size"), "Cinder Field reads Spell Power and Spell Size")
