@@ -161,7 +161,7 @@ func time_of_day() -> String:
 	return "%d:%02d pm" % [hour, minutes % 60]
 
 func update_clock_label():
-	clock_label.text = "DAY %d · %s" % [day, time_of_day()]
+	clock_label.text = "DAY %d" % day
 
 func announce(title: String, line: String):
 	banner.text = "%s\n%s" % [title.to_upper(), line]

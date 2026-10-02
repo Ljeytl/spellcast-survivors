@@ -36,7 +36,7 @@ func run():
 	var cycle = game.get_node_or_null("DayCycle")
 	check(cycle != null and monsters.day_cycle_driven, "Normal runs follow the day cycle")
 	check(cycle.day == 1 and cycle.sky_color().a < 0.02, "Day 1 starts in plain 3 pm light")
-	check(cycle.clock_label.text == "DAY 1 · 3:00 pm", "Clock reads day 1, 3 pm")
+	check(cycle.clock_label.text == "DAY 1", "Clock reads DAY 1")
 	# The grade shifts hue toward night; brightness only dips slightly.
 	check(cycle.SKY.sample(1.0).b > cycle.SKY.sample(1.0).g and cycle.SKY.sample(1.0).a > 0.4, "Night shifts the world toward blue")
 	check(cycle.NIGHT_BRIGHTNESS >= 0.85, "Night stays bright enough to read")
