@@ -103,7 +103,7 @@ func run():
 		enemy.dying = true
 	prism.advance(0.05)
 	check(prism.target_ref == null and prism.is_style_channel_active(), "Empty retarget gap remains a bounded active channel")
-	prism.advance(2.0)
+	prism.advance(prism.remaining + 0.05)
 	check(not prism.is_style_channel_active(), "Channel stops on expiry")
 	check(prism.is_queued_for_deletion(), "Expired damaging beam is removed")
 	var glows = game.get_children().filter(func(node): return node is Afterglow)

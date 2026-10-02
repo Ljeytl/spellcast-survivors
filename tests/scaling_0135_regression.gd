@@ -161,7 +161,10 @@ func run():
 	check(is_equal_approx(absf(initial.angle_to(prism.direction)), 0.075), "Prism tracks slowly even at high velocity")
 	check(prism.target_ref != null and prism.target_ref.get_ref() == target, "Prism keeps tracking its moving target")
 	check(is_equal_approx(prism.beam_radius(),32), "Prism is broad")
-	check(is_equal_approx(prism.remaining,3.7), "Prism duration scales")
+	# Prism starts at Focus Ray's maxed duration; Duration ×2, minus the 0.3s advanced above.
+	var focus_info = manager.spell_catalog.focus_ray
+	var focus_max = float(focus_info.get("rank_growth", {}).get("duration", {}).get("max", focus_info.duration))
+	check(is_equal_approx(prism.remaining, focus_max * 2.0 - 0.3), "Prism duration scales")
 	clear_effects()
 	learn(["bolt", "lightning_arc", "lightning_bolt"])
 	player.spell_damage_multiplier = 2

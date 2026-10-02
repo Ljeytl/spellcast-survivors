@@ -101,7 +101,7 @@ func run():
 	blade.advance_returning(0, game.player)
 	check(is_equal_approx(enemies[0].current_health, 960), "Return does not double-hit same enemy")
 	blade.queue_free()
-	check(spells.spell_catalog.seeking_spirit.damage == 10 and spells.spell_catalog.seeking_spirit.hit_interval == 1.0, "Seeker hits for 10 at most once per second at rank 1")
+	check(spells.spell_catalog.seeking_spirit.damage == 15 and spells.spell_catalog.seeking_spirit.hit_interval == 1.0, "Seeker hits for 15 at most once per second at rank 1")
 	for id in spells.Synergies.RECIPES:
 		if not spells.Synergies.RECIPES[id].get("enabled", true):
 			continue

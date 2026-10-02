@@ -27,6 +27,8 @@ enum EliteType {
 
 # Preload the XP orb scene for dropping on death
 var xp_orb_scene = preload("res://scenes/XPOrb.tscn")
+## Game time when this enemy spawned; CombatTelemetry uses it for time-to-kill.
+var spawned_at_game_time: float = -1.0
 
 # Enemy type and elite status
 var enemy_type: EnemyType = EnemyType.CHASER
@@ -301,7 +303,15 @@ func initialize_enemy(type: EnemyType, elite: EliteType = EliteType.NONE, game_t
 	apply_elite_modifications()
 
 # Called when enemy is spawned - sets up stats and references
+## Records spawn time for CombatTelemetry (time-to-kill). Subclasses that override _ready call this too.
+func register_spawn_telemetry():
+	var telemetry_game = get_tree().get_first_node_in_group("game") if get_tree() else null
+	if telemetry_game and telemetry_game.get("telemetry"):
+		spawned_at_game_time = telemetry_game.telemetry.game_time()
+		telemetry_game.telemetry.on_enemy_spawned(self)
+
 func _ready():
+	register_spawn_telemetry()
 	# Find the player character to chase
 	var scene_tree = get_tree()
 	if scene_tree:
@@ -494,6 +504,8 @@ func finish_death():
 	var style_game = get_tree().get_first_node_in_group("game") if get_tree() else null
 	if style_game and is_instance_valid(style_game.get("style_session")):
 		style_game.style_session.on_kill(xp_value, last_damage_source)
+	if style_game and style_game.get("telemetry"):
+		style_game.telemetry.on_enemy_killed(self)
 	# Spawn XP orb for player to collect
 	drop_xp_orb()
 	if not is_in_group("bosses"):

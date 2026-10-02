@@ -36,6 +36,7 @@ func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false)
 	enemy_type = {"grunt": EnemyType.CHASER, "runner": EnemyType.SWARM, "brute": EnemyType.TANK, "shooter": EnemyType.SHOOTER}[family]
 
 func _ready():
+	register_spawn_telemetry()
 	normal_collision_mask = collision_mask
 	update_crowd_collision(false)
 	player = get_tree().get_first_node_in_group("player")

@@ -184,8 +184,8 @@ func run():
 	var beyond = target_at(Vector2(425, 0))
 	var boundary = target_at(Vector2(400, 0))
 	manager.learn_spell("ice_blast")
-	# Cone contract at full rank: 13 shards, 90 degrees, reach 400.
-	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 8
+	# Cone contract at rank 2: 15 shards over 90 degrees, reach under 400. Rank 8 is a full ring (checked below).
+	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 2
 	manager.cast_freeform_spell("ice blast")
 	check(front.current_health == 1000 and inside.current_health == 1000, "Ice shards do not damage before arrival")
 	var ice = get_nodes_in_group("ice_blasts").back()
@@ -202,6 +202,13 @@ func run():
 	await process_frame
 	manager.cast_freeform_spell("lightning")
 	check(front.current_health < before_lightning and side.current_health < 1000 and inside.current_health == neighbor_health, "Lightning strikes nearby group and excludes enemies beyond circle")
+	ice.queue_free()
+	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 8
+	manager.cast_freeform_spell("ice blast")
+	var ring = get_nodes_in_group("ice_blasts").back()
+	ring.set_physics_process(false)
+	ring.advance(1.0)
+	check(behind.current_health < 1000 and behind.slowed, "Rank 8 Ice Blast is a full ring that reaches behind")
 	manager.cast_freeform_spell("bolt")
 	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("is_homing") != null and not node.is_queued_for_deletion())
 	check(bolts.any(func(node): return not node.is_homing and node.get("damage") > 0), "Typed Bolt travels straight")
@@ -220,22 +227,22 @@ func run():
 	check(manager.get_visible_plague_host(plague_info) == null, "Plague excludes dying, hidden and offscreen hosts")
 	var cast_count = game.spells_cast
 	var feedback_count = game.particle_manager.get_child_count()
-	check(not manager.cast_freeform_spell("plague seed"), "Empty host selection reports cast failure")
+	check(not manager.cast_freeform_spell("infection"), "Empty host selection reports cast failure")
 	check(game.spells_cast == cast_count and game.particle_manager.get_child_count() == feedback_count, "Failed Plague produces no success count or flash")
 	check(get_nodes_in_group("build_spell_effects").is_empty(), "Failed Plague creates no empty infection effect")
 	manager.cancel_typing()
 	manager.queue_spell(plague_slot)
 	manager.start_typing()
-	manager.current_typing_text = "plague seed"
+	manager.current_typing_text = "infection"
 	manager.advance_typing_slowdown(1.0)
 	manager.attempt_cast()
-	check(manager.is_typing and manager.current_typing_text == "plague seed" and manager.spell_queue.size() == 1, "Numbered no-target cast remains editable and retryable")
+	check(manager.is_typing and manager.current_typing_text == "infection" and manager.spell_queue.size() == 1, "Numbered no-target cast remains editable and retryable")
 	check("No target in range" in game.typing_label.text and game.typing_keycaps.completion_remaining == 0, "Numbered failure displays no-target instead of successful completion")
 	check(manager.typing_slowdown_remaining == 0.5, "Failed retry does not reset slowdown")
 	manager.cancel_typing()
 	manager.space_casting = true
 	manager.start_freeform_typing()
-	manager.current_typing_text = "plague seed"
+	manager.current_typing_text = "infection"
 	manager.attempt_freeform_cast()
 	check(manager.is_typing and "No target in range" in game.typing_label.text, "Space failure preserves input and displays targeting reason")
 	var visible = target_at(Vector2(80, 0))
