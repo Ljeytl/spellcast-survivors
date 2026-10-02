@@ -2,6 +2,7 @@
 
 - Ley circles are nearly four times wider (radius 90 to 340) so there is room to move and fight inside while typing; ring, rune marks and core scaled up. Engage radius 900 to 1200.
 - Sites sit at fixed positions relative to the run start (LeyLines.SITE_OFFSETS: west, north-east, south), nudged only to avoid trees.
+- Edge arrows only point to woken sites (siege or guardian); asleep sites are found on the minimap.
 - New bottom-right minimap (scripts/Minimap.gd): the player at the centre, ley sites coloured by state (violet asleep, gold awake, red guardian), bosses in red, enemies as faint dots; anything out of range pins to the edge.
 
 # Unreleased — Ley lines (cut-down)

@@ -62,6 +62,9 @@ func run():
 	for w in all_words:
 		unique[w] = true
 	check(unique.size() == all_words.size(), "Generated words never repeat in a run")
+	# Asleep sites get no edge arrow; they are only on the minimap.
+	ley.arrows._process(0.0)
+	check(ley.arrows.marks.is_empty(), "No arrows to asleep sites")
 	# Walking in wakes the site and the first wave arrives.
 	var before = monsters.monsters_alive
 	game.player.global_position = site.global_position
@@ -90,6 +93,8 @@ func run():
 	ley._process(ley.WAVE_INTERVAL * 3)
 	check(monsters.monsters_alive == alive, "No waves while the player is away")
 	check(site.state == LeySite.State.SIEGE and site.bound.size() == 1, "Leaving keeps the site's progress")
+	ley.arrows._process(0.0)
+	check(ley.arrows.marks.size() == 1, "A woken site gets an arrow once off screen")
 	game.player.global_position = site.global_position
 	ley._process(ley.WAVE_INTERVAL + 0.1)
 	check(monsters.monsters_alive > alive, "Waves resume when the player returns")
