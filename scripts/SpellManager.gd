@@ -1195,6 +1195,10 @@ func handle_freeform_typing_input(event: InputEventKey):
 			if AudioManager:
 				AudioManager.play_typing_sound(char)
 			
+			# A finished ley word binds at once, like a finished spell name.
+			if current_typing_text.strip_edges() in ley_words():
+				attempt_freeform_cast()
+				return
 			# Check if we have a perfect match with any spell
 			if not space_casting and (find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic"):
 				attempt_freeform_cast()
@@ -1282,6 +1286,11 @@ func cast_freeform_spell_by_type(spell_name: String, _spell_data: Dictionary):
 	if is_spell_unlocked(slot):
 		cast_spell_by_type(slot)
 
+## Ley words typable here, from the ley site the player is standing in.
+func ley_words() -> Array:
+	var ley = get_tree().get_first_node_in_group("ley_lines")
+	return ley.available_words() if ley and ley.has_method("available_words") else []
+
 func update_freeform_typing_display():
 	if game_manager and game_manager.has_method("update_typing_display"):
 		var display_text = ""
@@ -1294,8 +1303,12 @@ func update_freeform_typing_display():
 
 			if is_instance_valid(game_manager.style_session) and game_manager.style_session.atomic_available() and "atomic".begins_with(current_typing_text):
 				potential_matches.append("atomic")
-			display_text = current_typing_text if not current_typing_text.is_empty() else "Type an equipped spell…"
-			if not current_typing_text.is_empty() and potential_matches.is_empty():
+			var ley_options = ley_words()
+			var ley_match = ley_options.any(func(w): return not normalized.is_empty() and str(w).begins_with(normalized))
+			display_text = current_typing_text if not current_typing_text.is_empty() else ("Type a ley word or a spell…" if not ley_options.is_empty() else "Type an equipped spell…")
+			if ley_match and potential_matches.is_empty():
+				display_text += " · Ley word"
+			elif not current_typing_text.is_empty() and potential_matches.is_empty():
 				display_text += " · No matching spell"
 			if potential_matches.size() > 0:
 				display_text += " · Ready to cast" if find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic" else " · Matches: " + potential_matches[0]

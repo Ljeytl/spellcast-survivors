@@ -180,6 +180,13 @@ func summon_wave(site):
 	for i in count:
 		monsters.spawn_monster({}, false, true, offset + i * TAU / count)
 
+## Unbound words the player can type right now (empty unless standing in an awake circle).
+func available_words() -> Array:
+	var site = site_under_player()
+	if site == null:
+		return []
+	return site.words.filter(func(w): return w not in site.bound)
+
 ## Called by SpellManager with a submitted Space-cast text. True if it bound a word.
 func try_word(text: String) -> bool:
 	var site = site_under_player()

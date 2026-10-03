@@ -89,25 +89,42 @@ func run():
 	m.current_typing_text = site.words[0]
 	m.attempt_freeform_cast()
 	check(site.bound == [site.words[0]], "Typing a word in the circle binds it")
-	check(site.pending_waves == 1, "Binding a word earns one wave")
+	# Typing a ley word reads as a ley word, never "No matching spell", and binds when finished.
+	m.last_spell_cast_time = -100.0
+	m.space_casting = true
+	m.start_freeform_typing()
+	check(ley.available_words().size() == 3 and site.words[1] in ley.available_words(), "Unbound words are typable in the circle")
+	var label_text = ""
+	var w1 = site.words[1]
+	for i in w1.length():
+		var e = InputEventKey.new()
+		e.pressed = true
+		e.unicode = w1.unicode_at(i)
+		e.keycode = OS.find_keycode_from_string(w1[i].to_upper())
+		m.handle_freeform_typing_input(e)
+		if i == 1:
+			label_text = game.typing_label.text if is_instance_valid(game.typing_label) else ""
+	check("Ley word" in label_text and not "No matching spell" in label_text, "A partly typed ley word is shown as a ley word")
+	check(site.bound.size() == 2 and not m.is_typing, "A finished ley word binds without Enter")
+	check(site.pending_waves == 2, "Each bound word earns a wave")
 	check(not m.is_typing, "Binding a word ends typing")
 	check(not ley.try_word(site.words[0]), "A bound word cannot be bound twice")
 	check(not ley.try_word("notaword"), "Other text does not bind")
 	game.player.global_position = site.global_position + Vector2(LeySite.RADIUS + 40, 0)
-	check(not ley.try_word(site.words[1]), "Words cannot be typed outside the circle")
+	check(not ley.try_word(site.words[2]), "Words cannot be typed outside the circle")
 	# Walking far away pauses the site: progress is kept and waves stop.
 	game.player.global_position = site.global_position + Vector2(ley.ENGAGE_RADIUS + 200, 0)
 	var alive = monsters.monsters_alive
 	ley._process(ley.WAVE_GAP * 3)
-	check(monsters.monsters_alive == alive and site.pending_waves == 1, "No waves while the player is away")
-	check(site.state == LeySite.State.SIEGE and site.bound.size() == 1, "Leaving keeps the site's progress")
+	check(monsters.monsters_alive == alive and site.pending_waves == 2, "No waves while the player is away")
+	check(site.state == LeySite.State.SIEGE and site.bound.size() == 2, "Leaving keeps the site's progress")
 	ley.arrows._process(0.0)
 	check(ley.arrows.marks.size() == 1, "A woken site gets an arrow once off screen")
 	game.player.global_position = site.global_position
 	ley._process(0.1)
-	check(monsters.monsters_alive > alive and site.pending_waves == 0, "The waiting wave arrives when the player returns")
+	check(monsters.monsters_alive > alive and site.pending_waves == 1, "A waiting wave arrives when the player returns")
 	# Binding every word summons the guardian.
-	for w in site.words.slice(1):
+	for w in site.words.slice(2):
 		check(ley.try_word(w), "Binds " + w)
 	check(site.state == LeySite.State.GUARDIAN and is_instance_valid(site.guardian), "The last word summons the guardian")
 	check(site.guardian.boss and site.guardian.is_in_group("bosses"), "The guardian is a boss")
