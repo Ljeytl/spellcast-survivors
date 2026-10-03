@@ -51,6 +51,17 @@ var color_a = COLORS.neutral[0]
 var color_b = COLORS.neutral[1]
 var clock = 0.0
 var last_ticks = 0
+# Release feel: hitstop, camera kick, staff flare, edge tint, scorched rings.
+const VIGNETTE_SHADER = "shader_type canvas_item;\nuniform vec4 tint : source_color;\nuniform float strength = 0.0;\nvoid fragment() {\n\tvec2 uv = (UV - 0.5) * vec2(1.6, 1.0);\n\tfloat edge = smoothstep(0.42, 0.95, length(uv));\n\tCOLOR = vec4(tint.rgb, edge * strength);\n}"
+var vignette: ColorRect
+var vignette_strength = 0.0
+var hitstop_pending = 0.0
+var hitstop_left = 0.0
+const HITSTOP_SCALE = 0.02
+var staff_flash = 0.0
+var staff_dirty = false
+var sparks: Array = []        # element flourish on release: {angle, dist, speed, life, seed}
+var spark_kind = "arcane"
 
 func _init():
 	name = "CastingCircle"
@@ -82,6 +93,81 @@ func _ready():
 	if manager:
 		manager.manual_spell_released.connect(_on_released)
 	last_ticks = Time.get_ticks_usec()
+	setup_vignette.call_deferred()
+
+func game_node() -> Node:
+	return manager.game_manager if manager and "game_manager" in manager else null
+
+func setup_vignette():
+	var game = game_node()
+	if not is_instance_valid(game):
+		return
+	var layer = CanvasLayer.new()
+	layer.name = "CastingVignette"
+	layer.layer = 0
+	vignette = ColorRect.new()
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var mat = ShaderMaterial.new()
+	var shader = Shader.new()
+	shader.code = VIGNETTE_SHADER
+	mat.shader = shader
+	vignette.material = mat
+	vignette.visible = false
+	layer.add_child(vignette)
+	game.add_child(layer)
+
+func staff_sprite() -> Sprite2D:
+	var orbit = get_parent().get_node_or_null("OrbitingStaff")
+	return orbit.staff if orbit and "staff" in orbit and is_instance_valid(orbit.staff) else null
+
+func restore_time_scale():
+	if not is_equal_approx(Engine.time_scale, HITSTOP_SCALE):
+		return  # something else (pause, Atomic, typing) already owns time; leave it
+	var game = game_node()
+	var dilation = game.time_dilation_effect if is_instance_valid(game) and "time_dilation_effect" in game else null
+	Engine.time_scale = dilation.dilation_time_scale if is_instance_valid(dilation) and dilation.is_active() else 1.0
+
+func update_feel(dt: float):
+	# Hitstop starts a frame after release, once typing has ended and time is back to normal.
+	if hitstop_pending > 0.0:
+		hitstop_left = hitstop_pending
+		hitstop_pending = 0.0
+		Engine.time_scale = HITSTOP_SCALE
+	elif hitstop_left > 0.0:
+		hitstop_left -= dt
+		if hitstop_left <= 0.0:
+			restore_time_scale()
+	var target = 0.0 if reduced else minf(0.32, glow * 0.22 * fade + burst * 0.2)
+	vignette_strength = lerpf(vignette_strength, target, 1.0 - pow(0.0005, dt))
+	if is_instance_valid(vignette):
+		vignette.visible = vignette_strength > 0.005
+		if vignette.visible:
+			vignette.material.set_shader_parameter("tint", color_b)
+			vignette.material.set_shader_parameter("strength", vignette_strength)
+	staff_flash = maxf(0.0, staff_flash - dt * 4.0)
+	var staff = staff_sprite()
+	if staff:
+		if fade > 0.0 or staff_flash > 0.0:
+			var charge = minf(1.0, glow)
+			var tint = Color.WHITE.lerp(color_a, charge * 0.7)
+			var bright = 1.0 + charge * 0.6 + staff_flash * 1.5
+			staff.modulate = Color(tint.r * bright, tint.g * bright, tint.b * bright, 1.0)
+			staff_dirty = true
+		elif staff_dirty:
+			staff.modulate = Color.WHITE
+			staff_dirty = false
+
+func leave_scorch():
+	var used = int(ceil(float(maxi(good_runes, runes.size())) / STATE.RUNES_PER_RING))
+	if used <= 0 or not is_instance_valid(get_parent()) or not is_instance_valid(get_parent().get_parent()):
+		return
+	var scorch = preload("res://scripts/CastingScorch.gd").new()
+	scorch.radii = RING_RADII.slice(0, mini(used, RING_RADII.size()))
+	scorch.color = color_b
+	scorch.duration = 1.0 + 0.4 * burst_mult
+	get_parent().get_parent().add_child(scorch)
+	scorch.global_position = get_parent().global_position
 
 func build_alphabet():
 	var letters = "abcdefghijklmnopqrstuvwxyz"
@@ -173,6 +259,22 @@ func _on_released(_family: String, canonical: String, _typed: String):
 	burst = 1.0
 	sealed = true
 	burst_mult = float(KEYWORDS.for_incantation(canonical).get("power", 1.0))
+	var typed = runes.size() > 0 or satellites.size() > 0
+	if typed and not reduced:
+		spark_kind = str(state.get("element", "")) if str(state.get("element", "")) != "" else "arcane"
+		var count = int(10 + mini(runes.size(), 13) * minf(2.0, burst_mult))
+		for i in count:
+			sparks.append({"angle": TAU * i / count + randf_range(-0.15, 0.15), "dist": 30.0 + randf() * 10.0, "speed": randf_range(90.0, 170.0) * minf(1.6, burst_mult), "life": 1.0, "seed": randi()})
+	if typed:
+		# Only player-typed casts get the release punch (tests and scripted casts stay untouched).
+		staff_flash = 1.0
+		leave_scorch()
+		if not reduced:
+			var weight = runes.size() * burst_mult
+			hitstop_pending = minf(0.09, 0.03 + weight * 0.003)
+			var game = game_node()
+			if is_instance_valid(game) and "camera_shake" in game and game.camera_shake:
+				game.camera_shake.shake(clampf(2.0 + weight * 0.25, 2.0, 6.0), clampf(0.1 + weight * 0.01, 0.1, 0.25))
 	for i in runes.size():
 		var r = runes[i]
 		shards.append({"angle": r.angle, "radius": radius_of(i), "speed": 90.0 + randf() * 90.0 * burst_mult, "life": 1.0, "ch": r.ch})
@@ -184,6 +286,7 @@ func _process(_delta):
 	clock += dt
 	if not manager or not is_instance_valid(sprite):
 		return
+	update_feel(dt)
 	var typing = bool(manager.is_typing)
 	var text = str(manager.current_typing_text) if typing else ""
 	if text != last_text:
@@ -203,7 +306,7 @@ func _process(_delta):
 		if awaiting_release <= 0.0 and burst <= 0.0:
 			sealed = false
 			refresh("")
-	if not typing and burst <= 0.0 and awaiting_release <= 0.0 and fade <= 0.0 and shards.is_empty() and embers.is_empty():
+	if not typing and burst <= 0.0 and awaiting_release <= 0.0 and fade <= 0.0 and shards.is_empty() and embers.is_empty() and sparks.is_empty():
 		if not runes.is_empty() or not satellites.is_empty():
 			reset()
 		return
@@ -241,6 +344,11 @@ func _process(_delta):
 		s.radius += s.speed * dt
 		s.life -= dt * 1.4
 	shards = shards.filter(func(s): return s.life > 0.0)
+	for s in sparks:
+		s.dist += s.speed * dt
+		s.speed *= pow(0.12, dt)
+		s.life -= dt * 1.6
+	sparks = sparks.filter(func(s): return s.life > 0.0)
 	if not reduced:
 		var rate = glow * 30.0 * dt
 		while rate > 0.0:
@@ -359,8 +467,38 @@ func _draw():
 		draw_line(p + Vector2(2, 0), p + Vector2(-2, 7), red, 1.6, true)
 	draw_set_transform(Vector2.ZERO)
 
+## Element flourish on release: what flies off the circle says what you cast.
+func draw_sparks():
+	for s in sparks:
+		var dir = Vector2.from_angle(s.angle)
+		var p = dir * s.dist
+		var a = clampf(s.life, 0.0, 1.0)
+		var ca = Color(color_a.r, color_a.g, color_a.b, a)
+		var cb = Color(color_b.r, color_b.g, color_b.b, a)
+		match spark_kind:
+			"fire":
+				var rise = Vector2(0, -(1.0 - a) * 18.0)
+				front.draw_rect(Rect2(p + rise - Vector2(1.5, 1.5), Vector2(3, 3)), ca if s.seed % 2 == 0 else cb)
+			"ice":
+				front.draw_line(p, p + dir * 9.0, Color(1, 1, 1, a), 2.0, true)
+				front.draw_line(p + dir * 3.0 + dir.orthogonal() * 2.5, p + dir * 3.0 - dir.orthogonal() * 2.5, ca, 1.0, true)
+			"storm":
+				var rng = RandomNumberGenerator.new()
+				rng.seed = s.seed + int(clock * 20.0)
+				var pts = PackedVector2Array([p])
+				for k in 3:
+					pts.append(p + dir * (6.0 * (k + 1)) + dir.orthogonal() * rng.randf_range(-4.0, 4.0))
+				front.draw_polyline(pts, ca, 1.5, true)
+			"plague":
+				front.draw_circle(p + dir.orthogonal() * sin(clock * 6.0 + s.seed) * 3.0, 2.2, cb)
+			"holy":
+				front.draw_line(p - Vector2(3, 0), p + Vector2(3, 0), ca, 1.5, true)
+				front.draw_line(p - Vector2(0, 3), p + Vector2(0, 3), ca, 1.5, true)
+			_:
+				front.draw_line(p, p + dir * 7.0, ca, 1.5, true)
+
 func _draw_front():
-	if fade <= 0.0 and burst <= 0.0 and shards.is_empty() and embers.is_empty():
+	if fade <= 0.0 and burst <= 0.0 and shards.is_empty() and embers.is_empty() and sparks.is_empty():
 		return
 	# Wizard glow: an additive copy of the sprite, brighter as the cast charges.
 	if is_instance_valid(sprite) and sprite.texture and glow > 0.05:
@@ -389,5 +527,6 @@ func _draw_front():
 		front.draw_arc(Vector2.ZERO, 50.0 + (1.0 - burst) * 140.0 * scale_power, 0, TAU, 96, Color(color_a.r, color_a.g, color_a.b, burst), 3.0 * burst * scale_power, true)
 		if not reduced:
 			front.draw_texture_rect(glow_texture, Rect2(Vector2(-120, -120) * scale_power, Vector2(240, 240) * scale_power), false, Color(color_a.r, color_a.g, color_a.b, burst * burst * 0.6))
+	draw_sparks()
 	for s in shards:
 		draw_rune(front, s.ch, Vector2.from_angle(s.angle) * s.radius, s.angle, RUNE_SIZE, 1.6, Color(color_a.r, color_a.g, color_a.b, s.life))
