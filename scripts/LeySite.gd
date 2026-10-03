@@ -17,6 +17,8 @@ var state: int = State.DORMANT
 var words: Array[String] = []
 var bound: Array[String] = []
 var wave_timer := 0.0
+## Waves earned (wake + bound words) but not yet sent.
+var pending_waves := 0
 var guardian: Node = null
 var dwell := 0.0
 var spin := 0.0

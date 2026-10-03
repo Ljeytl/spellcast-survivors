@@ -35,8 +35,8 @@ func run():
 	for time in [0.0, 60.0, 179.9]:
 		manager.game_time = time
 		check(manager.get_current_difficulty_level() == 1, "Opening stays tier 1 at %s" % time)
-		check(manager.calculate_spawn_interval() <= 3.0, "Opening never falls below initial spawn pressure at %s" % time)
-	for pair in [[0.0, 3.0], [14.9, 3.0], [15.0, 1.0], [44.9, 1.0], [45.0, 2.0], [60.0, 3.0], [70.0, 2.0], [80.0, 1.0], [110.0, 2.0], [120.0, 3.0], [135.0, 1.0], [180.0, 3.0]]:
+		check(manager.calculate_spawn_interval() <= 4.0, "Opening never falls below initial spawn pressure at %s" % time)
+	for pair in [[0.0, 4.0], [24.9, 4.0], [25.0, 1.0], [49.9, 1.0], [50.0, 2.0], [65.0, 4.0], [84.9, 4.0], [85.0, 1.0], [105.0, 2.0], [120.0, 4.0], [145.0, 1.0], [185.0, 4.0]]:
 		manager.game_time = pair[0]
 		check(is_equal_approx(manager.spawn_phase_interval(pair[0]), pair[1]), "Opening pressure rhythm at %s" % pair[0])
 		check(is_equal_approx(manager.calculate_spawn_interval(), pair[1] / manager.spawn_difficulty_multiplier()), "Opening pressure transition at %s" % pair[0])

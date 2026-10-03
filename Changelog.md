@@ -1,3 +1,8 @@
+# Experiment (experiment/day-cycle) — Breathing room
+
+- The 2-minute spawn cycle has more rest: light phases 0–25 s and 65–85 s (45 s of every 120, up from 25 s) and lighter (a spawn every 4 s, up from 3). Heavy phases 25–50 s and 85–105 s (45 s, down from 60) at the same intensity, so peaks hit as hard but come less often.
+- Ley sites no longer send waves on a timer. Waking a site earns one wave and each bound word earns another (the last word brings the guardian). Earned waves hold during the map's light phases and arrive at least 4 s apart, so light phases are the time to step in and type. Leaving the site still pauses everything.
+
 # Experiment (experiment/day-cycle) — Four-day expedition
 
 - A run is four days of 5 minutes of daylight each (the wizard sleeps till 3 pm). The world's colour grade shifts from plain afternoon through golden hour and dusk to night; a "Dusk falls" warning comes at 80% of the day.

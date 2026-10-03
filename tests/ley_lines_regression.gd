@@ -72,8 +72,15 @@ func run():
 	check(site.state == LeySite.State.DORMANT, "A brief step does not wake the site")
 	ley._process(0.4)
 	check(site.state == LeySite.State.SIEGE, "Standing in the circle wakes the site")
+	monsters.game_time = 5.0
 	ley._process(0.01)
-	check(monsters.monsters_alive > before, "A wave arrives when the site wakes")
+	check(ley.light_phase() and monsters.monsters_alive == before and site.pending_waves == 1, "The wake wave waits out a light phase")
+	monsters.game_time = 30.0
+	ley._process(0.01)
+	check(not ley.light_phase() and monsters.monsters_alive > before and site.pending_waves == 0, "The wake wave arrives once pressure rises")
+	var after_wake = monsters.monsters_alive
+	ley._process(30.0)
+	check(monsters.monsters_alive == after_wake, "No timed waves: nothing more until a word is bound")
 	# Words bind through Space casting, only inside the circle.
 	var m = game.spell_manager
 	m.last_spell_cast_time = -100.0
@@ -82,6 +89,7 @@ func run():
 	m.current_typing_text = site.words[0]
 	m.attempt_freeform_cast()
 	check(site.bound == [site.words[0]], "Typing a word in the circle binds it")
+	check(site.pending_waves == 1, "Binding a word earns one wave")
 	check(not m.is_typing, "Binding a word ends typing")
 	check(not ley.try_word(site.words[0]), "A bound word cannot be bound twice")
 	check(not ley.try_word("notaword"), "Other text does not bind")
@@ -90,21 +98,21 @@ func run():
 	# Walking far away pauses the site: progress is kept and waves stop.
 	game.player.global_position = site.global_position + Vector2(ley.ENGAGE_RADIUS + 200, 0)
 	var alive = monsters.monsters_alive
-	ley._process(ley.WAVE_INTERVAL * 3)
-	check(monsters.monsters_alive == alive, "No waves while the player is away")
+	ley._process(ley.WAVE_GAP * 3)
+	check(monsters.monsters_alive == alive and site.pending_waves == 1, "No waves while the player is away")
 	check(site.state == LeySite.State.SIEGE and site.bound.size() == 1, "Leaving keeps the site's progress")
 	ley.arrows._process(0.0)
 	check(ley.arrows.marks.size() == 1, "A woken site gets an arrow once off screen")
 	game.player.global_position = site.global_position
-	ley._process(ley.WAVE_INTERVAL + 0.1)
-	check(monsters.monsters_alive > alive, "Waves resume when the player returns")
+	ley._process(0.1)
+	check(monsters.monsters_alive > alive and site.pending_waves == 0, "The waiting wave arrives when the player returns")
 	# Binding every word summons the guardian.
 	for w in site.words.slice(1):
 		check(ley.try_word(w), "Binds " + w)
 	check(site.state == LeySite.State.GUARDIAN and is_instance_valid(site.guardian), "The last word summons the guardian")
 	check(site.guardian.boss and site.guardian.is_in_group("bosses"), "The guardian is a boss")
 	alive = monsters.monsters_alive
-	ley._process(ley.WAVE_INTERVAL * 2)
+	ley._process(ley.WAVE_GAP * 2)
 	check(monsters.monsters_alive == alive, "Waves stop once the guardian rises")
 	# Killing the guardian attunes the site and drops the boss rewards.
 	site.guardian.take_damage(1.0e9, game.player.global_position)

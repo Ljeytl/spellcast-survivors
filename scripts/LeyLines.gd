@@ -14,7 +14,11 @@ const WORDS_PER_SITE = 4
 const DWELL_SECONDS = 0.4
 ## Waves only advance while the player is this close to an awake site.
 const ENGAGE_RADIUS = 1200.0
-const WAVE_INTERVAL = 8.0
+## Waves come from the player's words, not a timer: one when the site wakes and one
+## per bound word (the last word brings the guardian instead). Waiting waves hold
+## during the map's light phases, so light phases are the time to type.
+## Minimum seconds between two waves when several are waiting.
+const WAVE_GAP = 4.0
 ## Enemies per wave: base plus one per two minutes of run time.
 const WAVE_BASE = 4
 const WAVE_MAX = 12
@@ -133,11 +137,11 @@ func _process(delta):
 					site.dwell = 0.0
 			LeySite.State.SIEGE:
 				# Leaving pauses the site: no waves, no progress lost.
-				if site.global_position.distance_to(player_pos) <= ENGAGE_RADIUS:
-					site.wave_timer -= real
-					if site.wave_timer <= 0.0:
-						site.wave_timer = WAVE_INTERVAL
-						summon_wave(site)
+				site.wave_timer = maxf(0.0, site.wave_timer - real)
+				if site.pending_waves > 0 and site.wave_timer <= 0.0 and not light_phase() and site.global_position.distance_to(player_pos) <= ENGAGE_RADIUS:
+					site.pending_waves -= 1
+					site.wave_timer = WAVE_GAP
+					summon_wave(site)
 			LeySite.State.GUARDIAN:
 				if not is_instance_valid(site.guardian) or site.guardian.dying:
 					attune(site)
@@ -147,7 +151,25 @@ func wake(site):
 	site.state = LeySite.State.SIEGE
 	site.pulse_flash()
 	site.wave_timer = 0.0
+	site.pending_waves = 1
 	game.show_gameplay_feedback("Ley line awakens · In the circle, press Space and type its words")
+
+## True during the map's light spawn phases (the breathers in the 2-minute cycle).
+func light_phase() -> bool:
+	var monsters = game.get_node_or_null("MonsterManager")
+	if not monsters:
+		return false
+	var scaling = monsters.encounter_config.get("scaling", {})
+	var cycle = float(scaling.get("spawn_cycle_seconds", 0.0))
+	var t = fposmod(monsters.game_time, cycle) if cycle > 0.0 else monsters.game_time
+	var pressure = ""
+	var latest = -INF
+	for phase in scaling.get("spawn_phases", []):
+		var start = float(phase.get("start", -1.0))
+		if start <= t and start > latest:
+			latest = start
+			pressure = str(phase.get("pressure", ""))
+	return pressure == "light"
 
 func summon_wave(site):
 	var monsters = game.get_node_or_null("MonsterManager")
@@ -171,9 +193,11 @@ func try_word(text: String) -> bool:
 	if AudioManager:
 		AudioManager.on_typing_complete()
 	if site.bound.size() >= site.words.size():
+		site.pending_waves = 0
 		summon_guardian(site)
 	else:
-		game.show_gameplay_feedback("Ley word bound · %d/%d" % [site.bound.size(), site.words.size()])
+		site.pending_waves += 1
+		game.show_gameplay_feedback("Ley word bound · %d/%d · A wave answers" % [site.bound.size(), site.words.size()])
 	return true
 
 func summon_guardian(site):

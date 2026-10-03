@@ -11,43 +11,7 @@
     "maximum_enemies": 160,
     "opening_spawn_interval": 3.0,
     "spawn_growth_start_seconds": 180.0,
-    "spawn_phases": [
-      {
-        "start": 0,
-        "pressure": "light",
-        "interval": 3
-      },
-      {
-        "start": 15,
-        "pressure": "heavy",
-        "interval": 1
-      },
-      {
-        "start": 45,
-        "pressure": "medium",
-        "interval": 2
-      },
-      {
-        "start": 60,
-        "pressure": "light",
-        "interval": 3
-      },
-      {
-        "start": 70,
-        "pressure": "medium",
-        "interval": 2
-      },
-      {
-        "start": 80,
-        "pressure": "heavy",
-        "interval": 1
-      },
-      {
-        "start": 110,
-        "pressure": "medium",
-        "interval": 2
-      }
-    ],
+    "spawn_phases": [{"start": 0, "pressure": "light", "interval": 4}, {"start": 25, "pressure": "heavy", "interval": 1}, {"start": 50, "pressure": "medium", "interval": 2}, {"start": 65, "pressure": "light", "interval": 4}, {"start": 85, "pressure": "heavy", "interval": 1}, {"start": 105, "pressure": "medium", "interval": 2}],
     "spawn_cycle_seconds": 120,
     "spawn_growth_factor": 1.28,
     "spawn_difficulty_points": [
