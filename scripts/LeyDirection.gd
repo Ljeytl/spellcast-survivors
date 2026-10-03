@@ -13,7 +13,8 @@ func _process(_delta):
 	if game.current_state == game.GameState.PLAYING:
 		var rect = Rect2(Vector2.ZERO, size)
 		for site in ley.sites:
-			if not is_instance_valid(site) or site.state == site.State.ATTUNED:
+			# Only woken sites get an arrow; asleep ones are found on the minimap.
+			if not is_instance_valid(site) or site.state not in [site.State.SIEGE, site.State.GUARDIAN]:
 				continue
 			var screen = get_global_transform_with_canvas().affine_inverse() * (site.get_global_transform_with_canvas() * Vector2.ZERO)
 			if rect.has_point(screen):
