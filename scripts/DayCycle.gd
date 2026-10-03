@@ -13,12 +13,15 @@ const DUSK_AT = 0.8
 const SUNRISE_SECONDS = 2.5
 ## Seconds of no combo decay after waking.
 const WAKE_GRACE = 10.0
+## After the boss falls: the other monsters flee and the field stays quiet this long
+## (time to grab the chest and XP) before camp opens.
+const AFTERMATH_SECONDS = 6.0
 ## One boss per night; past the list it repeats, tougher each cycle.
 const BOSSES = [
-	{"variant": "juggernaut", "name": "The Gatekeeper", "health": 1200.0},
-	{"variant": "charger", "name": "The Pursuer", "health": 1800.0},
-	{"variant": "shieldbearer", "name": "The Iron Guard", "health": 2600.0},
-	{"variant": "juggernaut", "name": "The Warden", "health": 4000.0},
+	{"variant": "juggernaut", "name": "The Gatekeeper", "health": 900.0},
+	{"variant": "charger", "name": "The Pursuer", "health": 3500.0},
+	{"variant": "shieldbearer", "name": "The Iron Guard", "health": 5500.0},
+	{"variant": "juggernaut", "name": "The Warden", "health": 8000.0},
 ]
 ## The sky grade: 0 = 3 pm, 1 = night. Each stop's colour is the hue the world shifts
 ## toward and its alpha is how strongly. Edit data/day_sky.tres in the Godot editor.
@@ -28,7 +31,7 @@ const GRADE = preload("res://shaders/day_grade.gdshader")
 const DAY_BRIGHTNESS = 1.0
 const NIGHT_BRIGHTNESS = 0.9
 
-enum Phase { DAY, NIGHT, CAMP, EXTRACTION }
+enum Phase { DAY, NIGHT, CAMP, EXTRACTION, AFTERMATH }
 
 var game: Node
 var monsters: Node
@@ -38,6 +41,7 @@ var phase := Phase.DAY
 var boss: Node = null
 var dusk_announced := false
 var sunrise := 0.0
+var aftermath := 0.0
 var grade_layer: CanvasLayer
 var grade: ShaderMaterial
 var clock_label: Label
@@ -53,6 +57,7 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	monsters = game.get_node("MonsterManager")
 	monsters.day_cycle_driven = true
+	monsters.phase_clock = 0.0
 	# The grade sits above the world and below the HUD: HUD text is never tinted.
 	grade_layer = CanvasLayer.new()
 	grade_layer.name = "DaySky"
@@ -78,6 +83,7 @@ func _process(delta):
 	match phase:
 		Phase.DAY:
 			day_clock = minf(DAY_SECONDS, day_clock + delta)
+			monsters.phase_clock = day_clock
 			if not dusk_announced and day_clock >= DAY_SECONDS * DUSK_AT:
 				dusk_announced = true
 				announce("Dusk falls", "Something is coming")
@@ -86,6 +92,10 @@ func _process(delta):
 		Phase.NIGHT:
 			if not is_instance_valid(boss) or boss.dying:
 				boss_defeated()
+		Phase.AFTERMATH:
+			aftermath -= delta
+			if aftermath <= 0.0:
+				open_camp()
 	sunrise = maxf(0.0, sunrise - delta)
 	apply_sky()
 	update_clock_label()
@@ -105,6 +115,7 @@ func apply_sky():
 
 func nightfall():
 	phase = Phase.NIGHT
+	monsters.phase_override = "night"
 	var entry = BOSSES[(day - 1) % BOSSES.size()]
 	var cycle = (day - 1) / BOSSES.size()
 	var definition = monsters.encounter_config.variants[entry.variant].duplicate(true)
@@ -117,6 +128,8 @@ func nightfall():
 
 func boss_defeated():
 	boss = null
+	monsters.rout()
+	monsters.phase_override = "rest"
 	if day >= DAYS and not monsters.endless_mode:
 		phase = Phase.EXTRACTION
 		var title = game.extraction_screen.find_child("Title", true, false) if is_instance_valid(game.extraction_screen) else null
@@ -124,7 +137,9 @@ func boss_defeated():
 			title.text = "%d DAYS SURVIVED" % day
 		monsters.begin_extraction()
 		return
-	open_camp()
+	phase = Phase.AFTERMATH
+	aftermath = AFTERMATH_SECONDS
+	announce("The night goes quiet", "Everything else fled")
 
 func open_camp():
 	phase = Phase.CAMP
@@ -140,6 +155,8 @@ func wake():
 	camp.hide()
 	day += 1
 	day_clock = 0.0
+	monsters.phase_clock = 0.0
+	monsters.phase_override = ""
 	dusk_announced = false
 	sunrise = SUNRISE_SECONDS
 	phase = Phase.DAY

@@ -16,11 +16,13 @@ func check(condition: bool, message: String):
 		failures += 1
 		printerr("FAIL: " + message)
 
-func kill_boss(game, cycle):
+func kill_boss(game, cycle, through_aftermath := true):
 	cycle.boss.take_damage(1.0e9, game.player.global_position)
 	for i in 30:
 		await process_frame
 	cycle._process(0.01)
+	if through_aftermath and cycle.phase == cycle.Phase.AFTERMATH:
+		cycle._process(cycle.AFTERMATH_SECONDS + 0.1)
 
 func run():
 	root.size = Vector2i(1280, 720)
@@ -44,6 +46,10 @@ func run():
 	# Fixed-time bosses and the 20:00 end no longer apply.
 	monsters.advance_time(1300.0)
 	check(not monsters.awaiting_extraction and get_nodes_in_group("bosses").is_empty(), "The run timer alone neither spawns bosses nor ends the run")
+	# Spawn pressure follows the day clock: each day opens light and swells toward dusk.
+	check(monsters.current_spawn_phase().pressure == "light", "Each day opens in a light phase")
+	cycle._process(40.0)
+	check(monsters.current_spawn_phase().pressure == "heavy", "Pressure follows the day clock, not the run timer")
 	# Daylight runs out: night falls and the boss emerges.
 	cycle._process(cycle.DAY_SECONDS * cycle.DUSK_AT + 0.1)
 	check(cycle.dusk_announced and cycle.phase == cycle.Phase.DAY, "Dusk warning comes before nightfall")
@@ -53,10 +59,17 @@ func run():
 	var clock_before = cycle.day_clock
 	cycle._process(30.0)
 	check(is_equal_approx(cycle.day_clock, clock_before), "The day clock stops at night")
+	check(monsters.current_spawn_phase().pressure == "night", "The boss night has its own lighter spawn phase")
+	var straggler = monsters.spawn_monster()
+	check(is_instance_valid(straggler), "A straggler is out with the boss")
 	# Killing it opens camp: paused, combo kept.
 	var style = game.style_session
 	style.score.combo = 500.0
-	await kill_boss(game, cycle)
+	await kill_boss(game, cycle, false)
+	check(cycle.phase == cycle.Phase.AFTERMATH and not game.current_state == game.GameState.CAMP, "The boss falls: a quiet moment before camp")
+	check(not straggler.is_in_group("enemies") and straggler.dying, "Everything else flees when the boss falls")
+	check(monsters.current_spawn_phase().pressure == "rest" and monsters.refill_population_target() == 0, "Nothing spawns in the quiet after the boss")
+	cycle._process(cycle.AFTERMATH_SECONDS + 0.1)
 	check(cycle.phase == cycle.Phase.CAMP and game.current_state == game.GameState.CAMP and cycle.camp.visible, "Killing the boss opens camp")
 	check(paused, "Camp pauses the game")
 	var camp_combo = style.score.combo

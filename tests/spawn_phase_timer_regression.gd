@@ -25,13 +25,14 @@ func run():
 	manager.monsters_alive = manager.max_monsters
 	manager.spawn_timer.timeout.disconnect(manager._on_spawn_timer_timeout)
 	manager.spawn_timer.timeout.connect(func(): emissions += 1)
-	manager.game_time = 14.9
+	# Phase boundaries follow data/encounters.json spawn_phases: light 0-25 s, heavy 25-50 s, medium 50-65 s.
+	manager.game_time = 24.9
 	manager.spawn_timer.start(3.0)
 	manager.advance_time(0.1)
-	check(is_equal_approx(manager.spawn_timer.wait_time, manager.calculate_spawn_interval()), "Crossing fifteen seconds immediately updates the real timer")
+	check(is_equal_approx(manager.spawn_timer.wait_time, manager.calculate_spawn_interval()), "Crossing into the heavy phase immediately updates the real timer")
 	await create_timer(1.15).timeout
 	check(emissions == 1, "Pressure timer fires within its new one-second interval")
-	manager.game_time = 44.9
+	manager.game_time = 49.9
 	manager.spawn_timer.start(0.1)
 	var before = emissions
 	manager.advance_time(0.1)

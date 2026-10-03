@@ -19,6 +19,8 @@ var bound: Array[String] = []
 var wave_timer := 0.0
 ## Waves earned (wake + bound words) but not yet sent.
 var pending_waves := 0
+## Monsters from this site's latest wave; the next word waits until they are (mostly) down.
+var wave_members: Array = []
 var guardian: Node = null
 var dwell := 0.0
 var spin := 0.0

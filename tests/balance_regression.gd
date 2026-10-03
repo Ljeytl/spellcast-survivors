@@ -23,6 +23,8 @@ func run():
 	current_scene = game
 	await process_frame
 	var manager = game.get_node("MonsterManager")
+	# These checks cover the repeating spawn cycle used outside the day cycle.
+	manager.day_cycle_driven = false
 	manager.set_process(false)
 	manager.spawn_timer.stop()
 	var player = game.get_node("Player")
