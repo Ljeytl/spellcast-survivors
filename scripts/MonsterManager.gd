@@ -104,7 +104,7 @@ func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1)
 		"health": float(definition.health) * health_multiplier,
 		"speed": float(definition.speed),
 		"damage": float(definition.damage) * (1.0 + maxf(0.0, game_time - 300.0) * float(scaling.damage_growth_per_second)),
-		"xp": float(definition.xp) * sqrt(health_multiplier)
+		"xp": float(definition.xp) * sqrt(health_multiplier) * float(scaling.get("xp_multiplier", 1.0))
 	}
 
 func _on_spawn_timer_timeout():

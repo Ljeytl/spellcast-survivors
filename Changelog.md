@@ -2,10 +2,12 @@
 
 - Spawn pressure follows the day clock, not the run timer (scaling.day_spawn_phases). Every day has the same shape: a 30 s light opening after waking, four heavy waves that build toward dusk (spawn interval 1.4 → 1.25 → 1.1 → 0.95 s before difficulty scaling), a medium tail after each of the first three, a light breather between waves, and a 25 s calm before the boss. About 47% of daylight is light, 38% heavy, 15% medium.
 - Light phases are a real rest all run long. Each phase has a "growth" (how much of the run's difficulty ramp it takes): heavy 1.0, medium 0.85, light 0.3. Before, a late-run light phase spawned 3.2 enemies/s, more than an early heavy phase (2/s); now it is about 1.1/s. Light phases also keep only 35% of the usual minimum crowd (medium 70%), so clearing the screen actually leaves it clear.
+- XP per kill ×1.6 (scaling.xp_multiplier). With quieter light phases a run has about half the kills; bot runs fell ~25 levels behind without it.
 - The boss night has its own light spawn phase (interval 6 s, 30% minimum crowd, growth 0.6), so the fight is the boss, not the adds.
 - When the boss falls, every other monster flees (no kill, no XP). The field stays quiet for 6 s ("The night goes quiet") to grab the chest and XP, then camp opens.
 - Boss health: The Gatekeeper 1200 → 900, The Pursuer 1800 → 3500, The Iron Guard 2600 → 5500, The Warden 4000 → 8000. Bot runs had days 2–4 bosses dying in 10–30 s.
 - Ley sieges: the circle takes one word at a time. The next word can only be bound once the last wave has arrived and at most 2 of it are still standing (LeyLines.WORD_WAITS_FOR_WAVE). A fast typist could bind all four words in seconds and stack four waves plus the guardian. While a site is engaged, the map's own spawning drops to 50% (SIEGE_AMBIENT_SHARE), so the site's waves replace the ambient pressure instead of stacking on top. Ley Guardian health 900 + 100/min → 450 + 150/min (cheaper early, same by minute 9).
+- Tests: suites that cover the classic 20-minute run (console, crowd replenishment, full-run lifecycle, midgame curve, balance) switch the day cycle off; stale expectations from the earlier breathing-room change fixed (crowd replenishment, spawn phase timer).
 - Tools: the bot can play the day cycle (it wakes from camp), records 5-second pressure samples (enemies alive and near, damage, spawn phase), has a skilled mode (crowd-aware kiting, types in gaps), a ley mode (walks to sites and types their words), and takes --cps / --cast-gap for typing speed.
 
 # Experiment (experiment/day-cycle) — Breathing room

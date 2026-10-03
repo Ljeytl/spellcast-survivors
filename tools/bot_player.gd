@@ -146,6 +146,10 @@ func _process(delta):
 	if game.current_state == game.GameState.GAME_OVER:
 		finish("victory" if game.run_won else "death")
 		return false
+	if game.current_state == game.GameState.EXTRACTION:
+		# Day-cycle runs: the fourth boss leads to extraction; the bot takes it as the win.
+		finish("victory")
+		return false
 	if time >= limit:
 		finish("time_limit")
 		return false
