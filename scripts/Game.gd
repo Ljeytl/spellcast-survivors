@@ -443,6 +443,10 @@ func setup_ui():
 func setup_player():
 	if player:
 		player.add_child(preload("res://scripts/OrbitingStaff.gd").new())
+		var casting_circle = preload("res://scripts/CastingCircle.gd").new()
+		casting_circle.manager = spell_manager
+		casting_circle.sprite = player.get_node("Sprite2D")
+		player.add_child(casting_circle)
 		player.health_changed.connect(_on_player_health_changed)
 		player.xp_changed.connect(_on_player_xp_changed)
 		player.player_died.connect(_on_player_died)
