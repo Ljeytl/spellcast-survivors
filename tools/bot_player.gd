@@ -18,6 +18,9 @@ var magnet = false
 var no_missile = false
 ## Debug: fire an Atomic every ATOMIC_INTERVAL seconds, ignoring rank and charges, to measure the kill ceiling.
 var unlimited_atomic = false
+## Debug: fixed rank timing. Minutes at which each focus spell reaches ranks 2..8 (e.g. --rank-schedule=1.4,2.9,4.3,5.7,7.1,8.6,10).
+## Removes rank-card luck: focus rank cards are skipped and ranks are granted on schedule instead.
+var rank_schedule: Array = []
 const ATOMIC_INTERVAL = 3.0
 var atomic_wait = ATOMIC_INTERVAL
 var atomics_fired = 0
@@ -69,6 +72,7 @@ func _initialize():
 			"--magnet": magnet = parts[1] in ["1", "true", "yes"]
 			"--no-missile": no_missile = parts[1] in ["1", "true", "yes"]
 			"--unlimited-atomic": unlimited_atomic = parts[1] in ["1", "true", "yes"]
+			"--rank-schedule": rank_schedule = Array(parts[1].split(",", false)).map(func(m): return float(m))
 	if not OS.get_user_data_dir().contains("SpellCast Survivors Bot/") or report_path.is_empty():
 		printerr("Bot requires isolated saves and report path; actual save directory: ", OS.get_user_data_dir())
 		quit(2)
@@ -135,6 +139,8 @@ func _process(delta):
 		print("BOT checkpoint ", checkpoints.back())
 		next_checkpoint += 60.0
 	var input_delta = delta / maxf(Engine.time_scale, 0.01)
+	if not rank_schedule.is_empty():
+		apply_rank_schedule(time)
 	if no_missile:
 		game.spell_manager.mana_bolt_timer = 999.0
 	if unlimited_atomic and game.current_state == game.GameState.PLAYING:
@@ -246,7 +252,8 @@ func card_score(card: Dictionary) -> float:
 	if kind == "learn" and id in focus_spells:
 		return 1000.0
 	if kind == "rank" and id in focus_spells:
-		return 500.0 - game.spell_manager.get_spell_rank(id)
+		# On a fixed schedule ranks come from the clock, not from cards.
+		return -50.0 if not rank_schedule.is_empty() else 500.0 - game.spell_manager.get_spell_rank(id)
 	if kind == "passive" and id in focus_passives:
 		return 100.0 - focus_passives.find(id)
 	if kind == "passive":
@@ -260,6 +267,20 @@ func card_score(card: Dictionary) -> float:
 	if kind == "learn":
 		return -100.0
 	return -10.0
+
+## Fixed rank schedule: grant each focus spell the rank the clock says it should have by now.
+func apply_rank_schedule(seconds: float):
+	var target = 1
+	for minute in rank_schedule:
+		if seconds >= float(minute) * 60.0:
+			target += 1
+	for id in focus_spells:
+		var manager = game.spell_manager
+		var guard = 0
+		while manager.get_spell_rank(id) < target and manager.can_rank_up(id) and guard < 8:
+			manager.upgrade_spell(id)
+			upgrades.append({"seconds": seconds, "choice": "schedule:rank:" + id})
+			guard += 1
 
 func focus_incantations() -> Array:
 	var names: Array = []
