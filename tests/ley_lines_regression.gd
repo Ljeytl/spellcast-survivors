@@ -104,7 +104,7 @@ func run():
 		m.handle_freeform_typing_input(e)
 		if i == 1:
 			label_text = game.typing_label.text if is_instance_valid(game.typing_label) else ""
-	check("Ley word" in label_text and not "No matching spell" in label_text, "A partly typed ley word is shown as a ley word")
+	check(("Matches: " + w1) in label_text and not "No matching spell" in label_text, "A partly typed ley word shows as a match, like a spell")
 	check(site.bound.size() == 2 and not m.is_typing, "A finished ley word binds without Enter")
 	check(site.pending_waves == 2, "Each bound word earns a wave")
 	check(not m.is_typing, "Binding a word ends typing")

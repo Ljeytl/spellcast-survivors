@@ -1303,12 +1303,12 @@ func update_freeform_typing_display():
 
 			if is_instance_valid(game_manager.style_session) and game_manager.style_session.atomic_available() and "atomic".begins_with(current_typing_text):
 				potential_matches.append("atomic")
-			var ley_options = ley_words()
-			var ley_match = ley_options.any(func(w): return not normalized.is_empty() and str(w).begins_with(normalized))
-			display_text = current_typing_text if not current_typing_text.is_empty() else ("Type a ley word or a spell…" if not ley_options.is_empty() else "Type an equipped spell…")
-			if ley_match and potential_matches.is_empty():
-				display_text += " · Ley word"
-			elif not current_typing_text.is_empty() and potential_matches.is_empty():
+			# Ley words in reach match like spells do.
+			for word in ley_words():
+				if not normalized.is_empty() and str(word).begins_with(normalized):
+					potential_matches.append(word)
+			display_text = current_typing_text if not current_typing_text.is_empty() else "Type an equipped spell…"
+			if not current_typing_text.is_empty() and potential_matches.is_empty():
 				display_text += " · No matching spell"
 			if potential_matches.size() > 0:
 				display_text += " · Ready to cast" if find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic" else " · Matches: " + potential_matches[0]
