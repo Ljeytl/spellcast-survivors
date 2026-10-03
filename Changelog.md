@@ -7,6 +7,14 @@
 - The grade is a screen shader (shaders/day_grade.gdshader) that tints like coloured light and restores each pixel's brightness, so night reads through colour, not darkness. The HUD is above it and never tinted. Colours are a Gradient in data/day_sky.tres, editable in the Godot editor (colour = hue, alpha = strength).
 - Tests: new day_cycle_regression.
 
+# Unreleased — Bigger ley circles, fixed sites, minimap
+
+- Ley circles are nearly four times wider (radius 90 to 340) so there is room to move and fight inside while typing; ring, rune marks and core scaled up. Engage radius 900 to 1200.
+- Sites sit at fixed positions relative to the run start (LeyLines.SITE_OFFSETS: west, north-east, south), nudged only to avoid trees.
+- Ley sites are drawn as a five-layer rune circle (glyph ring, tick ring, hexagram, crossed squares, pulsing core), each layer counter-rotating, drawn additively with a glow pass. Arcane colours asleep (dimmed) and during the siege, fire for the guardian, gold when attuned. Each bound word charges it: faster spin, brighter glow, bigger core, and a flash. Ported from the rune circle HTML prototype.
+- Edge arrows only point to woken sites (siege or guardian); asleep sites are found on the minimap.
+- New bottom-right minimap (scripts/Minimap.gd): the player at the centre, ley sites coloured by state (violet asleep, gold awake, red guardian), bosses in red, enemies as faint dots; anything out of range pins to the edge.
+
 # Unreleased — Ley lines (cut-down)
 
 - Three ley-line sites per normal run (none in Training), 1500–2200 units from the start in different directions, each with four words. Edge arrows point to unfinished sites (violet asleep, gold awake, red guardian).
