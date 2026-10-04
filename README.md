@@ -30,7 +30,7 @@ Choose five manual spells from fifteen base spells. Automatic Magic Missile is s
 - **Earth Shield** — Temporary overheal
 - **Lightning Arc** — Chaining damage
 - **Meteor Shower** — Delayed area strikes
-- **Ember Lance** — Straight piercing damage
+- **Ember Spear** — Straight piercing damage
 - **Plague Seed** — Spreading damage over time
 - **Cinder Field** — Stationary area damage
 - **Arcane Orbit** — Moving close-range sparks

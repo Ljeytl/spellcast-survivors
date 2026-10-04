@@ -178,7 +178,7 @@ func advance_orbit(delta: float):
 func valid_target(enemy) -> bool:
 	return is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and not enemy.get("dying") and float(enemy.get("current_health")) > 0.0
 
-## Ember Lance: the line it flies through stays on fire (EmberTrail), less impact, more over time.
+## Ember Spear: the line it flies through stays on fire (EmberTrail), less impact, more over time.
 var burn_trail_ref: WeakRef = null
 func update_burn_trail(start: Vector2):
 	var trail = burn_trail_ref.get_ref() if burn_trail_ref else null

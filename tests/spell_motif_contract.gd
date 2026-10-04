@@ -36,7 +36,7 @@ func _initialize():
 		var diameter = body.size / crop.size * size
 		check(center.length() < 0.01 and diameter.is_equal_approx(Vector2.ONE * radius * 2), "%s opaque contact body centers on its actual hit circle" % kind)
 	var lance_front = Geometry.stamp_offset("lance", 24).x + Geometry.stamp_dimensions("lance", 24).x * 0.5
-	check(is_equal_approx(lance_front, 24), "Piercing lance tip ends at the swept contact radius")
+	check(is_equal_approx(lance_front, 24), "Piercing spear tip ends at the swept contact radius")
 	check(Geometry.stamp_dimensions("bolt", 17).y == 34 and Geometry.stamp_dimensions("blade", 42).y == 84, "Nominal atlas padding does not enlarge visible hit bodies")
 	print("Spell motif contract: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

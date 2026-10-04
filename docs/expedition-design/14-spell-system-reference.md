@@ -18,7 +18,7 @@ This document defines the reusable vocabulary from which spells are built. Its f
 
 This is the proposed structural successor to the descriptive classifications in [the spell catalog](03-spells.md) and the first [composition draft](04-composition.md). It does not silently ratify their compatibility exclusions or tuning. **The user has not decided whether every keyword must work with every spell.** Here, “candidate” means a meaningful mapping exists, “conditional” means an additional mechanic or decision is required, and “not applicable” means no honest operation is currently defined. No-op words must never be accepted silently.
 
-Some user-owned working notes in the local catalog differ from the committed draft: infection can refresh recipients without an arbitrary whole-chain deadline; Soul Bloom may make the player a healing infection carrier; Meteor Lance has several identity options; a rotating laser is a separate idea. Those alternatives are recorded here as **working design notes**, not verified runtime behavior. The existing documents and local edits are preserved. This reference does not decide XP, loadout or progression policy.
+Some user-owned working notes in the local catalog differ from the committed draft: infection can refresh recipients without an arbitrary whole-chain deadline; Soul Bloom may make the player a healing infection carrier; Meteor Spear has several identity options; a rotating laser is a separate idea. Those alternatives are recorded here as **working design notes**, not verified runtime behavior. The existing documents and local edits are preserved. This reference does not decide XP, loadout or progression policy.
 
 **29 September vocabulary clarification:** [Spell forms, identities and additive modifiers](#14-spell-forms-identities-and-additive-modifiers) supersedes older naming and conversion assumptions where they conflict. Design only; no parser changes.
 
@@ -201,7 +201,7 @@ Alias choices above are naming candidates, not simultaneous valid incantations. 
 
 A projectile does have a gameplay body even when its artwork is tiny or its current size field is hidden. For a circular approximation, contact occurs when the swept projectile core comes within projectile radius + target radius. Larger bodies therefore tolerate more aim error and can contact targets near their path.
 
-That does **not** imply more damage or multiple hits. A first-contact Bolt still stops at one target. A piercing lance can intersect more enemies because its wider body reaches more bodies along its lane. An explosive projectile has two independent sizes: travelling body and impact area. Each recipe must name whether Big changes one or both.
+That does **not** imply more damage or multiple hits. A first-contact Bolt still stops at one target. A piercing spear can intersect more enemies because its wider body reaches more bodies along its lane. An explosive projectile has two independent sizes: travelling body and impact area. Each recipe must name whether Big changes one or both.
 
 A halo, tail or glow is cosmetic, not another collision radius. If the user decides ordinary projectiles should not support Big, reject it clearly; do not pretend a decorative enlargement is a meaningful upgrade.
 
@@ -274,7 +274,7 @@ Powerful modifies the listed primary damage/healing/absorption payload by defaul
 |**Regeneration**|Self recipient → periodic healing → finite expiry|4 HP/s, 0.5 s ticks, 6 s, total 24; recovery 8; refresh-not-stack|Not applicable to single-recipient healing|Lasting: healing duration; Powerful: healing rate; no automatic parallel stack|
 |**Earth Shield**|Self charge → block one hit → attacker-directed eruption|Stack one charge per cast; each independently expires after provisional 16 s (Duration scales). One hit consumes one charge, blocks all its damage and preserves combo, then sends a damaging knockback eruption toward that attacker. No overheal, shared lifetime refresh or gameplay charge cap.|Eruption reach, not player hurtbox|Powerful: retaliation damage; Big: eruption reach; Lasting: individual charge lifetime; future keywords, current passives only|
 |**Meteor Shower**|Ground pattern → scheduled warnings → falling impacts → damage disks|4 × 60 damage; impact radius 80; range 420; warnings 0.65 + 0.25 i; area active 0.1; recovery 6|Impact disks, plus matching falling-rock visual; falling carrier is not a second hit|Duplicating: one meteor; Repeating: another whole pattern; Swift on descent is conditional on honest warnings|
-|**Ember Lance**|Self → straight piercing body → unique-contact damage|65 per unique contact; r 9; speed 700; range 650; max 8 contacts; recovery 2.5|Body width|Swift: travel; Seeking: guided lance candidate; pierce count unchanged by Big|
+|**Ember Spear**|Self → straight piercing body → unique-contact damage|65 per unique contact; r 9; speed 700; range 650; max 8 contacts; recovery 2.5|Body width|Swift: travel; Seeking: guided spear candidate; pierce count unchanged by Big|
 |**Plague Seed**|Selected host → optional travelling seed → infection → transfers/orphans|Candidate: seed speed 460/r 7/range 360 if carrier retained; infection 6 HP/0.5 s; host 4 s; spread 120; orphan 3 s. Refresh/concurrency policy open; no whole-chain deadline in working alternative.|Infection spread radius; initial carrier size unchanged in recommended mapping|Lasting: host duration; Swift: transfer speed if visible carriers retained; repeat/duplicate infection policies open|
 |**Cinder Field**|Ground point → stationary disk field → periodic hostile damage|12/0.5 s × 5 s = 120/enemy at full dwell; r 95; range 320; warning 0.25; recovery 5|Active disk radius|Lasting: field duration; Repeating: second field; overlapping-generation damage must be explicit|
 |**Arcane Orbit**|Self-following center → orbiting bodies → contact damage|3 bodies r 12, path radius 70; 28 contact, 0.5 s per-target gate; 6 s; angular speed 4 rad/s; recovery 7|Body radius and orbit radius|Duplicating: one mote; Lasting: orbit lifetime; Swift on orbital motion is a separate mapping decision|
@@ -298,7 +298,7 @@ Powerful modifies the listed primary damage/healing/absorption payload by defaul
 |**Yggdrasil**|Create destructible tree → friendly-heal field + hostile root damage|Tree HP 100; duration 8 s; r 120; player heal 5/s, total 40; root damage 8/s; range 220; warning 0.8; recovery 14|Effect area; tree artwork may grow but collision only if bound|Powerful: heal/damage; durability separate; duration is a meaningful Lasting binding, while the earlier eight-second ceiling remains undecided|
 |**Lightning Bolt**|Projectile contact → damage → next-target chain movement|60/contact; 2 additional distinct targets; speed 550; r 8; bounce 180; total range 720; recovery 3|Projectile body, not bounce search radius|Swift: travel; Duplicating: another chain; Seeking redundant with native chain steering|
 |**Life Bolt**|Projectile → contact damage + spawn collectible → collect → healing|30 damage; r 7; speed 450; range 450; impact seed 6 HP over 2 s, expires 10 s, max 6; recovery 2.5|Projectile body only by default; collection radius is a separate candidate|Powerful: declared damage/heal budgets; Duplicating/Repeating share root healing cap|
-|**Meteor Lance**|Piercing projectile → contact event → impact disk; alternatives below|45 direct; 25 area r 45 excludes direct victim; max 6 contacts; r 9; speed 650; range 600; recovery 4|Lance width and secondary impact radius|Second-contact predicate or recorded-path meteor follow-up can replace event edge; choice open|
+|**Meteor Spear**|Piercing projectile → contact event → impact disk; alternatives below|45 direct; 25 area r 45 excludes direct victim; max 6 contacts; r 9; speed 650; range 600; recovery 4|Spear width and secondary impact radius|Second-contact predicate or recorded-path meteor follow-up can replace event edge; choice open|
 |**Soul Bloom**|Infection → recipient routing: enemy DoT / player HoT → transfers|Working alternative: enemy infection + player healing carrier; spread 120 as starting reference; per-host duration, heal rate, transfer cooldown and concurrency open. Older leech numbers are not reused.|Infection spread radius|Player-carrier working proposal replaces leech; Lasting: host duration; healing scaling/reinfection budget open|
 |**Steam Field**|Ground disk field → hostile damage + slow|10/0.5 s × 4 s; r 110; range 320; slow 0.6; warning 0.25; recovery 5|Active disk radius|Lasting: duration; Powerful: damage only; never heal an enemy because steam uses soft-colored VFX|
 |**Prism Ray**|Self → beam → limited piercing intersections → periodic damage|10/0.25 s × 2 s per target; max 3 aligned; reach 400; w 9; recovery 3.5|Beam half-width|Powerful: damage; Lasting: channel; more contacts is a contact-limit modifier, not Big|
@@ -309,7 +309,7 @@ Powerful modifies the listed primary damage/healing/absorption payload by defaul
 - **Ice Blast:** current contact-shard recipe versus a continuous expanding cone are alternatives, not two simultaneous damage systems. Both can share cone distribution parameters; they do not share identical coverage or hit probability.
 - **Wave/Thunderwave:** the old proposal lists angle, front width and reach without declaring which dimension derives from which. Recommend authoring angle + maximum reach + front thickness, deriving endpoint width; alternatively use a fixed-width travelling strip. Do not independently set incompatible cone dimensions.
 - **Frost Nova/Earthquake:** the old catalog describes expanding visuals while also listing instant-area/pulse damage. Decide instant full-area activation with honest simultaneous visuals, or travelling front with explicit speed and near-to-far contact. Recommend travelling fronts for the stated outward fantasy; exact speeds remain tuning inputs.
-- **Meteor Lance:** contact explosion, second-contact explosion and delayed meteorites along a recorded path are three alternative graphs. They need event predicates or trajectory history, not three unrelated projectile implementations.
+- **Meteor Spear:** contact explosion, second-contact explosion and delayed meteorites along a recorded path are three alternative graphs. They need event predicates or trajectory history, not three unrelated projectile implementations.
 - **Big shield/heal:** plain absorption and instant healing have no spatial meaning by default; Earth Shield now exposes retaliation reach without enlarging the player hurtbox. An area healing aura or intercepting shield could be designed, but accepting Big must not silently transform the spell into a new type without an approved rule.
 
 ## 9. Cross-spell keyword binding families
@@ -363,7 +363,7 @@ These rows preserve the unselected ideas. They do not claim every idea is implem
 | Fireball | Projectile → larger impact area | Body + impact; must distinguish from Fire Bolt | Reserved |
 | Fire Wall / Flame Wall | Placed strip field → fire damage | Strip length/width; no terrain blocking unless added | Reserved |
 | Flame Elemental | Mobile creature + melee/aura effects | Actor/reach/aura bindings explicitly separate | Inactive |
-| Ice Lance / Glacial Lance | Piercing projectile + ice/control | Body; heavier variant needs meaningful distinction | Reserved |
+| Ice Spear / Glacial Spear | Piercing projectile + ice/control | Body; heavier variant needs meaningful distinction | Reserved |
 | Splash | Local volume + water payload | Shape/radius after selection | Reserved; exact geometry open |
 | Undertow | Travelling/returning front + pull | Width/reach; flow respects collision | Reserved |
 | Tidal Wave | Large advancing front | Width/reach; front speed explicit | Reserved |
@@ -396,7 +396,7 @@ Naming references retained: Tree of Life → Yggdrasil candidate; Heal/Regrowth 
 |---|---|---|
 | Curve/strip geometry | Walls, Whip, curved cuts | Control points, width, swept contact and visible tessellation |
 | Flow/displacement field | Gravity Well, Maelstrom, Undertow | Force vector, speed cap, collision behavior, boss response |
-| Trajectory history | Path-following Meteor Lance alternative | Sampling, maximum stored path, event positions/times, owner death |
+| Trajectory history | Path-following Meteor Spear alternative | Sampling, maximum stored path, event positions/times, owner death |
 | Reflection/interception | Arcane Shield experiment | Collision shape, eligible projectiles, new ownership, reflection limit |
 | Navigation obstacle | Earth Wall | Blocking masks, placement validity, destructibility, expiry, escape safety |
 | Clock influence | Time Warp | Affected clock domains, overlap rule, assist/deadline exclusion |
@@ -460,7 +460,7 @@ These are future gameplay tests, not claims that the reference has been implemen
 | Scenario | Expected observable result |
 |---|---|
 | Big ordinary projectile passes near two enemies | Wider body may contact sooner; first-contact policy still limits it to one victim |
-| Big piercing lance passes beside a line | Wider visible lance contacts the extra intersected enemies; pierce count unchanged |
+| Big piercing spear passes beside a line | Wider visible spear contacts the extra intersected enemies; pierce count unchanged |
 | Big infection with target 150 wu away, base range 120 | Modified 162 wu search can reach it; original cannot; transfer remains visible |
 | Self + disk + instant versus self + disk + expanding | First hits eligible points together; second hits by actual front arrival |
 | Cone projectile variant misses between shards | Enemy in the gap is not hit by an invisible cone |
@@ -478,7 +478,7 @@ Review priorities:
 - Which unsupported pairings should reject versus gain a deliberately designed new behavior? Single-target heal and absorption are the clearest examples.
 - Which cone/nova/wave spells use projectiles, a continuous front, or instantaneous coverage?
 - Which durations and output units does each long-lived/multi-output recipe expose?
-- Which infection refresh/reinfection policy and Meteor Lance identity should become the next authoritative design?
+- Which infection refresh/reinfection policy and Meteor Spear identity should become the next authoritative design?
 
 Those decisions can be made against explicit tables now. They are not prerequisites to documenting the system, and they must not be silently answered by whichever component is easiest to code.
 
@@ -500,7 +500,7 @@ Illustrative phrases only: `fire wall`, `flame wall`, `cinder wall`, `incinerati
 
 This differs from cosmetic aliases: if two elemental words represent different power tiers, they resolve different parameter values. It also differs from stacking several elemental adjectives: whether one word is selected per element, or multiple words can combine, remains open. Unlock requirements, simultaneous access, preparation slots and the relationship to Big/Powerful also remain open.
 
-The preceding Ice Lance/Glacial Lance discussion established the desired experience of accessing a shorter cast and an objectively stronger longer cast together in one prepared family. Elemental word tiers are a possible generalized way to achieve that experience, not a decision to rebuild every named spell around this grammar. Record and compare both approaches before choosing one.
+The preceding Ice Spear/Glacial Spear discussion established the desired experience of accessing a shorter cast and an objectively stronger longer cast together in one prepared family. Elemental word tiers are a possible generalized way to achieve that experience, not a decision to rebuild every named spell around this grammar. Record and compare both approaches before choosing one.
 
 Next design exercise, when revisited: define one Wall recipe, two candidate words from one element, their exact property operations and visible results; then check whether the same word meanings transfer sensibly to a second base form. No gameplay, elemental resistance, collision or spell-unlock changes follow from recording this idea.
 
@@ -530,7 +530,7 @@ Next design exercise, when revisited: define one Wall recipe, two candidate word
 | Trail | Effect left behind movement | Explicitly endorsed |
 | Blast | Short spreading burst; Ice Blast is a cone | Explicitly endorsed |
 | Wave | Advancing front through an area | Explicitly endorsed |
-| Lance | Narrow penetrating projectile | Candidate family |
+| Spear | Narrow penetrating projectile | Candidate family |
 | Ray | Sustained beam | Candidate family; tracking is recipe-specific |
 | Nova | Radial expanding burst | Candidate family |
 | Strike | Targeted impact at a location | Candidate family |

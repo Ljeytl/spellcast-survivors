@@ -1,5 +1,5 @@
 extends SceneTree
-## Ember Lance leaves a short burning line: enemies that walk into it after the throw burn.
+## Ember Spear leaves a short burning line: enemies that walk into it after the throw burn.
 
 var checks = 0
 var failures = 0
@@ -44,15 +44,15 @@ func run():
 	game.add_child(front)
 	front.add_to_group("enemies")
 	manager.learn_spell("ember_lance")
-	manager.cast_freeform_spell("ember lance")
-	var lance = lance_effects().back()
-	lance.set_physics_process(false)
-	lance.advance(0.5)
+	manager.cast_freeform_spell("ember spear")
+	var spear = lance_effects().back()
+	spear.set_physics_process(false)
+	spear.advance(0.5)
 	check(front.current_health < 100000.0, "The throw hits the enemy in its line")
 	check(trails().size() == 1, "The throw leaves one burning line")
 	var trail = trails().back()
 	trail.set_physics_process(false)
-	# An enemy walks into the line after the lance has passed.
+	# An enemy walks into the line after the spear has passed.
 	var late = Target.new()
 	late.position = start + Vector2(120, 4)
 	game.add_child(late)
@@ -74,7 +74,7 @@ func run():
 	await process_frame
 	check(trails().is_empty(), "The line burns out")
 	for i in 5:
-		manager.cast_freeform_spell("ember lance")
+		manager.cast_freeform_spell("ember spear")
 		lance_effects().back().advance(0.1)
 	await process_frame
 	check(trails().size() <= 3, "At most three burning lines at once")

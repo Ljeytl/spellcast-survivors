@@ -30,7 +30,7 @@ There are 26 JSON entries, but only 16 learnable manual spells, one automatic at
 | Earth Shield | Stack one charge per cast; each independently expires after provisional 16 s (Duration scales). One hit consumes one charge, blocks all its damage and preserves combo, then sends a damaging knockback eruption toward that attacker. No overheal, shared lifetime refresh or gameplay charge cap. | Implemented in 0.1.36; see release evidence |
 | Lightning | Ground disk, 80 rank-one damage once per enemy; base 0.2 s active window admits late entrants; Duration extends window | Implemented |
 | Meteor Shower | Delayed warned impacts; each creates brief damaging aftermath; Duration does not delay impact | Implemented |
-| Ember Lance | Piercing projectile; Size changes actual body, Velocity changes travel | Implemented |
+| Ember Spear | Piercing projectile; Size changes actual body, Velocity changes travel | Implemented |
 | Plague Seed | Spreading infection; visible host transfer and finite orphan spores; no enforced host cap; Size changes spread | Implemented |
 | Cinder Field | Persistent damaging area; Size and Duration apply | Implemented |
 | Arcane Orbit | Orbiting contact bodies; Size changes bodies/path, Velocity angular speed, Duration lifetime | Implemented |
@@ -41,10 +41,10 @@ There are 26 JSON entries, but only 16 learnable manual spells, one automatic at
 | Cross Blade | Returning blades; Size and Velocity affect bodies/travel; extra Duration adds stationary afterimage without delaying return | Implemented |
 | Lightning Bolt | Bolt + Lightning; rank-one 40 impact plus 80 splash,80 splash radius, 4 bounces; ingredient levels and own rank resolve separately | Enabled bonus |
 | Life Bolt | Bolt + Life; 40 impact, 6 healing budget in collectible patch; own ranks alternate added bolts and patch size | Enabled bonus |
-| Meteor Lance | Ember Lance + Meteor Shower; 45 impact plus 25 explosion excluding direct victim; ingredient levels scale respective components | Enabled bonus |
+| Meteor Spear | Ember Spear + Meteor Shower; 45 impact plus 25 explosion excluding direct victim; ingredient levels scale respective components | Enabled bonus |
 | Soul Bloom | Plague Seed + Regeneration; infection kills create finite healing ground patches; spores linger; no leech/player-carrier behavior | Enabled bonus |
 | Steam Field | Cinder Field + Ice Blast; damaging slow field; rank-one 12 per tick,5 s,150 radius, 40% slow | Enabled bonus |
-| Prism Ray | Focus Ray + Ember Lance; wide piercing beam; base 18 per tick,32 half-width,0.25 radians/s tracking; Velocity does not speed tracking | Enabled bonus |
+| Prism Ray | Focus Ray + Ember Spear; wide piercing beam; base 18 per tick,32 half-width,0.25 radians/s tracking; Velocity does not speed tracking | Enabled bonus |
 | Frost Sigil | Rune Trap + Ice Blast; rank-one 60 burst,170 radius,1.2 s arming; own ranks reduce arming to 0.4 s floor | Enabled bonus |
 
 Inactive data: Fire Storm(15 damage/0.2 s, 4 s, radius 350), Time Warp(0.3 × 5 s), Chain Heal(40, 2 chains, 0.7 falloff), Frost Nova(25, radius 300, freeze 2 s), Arcane Missiles(18 × 5), Divine Aura(heal 5/s, 20% reduction, 15 s), Skeleton Warrior(80 HP, 15 damage, 30 s), Arcane Turret(40 HP, 25 damage, 20 s), Flame Elemental(120 HP, 20 damage, 25 s, aura 8). These values are historical drafts, not available spells. Reaping Spirit has draft code but acquisition disabled.
@@ -66,7 +66,7 @@ Many base spells use base × (1 + 0.15 × (rank − 1)) × player multiplier; co
 | **Regeneration** / personal duration / life |4 HP/s, 0.5 s ticks, 6 s, total 24; recovery 8; refresh-not-stack |“Recover health steadily for a short time.” Loose leaves; green plus only on healing tick. Better total heal than Life, slower rescue. |
 | **Earth Shield** / retaliatory protection / earth |Stack one charge per cast; each independently expires after provisional 16 s (Duration scales). One hit consumes one charge, blocks all its damage and preserves combo, then sends a damaging knockback eruption toward that attacker. No overheal, shared lifetime refresh or gameplay charge cap. |“Catch a hit and erupt toward your attacker.” Visible charges and a matching outward cone; see 0.1.36 tuning. |
 | **Meteor Shower** / multi-area / fire |4 × 60 damage; impact radius 80; range 420; warnings 0.65 + 0.25 i; area active 0.1; recovery 6 |“Rain meteors across a marked area.” Growing red warnings, descending rocks, ground impact. Formation breaker, not instant panic button. |
-| **Ember Lance** / piercing / fire |65 per unique contact; r 9; speed 700; range 650; max 8 contacts; recovery 2.5 |“Pierce a line of enemies with an ember lance.” Long ember tip and restrained trailing sparks. Aimed lane damage. |
+| **Ember Spear** / piercing / fire |65 per unique contact; r 9; speed 700; range 650; max 8 contacts; recovery 2.5 |“Pierce a line of enemies with an ember spear.” Long ember tip and restrained trailing sparks. Aimed lane damage. |
 | **Plague Seed** / infecting / plague |Seed speed 460, r 7, range 360; 6/0.5 s × 4 s = 48/host; spread 120; max 6 hosts; root lifetime policy under revision; orphan 3 s; recovery 5 |“Infect an enemy and spread spores nearby.” Green-purple seed, lesions, travelling links and visible orphan. Crowded staggered packs. |
 | **Cinder Field** / field / fire |12/0.5 s × 5 s = 120/enemy at full dwell; r 95; range 320; warning 0.25; recovery 5 |“Set a patch of ground ablaze.” Connected red-orange ground with bold border. Holds a lane; no candle tiles. |
 | **Arcane Orbit** / orbit / arcane |3 bodies r 12, path radius 70; 28 contact, 0.5 s per-target gate; 6 s; angular speed 4 rad/s; recovery 7 |“Orbit with three damaging arcane motes.” Actual motes collide; orbit disk does not. Close defense rewards moving. |
@@ -90,10 +90,10 @@ Many base spells use base × (1 + 0.15 × (rank − 1)) × player multiplier; co
 | **Yggdrasil** / mixed field / life |TreeHP 100; duration 8 s; r 120; player heal 5/s, total 40; rootsdamage 8/s; range 220; warning 0.8; recovery 14 |“Grow a tree of life that heals you and lashes nearby foes.” Tree and visible green boundary; no invulnerable safezone. Major healing commitment; name provisional. |
 | **Lightning Bolt** / chain / lightning |60/contact; 2 additional distinct targets; speed 550; r 8; bounce 180; total range 720; recovery 3 |“Send lightning bouncing between enemies.” Visible curved links after contact. Recipe Bolt + Lightning. |
 | **Life Bolt** / projectile + pickup / life |30 damage; r 7; speed 450; range 450; impactseed 6 HP over 2 s, expires 10 s, max 6; recovery 2.5 |“Plant a healing seed where your bolt hits.” Seed has plus/leaf marker; approach to collect; no lifesteal. Recipe Bolt + Life. |
-| **Meteor Lance** / piercing + burst / fire |45 direct; 25 area r 45 excludes direct victim; max 6 contacts; r 9; speed 650; range 600; recovery 4 |“Pierce enemies with an exploding meteor lance.” Ember point plus distinct contact craters. Recipe Ember Lance + Meteor Shower. |
+| **Meteor Spear** / piercing + burst / fire |45 direct; 25 area r 45 excludes direct victim; max 6 contacts; r 9; speed 650; range 600; recovery 4 |“Pierce enemies with an exploding meteor spear.” Ember point plus distinct contact craters. Recipe Ember Spear + Meteor Shower. |
 | **Soul Bloom** / infection + heal / plague-life |4/0.5 s × 4 s; spread 120, max 6 hosts (draft); healing-carrier proposal replaces leech; heal amount, refresh and capacity policies open; recovery 6 (draft) |“Carry a spreading infection that heals you and harms enemies.” Player carrier has distinct healing feedback; enemy infections show damage. Recipe Plague Seed + Regeneration. |
 | **Steam Field** / field / water-fire |10/0.5 s × 4 s; r 110; range 320; slow 0.6; warning 0.25; recovery 5 |“Scald and slow enemies in a cloud of steam.” Pale blue-gray boiling boundary; no green pluses. Recipe Cinder Field + Ice Blast. |
-| **Prism Ray** / channel / arcane-fire |10/0.25 s × 2 s per target; max 3 aligned; reach 400; w 9; recovery 3.5 |“Burn through a line with a prismatic beam.” Three readable contact nodes; not three arbitrary aim locks. Recipe Focus Ray + Ember Lance. |
+| **Prism Ray** / channel / arcane-fire |10/0.25 s × 2 s per target; max 3 aligned; reach 400; w 9; recovery 3.5 |“Burn through a line with a prismatic beam.” Three readable contact nodes; not three arbitrary aim locks. Recipe Focus Ray + Ember Spear. |
 | **Frost Sigil** / trap / ice |75 damage; trigger radius 50/blast radius 110; arm 1.2; slow 0.5 × 2 s; persistent; max 3 shared; recovery 4 |“Lay a lasting frost rune that slows a group.” Blue ring, armed center, clear burst. Recipe Rune Trap + Ice Blast. |
 
 ## Per-spell mapping exceptions
@@ -107,7 +107,7 @@ These complete the generic shape matrix; unsupported combinations must be reject
 - Mana Storm now has a moving-cloud Shower identity. Earlier Meteor Shower mapping/output caps are withdrawn pending a new component contract.
 - Cross Blade supports Big, Powerful, Swift, Delayed, Charged, Duplicating, Repeating, element and Venomous. Duplicating adds a second blade at 0.8 potency; up to 4 bodies with Repeat. Swift shortens flight but not 0.9 s linger. Return expires 4 s after release if owner unavailable; no Seeking.
 - Life Bolt supports Bolt's projectile modifiers. Its healing seed is separate secondary budget: potency words scale seed heal, but total seeds heal at most 15 HP/root across all outputs; Repeating/Duplicating share this cap. Big changes projectile, not pickup activation radius. One target cannot receive repeated native immediate contacts from same projectile.
-- Meteor Lance supports Ember Lance's mappings; Big changes body and burst; per-projectile contact area excludes direct victim. Added poison is based on actual direct hit only, not burst plus direct double count.
+- Meteor Spear supports Ember Spear's mappings; Big changes body and burst; per-projectile contact area excludes direct victim. Added poison is based on actual direct hit only, not burst plus direct double count.
 - Moonfall: Lasting increases duration to 7 s, healing still limited to 5 HP/root before potency cap; Powerful scales both damage and heal but max 12.5 HP/root. Repeat shares that root cap. Yggdrasil health does not scale with Powerful; heal cap 100/root, no stacking parallel trees (max 1). Lasting is rejected because its 8-second field is already at the duration ceiling. Its damage ticks and healing use separate recipient filters.
 - Focus Ray, Frost Ray and Prism Ray allow Big, Powerful, Lasting, Repulsing, element and Venomous. Lasting 2.8 s channels are intentional extra commitment, first tick 0.25. Venomous applies only on first target contact/root, computed from one tick, not entire future channel. Max one player channel at once.
 - Seeker: Big, Powerful, Swift, Lasting, Duplicating and conversion; native seeking makes Seeking redundant. Golem: Big, Powerful, Lasting, Duplicating, conversion; no Swift. Native summons have 20 s duration; the generic 8 s field ceiling does not apply to creatures.
@@ -179,7 +179,7 @@ Reserved entries are real recorded ideas, **not fully balanced release content**
 | Fireball |Large explosive projectile | Reserve until its role differs from Fire Bolt |
 | Fire Wall / Flame Wall |Line of burning ground | Reserve line geometry; differs from circular Cinder Field |
 | Flame Elemental |Mobile fire summon | Inactive; future specialized creature |
-| Ice Lance / Glacial Lance |Piercing ice attack / heavier version | Reserve two-tier identity experiment; avoid just recolored Ember Lance |
+| Ice Spear / Glacial Spear |Piercing ice attack / heavier version | Reserve two-tier identity experiment; avoid just recolored Ember Spear |
 | Splash |Short local water hit | Reserve versus Wave; no automatic inclusion |
 | Undertow |Returning/pulling water band | Reserve controlled displacement experiment |
 | Tidal Wave |Long wide moving wall | Reserve major wave after Thunderwave utility tested |
@@ -189,7 +189,7 @@ Reserved entries are real recorded ideas, **not fully balanced release content**
 | Lightning Arc / Thunder |Historical Lightning names | Not current public aliases |
 | Lightning Rain / Rain of Lightning |Distributed lightning impacts | Reserve; compare Mana Storm elemental conversion |
 | Chain Lightning |Immediate chain vs travelling Lightning Bolt | Reserve only if arrival distinction earns a spell |
-| Thunder Spear |Delayed piercing discharge | Reserve; distinguish from converted lance |
+| Thunder Spear |Delayed piercing discharge | Reserve; distinguish from converted spear |
 | Static Field |Stationary lightning zone; also a naming candidate for the newer personal storm aura | Reserve; see [storm aura idea](#storm-aura-roots-and-wizard-movement--2026-09-28-ideas) before treating these as the same spell |
 | Tempest |Large moving weather effect | Reserve major combined control/damage identity |
 | Earth Bolt |Earth projectile | Prefer Earthen Bolt unless distinct terrain interaction |

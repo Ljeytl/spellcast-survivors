@@ -33,7 +33,7 @@ This follow-up supersedes the initial alternatives below. Water/Ice and Earth/Me
 | Entry | User concept / response | Status and unresolved details |
 |---|---|---|
 | Bolt / Magic Missile | Manual Bolt and automatic Magic Missile already cover ordinary magic projectiles | Implemented; no separate Arcane Bolt needed |
-| Arcane Ball / Mana Lance | Generic additions lack a distinct need | Not selected; do not add just to fill cells |
+| Arcane Ball / Mana Spear | Generic additions lack a distinct need | Not selected; do not add just to fill cells |
 | Focus Ray | Already expresses concentrated magical energy | Implemented |
 | Arcane modifier | Critical chance was recalled as a possible keyword/property | Candidate only; not a settled elemental rule |
 | Arcane Slash | Glyphs are slashed into an area, then explode after a short delay and damage touchers | User concept; exact contact versus delayed trigger relationship unresolved |
@@ -54,7 +54,7 @@ Arcane's theme is overwhelming magical energy, not a requirement for a separate 
 | Entry | User concept / response | Status and unresolved details |
 |---|---|---|
 | Fire Bolt / Fireball | Desired direct projectile and explosive projectile identities | Ideas, not runtime additions |
-| Ember Lance | Existing fire penetration identity | Implemented |
+| Ember Spear | Existing fire penetration identity | Implemented |
 | Scorching Ray | Two or three fire beams, either triangular or aimed at enemies, lingering | Alternatives; geometry/targeting/duration open |
 | Flaming / Blaze Slash | Possibly modifier expressions rather than distinct spells | Questioned; no selected standalone identity |
 | Fire Cone / Blast / Wave | Generic elemental variants may not justify independent spells | Questioned rather than committed |
@@ -69,7 +69,7 @@ Arcane's theme is overwhelming magical energy, not a requirement for a separate 
 | Fire Golem | Only worthwhile if distinct | User idea; see shared golem question below |
 | Flaming Restoration | Retained elemental restoration/buff concept | Healing versus buff classification and exact benefit unresolved |
 
-Shared golem idea: golems (possibly called elementals) could cast spells from the player's kit; a fire summon might cast Ember Lance. Ownership, eligibility, selection, copied levels, autonomy and balance are undecided. Do not assume every element receives a summon or that generic Arcane Golem is approved.
+Shared golem idea: golems (possibly called elementals) could cast spells from the player's kit; a fire summon might cast Ember Spear. Ownership, eligibility, selection, copied levels, autonomy and balance are undecided. Do not assume every element receives a summon or that generic Arcane Golem is approved.
 
 ## Ice
 
@@ -77,7 +77,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | Snowball | Ordinary ice projectile | Bolt family despite the name; replaces the need for an assistant-invented Frostball concept |
 | Large lobbed ice ball / Frostball | No need identified | Not selected |
-| Ice Lance / Glacial Lance | Push enemies aside or impale with a major debuff; may sacrifice piercing for impalement | Alternatives remain open. Earlier stronger Glacial Lance acquired with Ice Lance remains recorded context, not a new resolved progression decision |
+| Ice Spear / Glacial Spear | Push enemies aside or impale with a major debuff; may sacrifice piercing for impalement | Alternatives remain open. Earlier stronger Glacial Spear acquired with Ice Spear remains recorded context, not a new resolved progression decision |
 | Frost Ray | Slowing beam | Removed from proposed roster in follow-up; Water Jet takes the Ray slot |
 | Ice Slice / Ice Wave | Palette swaps unnecessary | No selected unique spells |
 | Ice Blast | Current cone is liked | Implemented; retained |
@@ -90,7 +90,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 
 | Entry | User concept / response | Status and unresolved details |
 |---|---|---|
-| Water Jet | Tracking jet dealing damage and knockback; upgrades add jets | **Ray**, not Lance; no Water Lance selected |
+| Water Jet | Tracking jet dealing damage and knockback; upgrades add jets | **Ray**, not Spear; no Water Spear selected |
 | Tsunami | Broad rectangular front spawns behind the player and travels forward | Blast family; supersedes radial version |
 | Tidal Push | Earlier water Nova/Wave idea analogous to Frost Nova | Removed by user; not Tsunami. Frost Nova remains. |
 | Whirlpool | Lasting vortex | Field is the current candidate placement; earlier Ball/Strike uncertainty preserved |
@@ -105,7 +105,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | Lightning Bolt | Existing bouncing combination | Implemented; keep separate from base exploration |
 | Lightning Ball | No desired spell | Not selected |
-| Lightning Lance | Earlier continuous piercing/bouncing idea refined toward a projectile that embeds in an enemy or ends at a point, becoming a lightning rod that repeatedly calls nearby strikes | Preferred candidate; rod persists after host death. Exact placement, movement and strike behavior open |
+| Lightning Spear | Earlier continuous piercing/bouncing idea refined toward a projectile that embeds in an enemy or ends at a point, becoming a lightning rod that repeatedly calls nearby strikes | Preferred candidate; rod persists after host death. Exact placement, movement and strike behavior open |
 | Static Shock | Channeled chain lightning | Provisional Ray name; targeting and channel behavior open |
 | Lightning Slash | Unnecessary palette swap | Not selected |
 | Lightning Whip | Interesting distinct form | User idea |
@@ -121,7 +121,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | Spike | Ground spike rises, damages and causes bleeding | Discussed under Bolt but explicitly ground-delivered, not a travelling bolt |
 | Boulder | Slow heavy projectile, high damage and large knockback | No explosion was specified; do not invent one to fit Ball |
-| Earth Lance | Impact shatters into smaller scattering lances | User concept; secondary collision/aim open |
+| Earth Spear | Impact shatters into smaller scattering spears | User concept; secondary collision/aim open |
 | Earth Blast | Cone analogous to Ice Blast, with knockback and bleed instead of slow | User concept |
 | Earth Wave | Unnecessary extra identity | Not selected |
 | Earth Nova | Radial ground spikes with damage and bleeding | User concept |
@@ -137,7 +137,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | School | Keep Plague for now; broader death/undead/infection fantasy may justify Death later | No rename approved |
 | Unnamed carcass projectile | Catapult an infected carcass or create a dead zone | Ball exploration; actual name and impact/zone details unresolved |
-| Plague Lance | Undecided lance concept | Requested slot; fantasy, name and mechanics to develop |
+| Plague Spear | Undecided spear concept | Requested slot; fantasy, name and mechanics to develop |
 | Ray of Sickness | Sweep or pivot across many enemies to distribute debuffs rather than focus a kill | Damage over time and slow; reduced enemy outgoing damage is a possibility, not a settled payload |
 | Plague Slash | Palette swap unnecessary | Not selected |
 | Nova / Shower / Field / Wall / Trail / Trap | User wants these explored | Names and mechanics **TBD**; table cells must not invent spells |
@@ -152,7 +152,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 |---|---|---|
 | Life Bolt | Existing projectile plus healing pickup/patch | Implemented combination |
 | Unnamed vine ball | Area immobilization and damage, possibly bleed | User concept; final name and bleed undecided |
-| Shillelagh | Life Lance; retain the earlier vine/root attack fantasy and nearby-enemy pulling idea | Placement and name selected; exact attack, pull destination and shape still open |
+| Shillelagh | Life Spear; retain the earlier vine/root attack fantasy and nearby-enemy pulling idea | Placement and name selected; exact attack, pull destination and shape still open |
 | Vine Whip | Whip rather than Vine Slice | User concept in shared Slice/Whip family |
 | Expanding vine circle | Roiling vines expand, damage and immobilize or slow | Shared Nova/Wave family; control choice open |
 | Life Nova | Crushing vines | User direction; may overlap the expanding-circle concept rather than a separate spell |
@@ -170,7 +170,7 @@ Shared golem idea: golems (possibly called elementals) could cast spells from th
 | Bullet | Rapid shots | Metal concept |
 | Shrapnel | Blast-family metal fragments | Earth/Metal school; exact delivery/fragmentation open |
 | Metal + Earth | Merged school | Multiple Earth/Metal spells can share a family |
-| Metal Lance | No finalized new identity | Do not invent one |
+| Metal Spear | No finalized new identity | Do not invent one |
 
 ## Decisions to make after this capture
 
@@ -191,10 +191,10 @@ The following preserves prior ideas and exclusions outside the main browsing mat
 | Magic Missile | Implemented automatic attack, separate from manual Bolt |
 | Atomic | Implemented style reward, outside base acquisition pool |
 | Seeking Spirit / Reaping Spirit | Earlier spirit ideas; Reaping Spirit acquisition disabled; preserve despite school discussion |
-| Shillelagh | Possible distinction from Life Lance: Life Lance uses vines to pull enemies toward a destination, while Shillelagh forms a root wall that immobilizes enemies; exact pull destination and wall shape remain open |
+| Shillelagh | Possible distinction from Life Spear: Life Spear uses vines to pull enemies toward a destination, while Shillelagh forms a root wall that immobilizes enemies; exact pull destination and wall shape remain open |
 | Dash / Swiftness | Earlier user mobility ideas; activation/duration design open |
 | Personal storm aura | Earlier dwell-triggered lightning idea; name and following behavior open; not automatically identical to Static Field |
-| Homing Bolt, stronger Glacial Lance and elemental-tier words | Earlier composition/tier concepts, not new runtime casts |
+| Homing Bolt, stronger Glacial Spear and elemental-tier words | Earlier composition/tier concepts, not new runtime casts |
 | Lightning Shield | Earlier open/historical shield idea; no mechanics approved |
 
 ## Examples and historical proposals that are not agreed spells
@@ -205,8 +205,8 @@ The following preserves prior ideas and exclusions outside the main browsing mat
 | Life Seed | Assistant illustration, not selected; do not confuse with Life Bolt healing drops |
 | Frost Ray / Ice Ray | Removed from the proposed roster; Water Jet occupies the merged school’s Ray slot |
 | Frostball / Plague Ball | Assistant names, not selected; user now proposes Snowball and an unnamed carcass concept respectively |
-| Arcane Bolt / Arcane Ball / Mana Lance / Mana Strike | Unnecessary generic additions in this pass; existing Bolt/Focus Ray cover ordinary magic |
-| Water Lance / Lightning Ball / Earth Wave | Not selected |
+| Arcane Bolt / Arcane Ball / Mana Spear / Mana Strike | Unnecessary generic additions in this pass; existing Bolt/Focus Ray cover ordinary magic |
+| Water Spear / Lightning Ball / Earth Wave | Not selected |
 | Generic elemental slices, Fire Cone/Blast/Wave, Fire Nova, Fire Sigil | Often unnecessary palette swaps or modifier expressions; no blanket new-spell approval |
 | Ice Wall / Water Wall / plain Rain | Distinct useful identity not established |
 

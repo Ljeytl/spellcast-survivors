@@ -1,3 +1,8 @@
+# Unreleased — Lance → Spear
+
+- **Ember Lance is now Ember Spear** (type `ember spear`), and **Meteor Lance is now Meteor Spear** (`meteor spear`). It's thrown, so it's a spear. The old incantations no longer cast. Internal ids (`ember_lance`, `meteor_lance`, `lance_radius`) are unchanged, so saves, unlocks and telemetry carry over.
+- Design docs use Spear for the family and every idea in it (Ice / Glacial / Earth / Plague / Life Spear; Lightning Spear can land as a rod).
+
 # 0.2.7 — Casting circle, burning Ember Lance, Cinder fix
 
 - **Casting circle.** Every typed letter is a rune on a circle under the wizard. Rings fill at 3 / 6 / 9 runes (spaces inside a spell count), the colour switches as soon as the element is certain, ghost runes show the rest once the spell is certain, and a typo cracks the rune red. Power words (MEGA) orbit as satellites and scale the burst. Rings drift so the hat never hides the same slot. Ley words build the circle in ley colours inside an awakened site.

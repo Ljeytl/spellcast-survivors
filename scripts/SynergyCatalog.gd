@@ -16,10 +16,10 @@ const RECIPES = {
 		"overrides": {"type": "life_bolt"}
 	},
 	"meteor_lance": {
-		"name": "Meteor Lance", "incantation": "meteor lance", "ingredients": ["ember_lance", "meteor_shower"],
-		"requirements": "Reach rank 8 in Ember Lance and Meteor Shower, then choose Meteor Lance. Both ingredients stay equipped.",
-		"description": "A piercing lance detonates meteor impacts. Ember Lance strengthens direct hits; Meteor Shower strengthens explosions.",
-		"card_description": "A piercing lance explodes through crowds.",
+		"name": "Meteor Spear", "incantation": "meteor spear", "ingredients": ["ember_lance", "meteor_shower"],
+		"requirements": "Reach rank 8 in Ember Spear and Meteor Shower, then choose Meteor Spear. Both ingredients stay equipped.",
+		"description": "A piercing spear detonates meteor impacts. Ember Spear strengthens direct hits; Meteor Shower strengthens explosions.",
+		"card_description": "A piercing spear explodes through crowds.",
 		"overrides": {"explosive": true}
 	},
 	"soul_bloom": {
@@ -38,7 +38,7 @@ const RECIPES = {
 	},
 	"prism_ray": {
 		"name": "Prism Ray", "incantation": "prism ray", "ingredients": ["focus_ray", "ember_lance"],
-		"requirements": "Reach rank 8 in Focus Ray and Ember Lance, then choose Prism Ray. Both ingredients stay equipped.",
+		"requirements": "Reach rank 8 in Focus Ray and Ember Spear, then choose Prism Ray. Both ingredients stay equipped.",
 		"description": "A wide fixed-direction laser pierces aligned enemies. Both ingredients and its own ranks increase damage.",
 		"card_description": "A powerful fixed-direction laser cuts through a line of enemies.",
 		"overrides": {"beam_piercing": true, "beam_radius": 32.0, "beam_turn_speed": 0.0, "active_limit": 3}

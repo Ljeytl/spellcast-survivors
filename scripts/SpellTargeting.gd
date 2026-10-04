@@ -56,9 +56,9 @@ static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum
 			nearest = distance
 	return selected
 
-## Lances always go through the nearest enemy. Among aim points whose line still passes through
+## Spears always go through the nearest enemy. Among aim points whose line still passes through
 ## that nearest enemy, pick the one that also hits the most enemies behind it. Readable rule:
-## the closest enemy is always hit; the lance only tilts slightly to catch a line behind it.
+## the closest enemy is always hit; the spear only tilts slightly to catch a line behind it.
 static func select_line(tree: SceneTree, origin: Vector2, radius: float, reach: float, viewport: Rect2 = Rect2(), candidates: int = 40):
 	var enemies = tree.get_nodes_in_group("enemies").filter(alive)
 	if viewport.has_area():

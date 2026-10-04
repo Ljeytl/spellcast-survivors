@@ -27,7 +27,7 @@ All identities below require a complete cast/impact/expiration presentation in t
 | `ice_blast` → Ice Blast | Directional cone originating at the wizard, pushing and slowing enemies inside it. | User-confirmed cone, not a 360-degree burst. Define reach, opening angle and aim direction; enemies behind/outside the cone are unaffected. Clear cone-shaped shard motion and survivor slow state. |
 | `earth_shield` → Earth Shield | Caster-focused earth protection, exploring damageable/decaying earth. | Keep and repair this existing spell. Earth Wall is a separate terrain concept, not a rename. Compare their roles before settling attached protection versus nearby terrain, durability, enemy attacks, escape and recast behavior. Current mechanic still grants overheal. |
 | `meteor_shower` → Meteor Shower | Several delayed falling impacts around valid targets. | Long-commitment crowd payoff. Reduce wasted random landings; show distinct arrival and impact. Do not promise lingering fire unless it deals damage. |
-| `ember_lance` → Ember Lance | Directional fire spear piercing aligned enemies. | Strong line damage; alignment is the tactical requirement. Preserve its successful fantasy as a benchmark. |
+| `ember_lance` → Ember Spear | Directional fire spear piercing aligned enemies. | Strong line damage; alignment is the tactical requirement. Preserve its successful fantasy as a benchmark. |
 | `plague_seed` → Plague Seed | Plant-themed seed infects an initial host, then infection spreads between hosts. | Delayed crowd payoff with visible planting, infected state and actual transfer. Current limits: 8 infected targets, 5-second effect, 0.5-second ticks, 130-world-unit spread distance. These are baseline values to re-evaluate, not approved final ranges. |
 | `cinder_field` → Cinder Field | Burning ground placed at an acquired target position. | Rewards holding enemies in an area. Keep distinct from a directional Firewall concept; geometry is a gameplay distinction. |
 | `arcane_orbit` → Arcane Orbit | Arcane satellites circle the wizard and hit nearby enemies. | Close-range moving protection; satellites are not autonomous spirit creatures. Count useful contacts, not theoretical full-lifetime damage. |
@@ -52,7 +52,7 @@ Ice Blast's cone and Bolt/Lightning/Lightning Bolt identities are confirmed. Oth
 | Life / Regeneration | Self-targeted effect, no enemy damage shape. | Caster. | Heal amount/ticks; do not show a large healing circle unless it affects that area. |
 | Earth Shield | Protective geometry undecided; distinguish from placed wall. | Near/attached to caster, pending role decision. | Segments, gaps, durability/decay, body/projectile blocking, movement and recast. |
 | Meteor Shower | Multiple separate impact circles, proposed. | Ground positions around acquired threats. | Each impact radius, landing delay, scatter, overlap and per-impact damage. Telegraph real landings. |
-| Ember Lance | Narrow travelling piercing projectile / swept capsule. | Direction acquired at release. | Width, range, piercing cap and repeat-hit prevention. |
+| Ember Spear | Narrow travelling piercing projectile / swept capsule. | Direction acquired at release. | Width, range, piercing cap and repeat-hit prevention. |
 | Plague Seed / Soul Bloom | Initial single-host delivery; local spread neighborhood around each infected host. | Valid first host, then host-to-host propagation. | Initial acquisition reach versus spread radius, timing/cap, obstruction rules. Spread radius is not continuous area damage. |
 | Cinder Field / Steam Field | Persistent ground area; circular boundary proposed. | At an acquired ground position. | Radius, tick rate, stacking and lifetime. Flame/steam visuals must respect affected area. |
 | Arcane Orbit | Several moving satellite hitboxes, not a fully damaging disk. | Paths orbit caster. | Orbit radius, satellite hit radius, contact cooldown and count. Empty space between satellites is not automatically damaging. |
@@ -62,7 +62,7 @@ Ice Blast's cone and Bolt/Lightning/Lightning Bolt identities are confirmed. Oth
 | Firewalk | Persistent chain of ground patches along movement. | Wizard's actual route. | Patch width/spacing, age, overlap and damage tick rules; never fill untravelled space. |
 | Cross Blade | Outbound, lingering and returning moving hitbox. | Released direction, returns toward moving caster. | Width, range, linger reach/time, per-leg repeat hits; sprite spinning alone does not expand damage radius. |
 | Life Bolt | Projectile contact; healing targets caster. | Sampled projectile direction; successful hit awards healing. | Projectile shape and actual healing condition. |
-| Meteor Lance | Piercing projectile plus local impact circles. | Along acquired line. | Projectile width and explosion radius independently defined; prevent unintended duplicate contact damage. |
+| Meteor Spear | Piercing projectile plus local impact circles. | Along acquired line. | Projectile width and explosion radius independently defined; prevent unintended duplicate contact damage. |
 
 Every approved spell specification must record: **delivery, hit shape, origin, aiming/placement, dimensions, timing, target limit, repeat-hit rule, obstruction behavior, and area-size/Multicast interaction**. Unknown values stay open rather than being silently inferred from the sprite.
 
@@ -85,10 +85,10 @@ Proposed contract: acquire a living visible host within an explicitly authored c
 | Bonus | Ingredients | Distinct tactical role and review requirement |
 |---|---|---|
 | Life Bolt | Currently Bolt + Regeneration; proposed Bolt + Life after split | Damage projectile earns healing on a real damaging hit. Current healing up to 6 HP; do not imply healing on a miss or automatically inherit the original's ranked volley. Less dependable sustain than Regeneration. |
-| Meteor Lance | Ember Lance + Meteor Shower | Piercing impacts produce local explosions. Current direct damage reduced 40%; explosions deal half hit damage within 90 units. Evaluate useful grouped damage versus focused lance damage. |
+| Meteor Spear | Ember Spear + Meteor Shower | Piercing impacts produce local explosions. Current direct damage reduced 40%; explosions deal half hit damage within 90 units. Evaluate useful grouped damage versus focused spear damage. |
 | Soul Bloom | Plague Seed + Regeneration | Spreading plant infection also heals. Current damage reduced 25%; healing 10% damage capped at 2 HP per tick. Show spreading and earned healing separately. |
 | Steam Field | Cinder Field + Ice Blast | Short ground damage plus slowing steam. Current duration 3 rather than 5 seconds and 40% slow. Preserve a control specialty instead of a universal field replacement. |
-| Prism Ray | Focus Ray + Ember Lance | Beam pierces several aligned targets. Current up to 3 targets at 60% individual damage. Focus Ray should remain useful against one strong target. |
+| Prism Ray | Focus Ray + Ember Spear | Beam pierces several aligned targets. Current up to 3 targets at 60% individual damage. Focus Ray should remain useful against one strong target. |
 | Frost Sigil | Rune Trap + Ice Blast | Prepared larger burst slows survivors. Current radius 170 and slower 1.4-second arming versus 0.8. Remove the conflicting expiry under persistent-trap rules; cap and replacement policy need approval. |
 | Reaping Spirit | Currently Seeking Spirit + Plague Seed; Seeker migration requires decision | Hunters cause local bursts on their qualifying contact kills. Current contact damage reduced 25%; burst half damage within 100 units, non-chaining. Specify hunter count and burst eligibility under the Seeker/Seeking Spirit split; do not silently keep an obsolete recipe. |
 | Lightning Bolt, new | Bolt + Lightning | Visible travelling projectile bounces between enemies in a readable hit order. More useful group output for the longer incantation; Bolt stays quick and Lightning stays immediate. Bounce count, range, repeat-hit rule and expiry need tuning. |
@@ -116,7 +116,7 @@ These categories consolidate user requests. Numeric rank values are proposals to
 | Enemy population | More enemies, yielding potential faster XP growth. | Explicit risk/reward; technical population caps must not nullify the benefit silently. |
 | Projectile speed | Faster relevant projectiles. | Beams, instant strikes and fields need an explicit non-applicable rule; no universal benefit claim. |
 
-Multicast mapping proposal: Bolt/Life Bolt/Lances/Cross Blade → another projectile; Meteor Shower → another meteor; Lightning → another strike; Lightning Bolt → another bounce; Seeker/Seeking Spirit/Reaping Spirit → another hunter; Orbit → another satellite; Life/Regeneration → another healing pulse; ground effects → an explicitly placed additional patch/trap; beams → an authored additional target or beam. **Earth Shield terrain and infection mappings remain open.** Do not multiply spread recursively or create infinite persistent traps. Validate passive interactions in the spell catalog before implementing global multipliers.
+Multicast mapping proposal: Bolt/Life Bolt/Spears/Cross Blade → another projectile; Meteor Shower → another meteor; Lightning → another strike; Lightning Bolt → another bounce; Seeker/Seeking Spirit/Reaping Spirit → another hunter; Orbit → another satellite; Life/Regeneration → another healing pulse; ground effects → an explicitly placed additional patch/trap; beams → an authored additional target or beam. **Earth Shield terrain and infection mappings remain open.** Do not multiply spread recursively or create infinite persistent traps. Validate passive interactions in the spell catalog before implementing global multipliers.
 
 ## Future concepts, not implementation scope
 
@@ -130,7 +130,7 @@ The individual, status-labelled rows now live in the [full library](SPELL_LIBRAR
 | Grasping Hand | Area control; clarify hold, root, pull, crush or another intended action before designing animation. |
 | Earthquake | Broad ground disruption; distinguish its control and timing from Ice Blast and Meteor Shower. |
 | Mana Storm / Firestorm / Lightning Rain | Large spectacle concepts; each needs a distinct pattern and target role, not a larger recolor of an existing field. |
-| Fire Bolt / Earth Bolt / Ice Lance / Firewall | Potential themed geometries or combinations. No obligation to build one spell per element. |
+| Fire Bolt / Earth Bolt / Ice Spear / Firewall | Potential themed geometries or combinations. No obligation to build one spell per element. |
 | Slash, Whip, new characters | Potential alternate starter weapons and floating focus items; deferred. |
 | Mega / giant modifier words | Deferred typed modifiers; no arbitrary phrases bypassing ownership. |
 

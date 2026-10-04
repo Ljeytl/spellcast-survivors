@@ -39,10 +39,10 @@ Explicit reconciliation queue before dependent implementation:
 | Roster count | Present catalog has 29 base rows and seven derived rows. Local intention asks for 36 independent spells plus combinations; completing that scope requires a separate catalog decision, not relabeling 36 existing rows. |
 | Soul Bloom / infection | Existing runtime leeches. New working identity lets player carry healing infection; root ceiling removed in proposal, host refresh and finite orphan lifetime retained. Tuning, reinfection loops and workload limits remain open; old leech numbers describe baseline only. |
 | Big infection | Recent preference is actual AoE sizing; old spread-radius mapping in component tables is not an approved rule. Choose an actual visible area or explicitly reject unsupported Big before migration. |
-| Meteor Lance | Impact explosion, second-hit explosion, and trailing meteorites are alternatives; select before changing its existing behavior. |
+| Meteor Spear | Impact explosion, second-hit explosion, and trailing meteorites are alternatives; select before changing its existing behavior. |
 | Focus Ray | Smooth visible target tracking proposed; full-circle rotating laser is a separate deferred idea. |
 | Arcane conversion | Candidate critical-hit bonus exists in local notes; amount and eligibility remain open, not implicit conversion behavior. |
-| Incantation tiers | Ice Lance/Glacial Lance shared family accepted; generic Wall plus stronger elemental synonyms remains an experiment. |
+| Incantation tiers | Ice Spear/Glacial Spear shared family accepted; generic Wall plus stronger elemental synonyms remains an experiment. |
 | Art | Inscription direction confirmed; exact font, palette, floor layout and animation require a small visual sample/user sketch. No requirement to replace all assets now. |
 
 Local uncommitted working notes were read as context, not copied into or overwritten by this branch. Where they contain unresolved alternatives, this record keeps the conflict visible instead of treating the older numeric draft as settled.

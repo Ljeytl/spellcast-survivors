@@ -8,15 +8,15 @@ This matrix is brainstorming, not a new shipping roster. Current code still has 
 
 Multiple spells may occupy any cell. Slice/Whip is one family; differences in shape, reach and motion belong to each spell.
 
-| School | Bolt | Ball | Lance | Ray | Slice / Whip | Blast |
+| School | Bolt | Ball | Spear | Ray | Slice / Whip | Blast |
 |---|---|---|---|---|---|---|
 | Arcane / Mana | **Bolt** — a simple bolt of magical energy | — | — | **Focus Ray** — a sustained tracking beam | Arcane Slash [U] — cut glyphs into an area; they detonate after a delay, with contact behavior open | — |
-| Fire | Fire Bolt [U] — a travelling bolt of fire | Fireball [U] — a classic explosive fire projectile | **Ember Lance** — a piercing lance of fire | Scorching Ray [U?] — two or three lingering fire beams, in a triangle or aimed at enemies | — | — |
-| Water / Ice | Snowball [U] — a compact ice projectile | — | Ice Lance / Glacial Lance [U?] — push foes aside or impale with a major debuff; Glacial is the stronger variant idea | Water Jet [U] — tracking water stream damages and pushes; upgrades may add jets | Water Whip [U] — lash with water; exact contact behavior open | **Ice Blast** — ice shards fan outward in a cone; Tsunami [U] — a rectangular wave spawns behind you and sweeps forward |
-| Lightning | — | — | Lightning Lance / rod [U?] — embeds or lands as a rod calling down strikes; persists after its host dies | Static Shock [U?] — a channeled chain of lightning | Lightning Whip [U] — lash with lightning; exact behavior open | — |
-| Earth / Metal | Spike [U; ground delivery] — a ground spike erupts and causes bleeding; Bullet / Spray [U?] — rapid travelling metal shots | Boulder [U; no splash assumed] — a slow heavy rock with high damage and knockback | Earth Lance [U] — shatters on impact into smaller scattering lances | — | **Cross Blade** — a blade lingers before returning; Slash [U] — slash toward the nearest enemy | Earth Blast [U] — a cone of fragments with knockback and bleed; Shrapnel [U?] — a blast of metal fragments; delivery open |
-| Plague / Death | **Seeker** (ghost identity retained) — a pursuing ghost that seeks enemies | Unnamed carcass projectile [U?] — hurl infected remains to create a diseased dead zone | Plague Lance [TBD] — fantasy and mechanics undecided | Ray of Sickness [U] — sweep across a crowd spreading damage over time, slow and possibly reduced enemy damage | — | — |
-| Life / Nature | — | Unnamed vine ball [U?] — a ball of vines damages and immobilizes an area; bleed is possible | Shillelagh [U] — Life Lance; preserve the vine/root fantasy, with final attack and pulling behavior open | — | Vine Whip [U] — lash with a living vine | — |
+| Fire | Fire Bolt [U] — a travelling bolt of fire | Fireball [U] — a classic explosive fire projectile | **Ember Spear** — a piercing spear of fire | Scorching Ray [U?] — two or three lingering fire beams, in a triangle or aimed at enemies | — | — |
+| Water / Ice | Snowball [U] — a compact ice projectile | — | Ice Spear / Glacial Spear [U?] — push foes aside or impale with a major debuff; Glacial is the stronger variant idea | Water Jet [U] — tracking water stream damages and pushes; upgrades may add jets | Water Whip [U] — lash with water; exact contact behavior open | **Ice Blast** — ice shards fan outward in a cone; Tsunami [U] — a rectangular wave spawns behind you and sweeps forward |
+| Lightning | — | — | Lightning Spear / rod [U?] — embeds or lands as a rod calling down strikes; persists after its host dies | Static Shock [U?] — a channeled chain of lightning | Lightning Whip [U] — lash with lightning; exact behavior open | — |
+| Earth / Metal | Spike [U; ground delivery] — a ground spike erupts and causes bleeding; Bullet / Spray [U?] — rapid travelling metal shots | Boulder [U; no splash assumed] — a slow heavy rock with high damage and knockback | Earth Spear [U] — shatters on impact into smaller scattering spears | — | **Cross Blade** — a blade lingers before returning; Slash [U] — slash toward the nearest enemy | Earth Blast [U] — a cone of fragments with knockback and bleed; Shrapnel [U?] — a blast of metal fragments; delivery open |
+| Plague / Death | **Seeker** (ghost identity retained) — a pursuing ghost that seeks enemies | Unnamed carcass projectile [U?] — hurl infected remains to create a diseased dead zone | Plague Spear [TBD] — fantasy and mechanics undecided | Ray of Sickness [U] — sweep across a crowd spreading damage over time, slow and possibly reduced enemy damage | — | — |
+| Life / Nature | — | Unnamed vine ball [U?] — a ball of vines damages and immobilizes an area; bleed is possible | Shillelagh [U] — Life Spear; preserve the vine/root fantasy, with final attack and pulling behavior open | — | Vine Whip [U] — lash with a living vine | — |
 
 Tsunami is a broad square/rectangular front spawning behind the player and travelling forward, with contact as it reaches enemies. It replaces the earlier radial Tsunami description. Shrapnel is in Blast; exact delivery remains open rather than requiring its earlier grenade proposal.
 
@@ -39,7 +39,7 @@ Nova/Wave is one family. Radial versus directional shape and propagation are pro
 | School | Shield | Orbit | Seed | Golem | Restoration |
 |---|---|---|---|---|---|
 | Arcane / Mana | Prismatic Shield [U] — temporary invulnerability, perhaps reflection; roughly ten seconds proposed | **Arcane Orbit** — orbiting magic strikes nearby enemies | — | — | XP magnet utility [U?] — draw distant XP toward you |
-| Fire | Fire Shield [U] — retaliate with a fire blast | Fire Orbit [U] — orbiting fire damages and burns | Flame Seed [U] — grows into a fire turret | Fire Golem [U?] — a fire ally, possibly casting Ember Lance from your kit | Flaming Restoration [U?] — restoration with a fire buff; payoff open |
+| Fire | Fire Shield [U] — retaliate with a fire blast | Fire Orbit [U] — orbiting fire damages and burns | Flame Seed [U] — grows into a fire turret | Fire Golem [U?] — a fire ally, possibly casting Ember Spear from your kit | Flaming Restoration [U?] — restoration with a fire buff; payoff open |
 | Water / Ice | — | — | — | — | — |
 | Lightning | — | — | — | — | — |
 | Earth / Metal | **Earth Shield** — stack one-hit blocks that erupt toward the attacker | — | — | Earth Golem [U] — summon a stone ally | — |
@@ -62,10 +62,10 @@ Sun and Moon are combination themes, not separate school rows. These are unimple
 |---|---|---|
 | Lightning Bolt | Bolt + Lightning | Bouncing projectile with impact lightning areas |
 | Life Bolt | Bolt + Life | Projectile plus healing ground patch |
-| Meteor Lance | Ember Lance + Meteor Shower | Piercing lance plus impact explosions |
+| Meteor Spear | Ember Spear + Meteor Shower | Piercing spear plus impact explosions |
 | Soul Bloom | Plague Seed + Regeneration | Infection and healing ground blooms; also shown in Seed by user request |
 | Steam Field | Cinder Field + Ice Blast | Damaging slowing field |
-| Prism Ray | Focus Ray + Ember Lance | Broad piercing ray with very slow rotation |
+| Prism Ray | Focus Ray + Ember Spear | Broad piercing ray with very slow rotation |
 | Frost Sigil | Rune Trap + Ice Blast | Persistent placed trap with freezing-themed burst/slow |
 
 ¹ Soul Bloom is shown in the main Seed column deliberately, not reclassified as a planted turret. Ingredients remain available; combinations consume no additional active slot.

@@ -1,11 +1,11 @@
 extends Node2D
-## The burning line an Ember Lance leaves behind: enemies standing in or walking into it
-## burn for a short while. Anchored in the world; grows with the lance while it flies.
+## The burning line an Ember Spear leaves behind: enemies standing in or walking into it
+## burn for a short while. Anchored in the world; grows with the spear while it flies.
 
 const MAX_ACTIVE = 3
 
 var a = Vector2.ZERO          # throw start (global)
-var b = Vector2.ZERO          # current lance tip (global)
+var b = Vector2.ZERO          # current spear tip (global)
 var radius = 24.0
 var tick_damage = 0.0
 var tick_interval = 0.5

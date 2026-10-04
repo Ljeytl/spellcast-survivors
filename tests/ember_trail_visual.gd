@@ -1,5 +1,5 @@
 extends SceneTree
-## Rendered evidence for the Ember Lance fire trail. Run windowed:
+## Rendered evidence for the Ember Spear fire trail. Run windowed:
 ## Godot --path . --script res://tests/ember_trail_visual.gd
 
 const OUT = "res://builds/ember-trail/"
@@ -34,7 +34,7 @@ func run():
 		enemy.global_position = game.player.global_position + Vector2(140 + i * 45, (i % 3 - 1) * 30)
 	game.spell_manager.mana_bolt_timer = 999.0
 	game.spell_manager.learn_spell("ember_lance")
-	game.spell_manager.cast_freeform_spell("ember lance")
+	game.spell_manager.cast_freeform_spell("ember spear")
 	await wait(0.25)
 	await shot("01-throw")
 	await wait(0.8)

@@ -1,5 +1,5 @@
 extends SceneTree
-## Ember Lance aims through the line with the most enemies, not at the nearest enemy.
+## Ember Spear always goes through the nearest enemy, tilting only to catch more behind it.
 
 var checks = 0
 var failures = 0
@@ -32,7 +32,7 @@ func run():
 	var line: Array = []
 	for i in 5:
 		line.append(add(Vector2.from_angle(deg_to_rad(10)) * (150 + i * 80)))
-	# A bigger crowd far off to the side that the lance can't reach without missing the nearest.
+	# A bigger crowd far off to the side that the spear can't reach without missing the nearest.
 	var crowd: Array = []
 	for i in 8:
 		crowd.append(add(Vector2(0, -150 - i * 40)))

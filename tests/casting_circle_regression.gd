@@ -7,7 +7,7 @@ const SPELLS = [
 	{"incantation": "bolt", "element": "arcane"}, {"incantation": "life", "element": "holy"},
 	{"incantation": "lightning", "element": "storm"}, {"incantation": "ice blast", "element": "ice"},
 	{"incantation": "infection", "element": "plague"}, {"incantation": "meteor shower", "element": "fire"},
-	{"incantation": "ember lance", "element": "fire"}, {"incantation": "cinder field", "element": "fire"},
+	{"incantation": "ember spear", "element": "fire"}, {"incantation": "cinder field", "element": "fire"},
 	{"incantation": "cross blade", "element": "steel"}, {"incantation": "fire walk", "element": "fire"},
 	{"incantation": "focus ray", "element": "arcane"},
 ]

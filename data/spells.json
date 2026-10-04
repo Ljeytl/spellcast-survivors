@@ -367,7 +367,8 @@
       "lance_radius": 24.0,
       "rank_growth": {"damage": {"per_rank": 39.4286}, "lance_radius": {"per_rank": 5.1429, "max": 60.0}},
       "id": "ember_lance",
-      "name": "Ember Lance",
+      "name": "Ember Spear",
+      "incantation": "ember spear",
       "element": "fire",
       "type": "piercing",
       "damage": 96,
@@ -376,7 +377,7 @@
       "burn_tick": 0.5,
       "burn_duration": 1.5,
       "duration": 5.0,
-      "role": "Pierce a line of enemies with a straight lance.",
+      "role": "Pierce a line of enemies with a thrown spear.",
       "unlock_condition": {
         "type": "default"
       }
