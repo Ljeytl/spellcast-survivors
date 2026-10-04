@@ -61,11 +61,12 @@ func run():
 	var clock_before = cycle.day_clock
 	cycle._process(30.0)
 	check(is_equal_approx(cycle.day_clock, clock_before), "The day clock stops at night")
-	check(monsters.current_spawn_phase().pressure == "night", "The boss night has its own spawn phase")
-	var early_night = monsters.spawn_phase_interval(monsters.game_time)
-	monsters.night_clock = 120.0
-	check(monsters.spawn_phase_interval(monsters.game_time) < early_night, "The longer the boss lives, the more monsters come")
-	monsters.night_clock = 0.0
+	# The boss night follows the normal 2-minute cycle on the run timer, difficulty still climbing.
+	var cycle_phase = func(t): return monsters.spawn_phase_at(t).interval
+	monsters.day_cycle_driven = false
+	var expected = cycle_phase.call(monsters.game_time)
+	monsters.day_cycle_driven = true
+	check(is_equal_approx(monsters.spawn_phase_interval(monsters.game_time), expected), "The boss night runs the normal two-minute spawn cycle")
 	var straggler = monsters.spawn_monster()
 	# load(), not preload(): a preload compiles XPOrb.gd before the autoloads exist.
 	var far_orb = load("res://scenes/XPOrb.tscn").instantiate()

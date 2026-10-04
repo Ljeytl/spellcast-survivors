@@ -90,7 +90,6 @@ func _process(delta):
 			if day_clock >= DAY_SECONDS:
 				nightfall()
 		Phase.NIGHT:
-			monsters.night_clock += delta
 			if not is_instance_valid(boss) or boss.dying:
 				boss_defeated()
 		Phase.AFTERMATH:
@@ -119,7 +118,6 @@ func apply_sky():
 func nightfall():
 	phase = Phase.NIGHT
 	monsters.phase_override = "night"
-	monsters.night_clock = 0.0
 	var entry = BOSSES[(day - 1) % BOSSES.size()]
 	var cycle = (day - 1) / BOSSES.size()
 	var definition = monsters.encounter_config.variants[entry.variant].duplicate(true)

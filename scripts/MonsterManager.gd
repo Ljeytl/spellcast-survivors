@@ -14,8 +14,6 @@ var day_cycle_driven: bool = false
 var phase_clock := -1.0
 ## Day-cycle override: "night" (the boss is out) or "rest" (the calm after a boss).
 var phase_override := ""
-## Seconds since the boss emerged; the night's spawning escalates with it.
-var night_clock := 0.0
 var last_phase_interval := -1.0
 ## Share of normal spawning while something else sets the pressure (a ley siege). 1 = normal.
 var ambient_share := 1.0
@@ -214,16 +212,11 @@ func spawn_phase_at(at_time: float) -> Dictionary:
 	if day_cycle_driven and phase_clock >= 0.0 and scaling.has("day_spawn_phases"):
 		if phase_override == "rest":
 			return {"pressure": "rest", "interval": 999.0, "floor": 0.0}
-		if phase_override == "night":
-			# The boss night escalates: the spawn interval steps from interval_start to
-			# interval_end over ramp_seconds (in steps, so the spawn timer is not reset every frame).
-			var night = scaling.get("night_spawn_phase", {})
-			var step = maxf(1.0, float(night.get("step_seconds", 10.0)))
-			var ramp = clampf(floorf(night_clock / step) * step / maxf(1.0, float(night.get("ramp_seconds", 90.0))), 0.0, 1.0)
-			var interval = lerpf(float(night.get("interval_start", night.get("interval", 3.0))), float(night.get("interval_end", night.get("interval", 3.0))), ramp)
-			return {"pressure": "night", "interval": interval, "floor": float(night.get("floor", 1.0)), "growth": float(night.get("growth", 1.0))}
-		phases = scaling.day_spawn_phases
-		phase_time = phase_clock
+		# The boss night (phase_override "night") runs the normal 2-minute cycle on the run
+		# timer, and difficulty keeps climbing with it: a long night means a harder next day.
+		if phase_override != "night":
+			phases = scaling.day_spawn_phases
+			phase_time = phase_clock
 	var latest_start = -INF
 	for phase in phases:
 		if not phase is Dictionary:
