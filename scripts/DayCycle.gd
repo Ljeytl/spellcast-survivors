@@ -23,13 +23,22 @@ const BOSSES = [
 	{"variant": "shieldbearer", "name": "The Iron Guard", "health": 9000.0},
 	{"variant": "juggernaut", "name": "The Warden", "health": 18000.0},
 ]
-## The sky grade: 0 = 3 pm, 1 = night. Each stop's colour is the hue the world shifts
-## toward and its alpha is how strongly. Edit data/day_sky.tres in the Godot editor.
-const SKY = preload("res://data/day_sky.tres")
+## The sky: keyframes over the day (t = day_clock / DAY_SECONDS; night is t = 1).
+## Each key is a grade for shaders/day_grade.gdshader: gain = colour of the light,
+## shadow / highlight = split toning, sat, contrast, bright, keep = how much spells and
+## other bright lights keep their own colour. Edit these to retune the look.
+const SKY_KEYS = [
+	{"t": 0.0, "gain": Vector3(1.0, 1.0, 1.0), "shadow": Vector3(0, 0, 0), "highlight": Vector3(0, 0, 0), "sat": 1.0, "contrast": 1.0, "bright": 1.0, "keep": 0.0, "hue": 0.0, "sky_top": Vector3(0, 0, 0), "sky_bottom": Vector3(0, 0, 0)},
+	{"t": 0.45, "gain": Vector3(1.03, 1.01, 0.94), "shadow": Vector3(0, 0, 0), "highlight": Vector3(0.02, 0.015, 0), "sat": 1.05, "contrast": 1.0, "bright": 1.0, "keep": 0.2, "hue": -3.0, "sky_top": Vector3(0.03, 0.02, 0.0), "sky_bottom": Vector3(0, 0, 0)},
+	{"t": 0.7, "gain": Vector3(1.12, 1.03, 0.8), "shadow": Vector3(0.01, 0.0, 0.02), "highlight": Vector3(0.08, 0.045, -0.02), "sat": 1.1, "contrast": 1.04, "bright": 1.02, "keep": 0.4, "hue": -7.0, "sky_top": Vector3(0.14, 0.08, 0.0), "sky_bottom": Vector3(0.03, 0.01, 0.0)},
+	{"t": 0.84, "gain": Vector3(1.18, 0.94, 0.86), "shadow": Vector3(0.03, -0.01, 0.06), "highlight": Vector3(0.1, 0.03, 0.0), "sat": 1.15, "contrast": 1.06, "bright": 1.0, "keep": 0.55, "hue": -12.0, "sky_top": Vector3(0.24, 0.09, 0.04), "sky_bottom": Vector3(0.05, 0.0, 0.04)},
+	{"t": 0.94, "gain": Vector3(0.88, 0.78, 1.02), "shadow": Vector3(0.04, 0.0, 0.09), "highlight": Vector3(0.08, 0.02, 0.02), "sat": 1.14, "contrast": 1.08, "bright": 0.92, "keep": 0.7, "hue": 18.0, "sky_top": Vector3(0.13, 0.03, 0.1), "sky_bottom": Vector3(0.0, 0.0, 0.05)},
+	{"t": 1.0, "gain": Vector3(0.62, 0.82, 1.12), "shadow": Vector3(0.0, 0.02, 0.1), "highlight": Vector3(0.02, 0.05, 0.09), "sat": 1.02, "contrast": 1.05, "bright": 0.97, "keep": 0.85, "hue": 22.0, "sky_top": Vector3(0.04, 0.06, 0.12), "sky_bottom": Vector3(0.0, 0.0, 0.03)},
+]
 const GRADE = preload("res://shaders/day_grade.gdshader")
-## Brightness at 3 pm and at night: night is bluer, only slightly dimmer.
-const DAY_BRIGHTNESS = 1.0
-const NIGHT_BRIGHTNESS = 0.9
+## Nightfall: the world dips darker for a beat as the boss arrives, then settles.
+const NIGHTFALL_DIP_SECONDS = 2.0
+const NIGHTFALL_DIP = 0.35
 
 enum Phase { DAY, NIGHT, CAMP, EXTRACTION, AFTERMATH }
 
@@ -41,11 +50,13 @@ var phase := Phase.DAY
 var boss: Node = null
 var dusk_announced := false
 var sunrise := 0.0
+var nightfall_dip := 0.0
 var aftermath := 0.0
 var grade_layer: CanvasLayer
 var grade: ShaderMaterial
 var clock_label: Label
 var banner: Label
+var banner_tween: Tween
 var camp: Control
 var camp_title: Label
 var camp_body: Label
@@ -80,6 +91,9 @@ func _process(delta):
 		wake()
 	if game.current_state != game.GameState.PLAYING:
 		return
+	# Timers that run down first, so a sunrise or nightfall dip starting this frame keeps its full length.
+	sunrise = maxf(0.0, sunrise - delta)
+	nightfall_dip = maxf(0.0, nightfall_dip - delta)
 	match phase:
 		Phase.DAY:
 			day_clock = minf(DAY_SECONDS, day_clock + delta)
@@ -98,22 +112,48 @@ func _process(delta):
 			aftermath -= delta
 			if aftermath <= 0.0:
 				open_camp()
-	sunrise = maxf(0.0, sunrise - delta)
 	apply_sky()
 	update_clock_label()
 
-func sky_color() -> Color:
-	var night = SKY.sample(1.0)
-	var color = SKY.sample(clampf(day_clock / DAY_SECONDS, 0.0, 1.0)) if phase == Phase.DAY else night
-	return color.lerp(night, sunrise / SUNRISE_SECONDS) if sunrise > 0.0 else color
+## Where the sky is between 3 pm (0) and night (1), including the sunrise blend after camp.
+func sky_time() -> float:
+	var t = clampf(day_clock / DAY_SECONDS, 0.0, 1.0) if phase == Phase.DAY else 1.0
+	return lerpf(t, 1.0, sunrise / SUNRISE_SECONDS) if sunrise > 0.0 else t
 
 func sky_progress() -> float:
-	return clampf(day_clock / DAY_SECONDS, 0.0, 1.0) if phase == Phase.DAY else 1.0
+	return sky_time()
+
+## The grade at sky time t, interpolated between keyframes (smoothstepped so it eases).
+func sky_grade(t: float) -> Dictionary:
+	for i in range(1, SKY_KEYS.size()):
+		var a = SKY_KEYS[i - 1]
+		var b = SKY_KEYS[i]
+		if t <= b.t:
+			var w = smoothstep(a.t, b.t, t)
+			var result = {}
+			for key in a:
+				result[key] = lerp(a[key], b[key], w)
+			return result
+	return SKY_KEYS.back().duplicate()
 
 func apply_sky():
-	grade.set_shader_parameter("hue", sky_color())
-	var night_amount = lerpf(sky_progress(), 1.0, sunrise / SUNRISE_SECONDS) if sunrise > 0.0 else sky_progress()
-	grade.set_shader_parameter("brightness", lerpf(DAY_BRIGHTNESS, NIGHT_BRIGHTNESS, night_amount))
+	var g = sky_grade(sky_time())
+	var dip = 0.0
+	if nightfall_dip > 0.0:
+		# A quick dip that eases back: darkest a third of the way in.
+		var p = 1.0 - nightfall_dip / NIGHTFALL_DIP_SECONDS
+		dip = NIGHTFALL_DIP * (p / 0.33 if p < 0.33 else 1.0 - (p - 0.33) / 0.67)
+	grade.set_shader_parameter("strength", 0.0 if g.t <= 0.001 and dip <= 0.0 else 1.0)
+	grade.set_shader_parameter("gain", g.gain)
+	grade.set_shader_parameter("shadow", g.shadow)
+	grade.set_shader_parameter("highlight", g.highlight)
+	grade.set_shader_parameter("saturation", g.sat)
+	grade.set_shader_parameter("contrast", g.contrast)
+	grade.set_shader_parameter("brightness", g.bright * (1.0 - dip))
+	grade.set_shader_parameter("light_keep", g.keep)
+	grade.set_shader_parameter("hue_shift", g.hue)
+	grade.set_shader_parameter("sky_top", g.sky_top)
+	grade.set_shader_parameter("sky_bottom", g.sky_bottom)
 
 func nightfall():
 	phase = Phase.NIGHT
@@ -125,6 +165,11 @@ func nightfall():
 	definition["name"] = entry.name
 	definition["boss_health"] = float(entry.health) * (1.0 + 0.5 * cycle)
 	boss = monsters.spawn_monster(definition, true)
+	# The arrival is a moment: the world dips dark, the ground shakes, the boss is named.
+	nightfall_dip = NIGHTFALL_DIP_SECONDS
+	if game.has_method("shake_heavy"):
+		game.shake_heavy()
+	announce("Night falls", entry.name)
 	if boss:
 		monsters.boss_arrived.emit(entry.name)
 
@@ -218,9 +263,11 @@ func update_clock_label():
 func announce(title: String, line: String):
 	banner.text = "%s\n%s" % [title.to_upper(), line]
 	banner.modulate.a = 1.0
-	var tween = banner.create_tween()
-	tween.tween_interval(2.4)
-	tween.tween_property(banner, "modulate:a", 0.0, 0.8)
+	if banner_tween and banner_tween.is_valid():
+		banner_tween.kill()
+	banner_tween = banner.create_tween()
+	banner_tween.tween_interval(2.4)
+	banner_tween.tween_property(banner, "modulate:a", 0.0, 0.8)
 
 func build_hud():
 	clock_label = Label.new()

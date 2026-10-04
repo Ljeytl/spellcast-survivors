@@ -1,3 +1,11 @@
+# Experiment (experiment/day-cycle) — Dusk and night look
+
+- New colour grade (shaders/day_grade.gdshader): light colour (per-channel gain), split toning (shadows and highlights tinted separately), hue rotation, saturation, contrast, and a sky glow washed down from the top of the screen. Replaces the flat tint that turned the field mustard, brown and flat teal.
+- The day goes: plain 3 pm → warmer afternoon → golden hour (yellow-green, warm highlights) → sunset (amber, orange sky glow) → twilight (cool ground, mauve sky glow, purple shadows) → night (deep blue-green, moonlit highlights, still bright enough to read).
+- Lights pop: bright, saturated pixels (spells, fire, the wizard) keep most of their own colour, more so as night falls.
+- Nightfall is a moment: the world dips dark for 2 s and eases back, the screen shakes, and the banner reads NIGHT FALLS with the boss's name. Banners no longer cut each other off.
+- Keyframes live in DayCycle.SKY_KEYS (data/day_sky.tres is gone).
+
 # Experiment (experiment/day-cycle) — Console: day command
 
 - Developer console (~): `day 3` starts day 3 (run time moves forward to match, never back), `day dusk` puts you 3 s before the dusk warning, `day night` brings the boss now. Test: day_console_regression.
