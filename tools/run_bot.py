@@ -72,6 +72,7 @@ def main():
     parser.add_argument("--invulnerable", action="store_true", help="Debug: player takes no damage")
     parser.add_argument("--magnet", action="store_true", help="Debug: collect XP from the whole map")
     parser.add_argument("--no-missile", action="store_true", help="Debug: switch off the automatic Magic Missile")
+    parser.add_argument("--rank-schedule", default="", help="Debug: minutes at which focus spells reach ranks 2..8, e.g. 1.4,2.9,4.3,5.7,7.1,8.6,10 (removes rank-card luck)")
     parser.add_argument("--unlimited-atomic", action="store_true", help="Debug: fire an Atomic every 3 seconds, ignoring rank and charges")
     args = parser.parse_args()
     if not 0 < args.seconds <= 1200:
@@ -101,7 +102,7 @@ def main():
                 command += ["--headless"]
             if args.fast:
                 command += ["--fixed-fps", "60", "--disable-render-loop"]
-            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}", f"--focus={args.focus}", f"--passives={args.passives}", f"--invulnerable={'1' if args.invulnerable else '0'}", f"--magnet={'1' if args.magnet else '0'}", f"--no-missile={'1' if args.no_missile else '0'}", f"--unlimited-atomic={'1' if args.unlimited_atomic else '0'}", f"--telemetry={output / f'{seed}-telemetry.json'}"]
+            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}", f"--focus={args.focus}", f"--passives={args.passives}", f"--invulnerable={'1' if args.invulnerable else '0'}", f"--magnet={'1' if args.magnet else '0'}", f"--no-missile={'1' if args.no_missile else '0'}", f"--unlimited-atomic={'1' if args.unlimited_atomic else '0'}", f"--telemetry={output / f'{seed}-telemetry.json'}", f"--rank-schedule={args.rank_schedule}"]
             print(f"Running seed {seed}; results: {output}", flush=True)
             with (output / f"{seed}.log").open("w") as log:
                 subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=3700)
