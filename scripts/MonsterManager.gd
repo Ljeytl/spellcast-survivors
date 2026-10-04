@@ -7,6 +7,16 @@ signal run_completed
 
 var run_finished: bool = false
 var awaiting_extraction: bool = false
+## Set by DayCycle: bosses and extraction follow the days instead of fixed run times.
+var day_cycle_driven: bool = false
+## Day-cycle runs: seconds into the current day, which picks the spawn phase from
+## scaling.day_spawn_phases instead of the repeating cycle. Negative = unused.
+var phase_clock := -1.0
+## Day-cycle override: "night" (the boss is out) or "rest" (the calm after a boss).
+var phase_override := ""
+var last_phase_interval := -1.0
+## Share of normal spawning while something else sets the pressure (a ley siege). 1 = normal.
+var ambient_share := 1.0
 var endless_mode: bool = false
 
 const EnemyScene = preload("res://scenes/EncounterEnemy.tscn")
@@ -71,7 +81,8 @@ func variant_spawn_weight(definition: Dictionary) -> float:
 	return float(definition.weight) * (1.0 + adaptive_clear_pressure() * 0.75 if specialist else 1.0)
 
 func refill_population_target() -> int:
-	return mini(max_monsters, int(lerpf(6.0, 24.0, clampf(game_time / 600.0, 0.0, 1.0))) + int(adaptive_clear_pressure() * 8.0))
+	var floor_share = clampf(float(current_spawn_phase().get("floor", 1.0)) * ambient_share, 0.0, 1.0)
+	return mini(max_monsters, int(floor_share * (lerpf(6.0, 24.0, clampf(game_time / 600.0, 0.0, 1.0)) + adaptive_clear_pressure() * 8.0)))
 
 func replenish_population(delta: float):
 	if run_finished or awaiting_extraction:
@@ -93,7 +104,7 @@ func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1)
 		"health": float(definition.health) * health_multiplier,
 		"speed": float(definition.speed),
 		"damage": float(definition.damage) * (1.0 + maxf(0.0, game_time - 300.0) * float(scaling.damage_growth_per_second)),
-		"xp": float(definition.xp) * sqrt(health_multiplier)
+		"xp": float(definition.xp) * sqrt(health_multiplier) * float(scaling.get("xp_multiplier", 1.0))
 	}
 
 func _on_spawn_timer_timeout():
@@ -143,6 +154,30 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 			first = monster
 	return first
 
+## Pull every XP orb on the map to the player (after a boss falls nothing is left behind).
+func vacuum_xp():
+	for orb in get_tree().get_nodes_in_group("xp_orbs"):
+		if is_instance_valid(orb) and not orb.is_queued_for_deletion() and orb.get("collected") == false:
+			orb.is_moving_to_player = true
+			orb.move_speed = maxf(orb.move_speed, 900.0)
+
+## The boss has fallen: every other monster flees into the dark (no kill, no XP).
+func rout():
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.dying or enemy.boss:
+			continue
+		enemy.dying = true
+		enemy.remove_from_group("enemies")
+		enemy.collision_layer = 0
+		enemy.collision_mask = 0
+		enemy.set_physics_process(false)
+		monsters_alive = maxi(0, monsters_alive - 1)
+		var away = enemy.global_position - player.global_position if is_instance_valid(player) else Vector2.RIGHT
+		var tween = enemy.create_tween().set_parallel()
+		tween.tween_property(enemy, "global_position", enemy.global_position + away.normalized() * 320.0, 1.4).set_ease(Tween.EASE_IN)
+		tween.tween_property(enemy, "modulate:a", 0.0, 1.4)
+		tween.chain().tween_callback(enemy.queue_free)
+
 func check_boss_milestones():
 	if run_finished:
 		return
@@ -162,20 +197,36 @@ func check_boss_milestones():
 			print("Boss milestone: %ds, %s" % [at_time, milestone.name])
 
 func spawn_phase_interval(at_time: float) -> float:
+	return float(spawn_phase_at(at_time).get("interval", 3.0))
+
+## The spawn phase in effect now (light / medium / heavy), with its interval and population floor.
+func current_spawn_phase() -> Dictionary:
+	return spawn_phase_at(game_time)
+
+func spawn_phase_at(at_time: float) -> Dictionary:
 	var scaling = encounter_config.get("scaling", {})
-	var interval = maxf(0.01, float(scaling.get("opening_spawn_interval", 3.0)))
+	var result = {"pressure": "", "interval": maxf(0.01, float(scaling.get("opening_spawn_interval", 3.0))), "floor": 1.0, "growth": 1.0}
+	var phases = scaling.get("spawn_phases", [])
 	var cycle = float(scaling.get("spawn_cycle_seconds", 0.0))
 	var phase_time = fposmod(at_time, cycle) if cycle > 0.0 else at_time
+	if day_cycle_driven and phase_clock >= 0.0 and scaling.has("day_spawn_phases"):
+		if phase_override == "rest":
+			return {"pressure": "rest", "interval": 999.0, "floor": 0.0}
+		# The boss night (phase_override "night") runs the normal 2-minute cycle on the run
+		# timer, and difficulty keeps climbing with it: a long night means a harder next day.
+		if phase_override != "night":
+			phases = scaling.day_spawn_phases
+			phase_time = phase_clock
 	var latest_start = -INF
-	for phase in scaling.get("spawn_phases", []):
+	for phase in phases:
 		if not phase is Dictionary:
 			continue
 		var start = float(phase.get("start", -1.0))
 		var candidate = float(phase.get("interval", 0.0))
 		if is_finite(start) and is_finite(candidate) and start >= 0.0 and start <= phase_time and start > latest_start and candidate > 0.0:
 			latest_start = start
-			interval = candidate
-	return interval
+			result = {"pressure": str(phase.get("pressure", "")), "interval": candidate, "floor": float(phase.get("floor", 1.0)), "growth": float(phase.get("growth", 1.0))}
+	return result
 
 func spawn_difficulty_multiplier() -> float:
 	return minf(float(encounter_config.get("scaling", {}).get("maximum_spawn_difficulty", INF)), timed_spawn_difficulty_multiplier())
@@ -209,6 +260,9 @@ func timed_spawn_difficulty_multiplier() -> float:
 func calculate_spawn_interval() -> float:
 	var scaling = encounter_config.get("scaling", {})
 	var difficulty = minf(float(scaling.get("maximum_spawn_difficulty", INF)), spawn_difficulty_multiplier() * (1.0 + 0.3 * adaptive_clear_pressure()))
+	# A phase's "growth" (0..1) is how much of the run's difficulty growth it takes on:
+	# light phases can stay a breather late in the run while heavy phases scale fully.
+	difficulty = pow(maxf(1.0, difficulty), clampf(float(current_spawn_phase().get("growth", 1.0)), 0.0, 1.0)) * clampf(ambient_share, 0.05, 1.0)
 	return maxf(maxf(0.01, float(scaling.get("minimum_spawn_interval", 0.1))), spawn_phase_interval(game_time) / difficulty)
 
 func spawn_batch_amount() -> float:
@@ -273,6 +327,13 @@ func _on_monster_died(monster: CharacterBody2D):
 func add_game_time(additional_time: float):
 	advance_time(additional_time)
 
+func begin_extraction():
+	if run_finished or awaiting_extraction:
+		return
+	awaiting_extraction = true
+	spawn_timer.stop()
+	run_completed.emit()
+
 func continue_endless():
 	if run_finished or not awaiting_extraction:
 		return
@@ -283,17 +344,19 @@ func continue_endless():
 func advance_time(delta: float):
 	if run_finished or awaiting_extraction:
 		return
-	var previous_phase = spawn_phase_interval(game_time)
 	game_time = maxf(0.0, game_time + delta)
-	if not endless_mode and game_time >= float(encounter_config.run_duration):
+	if not endless_mode and not day_cycle_driven and game_time >= float(encounter_config.run_duration):
 		game_time = float(encounter_config.run_duration)
 		awaiting_extraction = true
 		spawn_timer.stop()
 		run_completed.emit()
 		return
-	if not is_equal_approx(previous_phase, spawn_phase_interval(game_time)) and not spawn_timer.is_stopped():
+	var phase_interval = spawn_phase_interval(game_time)
+	if not is_equal_approx(last_phase_interval, phase_interval) and not spawn_timer.is_stopped():
 		spawn_timer.start(calculate_spawn_interval())
-	check_boss_milestones()
+	last_phase_interval = phase_interval
+	if not day_cycle_driven:
+		check_boss_milestones()
 	encounter_director.update(delta)
 	if not spawn_timer.is_stopped():
 		replenish_population(delta)

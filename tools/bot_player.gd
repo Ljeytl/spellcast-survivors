@@ -55,6 +55,21 @@ var started = 0
 var ready = false
 var finished = false
 var progress_wall = 0
+## Typing speed in characters per second, and the idle gap between casts (seconds).
+var chars_per_second = 5.0
+var cast_gap_min = 2.0
+var cast_gap_max = 4.0
+## Five-second samples of pressure around the player: how many enemies are alive and close, health, spawn phase.
+var timeline: Array = []
+var next_sample = 5.0
+var damage_since_sample = 0.0
+var camps: Array = []
+var camp_wait = 1.0
+## Skilled mode: crowd-aware kiting and only typing in gaps; a stand-in for a competent player.
+var skilled = false
+## Ley mode: after the opening, walk to the nearest unfinished ley site and type its words in the circle.
+var ley_mode = false
+var ley_log: Array = []
 
 func _initialize():
 	for argument in OS.get_cmdline_user_args():
@@ -63,7 +78,14 @@ func _initialize():
 			continue
 		match parts[0]:
 			"--seed": run_seed = int(parts[1])
-			"--limit": limit = clampf(float(parts[1]), 1.0, 1200.0)
+			"--limit": limit = clampf(float(parts[1]), 1.0, 3600.0)
+			"--ley": ley_mode = parts[1] in ["1", "true", "yes"]
+			"--skilled": skilled = parts[1] in ["1", "true", "yes"]
+			"--cps": chars_per_second = maxf(0.5, float(parts[1]))
+			"--cast-gap":
+				var gap = parts[1].split(",")
+				cast_gap_min = float(gap[0])
+				cast_gap_max = float(gap[1]) if gap.size() > 1 else cast_gap_min
 			"--report": report_path = parts[1]
 			"--mode": behavior_mode = parts[1]
 			"--focus": focus_spells = Array(parts[1].split(",", false))
@@ -128,6 +150,10 @@ func _process(delta):
 	if game.current_state == game.GameState.GAME_OVER:
 		finish("victory" if game.run_won else "death")
 		return false
+	if game.current_state == game.GameState.EXTRACTION:
+		# Day-cycle runs: the fourth boss leads to extraction; the bot takes it as the win.
+		finish("victory")
+		return false
 	if time >= limit:
 		finish("time_limit")
 		return false
@@ -138,6 +164,9 @@ func _process(delta):
 		checkpoints.append({"seconds": time, "level": game.player.level, "health": game.player.health, "kills": game.enemies_killed, "enemies_alive": get_nodes_in_group("enemies").size(), "uncollected_xp": uncollected_xp(), "bosses": boss_snapshot(), "focus_ranks": focus_ranks(), "damage_by_spell": game.style_session.damage_by_spell.duplicate() if game.get("style_session") else {}, "spell_damage_multiplier": game.player.spell_damage_multiplier, "damage_by_kind": damage_by_kind.duplicate(), "damage_while_typing": damage_while_typing})
 		print("BOT checkpoint ", checkpoints.back())
 		next_checkpoint += 60.0
+	if time >= next_sample:
+		next_sample += 5.0
+		sample_timeline(time)
 	var input_delta = delta / maxf(Engine.time_scale, 0.01)
 	if not rank_schedule.is_empty():
 		apply_rank_schedule(time)
@@ -167,6 +196,15 @@ func _process(delta):
 				button.pressed.emit()
 				choice_wait = 1.0
 		return false
+	if game.current_state == game.GameState.CAMP:
+		# The bot rests a moment, then wakes; camps are logged so pacing reports can see them.
+		release_movement()
+		camp_wait -= input_delta
+		if camp_wait <= 0.0:
+			camp_wait = 1.0
+			camps.append(time)
+			get_first_node_in_group("day_cycle").wake()
+		return false
 	if paused:
 		release_movement()
 		return false
@@ -176,7 +214,7 @@ func _process(delta):
 		release_movement()
 		type_wait -= input_delta
 		if type_wait <= 0.0:
-			type_wait = 0.2
+			type_wait = 1.0 / chars_per_second
 			if typed_index < pending_text.length():
 				var character = pending_text.unicode_at(typed_index)
 				press_key(character, character)
@@ -191,19 +229,22 @@ func _process(delta):
 	pending_text = ""
 	reaction -= input_delta
 	if reaction <= 0.0:
-		reaction = 0.3
+		reaction = 0.15 if skilled else 0.3
 		if behavior_mode in ["movement", "active"]:
 			move_decision()
 		else:
 			release_movement()
 	cast_wait -= input_delta
-	if cast_wait <= 0.0 and behavior_mode in ["casting", "active"]:
-		cast_wait = rng.randf_range(2.0, 4.0)
+	if cast_wait <= 0.0 and behavior_mode in ["casting", "active"] and safe_to_type():
+		cast_wait = rng.randf_range(cast_gap_min, cast_gap_max)
 		var owned = spells.get_owned_incantations()
 		if not focus_spells.is_empty():
 			# Focus mode casts only the focus spells; until one is learned it casts nothing.
 			var focused = focus_incantations()
 			owned = owned.filter(func(name): return name in focused)
+		var ley_words = spells.ley_words() if ley_mode and spells.has_method("ley_words") else []
+		if not ley_words.is_empty():
+			owned = [ley_words[0]]
 		if not owned.is_empty():
 			attempts += 1
 			var selected = owned[rng.randi_range(0, owned.size() - 1)]
@@ -211,7 +252,7 @@ func _process(delta):
 			if spells.is_typing:
 				pending_text = selected
 				typed_index = 0
-				type_wait = 0.2
+				type_wait = 1.0 / chars_per_second
 			else:
 				failures += 1
 	return false
@@ -298,21 +339,79 @@ func focus_ranks() -> Dictionary:
 
 func move_decision():
 	var position = game.player.global_position
-	var closest_enemy = nearest("enemies", position)
 	var direction = Vector2.ZERO
-	if closest_enemy and position.distance_to(closest_enemy.global_position) < 220.0:
-		direction = position - closest_enemy.global_position
-	else:
+	if skilled:
+		# Skilled mode: steer away from the whole crowd (closer enemies push harder), drift to XP when it is calm.
+		var push = Vector2.ZERO
+		for enemy in get_nodes_in_group("enemies"):
+			if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
+				continue
+			var offset = position - enemy.global_position
+			var distance = maxf(24.0, offset.length())
+			if distance < 420.0:
+				push += offset / distance * pow(420.0 / distance, 2.0)
 		var orb = nearest("xp_orbs", position)
-		if orb:
-			direction = orb.global_position - position
+		var site = ley_target()
+		var hunted = nearest("bosses", position) if invulnerable else null
+		if hunted and is_instance_valid(hunted) and not hunted.dying and position.distance_to(hunted.global_position) > 220.0:
+			# Invulnerable runs measure boss fights, so the bot goes to the boss like a player would.
+			direction = hunted.global_position - position
+		elif site:
+			var to_site = site.global_position - position
+			var inside = to_site.length() < site.RADIUS * 0.55
+			direction = push.normalized() * minf(push.length(), 3.0) / 3.0 * (1.6 if inside else 1.0)
+			if not inside or push.length() < 0.5:
+				direction += to_site.normalized() * (1.0 if not inside else 0.4)
+		elif push.length() > 1.5 or not orb:
+			direction = push if push.length() > 0.01 else Vector2.from_angle(rng.randf_range(-PI, PI))
+			# Lean back toward the arena centre so the bot does not pin itself against the edge.
+			direction = direction.normalized() - position.normalized() * clampf(position.length() / 3000.0, 0.0, 0.8)
 		else:
-			direction = Vector2.from_angle(rng.randf_range(-PI, PI)) * 100.0
+			direction = orb.global_position - position
+	else:
+		var closest_enemy = nearest("enemies", position)
+		if closest_enemy and position.distance_to(closest_enemy.global_position) < 220.0:
+			direction = position - closest_enemy.global_position
+		else:
+			var orb = nearest("xp_orbs", position)
+			if orb:
+				direction = orb.global_position - position
+			else:
+				direction = Vector2.from_angle(rng.randf_range(-PI, PI)) * 100.0
 	release_movement()
-	if absf(direction.x) > 8.0:
+	var threshold = 0.38 * direction.length() if skilled else 8.0
+	if absf(direction.x) > threshold:
 		Input.action_press("move_right" if direction.x > 0 else "move_left")
-	if absf(direction.y) > 8.0:
+	if absf(direction.y) > threshold:
 		Input.action_press("move_down" if direction.y > 0 else "move_up")
+
+## Ley mode: the nearest site that still needs work (asleep or under siege); none during the first minute.
+func ley_target():
+	if not ley_mode or run_time() < 45.0:
+		return null
+	var ley = game.get_node_or_null("LeyLines")
+	if not ley:
+		return null
+	var best = null
+	var best_distance = INF
+	for site in ley.sites:
+		if site.state in [site.State.DORMANT, site.State.SIEGE, site.State.GUARDIAN]:
+			# Finish the site in hand (siege or guardian) before waking another.
+			var distance = game.player.global_position.distance_to(site.global_position) - (5000.0 if site.state != site.State.DORMANT else 0.0)
+			if distance < best_distance:
+				best_distance = distance
+				best = site
+	var key = str(best.get_instance_id()) + ":" + str(best.state) if best else "none"
+	if ley_log.is_empty() or ley_log.back().key != key:
+		ley_log.append({"key": key, "seconds": snappedf(run_time(), 0.1), "state": best.state if best else -1, "bound": best.bound.size() if best else 0})
+	return best
+
+## Skilled mode: only start an incantation when nothing is about to touch the wizard.
+func safe_to_type() -> bool:
+	if not skilled or invulnerable:
+		return true
+	var closest = nearest("enemies", game.player.global_position)
+	return not closest or game.player.global_position.distance_to(closest.global_position) > 90.0
 
 func nearest(group: String, position: Vector2):
 	var result = null
@@ -348,6 +447,27 @@ func observe_health(health: float, _maximum: float, overheal: float):
 	previous_health = health
 	previous_overheal = overheal
 
+func sample_timeline(time: float):
+	var position = game.player.global_position
+	var near = 0
+	var touch = 0
+	for enemy in get_nodes_in_group("enemies"):
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
+			var distance = position.distance_to(enemy.global_position)
+			near += 1 if distance < 450.0 else 0
+			touch += 1 if distance < 110.0 else 0
+	var monsters = game.get_node("MonsterManager")
+	var cycle = get_first_node_in_group("day_cycle")
+	var phase = monsters.current_spawn_phase() if monsters.has_method("current_spawn_phase") else {}
+	timeline.append({"t": snappedf(time, 0.1), "alive": monsters.monsters_alive, "near": near, "touch": touch, "hp": snappedf(game.player.health, 0.1),
+		"damage": snappedf(damage_since_sample, 0.1), "pressure": str(phase.get("pressure", "")), "level": game.player.level,
+		"day": cycle.day if cycle else 0, "phase": cycle.phase if cycle else -1, "casts": successful_casts, "chars": characters_typed})
+	damage_since_sample = 0.0
+
+func ley_states() -> Array:
+	var ley = game.get_node_or_null("LeyLines")
+	return ley.sites.map(func(site): return site.state) if ley else []
+
 func run_time() -> float:
 	return game.get_node("MonsterManager").game_time
 
@@ -375,6 +495,7 @@ func observe_damage():
 		first_damage_seconds = run_time()
 	var kind = str(context.get("kind", "unknown"))
 	damage_by_kind[kind] = damage_by_kind.get(kind, 0.0) + amount
+	damage_since_sample += amount
 	if game.spell_manager.is_typing:
 		damage_while_typing += amount
 	context["damage"] = amount
@@ -401,9 +522,9 @@ func finish(outcome: String):
 		"casting_input": "space_enter", "casts_by_spell": casts_by_spell,
 		"casting_failures": failures, "characters_typed": characters_typed,
 		"distance_walked": distance_walked, "spells_acquired": game.spell_manager.get_unlocked_spell_names(),
-		"upgrade_choices": upgrades, "checkpoints": checkpoints,
+		"upgrade_choices": upgrades, "checkpoints": checkpoints, "timeline": timeline, "camps": camps, "ley_log": ley_log, "ley_states": ley_states(),
 		"save_directory": OS.get_user_data_dir(), "reaction_seconds": 0.3,
-		"characters_per_second": 5.0, "measured_fps": Engine.get_frames_per_second()}
+		"characters_per_second": chars_per_second, "cast_gap": [cast_gap_min, cast_gap_max], "measured_fps": Engine.get_frames_per_second()}
 	var file = FileAccess.open(report_path, FileAccess.WRITE)
 	if not file:
 		printerr("Cannot write bot report: ", report_path)

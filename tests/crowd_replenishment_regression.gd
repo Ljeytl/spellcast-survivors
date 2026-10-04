@@ -47,6 +47,11 @@ func run():
 	current_scene = game
 	await process_frame
 	var manager = game.get_node("MonsterManager")
+	# This suite covers the classic 20-minute run: the day cycle (experiment) is switched off.
+	manager.day_cycle_driven = false
+	var day_cycle = game.get_node_or_null("DayCycle")
+	if day_cycle:
+		day_cycle.set_process(false)
 	manager.set_process(false)
 	manager.spawn_timer.stop()
 	game.player.set_physics_process(false)
@@ -149,7 +154,7 @@ func run():
 		manager.game_time = point.time
 		check(is_equal_approx(manager.spawn_difficulty_multiplier(), point.multiplier), "Compressed ramp meets explicit rate milestone")
 	manager.game_time = 480.0
-	check(is_equal_approx(manager.calculate_spawn_interval(), 0.75), "Eight-minute light phase reaches former fourfold target")
+	check(is_equal_approx(manager.calculate_spawn_interval(), 4.0 / 4.0), "Eight-minute light phase (4 s base) reaches the fourfold target")
 	check(manager.calculate_spawn_batch_size() == 1, "Eight-minute batches remain fractional rather than jumping early")
 	for point in [{"time": 300.0, "sequence": [1, 2, 1, 2]}, {"time": 660.0, "sequence": [2, 2, 2, 2]}, {"time": 930.0, "sequence": [2, 3, 2, 3]}, {"time": 1200.0, "sequence": [3, 3, 3, 3]}]:
 		manager.game_time = point.time

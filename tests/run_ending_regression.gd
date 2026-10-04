@@ -47,6 +47,10 @@ func run():
 		current_scene = game
 		await settle()
 		var manager = game.get_node("MonsterManager")
+		# This suite covers the fixed 20:00 ending; the day-cycle experiment has its own test.
+		if game.has_node("DayCycle"):
+			game.get_node("DayCycle").queue_free()
+			manager.day_cycle_driven = false
 		game.player.is_invincible = true
 		for state in [game.GameState.PAUSED, game.GameState.LEVEL_UP]:
 			game.change_state(state)

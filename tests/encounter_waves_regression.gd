@@ -140,6 +140,8 @@ func run():
 		for milestone in manager.encounter_config.bosses:
 			check(absf(wave.time - milestone.time) > 30, "Rush separated from boss milestones")
 	director.wave_remaining = 12
+	# The fixed 20:00 ending; the day-cycle experiment ends runs by days instead (own test).
+	manager.day_cycle_driven = false
 	manager.game_time = 1199.9
 	manager.advance_time(0.2)
 	check(manager.awaiting_extraction and not manager.run_finished, "20 minute choice suspends encounter updates")
