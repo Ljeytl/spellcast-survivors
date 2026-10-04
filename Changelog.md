@@ -1,3 +1,10 @@
+# Experiment (experiment/day-cycle) — Boss nights escalate, XP is never left behind
+
+- Boss nights escalate instead of easing off: spawning starts between medium and heavy (interval 1.6 s) and steps up every 10 s to 0.7 s over 90 s, full minimum crowd. The longer the boss lives, the more monsters come.
+- When the boss falls the rest still flee, and now every XP orb on the map flies to the player during the 6 s quiet before camp (including the boss's own drop).
+- Boss health rebalanced so each night is a fight of similar length (bot runs: 27–53 s, 37–94 s, 29–58 s, 15–62 s before the Warden bump): The Gatekeeper 1000, The Pursuer 5000, The Iron Guard 9000, The Warden 18000. Before, bosses 2–4 died roughly ten times faster than the first.
+- Bot: in invulnerable runs it walks to the boss instead of kiting away, so boss fight lengths are measurable.
+
 # Experiment (experiment/day-cycle) — Balance pass: days with a shape, real rests
 
 - Spawn pressure follows the day clock, not the run timer (scaling.day_spawn_phases). Every day has the same shape: a 30 s light opening after waking, four heavy waves that build toward dusk (spawn interval 1.4 → 1.25 → 1.1 → 0.95 s before difficulty scaling), a medium tail after each of the first three, a light breather between waves, and a 25 s calm before the boss. About 47% of daylight is light, 38% heavy, 15% medium.

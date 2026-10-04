@@ -13,15 +13,15 @@ const DUSK_AT = 0.8
 const SUNRISE_SECONDS = 2.5
 ## Seconds of no combo decay after waking.
 const WAKE_GRACE = 10.0
-## After the boss falls: the other monsters flee and the field stays quiet this long
-## (time to grab the chest and XP) before camp opens.
+## After the boss falls: the other monsters flee, every XP orb on the map flies to the
+## player, and the field stays quiet this long (time to grab the chest) before camp opens.
 const AFTERMATH_SECONDS = 6.0
 ## One boss per night; past the list it repeats, tougher each cycle.
 const BOSSES = [
-	{"variant": "juggernaut", "name": "The Gatekeeper", "health": 900.0},
-	{"variant": "charger", "name": "The Pursuer", "health": 3500.0},
-	{"variant": "shieldbearer", "name": "The Iron Guard", "health": 5500.0},
-	{"variant": "juggernaut", "name": "The Warden", "health": 8000.0},
+	{"variant": "juggernaut", "name": "The Gatekeeper", "health": 1000.0},
+	{"variant": "charger", "name": "The Pursuer", "health": 5000.0},
+	{"variant": "shieldbearer", "name": "The Iron Guard", "health": 9000.0},
+	{"variant": "juggernaut", "name": "The Warden", "health": 18000.0},
 ]
 ## The sky grade: 0 = 3 pm, 1 = night. Each stop's colour is the hue the world shifts
 ## toward and its alpha is how strongly. Edit data/day_sky.tres in the Godot editor.
@@ -90,9 +90,12 @@ func _process(delta):
 			if day_clock >= DAY_SECONDS:
 				nightfall()
 		Phase.NIGHT:
+			monsters.night_clock += delta
 			if not is_instance_valid(boss) or boss.dying:
 				boss_defeated()
 		Phase.AFTERMATH:
+			# Keep pulling: the boss's own XP drops a moment after it dies.
+			monsters.vacuum_xp()
 			aftermath -= delta
 			if aftermath <= 0.0:
 				open_camp()
@@ -116,6 +119,7 @@ func apply_sky():
 func nightfall():
 	phase = Phase.NIGHT
 	monsters.phase_override = "night"
+	monsters.night_clock = 0.0
 	var entry = BOSSES[(day - 1) % BOSSES.size()]
 	var cycle = (day - 1) / BOSSES.size()
 	var definition = monsters.encounter_config.variants[entry.variant].duplicate(true)
@@ -139,6 +143,7 @@ func boss_defeated():
 		return
 	phase = Phase.AFTERMATH
 	aftermath = AFTERMATH_SECONDS
+	monsters.vacuum_xp()
 	announce("The night goes quiet", "Everything else fled")
 
 func open_camp():

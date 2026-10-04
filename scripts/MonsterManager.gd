@@ -14,6 +14,8 @@ var day_cycle_driven: bool = false
 var phase_clock := -1.0
 ## Day-cycle override: "night" (the boss is out) or "rest" (the calm after a boss).
 var phase_override := ""
+## Seconds since the boss emerged; the night's spawning escalates with it.
+var night_clock := 0.0
 var last_phase_interval := -1.0
 ## Share of normal spawning while something else sets the pressure (a ley siege). 1 = normal.
 var ambient_share := 1.0
@@ -154,6 +156,13 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 			first = monster
 	return first
 
+## Pull every XP orb on the map to the player (after a boss falls nothing is left behind).
+func vacuum_xp():
+	for orb in get_tree().get_nodes_in_group("xp_orbs"):
+		if is_instance_valid(orb) and not orb.is_queued_for_deletion() and orb.get("collected") == false:
+			orb.is_moving_to_player = true
+			orb.move_speed = maxf(orb.move_speed, 900.0)
+
 ## The boss has fallen: every other monster flees into the dark (no kill, no XP).
 func rout():
 	for enemy in get_tree().get_nodes_in_group("enemies"):
@@ -206,8 +215,13 @@ func spawn_phase_at(at_time: float) -> Dictionary:
 		if phase_override == "rest":
 			return {"pressure": "rest", "interval": 999.0, "floor": 0.0}
 		if phase_override == "night":
+			# The boss night escalates: the spawn interval steps from interval_start to
+			# interval_end over ramp_seconds (in steps, so the spawn timer is not reset every frame).
 			var night = scaling.get("night_spawn_phase", {})
-			return {"pressure": "night", "interval": float(night.get("interval", 3.0)), "floor": float(night.get("floor", 0.5)), "growth": float(night.get("growth", 1.0))}
+			var step = maxf(1.0, float(night.get("step_seconds", 10.0)))
+			var ramp = clampf(floorf(night_clock / step) * step / maxf(1.0, float(night.get("ramp_seconds", 90.0))), 0.0, 1.0)
+			var interval = lerpf(float(night.get("interval_start", night.get("interval", 3.0))), float(night.get("interval_end", night.get("interval", 3.0))), ramp)
+			return {"pressure": "night", "interval": interval, "floor": float(night.get("floor", 1.0)), "growth": float(night.get("growth", 1.0))}
 		phases = scaling.day_spawn_phases
 		phase_time = phase_clock
 	var latest_start = -INF

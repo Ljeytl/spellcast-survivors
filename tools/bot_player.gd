@@ -331,7 +331,11 @@ func move_decision():
 				push += offset / distance * pow(420.0 / distance, 2.0)
 		var orb = nearest("xp_orbs", position)
 		var site = ley_target()
-		if site:
+		var hunted = nearest("bosses", position) if invulnerable else null
+		if hunted and is_instance_valid(hunted) and not hunted.dying and position.distance_to(hunted.global_position) > 220.0:
+			# Invulnerable runs measure boss fights, so the bot goes to the boss like a player would.
+			direction = hunted.global_position - position
+		elif site:
 			var to_site = site.global_position - position
 			var inside = to_site.length() < site.RADIUS * 0.55
 			direction = push.normalized() * minf(push.length(), 3.0) / 3.0 * (1.6 if inside else 1.0)

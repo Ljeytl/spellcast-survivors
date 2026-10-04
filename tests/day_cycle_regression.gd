@@ -35,6 +35,8 @@ func run():
 	var monsters = game.get_node("MonsterManager")
 	monsters.spawn_timer.stop()
 	game.player.is_invincible = true
+	# Vacuumed boss XP would otherwise open level-up screens mid-test.
+	game.player.xp_to_next_level = 1.0e12
 	var cycle = game.get_node_or_null("DayCycle")
 	check(cycle != null and monsters.day_cycle_driven, "Normal runs follow the day cycle")
 	check(cycle.day == 1 and cycle.sky_color().a < 0.02, "Day 1 starts in plain 3 pm light")
@@ -59,8 +61,16 @@ func run():
 	var clock_before = cycle.day_clock
 	cycle._process(30.0)
 	check(is_equal_approx(cycle.day_clock, clock_before), "The day clock stops at night")
-	check(monsters.current_spawn_phase().pressure == "night", "The boss night has its own lighter spawn phase")
+	check(monsters.current_spawn_phase().pressure == "night", "The boss night has its own spawn phase")
+	var early_night = monsters.spawn_phase_interval(monsters.game_time)
+	monsters.night_clock = 120.0
+	check(monsters.spawn_phase_interval(monsters.game_time) < early_night, "The longer the boss lives, the more monsters come")
+	monsters.night_clock = 0.0
 	var straggler = monsters.spawn_monster()
+	# load(), not preload(): a preload compiles XPOrb.gd before the autoloads exist.
+	var far_orb = load("res://scenes/XPOrb.tscn").instantiate()
+	game.add_child(far_orb)
+	far_orb.global_position = game.player.global_position + Vector2(1800, 0)
 	check(is_instance_valid(straggler), "A straggler is out with the boss")
 	# Killing it opens camp: paused, combo kept.
 	var style = game.style_session
@@ -68,6 +78,7 @@ func run():
 	await kill_boss(game, cycle, false)
 	check(cycle.phase == cycle.Phase.AFTERMATH and not game.current_state == game.GameState.CAMP, "The boss falls: a quiet moment before camp")
 	check(not straggler.is_in_group("enemies") and straggler.dying, "Everything else flees when the boss falls")
+	check(far_orb.is_moving_to_player, "Every XP orb on the map flies to the player when the boss falls")
 	check(monsters.current_spawn_phase().pressure == "rest" and monsters.refill_population_target() == 0, "Nothing spawns in the quiet after the boss")
 	cycle._process(cycle.AFTERMATH_SECONDS + 0.1)
 	check(cycle.phase == cycle.Phase.CAMP and game.current_state == game.GameState.CAMP and cycle.camp.visible, "Killing the boss opens camp")
