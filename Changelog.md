@@ -1,3 +1,12 @@
+# 0.2.7 — Casting circle, burning Ember Lance, Cinder fix
+
+- **Casting circle.** Every typed letter is a rune on a circle under the wizard. Rings fill at 3 / 6 / 9 runes (spaces inside a spell count), the colour switches as soon as the element is certain, ghost runes show the rest once the spell is certain, and a typo cracks the rune red. Power words (MEGA) orbit as satellites and scale the burst. Rings drift so the hat never hides the same slot. Ley words build the circle in ley colours inside an awakened site.
+- **Casting feel.** On a typed release: short hitstop and camera kick scaled by incantation length and power word, the staff flares, screen edges take the element colour while charging, the sealed rings stay scorched on the ground for a moment, and element sparks fly off (embers, ice shards, storm forks, spores, holy crosses). All off with Reduced effects.
+- **Ember Lance burns.** The throw leaves a fire strip along its path for ~1.5 s; anything in it or walking into it burns every 0.5 s. Impact ~20% lower (rank 8 ~372) so it still one-shots trash. Max 3 lines. It always goes through the nearest enemy and only tilts to also catch a line behind it.
+- **Cinder Field fix.** At the 3-field cap a recast extends the field covering the horde or moves the emptiest field onto it; fields no longer sit extended on empty ground.
+- Spells carry an element (fire, ice, storm, plague, holy, arcane, spirit, steel, earth, death).
+- Bot: `--rank-schedule` grants focus ranks on a clock, removing rank-card luck from balance runs.
+
 # Unreleased — Bigger ley circles, fixed sites, minimap
 
 - Ley circles are nearly four times wider (radius 90 to 340) so there is room to move and fight inside while typing; ring, rune marks and core scaled up. Engage radius 900 to 1200.
