@@ -55,6 +55,10 @@ var commands: Dictionary = {
 		"description": "Advance to minute or add seconds (no rewind)",
 		"usage": "difficulty <minute/+seconds>"
 	},
+	"day": {
+		"description": "Day cycle: jump to a day, to dusk, or straight to the boss night (run time moves forward to match)",
+		"usage": "day <1-4> | day dusk | day night"
+	},
 	"kill_all": {
 		"description": "Kill all currently spawned enemies",
 		"usage": "kill_all"
@@ -397,6 +401,8 @@ func execute_command(command_text: String):
 			spawn_enemy(args)
 		"difficulty":
 			change_difficulty(args)
+		"day":
+			jump_day(args)
 		"kill_all":
 			kill_all_enemies()
 		"god_mode":
@@ -571,6 +577,21 @@ func change_difficulty(args: Array):
 	manager.add_game_time(seconds)
 	game_node.game_time = manager.game_time
 	add_output("Encounter time: %.1f seconds" % manager.game_time)
+
+func jump_day(args: Array):
+	var cycle = get_tree().get_first_node_in_group("day_cycle")
+	if not is_instance_valid(cycle):
+		add_output("No day cycle in this run.")
+		return
+	if args.size() != 1:
+		add_output("Usage: day <1-4> | day dusk | day night")
+		return
+	var result = cycle.debug_jump(str(args[0]).to_lower())
+	if result.is_empty():
+		add_output("Usage: day <1-4> | day dusk | day night")
+		return
+	game_node.game_time = game_node.get_node("MonsterManager").game_time
+	add_output(result)
 
 func kill_all_enemies():
 	var count = 0

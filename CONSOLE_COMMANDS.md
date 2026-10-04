@@ -137,6 +137,14 @@
 
 ## World & Environment
 
+### `day <1-4 | dusk | night>`
+- **Description**: Day cycle (experiment/day-cycle). Jump to the start of a day, to just before dusk, or straight to the boss night.
+- **Usage**:
+  - `day 3` - Start day 3 at 3 pm; run time moves forward to where day 3 would start, so difficulty matches (never rewinds)
+  - `day dusk` - Dusk warning in 3 s, the boss a minute later
+  - `day night` - The day's boss emerges now
+- **Notes**: Jumping to a day removes a boss that is out. Combine with `difficulty +seconds` for extra pressure.
+
 ### `time_scale <multiplier>`
 - **Description**: Change game time scale
 - **Usage**: `time_scale 0.5`

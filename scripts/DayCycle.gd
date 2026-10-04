@@ -170,6 +170,38 @@ func wake():
 		game.change_state(game.GameState.PLAYING)
 	announce("Day %d" % day, "3:00 pm · You slept in again")
 
+## Console "day" command. "dusk" = a few seconds before the dusk warning, "night" = the boss
+## now, a number = the start of that day. Run time only moves forward: a later day sets it to
+## where that day would start (a 30 s boss each night); difficulty follows run time.
+## Returns a line for the console, or "" if the argument is not understood.
+func debug_jump(target: String) -> String:
+	if phase == Phase.EXTRACTION:
+		return "The expedition is over."
+	if target == "dusk" or target == "night":
+		if phase != Phase.DAY:
+			return "It is already night; kill the boss first."
+		day_clock = DAY_SECONDS if target == "night" else DAY_SECONDS * DUSK_AT - 3.0
+		monsters.phase_clock = day_clock
+		if target == "night":
+			nightfall()
+		return "Day %d · %s" % [day, "the boss emerges" if target == "night" else "dusk in 3 s"]
+	if not target.is_valid_int() or int(target) < 1:
+		return ""
+	var target_day = int(target)
+	if is_instance_valid(boss) and not boss.dying:
+		boss.queue_free()
+		monsters.monsters_alive = maxi(0, monsters.monsters_alive - 1)
+	boss = null
+	camp.hide()
+	if game.current_state == game.GameState.CAMP:
+		game.change_state(game.GameState.PLAYING)
+	day = target_day - 1
+	wake()
+	var start_time = float(target_day - 1) * (DAY_SECONDS + 30.0)
+	if monsters.game_time < start_time:
+		monsters.add_game_time(start_time - monsters.game_time)
+	return "Day %d · run time %s" % [day, format_time(monsters.game_time)]
+
 func format_time(seconds: float) -> String:
 	return "%02d:%02d" % [int(seconds) / 60, int(seconds) % 60]
 

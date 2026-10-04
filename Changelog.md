@@ -1,3 +1,7 @@
+# Experiment (experiment/day-cycle) — Console: day command
+
+- Developer console (~): `day 3` starts day 3 (run time moves forward to match, never back), `day dusk` puts you 3 s before the dusk warning, `day night` brings the boss now. Test: day_console_regression.
+
 # Experiment (experiment/day-cycle) — Boss nights on the normal cycle, XP is never left behind
 
 - Boss nights run the normal 2-minute spawn cycle on the run timer (light / heavy / medium as before day shapes existed), and difficulty keeps climbing with the run timer. The day clock is stopped at night, so a long night means the next day starts harder: kill the boss fast.
