@@ -19,7 +19,7 @@ const COLORS = {
 	"plague": [Color("d4ff8a"), Color("3fbf5a")], "holy": [Color("fff4c2"), Color("ffc94a")],
 	"spirit": [Color("d8fff6"), Color("6fe0c8")], "steel": [Color("ffffff"), Color("9aa6c0")],
 	"earth": [Color("f2dca0"), Color("b0793a")], "death": [Color("e0d0ff"), Color("6a4a9a")],
-	"void": [Color("ffd6ff"), Color("8a2be2")], "neutral": [Color("e4defa"), Color("7a6aa8")],
+	"void": [Color("ffd6ff"), Color("8a2be2")], "ley": [Color("fff1c4"), Color("e2d0ff")], "neutral": [Color("e4defa"), Color("7a6aa8")],
 }
 const STROKES = [[0,-1,1,-.4],[0,-1,-1,-.4],[0,0,1,.5],[0,0,-1,.5],[0,1,1,.4],[0,1,-1,.4],[0,-.3,.8,-.9],[-.7,-.2,.7,-.2],[0,.2,-.8,1],[0,-1,.6,-1],[-.6,.6,.6,.6]]
 
@@ -186,6 +186,14 @@ func spell_table() -> Array:
 	var table: Array = []
 	if not manager:
 		return table
+	# Ley words typed inside an awakened ley circle build the circle too, in the ley colours.
+	var ley = get_tree().get_first_node_in_group("ley_lines")
+	if ley and ley.has_method("site_under_player"):
+		var site = ley.site_under_player()
+		if site != null:
+			for word in site.words:
+				if not word in site.bound:
+					table.append({"incantation": str(word).to_lower(), "element": "ley"})
 	if not str(manager.target_spell).is_empty():
 		for slot in manager.get_all_spells():
 			var info = manager.get_spell_info(slot)
@@ -295,7 +303,14 @@ func _process(_delta):
 			start_fresh()
 		if typing and last_text.is_empty() and fade <= 0.0:
 			reduced = SETTINGS.reduced()
-		if not typing and bool(state.get("complete", false)) and burst <= 0.0:
+		if not typing and bool(state.get("complete", false)) and burst <= 0.0 and str(state.get("element", "")) == "ley":
+			# A bound ley word: a soft seal and flash, without the spell's hitstop, kick or scorch.
+			burst = 0.6
+			burst_mult = 1.0
+			sealed = true
+			for i in runes.size():
+				shards.append({"angle": runes[i].angle, "radius": radius_of(i), "speed": 70.0 + randf() * 50.0, "life": 0.8, "ch": runes[i].ch})
+		elif not typing and bool(state.get("complete", false)) and burst <= 0.0:
 			awaiting_release = 0.8
 			sealed = true
 		elif typing or burst <= 0.0:
