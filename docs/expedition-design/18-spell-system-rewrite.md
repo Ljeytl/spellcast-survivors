@@ -161,7 +161,7 @@ Most events come from the part itself. Three other sources are needed:
 |---|---|---|
 | Part | `on_hit`, `on_first_hit`, `on_kill`, `on_travel`, `on_tick`, `on_expire`, `on_land` | most spells |
 | Owner (the caster) | `on_caster_hit`, `on_block`, `on_caster_travel`, `on_cast` | Earth Shield, Fire Shield, Firewalk, Muck, flower trail |
-| Afflicted (an enemy carrying this cast's status) | `on_afflicted_tick`, `on_afflicted_death`, `on_afflicted_hit` | Plague Seed, Soul Bloom, Raise Dead, Lightning rod |
+| Afflicted (an enemy carrying this cast's status) | `on_afflicted_tick`, `on_afflicted_death`, `on_afflicted_hit` | Infestation, Soul Bloom, Raise Dead, Lightning rod |
 | Reaction | `on_reaction` (section 6.3) | element reactions |
 
 Children inherit the parent's position, direction, target, generation number, cast id (for the hit record) and a share of its power (`power`, default 1.0).
@@ -279,7 +279,7 @@ A status is data:
 |---|---|---|
 | **Burn** (Fire) | Pour it on. The fastest DoT. | **Every fire hit starts its own burn** that lasts 1.5 s. All active burns tick at once, so more fire hits means more burns burning together. No pool, no timer resets, no cap. |
 | **Bleed** (Earth/Steel) | Build-up to a big payoff, like blood loss in Elden Ring. | Each hit adds a little bleed damage over time **and fills a bleed meter**. When the meter fills, the enemy **Hemorrhages**: a burst of heavy damage based on its maximum health, then the meter empties. The meter drains slowly if you stop hitting. |
-| **Poison** (Plague/Death) | Slow rot that saps the enemy. The most total damage of any DoT, over the longest time. | Long, slow ticks that **get worse the longer it stays on**; new poison stacks more damage and duration without resetting that ramp. A poisoned enemy is **weakened** (deals less damage). Does not spread (spreading belongs to Plague Seed's infection). |
+| **Poison** (Plague/Death) | Slow rot that saps the enemy. The most total damage of any DoT, over the longest time. | Long, slow ticks that **get worse the longer it stays on**; new poison stacks more damage and duration without resetting that ramp. A poisoned enemy is **weakened** (deals less damage). Does not spread (spreading belongs to Infestation's infection). |
 | **Chill** (Water/Ice) | Lock them down. Control, not damage. | Each hit deals a small **frostbite** hit and adds one stack; chilled enemies are **slowed** more with every stack. At 5 stacks the enemy becomes **Frozen** (separate status); chill clears and it cannot be frozen again for a short time. |
 
 Other rules:
@@ -297,7 +297,7 @@ Other rules:
 | bleed | Earth/Steel | dot + build-up | Small damage over time; fills a meter that triggers hemorrhage |
 | hemorrhage | Earth/Steel | burst | Heavy burst based on max health when the bleed meter fills |
 | poison | Plague/Death | dot + modifier | Long slow ticks that ramp; target is weakened while poisoned |
-| infection | Plague/Death | dot + spread | Plague Seed's host-to-host transfer (section 12) |
+| infection | Plague/Death | dot + spread | Infestation's host-to-host transfer (section 12) |
 | chilled | Water/Ice | control (soft) | Slow per stack, frostbite hit per stack; 5 stacks → frozen |
 | frozen | Water/Ice | control (hard) | Cannot move or attack; ends early if shattered or thawed |
 | shocked | Storm | control (soft) | Brief stagger; **arcs to one nearby enemy** on application |
@@ -354,6 +354,27 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Ice Blast shard (35 today) | 27 | 8 water/ice | chill |
 | `icy ember spear` | 74 | 22 fire + 14 water/ice | burn trail that also chills; spear hit chills |
 
+**The split depends on the spell's fantasy.** Anything with a physical body (spears, shards, boulders, blades, meteors, bullets) is mostly raw. Pure elemental forces (fields, flames, beams, lightning, frost bursts, burn and poison) are fully elemental. Starting splits:
+
+| Spell | Raw | Elemental | Why |
+|---|---|---|---|
+| Bolt | 0% | 100% arcane | a bolt of pure mana |
+| Ember Spear | 75% | 25% fire | a thrown spear, burning |
+| Ice Blast | 60% | 40% water/ice | ice shards are solid |
+| Lightning | 0% | 100% storm | pure lightning |
+| Meteor Shower | 70% | 30% fire | a falling rock on fire |
+| Cinder Field | 0% | 100% fire | fire on the ground |
+| Firewalk | 0% | 100% fire | fire on the ground |
+| Arcane Orbit | 0% | 100% arcane | mana bodies |
+| Focus Ray | 0% | 100% arcane | a beam of mana |
+| Rune Trap | 0% | 100% arcane | a mana burst |
+| Infestation | 0% | 100% plague/death | rot |
+| Seeker | 0% | 100% plague/death | a ghost |
+| Cross Blade | 80% | 20% earth/steel | a steel blade |
+| Earth Shield retaliation | 70% | 30% earth/steel | stone shards |
+
+Fully elemental spells meet resistance on all of their damage, so they feel resistances more; resistances stay mild (5.5) so this steers rather than walls.
+
 ### 6.2 Element keywords
 
 An element word **adds** to a spell; it never removes the spell's own element.
@@ -408,7 +429,7 @@ Every capability below is engine work on the enemy side. Spells depend on them; 
 | **Target selection** that can pick something other than the player (decoys, summons, taunters) | Mirror Image, golems, taunt, Earth Golem | always the player |
 | **Avoidance or pathing around barriers** | Earth Wall, Prism Wall, Tesla Wall, Yggdrasil | none |
 | **Attack identity**: melee vs projectile, attacker reference | block, reflect, Earth Shield retaliation | exists for Earth Shield |
-| **Death events** with position, cause, and a short-lived corpse | Plague Seed death jump, Soul Bloom, Raise Dead | death signal exists; no corpse |
+| **Death events** with position, cause, and a short-lived corpse | Infestation death jump, Soul Bloom, Raise Dead | death signal exists; no corpse |
 | **Damageable by summons and reactions**, with source attribution for style | all summons | source system exists (`DamageSource`) |
 | **Behaviour swap** for transform | Polymorph | none |
 | **Anchor points** on the body for overlays, marks and attached parts | status visuals, Lightning rod | none |
@@ -550,7 +571,7 @@ Ordinary enemies: 0 to ±25% per damage type. Elites: up to ±50%. Bosses: up to
 | Lightning | 60 damage, radius 100, 2 chains at 200 range, ×0.8 per chain |
 | Meteor Shower | 3 meteors × 32 damage, radius 45, 0.3 s apart, 0.65 s warning |
 | Ember Spear | 96 damage, radius 24, burn trail 12% per 0.5 s for 1.5 s, max 3 trails |
-| Plague Seed (incantation `infection`) | 4 damage, 3 s, spread radius 60, transfer speed 300, spore linger 1.5 s |
+| Infestation (was Plague Seed; incantation today `infection`) | 4 damage, 3 s, spread radius 60, transfer speed 300, spore linger 1.5 s |
 | Cinder Field | 8 damage per 0.5 s, radius 100, 5 s, max 3 |
 | Arcane Orbit | 2 orbs × 12 damage per 0.5 s, orbit radius 100, 6 s |
 | Focus Ray | 24 damage, 2 s, width 12, turn 4 rad/s, max 2 |
@@ -588,7 +609,7 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 
 | Spell | New id | Parts in the new format | Notes |
 |---|---|---|---|
-| Bolt | `bolt` | projectile · single · body · aim nearest · straight · once · arcane damage | Current code fires extra homing bolts by level; that becomes rank growth or the HOMING signature, decision in section 15 |
+| Bolt | `bolt` | projectile · single → fan with rank · body · aim nearest · straight · once · arcane damage | **Rank growth adds more strong bolts** (decided): each rank fires more full-strength bolts in a tight fan. HOMING stays a separate signature |
 | Life | `life` | self · heal | |
 | Regeneration | `regeneration` | aura on caster · periodic · heal | |
 | Ice Blast | `ice_blast` | projectile · fan 3 · body · straight · once · water/ice damage + impulse away + chill, pierce 2 | Cone opens to a full ring by rank 8 (arrangement angle grows with rank) |
@@ -596,7 +617,7 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 | Lightning | `lightning` (was `lightning_arc`) | volume · disk at target · instant · storm damage → chain 2 hops, 200 range, ×0.8 | Needs chain (gap C) |
 | Meteor Shower | `meteor_shower` | projectile · scatter 3 · staggered 0.3 s · fall with 0.65 s warning → volume disk · fire damage | Needs `fall` motion |
 | Ember Spear | `ember_spear` (was `ember_lance`) | section 4.6 | |
-| Plague Seed | `plague_seed` | projectile or direct · status infection → afflicted events spread to neighbours, spore on death | Data name and incantation are currently "Infection"; decide the player name (section 15) |
+| Infestation (was Plague Seed) | `infestation` (was `plague_seed`) | projectile or direct · status infection → afflicted events spread to neighbours, spore on death | Data name and incantation are currently "Infection"; decide the player name (section 15) |
 | Cinder Field | `cinder_field` | field · disk at target · periodic · fire damage + burn | At-cap rule `extend` / replace emptiest |
 | Arcane Orbit | `arcane_orbit` | projectile · ring 2 · orbit caster · contact rehit 0.5 s · arcane damage | |
 | Focus Ray | `focus_ray` | beam · aim track target · channel · arcane damage | |
@@ -618,7 +639,7 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 | Frost Sigil | Rune Trap with burst 170 + chill, arming 1.2 s | Overlaps `icy rune trap`; see 15 |
 | Reaping Spirit (disabled) | Seeker `on_kill` → volume burst | |
 
-Combinations that a keyword phrase can reproduce (Steam Field ≈ `icy cinder field`, Frost Sigil ≈ `icy rune trap`) should either gain something a keyword can't give or be retired in favour of the phrase.
+**All combinations survive** (decided), including Steam Field and Frost Sigil, even though `icy cinder field` and `icy rune trap` come close. A combination is earned at rank 8 and starts at full size, so it stays the stronger, dedicated version.
 
 ### 11.3 Spear rename (internal)
 
@@ -631,7 +652,7 @@ The player-facing rename is done (PR #131). The rewrite renames internal ids too
 | `lance_radius` | `spear_radius` (becomes `geometry.radius` in the format) |
 | motif `lance` (EffectArt, SpellGeometry) | `spear` |
 | `lance_aim_regression` test | `spear_aim_regression` |
-| `lightning_arc`, `seeking_spirit`, `ember_trail`, `returning_blade` | `lightning`, `seeker`, `firewalk`, `cross_blade` |
+| `lightning_arc`, `seeking_spirit`, `ember_trail`, `returning_blade`, `plague_seed` | `lightning`, `seeker`, `firewalk`, `cross_blade`, `infestation` |
 | element `ice` | `water` (Water/Ice) |
 | element `steel` | `earth` (Earth/Steel) |
 | elements `spirit`, `death` | `plague` (Plague/Death) |
@@ -649,6 +670,10 @@ The player-facing rename is done (PR #131). The rewrite renames internal ids too
 Every user concept from [doc 17](17-element-spell-ideas.md) that was not rejected or questioned, plus the spells added in this pass. Each entry says what it is, its parts, how it plays, which keywords are interesting, what enemies must support, and what is still open. Numbers are *proposed* starting points relative to the current baselines in 9.5. The "filed under" label is only where doc 16 lists the idea; the **Parts** line is the spell's actual type. "Gap" letters refer to Appendix B.
 
 Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm (questioned, no distinct behaviour yet) and the Plague/Death TBD slots (Plague Spear, Nova, Shower, Wall, Trail, Trap), which have no behaviour to specify.
+
+### 12.0 Ultimates are earned by combo
+
+Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** already uses in the game: you type the ultimate's word, and it only casts when the style meter allows it. Atomic today requires S rank and a 10,000 combo. Each ultimate gets its own threshold. No cooldowns: the combo is the gate.
 
 ### 12.1 Arcane / Mana
 
@@ -677,7 +702,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 - **Parts:** field · disk r240 at target · 4 s · force `toward_point` 600/s with falloff · periodic 0.25 s · arcane damage 10 at the edge rising to 40 at the core · `on_expire` volume disk r140 · arcane 150.
 - **Keywords:** MEGA/OMEGA scale radius and pull; LASTING extends; DOUBLE = two wells that pull against each other.
 - **Enemies:** force accumulator, weight; bosses resist pull by weight.
-- **Open:** ultimate rules (charge-up, cooldown or once per day).
+- **Earned:** by combo, like Atomic (12.0).
 
 **Prism Wall** · filed under Wall in doc 16
 - **What:** a fragile crystal wall that reflects part of the damage enemies deal to it.
@@ -1168,7 +1193,7 @@ This is a full rewrite of the **spell engine**, done so the game stays playable 
 | 0. Spec | This document reviewed; open decisions in 15 settled | User sign-off |
 | 1. Foundations | `apply_effect`, status component, status catalogue data, resistance profiles, damage types on every hit; existing slow / knockback / armour rerouted; keyword parser reads every word into a modifier bundle (MEGA unchanged); internal spear rename + save migration | All regression tests green; MEGA and every spell behave as before |
 | 2. Format and runner | Spell data loader and validator; part runner using existing delivery scripts as components; spells ported one at a time (Ember Spear first), each deleting its old dispatch branch | 16 spells and 7 combinations run on the new runner; old `match` gone |
-| 3. Engine gaps | Phases, owner/afflicted events, chain, aim, force accumulator, barrier, lob/fall motion, spell references, per-copy variation, global delivery | Cross Blade, Lightning, Plague Seed, Earth Shield, Firewalk on the new events; gap tests pass |
+| 3. Engine gaps | Phases, owner/afflicted events, chain, aim, force accumulator, barrier, lob/fall motion, spell references, per-copy variation, global delivery | Cross Blade, Lightning, Infestation, Earth Shield, Firewalk on the new events; gap tests pass |
 | 4. Keywords | DOUBLE, TRIPLE, HOMING, SWIFT, LASTING, REPEATING, element words, reactions; signatures from 8.5; casting-circle runes for each word | Contract tests for every spell × word pair: changes something visible or is rejected with a cracked rune |
 | 5. Enemy side | Target selection beyond the player, barrier avoidance, locks, corpses, transform, boss rules | Mirror Image, golems, walls and Polymorph testable |
 | 6. Art integration | Grey-value + colour-ramp shader, per-delivery motifs, status overlays, reaction bursts | Can start in parallel once the artist delivers pieces |
@@ -1287,17 +1312,25 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Spear | Spear everywhere, including internal ids; Lance reserved for a future thrust | 11.3 |
 | Legacy drafts | Nine inactive prototype spells, including Divine Aura, are not ported | 11.4 |
 
-### 16.2 Still open
+### 16.2 Decided in the last pass
 
-1. Bolt's current multi-bolt rank growth: keep as rank growth, or move it into the HOMING signature.
-2. Combinations that keyword phrases reproduce (Steam Field ≈ `icy cinder field`, Frost Sigil ≈ `icy rune trap`): give them something extra, or retire them.
-3. Plague Seed's player name: Plague Seed, Infection or Infestation.
-4. Ultimates (Black Hole, Time Stop): how they are earned and limited.
-5. Which reactions to add beyond the first five.
-6. Mana or cooldowns as a second cost alongside length.
-7. Whether players can type bare forms (e.g. `spear`) or only named spells.
-8. The exact raw/elemental split per spell.
-9. The open details listed under each spell in section 12.
+| Topic | Decision |
+|---|---|
+| Bolt rank growth | More strong bolts per rank, not homing |
+| Steam Field, Frost Sigil | Survive as combinations |
+| Plague Seed's name | **Infestation** |
+| Ultimates | Earned by combo, like Atomic; no cooldowns |
+| More reactions | Not now. Ideas parked: Corrosive (plague + storm), a fire + ice blast |
+| Cooldowns | None for now; revisit on tier words only if the keyword matrix shows MEGA/OMEGA spam |
+| Bare forms | Allowed for now (`spear`, `nova`…): a plain raw version of the form, the weakest per letter |
+| Raw/elemental split | Per spell, by fantasy (6.1) |
+
+### 16.3 Still open
+
+1. Combo thresholds for each ultimate.
+2. Which words, spells and bare forms the player starts with, and where the rest are learned (ley sites, tower; docs 05 and 15).
+3. Enemy roster resistances per element (which enemies resist what, within 5.5).
+4. The open details listed under each spell in section 12.
 
 ## Appendix A: fit check of every idea in doc 16
 
@@ -1385,7 +1418,7 @@ Each entry encoded as `delivery · arrangement · geometry · motion · timing �
 | Flaming Restoration | aura · caster · heal + *damage buff* status | L |
 | **Earth Shield** | aura · caster · block charges · *on block* → projectile/volume retaliation | G |
 | Earth Golem | summon · tanky · *taunt* behaviour · contact damage | L |
-| **Plague Seed** | status infect · *on afflicted tick / afflicted death* → infect nearest | G |
+| **Infestation** | status infect · *on afflicted tick / afflicted death* → infect nearest | G |
 | **Soul Bloom** | infect + *on afflicted death* → collectible heal | G |
 | **Life** | self · heal | ✓ |
 | **Regeneration** | aura · caster · periodic · heal | ✓ |
@@ -1423,7 +1456,7 @@ Found by the fit check in Appendix A. Section 4 now includes every item below as
 | | Gap | What to add | Needed by |
 |---|---|---|---|
 | **A** | **Part phases** (state machine) | Generalise motion phases into part phases. Each phase can set motion, payload multipliers, active events and visuals, and ends `until` a time, release, enemy in range, hit, host died or recast. | Cross Blade, meteor ring, Homing Bolt, seeds, Yggdrasil, Sunbeam charge, Grasping Hand |
-| **G** | **Events from outside the part** | Owner events (caster hit, caster blocks, caster travels, on cast) and afflicted events (afflicted enemy ticks, dies). Kill events scoped to this cast or area. | Plague Seed, Soul Bloom, Firewalk, Muck, Earth Shield, Fire Shield, Raise Dead, Lightning rod |
+| **G** | **Events from outside the part** | Owner events (caster hit, caster blocks, caster travels, on cast) and afflicted events (afflicted enemy ticks, dies). Kill events scoped to this cast or area. | Infestation, Soul Bloom, Firewalk, Muck, Earth Shield, Fire Shield, Raise Dead, Lightning rod |
 | **B** | **Barrier delivery** | A world structure with health, collision (blocks enemies / projectiles / passable), destructible, can reflect. | Earth Wall, Prism Wall, Tesla coils, Yggdrasil, Ward |
 | **C** | **Chain / traversal** | Hop to the next target: hop count, hop range, visited set, decay per hop, instant or travelling. | Lightning, Lightning Bolt, Static Shock, Chain Lightning |
 | **E** | **Aim / facing, separate from motion** | For beams, volumes and cones: fixed at release, track target, sweep, follow caster facing. Plus target assignment across copies: same, distinct, nearest each. | Focus Ray, Scorching Ray, Water Jet, Ray of Sickness, Flamethrower |
@@ -1439,4 +1472,4 @@ Found by the fit check in Appendix A. Section 4 now includes every item below as
 
 **Not testable yet:** Firestorm (questioned), Plague Lance and the Plague/Death TBD slots (no behaviour defined), Polymorph's enemy-side behaviour swap (needs enemy AI support, not just a status).
 
-**Simplifications the check confirmed:** shield and restoration are not deliveries (aura + payload). Firewalk, Muck and flower trails are one thing: an emitter on the caster. Plague Seed, Soul Bloom and Raise Dead are one thing: events on afflicted or killed enemies. Seeds, Cross Blade and the meteor ring are one thing: part phases.
+**Simplifications the check confirmed:** shield and restoration are not deliveries (aura + payload). Firewalk, Muck and flower trails are one thing: an emitter on the caster. Infestation, Soul Bloom and Raise Dead are one thing: events on afflicted or killed enemies. Seeds, Cross Blade and the meteor ring are one thing: part phases.
