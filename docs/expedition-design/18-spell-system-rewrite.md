@@ -341,7 +341,7 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Fire (`fire`) | flame, embers, magma, sun | fire | burn | | ember orange / red |
 | Water/Ice (`water`) | water, frost, snow, tides | water/ice | chill (builds to freeze) | push and pull (payload) | pale cyan to deep blue |
 | Storm (`storm`) | lightning, thunder, wind | storm | shock | stun | yellow / violet |
-| Earth/Steel (`earth`) | stone, mud, metal, blades, bullets | **raw** (no elemental type; armour is its resistance) | bleed | root, stun | ochre to silver |
+| Earth/Steel (`earth`) | stone, mud, metal, blades, bullets | earth (magical); Earth spells lean heavily raw | bleed | root, stun | ochre to silver |
 | Plague/Death (`plague`) | poison, infection, spirits, undeath | plague/death | poison | infection, weaken | sickly green / bone purple |
 | Life (`life`) | druidic: vines, roots, flowers, plants and soil; growth that heals | life | entangled | heal and buffs (payload), rooted | leaf green / bark brown |
 
@@ -368,7 +368,7 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Meteor Spear | 85% | 15% fire (+ explosion 50/50) | none | doubles down on weight and impact |
 | Ice Spear | 60% | 40% water/ice | none (chill) | a spear of solid ice |
 | Lightning Spear | 25% | 75% storm | none (shock) | the lightning does the work |
-| Earth Spear | 100% | 0% | bleed | stone that shatters into jagged shards |
+| Earth Spear | 85% | 15% earth | bleed | stone that shatters into jagged shards |
 | Shillelagh (life spear) | 40% | 60% life | none | roots and vines do most of it |
 
 Starting splits for the current spells:
@@ -387,10 +387,10 @@ Starting splits for the current spells:
 | Rune Trap | 0% | 100% arcane | none | a mana burst |
 | Infestation | 0% | small | infection (the spell is the DoT) | rot that spreads |
 | Seeker | 0% | 100% plague/death | none | a ghost |
-| Cross Blade | 100% | 0% | bleed | a steel blade |
-| Earth Shield retaliation | 100% | 0% | bleed | stone shards |
+| Cross Blade | 90% | 10% earth | bleed | a steel blade |
+| Earth Shield retaliation | 80% | 20% earth | bleed | stone shards |
 
-**Earth/Steel has no damage type of its own.** Stone and steel hit with raw damage; their element shows through bleed (and root on some spells). Bleed ticks are raw but **ignore armour**, which gives Earth/Steel its answer to armoured enemies.
+**Raw is physical; elemental is magical.** Every element, including Earth, has its own magical damage type. Earth/Steel spells lean heavily raw (Earthquake about 80% raw / 20% earth) but still carry earth magic, so the type chart and earth resistance apply to that share. Bleed ticks are raw but **ignore armour**.
 
 Fully elemental spells meet resistance on all of their damage, so they feel resistances more; resistances stay mild (5.5) so this steers rather than walls.
 
@@ -473,7 +473,7 @@ A second layer above the element chart, about **what kind** of damage it is rath
 | Physical | Holy | faith does not stop a blade |
 | Holy | Magical | wards and anti-magic shut spells down |
 
-- **Physical** = raw damage. **Magical** = elemental damage (still typed: fire, cold, storm, rot, growth, mana; the element chart in 6.5 still applies to it). **Holy** exists only on enemies; the player never learns it.
+- **Physical** = raw damage. **Magical** = elemental damage (typed: fire, cold, storm, earth, rot, growth, mana; the element chart in 6.5 still applies to it). **Holy** exists only on enemies; the player never learns it.
 - **Two defence numbers on enemies carry the triangle:**
   - **Armour** reduces physical (raw) damage. Exists today on armoured elites.
   - **Ward** reduces magical (elemental) damage. New.
@@ -554,7 +554,7 @@ Words in each row are listed short to long, which is also weak to strong.
 | Element: Fire | EMBER, FIERY, FLAMING, BLAZING, INFERNAL, SCORCHING | adds fire | fire damage + burn | proposed |
 | Element: Water/Ice | ICY, FROSTY, FROZEN, GLACIAL | adds cold | water/ice damage + chilled | proposed |
 | Element: Storm | STORMY, SHOCKING, ELECTRIC, THUNDERING | adds lightning | storm damage + shocked | proposed |
-| Element: Earth/Steel | IRON, BLADED, EARTHEN, SERRATED | adds stone and steel | extra raw damage + bleed | proposed |
+| Element: Earth/Steel | IRON, BLADED, EARTHEN, SERRATED | adds stone and steel | earth damage + bleed | proposed |
 | Element: Plague/Death | TOXIC, DEATHLY, VENOMOUS, NECROTIC, POISONOUS | adds rot | plague/death damage + poison | proposed |
 | Element: Life | LIVING, VERDANT, THORNED, BLOOMING, OVERGROWN | adds living growth | life damage + entangled | proposed |
 
@@ -1396,7 +1396,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Damage split | Raw + elemental + DoT, per spell by fantasy; most spells apply no DoT (6.1) |
 | Type chart | Storm > Water/Ice > Fire > Plague/Death > Life > Earth/Steel > Storm; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
 | Physical / magical / holy | Magical > physical > holy > magical. Raw = physical, elemental = magical, holy only on enemies; armour and ward are the two defence numbers (6.6) |
-| Stone type | None. Earth/Steel deals raw damage plus bleed; armour is its resistance; bleed ignores armour |
+| Damage model | Raw (physical) + magical typed by element, including earth. Earth spells lean raw. Bleed ignores armour |
 | Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
 | Bare forms | Deliberately weak; how weak depends on the form's purpose |
 
