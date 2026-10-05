@@ -463,27 +463,6 @@ Rules:
 - **Elemental enemies arrive in later levels.** Level 1 stays normal slimes (doc 15).
 - Status reactions (6.4) are separate: Thaw (fire on chilled) and Shatter (stone on frozen) are about statuses meeting, not enemy elements.
 
-### 6.6 Physical, magical and holy
-
-A second layer above the element chart, about **what kind** of damage it is rather than which element:
-
-| Attacker | Beats | Why |
-|---|---|---|
-| Magical | Physical | fire does not care about plate armour |
-| Physical | Holy | faith does not stop a blade |
-| Holy | Magical | wards and anti-magic shut spells down |
-
-- **Physical** = raw damage. **Magical** = elemental damage (typed: fire, cold, storm, earth, rot, growth, mana; the element chart in 6.5 still applies to it). **Holy** exists only on enemies; the player never learns it.
-- **Two defence numbers on enemies carry the triangle:**
-  - **Armour** reduces physical (raw) damage. Exists today on armoured elites.
-  - **Ward** reduces magical (elemental) damage. New.
-- **Physical enemies** (armoured beasts, knights): high armour, so magic hits them hard. Bleed ignores armour too.
-- **Holy enemies**: high ward, and they deal holy damage. Spells are muffled against them, so raw-heavy spells (Earth Spear, Boulder, Meteor Spear) shine.
-- **Magical enemies** (fire spirits, arcane constructs): fought through the element chart. Holy would counter them, but the player has none, so for the player they are elemental fights.
-- **Guardrails:** armour and ward stay within ±25–50%; every spell works on every enemy; holy enemies arrive in later levels.
-
-**Lore idea:** holy enemies are **inquisitors and zealots who hunt wizards**. Faith against knowledge (principle 8) becomes a conflict in the world rather than a school the player learns: the one magic you never learn is the one built to stop you.
-
 ## 7. What enemies need to support this
 
 Every capability below is engine work on the enemy side. Spells depend on them; without them, the matching spells cannot be built honestly.
@@ -1395,7 +1374,6 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Bare forms allowed | Yes, for now (`spear`, `nova`…) |
 | Damage split | Raw + elemental + DoT, per spell by fantasy; most spells apply no DoT (6.1) |
 | Type chart | Storm > Water/Ice > Fire > Plague/Death > Life > Earth/Steel > Storm; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
-| Physical / magical / holy | Magical > physical > holy > magical. Raw = physical, elemental = magical, holy only on enemies; armour and ward are the two defence numbers (6.6) |
 | Damage model | Raw (physical) + magical typed by element, including earth. Earth spells lean raw. Bleed ignores armour |
 | Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
 | Bare forms | Deliberately weak; how weak depends on the form's purpose |
@@ -1403,10 +1381,9 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 ### 16.3 Still open
 
 1. Combo thresholds for each ultimate.
-2. Holy enemies (inquisitors, zealots): which levels, what they do.
-3. Which words, spells and bare forms the player starts with, and where the rest are learned (ley sites, tower; docs 05 and 15).
-4. Which enemies get which element, and in which levels (type chart in 6.5).
-5. The open details listed under each spell in section 12.
+2. Which words, spells and bare forms the player starts with, and where the rest are learned (ley sites, tower; docs 05 and 15).
+3. Which enemies get which element, and in which levels (type chart in 6.5).
+4. The open details listed under each spell in section 12.
 
 ## Appendix A: fit check of every idea in doc 16
 
