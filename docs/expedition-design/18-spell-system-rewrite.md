@@ -416,6 +416,35 @@ Two layers, kept separate:
 
 New reactions are added only when one earns its place in play. Shock's chaining is built into shocked itself, so no "wet" status is needed.
 
+### 6.5 Type chart
+
+A natural cycle of five elements, each link grounded in how the forces behave:
+
+```mermaid
+flowchart LR
+  S[Storm] --> I[Water/Ice] --> F[Fire] --> L[Life] --> E[Earth/Steel] --> S
+  F --> P[Plague/Death] --> L
+```
+
+| Element | Strong against | Weak to | Why |
+|---|---|---|---|
+| Storm | Water/Ice | Earth/Steel | lightning runs through water; stone grounds it |
+| Water/Ice | Fire | Storm | water puts out fire |
+| Fire | Life, Plague/Death | Water/Ice | plants burn; fire purifies rot |
+| Life | Earth/Steel | Fire, Plague/Death | roots crack stone; rot kills growth |
+| Earth/Steel | Storm | Life | stone grounds lightning |
+| Plague/Death | Life | Fire | rot kills growth |
+| Arcane | none | none | raw mana: the scholar's neutral, all-purpose tool |
+
+Rules:
+
+- **Only enemies have elements.** The chart compares the spell's element with the enemy's element; the player's own spells never cancel each other.
+- **Keyed on the spell's element, not the damage type**, so Earth/Steel (raw damage) still beats Storm.
+- **Strong: +25%. Same element as the enemy: −25%.** Everything else is neutral. Every element still works on everything; the chart steers, never walls.
+- **Each share of a hit uses its own source.** The spell's own damage (its raw and elemental parts) uses the spell's element; damage added by an element word uses the word's element. `icy ember spear` against a fire enemy: the spear's damage takes −25%, the Icy share gets +25%.
+- **Elemental enemies arrive in later levels.** Level 1 stays normal slimes (doc 15).
+- Status reactions (6.4) are separate: Thaw (fire on chilled) and Shatter (stone on frozen) are about statuses meeting, not enemy elements.
+
 ## 7. What enemies need to support this
 
 Every capability below is engine work on the enemy side. Spells depend on them; without them, the matching spells cannot be built honestly.
@@ -1326,6 +1355,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Cooldowns | None for now; revisit on tier words only if the keyword matrix shows MEGA/OMEGA spam |
 | Bare forms allowed | Yes, for now (`spear`, `nova`…) |
 | Raw/elemental split | Per spell, by fantasy (6.1) |
+| Type chart | Storm > Water/Ice > Fire > Life > Earth/Steel > Storm; Fire > Plague/Death > Life; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
 | Stone type | None. Earth/Steel deals raw damage plus bleed; armour is its resistance; bleed ignores armour |
 | Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
 | Bare forms | Deliberately weak; how weak depends on the form's purpose |
@@ -1334,7 +1364,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 
 1. Combo thresholds for each ultimate.
 2. Which words, spells and bare forms the player starts with, and where the rest are learned (ley sites, tower; docs 05 and 15).
-3. Enemy roster resistances per element (which enemies resist what, within 5.5).
+3. Which enemies get which element, and in which levels (type chart in 6.5).
 4. The open details listed under each spell in section 12.
 
 ## Appendix A: fit check of every idea in doc 16
