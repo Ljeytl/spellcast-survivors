@@ -33,7 +33,12 @@ var state: Dictionary = {}
 var good_runes = 0          # runes that still fit a spell; only these build rings
 var last_text = ""
 var runes: Array = []          # {ch, angle, pop, bad}
-var satellites: Array = []     # {word, runes:[ch], flash, color}
+var satellites: Array = []     # {word, runes:[{ch, pop}], flash, seal, travel, color}
+# A power word being typed lives in its own small circle with the same rune rules as the main
+# one: each letter pops in, a typo cracks it red, the rest of the word shows as ghost runes,
+# and finishing it seals the circle (ticks + flash) before it drifts out into orbit.
+var forming: Dictionary = {}   # {runes:[{ch, pop, bad}], word, travel} while a power word is typed
+const SATELLITE_TRAVEL_FROM = 46.0
 var ring_rot: Array = [0.0, 0.0, 0.0, 0.0, 0.0]
 var ring_flash: Array = [0.0, 0.0, 0.0, 0.0, 0.0]
 var lock_flash = 0.0
@@ -231,11 +236,32 @@ func refresh(text: String):
 		error = 1.0
 	good_runes = good
 	var count = state.rune_count
-	# Completed power words fly from the ring into satellites.
+	# A power word in progress (or a typo inside one) builds its own small circle.
+	var good_state = state if state.valid else STATE.analyze(text.substr(0, text.length() - (count - good)), table, power_words())
+	if bool(good_state.get("forming_power_word", false)) and int(good_state.get("rune_count", 0)) > 0:
+		if forming.is_empty():
+			forming = {"runes": [], "word": "", "travel": 0.0}
+		forming.word = str(good_state.get("power_word", ""))
+		var letters: Array = forming.runes
+		while letters.size() > count:
+			letters.pop_back()
+		for i in letters.size():
+			letters[i].ch = str(state.runes)[i]
+			letters[i].bad = i >= good
+		while letters.size() < count:
+			var i = letters.size()
+			letters.append({"ch": str(state.runes)[i], "pop": 1.0, "bad": i >= good})
+	else:
+		forming = {}
+	# Completed power words seal and drift out into orbit as satellites.
 	var words: Array = state.power_words
 	while satellites.size() < words.size():
 		var word = str(words[satellites.size()])
-		satellites.append({"word": word, "runes": letters_of(word), "flash": 1.0, "color": KEYWORDS.cast_color(KEYWORDS.DEFINITIONS.get(word, {}))})
+		var sat_runes: Array = []
+		for ch in letters_of(word):
+			sat_runes.append({"ch": ch, "pop": 0.6})
+		satellites.append({"word": word, "runes": sat_runes, "flash": 1.0, "seal": 1.0, "travel": 0.0, "color": KEYWORDS.cast_color(KEYWORDS.DEFINITIONS.get(word, {}))})
+		forming = {}
 		runes.clear()
 	while satellites.size() > words.size():
 		satellites.pop_back()
@@ -268,9 +294,12 @@ func _on_released(_family: String, canonical: String, _typed: String):
 	sealed = true
 	burst_mult = float(KEYWORDS.for_incantation(canonical).get("power", 1.0))
 	var typed = runes.size() > 0 or satellites.size() > 0
+	var letters = runes.size()
+	for s in satellites:
+		letters += s.runes.size()
 	if typed and not reduced:
 		spark_kind = str(state.get("element", "")) if str(state.get("element", "")) != "" else "arcane"
-		var count = int(10 + mini(runes.size(), 13) * minf(2.0, burst_mult))
+		var count = int(10 + mini(letters, 13) * minf(2.0, burst_mult))
 		for i in count:
 			sparks.append({"angle": TAU * i / count + randf_range(-0.15, 0.15), "dist": 30.0 + randf() * 10.0, "speed": randf_range(90.0, 170.0) * minf(1.6, burst_mult), "life": 1.0, "seed": randi()})
 	if typed:
@@ -278,7 +307,7 @@ func _on_released(_family: String, canonical: String, _typed: String):
 		staff_flash = 1.0
 		leave_scorch()
 		if not reduced:
-			var weight = runes.size() * burst_mult
+			var weight = letters * burst_mult
 			hitstop_pending = minf(0.09, 0.03 + weight * 0.003)
 			var game = game_node()
 			if is_instance_valid(game) and "camera_shake" in game and game.camera_shake:
@@ -286,6 +315,22 @@ func _on_released(_family: String, canonical: String, _typed: String):
 	for i in runes.size():
 		var r = runes[i]
 		shards.append({"angle": r.angle, "radius": radius_of(i), "speed": 90.0 + randf() * 90.0 * burst_mult, "life": 1.0, "ch": r.ch})
+	# Satellites fling their runes too, and each answers with its own small shockwave.
+	for i in satellites.size():
+		var center = satellite_center(i, satellites.size())
+		satellites[i].flash = 1.0
+		for j in satellites[i].runes.size():
+			var p = center + Vector2.from_angle(satellite_rune_angle(j, satellites[i].runes.size())) * SATELLITE_RADIUS
+			shards.append({"angle": p.angle(), "radius": p.length(), "speed": 110.0 + randf() * 110.0 * burst_mult, "life": 1.0, "ch": str(satellites[i].runes[j].ch), "color": satellites[i].color})
+
+## Where satellite i of n sits (it eases out from the main circle when it first seals).
+func satellite_center(i: int, n: int) -> Vector2:
+	var travel = float(satellites[i].travel) if i < satellites.size() else float(forming.get("travel", 0.0))
+	var orbit = lerpf(SATELLITE_TRAVEL_FROM, SATELLITE_ORBIT, ease(clampf(travel, 0.0, 1.0), 0.4))
+	return Vector2.from_angle(clock * (0.7 + glow * 0.5) + i * TAU / maxf(1.0, n)) * orbit
+
+func satellite_rune_angle(j: int, n: int) -> float:
+	return clock * (1.6 + glow * 1.5 + burst * 6.0) + j * TAU / maxf(4.0, n)
 
 func _process(_delta):
 	var now = Time.get_ticks_usec()
@@ -355,6 +400,14 @@ func _process(_delta):
 		r.pop = maxf(0.0, r.pop - dt * 3.0)
 	for s in satellites:
 		s.flash = maxf(0.0, s.flash - dt * 2.0)
+		s.seal = maxf(0.0, s.seal - dt * 1.5)
+		s.travel = minf(1.0, s.travel + dt * 2.2)
+		for r in s.runes:
+			r.pop = maxf(0.0, r.pop - dt * 3.0)
+	if not forming.is_empty():
+		forming.travel = minf(1.0, forming.travel + dt * 4.0)
+		for r in forming.runes:
+			r.pop = maxf(0.0, r.pop - dt * 3.0)
 	for s in shards:
 		s.radius += s.speed * dt
 		s.life -= dt * 1.4
@@ -388,6 +441,7 @@ static func letters_of(word: String) -> Array:
 func start_fresh():
 	runes.clear()
 	satellites.clear()
+	forming = {}
 	sealed = false
 	ring_rot = [0.0, 0.0, 0.0, 0.0, 0.0]
 	state = {}
@@ -395,6 +449,7 @@ func start_fresh():
 func reset():
 	runes.clear()
 	satellites.clear()
+	forming = {}
 	shards.clear()
 	sealed = false
 	burst = 0.0
@@ -434,8 +489,9 @@ func _draw():
 	if element_flash > 0.0:
 		draw_arc(Vector2.ZERO, 30.0 + (1.0 - element_flash) * 110.0, 0, TAU, 64, faded(color_a, element_flash), 3.0 * element_flash, true)
 	var count = runes.size()
-	var lit = mini(good_runes, count)
-	var total = int(state.get("total_runes", lit))
+	# While a power word is typed its letters build the satellite, not the rings.
+	var lit = 0 if not forming.is_empty() else mini(good_runes, count)
+	var total = 0 if not forming.is_empty() else int(state.get("total_runes", lit))
 	var ring_count = int(ceil(float(maxi(lit, total)) / STATE.RUNES_PER_RING))
 	var locked = str(state.get("spell", "")) != ""
 	for r in mini(ring_count, RING_RADII.size()):
@@ -467,15 +523,16 @@ func _draw():
 			var pulse = 0.4 + 0.2 * sin(clock * 8.0) if i == count else 0.16
 			draw_rune(self, spell[i], Vector2.from_angle(a) * radius_of(i), a, RUNE_SIZE * 0.85, 1.0, faded(color_b, pulse * (1.0 - lock_flash * 0.6)))
 	# Typed runes
-	var forming = bool(state.get("forming_power_word", false))
+	# Letters of a power word in progress live in their own satellite circle, not on the rings.
+	var in_satellite = not forming.is_empty()
 	for i in count:
 		var r = runes[i]
 		var size = RUNE_SIZE * (1.0 + r.pop * 0.7)
 		var color = Color("ff4a4a") if r.bad else color_a
-		if forming:
+		if in_satellite:
 			continue
 		draw_rune(self, r.ch, Vector2.from_angle(r.angle) * radius_of(i), r.angle, size, 1.6, faded(color, 0.95))
-	if error > 0.0 and count < 15:
+	if error > 0.0 and count < 15 and forming.is_empty():
 		var p = Vector2.from_angle(slot_angle(count)) * radius_of(count)
 		var red = Color(1.0, 0.29, 0.29, error * fade)
 		draw_line(p + Vector2(-5, -7), p + Vector2(2, 0), red, 1.6, true)
@@ -523,19 +580,59 @@ func _draw_front():
 	for e in embers:
 		var c = color_a if e.hue else color_b
 		front.draw_rect(Rect2(e.pos + Vector2(0, -20), Vector2(2, 2)), Color(c.r, c.g, c.b, e.life * fade))
-	# Power-word satellites orbit the wizard
-	var forming = bool(state.get("forming_power_word", false))
-	var orbiting = satellites.size() + (1 if forming else 0)
+	# Power-word satellites orbit the wizard, each a small circle with the main circle's rune rules.
+	var orbiting = satellites.size() + (0 if forming.is_empty() else 1)
 	for i in orbiting:
-		var center = Vector2.from_angle(clock * 0.7 + i * TAU / maxf(1.0, orbiting)) * SATELLITE_ORBIT
-		var letters: Array = satellites[i].runes if i < satellites.size() else letters_of(str(state.runes))
-		var color: Color = satellites[i].color if i < satellites.size() else color_a
-		var flash = float(satellites[i].flash) if i < satellites.size() else 0.0
-		front.draw_arc(center, SATELLITE_RADIUS + flash * 8.0, 0, TAU, 32, Color(color.r, color.g, color.b, 0.8 * fade), 1.4 + flash * 2.0, true)
-		front.draw_line(Vector2(0, -10), center, Color(color.r, color.g, color.b, 0.25 * fade), 1.0, true)
+		var is_forming = i >= satellites.size()
+		var center = satellite_center(i, orbiting)
+		var sat = forming if is_forming else satellites[i]
+		var letters: Array = sat.runes
+		var word = str(sat.get("word", ""))
+		# Keyword gold for the runes; the ring picks up the spell's element once it is known.
+		var gold: Color = sat.color if not is_forming else KEYWORDS.cast_color(KEYWORDS.DEFINITIONS.get(word, {}))
+		var ring_color = gold.lerp(color_b, 0.5) if str(state.get("element", "")) != "" else gold
+		var flash = float(sat.get("flash", 0.0))
+		var seal = float(sat.get("seal", 0.0))
+		var bad_any = letters.any(func(r): return r.get("bad", false))
+		var jitter = Vector2.ZERO if reduced or not bad_any else Vector2(randf_range(-1, 1), randf_range(-1, 1)) * error * 3.0
+		center += jitter
+		front.draw_line(Vector2(0, -10), center, Color(ring_color.r, ring_color.g, ring_color.b, (0.25 + glow * 0.2) * fade), 1.0, true)
+		if not reduced:
+			var halo = SATELLITE_RADIUS * (1.6 + glow * 0.5 + flash * 0.6)
+			front.draw_texture_rect(glow_texture, Rect2(center - Vector2(halo, halo), Vector2(halo, halo) * 2.0), false, Color(gold.r, gold.g, gold.b, (0.12 + glow * 0.18 + flash * 0.3) * fade))
+		if is_forming:
+			# Partial arc, like a ring still filling.
+			var total = maxi(word.length(), letters.size())
+			var share = float(letters.size()) / maxf(1.0, total)
+			var start = clock * 1.6
+			front.draw_arc(center, SATELLITE_RADIUS, start - 0.3, start + share * TAU, 32, Color(ring_color.r, ring_color.g, ring_color.b, 0.6 * fade), 1.2, true)
+		else:
+			front.draw_arc(center, SATELLITE_RADIUS + flash * 8.0, 0, TAU, 32, Color(ring_color.r, ring_color.g, ring_color.b, 0.8 * fade), 1.4 + flash * 2.0 + glow * 0.6, true)
+			# Sealed: the tick marks a full ring gets.
+			for t in 12:
+				var ta = clock * 0.9 + t * TAU / 12
+				var outer = SATELLITE_RADIUS + (6.0 if t % 3 == 0 else 3.5)
+				front.draw_line(center + Vector2.from_angle(ta) * (SATELLITE_RADIUS + 2.0), center + Vector2.from_angle(ta) * outer, Color(gold.r, gold.g, gold.b, (0.5 + seal * 0.5) * fade), 1.0, true)
+			if seal > 0.0:
+				front.draw_arc(center, SATELLITE_RADIUS + (1.0 - seal) * 18.0, 0, TAU, 32, Color(gold.r, gold.g, gold.b, seal * fade), 2.5 * seal, true)
+		var slots = maxi(word.length(), letters.size())
 		for j in letters.size():
-			var a = clock * 1.6 + j * TAU / maxf(4.0, letters.size())
-			draw_rune(front, str(letters[j]), center + Vector2.from_angle(a) * SATELLITE_RADIUS, a, SATELLITE_RUNE, 1.4, Color(color.r, color.g, color.b, fade))
+			var r = letters[j]
+			var a = satellite_rune_angle(j, slots)
+			var size = SATELLITE_RUNE * (1.0 + float(r.get("pop", 0.0)) * 0.8)
+			var c = Color("ff4a4a") if r.get("bad", false) else gold
+			draw_rune(front, str(r.ch), center + Vector2.from_angle(a) * SATELLITE_RADIUS, a, size, 1.4, Color(c.r, c.g, c.b, fade))
+		# Ghost runes: the rest of the power word, the next one pulsing.
+		if is_forming and word != "" and not bad_any:
+			for j in range(letters.size(), word.length()):
+				var a = satellite_rune_angle(j, slots)
+				var pulse = 0.4 + 0.2 * sin(clock * 8.0) if j == letters.size() else 0.16
+				draw_rune(front, word[j], center + Vector2.from_angle(a) * SATELLITE_RADIUS, a, SATELLITE_RUNE * 0.85, 1.0, Color(gold.r, gold.g, gold.b, pulse * fade))
+		if is_forming and bad_any and error > 0.0:
+			var p = center + Vector2.from_angle(satellite_rune_angle(letters.size(), slots)) * SATELLITE_RADIUS
+			var red = Color(1.0, 0.29, 0.29, error * fade)
+			front.draw_line(p + Vector2(-5, -7), p + Vector2(2, 0), red, 1.6, true)
+			front.draw_line(p + Vector2(2, 0), p + Vector2(-2, 7), red, 1.6, true)
 	# Cast: shockwave scaled by power, runes flung outward
 	if burst > 0.0:
 		var scale_power = minf(1.8, burst_mult)
@@ -544,4 +641,5 @@ func _draw_front():
 			front.draw_texture_rect(glow_texture, Rect2(Vector2(-120, -120) * scale_power, Vector2(240, 240) * scale_power), false, Color(color_a.r, color_a.g, color_a.b, burst * burst * 0.6))
 	draw_sparks()
 	for s in shards:
-		draw_rune(front, s.ch, Vector2.from_angle(s.angle) * s.radius, s.angle, RUNE_SIZE, 1.6, Color(color_a.r, color_a.g, color_a.b, s.life))
+		var sc: Color = s.get("color", color_a)
+		draw_rune(front, s.ch, Vector2.from_angle(s.angle) * s.radius, s.angle, RUNE_SIZE, 1.6, Color(sc.r, sc.g, sc.b, s.life))
