@@ -22,7 +22,8 @@ It builds on the component vocabulary in [doc 14](14-spell-system-reference.md) 
 - [12. Approved design spells, specified](#12-approved-design-spells-specified)
 - [13. Art needed](#13-art-needed)
 - [14. Rewrite plan](#14-rewrite-plan)
-- [15. Open decisions](#15-open-decisions)
+- [15. Balance plan](#15-balance-plan)
+- [16. Open decisions](#16-open-decisions)
 - [Appendix A: fit check of every idea in doc 16](#appendix-a-fit-check-of-every-idea-in-doc-16)
 - [Appendix B: engine work the format needs](#appendix-b-engine-work-the-format-needs)
 
@@ -637,6 +638,12 @@ The player-facing rename is done (PR #131). The rewrite renames internal ids too
 
 **Lance** is reserved for a future spell: a close-range thrust, probably filed near Slash in doc 16.
 
+### 11.4 Legacy draft data (not ported)
+
+`data/spells.json` still holds nine inactive drafts from early prototypes. They were never user designs and cannot be acquired: Fire Storm, Time Warp, Chain Heal, Frost Nova (data only; the endorsed Frost Nova in 12.3 replaces it), Divine Aura, Arcane Missiles, Skeleton Warrior, Arcane Turret and Flame Elemental. **The rewrite does not port them.** Where an idea survives, it is the user-approved version in section 12.
+
+**Divine Aura** in particular: a 15 s aura (radius 200) that healed 5 HP per second and cut damage taken by 20%, tagged `holy` and unlocked by a "healer" character. It conflicts with principle 8 and duplicates Regeneration and Ward, so it is dropped.
+
 ## 12. Approved design spells, specified
 
 Every user concept from [doc 17](17-element-spell-ideas.md) that was not rejected or questioned, plus the spells added in this pass. Each entry says what it is, its parts, how it plays, which keywords are interesting, what enemies must support, and what is still open. Numbers are *proposed* starting points relative to the current baselines in 9.5. The "filed under" label is only where doc 16 lists the idea; the **Parts** line is the spell's actual type. "Gap" letters refer to Appendix B.
@@ -1169,7 +1176,99 @@ This is a full rewrite of the **spell engine**, done so the game stays playable 
 
 Per phase: run the existing regression suite, the documentation validator and, with approval, bot runs to compare balance against the current build. Keep a comparison build of 0.2.7.
 
-## 15. Open decisions
+## 15. Balance plan
+
+Balance here means **everything has a place**, not everything is equal (principle 1). A spell may be deliberately weak if players pick it for its fantasy; it just has to clear a floor.
+
+### 15.1 Targets
+
+| Target | Rule | How it is measured |
+|---|---|---|
+| Difficulty curve | Time to kill an average enemy at minute 10 ≈ minute 19 | Bot runs: kills per minute and time-to-kill by minute |
+| Length pays | A longer incantation (spell + keywords) gives more total value | Value-per-letter curve (15.3) |
+| Floor | Every spell, played on its own with a weak bot, survives to minute 10 | Solo-spell bot matrix |
+| Ceiling | No single spell or keyword stack exceeds about 2× the curve without being an ultimate | Keyword matrix (15.4) |
+| Roles | Each spell is measured against its own role, not against all spells | Role yardsticks (15.2) |
+| Readability | Any combination stays readable on screen | Limits in 4.5; visual check of the top combinations |
+
+### 15.2 Role yardsticks
+
+| Role | Main yardstick | Example spells |
+|---|---|---|
+| Single target | Time to kill an elite or boss | Focus Ray, Ember Spear, Lightning |
+| Crowd | Kills per minute in dense waves | Ice Blast, Meteor Shower, Cinder Field |
+| Control | Enemy-seconds slowed, frozen or pushed per cast | Ice Blast, Frost Nova, Black Hole |
+| Sustain | Health restored or damage prevented per minute | Life, Regeneration, Earth Shield, Ward |
+| Utility | Situational value: pickups, mobility, setup | XP magnet, BLINKING, traps |
+
+### 15.3 Value per letter
+
+Every cast has a typing cost: letters in the spell plus letters in its keywords. Expected value grows with letters, but slightly slower than linearly so that very long chains are strong without exploding:
+
+**value ≈ base × (letters ÷ 5)^0.85**
+
+| Letters typed | Example | Value relative to a 5-letter cast |
+|---|---|---|
+| 4 | `bolt` | 0.83 |
+| 5 | `stone` | 1.00 |
+| 10 | `ember spear` | 1.80 |
+| 14 | `mega ember spear` | 2.40 |
+| 20 | `triple mega ember spear` | 3.25 |
+
+Keyword coefficients in 8.3 are chosen to sit on this curve:
+
+| Keyword | Letters | Effect | Implied value multiplier |
+|---|---|---|---|
+| MEGA | 4 | ×1.5 power, ×1.5 size | ~1.5 to 1.8 depending on crowd |
+| SUPER / OMEGA | 5 | ×1.6 power, ×1.6 size | ~1.6 to 1.9 |
+| POWERFUL | 8 | ×2.0 power, ×2.0 size | ~2.0 to 2.4 |
+| DOUBLE / TRIPLE / QUADRUPLE | 6 / 6 / 9 | 2 × 60% / 3 × 45% / 4 × 35% | 1.2 / 1.35 / 1.4 on one target; more on crowds |
+| TWINNED | 7 | second cast at 80% | 1.8 |
+| Element words | 3–9 | +5% elemental damage per letter + status | 1.15–1.45 plus the status |
+
+Charge time, diminishing returns on stacking and the typing time itself are the costs that keep these from multiplying freely.
+
+### 15.4 Damage-over-time budget
+
+Per 100 damage on the applying hit (proposed numbers from 9.2):
+
+| Status | Duration | Total damage | Shape |
+|---|---|---|---|
+| Burn | 1.5 s | 15 | fastest; each hit adds its own burn |
+| Bleed | 4 s | 24, plus hemorrhage when the meter fills | steady, then a spike |
+| Poison | 10 s | about 41 | slowest, most total; also weakens |
+| Chill | — | 4 frostbite per stack | control first: slow, then frozen |
+
+So poison does the most total damage over the longest time, burn the fastest, bleed spikes through hemorrhage, and chill trades damage for control. Raw/elemental split on direct hits: 75–80% raw, 20–25% the spell's element.
+
+### 15.5 How we measure
+
+| Tool | What it does | Exists today |
+|---|---|---|
+| **Bot runs with scheduled ranks** (`--rank-schedule`) | Removes rank-card luck; same ranks at the same minute every run | yes |
+| **Solo-spell matrix** (`run_solo_matrix.sh`) | Each spell played alone; damage, kills, time-to-kill by minute | yes |
+| **Balance matrix** (`run_balance_matrix.sh`) | Builds of several spells | yes |
+| **Fixed passives** | Remove passive Spell Power luck (×1.0–4.4 today), the biggest remaining noise | to add |
+| **Keyword matrix** | Every spell × every first-batch keyword against fixed dummy targets (one tank, one dense pack); outputs value per letter | to add |
+| **Floor test** | Vulnerable bot, one spell, must reach minute 10 | to add |
+| **Telemetry** | Damage by source, status uptime, reactions fired, keywords used | partly (damage source exists) |
+
+### 15.6 Order of tuning
+
+1. **Base spells** to their role yardsticks with no keywords (the current scheduled-rank data is the baseline).
+2. **Statuses**: DoT totals and chill/freeze timing against 15.4.
+3. **Keywords**: first batch, against the value-per-letter curve via the keyword matrix.
+4. **Element words and reactions.**
+5. **Enemies and resistances**: keep within ±25–50% (5.5).
+6. **Playtests** with people after each step; bot numbers inform, players decide.
+
+**Outlier rule:** anything more than 25% off the curve for its role gets a look. It is either tuned, or marked as a deliberate fantasy exception with a written reason.
+
+### 15.7 Starting point from current data
+
+Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s at a steady pace; Lightning, Rune Trap and Cinder Field deal similar total damage over a run; Ember Spear is the outlier at about 50 s on single targets (expected for a line spell that wants crowds, and why the burning trail was added). Passive Spell Power luck is still the largest source of noise and gets fixed first.
+
+## 16. Open decisions
 
 1. Keyword names: HOMING or SEEKING; DOUBLE/TRIPLE or DUPLICATING; FIERY or FLAMING (or both, with different meanings).
 2. ~~Element words add or convert~~ **Decided: add** (raw + elemental split; element words add +35% and their status to every damaging part). Still open: the exact split per spell. Fusion vs reaction: **decided, both** (6.4).
