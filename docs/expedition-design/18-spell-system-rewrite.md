@@ -6,6 +6,26 @@ This document defines the spell system we are rebuilding toward: what a spell is
 
 It builds on the component vocabulary in [doc 14](14-spell-system-reference.md) and the [element × family matrix](16-element-family-matrix.md). Where this document conflicts with older proposals in docs 04 and 14, this document is the newer decision record; numbers marked *proposed* are starting points to tune.
 
+## Contents
+
+- [1. What we are trying to do](#1-what-we-are-trying-to-do)
+- [2. Decisions recorded in this pass](#2-decisions-recorded-in-this-pass)
+- [3. Architecture](#3-architecture)
+- [4. Spell definition format](#4-spell-definition-format)
+- [5. Effects: payload, damage, forces and statuses](#5-effects-payload-damage-forces-and-statuses)
+- [6. Elements](#6-elements)
+- [7. What enemies need to support this](#7-what-enemies-need-to-support-this)
+- [8. Keywords](#8-keywords)
+- [9. Starting numbers](#9-starting-numbers)
+- [10. Custom spells](#10-custom-spells)
+- [11. Current spells in the new system](#11-current-spells-in-the-new-system)
+- [12. Approved design spells, specified](#12-approved-design-spells-specified)
+- [13. Art needed](#13-art-needed)
+- [14. Rewrite plan](#14-rewrite-plan)
+- [15. Open decisions](#15-open-decisions)
+- [Appendix A: fit check of every idea in doc 16](#appendix-a-fit-check-of-every-idea-in-doc-16)
+- [Appendix B: engine work the format needs](#appendix-b-engine-work-the-format-needs)
+
 ## 1. What we are trying to do
 
 A cool spell list with distinct fantasies. Every spell can be modified by words, and modified spells feel like new spells: `triple ember spear`, `triple mega icy ember spear`. Combinations come mostly for free from shared rules; the best pairings get hand-made signatures.
@@ -20,11 +40,32 @@ Principles:
 6. **Bounded.** Every cast has hard limits on depth, spawns and hits per target, so no combination breaks a frame.
 7. **No compulsory hard counters.** Resistances steer choices, never force them.
 
+### 1.1 A spell's name is not its type
+
+**Names are fantasy. Types are mechanics.** A spell is named for what it should feel like; it is built from whatever parts deliver that feeling. The system never reads the name or the matrix column, only the parts.
+
+| Player name | Sounds like | Actually built as (type) |
+|---|---|---|
+| Fire Wave | a wave | could be `volume · ring · expanding` (a nova) or `volume · cone` (a blast); the designer picks whichever fits the fantasy |
+| Ice Blast | an area burst | `projectile · fan` of shards |
+| Tsunami | a wave | `volume · rect · travelling` from behind the caster |
+| Lightning | a bolt | `volume · disk` at the target, plus a chain |
+| Black Hole | a hole | `field · disk` with a pull force |
+| Ember Spear | a spear | `projectile · single · body` with a trailing field |
+
+Three separate things, never mixed:
+
+1. **Name**: what the player types and sees. Chosen for fantasy.
+2. **Matrix column** (Bolt, Ball, Spear, Ray, Blast, Nova, Wall…): where the idea is filed in [doc 16](16-element-family-matrix.md) for browsing. Also fantasy. It does not decide behaviour.
+3. **Type**: the parts and axis values (delivery, arrangement, geometry, motion…). This alone decides behaviour, keyword bindings and art.
+
+Keyword rules bind to **type**. Two spells in the same matrix column can behave completely differently with the same keyword; two spells with different names and columns but the same type behave the same.
+
 ## 2. Decisions recorded in this pass
 
 - Spells are built from **parts**; each part picks one value per **axis**. Spells link parts through **events** and change behaviour over time through **phases**.
 - Keywords bind to **axis values**, not to individual spells. Spells override only for signatures or rejections.
-- **Design family** (Blast, Nova, Spear…) is a player/matrix label. **Delivery** decides keyword behaviour. Ice Blast (projectile fan) and a flamethrower (volume cone) share a family but bind keywords differently.
+- **Name ≠ type** (section 1.1). The matrix column (Blast, Nova, Spear…) is only a browsing label. **Type** (delivery first) decides keyword behaviour. Ice Blast (projectile fan) and a flamethrower (volume cone) share a matrix column but bind keywords differently.
 - **Shield and restoration are not deliveries.** Healing, absorb and block are payloads; Regeneration and Earth Shield are auras on the caster.
 - **Creature is renamed `summon`.** Player-facing summon words stay spell names (Golem, Raise Dead).
 - **Aura** is a delivery: a persistent area anchored to an entity. Field is the same anchored to the ground; they share code.
@@ -33,7 +74,7 @@ Principles:
 - **All statuses go through one path** into one status component per enemy, with per-status stacking rules and per-enemy resistance profiles.
 - **Damage type lives on each damage entry**, so one hit can carry several types. A spell's element is its theme and default type.
 - **Custom spells** may have their own code but must still honour the keyword contract (section 10). No current spell needs to be custom.
-- **Spear, not Lance.** The thrown fire weapon is a spear everywhere, including internal ids (section 11). **Lance** is reserved for a different future spell, probably a melee thrust in the Slash family.
+- **Spear, not Lance.** The thrown fire weapon is a spear everywhere, including internal ids (section 11). **Lance** is reserved for a different future spell, probably a melee thrust (filed near Slash in doc 16).
 - **Homing Bolt** is a homing signature on Bolt, not a new spell (section 8).
 
 ## 3. Architecture
@@ -135,6 +176,8 @@ A part can move through phases. Each phase may set motion, aim, payload multipli
 
 That is Cross Blade.
 
+`matrix_column` in spell data is a browsing label for docs and the spellbook only. Nothing in the engine reads it.
+
 ### 4.5 Limits
 
 | Limit | Proposed default | Purpose |
@@ -152,7 +195,7 @@ That is Cross Blade.
   "id": "ember_spear",
   "name": "Ember Spear",
   "incantation": "ember spear",
-  "family": "spear",
+  "matrix_column": "spear",
   "element": "fire",
   "parts": {
     "spear": {
@@ -550,58 +593,58 @@ The player-facing rename is done (PR #131). The rewrite renames internal ids too
 | `lance_aim_regression` test | `spear_aim_regression` |
 | `lightning_arc`, `seeking_spirit`, `ember_trail`, `returning_blade` | `lightning`, `seeker`, `firewalk`, `cross_blade` |
 
-**Lance** is reserved for a future spell: a close-range thrust, likely in the Slash family.
+**Lance** is reserved for a future spell: a close-range thrust, probably filed near Slash in doc 16.
 
 ## 12. Approved design spells, specified
 
-Every user concept from [doc 17](17-element-spell-ideas.md) that was not rejected or questioned, plus the spells added in this pass. Each entry says what it is, its parts, how it plays, which keywords are interesting, what enemies must support, and what is still open. Numbers are *proposed* starting points relative to the current baselines in 9.5. "Gap" letters refer to Appendix B.
+Every user concept from [doc 17](17-element-spell-ideas.md) that was not rejected or questioned, plus the spells added in this pass. Each entry says what it is, its parts, how it plays, which keywords are interesting, what enemies must support, and what is still open. Numbers are *proposed* starting points relative to the current baselines in 9.5. The "filed under" label is only where doc 16 lists the idea; the **Parts** line is the spell's actual type. "Gap" letters refer to Appendix B.
 
 Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm (questioned, no distinct behaviour yet) and the Plague/Death TBD slots (Plague Spear, Nova, Shower, Wall, Trail, Trap), which have no behaviour to specify.
 
 ### 12.1 Arcane / Mana
 
-**Arcane Slash** · Slice family
+**Arcane Slash** · filed under Slice in doc 16
 - **What:** you cut glowing glyphs into an area; after a short delay they detonate. Enemies touching a glyph before it detonates also take damage.
 - **Parts:** `glyphs` trap · line × 3 in a fan at the target · trigger `timer 0.6 s` and `on_enter` contact (arcane, 20%) → `on_expire` `blast` volume · line · instant · arcane 60.
 - **Keywords:** TRIPLE = more glyphs; LASTING = longer delay with a bigger blast; HOMING = glyphs cut across the nearest group.
 - **Enemies:** nothing special.
 - **Open:** whether contact before detonation damages or only marks.
 
-**Mana Storm** · Shower family
+**Mana Storm** · filed under Shower in doc 16
 - **What:** a cloud follows near you and rains mana daggers on enemies below it.
 - **Parts:** `cloud` field · disk r160 · motion `follow` caster with lag · 6 s · `on_tick 0.25 s` → `dagger` projectile · single · fall onto a random enemy inside the cloud · arcane 14.
 - **Keywords:** HOMING = cloud drifts toward the densest group instead of following you; MEGA = bigger cloud, bigger daggers; TWIN = second cloud.
 - **Enemies:** nothing special.
 - **Open:** follow you or wander on its own.
 
-**Arcane Nova** · Nova family
+**Arcane Nova** · filed under Nova in doc 16
 - **What:** an expanding ring of raw magic around you.
 - **Parts:** volume · ring · origin caster · expanding to r260 at 900/s · once · arcane 70 + vulnerable.
 - **Keywords:** TRIPLE = three rings in quick succession; REPULSING = a defensive panic button.
 - **Enemies:** status component (vulnerable).
 
-**Black Hole** · Field family · ultimate (was Eye of [unnamed])
+**Black Hole** · filed under Field in doc 16 · ultimate (was Eye of [unnamed])
 - **What:** a gravity well that drags everything in and crushes it. Damage rises toward the centre.
 - **Parts:** field · disk r240 at target · 4 s · force `toward_point` 600/s with falloff · periodic 0.25 s · arcane damage 10 at the edge rising to 40 at the core · `on_expire` volume disk r140 · arcane 150.
 - **Keywords:** MEGA/OMEGA scale radius and pull; LASTING extends; TWIN = two wells that pull against each other.
 - **Enemies:** force accumulator, weight; bosses resist pull by weight.
 - **Open:** ultimate rules (charge-up, cooldown or once per day).
 
-**Prism Wall** · Wall family
+**Prism Wall** · filed under Wall in doc 16
 - **What:** a fragile crystal wall that reflects part of the damage enemies deal to it.
 - **Parts:** barrier · line 220 × 24 at target · health 120 · blocks enemies, passable for your spells · reflect 50% of melee and projectile damage taken back at the attacker · 8 s.
 - **Keywords:** WIDE = longer wall; LASTING = longer; TRIPLE = three short segments in a triangle.
 - **Enemies:** pathing/avoidance around barriers; attack identity (attacker reference) for reflect.
 - **Open:** reflection percentage, whether projectiles are reflected as projectiles.
 
-**Prismatic Shield** · Shield family
+**Prismatic Shield** · filed under Shield in doc 16
 - **What:** about ten seconds of invulnerability, possibly reflecting hits.
 - **Parts:** aura on caster · status invulnerable 10 s (+ reflect 25%).
 - **Keywords:** LASTING extends; MEGA adds reflect strength. Most others rejected.
 - **Enemies:** nothing; reflect needs attack identity.
 - **Open:** strength (likely ultimate-tier or long cooldown).
 
-**XP Magnet** · Restoration family (utility)
+**XP Magnet** · filed under Restoration in doc 16 (utility)
 - **What:** pull distant XP orbs toward you.
 - **Parts:** aura on caster · r600 · 3 s · `attract` · recipients `pickups`.
 - **Keywords:** MEGA/BIG = radius; LASTING = duration; element words rejected.
@@ -627,7 +670,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 - **Keywords:** TRIPLE = three targets; HOMING; bosses immune.
 - **Enemies:** behaviour swap and sprite swap for transform.
 
-**Ward** · Shield family (added this pass)
+**Ward** · filed under Shield in doc 16 (added this pass)
 - **What:** a protective circle on the ground; while you stand in it you take less damage.
 - **Parts:** field · disk r120 at caster position · 6 s · buff ward (−40% damage taken) to recipient `self` while inside.
 - **Keywords:** MEGA/BIG radius; LASTING; element words make the ward pulse damage at enemies inside.
@@ -635,50 +678,50 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 
 ### 12.2 Fire
 
-**Fire Bolt** · Bolt family
+**Fire Bolt** · filed under Bolt in doc 16
 - **What:** a travelling bolt of fire that sets enemies burning.
 - **Parts:** projectile · single · body r14 · straight 700 · once · fire 45 + burn.
 - **Keywords:** standard projectile defaults; TRIPLE is a fire fan.
 - **Enemies:** status component.
 
-**Fireball** · Ball family
+**Fireball** · filed under Ball in doc 16
 - **What:** the classic: a round fiery projectile that explodes on impact.
 - **Parts:** `orb` projectile · body r18 · straight 650 · fire 30 → `on_hit` `blast` volume · disk r90 · instant · fire 60 + burn.
 - **Keywords:** MEGA = bigger explosion; SPLITTING = cluster bombs; HOMING.
 - **Enemies:** none special.
 
-**Scorching Ray** · Ray family
+**Scorching Ray** · filed under Ray in doc 16
 - **What:** two or three lingering fire beams.
 - **Parts:** beam · fan 3 · length 380 · aim `distinct` targets (or fixed triangle variant) · channel 2 s · fire 18 per 0.25 s + burn.
 - **Keywords:** TRIPLE adds beams; WIDE thickens; HOMING tracks targets.
 - **Enemies:** none special.
 - **Open:** triangle around you versus aimed at enemies.
 
-**Flame Wall** · Wall family
+**Flame Wall** · filed under Wall in doc 16
 - **What:** a passable wall of fire; enemies that cross it burn.
 - **Parts:** field · line 260 × 30 at target · 6 s · `on_enter` fire 30 + burn, rehit 1 s per enemy.
 - **Keywords:** WIDE = longer wall; TRIPLE = three walls in a triangle (a kill box); HOMING = wall placed across the densest approach.
 - **Enemies:** none special. Not solid, by user decision.
 
-**Volcano** · Strike family
+**Volcano** · filed under Strike in doc 16
 - **What:** an eruption at a point that leaves a lingering volcanic vent which keeps lobbing lava at nearby enemies.
 - **Parts:** `eruption` volume · disk r110 · instant · fire 80 → `vent` field · disk r40 · 6 s · `on_tick 0.6 s` → `lava` projectile · lob onto nearest enemy within 300 · land volume r50 · fire 25 + burn.
 - **Keywords:** LASTING = vent lives longer; TWIN = two vents; MEGA = bigger eruption.
 - **Enemies:** none special.
 - **Open:** whether Volcano replaces or sits beside Meteor Shower.
 
-**Fire Shield** · Shield family
+**Fire Shield** · filed under Shield in doc 16
 - **What:** a fiery shield; when something hits you, it answers with a fire blast.
 - **Parts:** aura on caster · 12 s · absorb 30 · `on_caster_hit` → volume · disk r120 around you · fire 40 + burn · cooldown 0.8 s.
 - **Keywords:** MEGA = bigger blast; LASTING.
 - **Enemies:** attack identity.
 
-**Fire Orbit** · Orbit family
+**Fire Orbit** · filed under Orbit in doc 16
 - **What:** orbiting flames that burn what they touch.
 - **Parts:** as Arcane Orbit with fire damage 16 + burn.
 - **Keywords:** standard orbit defaults.
 
-**Flame Seed** · Seed family
+**Flame Seed** · filed under Seed in doc 16
 - **What:** plant an ember; it takes root, brightens, and blooms into a fire-flower turret.
 - **Parts:** trap · at target · phases `plant 0.3 s` → `grow 2 s` (visible stages) → `mature 8 s`: `on_tick 0.5 s` → projectile at nearest enemy within 350 · fire 18 + burn.
 - **Keywords:** LASTING extends maturity (not the growth wait); TRIPLE = three seeds; SWIFT = faster turret shots.
@@ -691,17 +734,17 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 - **Enemies:** target selection (golem can be attacked); damage attribution to the player.
 - **Open:** which spells a golem may cast; whether it uses your rank.
 
-**Flaming Restoration** · Restoration family
+**Flaming Restoration** · filed under Restoration in doc 16
 - **What:** heal plus a fire buff.
 - **Parts:** self · heal 20 + buff power (+20% fire damage) 6 s.
 - **Open:** exact buff.
 
 ### 12.3 Water and Ice
 
-**Snowball** · Bolt family
+**Snowball** · filed under Bolt in doc 16
 - **Parts:** projectile · body r14 · straight 650 · ice 40 + chill 1 stack.
 
-**Ice Spear / Glacial Spear** · Spear family (shorter and longer cast of one idea)
+**Ice Spear / Glacial Spear** · filed under Spear in doc 16 (shorter and longer cast of one idea)
 - **What:** an ice spear that either shoves enemies aside or impales one with a major debuff. Glacial Spear is the stronger, longer cast.
 - **Parts (shove variant):** projectile · body r20 · straight 900 · pierce unlimited · ice 70 + impulse `lateral` 400 + chill 2.
 - **Parts (impale variant):** projectile · stops on first hit · ice 140 + freeze 1.5 s + vulnerable.
@@ -709,37 +752,37 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 - **Enemies:** lateral impulse; freeze lock.
 - **Open:** choose shove or impale; whether Glacial Spear is a rank or a separate spell.
 
-**Water Jet** · Ray family
+**Water Jet** · filed under Ray in doc 16
 - **What:** a tracking jet of water that damages and pushes; upgrades add jets.
 - **Parts:** beam · length 300 · aim track nearest · channel 2.5 s · water 14 per 0.2 s + impulse `along_travel` 120 per tick + wet.
 - **Keywords:** TWIN/TRIPLE = extra jets on distinct targets; SHOCKING turns it into a conductor (wet + storm).
 - **Enemies:** impulse per tick, wet status.
 
-**Water Whip** · Slice/Whip family
+**Water Whip** · filed under Slice/Whip in doc 16
 - **Parts:** volume · arc 140° r180 · sweep 0.2 s · water 50 + impulse `tangential` 250 + wet.
 - **Open:** exact contact behaviour.
 
-**Tsunami** · Blast family
+**Tsunami** · filed under Blast in doc 16
 - **What:** a broad wave spawns behind you and sweeps forward across the screen.
 - **Parts:** volume · rect 700 × 900 · origin `behind_caster` · propagation travelling 450/s · hit once per enemy · water 80 + impulse `along_travel` 600 + wet.
 - **Keywords:** TWIN = two waves in sequence; MEGA = taller and wider.
 - **Enemies:** weight (bosses barely move).
 
-**Frost Nova** · Nova family
+**Frost Nova** · filed under Nova in doc 16
 - **What:** Ice Blast in every direction.
 - **Parts:** volume · ring · expanding to r260 · ice 50 + chill 3 + impulse away 300.
 - **Enemies:** chill stacking into freeze.
 
-**Frost Strike (falling icicle)** · Strike family
+**Frost Strike (falling icicle)** · filed under Strike in doc 16
 - **Parts:** projectile · fall onto target with 0.5 s warning · land volume disk r60 · ice 90 + chill 2.
 - **Open:** final name.
 
-**Blizzard** · Shower/Field family
+**Blizzard** · filed under Shower/Field in doc 16
 - **What:** a moving storm that strongly slows or freezes, with light damage.
 - **Parts:** field · disk r200 · motion follow caster (or wander) · 6 s · periodic 0.5 s · ice 6 + chill 1 per tick.
 - **Open:** follows you or moves on its own.
 
-**Whirlpool** · Field family
+**Whirlpool** · filed under Field in doc 16
 - **What:** a lasting vortex that swirls enemies around and inward.
 - **Parts:** field · disk r200 · 5 s · force `tangential` 300 + `toward_point` 150 · periodic water 8 + wet.
 - **Enemies:** force accumulator.
@@ -747,34 +790,34 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 
 ### 12.4 Lightning
 
-**Lightning Spear (rod)** · Spear family
+**Lightning Spear (rod)** · filed under Spear in doc 16
 - **What:** a spear that embeds in an enemy (or the ground at range end) and becomes a lightning rod that keeps calling strikes on nearby enemies, even after its host dies.
 - **Parts:** `spear` projectile · stops on first hit · storm 60 → `on_hit` `rod` aura anchored to the host (lost-anchor: stays on the ground) · 4 s · `on_tick 0.5 s` → `strike` volume disk r50 on a random enemy within 220 · storm 30 + shock.
 - **Keywords:** HOMING signature (8.4); LASTING = longer rod; TRIPLE = three rods.
 - **Enemies:** anchor points; death event so the rod drops in place.
 
-**Static Shock** · Ray family
+**Static Shock** · filed under Ray in doc 16
 - **What:** a channelled chain of lightning that jumps between enemies.
 - **Parts:** beam · aim nearest · channel 2 s · chain 4 hops 180 range ×0.8 · storm 16 per 0.2 s + shock.
 - **Enemies:** none special. Needs chain (gap C).
 
-**Lightning Whip** · Slice/Whip family
+**Lightning Whip** · filed under Slice/Whip in doc 16
 - **Parts:** volume · arc 120° r200 · sweep 0.18 s · storm 55 + shock.
 
-**Thunderwave** · Nova family
+**Thunderwave** · filed under Nova in doc 16
 - **What:** a surrounding thunder burst that throws enemies away from you.
 - **Parts:** volume · ring · expanding to r220 · storm 40 + impulse away 700 + shock.
 - **Enemies:** weight.
 
-**Rain of Lightning** · Shower family
+**Rain of Lightning** · filed under Shower in doc 16
 - **Parts:** volume · scatter 8 strikes in r250 around target · staggered 0.12 s · disk r55 · storm 40 + shock.
 - **Keywords:** HOMING = strikes pick enemies instead of random points.
 
-**Static Field** · Field family
+**Static Field** · filed under Field in doc 16
 - **Parts:** field · disk r150 · 6 s · periodic 0.5 s · storm 10 + shock; enemies inside arc to each other (chain 1 hop).
 - **Open:** mechanic beyond ticking damage.
 
-**Tesla Wall** · Wall family
+**Tesla Wall** · filed under Wall in doc 16
 - **What:** two solid coils joined by a passable but very damaging electric boundary.
 - **Parts:** `coil` barrier × 2 at the ends of a line 300 · health 80 each · blocks enemies → `arc` beam between the two coils (part-to-part link) · `on_enter` storm 45 + shock, rehit 0.5 s. Destroying a coil ends the arc.
 - **Enemies:** pathing around coils; attacking coils.
@@ -782,47 +825,47 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 
 ### 12.5 Earth and Steel
 
-**Spike** · Bolt family (ground-delivered)
+**Spike** · filed under Bolt in doc 16 (ground-delivered)
 - **Parts:** volume · line 30 × 90 at target · 0.25 s warning · instant · earth 60 + bleed.
 
-**Bullet / Spray** · Bolt family
+**Bullet / Spray** · filed under Bolt in doc 16
 - **Parts:** projectile · line 6 · staggered 0.06 s · body r6 · straight 1100 · steel 12 + bleed.
 - **Keywords:** TRIPLE = three streams; HOMING.
 
-**Boulder** · Ball family
+**Boulder** · filed under Ball in doc 16
 - **Parts:** projectile · body r30 · straight 380 · pierce 3 · earth 110 + impulse along travel 800. No explosion.
 - **Enemies:** weight.
 
-**Earth Spear** · Spear family
+**Earth Spear** · filed under Spear in doc 16
 - **Parts:** `spear` projectile · stops on hit · earth 70 → `on_hit` `shards` projectile · scatter 5 in 90° · body r8 · straight 600 · earth 20.
 
-**Slash** · Slice family
+**Slash** · filed under Slice in doc 16
 - **Parts:** volume · arc 100° r140 · aim nearest · sweep 0.12 s · steel 55 + bleed.
 
-**Lance** · Slice family (reserved)
+**Lance** · filed under Slice in doc 16 (reserved)
 - **What:** a close-range piercing thrust. Name reserved; design later.
 
-**Earth Blast** · Blast family
+**Earth Blast** · filed under Blast in doc 16
 - **What:** like Ice Blast, but knockback and bleed instead of slow.
 - **Parts:** projectile · fan 4 in 50° · body r10 · straight 700 · pierce 2 · earth 30 + impulse away 500 + bleed.
 
-**Shrapnel** · Blast family
+**Shrapnel** · filed under Blast in doc 16
 - **Parts:** projectile · single lob → `on_land` projectile · ring 12 · straight 500 · steel 15 + bleed.
 - **Open:** delivery (grenade not required).
 
-**Earth Nova** · Nova family
+**Earth Nova** · filed under Nova in doc 16
 - **Parts:** volume · ring · expanding to r220 · earth 45 + bleed.
 
-**Earth Wall** · Wall family
+**Earth Wall** · filed under Wall in doc 16
 - **What:** raise physical barriers.
 - **Parts:** barrier · line 240 × 28 · health 200 · blocks enemies and enemy projectiles · 10 s · crack stages at 66% and 33%.
 - **Enemies:** pathing around barriers; attacking barriers.
 - **Open:** single wall versus enclosure; collapse rules.
 
-**Earth Trap** · Trap family
+**Earth Trap** · filed under Trap in doc 16
 - **Parts:** trap · trigger r60 · lasts 20 s · → volume disk r100 · earth 40 + root 1.2 s + bleed.
 
-**Muck** · Trail family
+**Muck** · filed under Trail in doc 16
 - **Parts:** owner `on_caster_travel` → field · trail patches r30 · 5 s · slow 50% (status, refresh).
 - **Open:** later fire interaction (oil).
 
@@ -830,22 +873,22 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 - **Parts:** summon · health 400 · behaviour `taunt` · contact earth 25 per 1 s · 20 s.
 - **Enemies:** target selection; taunt.
 
-**Earthquake** · Field family (preserved older idea)
+**Earthquake** · filed under Field in doc 16 (preserved older idea)
 - **Parts:** field · disk r300 around caster · pulses 4 × 0.5 s · earth 25 + stun 0.3 s on first pulse.
 
 ### 12.6 Plague and Death
 
-**Carcass (unnamed)** · Ball family
+**Carcass (unnamed)** · filed under Ball in doc 16
 - **What:** hurl infected remains; they burst into a diseased dead zone.
 - **Parts:** projectile · lob to target · `on_land` field · disk r130 · 5 s · periodic plague 6 + poison.
 - **Open:** name.
 
-**Ray of Sickness** · Ray family
+**Ray of Sickness** · filed under Ray in doc 16
 - **What:** sweep a sickly beam across a crowd, spreading damage over time rather than focusing a kill.
 - **Parts:** beam · aim sweep 120° over 1.5 s · channel · plague 4 per tick + poison + chill-like slow 20% + weaken.
 - **Enemies:** status component.
 
-**Grasping Hand** · Field family
+**Grasping Hand** · filed under Field in doc 16
 - **What:** a spectral hand grabs an area, restrains everything in it, then crushes.
 - **Parts:** field · disk r150 at target · phases `grab 0.4 s` (pull toward centre 300) → `hold 2 s` (root) → `crush` (death 90).
 - **Enemies:** force, root.
@@ -861,27 +904,27 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 
 ### 12.7 Life and Nature
 
-**Vine Ball (unnamed)** · Ball family
+**Vine Ball (unnamed)** · filed under Ball in doc 16
 - **Parts:** projectile · body r16 · straight 600 → `on_hit` volume disk r110 · root 1.5 s + holy 30 (+ bleed if chosen).
 
-**Shillelagh** · Spear family (life spear)
+**Shillelagh** · filed under Spear in doc 16 (life spear)
 - **What:** vines and roots that drag nearby enemies toward a point and hold them.
 - **Parts:** projectile · stops on hit · holy 40 → volume disk r180 · impulse `toward_point` 500 + root 1 s.
 - **Open:** pull destination (hit point or you).
 
-**Vine Whip** · Slice/Whip family
+**Vine Whip** · filed under Slice/Whip in doc 16
 - **Parts:** volume · arc 130° r200 · sweep 0.2 s · holy 45 + root 0.4 s.
 
-**Crushing Vines** · Nova family
+**Crushing Vines** · filed under Nova in doc 16
 - **Parts:** volume · ring · expanding to r200 · holy 35 + root 1 s.
 
-**Exploding Flowers** · Strike / Shower family
+**Exploding Flowers** · filed under Strike / Shower in doc 16
 - **Parts:** trap · scatter 5 in r200 · trigger r40 · → volume disk r80 · plague 30 + poison.
 
-**Flower Trail** · Trail family
+**Flower Trail** · filed under Trail in doc 16
 - **Parts:** owner `on_caster_travel` → trap (poison flowers) every 60 units · 6 s each.
 
-**Yggdrasil** · Restoration family (landmark)
+**Yggdrasil** · filed under Restoration in doc 16 (landmark)
 - **What:** grow a tree of life that heals you and harms enemies nearby.
 - **Parts:** barrier · disk r40 · health 300 · phases `sapling 2 s` → `tree 15 s` · aura r220 · periodic 1 s · heal self 4 + holy 12 to enemies.
 - **Enemies:** pathing around the trunk; enemies may attack it.
