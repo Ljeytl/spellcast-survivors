@@ -73,6 +73,8 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **Effects are payload, not events.** Events decide when new parts appear; payload decides what happens to each target.
 - **All statuses go through one path** into one status component per enemy, with per-status stacking rules and per-enemy resistance profiles.
 - **Damage type lives on each damage entry**, so one hit can carry several types. A spell's element is its theme and default type.
+- **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison, bleed) are fully elemental. Raw damage is reduced only by armour; elemental damage only by that element's resistance.
+- **Element keywords add, never convert:** extra elemental damage (+35% of the base hit, tuning range 25–50%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
 - **Custom spells** may have their own code but must still honour the keyword contract (section 10). No current spell needs to be custom.
 - **Spear, not Lance.** The thrown fire weapon is a spear everywhere, including internal ids (section 11). **Lance** is reserved for a different future spell, probably a melee thrust (filed near Slash in doc 16).
 - **Homing Bolt** is a homing signature on Bolt, not a new spell (section 8).
@@ -206,7 +208,7 @@ That is Cross Blade.
       "aim": { "type": "nearest", "tilt_to_catch_line": true },
       "motion": { "type": "straight", "speed": 1050, "range": 1050 },
       "timing": { "type": "once" },
-      "payload": [ { "type": "damage", "amount": 96, "damage_type": "fire" } ],
+      "payload": [ { "type": "damage", "amount": 74, "damage_type": "raw" }, { "type": "damage", "amount": 22, "damage_type": "fire" } ],
       "limits": { "pierce": "unlimited", "hit_scope": "cast" },
       "events": { "on_travel": { "part": "fire_strip", "power": 1.0 } }
     },
@@ -231,7 +233,7 @@ Events decide **when** new parts appear. Payload decides **what happens** to eac
 
 | Effect | Fields | Notes |
 |---|---|---|
-| `damage` | amount, damage type | Several entries on one hit = several damage types (70 fire + 30 ice). Each resolves separately against resistance; shown as one number coloured by the larger share. |
+| `damage` | amount, damage type (`raw` or an element) | Several entries on one hit = several damage types (70 fire + 30 ice). Each resolves separately against resistance; shown as one number coloured by the larger share. |
 | `impulse` | direction mode, force, falloff | One shove on contact (knockback). Divided by enemy weight. |
 | `force` | direction mode, strength per second, falloff with distance, max speed | Continuous while inside a field or aura (gravity, pull, wind, swirl). Summed per enemy each frame. |
 | `status` | status id, strength (or share of the hit), duration override | Everything ongoing: burn, bleed, poison, chill, root, stun, weaken, vulnerable, taunt, transform, buffs (section 5.3). |
@@ -245,7 +247,7 @@ Events decide **when** new parts appear. Payload decides **what happens** to eac
 
 ### 5.2 Damage order
 
-base amount → caster power (rank, keywords, passives, ley sites) → target modifiers (vulnerable, weaken) → resistance for that damage type → absorb and block → health.
+base amount → caster power (rank, keywords, passives, ley sites) → target modifiers (vulnerable, weaken) → **armour for `raw`, resistance for each element** → absorb and block → health. Each damage entry goes through this separately; the results are summed into one number.
 
 ### 5.3 Status system
 
@@ -311,6 +313,7 @@ Each enemy type has a resistance profile in data:
 | damage, per type | 0.5 = takes half, −0.25 = takes 25% more; `immune` allowed but rare. DoTs use their damage type, so burn on a fire-resistant enemy is resisted too. |
 | status, per status | duration and strength reduction, or `immune` |
 | control | hard-control reduction and diminishing returns |
+| armour | flat percentage reduction of `raw` damage only (today's armoured-elite `damage_reduction`) |
 | weight | divides impulse and force (knockback, pull, gravity) |
 
 Guardrail from docs 15 and 16: no compulsory elemental hard counters, no early resistance puzzles. Keep resistances within ±25–50%; full immunity is mostly bosses against hard control.
@@ -334,11 +337,21 @@ The spell's element is its theme (colour, default damage type, art ramp). Elemen
 | Death | death | weaken | dusk purple / bone | Ghosts, Raise Dead |
 | Holy / Life | holy | (healing payload) | warm gold / green | Healing is a payload, not a damage type |
 
+**Raw damage.** Untyped damage from the spell's force: the spear's weight, the blast's impact. Every damaging spell deals mostly raw damage plus a share of its own element (about 75–80% raw / 20–25% elemental on direct hits; proposed per spell). DoTs are fully elemental. Because only the elemental share meets resistance, resistances shift damage by a few percent on direct hits and fully on DoTs: they steer, never wall.
+
+| Example | Raw | Elemental | Plus |
+|---|---|---|---|
+| Ember Spear (96 today) | 74 | 22 fire | trailing burn (fully fire) |
+| Bolt (50 today) | 39 | 11 arcane | |
+| Ice Blast shard (35 today) | 27 | 8 ice | chill |
+| `icy ember spear` | 74 | 22 fire + 34 ice | burn trail that also chills; spear hit chills |
+
 ### 6.2 Element keywords
 
 An element word **adds** to a spell; it never removes the spell's own element.
 
-- Adds a damage entry of its type equal to 25% of each hit (*proposed*), plus its signature status at a reduced strength.
+- Adds a damage entry of its type equal to **35% of the base hit** (*proposed*, tuning range 25–50%), plus its signature status.
+- Applies to **every damaging part** of the spell: projectiles, bursts, fields, trails, summon attacks. Periodic parts (fields, trails, auras) add the status at reduced strength: chill from a periodic part slows but cannot build to freeze.
 - On spells with no damage (Life, Regeneration), it adds the element to the healing aura as a small pulse damage to nearby enemies, or is rejected; decided per archetype in section 8.
 - The same element as the spell's own (`icy ice blast`) instead strengthens that element's status by 50% (*proposed*).
 - Two element words on one spell: both apply, and they can react with each other on the target (6.3).
@@ -360,6 +373,8 @@ When a hit carrying element X lands on a target holding a status of element Y, t
 | earth | freeze | Shatter | Bonus earth damage; ends the freeze |
 
 Reaction bursts are parts like any other, use the cast's hit record, and count toward link depth.
+
+**Self-reactions (proposed default: off).** A cast does not react with statuses it applied itself, so `icy ember spear` keeps both its burn and its slow instead of instantly steam-bursting and losing the chill. Reactions fire between *different* casts, which rewards combining spells. A spell may opt in as a signature (e.g. a steam spear). Per-target reaction cooldown: 1 s.
 
 ## 7. What enemies need to support this
 
@@ -421,15 +436,15 @@ Status column: **implemented**, **proposed** (in this doc), **idea** (named, nee
 | REPULSING | force | shoves enemies away | add an impulse away from the source | — | friendly-only payloads | proposed |
 | PULLING | force | drags enemies in | add a force toward the part's centre | — | friendly-only payloads | idea |
 | ORBITING | motion | circles you first | copies orbit the caster, then launch on release or when an enemy enters range | delay before damage | `self`, `global` | idea |
-| FIERY | element | adds fire | +25% of each hit as fire damage, plus burn | — | — | proposed |
-| ICY | element | adds cold | +25% as ice damage, plus chill | — | — | proposed |
-| SHOCKING | element | adds lightning | +25% as storm damage, plus shock | — | — | proposed, name open |
-| VENOMOUS | element | adds poison | +25% as plague damage, plus poison | — | — | proposed |
-| TIDAL | element | adds water | +25% as water damage, plus wet and a small push | — | — | proposed, name open |
-| EARTHEN | element | adds earth | +25% as earth damage, plus a short root on the first hit | — | — | proposed |
-| SERRATED | element | adds steel | +25% as steel damage, plus bleed | — | — | idea, name open |
-| SPECTRAL | element | adds death | +25% as death damage, plus weaken | — | — | idea, name open |
-| RADIANT | element | adds holy | +25% as holy damage; healing spells heal 25% more | — | — | idea, name open |
+| FIERY | element | adds fire | +35% of the base hit as fire damage, plus burn | — | — | proposed |
+| ICY | element | adds cold | +35% as ice damage, plus chill | — | — | proposed |
+| SHOCKING | element | adds lightning | +35% as storm damage, plus shock | — | — | proposed, name open |
+| VENOMOUS | element | adds poison | +35% as plague damage, plus poison | — | — | proposed |
+| TIDAL | element | adds water | +35% as water damage, plus wet and a small push | — | — | proposed, name open |
+| EARTHEN | element | adds earth | +35% as earth damage, plus a short root on the first hit | — | — | proposed |
+| SERRATED | element | adds steel | +35% as steel damage, plus bleed | — | — | idea, name open |
+| SPECTRAL | element | adds death | +35% as death damage, plus weaken | — | — | idea, name open |
+| RADIANT | element | adds holy | +35% as holy damage; healing spells heal 25% more | — | — | idea, name open |
 
 Naming still open: Homing versus Seeking (doc 14 used Seeking), TWIN/TRIPLE versus Duplicating, Flaming versus Fiery (doc 14 keeps them distinct).
 
@@ -445,7 +460,7 @@ What each word changes, by delivery. A blank means "uses the general rule in 8.2
 | SWIFT | travel speed | front speed | turn speed | drift speed if moving, else rejected | arming time ×0.7 | move speed | rejected |
 | LASTING | rejected unless it lingers | active window | channel length | duration | armed lifetime | lifetime | heal-over-time duration |
 | PIERCING | +2 contacts | rejected | +1 target per sample | rejected | rejected | rejected | rejected |
-| Element words | contact hits | area hits | beam ticks | ticks | burst | summon attacks | healing aura pulse (6.2) |
+| Element words | contact hits | area hits | beam ticks | ticks (status at reduced strength) | burst | summon attacks | healing aura pulse (6.2) |
 
 ### 8.4 Signatures
 
@@ -470,7 +485,7 @@ Everything here is *proposed v0.1* unless marked current. These are the knobs to
 
 ### 9.1 Keyword coefficients
 
-Listed in 8.2. Summary of the multiplicative ones: MEGA 1.5 / 1.5 (current), OMEGA 2.25 / 1.75, TWIN 2 × 60%, TRIPLE 3 × 45%, BIG 1.35, WIDE 1.5 angle with 0.85 reach, SWIFT 1.35, LASTING 1.4, REPEATING echo 40% power / 75% size after 0.6 s, DELAYED +15% after 0.8 s, CHARGED +150% with 1.2 s root, element words +25% of each hit.
+Listed in 8.2. Summary of the multiplicative ones: MEGA 1.5 / 1.5 (current), OMEGA 2.25 / 1.75, TWIN 2 × 60%, TRIPLE 3 × 45%, BIG 1.35, WIDE 1.5 angle with 0.85 reach, SWIFT 1.35, LASTING 1.4, REPEATING echo 40% power / 75% size after 0.6 s, DELAYED +15% after 0.8 s, CHARGED +150% with 1.2 s root, element words +35% of the base hit (range 25–50%) plus status, on every damaging part. Base split per spell: ~75–80% raw / 20–25% own element.
 
 Rule of thumb for count words: total output of TWIN ≈ 1.2× and TRIPLE ≈ 1.35× a single cast against one target, more against crowds. Count words buy coverage, not single-target damage.
 
@@ -1127,7 +1142,7 @@ Per phase: run the existing regression suite, the documentation validator and, w
 ## 15. Open decisions
 
 1. Keyword names: HOMING or SEEKING; TWIN/TRIPLE or DUPLICATING; FIERY or FLAMING (or both, with different meanings).
-2. Element words: add (25% of hit + status) as proposed, or convert the spell's damage type.
+2. ~~Element words add or convert~~ **Decided: add** (raw + elemental split; element words add +35% and their status to every damaging part). Still open: the exact split per spell, and whether self-reactions stay off.
 3. Bolt's current multi-bolt rank growth: keep as rank growth, or move it into the HOMING signature.
 4. Combinations that keyword phrases reproduce (Steam Field, Frost Sigil): give them something extra, or retire them.
 5. Plague Seed's player name: Plague Seed, Infection or Infestation.
