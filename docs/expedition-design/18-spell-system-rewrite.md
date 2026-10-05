@@ -341,7 +341,7 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Fire (`fire`) | flame, embers, magma, sun | fire | burn | | ember orange / red |
 | Water/Ice (`water`) | water, frost, snow, tides | water/ice | chill (builds to freeze) | push and pull (payload) | pale cyan to deep blue |
 | Storm (`storm`) | lightning, thunder, wind | storm | shock | stun | yellow / violet |
-| Earth/Steel (`earth`) | stone, mud, metal, blades, bullets | earth/steel | bleed | root, stun | ochre to silver |
+| Earth/Steel (`earth`) | stone, mud, metal, blades, bullets | **raw** (no elemental type; armour is its resistance) | bleed | root, stun | ochre to silver |
 | Plague/Death (`plague`) | poison, infection, spirits, undeath | plague/death | poison | infection, weaken | sickly green / bone purple |
 | Life (`life`) | druidic: vines, roots, flowers, plants and soil; growth that heals | life | entangled | heal and buffs (payload), rooted | leaf green / bark brown |
 
@@ -370,8 +370,10 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Rune Trap | 0% | 100% arcane | a mana burst |
 | Infestation | 0% | 100% plague/death | rot |
 | Seeker | 0% | 100% plague/death | a ghost |
-| Cross Blade | 80% | 20% earth/steel | a steel blade |
-| Earth Shield retaliation | 70% | 30% earth/steel | stone shards |
+| Cross Blade | 100% | 0% (+ bleed) | a steel blade |
+| Earth Shield retaliation | 100% | 0% (+ bleed) | stone shards |
+
+**Earth/Steel has no damage type of its own.** Stone and steel hit with raw damage; their element shows through bleed (and root on some spells). Bleed ticks are raw but **ignore armour**, which gives Earth/Steel its answer to armoured enemies.
 
 Fully elemental spells meet resistance on all of their damage, so they feel resistances more; resistances stay mild (5.5) so this steers rather than walls.
 
@@ -484,7 +486,7 @@ Words in each row are listed short to long, which is also weak to strong.
 | Element: Fire | EMBER, FIERY, FLAMING, BLAZING, INFERNAL, SCORCHING | adds fire | fire damage + burn | proposed |
 | Element: Water/Ice | ICY, FROSTY, FROZEN, GLACIAL | adds cold | water/ice damage + chilled | proposed |
 | Element: Storm | STORMY, SHOCKING, ELECTRIC, THUNDERING | adds lightning | storm damage + shocked | proposed |
-| Element: Earth/Steel | IRON, BLADED, EARTHEN, SERRATED | adds stone and steel | earth/steel damage + bleed | proposed |
+| Element: Earth/Steel | IRON, BLADED, EARTHEN, SERRATED | adds stone and steel | extra raw damage + bleed | proposed |
 | Element: Plague/Death | TOXIC, DEATHLY, VENOMOUS, NECROTIC, POISONOUS | adds rot | plague/death damage + poison | proposed |
 | Element: Life | LIVING, VERDANT, THORNED, BLOOMING, OVERGROWN | adds living growth | life damage + entangled | proposed |
 
@@ -613,7 +615,7 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 | Life | `life` | self · heal | |
 | Regeneration | `regeneration` | aura on caster · periodic · heal | |
 | Ice Blast | `ice_blast` | projectile · fan 3 · body · straight · once · water/ice damage + impulse away + chill, pierce 2 | Cone opens to a full ring by rank 8 (arrangement angle grows with rank) |
-| Earth Shield | `earth_shield` | aura on caster · block charges → `on_block` volume cone toward attacker · earth/steel damage + impulse | |
+| Earth Shield | `earth_shield` | aura on caster · block charges → `on_block` volume cone toward attacker · raw damage + impulse + bleed | |
 | Lightning | `lightning` (was `lightning_arc`) | volume · disk at target · instant · storm damage → chain 2 hops, 200 range, ×0.8 | Needs chain (gap C) |
 | Meteor Shower | `meteor_shower` | projectile · scatter 3 · staggered 0.3 s · fall with 0.65 s warning → volume disk · fire damage | Needs `fall` motion |
 | Ember Spear | `ember_spear` (was `ember_lance`) | section 4.6 | |
@@ -624,7 +626,7 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 | Rune Trap | `rune_trap` | trap · trigger disk 60 → volume disk 120 · arcane damage | |
 | Seeker | `seeker` (was `seeking_spirit`) | summon · chase · contact every 1 s · plague/death damage | |
 | Firewalk | `firewalk` (was `ember_trail`) | owner `on_caster_travel` → field · trail patches · fire damage | Incantation currently "fire walk" |
-| Cross Blade | `cross_blade` (was `returning_blade`) | projectile · phases out → linger → return (section 4.4) · earth/steel damage | |
+| Cross Blade | `cross_blade` (was `returning_blade`) | projectile · phases out → linger → return (section 4.4) · raw damage + bleed | |
 
 ### 11.2 Combinations
 
@@ -900,35 +902,35 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 ### 12.5 Earth and Steel
 
 **Spike** · filed under Bolt in doc 16 (ground-delivered)
-- **Parts:** volume · line 30 × 90 at target · 0.25 s warning · instant · earth/steel 60 + bleed.
+- **Parts:** volume · line 30 × 90 at target · 0.25 s warning · instant · raw 60 + bleed.
 
 **Bullet / Spray** · filed under Bolt in doc 16
-- **Parts:** projectile · line 6 · staggered 0.06 s · body r6 · straight 1100 · earth/steel 12 + bleed.
+- **Parts:** projectile · line 6 · staggered 0.06 s · body r6 · straight 1100 · raw 12 + bleed.
 - **Keywords:** TRIPLE = three streams; HOMING.
 
 **Boulder** · filed under Ball in doc 16
-- **Parts:** projectile · body r30 · straight 380 · pierce 3 · earth/steel 110 + impulse along travel 800. No explosion.
+- **Parts:** projectile · body r30 · straight 380 · pierce 3 · raw 110 + impulse along travel 800. No explosion.
 - **Enemies:** weight.
 
 **Earth Spear** · filed under Spear in doc 16
-- **Parts:** `spear` projectile · stops on hit · earth/steel 70 → `on_hit` `shards` projectile · scatter 5 in 90° · body r8 · straight 600 · earth/steel 20.
+- **Parts:** `spear` projectile · stops on hit · raw 70 → `on_hit` `shards` projectile · scatter 5 in 90° · body r8 · straight 600 · raw 20.
 
 **Slash** · filed under Slice in doc 16
-- **Parts:** volume · arc 100° r140 · aim nearest · sweep 0.12 s · earth/steel 55 + bleed.
+- **Parts:** volume · arc 100° r140 · aim nearest · sweep 0.12 s · raw 55 + bleed.
 
 **Lance** · filed under Slice in doc 16 (reserved)
 - **What:** a close-range piercing thrust. Name reserved; design later.
 
 **Earth Blast** · filed under Blast in doc 16
 - **What:** like Ice Blast, but knockback and bleed instead of slow.
-- **Parts:** projectile · fan 4 in 50° · body r10 · straight 700 · pierce 2 · earth/steel 30 + impulse away 500 + bleed.
+- **Parts:** projectile · fan 4 in 50° · body r10 · straight 700 · pierce 2 · raw 30 + impulse away 500 + bleed.
 
 **Shrapnel** · filed under Blast in doc 16
-- **Parts:** projectile · single lob → `on_land` projectile · ring 12 · straight 500 · earth/steel 15 + bleed.
+- **Parts:** projectile · single lob → `on_land` projectile · ring 12 · straight 500 · raw 15 + bleed.
 - **Open:** delivery (grenade not required).
 
 **Earth Nova** · filed under Nova in doc 16
-- **Parts:** volume · ring · expanding to r220 · earth/steel 45 + bleed.
+- **Parts:** volume · ring · expanding to r220 · raw 45 + bleed.
 
 **Earth Wall** · filed under Wall in doc 16
 - **What:** raise physical barriers.
@@ -937,18 +939,18 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 - **Open:** single wall versus enclosure; collapse rules.
 
 **Earth Trap** · filed under Trap in doc 16
-- **Parts:** trap · trigger r60 · lasts 20 s · → volume disk r100 · earth/steel 40 + root 1.2 s + bleed.
+- **Parts:** trap · trigger r60 · lasts 20 s · → volume disk r100 · raw 40 + root 1.2 s + bleed.
 
 **Muck** · filed under Trail in doc 16
 - **Parts:** owner `on_caster_travel` → field · trail patches r30 · 5 s · slow 50% (status, refresh).
 - **Open:** later fire interaction (oil).
 
 **Earth Golem** · summon
-- **Parts:** summon · health 400 · behaviour `taunt` · contact earth/steel 25 per 1 s · 20 s.
+- **Parts:** summon · health 400 · behaviour `taunt` · contact raw 25 per 1 s · 20 s.
 - **Enemies:** target selection; taunt.
 
 **Earthquake** · filed under Field in doc 16 (preserved older idea)
-- **Parts:** field · disk r300 around caster · pulses 4 × 0.5 s · earth/steel 25 + stun 0.3 s on first pulse.
+- **Parts:** field · disk r300 around caster · pulses 4 × 0.5 s · raw 25 + stun 0.3 s on first pulse.
 
 ### 12.6 Plague and Death
 
@@ -1320,10 +1322,13 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Steam Field, Frost Sigil | Survive as combinations |
 | Plague Seed's name | **Infestation** |
 | Ultimates | Earned by combo, like Atomic; no cooldowns |
-| More reactions | Not now. Ideas parked: Corrosive (plague + storm), a fire + ice blast |
+| More reactions | Not now. Ideas parked: Corrosive (plague + storm) |
 | Cooldowns | None for now; revisit on tier words only if the keyword matrix shows MEGA/OMEGA spam |
-| Bare forms | Allowed for now (`spear`, `nova`…): a plain raw version of the form, the weakest per letter |
+| Bare forms allowed | Yes, for now (`spear`, `nova`…) |
 | Raw/elemental split | Per spell, by fantasy (6.1) |
+| Stone type | None. Earth/Steel deals raw damage plus bleed; armour is its resistance; bleed ignores armour |
+| Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
+| Bare forms | Deliberately weak; how weak depends on the form's purpose |
 
 ### 16.3 Still open
 
