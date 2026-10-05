@@ -39,6 +39,7 @@ Principles:
 5. **Readable.** What you see is what hits. Targeting is predictable (nearest enemy first). A rejected word cracks its rune red; nothing fails silently.
 6. **Bounded.** Every cast has hard limits on depth, spawns and hits per target, so no combination breaks a frame.
 7. **No compulsory hard counters.** Resistances steer choices, never force them.
+8. **Magic is learned, not granted.** A wizard is a scholar who has spent years learning ancient knowledge of natural forces: fire, cold, lightning, stone and steel, rot, growth, and raw mana. No gods, faith or divine power. Names, statuses and art stay grounded in those forces; every new word is something the wizard *knows*, which is why typing it is the spell.
 
 ### 1.1 A spell's name is not its type
 
@@ -75,7 +76,7 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **Damage type lives on each damage entry**, so one hit can carry several types. A spell's element is its theme and default type.
 - **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison, bleed) are fully elemental. Raw damage is reduced only by armour; elemental damage only by that element's resistance.
 - **Element keywords add, never convert:** extra elemental damage (+35% of the base hit, tuning range 25–50%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
-- **Life, not Holy.** The seventh element is Life: plants, roots and vines that heal. Holy is not in the game (it may become its own school later); RADIANT is reserved for light magic.
+- **Life, not Holy.** The seventh element is Life: druidic magic of vines, roots, flowers, plants and soil that heals. No holy or faith magic (principle 8); RADIANT is reserved for a possible light school grounded in the sun, not in gods.
 - **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Life. Merged schools share one damage type, signature status and resistance (6.1).
 - **Fusion and reactions, both** (section 6.4). One spell with two elements **fuses**: everything coexists. Different casts react only through a short list of five reactions; most pairs simply coexist. Damage mixing never interacts.
 - **DoT rule:** getting hit again stacks damage and duration, no caps. Burn: every fire hit adds its own 1.5 s burn, all ticking together; bleed fills a meter that bursts into a hemorrhage; poison ticks slowly, ramps, weakens and lasts longest; chill stacks to frozen (5.3).
@@ -335,13 +336,13 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 
 | Element (id) | Covers | Damage type | Signature status | Other statuses its spells use | Colour family |
 |---|---|---|---|---|---|
-| Arcane (`arcane`) | ordinary magic, prisms, time | arcane | vulnerable | transform, reflect | cyan / violet |
+| Arcane (`arcane`) | raw mana, runes, prisms, time: the studied force under all the others | arcane | vulnerable | transform, reflect | cyan / violet |
 | Fire (`fire`) | flame, embers, magma, sun | fire | burn | | ember orange / red |
 | Water/Ice (`water`) | water, frost, snow, tides | water/ice | chill (builds to freeze) | push and pull (payload) | pale cyan to deep blue |
 | Storm (`storm`) | lightning, thunder, wind | storm | shock | stun | yellow / violet |
 | Earth/Steel (`earth`) | stone, mud, metal, blades, bullets | earth/steel | bleed | root, stun | ochre to silver |
 | Plague/Death (`plague`) | poison, infection, spirits, undeath | plague/death | poison | infection, weaken | sickly green / bone purple |
-| Life (`life`) | plants, roots, vines, growth, healing | life | entangled | heal and buffs (payload), rooted | leaf green / bark brown |
+| Life (`life`) | druidic: vines, roots, flowers, plants and soil; growth that heals | life | entangled | heal and buffs (payload), rooted | leaf green / bark brown |
 
 **Raw damage.** Untyped damage from the spell's force: the spear's weight, the blast's impact. Every damaging spell deals mostly raw damage plus a share of its own element (about 75–80% raw / 20–25% elemental on direct hits; proposed per spell). DoTs are fully elemental. Because only the elemental share meets resistance, resistances shift damage by a few percent on direct hits and fully on DoTs: they steer, never wall.
 
@@ -457,7 +458,7 @@ Words in each row are listed short to long, which is also weak to strong.
 | Arrangement | RINGED, LINED | copies in a ring / in a row | overrides the arrangement of count words | proposed |
 | Sacrifice | SANGUINE | costs health for power | spends a share of current health; big power boost | proposed |
 | Wild | CHAOTIC | something random happens | random element word, count or on-hit word each cast | proposed |
-| Element: Arcane | MYSTIC, ARCANE, MAGICAL, ELDRITCH | adds arcane | arcane damage + vulnerable | proposed |
+| Element: Arcane | RUNIC, ARCANE, MAGICAL, ESOTERIC | adds arcane | arcane damage + vulnerable | proposed |
 | Element: Fire | EMBER, FIERY, FLAMING, BLAZING, INFERNAL, SCORCHING | adds fire | fire damage + burn | proposed |
 | Element: Water/Ice | ICY, FROSTY, FROZEN, GLACIAL | adds cold | water/ice damage + chilled | proposed |
 | Element: Storm | STORMY, SHOCKING, ELECTRIC, THUNDERING | adds lightning | storm damage + shocked | proposed |
