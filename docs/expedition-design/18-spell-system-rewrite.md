@@ -75,7 +75,8 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **Damage type lives on each damage entry**, so one hit can carry several types. A spell's element is its theme and default type.
 - **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison, bleed) are fully elemental. Raw damage is reduced only by armour; elemental damage only by that element's resistance.
 - **Element keywords add, never convert:** extra elemental damage (+35% of the base hit, tuning range 25–50%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
-- **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Holy/Life. Merged schools share one damage type, signature status and resistance (6.1).
+- **Life, not Holy.** The seventh element is Life: plants, roots and vines that heal. Holy is not in the game (it may become its own school later); RADIANT is reserved for light magic.
+- **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Life. Merged schools share one damage type, signature status and resistance (6.1).
 - **Fusion and reactions, both** (section 6.4). One spell with two elements **fuses**: everything coexists. Different casts react only through a short list of five reactions; most pairs simply coexist. Damage mixing never interacts.
 - **DoT rule:** getting hit again stacks damage and duration, no caps. Burn: every fire hit adds its own 1.5 s burn, all ticking together; bleed fills a meter that bursts into a hemorrhage; poison ticks slowly, ramps, weakens and lasts longest; chill stacks to frozen (5.3).
 - **Custom spells** may have their own code but must still honour the keyword contract (section 10). No current spell needs to be custom.
@@ -298,8 +299,8 @@ Other rules:
 | chilled | Water/Ice | control (soft) | Slow per stack, frostbite hit per stack; 5 stacks → frozen |
 | frozen | Water/Ice | control (hard) | Cannot move or attack; ends early if shattered or thawed |
 | shocked | Storm | control (soft) | Brief stagger; **arcs to one nearby enemy** on application |
-| radiant | Holy/Life | control (soft) | Blinded: attacks miss 30% of the time |
-| rooted | Earth/Steel, Holy/Life | control (hard) | Cannot move; can still attack |
+| entangled | Life | control (soft) | Vines slow the enemy; enough entangle builds to a brief root |
+| rooted | Earth/Steel, Life | control (hard) | Cannot move; can still attack |
 | stunned | Storm, Earth/Steel | control (hard) | Cannot move or attack |
 | weakened | Plague/Death | modifier | Deals less damage |
 | vulnerable | Arcane | modifier | Takes more damage |
@@ -340,7 +341,7 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Storm (`storm`) | lightning, thunder, wind | storm | shock | stun | yellow / violet |
 | Earth/Steel (`earth`) | stone, mud, metal, blades, bullets | earth/steel | bleed | root, stun | ochre to silver |
 | Plague/Death (`plague`) | poison, infection, spirits, undeath | plague/death | poison | infection, weaken | sickly green / bone purple |
-| Holy/Life (`holy`) | light, healing, nature, moon | holy | radiant | heal and buffs (payload), root (vines) | warm gold / green |
+| Life (`life`) | plants, roots, vines, growth, healing | life | entangled | heal and buffs (payload), rooted | leaf green / bark brown |
 
 **Raw damage.** Untyped damage from the spell's force: the spear's weight, the blast's impact. Every damaging spell deals mostly raw damage plus a share of its own element (about 75–80% raw / 20–25% elemental on direct hits; proposed per spell). DoTs are fully elemental. Because only the elemental share meets resistance, resistances shift damage by a few percent on direct hits and fully on DoTs: they steer, never wall.
 
@@ -386,7 +387,7 @@ Two layers, kept separate:
 | A heavy hit (Earth/Steel) hits **frozen** | **Shatter** | Big bonus damage; ends the freeze |
 | Fire hits **poisoned** | **Toxic Flare** | The poison explodes onto nearby enemies |
 | Arcane hits any DoT | **Overload** | The DoT's remaining damage lands at once |
-| Holy hits **poisoned** or **weakened** | **Purge** | Removes them; holy damage per amount removed |
+| Life hits **poisoned** or **weakened** | **Cleanse** | Vines draw the rot out: removes them; life damage per amount removed |
 
 New reactions are added only when one earns its place in play. Shock's chaining is built into shocked itself, so no "wet" status is needed.
 
@@ -426,54 +427,63 @@ Every capability below is engine work on the enemy side. Spells depend on them; 
 
 Keyword names are canonical once chosen; no aliases with equal power (doc 14).
 
-### 8.2 Keyword list
+### 8.2 Keyword rules
 
-Status column: **implemented**, **proposed** (in this doc), **idea** (named, needs design).
+1. **Every keyword is an adjective** (CHAOTIC, not CHAOS).
+2. **Longer synonym, stronger effect.** Each category has a value per letter, so ICY < FROZEN < GLACIAL. Synonyms of equal length are equally strong; choosing between them is flavour. Typing more letters under pressure is the price.
+3. **No keyword shares a name with a spell or a combination** (LIGHTNING is a spell, so Storm uses STORMY, ELECTRIC, THUNDERING).
+4. **Stacking:** different words in the same category stack with diminishing returns: the first at full value, the second at half, the third at a quarter. Each tier word also adds charge time. `super mega omega` is huge; the same word twice is rejected.
+5. **Free word order.** The parser finds the longest known spell name; the remaining known words are keywords.
+6. **Quick cast:** `quick` plus the first letter of each spell word (`quick ms` = Meteor Shower). Initials must be unique among the spells you know, otherwise the cast is rejected. No keywords on a quick cast. Power about 35%.
 
-| Word | Category | Promise | Default behaviour | Cost | Rejects | Status |
-|---|---|---|---|---|---|---|
-| MEGA | tier | bigger and stronger | power ×1.5, size ×1.5 | 0.35 s charge | — | implemented |
-| OMEGA | tier | much bigger and stronger | power ×2.25, size ×1.75 | 0.8 s charge; cannot combine with MEGA | — | proposed |
-| TWIN | count | two of it | one extra copy; each copy at 60% power | arrangement per archetype | single-instance spells without a copy rule (Life) | proposed |
-| TRIPLE | count | three of it | two extra copies; each at 45% power | arrangement per archetype | as TWIN; cannot combine with TWIN | proposed |
-| HOMING | motion | finds enemies for you | bodies steer; volumes and beams aim at or track the nearest enemy; fields drift toward enemies; orbits break off to hunt and return | slower travel (×0.85) | `self`, `global`, already-guided parts unless a signature exists | proposed |
-| SWIFT | motion | faster | travel or front speed ×1.35 | range unchanged, so less time in flight | parts without motion | proposed |
-| BIG | size | bigger | size ×1.35 on the spell's declared size binding | — | `self`, `global` | proposed |
-| WIDE | size | covers more sideways | cone or fan angle ×1.5; beam and line width ×1.5 | reach ×0.85 | bodies without width | proposed |
-| LASTING | duration | lasts longer | the declared duration ×1.4 | — | instant spells | proposed |
-| REPEATING | schedule | it happens again | the whole cast echoes once after 0.6 s at 40% power and 75% size | — | — | proposed |
-| DELAYED | schedule | waits, then hits harder | +0.8 s before release; +15% power | the wait | `self` heals | proposed |
-| CHARGED | schedule | wind up for a big one | root the caster 1.2 s; +150% power | rooted | — | proposed |
-| PIERCING | contact | goes through | +2 unique contacts on projectiles; beams hit one more target per sample | power ×0.9 | volumes, fields, auras | proposed |
-| SPLITTING | contact | breaks apart | on first hit or expiry, spawn 3 small copies in a fan at 30% power | — | non-projectiles | idea |
-| EXPLODING | contact | goes boom | on hit or expiry, add a disk burst at 50% power | — | `self` | idea |
-| REPULSING | force | shoves enemies away | add an impulse away from the source | — | friendly-only payloads | proposed |
-| PULLING | force | drags enemies in | add a force toward the part's centre | — | friendly-only payloads | idea |
-| ORBITING | motion | circles you first | copies orbit the caster, then launch on release or when an enemy enters range | delay before damage | `self`, `global` | idea |
-| FIERY | element | adds fire | +35% of the base hit as fire damage, plus burn | — | — | proposed |
-| ICY | element | adds water/ice | +35% as water/ice damage, plus chill and a small push | — | — | proposed |
-| SHOCKING | element | adds storm | +35% as storm damage, plus shock | — | — | proposed, name open |
-| EARTHEN | element | adds earth/steel | +35% as earth/steel damage, plus bleed | — | — | proposed, name open (SERRATED was the steel option) |
-| VENOMOUS | element | adds plague/death | +35% as plague/death damage, plus poison | — | — | proposed |
-| RADIANT | element | adds holy/life | +35% as holy damage, plus radiant; healing spells heal 25% more | — | — | proposed, name open |
+### 8.3 Keyword vocabulary
 
-Naming still open: Homing versus Seeking (doc 14 used Seeking), TWIN/TRIPLE versus Duplicating, Flaming versus Fiery (doc 14 keeps them distinct).
+Words in each row are listed short to long, which is also weak to strong.
 
-### 8.3 Default bindings by delivery
+| Category | Words | Promise | Default behaviour | Status |
+|---|---|---|---|---|
+| Tier (power and size) | MEGA, SUPER, OMEGA, POWERFUL | bigger and stronger | power and size up by length; adds charge time (MEGA: ×1.5 power and size, 0.35 s, implemented) | MEGA implemented |
+| Power only | POTENT, MIGHTY | stronger, same size | power up by length | proposed |
+| Size only | BIG, LARGE, MASSIVE, GIGANTIC | bigger, same power | the spell's declared size binding up by length | proposed |
+| Count (at once) | DOUBLE, TRIPLE, QUADRUPLE | more copies, each weaker | 2 / 3 / 4 copies at 60% / 45% / 35% each, arranged per delivery (8.4) | proposed |
+| Twin cast | TWINNED | you cast it twice | a second full cast 0.15 s after the first, at 80% power | proposed |
+| Motion | HOMING, SWIFT, ORBITING | finds enemies / faster / circles you first | steer or aim at nearest; speed ×1.35; copies orbit you, then launch when an enemy is in range | proposed |
+| Duration | LASTING | lasts longer | declared duration ×1.4 | proposed |
+| Timing | REPEATING, DELAYED, CHARGED | weaker echo later / waits then hits harder / wind-up | echo after 0.6 s at 40%; +0.8 s for +15%; root 1.2 s for +150% | proposed |
+| On hit | PIERCING, SPLITTING, CHAINING, EXPLODING, CASCADING | goes through / breaks apart / hops between enemies / goes boom / kills spawn a copy | +2 contacts; 3 small copies on first hit; 3 hops at 70%; disk burst at 50%; a kill spawns a 30% copy from the body | proposed |
+| Force | PULLING, REPULSING | drags in / shoves away | add force toward the part's centre; add impulse away | proposed |
+| Target | HUNTING, SCATTERED | goes for the toughest enemy / copies spread out | aim at the highest-health enemy in range (elites first); copies take distinct targets | proposed |
+| Effect on you | WARDING, BLINKING | shields you / moves you | absorb shield on cast; short teleport in the cast direction | proposed |
+| Arrangement | RINGED, LINED | copies in a ring / in a row | overrides the arrangement of count words | proposed |
+| Sacrifice | SANGUINE | costs health for power | spends a share of current health; big power boost | proposed |
+| Wild | CHAOTIC | something random happens | random element word, count or on-hit word each cast | proposed |
+| Element: Arcane | MYSTIC, ARCANE, MAGICAL, ELDRITCH | adds arcane | arcane damage + vulnerable | proposed |
+| Element: Fire | EMBER, FIERY, FLAMING, BLAZING, INFERNAL, SCORCHING | adds fire | fire damage + burn | proposed |
+| Element: Water/Ice | ICY, FROSTY, FROZEN, GLACIAL | adds cold | water/ice damage + chilled | proposed |
+| Element: Storm | STORMY, SHOCKING, ELECTRIC, THUNDERING | adds lightning | storm damage + shocked | proposed |
+| Element: Earth/Steel | IRON, BLADED, EARTHEN, SERRATED | adds stone and steel | earth/steel damage + bleed | proposed |
+| Element: Plague/Death | TOXIC, DEATHLY, VENOMOUS, NECROTIC, POISONOUS | adds rot | plague/death damage + poison | proposed |
+| Element: Life | LIVING, VERDANT, THORNED, BLOOMING, OVERGROWN | adds living growth | life damage + entangled | proposed |
+
+Element words add about **+5% elemental damage per letter** (ICY 15%, FIERY 25%, SCORCHING 45%), and their status scales the same way. FROZEN as a word chills; it does not freeze on its own. RADIANT is reserved for a possible future light school.
+
+**First build batch:** MEGA, DOUBLE, TRIPLE, TWINNED, HOMING, LASTING, PIERCING, plus one word per element (ARCANE, FIERY, ICY, STORMY, EARTHEN, VENOMOUS, LIVING) and the per-letter strength rule. That touches every shared hook; synonyms are then data.
+
+### 8.4 Default bindings by delivery
 
 What each word changes, by delivery. A blank means "uses the general rule in 8.2".
 
 | Word | projectile | volume | beam | field / aura | trap | summon | self |
 |---|---|---|---|---|---|---|---|
 | MEGA / OMEGA / BIG | body radius (+ child sizes) | area | width | area | trigger + burst | body + reach | heal amount only (MEGA/OMEGA); BIG rejected |
-| TWIN / TRIPLE | copies in a fan | extra pulses in sequence | extra beams, distinct targets | extra smaller fields around the target | extra traps around the point | extra summons (counts toward max active) | rejected |
+| DOUBLE / TRIPLE | copies in a fan | extra pulses in sequence | extra beams, distinct targets | extra smaller fields around the target | extra traps around the point | extra summons (counts toward max active) | rejected |
 | HOMING | steer to nearest | aim at nearest group | track target | drift toward enemies | moves slowly toward enemies | already hunts: rejected unless signature | rejected |
 | SWIFT | travel speed | front speed | turn speed | drift speed if moving, else rejected | arming time ×0.7 | move speed | rejected |
 | LASTING | rejected unless it lingers | active window | channel length | duration | armed lifetime | lifetime | heal-over-time duration |
 | PIERCING | +2 contacts | rejected | +1 target per sample | rejected | rejected | rejected | rejected |
 | Element words | contact hits | area hits | beam ticks | ticks (status at reduced strength) | burst | summon attacks | healing aura pulse (6.2) |
 
-### 8.4 Signatures
+### 8.5 Signatures
 
 Hand-made interpretations, only where the default is dull. Each keeps the keyword's promise.
 
@@ -483,11 +493,11 @@ Hand-made interpretations, only where the default is dull. Each keeps the keywor
 | Lightning Spear × HOMING | Locks onto targets as it flies and zaps enemies near its path | `on_travel` chain strike to nearby enemies |
 | Prism Ray × any count | Each extra copy splits into its own seven rays | per-copy |
 | Meteor Shower × MEGA / OMEGA | One huge meteor instead of several | arrangement single; impact radius × count |
-| Ice Blast × TWIN / TRIPLE | Two or three quick pulses one after another instead of a wider fan | release staggered 0.15 s |
+| Ice Blast × DOUBLE / TRIPLE | Two or three quick pulses one after another instead of a wider fan | release staggered 0.15 s |
 | Cinder Field × TRIPLE | Three smaller fields in a triangle around the target | arrangement ring 3 |
 | Arcane Orbit × HOMING | Orbiters break off to hunt, then return to orbit | phases orbit → guided → return |
 | Rune Trap × HOMING | The rune creeps toward the nearest enemy until it triggers | motion guided, slow |
-| Seeker × TWIN / TRIPLE | Spirits hunt as a pack and share targets | target assignment `distinct` |
+| Seeker × DOUBLE / TRIPLE | Spirits hunt as a pack and share targets | target assignment `distinct` |
 | Regeneration × element word | The healing aura also pulses that element at nearby enemies | aura secondary payload |
 
 ## 9. Starting numbers
@@ -496,9 +506,9 @@ Everything here is *proposed v0.1* unless marked current. These are the knobs to
 
 ### 9.1 Keyword coefficients
 
-Listed in 8.2. Summary of the multiplicative ones: MEGA 1.5 / 1.5 (current), OMEGA 2.25 / 1.75, TWIN 2 × 60%, TRIPLE 3 × 45%, BIG 1.35, WIDE 1.5 angle with 0.85 reach, SWIFT 1.35, LASTING 1.4, REPEATING echo 40% power / 75% size after 0.6 s, DELAYED +15% after 0.8 s, CHARGED +150% with 1.2 s root, element words +35% of the base hit (range 25–50%) plus status, on every damaging part. Base split per spell: ~75–80% raw / 20–25% own element.
+Listed in 8.3. Summary of the multiplicative ones: MEGA 1.5 / 1.5 (current), OMEGA 2.25 / 1.75, DOUBLE 2 × 60%, TRIPLE 3 × 45%, BIG 1.35, WIDE 1.5 angle with 0.85 reach, SWIFT 1.35, LASTING 1.4, REPEATING echo 40% power / 75% size after 0.6 s, DELAYED +15% after 0.8 s, CHARGED +150% with 1.2 s root, element words +35% of the base hit (range 25–50%) plus status, on every damaging part. Base split per spell: ~75–80% raw / 20–25% own element.
 
-Rule of thumb for count words: total output of TWIN ≈ 1.2× and TRIPLE ≈ 1.35× a single cast against one target, more against crowds. Count words buy coverage, not single-target damage.
+Rule of thumb for count words: total output of DOUBLE ≈ 1.2× and TRIPLE ≈ 1.35× a single cast against one target, more against crowds. Count words buy coverage, not single-target damage.
 
 ### 9.2 Statuses
 
@@ -512,7 +522,7 @@ Rule of thumb for count words: total output of TWIN ≈ 1.2× and TRIPLE ≈ 1.3
 | shocked | 0.2 s stagger; arcs to one enemy within 150 for 40% of the hit | |
 | weakened | enemy deals 20% less | 4 s |
 | vulnerable | enemy takes 15% more | 4 s |
-| radiant | attacks miss 30% | 3 s |
+| entangled | 25% slow; 3 applications within 3 s root for 1 s | 3 s |
 | rooted | cannot move | 1.5 s |
 | stunned | cannot move or attack | 0.8 s |
 
@@ -555,11 +565,11 @@ A custom spell has its own behaviour code for something the primitives cannot ex
 
 | Must declare | Why |
 |---|---|
-| power binding | MEGA, OMEGA, TWIN/TRIPLE scaling |
+| power binding | MEGA, OMEGA, DOUBLE/TRIPLE scaling |
 | size binding (or explicit rejection) | MEGA, OMEGA, BIG |
 | hits through `apply_effect` | element words, statuses, reactions, resistance, style credit |
 | lifetime binding (or `instant`) | LASTING |
-| count rule (or rejection) | TWIN, TRIPLE |
+| count rule (or rejection) | DOUBLE, TRIPLE |
 | motion and aim support (or rejection) | HOMING, SWIFT |
 
 Schedule words (REPEATING, DELAYED, CHARGED) work on every spell automatically because they re-run the cast.
@@ -644,7 +654,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 **Mana Storm** · filed under Shower in doc 16
 - **What:** a cloud follows near you and rains mana daggers on enemies below it.
 - **Parts:** `cloud` field · disk r160 · motion `follow` caster with lag · 6 s · `on_tick 0.25 s` → `dagger` projectile · single · fall onto a random enemy inside the cloud · arcane 14.
-- **Keywords:** HOMING = cloud drifts toward the densest group instead of following you; MEGA = bigger cloud, bigger daggers; TWIN = second cloud.
+- **Keywords:** HOMING = cloud drifts toward the densest group instead of following you; MEGA = bigger cloud, bigger daggers; DOUBLE = second cloud.
 - **Enemies:** nothing special.
 - **Open:** follow you or wander on its own.
 
@@ -657,7 +667,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 **Black Hole** · filed under Field in doc 16 · ultimate (was Eye of [unnamed])
 - **What:** a gravity well that drags everything in and crushes it. Damage rises toward the centre.
 - **Parts:** field · disk r240 at target · 4 s · force `toward_point` 600/s with falloff · periodic 0.25 s · arcane damage 10 at the edge rising to 40 at the core · `on_expire` volume disk r140 · arcane 150.
-- **Keywords:** MEGA/OMEGA scale radius and pull; LASTING extends; TWIN = two wells that pull against each other.
+- **Keywords:** MEGA/OMEGA scale radius and pull; LASTING extends; DOUBLE = two wells that pull against each other.
 - **Enemies:** force accumulator, weight; bosses resist pull by weight.
 - **Open:** ultimate rules (charge-up, cooldown or once per day).
 
@@ -737,7 +747,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 **Volcano** · filed under Strike in doc 16
 - **What:** an eruption at a point that leaves a lingering volcanic vent which keeps lobbing lava at nearby enemies.
 - **Parts:** `eruption` volume · disk r110 · instant · fire 80 → `vent` field · disk r40 · 6 s · `on_tick 0.6 s` → `lava` projectile · lob onto nearest enemy within 300 · land volume r50 · fire 25 + burn.
-- **Keywords:** LASTING = vent lives longer; TWIN = two vents; MEGA = bigger eruption.
+- **Keywords:** LASTING = vent lives longer; DOUBLE = two vents; MEGA = bigger eruption.
 - **Enemies:** none special.
 - **Open:** whether Volcano replaces or sits beside Meteor Shower.
 
@@ -761,7 +771,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 **Fire Golem** · summon
 - **What:** a fire ally that casts Ember Spear from your kit.
 - **Parts:** summon · health 150 · behaviour `guard` near you · attack = cast `ember_spear` at the player's rank every 2.5 s · 20 s.
-- **Keywords:** MEGA = bigger golem and stronger casts; TWIN = two golems.
+- **Keywords:** MEGA = bigger golem and stronger casts; DOUBLE = two golems.
 - **Enemies:** target selection (golem can be attacked); damage attribution to the player.
 - **Open:** which spells a golem may cast; whether it uses your rank.
 
@@ -786,7 +796,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 **Water Jet** · filed under Ray in doc 16
 - **What:** a tracking jet of water that damages and pushes; upgrades add jets.
 - **Parts:** beam · length 300 · aim track nearest · channel 2.5 s · water/ice 14 per 0.2 s + impulse `along_travel` 120 per tick + chill.
-- **Keywords:** TWIN/TRIPLE = extra jets on distinct targets; SHOCKING turns it into a conductor (chill + storm: Tempest/Conduct).
+- **Keywords:** DOUBLE/TRIPLE = extra jets on distinct targets; SHOCKING turns it into a conductor (chill + storm: Tempest/Conduct).
 - **Enemies:** impulse per tick, chill status.
 
 **Water Whip** · filed under Slice/Whip in doc 16
@@ -796,7 +806,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 **Tsunami** · filed under Blast in doc 16
 - **What:** a broad wave spawns behind you and sweeps forward across the screen.
 - **Parts:** volume · rect 700 × 900 · origin `behind_caster` · propagation travelling 450/s · hit once per enemy · water/ice 80 + impulse `along_travel` 600 + chill.
-- **Keywords:** TWIN = two waves in sequence; MEGA = taller and wider.
+- **Keywords:** DOUBLE = two waves in sequence; MEGA = taller and wider.
 - **Enemies:** weight (bosses barely move).
 
 **Frost Nova** · filed under Nova in doc 16
@@ -824,7 +834,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 **Lightning Spear (rod)** · filed under Spear in doc 16
 - **What:** a spear that embeds in an enemy (or the ground at range end) and becomes a lightning rod that keeps calling strikes on nearby enemies, even after its host dies.
 - **Parts:** `spear` projectile · stops on first hit · storm 60 → `on_hit` `rod` aura anchored to the host (lost-anchor: stays on the ground) · 4 s · `on_tick 0.5 s` → `strike` volume disk r50 on a random enemy within 220 · storm 30 + shock.
-- **Keywords:** HOMING signature (8.4); LASTING = longer rod; TRIPLE = three rods.
+- **Keywords:** HOMING signature (8.5); LASTING = longer rod; TRIPLE = three rods.
 - **Enemies:** anchor points; death event so the rod drops in place.
 
 **Static Shock** · filed under Ray in doc 16
@@ -936,18 +946,18 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 ### 12.7 Life and Nature
 
 **Vine Ball (unnamed)** · filed under Ball in doc 16
-- **Parts:** projectile · body r16 · straight 600 → `on_hit` volume disk r110 · root 1.5 s + holy 30 (+ bleed if chosen).
+- **Parts:** projectile · body r16 · straight 600 → `on_hit` volume disk r110 · root 1.5 s + life 30 (+ bleed if chosen).
 
 **Shillelagh** · filed under Spear in doc 16 (life spear)
 - **What:** vines and roots that drag nearby enemies toward a point and hold them.
-- **Parts:** projectile · stops on hit · holy 40 → volume disk r180 · impulse `toward_point` 500 + root 1 s.
+- **Parts:** projectile · stops on hit · life 40 → volume disk r180 · impulse `toward_point` 500 + root 1 s.
 - **Open:** pull destination (hit point or you).
 
 **Vine Whip** · filed under Slice/Whip in doc 16
-- **Parts:** volume · arc 130° r200 · sweep 0.2 s · holy 45 + root 0.4 s.
+- **Parts:** volume · arc 130° r200 · sweep 0.2 s · life 45 + root 0.4 s.
 
 **Crushing Vines** · filed under Nova in doc 16
-- **Parts:** volume · ring · expanding to r200 · holy 35 + root 1 s.
+- **Parts:** volume · ring · expanding to r200 · life 35 + root 1 s.
 
 **Exploding Flowers** · filed under Strike / Shower in doc 16
 - **Parts:** trap · scatter 5 in r200 · trigger r40 · → volume disk r80 · plague/death 30 + poison.
@@ -957,12 +967,12 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 
 **Yggdrasil** · filed under Restoration in doc 16 (landmark)
 - **What:** grow a tree of life that heals you and harms enemies nearby.
-- **Parts:** barrier · disk r40 · health 300 · phases `sapling 2 s` → `tree 15 s` · aura r220 · periodic 1 s · heal self 4 + holy 12 to enemies.
+- **Parts:** barrier · disk r40 · health 300 · phases `sapling 2 s` → `tree 15 s` · aura r220 · periodic 1 s · heal self 4 + life 12 to enemies.
 - **Enemies:** pathing around the trunk; enemies may attack it.
 
 ### 12.8 Combination themes
 
-**Sunbeam** (Fire + Life candidate): beam · phases `charge 0.8 s` → `fire 1.5 s` · width 40 · holy + fire 30 per 0.2 s.
+**Sunbeam** (Fire + Life candidate): beam · phases `charge 0.8 s` → `fire 1.5 s` · width 40 · life + fire 30 per 0.2 s.
 
 **Crescent Slash**: volume · fan 3 arcs · staggered 0.08 s · sweep · arcane 35 each (purple).
 
@@ -1063,12 +1073,12 @@ flowchart TB
 | Fire-flower turret | bloom, fire, wilt | Flame Seed |
 | Volcanic vent | erupt, idle, close | Volcano |
 
-### 13.3 Elements (one set per element: Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Holy/Life)
+### 13.3 Elements (one set per element: Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Life)
 
 | Piece | Per element |
 |---|---|
 | Colour ramp | 1 (5–6 colours) |
-| Particles | 2 sprites (e.g. ember + smoke, snowflake + droplet, spark + fork, stone chip + metal glint, spore + bone mote, light mote + leaf) |
+| Particles | 2 sprites (e.g. ember + smoke, snowflake + droplet, spark + fork, stone chip + metal glint, spore + bone mote, leaf + seed) |
 | Rim / overlay texture | 1, for when the element is the second element on a spell |
 | Hit spark | 1 |
 | Damage-number colour | 1 |
@@ -1089,6 +1099,7 @@ Each needs a body overlay or attachment and a small icon.
 | frozen | ice block encasing |
 | shocked | crackle flicker + arc |
 | root | vines or stone around the feet |
+| entangled | thin vines creeping up the legs |
 | stun | circling stars or sparks |
 | weaken | drooping dark wisps |
 | vulnerable | cracked rune mark |
@@ -1102,7 +1113,7 @@ Player buffs (haste, power, ward, invulnerable, reflect) need a matching small a
 
 **Fusions:** no new drawings needed by default. A fused spell blends the two colour ramps (primary on the body, secondary on the rim and particles).
 
-**Reactions:** five bursts: Thaw (steam), Shatter (ice shards), Toxic Flare, Overload, Purge. Plus the two threshold bursts: Hemorrhage and the Frozen encasing.
+**Reactions:** five bursts: Thaw (steam), Shatter (ice shards), Toxic Flare, Overload, Cleanse. Plus the two threshold bursts: Hemorrhage and the Frozen encasing.
 
 ### 13.6 Keyword treatments
 
@@ -1111,7 +1122,7 @@ Mostly code; the artist provides only the casting-circle rune per word.
 | Word | In-world treatment | Casting circle |
 |---|---|---|
 | MEGA / OMEGA | scale, thicker outline, stronger glow, heavier impact shake | satellite rune (exists for MEGA) |
-| TWIN / TRIPLE | arrangement of copies | satellite rune |
+| DOUBLE / TRIPLE | arrangement of copies | satellite rune |
 | HOMING | curved streak trail | satellite rune |
 | SWIFT | motion smear | satellite rune |
 | BIG / WIDE | scale | satellite rune |
@@ -1150,7 +1161,7 @@ This is a full rewrite of the **spell engine**, done so the game stays playable 
 | 1. Foundations | `apply_effect`, status component, status catalogue data, resistance profiles, damage types on every hit; existing slow / knockback / armour rerouted; keyword parser reads every word into a modifier bundle (MEGA unchanged); internal spear rename + save migration | All regression tests green; MEGA and every spell behave as before |
 | 2. Format and runner | Spell data loader and validator; part runner using existing delivery scripts as components; spells ported one at a time (Ember Spear first), each deleting its old dispatch branch | 16 spells and 7 combinations run on the new runner; old `match` gone |
 | 3. Engine gaps | Phases, owner/afflicted events, chain, aim, force accumulator, barrier, lob/fall motion, spell references, per-copy variation, global delivery | Cross Blade, Lightning, Plague Seed, Earth Shield, Firewalk on the new events; gap tests pass |
-| 4. Keywords | TWIN, TRIPLE, HOMING, SWIFT, LASTING, REPEATING, element words, reactions; signatures from 8.4; casting-circle runes for each word | Contract tests for every spell × word pair: changes something visible or is rejected with a cracked rune |
+| 4. Keywords | DOUBLE, TRIPLE, HOMING, SWIFT, LASTING, REPEATING, element words, reactions; signatures from 8.5; casting-circle runes for each word | Contract tests for every spell × word pair: changes something visible or is rejected with a cracked rune |
 | 5. Enemy side | Target selection beyond the player, barrier avoidance, locks, corpses, transform, boss rules | Mirror Image, golems, walls and Polymorph testable |
 | 6. Art integration | Grey-value + colour-ramp shader, per-delivery motifs, status overlays, reaction bursts | Can start in parallel once the artist delivers pieces |
 | 7. New spells | Section 12, in batches chosen by play value | Each new spell: data + art + a behaviour test |
@@ -1159,7 +1170,7 @@ Per phase: run the existing regression suite, the documentation validator and, w
 
 ## 15. Open decisions
 
-1. Keyword names: HOMING or SEEKING; TWIN/TRIPLE or DUPLICATING; FIERY or FLAMING (or both, with different meanings).
+1. Keyword names: HOMING or SEEKING; DOUBLE/TRIPLE or DUPLICATING; FIERY or FLAMING (or both, with different meanings).
 2. ~~Element words add or convert~~ **Decided: add** (raw + elemental split; element words add +35% and their status to every damaging part). Still open: the exact split per spell. Fusion vs reaction: **decided, both** (6.4).
 3. Bolt's current multi-bolt rank growth: keep as rank growth, or move it into the HOMING signature.
 4. Combinations that keyword phrases reproduce (Steam Field, Frost Sigil): give them something extra, or retire them.
