@@ -354,24 +354,30 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Ice Blast shard (35 today) | 27 | 8 water/ice | chill |
 | `icy ember spear` | 74 | 22 fire + 14 water/ice | burn trail that also chills; spear hit chills |
 
-**The split depends on the spell's fantasy.** Anything with a physical body (spears, shards, boulders, blades, meteors, bullets) is mostly raw. Pure elemental forces (fields, flames, beams, lightning, frost bursts, burn and poison) are fully elemental. Starting splits:
+**Damage has three parts, and the mix depends on the spell's fantasy:**
 
-| Spell | Raw | Elemental | Why |
-|---|---|---|---|
-| Bolt | 0% | 100% arcane | a bolt of pure mana |
-| Ember Spear | 75% | 25% fire | a thrown spear, burning |
-| Ice Blast | 60% | 40% water/ice | ice shards are solid |
-| Lightning | 0% | 100% storm | pure lightning |
-| Meteor Shower | 70% | 30% fire | a falling rock on fire |
-| Cinder Field | 0% | 100% fire | fire on the ground |
-| Firewalk | 0% | 100% fire | fire on the ground |
-| Arcane Orbit | 0% | 100% arcane | mana bodies |
-| Focus Ray | 0% | 100% arcane | a beam of mana |
-| Rune Trap | 0% | 100% arcane | a mana burst |
-| Infestation | 0% | 100% plague/death | rot |
-| Seeker | 0% | 100% plague/death | a ghost |
-| Cross Blade | 100% | 0% (+ bleed) | a steel blade |
-| Earth Shield retaliation | 100% | 0% (+ bleed) | stone shards |
+1. **Raw:** the force of a physical body (spears, shards, boulders, blades, meteors, bullets). Reduced by armour.
+2. **Elemental:** the element itself (fire, cold, lightning, mana, rot, growth). Reduced by that element's resistance; affected by the type chart.
+3. **DoT:** a damage-over-time status (burn, bleed, poison, infection). **Most spells apply none.** A DoT belongs to a spell only when it is that spell's identity (Ember Spear's burning trail, Infestation's spread). Players add DoTs on purpose with element words.
+
+Starting splits for the current spells:
+
+| Spell | Raw | Elemental | DoT | Why |
+|---|---|---|---|---|
+| Bolt | 0% | 100% arcane | none | a bolt of pure mana |
+| Ember Spear | 75% | 25% fire | burn from the trail | a thrown spear that leaves fire behind |
+| Ice Blast | 60% | 40% water/ice | none (chill is control) | ice shards are solid |
+| Lightning | 0% | 100% storm | none | pure lightning |
+| Meteor Shower | 70% | 30% fire | none | a falling rock on fire |
+| Cinder Field | 0% | 100% fire (ticks while you stand in it) | none | fire on the ground |
+| Firewalk | 0% | 100% fire (ticks) | none | fire on the ground |
+| Arcane Orbit | 0% | 100% arcane | none | mana bodies |
+| Focus Ray | 0% | 100% arcane | none | a beam of mana |
+| Rune Trap | 0% | 100% arcane | none | a mana burst |
+| Infestation | 0% | small | infection (the spell is the DoT) | rot that spreads |
+| Seeker | 0% | 100% plague/death | none | a ghost |
+| Cross Blade | 100% | 0% | bleed | a steel blade |
+| Earth Shield retaliation | 100% | 0% | bleed | stone shards |
 
 **Earth/Steel has no damage type of its own.** Stone and steel hit with raw damage; their element shows through bleed (and root on some spells). Bleed ticks are raw but **ignore armour**, which gives Earth/Steel its answer to armoured enemies.
 
@@ -1355,7 +1361,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | More reactions | Not now. Ideas parked: Corrosive (plague + storm) |
 | Cooldowns | None for now; revisit on tier words only if the keyword matrix shows MEGA/OMEGA spam |
 | Bare forms allowed | Yes, for now (`spear`, `nova`…) |
-| Raw/elemental split | Per spell, by fantasy (6.1) |
+| Damage split | Raw + elemental + DoT, per spell by fantasy; most spells apply no DoT (6.1) |
 | Type chart | Storm > Water/Ice > Fire > Plague/Death > Life > Earth/Steel > Storm; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
 | Stone type | None. Earth/Steel deals raw damage plus bleed; armour is its resistance; bleed ignores armour |
 | Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
@@ -1367,6 +1373,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 2. Which words, spells and bare forms the player starts with, and where the rest are learned (ley sites, tower; docs 05 and 15).
 3. Which enemies get which element, and in which levels (type chart in 6.5).
 4. The open details listed under each spell in section 12.
+5. Trim DoTs from the section 12 specs so only spells whose identity is a DoT keep one.
 
 ## Appendix A: fit check of every idea in doc 16
 
