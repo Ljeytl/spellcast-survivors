@@ -201,7 +201,6 @@ The following preserves prior ideas and exclusions outside the main browsing mat
 
 | Entry | Provenance / latest disposition |
 |---|---|
-|  |
 | Life Seed | Assistant illustration, not selected; do not confuse with Life Bolt healing drops |
 | Frost Ray / Ice Ray | Removed from the proposed roster; Water Jet occupies the merged school’s Ray slot |
 | Frostball / Plague Ball | Assistant names, not selected; user now proposes Snowball and an unnamed carcass concept respectively |
