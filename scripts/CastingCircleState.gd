@@ -48,6 +48,8 @@ static func analyze(text: String, spells: Array, power_words: Array) -> Dictiona
 		"rune_count": runes.length(),
 		"valid": body.is_empty() or not spell_candidates.is_empty() or not power_candidates.is_empty(),
 		"forming_power_word": not body.is_empty() and spell_candidates.is_empty() and not power_candidates.is_empty(),
+		# The power word being formed, once it is the only one that fits (for its ghost runes).
+		"power_word": power_candidates[0] if power_candidates.size() == 1 and spell_candidates.is_empty() else "",
 		"element": element,
 		"spell": str(locked.incantation) if not locked.is_empty() else "",
 		"total_runes": total,

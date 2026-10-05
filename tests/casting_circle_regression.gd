@@ -48,6 +48,8 @@ func run():
 	check(s.element == "" and s.spell == "" and s.valid, "me could be mega or meteor: neutral")
 	s = a("meg")
 	check(s.forming_power_word and s.rune_count == 3, "meg can only be the power word")
+	check(s.power_word == "mega", "A power word in progress names itself, so its satellite can show ghost runes")
+	check(a("me").power_word == "", "While a spell could still fit, no power word is assumed")
 	s = a("mega ")
 	check(s.power_words == ["mega"] and s.rune_count == 0, "mega + space becomes a satellite")
 	s = a("mega mega met")

@@ -1,3 +1,10 @@
+# Unreleased — Power-word runes behave like runes
+
+- A power word (mega) now builds its own small circle with the same rules as the main one: each letter pops in, a typo cracks it red and shakes it, the rest of the word shows as ghost runes (the next one pulsing), and the ring fills as you type.
+- Finishing it seals the satellite (tick marks and a flash, like a full ring) and it eases out from the circle into orbit. Its ring picks up the spell's element colour once that is known; it spins and glows with the charge.
+- On release the satellites fling their runes outward with the main circle's runes, each sends its own shockwave, and their letters count toward the hitstop, shake and sparks.
+- The main rings no longer fill with a power word's letters while it is being typed.
+
 # Experiment (experiment/day-cycle) — Dusk and night look
 
 - New colour grade (shaders/day_grade.gdshader): light colour (per-channel gain), split toning (shadows and highlights tinted separately), hue rotation, saturation, contrast, and a sky glow washed down from the top of the screen. Replaces the flat tint that turned the field mustard, brown and flat teal.
