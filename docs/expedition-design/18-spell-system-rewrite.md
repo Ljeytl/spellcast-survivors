@@ -23,7 +23,7 @@ It builds on the component vocabulary in [doc 14](14-spell-system-reference.md) 
 - [13. Art needed](#13-art-needed)
 - [14. Rewrite plan](#14-rewrite-plan)
 - [15. Balance plan](#15-balance-plan)
-- [16. Open decisions](#16-open-decisions)
+- [16. Decisions and open questions](#16-decisions-and-open-questions)
 - [Appendix A: fit check of every idea in doc 16](#appendix-a-fit-check-of-every-idea-in-doc-16)
 - [Appendix B: engine work the format needs](#appendix-b-engine-work-the-format-needs)
 
@@ -76,7 +76,7 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **All statuses go through one path** into one status component per enemy, with per-status stacking rules and per-enemy resistance profiles.
 - **Damage type lives on each damage entry**, so one hit can carry several types. A spell's element is its theme and default type.
 - **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison, bleed) are fully elemental. Raw damage is reduced only by armour; elemental damage only by that element's resistance.
-- **Element keywords add, never convert:** extra elemental damage (+35% of the base hit, tuning range 25–50%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
+- **Element keywords add, never convert:** extra elemental damage scaled by the word's length (about 5% of the base hit per letter: ICY 15%, FIERY 25%, SCORCHING 45%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
 - **Life, not Holy.** The seventh element is Life: druidic magic of vines, roots, flowers, plants and soil that heals. No holy or faith magic (principle 8). A holy or light school is parked: light and sun imagery reads as religious too easily. It may return later as its own kind of wizard.
 - **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Life. Merged schools share one damage type, signature status and resistance (6.1).
 - **Fusion and reactions, both** (section 6.4). One spell with two elements **fuses**: everything coexists. Different casts react only through a short list of five reactions; most pairs simply coexist. Damage mixing never interacts.
@@ -352,13 +352,13 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Ember Spear (96 today) | 74 | 22 fire | trailing burn (fully fire) |
 | Bolt (50 today) | 39 | 11 arcane | |
 | Ice Blast shard (35 today) | 27 | 8 water/ice | chill |
-| `icy ember spear` | 74 | 22 fire + 34 water/ice | burn trail that also chills; spear hit chills |
+| `icy ember spear` | 74 | 22 fire + 14 water/ice | burn trail that also chills; spear hit chills |
 
 ### 6.2 Element keywords
 
 An element word **adds** to a spell; it never removes the spell's own element.
 
-- Adds a damage entry of its type equal to **35% of the base hit** (*proposed*, tuning range 25–50%), plus its signature status.
+- Adds a damage entry of its type equal to **about 5% of the base hit per letter of the word** (*proposed*: ICY 15%, FIERY 25%, SCORCHING 45%), plus its signature status, scaled the same way.
 - Applies to **every damaging part** of the spell: projectiles, bursts, fields, trails, summon attacks. Periodic parts (fields, trails, auras) add the status at reduced strength: chill from a periodic part slows but cannot build to freeze.
 - On spells with no damage (Life, Regeneration), it adds the element to the healing aura as a small pulse damage to nearby enemies, or is rejected; decided per archetype in section 8.
 - The same element as the spell's own (`icy ice blast`) instead strengthens that element's status by 50% (*proposed*).
@@ -508,7 +508,7 @@ Everything here is *proposed v0.1* unless marked current. These are the knobs to
 
 ### 9.1 Keyword coefficients
 
-Listed in 8.3. Summary of the multiplicative ones: MEGA 1.5 / 1.5 (current), OMEGA 2.25 / 1.75, DOUBLE 2 × 60%, TRIPLE 3 × 45%, BIG 1.35, WIDE 1.5 angle with 0.85 reach, SWIFT 1.35, LASTING 1.4, REPEATING echo 40% power / 75% size after 0.6 s, DELAYED +15% after 0.8 s, CHARGED +150% with 1.2 s root, element words +35% of the base hit (range 25–50%) plus status, on every damaging part. Base split per spell: ~75–80% raw / 20–25% own element.
+Listed in 8.3 and placed on the value-per-letter curve in 15.3. Summary: MEGA ×1.5 power and size (current), SUPER and OMEGA ×1.6, POWERFUL ×2.0; DOUBLE 2 × 60%, TRIPLE 3 × 45%, QUADRUPLE 4 × 35%; TWINNED second cast at 80%; BIG 1.35, WIDE 1.5 angle with 0.85 reach, SWIFT 1.35, LASTING 1.4; REPEATING echo at 40% power / 75% size after 0.6 s; DELAYED +15% after 0.8 s; CHARGED +150% with a 1.2 s root; element words about +5% of the hit per letter plus status. Same-category words stack with diminishing returns (full, half, quarter).
 
 Rule of thumb for count words: total output of DOUBLE ≈ 1.2× and TRIPLE ≈ 1.35× a single cast against one target, more against crowds. Count words buy coverage, not single-target damage.
 
@@ -1268,20 +1268,36 @@ So poison does the most total damage over the longest time, burn the fastest, bl
 
 Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s at a steady pace; Lightning, Rune Trap and Cinder Field deal similar total damage over a run; Ember Spear is the outlier at about 50 s on single targets (expected for a line spell that wants crowds, and why the burning trail was added). Passive Spell Power luck is still the largest source of noise and gets fixed first.
 
-## 16. Open decisions
+## 16. Decisions and open questions
 
-1. Keyword names: HOMING or SEEKING; DOUBLE/TRIPLE or DUPLICATING; FIERY or FLAMING (or both, with different meanings).
-2. ~~Element words add or convert~~ **Decided: add** (raw + elemental split; element words add +35% and their status to every damaging part). Still open: the exact split per spell. Fusion vs reaction: **decided, both** (6.4).
-3. Bolt's current multi-bolt rank growth: keep as rank growth, or move it into the HOMING signature.
-4. Combinations that keyword phrases reproduce (Steam Field, Frost Sigil): give them something extra, or retire them.
-5. Plague Seed's player name: Plague Seed, Infection or Infestation.
-6. Ultimates (Black Hole, Time Stop): how they are earned and limited.
-7. Whether chill-into-freeze at max stacks becomes the general pattern (poison bursts at cap, bleed hemorrhages).
-8. Which reactions to add beyond the first five in 6.4.
-9. Cost of each keyword beyond letters, where 8.2 says "—".
-10. Mana or cooldowns as a second cost alongside length ("casts").
-11. Whether players can type bare forms (e.g. `spear`) or only named spells.
-12. The open details listed under each spell in section 12.
+### 16.1 Decided
+
+| Topic | Decision | Where |
+|---|---|---|
+| Spell name vs type | Names are fantasy; only parts decide behaviour | 1.1 |
+| Magic is learned | Knowledge of natural forces, no gods or faith; dark and esoteric knowledge is fine | principle 8 |
+| Elements | Seven: Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Life (druidic). Holy/light parked | 6.1 |
+| Damage | Raw + own element on every damaging spell; damage mixing never interacts | 6.1, 6.4 |
+| Element words | Add, never convert; strength scales with word length | 6.2, 8.3 |
+| Statuses | Burn (each hit its own 1.5 s burn), bleed (meter → hemorrhage), poison (ramps, weakens, longest), chilled → frozen, shocked arcs; no wet | 5.3 |
+| Interactions | Same spell fuses (everything coexists); different casts react only through Thaw, Shatter, Toxic Flare, Overload, Cleanse | 6.4 |
+| Keyword names | HOMING, DOUBLE / TRIPLE / QUADRUPLE, TWINNED, FIERY and the synonym lists, SANGUINE, CHAOTIC | 8.3 |
+| Keyword rules | Adjectives; longer synonym is stronger; no spell-name collisions; same-category stacking with diminishing returns; free word order; quick cast | 8.2 |
+| Custom spells | Allowed as an escape hatch with the keyword contract; none needed today | 10 |
+| Spear | Spear everywhere, including internal ids; Lance reserved for a future thrust | 11.3 |
+| Legacy drafts | Nine inactive prototype spells, including Divine Aura, are not ported | 11.4 |
+
+### 16.2 Still open
+
+1. Bolt's current multi-bolt rank growth: keep as rank growth, or move it into the HOMING signature.
+2. Combinations that keyword phrases reproduce (Steam Field ≈ `icy cinder field`, Frost Sigil ≈ `icy rune trap`): give them something extra, or retire them.
+3. Plague Seed's player name: Plague Seed, Infection or Infestation.
+4. Ultimates (Black Hole, Time Stop): how they are earned and limited.
+5. Which reactions to add beyond the first five.
+6. Mana or cooldowns as a second cost alongside length.
+7. Whether players can type bare forms (e.g. `spear`) or only named spells.
+8. The exact raw/elemental split per spell.
+9. The open details listed under each spell in section 12.
 
 ## Appendix A: fit check of every idea in doc 16
 
