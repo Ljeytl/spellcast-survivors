@@ -75,6 +75,7 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **Damage type lives on each damage entry**, so one hit can carry several types. A spell's element is its theme and default type.
 - **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison, bleed) are fully elemental. Raw damage is reduced only by armour; elemental damage only by that element's resistance.
 - **Element keywords add, never convert:** extra elemental damage (+35% of the base hit, tuning range 25–50%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
+- **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Holy/Life. Merged schools share one damage type, signature status and resistance (6.1).
 - **Fusion and reactions, both** (section 6.4). Two elements on one spell **fuse**: both effects coexist with a fused name and look (a flaming ice weapon stays one). Elements from **different casts react**: the second consumes the first's status and fires a burst.
 - **Custom spells** may have their own code but must still honour the keyword contract (section 10). No current spell needs to be custom.
 - **Spear, not Lance.** The thrown fire weapon is a spear everywhere, including internal ids (section 11). **Lance** is reserved for a different future spell, probably a melee thrust (filed near Slash in doc 16).
@@ -287,17 +288,16 @@ Rules:
 | Status | Element | Kind | Stacking | Effect |
 |---|---|---|---|---|
 | burn | fire | dot | refresh_strongest | Fire damage each 0.5 s |
-| bleed | steel | dot | independent, cap 10 | Steel damage each 0.5 s; more bleeds, more damage |
-| poison | plague | dot | intensity, cap 8 | Plague damage each 1 s × stacks |
-| infection | plague | dot + spread | special (Plague Seed rules) | Ticks and transfers to neighbours (section 12) |
-| chill | ice | control (soft) | intensity, cap 5 | Slow per stack; at cap becomes freeze |
-| freeze | ice | control (hard) | refresh_strongest | Cannot move or attack |
-| wet | water | modifier | refresh_strongest | No effect alone; enables reactions |
+| bleed | earth/steel | dot | independent, cap 10 | Earth/steel damage each 0.5 s; more bleeds, more damage |
+| poison | plague/death | dot | intensity, cap 8 | Plague/death damage each 1 s × stacks |
+| infection | plague/death | dot + spread | special (Plague Seed rules) | Ticks and transfers to neighbours (section 12) |
+| chill | water/ice | control (soft) | intensity, cap 5 | Slow per stack; at cap becomes freeze |
+| freeze | water/ice | control (hard) | refresh_strongest | Cannot move or attack |
 | shock | storm | control (soft) | refresh_strongest | Brief stagger on application; enables chain reactions |
-| root | earth / life | control (hard) | refresh_strongest | Cannot move; can still attack |
-| stun | storm / earth | control (hard) | refresh_strongest | Cannot move or attack |
-| weaken | plague / death | modifier | refresh_strongest | Deals less damage |
-| vulnerable | arcane / death | modifier | refresh_strongest | Takes more damage |
+| root | earth/steel, holy/life | control (hard) | refresh_strongest | Cannot move; can still attack |
+| stun | storm, earth/steel | control (hard) | refresh_strongest | Cannot move or attack |
+| weaken | plague/death | modifier | refresh_strongest | Deals less damage |
+| vulnerable | arcane | modifier | refresh_strongest | Takes more damage |
 | taunt | none | control | replace | Attacks the taunter instead of the player |
 | transform | arcane | transform | replace | Replaced by a harmless form for the duration (Polymorph) |
 | radiant | holy | control (soft) | refresh_strongest | Blinded: attacks miss 30% of the time |
@@ -326,18 +326,17 @@ Guardrail from docs 15 and 16: no compulsory elemental hard counters, no early r
 
 The spell's element is its theme (colour, default damage type, art ramp). Element keywords add a second element (6.2).
 
-| Element | Damage type | Signature status | Casting-circle colour family | Notes |
-|---|---|---|---|---|
-| Arcane | arcane | vulnerable | cyan / violet | Ordinary magic. Candidate critical-hit affinity |
-| Fire | fire | burn | ember orange / red | |
-| Ice | ice | chill → freeze | pale cyan / white | Merged school with Water |
-| Water | water | wet | deep blue | Push and pull live here |
-| Storm | storm | shock | yellow / violet | Lightning |
-| Earth | earth | root | ochre / brown | Merged school with Steel |
-| Steel | steel | bleed | silver | Blades, bullets, shrapnel |
-| Plague | plague | poison / infection | sickly green | Merged school with Death / Spirit |
-| Death | death | weaken | dusk purple / bone | Ghosts, Raise Dead |
-| Holy / Life | holy | radiant (healing is a payload) | warm gold / green | Healing is a payload, not a damage type |
+Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Merged schools share one damage type, one signature status and one resistance.
+
+| Element (id) | Covers | Damage type | Signature status | Other statuses its spells use | Colour family |
+|---|---|---|---|---|---|
+| Arcane (`arcane`) | ordinary magic, prisms, time | arcane | vulnerable | transform, reflect | cyan / violet |
+| Fire (`fire`) | flame, embers, magma, sun | fire | burn | | ember orange / red |
+| Water/Ice (`water`) | water, frost, snow, tides | water/ice | chill (builds to freeze) | push and pull (payload) | pale cyan to deep blue |
+| Storm (`storm`) | lightning, thunder, wind | storm | shock | stun | yellow / violet |
+| Earth/Steel (`earth`) | stone, mud, metal, blades, bullets | earth/steel | bleed | root, stun | ochre to silver |
+| Plague/Death (`plague`) | poison, infection, spirits, undeath | plague/death | poison | infection, weaken | sickly green / bone purple |
+| Holy/Life (`holy`) | light, healing, nature, moon | holy | radiant | heal and buffs (payload), root (vines) | warm gold / green |
 
 **Raw damage.** Untyped damage from the spell's force: the spear's weight, the blast's impact. Every damaging spell deals mostly raw damage plus a share of its own element (about 75–80% raw / 20–25% elemental on direct hits; proposed per spell). DoTs are fully elemental. Because only the elemental share meets resistance, resistances shift damage by a few percent on direct hits and fully on DoTs: they steer, never wall.
 
@@ -345,8 +344,8 @@ The spell's element is its theme (colour, default damage type, art ramp). Elemen
 |---|---|---|---|
 | Ember Spear (96 today) | 74 | 22 fire | trailing burn (fully fire) |
 | Bolt (50 today) | 39 | 11 arcane | |
-| Ice Blast shard (35 today) | 27 | 8 ice | chill |
-| `icy ember spear` | 74 | 22 fire + 34 ice | burn trail that also chills; spear hit chills |
+| Ice Blast shard (35 today) | 27 | 8 water/ice | chill |
+| `icy ember spear` | 74 | 22 fire + 34 water/ice | burn trail that also chills; spear hit chills |
 
 ### 6.2 Element keywords
 
@@ -360,23 +359,7 @@ An element word **adds** to a spell; it never removes the spell's own element.
 
 ### 6.3 Reactions
 
-When a hit carrying element X lands on a target holding a status of element Y, the pair fires `on_reaction`. Reactions consume the triggering status unless marked.
-
-| Hit | On target | Reaction | Effect (proposed) |
-|---|---|---|---|
-| fire | chill / freeze | Steam burst | Small fire + water burst; removes the chill; brief blind |
-| fire | wet | Steam cloud | Field: slow + light damage |
-| storm | wet | Conduct | Shock arcs to every wet enemy nearby |
-| ice | wet | Flash freeze | Freeze immediately |
-| fire | poison | Toxic flare | Poison stacks explode as plague damage around the target |
-| storm | steel (bleed) | Magnetise | Bleeding enemies are pulled together briefly |
-| holy | plague / death statuses | Purge | Removes them; deals holy damage per stack removed |
-| arcane | any hostile status | Overload | Status deals its remaining damage instantly (*idea, may be too strong*) |
-| earth | freeze | Shatter | Bonus earth damage; ends the freeze |
-
-Reaction bursts are parts like any other, use the cast's hit record, and count toward link depth.
-
-**One cast never reacts with itself; it fuses.** See 6.4: two elements on the same spell coexist (fusion); elements from different casts react. Per-enemy reaction cooldown: 1 s.
+When a hit carrying element X lands on an enemy holding a status of element Y **from a different cast**, the pair fires `on_reaction`: the status is consumed and a burst fires. Reaction bursts are parts like any other, use the cast's hit record, and count toward link depth. Per-enemy reaction cooldown: 1 s. **One cast never reacts with itself; it fuses** (6.4). The full chart of fusions and reactions is in 6.4.
 
 ### 6.4 Interaction chart: fusion and reactions
 
@@ -390,55 +373,31 @@ Two elements can meet in two ways, with different rules:
 
 Fusion replaces the earlier "self-reactions off" rule: a single cast never reacts with itself; it fuses. All names and twists below are *proposed*.
 
-Signature statuses used here: arcane = vulnerable, fire = burn, ice = chill/freeze, water = wet, storm = shock, earth = root, steel = bleed, plague = poison, death = weaken, holy = radiant.
+Seven elements, matching the school rows in doc 16. Signature statuses: Arcane = vulnerable, Fire = burn, Water/Ice = chill (builds to freeze), Storm = shock, Earth/Steel = bleed, Plague/Death = poison, Holy/Life = radiant.
 
 | Pair | Same spell: fusion | Different spells: reaction |
 |---|---|---|
-| Arcane + Fire | **Spellfire**: Burn + vulnerable. Burn ticks count as arcane-amplified: +15% while vulnerable lasts. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Ice | **Prismatic Ice**: Chill + vulnerable. Frozen enemies take +25% from all sources. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Water | **Mana Tide**: Wet + vulnerable. Wet enemies hit by this spell drip mana: small chance to refund a keyword's charge time. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Storm | **Arc Mana**: Shock + vulnerable. Shock staggers last twice as long on vulnerable enemies. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Earth | **Runestone**: Root + vulnerable. Rooted enemies take +20% from all sources. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Steel | **Runed Blades**: Bleed + vulnerable. Each bleed instance adds +2% damage taken. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Plague | **Hex Rot**: Poison + vulnerable. Poison stacks cap at 10 instead of 8. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Death | **Doom**: Weaken + vulnerable. Enemies below 15% health die on the next hit (not bosses). | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Arcane + Holy | **Starlight**: Radiant + vulnerable. Radiant blinds last 50% longer. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal remaining damage; control statuses apply their full duration as a short stun). |
-| Fire + Ice | **Frostfire**: Burn + slow coexist; the burn never melts the chill. White-blue flame. | **Steam Burst**: Fire on chilled/frozen: burst of steam damage around the target, removes the chill, brief blind. |
-| Fire + Water | **Scalding**: Burn + wet coexist; wet does not put out the burn. Burn ticks +25% on wet enemies. | **Steam Cloud**: Fire on wet (or water on burning): leaves a steam field that slows and deals light damage; removes both. |
+| Arcane + Fire | **Spellfire**: Burn + vulnerable. Burn ticks +15% while vulnerable lasts. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
+| Arcane + Water/Ice | **Prismatic Ice**: Chill + vulnerable. Frozen enemies take +25% from all sources. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
+| Arcane + Storm | **Arc Mana**: Shock + vulnerable. Shock staggers last twice as long on vulnerable enemies. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
+| Arcane + Earth/Steel | **Runed Steel**: Bleed + vulnerable. Each bleed on an enemy adds +2% damage taken. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
+| Arcane + Plague/Death | **Doom**: Poison + vulnerable. Enemies below 15% health die on the next hit (not bosses). | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
+| Arcane + Holy/Life | **Starlight**: Radiant + vulnerable. Radiant blinds last 50% longer. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
+| Fire + Water/Ice | **Frostfire**: Burn + chill coexist; the burn never melts the chill. White-blue flame. | **Steam Burst**: Fire on chilled/frozen (or water/ice on burning): steam burst around the target and a brief steam cloud that slows; removes the chill. |
 | Fire + Storm | **Plasma**: Burn + shock. Shock arcs carry burn to the enemies they hit. | **Overcharge**: Fire on shocked: small explosion around the target; removes shock. |
-| Fire + Earth | **Magma**: Burn + root become Molten: slowed and burning; kills leave short lava patches. | **Eruption**: Fire on rooted: the ground bursts upward, knocking enemies away; removes root. |
-| Fire + Steel | **Searing Steel**: Bleed + burn. Burn ticks deal +50% to bleeding enemies. | **Cauterize**: Fire on bleeding: consumes all bleeds for instant fire damage per stack. |
-| Fire + Plague | **Fever**: Poison + burn. When a burning, poisoned enemy dies, its poison spreads to neighbours. | **Toxic Flare**: Fire on poisoned: poison stacks explode as plague damage around the target. |
-| Fire + Death | **Soulfire**: Burn + weaken. Soulfire can't be cleansed; burning kills release a small death burst. | **Soul Pyre**: Fire on weakened: consumes weaken, the target bursts into black flame that hits around it. |
-| Fire + Holy | **Sunfire**: Burn + radiant. Burning kills heal you a little. | **Purifying Flame**: Fire on radiant: consumes radiant for a holy-fire nova around the target. |
-| Ice + Water | **Sleet**: Chill + wet. Wet enemies gain chill stacks twice as fast. | **Flash Freeze**: Ice on wet (or water on chilled): instant freeze; removes wet. |
-| Ice + Storm | **Cryoshock**: Chill + shock. Shock staggers on chilled enemies last longer. | **Brittle Arc**: Storm on chilled: arcs jump between all chilled enemies nearby; removes chill. |
-| Ice + Earth | **Permafrost**: Chill + root. Roots last 50% longer on chilled enemies. | **Shatter**: Earth on frozen: big bonus earth damage; ends the freeze. |
-| Ice + Steel | **Frostbite**: Bleed + chill. Bleeding enemies are slowed an extra 10%. | **Shardburst**: Steel on frozen: the target shatters into a ring of ice shards that fly outward. |
-| Ice + Plague | **Hypothermia**: Poison + chill. Each poison tick adds a little chill. | **Rime Rot**: Plague on frozen: the target cracks open into a poison cloud. |
-| Ice + Death | **Grave Chill**: Weaken + chill. Chilled, weakened enemies deal 35% less damage. | **Soulfreeze**: Death on chilled: enemies below 10% health are frozen solid and shatter (execute; not bosses). |
-| Ice + Holy | **Hallowed Frost**: Chill + radiant. Shattered frozen enemies heal you a little. | **Glimmer**: Holy on frozen: shatters in light, healing you. |
-| Water + Storm | **Tempest**: Wet + shock. Shocks automatically arc to wet enemies nearby. | **Conduct**: Storm on wet: arcs to every wet enemy nearby; removes wet. |
-| Water + Earth | **Mire**: Wet + root become Mired: strong slow that lasts after the root ends. | **Mudslide**: Earth on wet: leaves a mud field that slows heavily. |
-| Water + Steel | **Rust**: Bleed + wet. Wet bleeding enemies lose armour while both last. | **Corrode**: Steel on wet: strips armour for 4 s; removes wet. |
-| Water + Plague | **Miasma**: Poison + wet. Poison spreads between wet enemies that touch. | **Contagion**: Plague on wet: poison jumps to every wet enemy nearby. |
-| Water + Death | **Drowning**: Weaken + wet. Wet, weakened enemies are slowed 20%. | **Undertow**: Death on wet: drags the target and its neighbours toward the hit point. |
-| Water + Holy | **Holy Water**: Wet + radiant. Hits heal you slightly; extra damage to death-type enemies. | **Baptism**: Holy on wet: cleanses your debuffs and heals you a little. |
-| Storm + Earth | **Thunderstone**: Shock + root. Rooted enemies ground the shock: it ripples to enemies around them. | **Grounding**: Storm on rooted: a shockwave through the ground hits everything nearby. |
-| Storm + Steel | **Magnetic**: Bleed + shock. Your steel projectiles curve slightly toward shocked enemies. | **Magnetise**: Storm on bleeding: bleeding enemies are pulled together briefly. |
-| Storm + Plague | **Plague Arc**: Poison + shock. Shock arcs carry poison stacks. | **Spark Rot**: Storm on poisoned: poison ticks all happen at once. |
-| Storm + Death | **Galvanic**: Weaken + shock. Killed enemies twitch out one arc each. | **Galvanize**: Storm on weakened: stun 0.8 s. |
-| Storm + Holy | **Judgment**: Shock + radiant. Every few seconds a strike falls from the sky on a marked enemy. | **Smite**: Storm on radiant: a lightning strike from the sky on the target. |
-| Earth + Steel | **Ironbound**: Bleed + root. Rooted enemies bleed from the spikes holding them. | **Impale**: Steel on rooted: big bleed burst. |
-| Earth + Plague | **Blight**: Poison + root. Rooted poisoned enemies leave spore ground. | **Fester**: Earth on poisoned: poison stacks burst into a spore field. |
-| Earth + Death | **Grave**: Weaken + root. Rooted weakened enemies are drained: you heal a little per tick. | **Entomb**: Earth on weakened: buried for a 1 s stun. |
-| Earth + Holy | **Sanctified Ground**: Root + radiant. Ground under rooted enemies heals you if you stand on it. | **Consecrate**: Holy on rooted: consecrated ground that heals you and hurts enemies. |
-| Steel + Plague | **Septic**: Bleed + poison. Poison stacks twice as fast on bleeding enemies. | **Sepsis**: Plague on bleeding: each bleed becomes two poison stacks. |
-| Steel + Death | **Reaper**: Bleed + weaken. Bleeding kills heal you. | **Exsanguinate**: Death on bleeding: consumes bleeds and heals you per stack. |
-| Steel + Holy | **Blessed Steel**: Bleed + radiant. Bleed ticks also deal holy damage. | **Mend**: Holy on bleeding: consumes bleeds and heals you per stack. |
-| Plague + Death | **Pestilence**: Poison + weaken. Enemies killed by poison rise briefly as rotting allies. | **Necrosis**: Death on poisoned: poison can no longer be cleansed and ticks 50% harder. |
-| Plague + Holy | **Cleansing Rot**: Poison + radiant. Each poison tick heals you a sliver. | **Purge**: Holy on poisoned/infected: removes them and deals holy damage per stack removed. |
-| Death + Holy | **Twilight**: Weaken + radiant. Enemies deal less damage and miss more often. | **Purge**: Holy on weakened: removes weaken and deals holy damage. |
+| Fire + Earth/Steel | **Magma**: Burn + bleed. Burn ticks +50% on bleeding enemies; kills leave short lava patches. | **Cauterize**: Fire on bleeding: consumes all bleeds for instant fire damage per stack. |
+| Fire + Plague/Death | **Fever**: Burn + poison. When a burning, poisoned enemy dies, its poison spreads to neighbours. | **Toxic Flare**: Fire on poisoned: poison stacks explode as plague damage around the target. |
+| Fire + Holy/Life | **Sunfire**: Burn + radiant. Burning kills heal you a little. | **Purifying Flame**: Fire on radiant: consumes radiant for a holy-fire nova around the target. |
+| Water/Ice + Storm | **Tempest**: Chill + shock. Shocks automatically arc to chilled enemies nearby. | **Conduct**: Storm on chilled: arcs jump to every chilled enemy nearby; removes chill. |
+| Water/Ice + Earth/Steel | **Permafrost**: Chill + bleed. Bleeding enemies are slowed an extra 10%; roots last 50% longer on chilled enemies. | **Shatter**: Earth/steel on frozen: big bonus damage and the target bursts into a ring of shards; ends the freeze. |
+| Water/Ice + Plague/Death | **Bog Rot**: Chill + poison. Poison spreads between chilled enemies that touch. | **Rime Rot**: Plague on frozen: the target cracks open into a poison cloud. |
+| Water/Ice + Holy/Life | **Holy Water**: Chill + radiant. Hits heal you slightly. | **Glimmer**: Holy on chilled/frozen: shatters in light, healing you and cleansing your debuffs. |
+| Storm + Earth/Steel | **Magnetic**: Shock + bleed. Shocks ripple through the ground to bleeding enemies nearby; your steel projectiles curve toward shocked enemies. | **Magnetise**: Storm on bleeding: bleeding enemies are pulled together briefly. |
+| Storm + Plague/Death | **Plague Arc**: Shock + poison. Shock arcs carry poison stacks. | **Spark Rot**: Storm on poisoned: all remaining poison ticks happen at once. |
+| Storm + Holy/Life | **Judgment**: Shock + radiant. Every few seconds a strike falls from the sky on a marked enemy. | **Smite**: Storm on radiant: a lightning strike from the sky on the target. |
+| Earth/Steel + Plague/Death | **Blight**: Bleed + poison. Poison stacks twice as fast on bleeding enemies; bleeding kills leave spore ground. | **Sepsis**: Plague on bleeding: each bleed becomes two poison stacks. |
+| Earth/Steel + Holy/Life | **Blessed Steel**: Bleed + radiant. Bleed ticks also deal holy damage. | **Mend**: Holy on bleeding: consumes bleeds and heals you per stack. |
+| Plague/Death + Holy/Life | **Twilight**: Poison + radiant. Enemies deal less damage and miss more often; each poison tick heals you a sliver. | **Purge**: Holy on poisoned/infected/weakened: removes them and deals holy damage per stack removed. |
 
 ## 7. What enemies need to support this
 
@@ -501,14 +460,11 @@ Status column: **implemented**, **proposed** (in this doc), **idea** (named, nee
 | PULLING | force | drags enemies in | add a force toward the part's centre | — | friendly-only payloads | idea |
 | ORBITING | motion | circles you first | copies orbit the caster, then launch on release or when an enemy enters range | delay before damage | `self`, `global` | idea |
 | FIERY | element | adds fire | +35% of the base hit as fire damage, plus burn | — | — | proposed |
-| ICY | element | adds cold | +35% as ice damage, plus chill | — | — | proposed |
-| SHOCKING | element | adds lightning | +35% as storm damage, plus shock | — | — | proposed, name open |
-| VENOMOUS | element | adds poison | +35% as plague damage, plus poison | — | — | proposed |
-| TIDAL | element | adds water | +35% as water damage, plus wet and a small push | — | — | proposed, name open |
-| EARTHEN | element | adds earth | +35% as earth damage, plus a short root on the first hit | — | — | proposed |
-| SERRATED | element | adds steel | +35% as steel damage, plus bleed | — | — | idea, name open |
-| SPECTRAL | element | adds death | +35% as death damage, plus weaken | — | — | idea, name open |
-| RADIANT | element | adds holy | +35% as holy damage; healing spells heal 25% more | — | — | idea, name open |
+| ICY | element | adds water/ice | +35% as water/ice damage, plus chill and a small push | — | — | proposed |
+| SHOCKING | element | adds storm | +35% as storm damage, plus shock | — | — | proposed, name open |
+| EARTHEN | element | adds earth/steel | +35% as earth/steel damage, plus bleed | — | — | proposed, name open (SERRATED was the steel option) |
+| VENOMOUS | element | adds plague/death | +35% as plague/death damage, plus poison | — | — | proposed |
+| RADIANT | element | adds holy/life | +35% as holy damage, plus radiant; healing spells heal 25% more | — | — | proposed, name open |
 
 Naming still open: Homing versus Seeking (doc 14 used Seeking), TWIN/TRIPLE versus Duplicating, Flaming versus Fiery (doc 14 keeps them distinct).
 
@@ -630,8 +586,8 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 | Bolt | `bolt` | projectile · single · body · aim nearest · straight · once · arcane damage | Current code fires extra homing bolts by level; that becomes rank growth or the HOMING signature, decision in section 15 |
 | Life | `life` | self · heal | |
 | Regeneration | `regeneration` | aura on caster · periodic · heal | |
-| Ice Blast | `ice_blast` | projectile · fan 3 · body · straight · once · ice damage + impulse away + chill, pierce 2 | Cone opens to a full ring by rank 8 (arrangement angle grows with rank) |
-| Earth Shield | `earth_shield` | aura on caster · block charges → `on_block` volume cone toward attacker · earth damage + impulse | |
+| Ice Blast | `ice_blast` | projectile · fan 3 · body · straight · once · water/ice damage + impulse away + chill, pierce 2 | Cone opens to a full ring by rank 8 (arrangement angle grows with rank) |
+| Earth Shield | `earth_shield` | aura on caster · block charges → `on_block` volume cone toward attacker · earth/steel damage + impulse | |
 | Lightning | `lightning` (was `lightning_arc`) | volume · disk at target · instant · storm damage → chain 2 hops, 200 range, ×0.8 | Needs chain (gap C) |
 | Meteor Shower | `meteor_shower` | projectile · scatter 3 · staggered 0.3 s · fall with 0.65 s warning → volume disk · fire damage | Needs `fall` motion |
 | Ember Spear | `ember_spear` (was `ember_lance`) | section 4.6 | |
@@ -640,9 +596,9 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 | Arcane Orbit | `arcane_orbit` | projectile · ring 2 · orbit caster · contact rehit 0.5 s · arcane damage | |
 | Focus Ray | `focus_ray` | beam · aim track target · channel · arcane damage | |
 | Rune Trap | `rune_trap` | trap · trigger disk 60 → volume disk 120 · arcane damage | |
-| Seeker | `seeker` (was `seeking_spirit`) | summon · chase · contact every 1 s · death damage | |
+| Seeker | `seeker` (was `seeking_spirit`) | summon · chase · contact every 1 s · plague/death damage | |
 | Firewalk | `firewalk` (was `ember_trail`) | owner `on_caster_travel` → field · trail patches · fire damage | Incantation currently "fire walk" |
-| Cross Blade | `cross_blade` (was `returning_blade`) | projectile · phases out → linger → return (section 4.4) · steel damage | |
+| Cross Blade | `cross_blade` (was `returning_blade`) | projectile · phases out → linger → return (section 4.4) · earth/steel damage | |
 
 ### 11.2 Combinations
 
@@ -671,6 +627,9 @@ The player-facing rename is done (PR #131). The rewrite renames internal ids too
 | motif `lance` (EffectArt, SpellGeometry) | `spear` |
 | `lance_aim_regression` test | `spear_aim_regression` |
 | `lightning_arc`, `seeking_spirit`, `ember_trail`, `returning_blade` | `lightning`, `seeker`, `firewalk`, `cross_blade` |
+| element `ice` | `water` (Water/Ice) |
+| element `steel` | `earth` (Earth/Steel) |
+| elements `spirit`, `death` | `plague` (Plague/Death) |
 
 **Lance** is reserved for a future spell: a close-range thrust, probably filed near Slash in doc 16.
 
@@ -821,49 +780,49 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 ### 12.3 Water and Ice
 
 **Snowball** · filed under Bolt in doc 16
-- **Parts:** projectile · body r14 · straight 650 · ice 40 + chill 1 stack.
+- **Parts:** projectile · body r14 · straight 650 · water/ice 40 + chill 1 stack.
 
 **Ice Spear / Glacial Spear** · filed under Spear in doc 16 (shorter and longer cast of one idea)
 - **What:** an ice spear that either shoves enemies aside or impales one with a major debuff. Glacial Spear is the stronger, longer cast.
-- **Parts (shove variant):** projectile · body r20 · straight 900 · pierce unlimited · ice 70 + impulse `lateral` 400 + chill 2.
-- **Parts (impale variant):** projectile · stops on first hit · ice 140 + freeze 1.5 s + vulnerable.
+- **Parts (shove variant):** projectile · body r20 · straight 900 · pierce unlimited · water/ice 70 + impulse `lateral` 400 + chill 2.
+- **Parts (impale variant):** projectile · stops on first hit · water/ice 140 + freeze 1.5 s + vulnerable.
 - **Keywords:** standard projectile; HOMING.
 - **Enemies:** lateral impulse; freeze lock.
 - **Open:** choose shove or impale; whether Glacial Spear is a rank or a separate spell.
 
 **Water Jet** · filed under Ray in doc 16
 - **What:** a tracking jet of water that damages and pushes; upgrades add jets.
-- **Parts:** beam · length 300 · aim track nearest · channel 2.5 s · water 14 per 0.2 s + impulse `along_travel` 120 per tick + wet.
-- **Keywords:** TWIN/TRIPLE = extra jets on distinct targets; SHOCKING turns it into a conductor (wet + storm).
-- **Enemies:** impulse per tick, wet status.
+- **Parts:** beam · length 300 · aim track nearest · channel 2.5 s · water/ice 14 per 0.2 s + impulse `along_travel` 120 per tick + chill.
+- **Keywords:** TWIN/TRIPLE = extra jets on distinct targets; SHOCKING turns it into a conductor (chill + storm: Tempest/Conduct).
+- **Enemies:** impulse per tick, chill status.
 
 **Water Whip** · filed under Slice/Whip in doc 16
-- **Parts:** volume · arc 140° r180 · sweep 0.2 s · water 50 + impulse `tangential` 250 + wet.
+- **Parts:** volume · arc 140° r180 · sweep 0.2 s · water/ice 50 + impulse `tangential` 250 + chill.
 - **Open:** exact contact behaviour.
 
 **Tsunami** · filed under Blast in doc 16
 - **What:** a broad wave spawns behind you and sweeps forward across the screen.
-- **Parts:** volume · rect 700 × 900 · origin `behind_caster` · propagation travelling 450/s · hit once per enemy · water 80 + impulse `along_travel` 600 + wet.
+- **Parts:** volume · rect 700 × 900 · origin `behind_caster` · propagation travelling 450/s · hit once per enemy · water/ice 80 + impulse `along_travel` 600 + chill.
 - **Keywords:** TWIN = two waves in sequence; MEGA = taller and wider.
 - **Enemies:** weight (bosses barely move).
 
 **Frost Nova** · filed under Nova in doc 16
 - **What:** Ice Blast in every direction.
-- **Parts:** volume · ring · expanding to r260 · ice 50 + chill 3 + impulse away 300.
+- **Parts:** volume · ring · expanding to r260 · water/ice 50 + chill 3 + impulse away 300.
 - **Enemies:** chill stacking into freeze.
 
 **Frost Strike (falling icicle)** · filed under Strike in doc 16
-- **Parts:** projectile · fall onto target with 0.5 s warning · land volume disk r60 · ice 90 + chill 2.
+- **Parts:** projectile · fall onto target with 0.5 s warning · land volume disk r60 · water/ice 90 + chill 2.
 - **Open:** final name.
 
 **Blizzard** · filed under Shower/Field in doc 16
 - **What:** a moving storm that strongly slows or freezes, with light damage.
-- **Parts:** field · disk r200 · motion follow caster (or wander) · 6 s · periodic 0.5 s · ice 6 + chill 1 per tick.
+- **Parts:** field · disk r200 · motion follow caster (or wander) · 6 s · periodic 0.5 s · water/ice 6 + chill 1 per tick.
 - **Open:** follows you or moves on its own.
 
 **Whirlpool** · filed under Field in doc 16
 - **What:** a lasting vortex that swirls enemies around and inward.
-- **Parts:** field · disk r200 · 5 s · force `tangential` 300 + `toward_point` 150 · periodic water 8 + wet.
+- **Parts:** field · disk r200 · 5 s · force `tangential` 300 + `toward_point` 150 · periodic water/ice 8 + chill.
 - **Enemies:** force accumulator.
 - **Open:** pull strength, whether it is Whirlpool or Maelstrom.
 
@@ -905,35 +864,35 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 ### 12.5 Earth and Steel
 
 **Spike** · filed under Bolt in doc 16 (ground-delivered)
-- **Parts:** volume · line 30 × 90 at target · 0.25 s warning · instant · earth 60 + bleed.
+- **Parts:** volume · line 30 × 90 at target · 0.25 s warning · instant · earth/steel 60 + bleed.
 
 **Bullet / Spray** · filed under Bolt in doc 16
-- **Parts:** projectile · line 6 · staggered 0.06 s · body r6 · straight 1100 · steel 12 + bleed.
+- **Parts:** projectile · line 6 · staggered 0.06 s · body r6 · straight 1100 · earth/steel 12 + bleed.
 - **Keywords:** TRIPLE = three streams; HOMING.
 
 **Boulder** · filed under Ball in doc 16
-- **Parts:** projectile · body r30 · straight 380 · pierce 3 · earth 110 + impulse along travel 800. No explosion.
+- **Parts:** projectile · body r30 · straight 380 · pierce 3 · earth/steel 110 + impulse along travel 800. No explosion.
 - **Enemies:** weight.
 
 **Earth Spear** · filed under Spear in doc 16
-- **Parts:** `spear` projectile · stops on hit · earth 70 → `on_hit` `shards` projectile · scatter 5 in 90° · body r8 · straight 600 · earth 20.
+- **Parts:** `spear` projectile · stops on hit · earth/steel 70 → `on_hit` `shards` projectile · scatter 5 in 90° · body r8 · straight 600 · earth/steel 20.
 
 **Slash** · filed under Slice in doc 16
-- **Parts:** volume · arc 100° r140 · aim nearest · sweep 0.12 s · steel 55 + bleed.
+- **Parts:** volume · arc 100° r140 · aim nearest · sweep 0.12 s · earth/steel 55 + bleed.
 
 **Lance** · filed under Slice in doc 16 (reserved)
 - **What:** a close-range piercing thrust. Name reserved; design later.
 
 **Earth Blast** · filed under Blast in doc 16
 - **What:** like Ice Blast, but knockback and bleed instead of slow.
-- **Parts:** projectile · fan 4 in 50° · body r10 · straight 700 · pierce 2 · earth 30 + impulse away 500 + bleed.
+- **Parts:** projectile · fan 4 in 50° · body r10 · straight 700 · pierce 2 · earth/steel 30 + impulse away 500 + bleed.
 
 **Shrapnel** · filed under Blast in doc 16
-- **Parts:** projectile · single lob → `on_land` projectile · ring 12 · straight 500 · steel 15 + bleed.
+- **Parts:** projectile · single lob → `on_land` projectile · ring 12 · straight 500 · earth/steel 15 + bleed.
 - **Open:** delivery (grenade not required).
 
 **Earth Nova** · filed under Nova in doc 16
-- **Parts:** volume · ring · expanding to r220 · earth 45 + bleed.
+- **Parts:** volume · ring · expanding to r220 · earth/steel 45 + bleed.
 
 **Earth Wall** · filed under Wall in doc 16
 - **What:** raise physical barriers.
@@ -942,40 +901,40 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 - **Open:** single wall versus enclosure; collapse rules.
 
 **Earth Trap** · filed under Trap in doc 16
-- **Parts:** trap · trigger r60 · lasts 20 s · → volume disk r100 · earth 40 + root 1.2 s + bleed.
+- **Parts:** trap · trigger r60 · lasts 20 s · → volume disk r100 · earth/steel 40 + root 1.2 s + bleed.
 
 **Muck** · filed under Trail in doc 16
 - **Parts:** owner `on_caster_travel` → field · trail patches r30 · 5 s · slow 50% (status, refresh).
 - **Open:** later fire interaction (oil).
 
 **Earth Golem** · summon
-- **Parts:** summon · health 400 · behaviour `taunt` · contact earth 25 per 1 s · 20 s.
+- **Parts:** summon · health 400 · behaviour `taunt` · contact earth/steel 25 per 1 s · 20 s.
 - **Enemies:** target selection; taunt.
 
 **Earthquake** · filed under Field in doc 16 (preserved older idea)
-- **Parts:** field · disk r300 around caster · pulses 4 × 0.5 s · earth 25 + stun 0.3 s on first pulse.
+- **Parts:** field · disk r300 around caster · pulses 4 × 0.5 s · earth/steel 25 + stun 0.3 s on first pulse.
 
 ### 12.6 Plague and Death
 
 **Carcass (unnamed)** · filed under Ball in doc 16
 - **What:** hurl infected remains; they burst into a diseased dead zone.
-- **Parts:** projectile · lob to target · `on_land` field · disk r130 · 5 s · periodic plague 6 + poison.
+- **Parts:** projectile · lob to target · `on_land` field · disk r130 · 5 s · periodic plague/death 6 + poison.
 - **Open:** name.
 
 **Ray of Sickness** · filed under Ray in doc 16
 - **What:** sweep a sickly beam across a crowd, spreading damage over time rather than focusing a kill.
-- **Parts:** beam · aim sweep 120° over 1.5 s · channel · plague 4 per tick + poison + chill-like slow 20% + weaken.
+- **Parts:** beam · aim sweep 120° over 1.5 s · channel · plague/death 4 per tick + poison + chill-like slow 20% + weaken.
 - **Enemies:** status component.
 
 **Grasping Hand** · filed under Field in doc 16
 - **What:** a spectral hand grabs an area, restrains everything in it, then crushes.
-- **Parts:** field · disk r150 at target · phases `grab 0.4 s` (pull toward centre 300) → `hold 2 s` (root) → `crush` (death 90).
+- **Parts:** field · disk r150 at target · phases `grab 0.4 s` (pull toward centre 300) → `hold 2 s` (root) → `crush` (plague/death 90).
 - **Enemies:** force, root.
 - **Open:** crush or not.
 
 **Raise Dead** · summon (added this pass)
 - **What:** fallen enemies near you get back up and fight for you.
-- **Parts:** aura on caster r250 · 10 s · `on_afflicted_death`/kill-in-area → summon at the corpse · health 30 · chase · death 10 per 1 s · 8 s · max 6.
+- **Parts:** aura on caster r250 · 10 s · `on_afflicted_death`/kill-in-area → summon at the corpse · health 30 · chase · plague/death 10 per 1 s · 8 s · max 6.
 - **Enemies:** death events with corpse position; summons as targets.
 
 **Hex** · single target (added this pass)
@@ -998,7 +957,7 @@ Ideas left out on purpose: everything in doc 17's "not selected" list, Firestorm
 - **Parts:** volume · ring · expanding to r200 · holy 35 + root 1 s.
 
 **Exploding Flowers** · filed under Strike / Shower in doc 16
-- **Parts:** trap · scatter 5 in r200 · trigger r40 · → volume disk r80 · plague 30 + poison.
+- **Parts:** trap · scatter 5 in r200 · trigger r40 · → volume disk r80 · plague/death 30 + poison.
 
 **Flower Trail** · filed under Trail in doc 16
 - **Parts:** owner `on_caster_travel` → trap (poison flowers) every 60 units · 6 s each.
@@ -1111,12 +1070,12 @@ flowchart TB
 | Fire-flower turret | bloom, fire, wilt | Flame Seed |
 | Volcanic vent | erupt, idle, close | Volcano |
 
-### 13.3 Elements (one set per element: arcane, fire, ice, water, storm, earth, steel, plague, death, holy)
+### 13.3 Elements (one set per element: Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Holy/Life)
 
 | Piece | Per element |
 |---|---|
 | Colour ramp | 1 (5–6 colours) |
-| Particles | 2 sprites (e.g. ember + smoke, snowflake + shard, spark + fork, spore + drip, bone mote, light mote, metal glint, droplet) |
+| Particles | 2 sprites (e.g. ember + smoke, snowflake + droplet, spark + fork, stone chip + metal glint, spore + bone mote, light mote + leaf) |
 | Rim / overlay texture | 1, for when the element is the second element on a spell |
 | Hit spark | 1 |
 | Damage-number colour | 1 |
@@ -1134,7 +1093,6 @@ Each needs a body overlay or attachment and a small icon.
 | infection | spores and veins |
 | chill | frost creep, 5 stages |
 | freeze | ice block encasing |
-| wet | droplets, darker tint |
 | shock | crackle flicker |
 | root | vines or stone around the feet |
 | stun | circling stars or sparks |
@@ -1148,9 +1106,9 @@ Player buffs (haste, power, ward, invulnerable, reflect) need a matching small a
 
 ### 13.5 Fusions and reactions
 
-**Fusions (45 pairs):** no new drawings needed by default. A fused spell blends the two colour ramps (primary on the body, secondary on the rim and particles). Showcase fusions (Frostfire, Plasma, Magma, Sunfire, Soulfire) may get a dedicated ramp.
+**Fusions (21 pairs):** no new drawings needed by default. A fused spell blends the two colour ramps (primary on the body, secondary on the rim and particles). Showcase fusions (Frostfire, Plasma, Magma, Sunfire, Soulfire) may get a dedicated ramp.
 
-**Reactions:** one burst each from 6.4, about 30 distinct effects. Many share a base shape (burst disk, cloud field, arc chain, shard ring) with a different colour ramp, so the unique drawings are closer to 10.
+**Reactions:** one burst each from 6.4, about 16 distinct effects (Overload is shared by all six arcane pairs). Many share a base shape (burst disk, cloud field, arc chain, shard ring) with a different colour ramp, so the unique drawings are closer to 8.
 
 ### 13.6 Keyword treatments
 
@@ -1186,7 +1144,7 @@ Custom art only for showcase signatures: Homing Bolt's small homing bolts and sp
 | Spellbook discovery entry frame | one, plus a "signature discovered" flourish |
 | Rejected-word feedback | cracked red rune (exists in the casting circle) |
 
-**Rough total for the core set:** about 28 delivery shapes, 11 barrier/summon sets, 10 element sets, 15 status overlays, 9 reaction bursts, a rune per keyword, plus icons. New spells after that mostly reuse existing pieces.
+**Rough total for the core set:** about 28 delivery shapes, 11 barrier/summon sets, 7 element sets, 14 status overlays, about 8 reaction bursts, a rune per keyword, plus icons. New spells after that mostly reuse existing pieces.
 
 ## 14. Rewrite plan
 
