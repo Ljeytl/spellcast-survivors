@@ -77,7 +77,7 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **Element keywords add, never convert:** extra elemental damage (+35% of the base hit, tuning range 25–50%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
 - **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Holy/Life. Merged schools share one damage type, signature status and resistance (6.1).
 - **Fusion and reactions, both** (section 6.4). One spell with two elements **fuses**: everything coexists. Different casts react only through a short list of five reactions; most pairs simply coexist. Damage mixing never interacts.
-- **DoT rule:** getting hit again stacks damage and duration, no caps. Burn: every fire hit adds its own 1.5 s burn, all ticking together; bleed fills a meter that bursts into a hemorrhage; poison ticks slowly, weakens and spreads; chill stacks to frozen (5.3).
+- **DoT rule:** getting hit again stacks damage and duration, no caps. Burn: every fire hit adds its own 1.5 s burn, all ticking together; bleed fills a meter that bursts into a hemorrhage; poison ticks slowly, ramps, weakens and lasts longest; chill stacks to frozen (5.3).
 - **Custom spells** may have their own code but must still honour the keyword contract (section 10). No current spell needs to be custom.
 - **Spear, not Lance.** The thrown fire weapon is a spear everywhere, including internal ids (section 11). **Lance** is reserved for a different future spell, probably a melee thrust (filed near Slash in doc 16).
 - **Homing Bolt** is a homing signature on Bolt, not a new spell (section 8).
@@ -276,7 +276,7 @@ A status is data:
 |---|---|---|
 | **Burn** (Fire) | Pour it on. The fastest DoT. | **Every fire hit starts its own burn** that lasts 1.5 s. All active burns tick at once, so more fire hits means more burns burning together. No pool, no timer resets, no cap. |
 | **Bleed** (Earth/Steel) | Build-up to a big payoff, like blood loss in Elden Ring. | Each hit adds a little bleed damage over time **and fills a bleed meter**. When the meter fills, the enemy **Hemorrhages**: a burst of heavy damage based on its maximum health, then the meter empties. The meter drains slowly if you stop hitting. |
-| **Poison** (Plague/Death) | Slow rot that saps the enemy. | Long, slow ticks, and a poisoned enemy is **weakened** (deals less damage) for as long as the poison lasts. New poison adds damage and duration. When a poisoned enemy dies, its poison spreads to neighbours. |
+| **Poison** (Plague/Death) | Slow rot that saps the enemy. The most total damage of any DoT, over the longest time. | Long, slow ticks that **get worse the longer it stays on**; new poison stacks more damage and duration without resetting that ramp. A poisoned enemy is **weakened** (deals less damage). Does not spread (spreading belongs to Plague Seed's infection). |
 | **Chill** (Water/Ice) | Lock them down. Control, not damage. | Each hit deals a small **frostbite** hit and adds one stack; chilled enemies are **slowed** more with every stack. At 5 stacks the enemy becomes **Frozen** (separate status); chill clears and it cannot be frozen again for a short time. |
 
 Other rules:
@@ -293,7 +293,7 @@ Other rules:
 | burn | Fire | dot | Each fire hit adds its own 1.5 s burn; all tick together |
 | bleed | Earth/Steel | dot + build-up | Small damage over time; fills a meter that triggers hemorrhage |
 | hemorrhage | Earth/Steel | burst | Heavy burst based on max health when the bleed meter fills |
-| poison | Plague/Death | dot + modifier | Long slow ticks; target is weakened while poisoned; spreads on death |
+| poison | Plague/Death | dot + modifier | Long slow ticks that ramp; target is weakened while poisoned |
 | infection | Plague/Death | dot + spread | Plague Seed's host-to-host transfer (section 12) |
 | chilled | Water/Ice | control (soft) | Slow per stack, frostbite hit per stack; 5 stacks → frozen |
 | frozen | Water/Ice | control (hard) | Cannot move or attack; ends early if shattered or thawed |
@@ -507,7 +507,7 @@ Rule of thumb for count words: total output of TWIN ≈ 1.2× and TRIPLE ≈ 1.3
 | burn | each fire hit starts a burn dealing 15% of its fire damage over 1.5 s (ticks every 0.25 s) | fastest DoT; instances are independent, no cap |
 | bleed | each hit adds 3% of the hit per 0.5 s for 4 s, and fills the meter by 20% (5 bleeding hits) | meter drains 10%/s after 2 s without a new bleed |
 | hemorrhage | 12% of the enemy's max health + 3× the triggering hit's bleed; elites 6%, bosses 3% | the meter needs 50% more on bosses |
-| poison | 3% of the applying hit per tick, one tick per second, 8 s; weakened (−20% damage dealt) while poisoned | no cap; spreads on death |
+| poison | 2% of the applying hit per tick, one tick per second for 10 s, each tick 15% stronger than the last; weakened (−20% damage dealt) while poisoned | totals more than bleed's damage over time; no cap; does not spread |
 | chilled | frostbite 4% of the hit per stack applied; 6% slow per stack | 5 stacks → frozen 1.5 s, then 2 s freeze immunity |
 | shocked | 0.2 s stagger; arcs to one enemy within 150 for 40% of the hit | |
 | weakened | enemy deals 20% less | 4 s |
