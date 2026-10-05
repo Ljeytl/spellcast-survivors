@@ -368,7 +368,7 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 | Meteor Spear | 85% | 15% fire (+ explosion 50/50) | none | doubles down on weight and impact |
 | Ice Spear | 60% | 40% water/ice | none (chill) | a spear of solid ice |
 | Lightning Spear | 25% | 75% storm | none (shock) | the lightning does the work |
-| Earth Spear | 100% | 0% | none | stone that shatters into shards |
+| Earth Spear | 100% | 0% | bleed | stone that shatters into jagged shards |
 | Shillelagh (life spear) | 40% | 60% life | none | roots and vines do most of it |
 
 Starting splits for the current spells:
@@ -379,7 +379,7 @@ Starting splits for the current spells:
 | Ember Spear | 75% | 25% fire | none (the trail deals fire damage while you stand in it) | a thrown spear that leaves hot ground behind |
 | Ice Blast | 60% | 40% water/ice | none (chill is control) | ice shards are solid |
 | Lightning | 0% | 100% storm | none | pure lightning |
-| Meteor Shower | 70% | 30% fire | none | a falling rock on fire |
+| Meteor Shower | 50% | 50% fire (impact and explosion together) | none | a burning rock that blows up |
 | Cinder Field | 0% | 100% fire (ticks while you stand in it) | none | fire on the ground |
 | Firewalk | 0% | 100% fire (ticks) | none | fire on the ground |
 | Arcane Orbit | 0% | 100% arcane | none | mana bodies |
@@ -462,6 +462,27 @@ Rules:
 - **Each share of a hit uses its own source.** The spell's own damage (its raw and elemental parts) uses the spell's element; damage added by an element word uses the word's element. `icy ember spear` against a fire enemy: the spear's damage takes −25%, the Icy share gets +25%.
 - **Elemental enemies arrive in later levels.** Level 1 stays normal slimes (doc 15).
 - Status reactions (6.4) are separate: Thaw (fire on chilled) and Shatter (stone on frozen) are about statuses meeting, not enemy elements.
+
+### 6.6 Physical, magical and holy
+
+A second layer above the element chart, about **what kind** of damage it is rather than which element:
+
+| Attacker | Beats | Why |
+|---|---|---|
+| Magical | Physical | fire does not care about plate armour |
+| Physical | Holy | faith does not stop a blade |
+| Holy | Magical | wards and anti-magic shut spells down |
+
+- **Physical** = raw damage. **Magical** = elemental damage (still typed: fire, cold, storm, rot, growth, mana; the element chart in 6.5 still applies to it). **Holy** exists only on enemies; the player never learns it.
+- **Two defence numbers on enemies carry the triangle:**
+  - **Armour** reduces physical (raw) damage. Exists today on armoured elites.
+  - **Ward** reduces magical (elemental) damage. New.
+- **Physical enemies** (armoured beasts, knights): high armour, so magic hits them hard. Bleed ignores armour too.
+- **Holy enemies**: high ward, and they deal holy damage. Spells are muffled against them, so raw-heavy spells (Earth Spear, Boulder, Meteor Spear) shine.
+- **Magical enemies** (fire spirits, arcane constructs): fought through the element chart. Holy would counter them, but the player has none, so for the player they are elemental fights.
+- **Guardrails:** armour and ward stay within ±25–50%; every spell works on every enemy; holy enemies arrive in later levels.
+
+**Lore idea:** holy enemies are **inquisitors and zealots who hunt wizards**. Faith against knowledge (principle 8) becomes a conflict in the world rather than a school the player learns: the one magic you never learn is the one built to stop you.
 
 ## 7. What enemies need to support this
 
@@ -960,7 +981,7 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 - **Enemies:** weight.
 
 **Earth Spear** · filed under Spear in doc 16
-- **Parts:** `spear` projectile · stops on hit · raw 70 → `on_hit` `shards` projectile · scatter 5 in 90° · body r8 · straight 600 · raw 20.
+- **Parts:** `spear` projectile · stops on hit · raw 70 + bleed → `on_hit` `shards` projectile · scatter 5 in 90° · body r8 · straight 600 · raw 20 + bleed.
 
 **Slash** · filed under Slice in doc 16
 - **Parts:** volume · arc 100° r140 · aim nearest · sweep 0.12 s · raw 55 + bleed.
@@ -1374,6 +1395,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Bare forms allowed | Yes, for now (`spear`, `nova`…) |
 | Damage split | Raw + elemental + DoT, per spell by fantasy; most spells apply no DoT (6.1) |
 | Type chart | Storm > Water/Ice > Fire > Plague/Death > Life > Earth/Steel > Storm; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
+| Physical / magical / holy | Magical > physical > holy > magical. Raw = physical, elemental = magical, holy only on enemies; armour and ward are the two defence numbers (6.6) |
 | Stone type | None. Earth/Steel deals raw damage plus bleed; armour is its resistance; bleed ignores armour |
 | Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
 | Bare forms | Deliberately weak; how weak depends on the form's purpose |
@@ -1381,10 +1403,10 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 ### 16.3 Still open
 
 1. Combo thresholds for each ultimate.
-2. Which words, spells and bare forms the player starts with, and where the rest are learned (ley sites, tower; docs 05 and 15).
-3. Which enemies get which element, and in which levels (type chart in 6.5).
-4. The open details listed under each spell in section 12.
-5. Trim DoTs from the section 12 specs so only spells whose identity is a DoT keep one.
+2. Holy enemies (inquisitors, zealots): which levels, what they do.
+3. Which words, spells and bare forms the player starts with, and where the rest are learned (ley sites, tower; docs 05 and 15).
+4. Which enemies get which element, and in which levels (type chart in 6.5).
+5. The open details listed under each spell in section 12.
 
 ## Appendix A: fit check of every idea in doc 16
 
