@@ -223,7 +223,7 @@ That is Cross Blade.
       "delivery": "field",
       "geometry": { "type": "trail", "width_from_parent": true },
       "timing": { "type": "periodic", "interval": 0.5, "duration": 1.5 },
-      "payload": [ { "type": "status", "status": "burn", "strength_of_hit": 0.12 } ],
+      "payload": [ { "type": "damage", "damage_type": "fire", "share_of_hit": 0.12 } ],
       "limits": { "max_active": 3 }
     }
   },
@@ -349,22 +349,22 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 
 | Example | Raw | Elemental | Plus |
 |---|---|---|---|
-| Ember Spear (96 today) | 74 | 22 fire | trailing burn (fully fire) |
+| Ember Spear (96 today) | 74 | 22 fire | fire trail: fire damage while enemies stand in it (no DoT) |
 | Bolt (50 today) | 39 | 11 arcane | |
 | Ice Blast shard (35 today) | 27 | 8 water/ice | chill |
-| `icy ember spear` | 74 | 22 fire + 14 water/ice | burn trail that also chills; spear hit chills |
+| `icy ember spear` | 74 | 22 fire + 14 water/ice | fire trail that also chills; spear hit chills |
 
 **Damage has three parts, and the mix depends on the spell's fantasy:**
 
 1. **Raw:** the force of a physical body (spears, shards, boulders, blades, meteors, bullets). Reduced by armour.
 2. **Elemental:** the element itself (fire, cold, lightning, mana, rot, growth). Reduced by that element's resistance; affected by the type chart.
-3. **DoT:** a damage-over-time status (burn, bleed, poison, infection). **Most spells apply none.** A DoT belongs to a spell only when it is that spell's identity (Ember Spear's burning trail, Infestation's spread). Players add DoTs on purpose with element words.
+3. **DoT:** a damage-over-time status (burn, bleed, poison, infection). **Most spells apply none.** A DoT belongs to a spell only when it is that spell's identity (Infestation's spread). Players add DoTs on purpose with element words.
 
 **Ask where the damage comes from: the body or the force.** The same form can sit anywhere on the scale. Spears show it best: a spear is a physical spear thrown and charged with an element, and each spear weighs raw and elemental differently.
 
 | Spear | Raw | Elemental | DoT | Why |
 |---|---|---|---|---|
-| Ember Spear | 75% | 25% fire | burn trail | a heavy spear that is on fire |
+| Ember Spear | 75% | 25% fire | none | a heavy spear that is on fire; its trail is just hot ground |
 | Meteor Spear | 85% | 15% fire (+ explosion 50/50) | none | doubles down on weight and impact |
 | Ice Spear | 60% | 40% water/ice | none (chill) | a spear of solid ice |
 | Lightning Spear | 25% | 75% storm | none (shock) | the lightning does the work |
@@ -376,7 +376,7 @@ Starting splits for the current spells:
 | Spell | Raw | Elemental | DoT | Why |
 |---|---|---|---|---|
 | Bolt | 0% | 100% arcane | none | a bolt of pure mana |
-| Ember Spear | 75% | 25% fire | burn from the trail | a thrown spear that leaves fire behind |
+| Ember Spear | 75% | 25% fire | none (the trail deals fire damage while you stand in it) | a thrown spear that leaves hot ground behind |
 | Ice Blast | 60% | 40% water/ice | none (chill is control) | ice shards are solid |
 | Lightning | 0% | 100% storm | none | pure lightning |
 | Meteor Shower | 70% | 30% fire | none | a falling rock on fire |
@@ -417,7 +417,7 @@ Two layers, kept separate:
 
 | Situation | Rule |
 |---|---|
-| **Same spell** (its own element + an element word, or two element words) | **Fusion:** everything coexists, nothing consumes anything. The spell gets a fused look (blended colour ramps). `icy ember spear` burns and chills; the burn never melts the chill. A flaming ice weapon stays one. |
+| **Same spell** (its own element + an element word, or two element words) | **Fusion:** everything coexists, nothing consumes anything. The spell gets a fused look (blended colour ramps). `icy ember spear` deals fire and chills; the fire never melts the chill. A flaming ice weapon stays one. |
 | **Different casts** meeting on one enemy | Only the reactions below. Everything else coexists. Each reaction has a 1 s cooldown per enemy. |
 | **Same element twice** (`icy ice blast`) | **Intensify:** the status is 50% stronger and lasts 50% longer. |
 
@@ -619,7 +619,7 @@ Ordinary enemies: 0 to ±25% per damage type. Elites: up to ±50%. Bosses: up to
 | Earth Shield | 16 s; retaliation 60 damage, reach 160, angle 100°, knockback 500 |
 | Lightning | 60 damage, radius 100, 2 chains at 200 range, ×0.8 per chain |
 | Meteor Shower | 3 meteors × 32 damage, radius 45, 0.3 s apart, 0.65 s warning |
-| Ember Spear | 96 damage, radius 24, burn trail 12% per 0.5 s for 1.5 s, max 3 trails |
+| Ember Spear | 96 damage, radius 24, fire trail 12% of the hit per 0.5 s while enemies stand in it, lasts 1.5 s, max 3 trails |
 | Infestation (was Plague Seed; incantation today `infection`) | 4 damage, 3 s, spread radius 60, transfer speed 300, spore linger 1.5 s |
 | Cinder Field | 8 damage per 0.5 s, radius 100, 5 s, max 3 |
 | Arcane Orbit | 2 orbs × 12 damage per 0.5 s, orbit radius 100, 6 s |
