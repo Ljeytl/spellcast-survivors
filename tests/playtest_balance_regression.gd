@@ -123,8 +123,8 @@ func run():
 	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells) == "+damage, +area", "Real upgrade copy describes area rank")
 	spells.spells[meteor_slot].level = 2
 	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells) == "+1 meteor, +damage, +area", "Real upgrade copy describes count rank")
-	spells.learn_spell("returning_blade")
-	var blade_slot = spells.find_spell_slot("returning_blade")
+	spells.learn_spell("cross_blade")
+	var blade_slot = spells.find_spell_slot("cross_blade")
 	spells.spells[blade_slot].level = 1
 	enemy.global_position = game.player.global_position + Vector2(0, -150)
 	enemy.current_health = 500
@@ -149,7 +149,7 @@ func run():
 		var rank_blade_damage = spells.calculate_spell_damage(spells.spells[blade_slot])
 		check(blades.size() == count, "Blade count at rank %d" % rank)
 		for index in range(count):
-			check(is_equal_approx(blades[index].damage, rank_blade_damage) and is_equal_approx(rank_blade_damage, blade_damage + float(spells.spell_catalog.returning_blade.rank_growth.damage.per_rank) * (rank - 1)), "Each blade deals its rank damage outbound at rank %d" % rank)
+			check(is_equal_approx(blades[index].damage, rank_blade_damage) and is_equal_approx(rank_blade_damage, blade_damage + float(spells.spell_catalog.cross_blade.rank_growth.damage.per_rank) * (rank - 1)), "Each blade deals its rank damage outbound at rank %d" % rank)
 			var next = blades[(index + 1) % count]
 			if count > 1:
 				check(is_equal_approx(fposmod(next.direction.angle() - blades[index].direction.angle(), TAU), TAU / count), "Blades form evenly spaced polygon")
@@ -159,13 +159,13 @@ func run():
 			check(is_equal_approx(blades[0].info.blade_radius, 40) and is_equal_approx(blades[0].outbound_distance, 460), "Size and range ranks reach authored values")
 		volley.free()
 	spells.spells[blade_slot].level = 8
-	spells.upgrade_spell("returning_blade")
-	check(spells.get_spell_rank("returning_blade") == 8, "Finite progression cannot upgrade into no-op ranks")
+	spells.upgrade_spell("cross_blade")
+	check(spells.get_spell_rank("cross_blade") == 8, "Finite progression cannot upgrade into no-op ranks")
 	spells.spells[meteor_slot].level = 8
 	var screen = game.level_up_screen
 	for roll in range(30):
 		var cards = screen.generate_upgrade_options({}, 20)
-		check(not cards.any(func(card): return card.effect.get("type", "") == "spell_upgrade" and card.effect.get("spell", "") in ["returning_blade", "meteor_shower"]), "Level-up UI excludes capped spell ranks")
+		check(not cards.any(func(card): return card.effect.get("type", "") == "spell_upgrade" and card.effect.get("spell", "") in ["cross_blade", "meteor_shower"]), "Level-up UI excludes capped spell ranks")
 	for index in range(4):
 		spells.cast_build_spell(blade_slot)
 	check(get_nodes_in_group("cross_blade_volleys").filter(func(n): return not n.is_queued_for_deletion()).size() == 3, "Active limit counts volleys, not individual blades")

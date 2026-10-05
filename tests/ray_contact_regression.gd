@@ -43,7 +43,7 @@ func run():
 	spells.spells.clear()
 	spells.bonus_spells.clear()
 	spells.acquired_spells.clear()
-	for id in ["focus_ray", "ember_lance", "prism_ray"]:
+	for id in ["focus_ray", "ember_spear", "prism_ray"]:
 		check(spells.learn_spell(id), "Learn " + id)
 	var beams: Array = []
 	for id in ["focus_ray", "prism_ray", "prism_ray"]:

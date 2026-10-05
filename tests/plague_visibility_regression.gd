@@ -36,7 +36,7 @@ func run():
 		enemy.set_physics_process(false)
 		enemy.current_health = 100
 		targets.append(enemy)
-	game.spell_manager.learn_spell("plague_seed")
+	game.spell_manager.learn_spell("infestation")
 	check(game.spell_manager.cast_freeform_spell("infection"), "Owned typed Plague Seed casts on a real visible enemy")
 	var effect = get_nodes_in_group("build_spell_effects").back()
 	effect.set_physics_process(false)
@@ -91,7 +91,7 @@ func run():
 		enemy.current_health = 1
 		group.append(enemy)
 	var chain = load("res://scripts/BuildSpellEffect.gd").new()
-	chain.configure({"id": "plague_seed", "type": "plague", "duration": 12.0}, 9, game.player, group[0])
+	chain.configure({"id": "infestation", "type": "plague", "duration": 12.0}, 9, game.player, group[0])
 	game.add_child(chain)
 	chain.set_physics_process(false)
 	chain.advance(1.25)

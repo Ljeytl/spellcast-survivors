@@ -1,0 +1,142 @@
+{
+  "_doc": "Generic spells built from parts (doc 18 §4). acquire: bare = always castable bare forms (deliberately weak); data_only = defined for the engine and tests, not acquirable yet.",
+  "spells": {
+    "spear": {
+      "name": "Spear", "incantation": "spear", "element": "", "acquire": "bare", "matrix_column": "spear",
+      "root": "spear",
+      "parts": {
+        "spear": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 12},
+                  "motion": [{"type": "straight", "speed": 900, "range": 800}],
+                  "payload": [{"type": "damage", "amount": 22, "raw_share": 1.0}],
+                  "limits": {"pierce": -1}}
+      }
+    },
+    "nova": {
+      "name": "Nova", "incantation": "nova", "element": "", "acquire": "bare", "matrix_column": "nova",
+      "root": "ring",
+      "parts": {
+        "ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 170, "thickness": 30},
+                 "propagation": {"type": "expanding", "speed": 700},
+                 "payload": [{"type": "damage", "amount": 14, "raw_share": 1.0}, {"type": "impulse", "force": 160, "direction": "away"}]}
+      }
+    },
+    "field": {
+      "name": "Field", "incantation": "field", "element": "", "acquire": "bare", "matrix_column": "field",
+      "root": "patch",
+      "parts": {
+        "patch": {"delivery": "field", "origin": "target", "geometry": {"type": "disk", "radius": 70},
+                  "timing": {"type": "periodic", "interval": 0.5, "duration": 3.0},
+                  "payload": [{"type": "damage", "amount": 3, "raw_share": 1.0}]}
+      }
+    },
+    "orbit": {
+      "name": "Orbit", "incantation": "orbit", "element": "", "acquire": "bare", "matrix_column": "orbit",
+      "root": "body",
+      "arrangement": {"type": "ring", "count": 1},
+      "parts": {
+        "body": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 16},
+                 "motion": [{"type": "orbit", "speed": 3.5, "radius": 90}],
+                 "payload": [{"type": "damage", "amount": 6, "raw_share": 1.0}],
+                 "limits": {"pierce": -1, "lifetime": 4.0, "rehit": 0.5}}
+      }
+    },
+    "trap": {
+      "name": "Trap", "incantation": "trap", "element": "", "acquire": "bare", "matrix_column": "trap",
+      "root": "glyph",
+      "parts": {
+        "glyph": {"delivery": "trap", "origin": "target", "geometry": {"type": "disk", "radius": 45},
+                  "timing": {"arming": 0.4, "duration": 8.0},
+                  "events": {"on_trigger": {"part": "burst"}}},
+        "burst": {"delivery": "volume", "origin": "parent", "geometry": {"type": "disk", "radius": 85},
+                  "payload": [{"type": "damage", "amount": 18, "raw_share": 1.0}]}
+      }
+    },
+    "slash": {
+      "name": "Slash", "incantation": "slash", "element": "", "acquire": "bare", "matrix_column": "slice",
+      "root": "cut",
+      "parts": {
+        "cut": {"delivery": "volume", "origin": "caster", "geometry": {"type": "cone", "radius": 120, "angle": 100},
+                "aim": {"type": "nearest"},
+                "payload": [{"type": "damage", "amount": 16, "raw_share": 1.0}]}
+      }
+    },
+    "fireball": {
+      "name": "Fireball", "incantation": "fireball", "element": "fire", "acquire": "data_only", "matrix_column": "ball",
+      "root": "orb",
+      "parts": {
+        "orb": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 18},
+                "motion": [{"type": "straight", "speed": 650, "range": 700}],
+                "payload": [{"type": "damage", "amount": 30, "raw_share": 0.5}],
+                "limits": {"pierce": 0},
+                "events": {"on_hit": {"part": "blast"}, "on_expire": {"part": "blast"}}},
+        "blast": {"delivery": "volume", "origin": "parent", "geometry": {"type": "disk", "radius": 90},
+                  "payload": [{"type": "damage", "amount": 60, "raw_share": 0.2}]}
+      }
+    },
+    "frost_nova": {
+      "name": "Frost Nova", "incantation": "frost nova", "element": "water", "acquire": "data_only", "matrix_column": "nova",
+      "root": "ring",
+      "parts": {
+        "ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 260, "thickness": 40},
+                 "propagation": {"type": "expanding", "speed": 900},
+                 "payload": [{"type": "damage", "amount": 50, "raw_share": 0.3}, {"type": "status", "status": "chilled", "stacks": 3},
+                             {"type": "impulse", "force": 300, "direction": "away"}]}
+      }
+    },
+    "tsunami": {
+      "name": "Tsunami", "incantation": "tsunami", "element": "water", "acquire": "data_only", "matrix_column": "blast",
+      "root": "wave",
+      "parts": {
+        "wave": {"delivery": "volume", "origin": "behind_caster", "geometry": {"type": "rect", "width": 900, "length": 60, "reach": 700},
+                 "propagation": {"type": "travelling", "speed": 450},
+                 "payload": [{"type": "damage", "amount": 80, "raw_share": 0.4}, {"type": "impulse", "force": 600, "direction": "travel"}]}
+      }
+    },
+    "flame_wall": {
+      "name": "Flame Wall", "incantation": "flame wall", "element": "fire", "acquire": "data_only", "matrix_column": "wall",
+      "root": "wall",
+      "parts": {
+        "wall": {"delivery": "field", "origin": "target", "geometry": {"type": "line", "length": 260, "width": 30},
+                 "timing": {"type": "periodic", "interval": 0.25, "duration": 6.0},
+                 "payload": [{"type": "damage", "amount": 30, "raw_share": 0.0}, {"type": "status", "status": "burn"}],
+                 "limits": {"rehit": 1.0}}
+      }
+    },
+    "lightning_rod": {
+      "name": "Lightning Rod", "incantation": "lightning rod", "element": "storm", "acquire": "data_only", "matrix_column": "spear",
+      "root": "spear",
+      "parts": {
+        "spear": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 12},
+                  "motion": [{"type": "straight", "speed": 1000, "range": 750}],
+                  "payload": [{"type": "damage", "amount": 60, "raw_share": 0.25}],
+                  "limits": {"pierce": 0},
+                  "events": {"on_hit": {"part": "rod"}, "on_expire": {"part": "rod"}}},
+        "rod": {"delivery": "aura", "origin": "parent", "anchor": "hit_target", "geometry": {"type": "disk", "radius": 220},
+                "timing": {"duration": 4.0},
+                "events": {"on_tick": {"part": "strike", "interval": 0.5, "at": "random_enemy_in_range"}}},
+        "strike": {"delivery": "volume", "origin": "parent", "geometry": {"type": "disk", "radius": 50},
+                   "payload": [{"type": "damage", "amount": 30, "raw_share": 0.0}, {"type": "status", "status": "shocked"}]}
+      }
+    },
+    "meteor_ring": {
+      "name": "Meteor Ring", "incantation": "meteor ring", "element": "fire", "acquire": "data_only", "matrix_column": "shower",
+      "root": "meteor",
+      "arrangement": {"type": "ring", "count": 8, "radius": 90},
+      "release": {"type": "triggered", "range": 450, "one_at_a_time": true, "interval": 0.15},
+      "parts": {
+        "meteor": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 14},
+                   "motion": [{"type": "orbit", "speed": 0.6, "radius": 90, "until": "released"}, {"type": "guided", "speed": 900, "turn": 9.0, "range": 900}],
+                   "payload": [{"type": "damage", "amount": 20, "raw_share": 0.7}],
+                   "limits": {"pierce": 0, "lifetime": 20.0},
+                   "events": {"on_hit": {"part": "impact"}}},
+        "impact": {"delivery": "volume", "origin": "parent", "geometry": {"type": "disk", "radius": 70},
+                   "payload": [{"type": "damage", "amount": 40, "raw_share": 0.5}]}
+      }
+    },
+    "regrowth": {
+      "name": "Regrowth", "incantation": "regrowth", "element": "life", "acquire": "data_only", "matrix_column": "restoration",
+      "root": "heal",
+      "parts": {"heal": {"delivery": "self", "payload": [{"type": "heal", "amount": 12}]}}
+    }
+  }
+}

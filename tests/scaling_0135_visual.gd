@@ -43,7 +43,7 @@ func run():
 		enemy.max_health = 10000
 		enemy.current_health = 10000
 		enemy.update_health_bar()
-	for id in ["focus_ray","ember_lance","prism_ray"]:
+	for id in ["focus_ray","ember_spear","prism_ray"]:
 		check(manager.learn_spell(id), "Learn "+id)
 	check(manager.cast_build_spell(manager.find_spell_slot("prism_ray")),"Cast Prism")
 	var beam = get_nodes_in_group("active_spell_channels")[-1]

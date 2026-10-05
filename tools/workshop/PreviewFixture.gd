@@ -130,7 +130,7 @@ func cast():
 		var slot = manager.find_spell_slot(selected)
 		var info = manager.get_spell_info(slot)
 		duration = maxf(2.0, float(info.get("duration", 0.0)) + 0.8)
-		if selected == "ember_trail":
+		if selected == "firewalk":
 			duration = 12.8
 		if selected == "life_bolt":
 			duration = 11.0
@@ -167,7 +167,7 @@ func advance(delta: float):
 		game.player.take_damage(10, {"source_position": game.player.global_position + Vector2(100,0)})
 		game.player.is_invincible = true
 	game.spell_manager.process_healing_effects(delta)
-	if selected == "ember_trail" and elapsed < 4.5:
+	if selected == "firewalk" and elapsed < 4.5:
 		game.player.position.x += delta * 50.0
 	apply_sizes()
 

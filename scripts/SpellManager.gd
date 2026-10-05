@@ -52,7 +52,7 @@ var last_cast_failure: String = ""
 const MAX_EQUIPPED_SPELLS = 6
 ## How many base spells learn_spell accepts. Training Grounds raises it to equip everything.
 var slot_limit: int = MAX_EQUIPPED_SPELLS
-const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning_arc", "meteor_shower", "ember_lance", "plague_seed", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
+const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning", "meteor_shower", "ember_spear", "infestation", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeker", "firewalk", "cross_blade"]
 var spell_catalog: Dictionary = {}
 var evolved_ingredients: Dictionary = {}
 var bonus_spells: Dictionary = {}
@@ -1207,7 +1207,7 @@ func handle_freeform_typing_input(event: InputEventKey):
 				attempt_freeform_cast()
 				return
 			# Check if we have a perfect match with any spell
-			if not space_casting and (find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic"):
+			if not space_casting and (find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic" or generic_autocast_ready(current_typing_text)):
 				attempt_freeform_cast()
 
 func attempt_freeform_cast():
@@ -1237,11 +1237,136 @@ func cast_freeform_spell(spell_name: String) -> bool:
 	if not is_spell_unlocked(slot):
 		if slot in spells:
 			spell_locked_error.emit(get_spell_info(slot).name, 0, player.level)
-		return false
+			return false
+		return cast_keyword_spell(spell_name)
 	spell_queue.clear()
 	queue_spell(slot)
 	spell_queue[0].mega = spell_name.strip_edges().to_lower().begins_with("mega ")
 	return cast_spell()
+
+# --- Generic spell engine (doc 18) ---------------------------------------------------------
+# Old spells keep their own code paths (and MEGA's charge). Generic spells come from data and take
+# any keyword that changes them. An old spell with a keyword it does not support yet fails with a reason.
+const KeywordParser = preload("res://scripts/engine/KeywordParser.gd")
+const SpellDefs = preload("res://scripts/engine/SpellDefs.gd")
+const CastPlanner = preload("res://scripts/engine/CastPlanner.gd")
+const GenericCast = preload("res://scripts/engine/GenericCast.gd")
+var learned_generic_spells: Array = []
+var last_generic_cast = null
+var last_parse: Dictionary = {}
+var last_cracked: Array = []
+signal keyword_cracked(word: String, reason: String)
+
+## Generic spells this player can cast now: bare forms plus learned ones. incantation -> definition.
+func castable_generic_spells() -> Dictionary:
+	var out := {}
+	var by_incantation = SpellDefs.by_incantation()
+	for incantation in by_incantation:
+		var def: Dictionary = SpellDefs.get_def(str(by_incantation[incantation]))
+		if str(def.get("acquire", "")) == "bare" or learned_generic_spells.has(str(def.id)):
+			out[incantation] = def
+	return out
+
+## Unlocked old spells by lowercase incantation -> slot.
+func legacy_incantations() -> Dictionary:
+	var out := {}
+	for slot in get_all_spells():
+		if is_spell_unlocked(slot):
+			var info = get_spell_info(slot)
+			out[str(info.display_name).to_lower()] = slot
+			out[str(info.name).to_lower()] = slot
+	return out
+
+func parse_incantation(text: String) -> Dictionary:
+	var names: Array = legacy_incantations().keys()
+	names.append_array(castable_generic_spells().keys())
+	return KeywordParser.parse(text, names)
+
+func cast_keyword_spell(text: String) -> bool:
+	var parsed = parse_incantation(text)
+	last_parse = parsed
+	if not parsed.ok:
+		# No spell name at all keeps the existing "Spell unavailable in this run" feedback.
+		if parsed.error == "no spell":
+			last_cast_failure = ""
+		elif not parsed.unknown.is_empty():
+			last_cast_failure = "Unknown word: " + str(parsed.unknown[0])
+		else:
+			last_cast_failure = str(parsed.error).capitalize()
+		return false
+	var legacy = legacy_incantations()
+	if legacy.has(parsed.spell):
+		var slot = int(legacy[parsed.spell])
+		var spell_label = str(get_spell_info(slot).name)
+		if parsed.quick:
+			last_cast_failure = "Quick cast doesn't work on %s yet" % spell_label
+			return false
+		if not parsed.rejected.is_empty():
+			last_cast_failure = "%s: %s" % [str(parsed.rejected[0].word).to_upper(), parsed.rejected[0].reason]
+			return false
+		for word in parsed.keywords:
+			if word != "mega":
+				last_cast_failure = "%s doesn't work on %s yet" % [str(word).to_upper(), spell_label]
+				return false
+		spell_queue.clear()
+		queue_spell(slot)
+		spell_queue[0].mega = parsed.keywords.has("mega")
+		return cast_spell()
+	var generic = castable_generic_spells()
+	if not generic.has(parsed.spell):
+		last_cast_failure = "No matching spell"
+		return false
+	return cast_generic(generic[parsed.spell], parsed)
+
+func generic_plan_options(quick: bool) -> Dictionary:
+	return {"rank_power": cast_stat("spell_damage_multiplier"), "size_stat": maxf(0.1, cast_stat("spell_size_multiplier")),
+		"duration_stat": maxf(1.0, cast_stat("spell_duration_multiplier")), "speed_stat": maxf(0.1, cast_stat("projectile_speed_multiplier")), "quick": quick}
+
+func cast_generic(def: Dictionary, parsed: Dictionary) -> bool:
+	if not is_instance_valid(player):
+		return false
+	var previous = DamageSource.current
+	var source = DamageSource.make(str(def.id), casting_clock)
+	DamageSource.current = source
+	var plan = CastPlanner.plan(def, parsed.bundle, generic_plan_options(bool(parsed.quick)))
+	DamageSource.current = previous
+	# A rejected word cracks its rune red and the spell casts without it (doc 18 principle 1).
+	last_cracked = parsed.rejected + plan.rejected
+	for r in last_cracked:
+		keyword_cracked.emit(str(r.word), str(r.reason))
+	var cast = GenericCast.new()
+	cast.name = "GenericCast_" + str(def.id)
+	cast.setup(plan, player, get_parent(), source)
+	get_parent().add_child(cast)
+	last_generic_cast = cast
+	var canonical = current_typing_text.strip_edges().to_lower() if not current_typing_text.strip_edges().is_empty() else str(def.incantation)
+	manual_spell_released.emit(str(def.id), canonical, current_typing_text)
+	last_spell_cast_time = casting_clock
+	spell_cast.emit(str(def.id))
+	if game_manager and game_manager.has_method("increment_spells_cast"):
+		game_manager.increment_spells_cast()
+	end_typing()
+	return true
+
+## Auto-cast for generic incantations: the text parses completely and no castable name continues it.
+func generic_autocast_ready(text: String) -> bool:
+	var normalized = text.strip_edges().to_lower()
+	if normalized.is_empty() or text.ends_with(" "):
+		return false
+	var parsed = parse_incantation(normalized)
+	if not parsed.ok or not castable_generic_spells().has(parsed.spell):
+		return false
+	var last_word = normalized.split(" ", false)[-1]
+	var names: Array = legacy_incantations().keys()
+	names.append_array(castable_generic_spells().keys())
+	for name in names:
+		for part in str(name).split(" ", false):
+			if part != last_word and part.begins_with(last_word):
+				return false
+	for word in KeywordParser.data().get("words", {}):
+		if word != last_word and str(word).begins_with(last_word):
+			return false
+	return true
 
 func cast_life_bolt(slot: int):
 	var info = resolve_cast_info(slot)
@@ -1286,6 +1411,7 @@ func get_owned_incantations() -> Array:
 		if is_spell_unlocked(slot):
 			names.append(get_spell_info(slot).display_name)
 			names.append("mega " + str(get_spell_info(slot).display_name))
+	names.append_array(castable_generic_spells().keys())
 	return names
 
 func cast_freeform_spell_by_type(spell_name: String, _spell_data: Dictionary):
@@ -1304,8 +1430,13 @@ func update_freeform_typing_display():
 		if is_typing:
 			var potential_matches = []
 			var normalized = current_typing_text.strip_edges().to_lower()
+			# Leading keywords (adjectives) do not stop the spell name from matching.
+			var name_words = Array(normalized.split(" ", false))
+			while name_words.size() > 1 and KeywordParser.is_keyword(str(name_words[0])):
+				name_words.pop_front()
+			var stripped = " ".join(name_words)
 			for incantation in get_owned_incantations():
-				if str(incantation).begins_with(normalized) and not normalized.is_empty():
+				if (str(incantation).begins_with(normalized) or str(incantation).begins_with(stripped)) and not normalized.is_empty():
 					potential_matches.append(incantation)
 
 			if is_instance_valid(game_manager.style_session) and game_manager.style_session.atomic_available() and "atomic".begins_with(current_typing_text):
@@ -1318,7 +1449,7 @@ func update_freeform_typing_display():
 			if not current_typing_text.is_empty() and potential_matches.is_empty():
 				display_text += " · No matching spell"
 			if potential_matches.size() > 0:
-				display_text += " · Ready to cast" if find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic" else " · Matches: " + potential_matches[0]
+				display_text += " · Ready to cast" if find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic" or castable_generic_spells().has(str(parse_incantation(normalized).spell)) else " · Matches: " + potential_matches[0]
 				if potential_matches.size() > 1 and find_cast_spell_slot(current_typing_text) == 0:
 					display_text += " (+%d)" % (potential_matches.size() - 1)
 		game_manager.update_typing_display(display_text)
@@ -1464,7 +1595,7 @@ func get_rank_upgrade_description(spell_id: String) -> String:
 
 ## Short rank-card text listing what the next rank changes, e.g. "+1 meteor, +damage, +area". No numbers.
 const RANK_COUNT_WORDS = {"shard_pierce": "pierce", "projectile_count": "projectile", "blade_count": "blade", "meteor_count": "meteor", "shard_count": "shard", "orb_count": "orb", "chain_count": "chain"}
-const RANK_AREA_KEYS = ["radius", "trail_radius", "trap_radius", "trigger_radius", "orbit_radius", "blade_radius", "cone_degrees", "spread_radius", "travel_distance", "beam_radius", "lance_radius"]
+const RANK_AREA_KEYS = ["radius", "trail_radius", "trap_radius", "trigger_radius", "orbit_radius", "blade_radius", "cone_degrees", "spread_radius", "travel_distance", "beam_radius", "spear_radius"]
 const RANK_DURATION_KEYS = ["duration", "patch_duration", "spore_linger"]
 func rank_change_summary(spell_id: String) -> String:
 	var rank = get_spell_rank(spell_id)
@@ -1509,7 +1640,7 @@ func rank_change_summary(spell_id: String) -> String:
 
 func cast_build_spell(slot: int) -> bool:
 	var info = resolve_cast_info(slot)
-	if info.id == "returning_blade":
+	if info.id == "cross_blade":
 		var volleys = get_tree().get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion())
 		if volleys.size() >= int(info.get("active_limit", 3)):
 			volleys[0].queue_free()
@@ -1521,7 +1652,7 @@ func cast_build_spell(slot: int) -> bool:
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
 	if info.type == "piercing":
 		var lance_reach = 700.0 * 1.5 * float(cast_stat("projectile_speed_multiplier"))
-		var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("lance_radius", 24.0)), lance_reach, get_viewport().get_visible_rect())
+		var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("spear_radius", 24.0)), lance_reach, get_viewport().get_visible_rect())
 		if line_target != null:
 			target = line_target
 	if info.type == "field":

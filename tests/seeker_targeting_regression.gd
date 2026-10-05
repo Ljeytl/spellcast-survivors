@@ -38,8 +38,8 @@ func run():
 		enemy.current_health = 10000
 		enemies.append(enemy)
 	var spells = game.spell_manager
-	check(spells.learn_spell("seeking_spirit"), "Learn Seeker through normal inventory")
-	var slot = spells.find_spell_slot("seeking_spirit")
+	check(spells.learn_spell("seeker"), "Learn Seeker through normal inventory")
+	var slot = spells.find_spell_slot("seeker")
 	var spirits: Array = []
 	for i in 2:
 		check(spells.cast_build_spell(slot), "Cast another Seeker")

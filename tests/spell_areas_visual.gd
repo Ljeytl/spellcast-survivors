@@ -34,7 +34,7 @@ func run():
 		enemy.set_physics_process(false)
 		if index == 0:
 			host = enemy
-	for entry in [["cinder_field", Vector2(-260, -130)], ["rune_trap", Vector2(-300, 160)], ["arcane_orbit", Vector2.ZERO], ["plague_seed", Vector2.ZERO]]:
+	for entry in [["cinder_field", Vector2(-260, -130)], ["rune_trap", Vector2(-300, 160)], ["arcane_orbit", Vector2.ZERO], ["infestation", Vector2.ZERO]]:
 		var info = game.spell_manager.spell_catalog[entry[0]]
 		var effect = load("res://scripts/TacticalSpellEffect.gd" if info.type == "trap" else "res://scripts/BuildSpellEffect.gd").new()
 		effect.configure(info, 0, game.player, host if info.type == "plague" else null)
@@ -48,7 +48,7 @@ func run():
 			if info.type == "trap":
 				effect.age = 1
 	var trail = load("res://scripts/TacticalSpellEffect.gd").new()
-	trail.configure(game.spell_manager.spell_catalog.ember_trail, 0, game.player, null)
+	trail.configure(game.spell_manager.spell_catalog.firewalk, 0, game.player, null)
 	game.add_child(trail)
 	trail.set_physics_process(false)
 	trail.trail_points.clear()

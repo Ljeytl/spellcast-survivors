@@ -74,7 +74,7 @@ func run():
 		clear_combat()
 	var close = enemy(Vector2(120, 0))
 	var cluster = [enemy(Vector2(300, 0)), enemy(Vector2(310, 60)), enemy(Vector2(300, -60))]
-	game.spell_manager.learn_spell("lightning_arc")
+	game.spell_manager.learn_spell("lightning")
 	check(game.spell_manager.cast_freeform_spell("lightning"), "Owned typed Lightning casts")
 	check(close.current_health == 10000 and cluster.all(func(node): return node.current_health == 9940), "Lightning favors useful group coverage over isolated nearest enemy")
 	check(get_nodes_in_group("lightning_areas").size() == 1, "Lightning uses circular burst, not bouncing projectile")
@@ -110,7 +110,7 @@ func run():
 	var pass_target = enemy(Vector2(150, 18))
 	var outside_blade = enemy(Vector2(150, 26))
 	var linger_target = enemy(Vector2(350, 0))
-	var blade = spell("returning_blade", pass_target)
+	var blade = spell("cross_blade", pass_target)
 	blade.direction = Vector2.RIGHT
 	var blade_damage = float(blade.info.damage)
 	blade.advance(0.7)
@@ -124,12 +124,12 @@ func run():
 	check(blade.is_queued_for_deletion(), "Cross Blade returns and expires")
 	clear_combat()
 	for speed in [1.0, 2.0]:
-		blade = spell("returning_blade", null, {"projectile_speed_multiplier": speed})
+		blade = spell("cross_blade", null, {"projectile_speed_multiplier": speed})
 		blade.advance(0.7 / speed)
 		check(is_equal_approx(blade.global_position.distance_to(origin), 350), "Projectile speed retains Cross Blade travel distance")
 		blade.free()
 	var boss = enemy(Vector2(-300, 0), true)
-	var trail = spell("ember_trail")
+	var trail = spell("firewalk")
 	if "--known-bad-short-fire" in OS.get_cmdline_user_args():
 		trail.info.patch_duration = 2
 	for index in range(100):
@@ -141,7 +141,7 @@ func run():
 	var first_total = 0.0
 	for step in [0.01, 0.05, 0.5]:
 		var victim = enemy(Vector2(80, 0))
-		trail = spell("ember_trail")
+		trail = spell("firewalk")
 		game.player.position += Vector2(160, 0)
 		trail.advance(0.1)
 		check(trail.trail_contains(origin + Vector2(80, 25)) and not trail.trail_contains(origin + Vector2(80, 27)), "Connected trail has authoritative capsule boundary")
@@ -153,7 +153,7 @@ func run():
 		trail.advance(20)
 		check(trail.is_queued_for_deletion(), "Firewalk and patches expire")
 		clear_combat()
-	trail = spell("ember_trail", null, {"trail_radius": 35})
+	trail = spell("firewalk", null, {"trail_radius": 35})
 	trail.trail_points.clear()
 	for point in [Vector2(-120, -120), Vector2(120, -120), Vector2(120, 120), Vector2(-120, 120), Vector2(-120, -120)]:
 		trail.trail_points.append({"position": origin + point, "age": 0.0})

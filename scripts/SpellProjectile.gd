@@ -229,7 +229,7 @@ func resolve_impact(generation: int = -1):
 	reservation_remaining = 0.0
 	for enemy in contacts:
 		hit_enemy(enemy)
-	if projectile_type != "lightning_arc":
+	if projectile_type != "lightning":
 		despawn()
 
 func hit_enemy(enemy):

@@ -60,16 +60,16 @@ func run():
 			var factor = {"bolt": 0.75, "mana_bolt": 0.8, "life_bolt": 0.8, "lightning_bolt": 0.75}[id]
 			check(is_equal_approx(shot.spell_size, factor), id + " baseline is isolated")
 			check(is_equal_approx(shot.get_node("CollisionShape2D").shape.radius, 17 * factor), id + " collision matches visible body")
-	for id in ["ember_lance", "meteor_lance"]:
+	for id in ["ember_spear", "meteor_spear"]:
 		await fixture.setup(root, id)
 		var effects = get_nodes_in_group("build_spell_effects").filter(func(effect): return effect.info.id == id)
 		check(effects.size() == 1, id + " actual cast creates lance")
-		var factor = 0.7 if id == "ember_lance" else 0.85
+		var factor = 0.7 if id == "ember_spear" else 0.85
 		check(is_equal_approx(effects[0].info.projectile_size_multiplier, factor), id + " body uses its own scale")
 		check(is_equal_approx(effects[0].info.spell_size_multiplier, 1), id + " explosion area and spell stats stay unchanged")
 		var geometry = preload("res://scripts/SpellGeometry.gd")
-		var size = geometry.stamp_dimensions("lance", geometry.LANCE_RADIUS * factor)
-		if id == "ember_lance":
+		var size = geometry.stamp_dimensions("spear", geometry.SPEAR_RADIUS * factor)
+		if id == "ember_spear":
 			var hit = fixture.targets[0]
 			var miss = fixture.targets[1]
 			hit.global_position = fixture.game.player.global_position + Vector2(100, 24 * factor - 1)
@@ -78,7 +78,7 @@ func run():
 			effects[0].advance(0.2)
 			check(hit.current_health < 10000 and miss.current_health == 10000, "Ember Spear hits only inside the compact projectile edge")
 		check(is_equal_approx(size.aspect(), 285.0 / 131.0), id + " original atlas aspect ratio preserved")
-		check(is_equal_approx(geometry.stamp_offset("lance", geometry.LANCE_RADIUS * factor).x + size.x / 2, geometry.LANCE_RADIUS * factor), id + " visual tip matches damage leading edge")
+		check(is_equal_approx(geometry.stamp_offset("spear", geometry.SPEAR_RADIUS * factor).x + size.x / 2, geometry.SPEAR_RADIUS * factor), id + " visual tip matches damage leading edge")
 	var workshop = load("res://tools/workshop/VisualWorkshop.gd").new()
 	fixture.game.free()
 	root.add_child(workshop)

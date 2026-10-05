@@ -6,7 +6,7 @@ var rng = RandomNumberGenerator.new()
 var run_seed = 11
 var limit = 1200.0
 var behavior_mode = "active"
-## Debug: spell ids the bot levels evenly and casts exclusively (e.g. --focus=meteor_shower,plague_seed,ice_blast).
+## Debug: spell ids the bot levels evenly and casts exclusively (e.g. --focus=meteor_shower,infestation,ice_blast).
 var focus_spells: Array = []
 ## Debug: passives taken when no focus card is offered, in priority order.
 var focus_passives: Array = ["spell_damage", "area_size", "spell_duration", "projectile_speed"]

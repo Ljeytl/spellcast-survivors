@@ -61,7 +61,7 @@ func run():
 	game.player.is_invincible = true
 	game.player.xp_to_next_level = 1000000
 	manager.mana_bolt_timer = 1000000
-	for id in ["meteor_shower","regeneration","plague_seed","earth_shield","focus_ray"]:
+	for id in ["meteor_shower","regeneration","infestation","earth_shield","focus_ray"]:
 		manager.learn_spell(id)
 	var encounters = game.get_node("MonsterManager")
 	encounters.set_process(false)

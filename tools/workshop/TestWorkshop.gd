@@ -59,7 +59,7 @@ func run():
 	check(is_equal_approx(effect.particle_size, float(effect.get_meta("preview_original_particle")) * 2), "particle stamp multiplier")
 	fixture.settings.comparison = false
 	fixture.settings.projectile = 1.0
-	for spell_id in ["bolt", "mana_bolt", "lightning_bolt", "life_bolt", "ice_blast", "ember_lance", "meteor_lance", "returning_blade", "seeking_spirit", "arcane_orbit", "plague_seed", "soul_bloom", "meteor_shower"]:
+	for spell_id in ["bolt", "mana_bolt", "lightning_bolt", "life_bolt", "ice_blast", "ember_spear", "meteor_spear", "cross_blade", "seeker", "arcane_orbit", "infestation", "soul_bloom", "meteor_shower"]:
 		await fixture.setup(root, spell_id)
 		var visuals = get_nodes_in_group("projectile_visuals").filter(func(node): return not node.is_queued_for_deletion())
 		check(not visuals.is_empty(), spell_id + " registers visible projectile bodies")

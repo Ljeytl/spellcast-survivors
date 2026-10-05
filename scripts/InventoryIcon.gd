@@ -29,9 +29,9 @@ func _draw():
 		draw_rect(Rect2(center - Vector2(3, 7), Vector2(6, 14)), Color("69c5ce"), false, 2)
 		return
 	var kind = "rune"
-	for entry in [["cinder", "flame"], ["soul", "heal"], ["meteor", "meteor"], ["lightning", "lightning"], ["prism", "prism"], ["focus", "mana"], ["blade", "blade"], ["bolt", "bolt"], ["life", "heal"], ["regeneration", "heal"], ["health", "heal"], ["ice", "ice"], ["frost", "ice"], ["fire", "flame"], ["ember", "lance"], ["plague", "plague"], ["spirit", "spirit"], ["seeker", "spirit"], ["shield", "stone"], ["orbit", "orbit"], ["steam", "steam"]]:
+	for entry in [["cinder", "flame"], ["soul", "heal"], ["meteor", "meteor"], ["lightning", "lightning"], ["prism", "prism"], ["focus", "mana"], ["blade", "blade"], ["bolt", "bolt"], ["life", "heal"], ["regeneration", "heal"], ["health", "heal"], ["ice", "ice"], ["frost", "ice"], ["fire", "flame"], ["ember", "spear"], ["plague", "plague"], ["spirit", "spirit"], ["seeker", "spirit"], ["shield", "stone"], ["orbit", "orbit"], ["steam", "steam"]]:
 		if entry[0] in item_id:
 			kind = entry[1]
 			break
-	kind = {"bolt": "mana", "ember_trail": "ember", "life_bolt": "heal", "lightning_bolt": "lightning", "meteor_lance": "lance"}.get(item_id, kind)
+	kind = {"bolt": "mana", "firewalk": "ember", "life_bolt": "heal", "lightning_bolt": "lightning", "meteor_spear": "spear"}.get(item_id, kind)
 	preload("res://scripts/EffectArt.gd").stamp(self, kind, size / 2, Vector2.ONE * minf(27, size.x))

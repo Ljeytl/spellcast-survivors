@@ -55,8 +55,8 @@ func run():
 	check(game.spell_manager.cast_spell(), "Typed cast succeeds")
 	check(count_cue(audio.SoundType.SPELL_BOLT) == 1, "Typed cast has no duplicate cue")
 	reset_audio()
-	game.spell_manager.learn_spell("plague_seed")
-	check(not game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("plague_seed")), "Targetless plague fails")
+	game.spell_manager.learn_spell("infestation")
+	check(not game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("infestation")), "Targetless plague fails")
 	check(heard.is_empty(), "Failed targeted build spell remains silent")
 	var enemy = load("res://scenes/Enemy.tscn").instantiate()
 	game.add_child(enemy)
@@ -65,8 +65,8 @@ func run():
 	enemy.current_health = 1000
 	enemy.max_health = 1000
 	reset_audio()
-	game.spell_manager.learn_spell("seeking_spirit")
-	check(game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("seeking_spirit")), "Build spell succeeds")
+	game.spell_manager.learn_spell("seeker")
+	check(game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("seeker")), "Build spell succeeds")
 	check(count_cue(audio.SoundType.SPELL_LIFE) == 1, "Successful Seeker emits cue")
 	reset_audio()
 	check(game.spell_manager.cast_freeform_spell("bolt"), "Freeform owned cast succeeds")

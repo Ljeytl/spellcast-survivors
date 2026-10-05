@@ -33,7 +33,7 @@ func run():
 		var enemy = monsters.spawn_monster(def, true)
 		enemy.global_position = game.player.global_position + Vector2(140 + i * 45, (i % 3 - 1) * 30)
 	game.spell_manager.mana_bolt_timer = 999.0
-	game.spell_manager.learn_spell("ember_lance")
+	game.spell_manager.learn_spell("ember_spear")
 	game.spell_manager.cast_freeform_spell("ember spear")
 	await wait(0.25)
 	await shot("01-throw")

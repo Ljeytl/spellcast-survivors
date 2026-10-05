@@ -43,7 +43,7 @@ func run():
 	spells.spells.clear()
 	spells.bonus_spells.clear()
 	spells.acquired_spells.clear()
-	for id in ["focus_ray", "ember_lance"]:
+	for id in ["focus_ray", "ember_spear"]:
 		check(spells.learn_spell(id), "Learn " + id)
 	check(spells.learn_spell("prism_ray"), "Learn Prism")
 	var focus_slot = spells.find_spell_slot("focus_ray")
@@ -89,7 +89,7 @@ func run():
 		enemies[index].global_position = game.player.global_position + Vector2(70 + index * 50, 0)
 		enemies[index].current_health = 1000
 	var blade = Tactical.new()
-	blade.configure(spells.spell_catalog.returning_blade, 20, game.player, enemies[0])
+	blade.configure(spells.spell_catalog.cross_blade, 20, game.player, enemies[0])
 	game.add_child(blade)
 	blade.set_physics_process(false)
 	blade.global_position = game.player.global_position + Vector2(300, 0)
@@ -101,7 +101,7 @@ func run():
 	blade.advance_returning(0, game.player)
 	check(is_equal_approx(enemies[0].current_health, 960), "Return does not double-hit same enemy")
 	blade.queue_free()
-	check(spells.spell_catalog.seeking_spirit.damage == 15 and spells.spell_catalog.seeking_spirit.hit_interval == 1.0, "Seeker hits for 15 at most once per second at rank 1")
+	check(spells.spell_catalog.seeker.damage == 15 and spells.spell_catalog.seeker.hit_interval == 1.0, "Seeker hits for 15 at most once per second at rank 1")
 	for id in spells.Synergies.RECIPES:
 		if not spells.Synergies.RECIPES[id].get("enabled", true):
 			continue

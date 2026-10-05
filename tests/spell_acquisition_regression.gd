@@ -112,7 +112,7 @@ func run():
 	spells.queue_spell(spells.find_spell_slot("regeneration"))
 	spells.cast_spell()
 	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 3.45), "Numbered and freeform healing match")
-	for id in ["ice_blast", "earth_shield", "lightning_arc"]:
+	for id in ["ice_blast", "earth_shield", "lightning"]:
 		check(spells.learn_spell(id), "Each remaining spell can be acquired")
 		spells.upgrade_spell(id)
 		check(spells.get_spell_rank(id) == 2, "Each canonical spell ID upgrades")

@@ -85,7 +85,7 @@
       "3": [{"type": "spell_unlock", "spell": "life"}],
       "5": [{"type": "spell_unlock", "spell": "ice_blast"}],
       "7": [{"type": "spell_unlock", "spell": "earth_shield"}],
-      "10": [{"type": "spell_unlock", "spell": "lightning_arc"}],
+      "10": [{"type": "spell_unlock", "spell": "lightning"}],
       "15": [{"type": "spell_unlock", "spell": "meteor_shower"}],
       "20": [{"type": "upgrade_unlock", "upgrade": "spell_evolution"}],
       "25": [{"type": "spell_unlock", "spell": "fire_storm"}],
