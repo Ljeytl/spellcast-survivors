@@ -184,8 +184,8 @@ func compare_meteor():
 		spell = effect(info, enemies[0])
 		spell.advance(0.1)
 		crowds.append(enemies.reduce(func(total, node): return total + 10000 - node.current_health, 0.0))
-	check(solo[1] >= solo[0], "Meteor Lance preserves direct-hit investment")
-	check(crowds[1] > crowds[0], "Meteor Lance wins damage against a compact off-axis crowd")
+	check(solo[1] >= solo[0], "Meteor Spear preserves direct-hit investment")
+	check(crowds[1] > crowds[0], "Meteor Spear wins damage against a compact off-axis crowd")
 
 func compare_soul():
 	var damage: Array = []

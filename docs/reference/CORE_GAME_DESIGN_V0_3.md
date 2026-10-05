@@ -193,7 +193,7 @@ The following twenty concepts are a library to develop, not a committed launch c
 | Fire | Meteor Shower | Delayed sustained bombardment; many small impacts or fewer large ones. |
 | Frost | Ice Shard | Piercing projectile with light slow; more coverage or shattering damage. |
 | Frost | Frost Nova | Player-centered burst and brief control; emergency breathing room. |
-| Frost | Glacial Lance | Committed high-damage line; precision or wider coverage. |
+| Frost | Glacial Spear | Committed high-damage line; precision or wider coverage. |
 | Frost | Blizzard | Lingering area control with sustained damage. |
 | Storm | Chain Lightning | Connected-target coverage; more jumps or stronger initial impact. |
 | Storm | Thunder Spear | Straight piercing attack that rewards lining up enemies. |
@@ -280,14 +280,14 @@ Implemented recipes replace their first ingredient and retain its slot and rank:
 | Evolution | Primary + catalyst | Behavior |
 | --- | --- | --- |
 | Life Bolt | Bolt + Regeneration | Heal up to 6 HP on actual damage. One projectile gives up ranked Bolt's extra shots; per-projectile damage is unchanged. |
-| Meteor Lance | Ember Lance + Meteor Shower | 40% less direct damage; each hit bursts for half of that reduced damage within 90. Rewards packed crowds. |
+| Meteor Spear | Ember Spear + Meteor Shower | 40% less direct damage; each hit bursts for half of that reduced damage within 90. Rewards packed crowds. |
 | Soul Bloom | Plague Seed + Regeneration | 25% less infection damage; heal 10% of actual damage, capped at 2 HP per tick per cast. |
 | Steam Field | Cinder Field + Ice Blast | 40% slow, but lasts 3 seconds instead of Cinder Field's 5; same damage per tick. |
-| Prism Ray | Focus Ray + Ember Lance | Hits up to three aligned enemies, each for 40% less damage than Focus Ray. |
+| Prism Ray | Focus Ray + Ember Spear | Hits up to three aligned enemies, each for 40% less damage than Focus Ray. |
 | Frost Sigil | Rune Trap + Ice Blast | Larger burst and 40% slow for two seconds, but arms in 1.4 seconds instead of 0.8. |
 | Reaping Spirit | Seeking Spirit + Plague Seed | 25% less contact damage; direct kills burst for half of reduced damage nearby without chaining. |
 
-The four new base spells are Ember Lance (straight piercing), Plague Seed (spreading damage over time), Cinder Field (stationary area damage), and Arcane Orbit (three moving close-range sparks). Damage scales by 15% of base per rank. Plague Seed, Cinder Field and Arcane Orbit last five seconds and tick every half second. Infection reaches at most eight enemies per cast without reinfection. Persistent effects permit at most three simultaneous casts of each spell; a fourth replaces the oldest. These are initial tuning values, with no encounter difficulty changes.
+The four new base spells are Ember Spear (straight piercing), Plague Seed (spreading damage over time), Cinder Field (stationary area damage), and Arcane Orbit (three moving close-range sparks). Damage scales by 15% of base per rank. Plague Seed, Cinder Field and Arcane Orbit last five seconds and tick every half second. Infection reaches at most eight enemies per cast without reinfection. Persistent effects permit at most three simultaneous casts of each spell; a fourth replaces the oldest. These are initial tuning values, with no encounter difficulty changes.
 
 
 The tactical expansion adds Focus Ray (12 damage each quarter-second for two seconds, 450 reach), Rune Trap (60 damage, arms after 0.8 seconds, expires after six seconds, triggers within 70 and bursts within 130), Seeking Spirit (22 damage at most every half-second on contact for five seconds), Ember Trail (15 damage per half-second in 40-radius patches left during five seconds of movement, each lasting two seconds), and Returning Blade (38 damage once per enemy on each outbound/return leg, at most three seconds). These numbers use the same 15%-of-base rank increase. Trails require 32 units of movement and do not regenerate a stationary field. Overlapping patches from one cast hit a target once per tick.

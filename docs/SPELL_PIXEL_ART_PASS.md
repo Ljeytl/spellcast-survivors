@@ -4,7 +4,7 @@ The current 24 implemented attacks and heals share a single 4 × 4 transparent m
 
 | Row | Column 1 | Column 2 | Column 3 | Column 4 |
 |---|---|---|---|---|
-| 1 | Mana projectile | Bolt | Ember Lance | Ice Blast shard |
+| 1 | Mana projectile | Bolt | Ember Spear | Ice Blast shard |
 | 2 | Plague sprout | Seeker ghost | Arcane Orbit crystal | Cross Blade |
 | 3 | Flame | Steam | Meteor | Earth Shield stone |
 | 4 | Healing leaf | Frost fragment | Ember fleck | Prism crystal |

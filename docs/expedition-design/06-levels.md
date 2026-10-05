@@ -77,7 +77,7 @@ Two parallel furnace lanes with cross-links and cooling courts. Fire × 0.85, wa
 
 | Site/anchor | Challenge | Knowledge bundle | Ritual |
 |---|---|---|---|
-|Bellows/W|2 waves:4 runners + 6 grunts; 3 brutes + 4 swarmers across alternating lanes|Ember Lance, Cross Blade; Delayed|`temper`|
+|Bellows/W|2 waves:4 runners + 6 grunts; 3 brutes + 4 swarmers across alternating lanes|Ember Spear, Cross Blade; Delayed|`temper`|
 |Kiln/NW|3 waves:8 grunts; 2 pursuers + 4 runners; 3 brutes + 6 grunts, central cooling pocket|Fire Bolt; Fiery|`ignite`|
 |Forge/NE|2 waves:2 brutes + 6 runners; 1 elite brute + 6 grunts, clear 1.8 s attack recoveries|Firestorm; Charged|`conjure`|
 |Ash Court/E|3 waves:8 swarmers; 8 grunts + 2 runners; 2 brutes + 2 pursuers|Summon Golem; Earthen|`embody`|

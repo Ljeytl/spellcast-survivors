@@ -45,7 +45,7 @@ Earth Shield 0.1.36 is complete. M1 is next with a short playable introduction t
 
 **Level 1 starts with normal slimes.** Configure existing grunt and fragile runner behaviors first, then normal bruisers and King Slime as the objective loop arrives. No early fire slimes, elemental resistance puzzle or ranged barrage. This constrains encounters, not the entire development spell inventory.
 
-The small M1 modifier test set is not the shipping starting loadout and does not delete current spells. Existing bases: Bolt, Life, Regeneration, Ice Blast, Earth Shield, Lightning, Meteor Shower, Ember Lance, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade. Existing enabled combinations: Lightning Bolt, Life Bolt, Meteor Lance, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. Exact current behavior and proposed changes remain separate in document 3.
+The small M1 modifier test set is not the shipping starting loadout and does not delete current spells. Existing bases: Bolt, Life, Regeneration, Ice Blast, Earth Shield, Lightning, Meteor Shower, Ember Spear, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade. Existing enabled combinations: Lightning Bolt, Life Bolt, Meteor Spear, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. Exact current behavior and proposed changes remain separate in document 3.
 
 ## Vocabulary expansion and dependencies
 
@@ -56,9 +56,9 @@ The small M1 modifier test set is not the shipping starting loadout and does not
 | Release structure | Delayed, Charged, Repeating, Duplicating | Clock, cancellation, output ownership and retargeting contracts; duplicating differs from a delayed smaller echo |
 | Elements | Fiery, Icy, Venomous, Earthen | Damage type versus status distinction, readable conversion, no useless accepted words |
 | New content | Water Jet, Wave, Frost Nova, Thunderwave, Frost Ray, Fire Bolt, Firestorm, Earthquake, Grasping Hand, Moonfall, Mana Storm, Summon Golem (castable word Golem), Yggdrasil | Introduce by play value and compatible components after the loop works; do not delay existing infection or Seeker until these are built |
-| Later experiments | Ice Lance/Glacial Lance paired family, base Wall plus elemental synonyms, Super/Omega beyond MEGA, Orbiting/Rotating, Wide/Piercing, Quick Cast, numeric Delay, Earth Wall, Reaping Spirit, alternate characters | Preserve ideas; none is a requirement for the next playable milestone |
+| Later experiments | Ice Spear/Glacial Spear paired family, base Wall plus elemental synonyms, Super/Omega beyond MEGA, Orbiting/Rotating, Wide/Piercing, Quick Cast, numeric Delay, Earth Wall, Reaping Spirit, alternate characters | Preserve ideas; none is a requirement for the next playable milestone |
 
-Catalog coverage (design entries, not a final independent-base count): Bolt, Life, Ice Blast, Lightning, Regeneration, Earth Shield, Meteor Shower, Ember Lance, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade, Wave, Water Jet, Frost Nova, Fire Bolt, Firestorm, Earthquake, Thunderwave, Frost Ray, Moonfall, Grasping Hand, Mana Storm, Summon Golem (castable word Golem), Yggdrasil, Lightning Bolt, Life Bolt, Meteor Lance, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. The existing table has 29 base rows plus seven derived rows; desired independent-spell count and family tiers still require reconciliation.
+Catalog coverage (design entries, not a final independent-base count): Bolt, Life, Ice Blast, Lightning, Regeneration, Earth Shield, Meteor Shower, Ember Spear, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade, Wave, Water Jet, Frost Nova, Fire Bolt, Firestorm, Earthquake, Thunderwave, Frost Ray, Moonfall, Grasping Hand, Mana Storm, Summon Golem (castable word Golem), Yggdrasil, Lightning Bolt, Life Bolt, Meteor Spear, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. The existing table has 29 base rows plus seven derived rows; desired independent-spell count and family tiers still require reconciliation.
 
 ## Presentation track alongside gameplay
 
@@ -70,7 +70,7 @@ Use plain readable menu text with restrained grimoire/stone ornament. Ordinary c
 
 Track each feature as existing, adapting, new, deferred or needs verification, separately from player acquisition. Retain a reproducible comparison build and grow the actual game in reviewable increments. Do not implement parallel replacement systems by default or remove a working system before its replacement is playable.
 
-Open decisions include XP versus mana terminology and upgrade roles, preparation capacity, automatic Magic Missile, discovery retention, Big infection geometry/kill-through, Soul Bloom healing carrier, Meteor Lance identity and final roster counting. Preserve local working notes; unresolved proposals must not become silent implementation defaults. Existing game fun is user-reported; the expanded loop remains to be validated.
+Open decisions include XP versus mana terminology and upgrade roles, preparation capacity, automatic Magic Missile, discovery retention, Big infection geometry/kill-through, Soul Bloom healing carrier, Meteor Spear identity and final roster counting. Preserve local working notes; unresolved proposals must not become silent implementation defaults. Existing game fun is user-reported; the expanded loop remains to be validated.
 
 [Validation](11-validation.md) defines evidence obligations, [components](14-spell-system-reference.md) defines property contracts, and [levels](06-levels.md) proposes player-facing content. Those tables do not supersede this incremental development order. Documentation approval does not itself implement gameplay or replace art.
 

@@ -214,7 +214,7 @@ These rows point into existing detailed plans/results. They are not all known cu
 | F26 | XP persists/consolidates with exact value; distinct gem colors/tiers, stable size without pulsing | Needs verification | [Pass 2 spec](PLAYTEST_PASS_2_SPEC.md), [results](PLAYTEST_PASS_2_RESULTS.md) |
 | F27 | Enemies opaque; quick red damage flash, no unnecessary hit clutter or unexplained circles | Needs verification | [Readability evidence](READABILITY_PASS_2_EVIDENCE.md), [art plan](ART_AND_FEEDBACK_PLAN.md) |
 | F28 | Actor/projectile/environment proportions readable together; later request shrinks Bolt 20–30% and backs camera out 5–10% | Needs verification | [Readability evidence](READABILITY_PASS_2_EVIDENCE.md), [workshop](VISUAL_WORKSHOP.md); latest adjustment takes precedence over earlier enlargement requests |
-| F29 | Ember Lance and Lightning Bolt visual identity need review against liked samples | Needs verification | [Pixel art pass](SPELL_PIXEL_ART_PASS.md); rendered motion matters, not asset presence |
+| F29 | Ember Spear and Lightning Bolt visual identity need review against liked samples | Needs verification | [Pixel art pass](SPELL_PIXEL_ART_PASS.md); rendered motion matters, not asset presence |
 | F30 | Minimal HUD, concise upgrade descriptions, no boss schedule/debug clutter; no clipped or wrapped spell names | Needs verification | [UI pass](UI_UX_PASS.md); desktop/narrow casting and level-up journeys |
 | F31 | Run spellbook shows run knowledge; Necronomicon holds broader collection | Needs verification | [Spellbook design](SPELLBOOK_NECRONOMICON.md); new-run/reset and persistence journeys |
 | F32 | Workshop previews every effect, with wizard reference, size controls and animated exports; Ice Blast previously failed | Needs verification | [Workshop](VISUAL_WORKSHOP.md), [gallery](SPELL_VISUAL_GALLERY.md); actual preview/export journey |
@@ -233,8 +233,8 @@ These rows point into existing detailed plans/results. They are not all known cu
 | I05 | Ley-line challenges unlock magic; long ritual words; optional guardian after four sites | Deferred | [Levels](expedition-design/06-levels.md), [decision/idea register](expedition-design/02-decisions.md) |
 | I06 | Simple floor-color/layout sketch, paths, rocks; possible 3D room blockout | Deferred | Await art/layout exploration; no full rendering migration selected |
 | I07 | Slime animation frames/interpolation, shaders, typed menu navigation, alternate characters | Deferred | [Roadmap](../ROGUELITE_ROADMAP.md); later polish/experiments |
-| I08 | Spell ideas, paired Ice/Glacial Lance, elemental Wall synonyms, Charged/Delayed/Repeating versus Duplicating | Deferred | [Spell catalog](expedition-design/03-spells.md), [component reference](expedition-design/14-spell-system-reference.md); preserve individual idea entries |
-| I09 | Soul Bloom healing carrier, Big infection/AoE, Meteor Lance alternatives, smooth Focus Ray, rotating laser, arcane crit | Deferred | [Open decisions](expedition-design/13-review-record.md#alignment-review--28-september-2026); alternatives are not implemented promises |
+| I08 | Spell ideas, paired Ice/Glacial Spear, elemental Wall synonyms, Charged/Delayed/Repeating versus Duplicating | Deferred | [Spell catalog](expedition-design/03-spells.md), [component reference](expedition-design/14-spell-system-reference.md); preserve individual idea entries |
+| I09 | Soul Bloom healing carrier, Big infection/AoE, Meteor Spear alternatives, smooth Focus Ray, rotating laser, arcane crit | Deferred | [Open decisions](expedition-design/13-review-record.md#alignment-review--28-september-2026); alternatives are not implemented promises |
 | I10 | Siege/tower defense/alchemist format and mouse final boss | Deferred | [Idea register](expedition-design/02-decisions.md); separate ideas, no pivot approved |
 | I11 | Eventual generated-art/music replacement; existing assets can remain for current testing | Deferred | [Art direction](expedition-design/08-art-feedback.md); no immediate bulk replacement |
 | I12 | Cross Blade should have a stronger return hit that rewards positioning; tentative double-return damage or base damage −25% with return +50% | Deferred | [Return-hit idea](../ROGUELITE_ROADMAP.md#deferred--cross-blade-return-hit-identity-2026-09-28), recorded 2026-09-28; alternatives and percentage reference unresolved; no gameplay change authorized |
@@ -446,9 +446,20 @@ Test runner notes: `art_world_regression` needs about 40 s; `area_rendering_regr
 | ID | Idea | Status |
 |---|---|---|
 | OCT01-04 | Prism Ray rank-8 unlock: on hit, the beam splits into a second beam angled 30° away and pierces. | Idea from LJ; not scheduled. |
-| OCT01-05 | Black Hole / Gravity Well spell: pulls enemies into a point and crushes them. Fantasy: the horde gets sucked in. Pairs naturally with area spells (Meteor, Lightning, Cinder) landing on the clump. | Idea from LJ; not designed. |
-| OCT01-06 | Dash as a rechargeable item-spell: a short dash you cast like a spell; it has charges that recharge, and the dash itself has an effect (e.g. leaves a trail, knocks back, or briefly phases through enemies). | Idea from LJ; explore. |
-| OCT01-07 | More rechargeable cast-items in the same slot family as Dash: Potion of Swiftness (short speed burst), Shield (block the next hits), and others to explore. | Idea from LJ; brainstorm. |
+| OCT01-05 | Black Hole as an **ultimate** (alongside Atomic): placed singularity lasting ~4–5s; pulls enemies in, deletes non-bosses that reach the center (including mid-cast spawns), pins and crushes bosses with damage that ramps the longer they are held, ends in a collapse burst. Atomic = instant screen panic button; Black Hole = wave + boss killer. Open: one ultimate chosen per run (Claude leans this) vs separate unlocks. No separate regular gravity spell for now. | Idea from LJ; design. |
+| OCT01-06 | **Item slot (loadout):** the player brings exactly ONE item into a run. Items can be active (button) or passive. Rule: every item must change how you play; pure stat items are not allowed as the item. See OCT01-07 for the list. | LJ; concept agreed. |
+| OCT01-07 | Item list. Active: Dash Boots (3 dash charges, ~5s recharge each, short i-frames, upgrades add an effect; watch Fire Walk synergy), Ring of Spell Storing (bank up to 3 casts at current rank, release instantly with a key; storing pays normal cost; needs a deliberate store input), Potion of Healing (limited charges, refill on boss kill), Hourglass (slow time ~3s, long cooldown). Passive: Warding Amulet (blocks one hit, recharges after ~10s unhit; was "Shield"), Tome of Echoes (every 5th cast repeats free), Phylactery (cheat death once; overlaps Healing Potion), Glass Staff (+damage, -max HP), Familiar (small companion that fights). Potion of Swiftness folded into Dash Boots. | LJ + Claude brainstorm; not designed. |
+| OCT01-08 | Necromancy/summon: Raise Dead. Kills in an area rise as temporary allies; rank 8 they explode on expiry. Introduces an ally system that a Familiar summon could reuse later. | Missing-school idea; not designed. |
+| OCT01-09 | Hex/Curse: cursed enemies take +X% from all spells, the curse spreads on death. Needs one central damage-multiplier point in the damage pipeline and a hard cap. | Missing-school idea; not designed. |
+| OCT01-10 | Transmutation: Polymorph. The biggest nearby enemy becomes a harmless frog for a few seconds; rank 8 hits several targets and frogs take bonus damage. Bosses immune or shorter. | Missing-school idea; not designed. |
+| OCT01-11 | Illusion: Mirror Image. Decoys enemies chase, explode when broken. | Missing-school idea; not designed. |
+| OCT01-12 | Defense/abjuration: Ward. A ring or wall enemies cannot cross, damages on contact. Overlaps the Shield cast-item (OCT01-07). | Missing-school idea; not designed. |
+| OCT01-13 | Bot/telemetry: non-damage spells (pull, curse, polymorph, summons) need "assisted damage" credit, or the bot and the dashboards will undervalue them. | Prerequisite before balancing those spells. |
+| OCT01-14 | **Rule-changer items** (best category): Skateboard (easter egg, unlock by typing a secret word e.g. "kickflip"): always moving in the last input direction; combo never decays and builds from NEAR MISSES (graze ring just outside the hitbox; once per enemy per pass with a per-enemy cooldown; elites/bosses worth more; simultaneous grazes multiply; spark + "CLOSE!" feedback); getting hit = combo to zero. Earned-by-risk combo keeps chained Atomics in check. Blood Magic: spells cost HP instead of cooldown/mana. Chaos Orb: every cast becomes a random spell from your kit. Rejected: Silent Tome (auto-cast) since it removes the typing. | LJ; liked. |
+| OCT01-15 | Time Stop as a spell: world freezes for ~4-5 real seconds, typed spells queue mid-air, all fire when time resumes. Cap the queue. Overlaps Ring of Spell Storing (ring = small everyday version). | LJ: yes, should be a spell. |
+| OCT01-16 | Style/badass pass, all approved (1-8): (1) near-miss/graze style for everyone, skateboard amplifies; (2) clutch kill: kill an enemy just before it hits you; (3) "don't look back": kills from delayed spells (Rune, Meteor, Infection) while moving away; (4) multikill callouts with colours by size (10/25/50+); (5) overkill bonus; (6) wizard titles for style ranks (Apprentice -> Adept -> Magus -> Archmage -> absurd top); (7) escalating look (glowing eyes, billowing robe, hotter spell colours; hat flies off on a hit); (8) hitstop/slow-mo/screen-crack on huge multikills, boss kills and Atomic. Rejected: (9) enemies fearing a high-rank wizard. | LJ. |
+| OCT01-17 | Rule-changer item "Unbound Hourglass" (working name): removes the per-cast time slowdown entirely (world runs full speed while you type). Payoff: style/combo gain x2 AND a raw damage boost ("I don't need time to bend"). Expert pick alongside Skateboard. NOT a global change. | LJ; item idea. |
+| OCT02-01 | Elemental levels: a fire & frost level (pixel-art tiles + enemies) where enemies resist their own element and are weak to the opposite one. Prereqs: there is no element/damage-type system yet (spells have no element field, enemies only have knockback resistance), and the active roster is fire-heavy (Ember Spear, Meteor, Cinder, Fire Walk) with one frost spell (Ice Blast), so a fire-resistant level would hard-punish most builds unless frost gets more spells (frost_nova exists in data, unused). | LJ idea; parked until casting animations are done. |
 
 ## Balance pass log — 2026-10-01
 
@@ -458,8 +469,8 @@ Balance means every spell has a place and feels good, not equal damage. Measured
 |---|---|---|
 | Infection (was Plague Seed; id stays `plague_seed`) | Each infected enemy jumps once while alive plus once on death; ground spores last 1.5→2.5 s | Spread was exponential (~4,000+ damage per cast, 5–8× other spells). The name Plague Seed is reserved for a different idea. |
 | Seeker | Lasts 12→24 s (was 8→10) | Long-lived hunting spirit rather than more spirits |
-| Ember Lance | Damage 42→460, width 24→60 | At max, the line of enemies is gone, including a shielded Shieldbearer at minute 15; not a boss killer |
-| Focus Ray | 16→48 per tick, 2→3 s, beam 12→24 wide | Boss killer; needs a distinct identity from Ember Lance (idea pending) |
+| Ember Spear | Damage 42→460, width 24→60 | At max, the line of enemies is gone, including a shielded Shieldbearer at minute 15; not a boss killer |
+| Focus Ray | 16→48 per tick, 2→3 s, beam 12→24 wide | Boss killer; needs a distinct identity from Ember Spear (idea pending) |
 | Rune Trap | Damage 55→165, blast 120→240, trigger 60→90, unlimited traps | Bigger, better AoE |
 | Ice Blast | Damage 45→170 per shard; cone 30→45→60→90→120→180→240→360° (full ring at rank 8); shards 3→21; reach 250→500; knockback 550 + 50/rank; slow 0.35→0.15 speed for 2→4 s | Much more utility plus damage; every shard deals full damage |
 | Meteor Shower | Radius 45→78 | Size, not damage, was the limit |
@@ -481,6 +492,6 @@ Every spell should feel really strong and fulfill its fantasy; the player should
 | Cinder Field | That area is on fire; it is safer for you. |
 | Ice Blast | Get away from me. Die. (Control first, still good damage.) |
 | Seeker | A ghost coming to kill you. |
-| Ember Lance | That entire line of enemies is gone. |
+| Ember Spear | That entire line of enemies is gone. |
 | Cross Blade | If the boomerang return hits you, you are done. |
 | Focus Ray | The boss killer; kills a Shieldbearer from behind. |

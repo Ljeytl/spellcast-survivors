@@ -17,7 +17,7 @@ Homing shots reacquire within 600 world units if their target dies. Reacquisitio
 | Lightning | Group coverage selects a160-radius circle; each enemy takes one hit within0.2s. No speculative projectile reservation. |
 | Meteor Shower | Group helper selects220-radius target circles; no reservation of speculative delayed impacts. |
 | Cinder Field / Steam Field | Ground area uses group helper; no full-duration damage reservation. |
-| Ember Lance / Meteor Lance | Piercing lane retains direction toward living target, then hits along path; lane policy belongs to effects integration, no single-impact reservation pretending the whole line is guaranteed. |
+| Ember Spear / Meteor Spear | Piercing lane retains direction toward living target, then hits along path; lane policy belongs to effects integration, no single-impact reservation pretending the whole line is guaranteed. |
 | Plague Seed / Soul Bloom | Visible living host and bounded neighbor propagation; no speculative infection-chain reservations. |
 | Focus Ray / Prism Ray | Preserve retained living beam target and reacquisition within beam reach; cadence and tracking unchanged. |
 | Seeker | Preserve living target tracking/reacquisition in its own range; repeated contact damage does not reserve future lifetime damage. |

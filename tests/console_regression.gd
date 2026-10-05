@@ -29,6 +29,11 @@ func run():
 	game.spell_manager.set_process(false)
 	game.player.set_physics_process(false)
 	var manager = game.get_node("MonsterManager")
+	# This suite covers the classic 20-minute run: the day cycle (experiment) is switched off.
+	manager.day_cycle_driven = false
+	var day_cycle = game.get_node_or_null("DayCycle")
+	if day_cycle:
+		day_cycle.set_process(false)
 	manager.set_process(false)
 	manager.spawn_timer.stop()
 	await process_frame

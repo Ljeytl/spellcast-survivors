@@ -1288,7 +1288,7 @@ enemies already slowed become briefly frozen.
 
 ---
 
-## Glacial Lance
+## Glacial Spear
 
 Long cast.
 

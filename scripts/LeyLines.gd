@@ -14,16 +14,28 @@ const WORDS_PER_SITE = 4
 const DWELL_SECONDS = 0.4
 ## Waves only advance while the player is this close to an awake site.
 const ENGAGE_RADIUS = 1200.0
-const WAVE_INTERVAL = 8.0
+## Waves come from the player's words, not a timer: one when the site wakes and one
+## per bound word (the last word brings the guardian instead). Waiting waves hold
+## during the map's light phases, so light phases are the time to type.
+## Minimum seconds between two waves when several are waiting.
+const WAVE_GAP = 4.0
 ## Enemies per wave: base plus one per two minutes of run time.
 const WAVE_BASE = 4
 const WAVE_MAX = 12
+## While the player fights a site (siege or guardian, within ENGAGE_RADIUS), the map's own
+## spawning drops to this share: the site's waves replace the ambient pressure, not stack on it.
+const SIEGE_AMBIENT_SHARE = 0.5
+## The circle answers one word at a time: the next word can only be bound once the last
+## wave has arrived and at most WAVE_LEFTOVER of it is still standing. Fast typists can no
+## longer stack four waves and the guardian in a few seconds; the siege paces itself.
+const WORD_WAITS_FOR_WAVE = true
+const WAVE_LEFTOVER = 2
 ## Standing in an attuned circle: Spell Power bonus, and combo does not decay.
 const ATTUNED_POWER_BONUS = 0.20
 const GUARDIAN_VARIANT = "juggernaut"
 const GUARDIAN_NAME = "Ley Guardian"
-const GUARDIAN_HEALTH = 900.0
-const GUARDIAN_HEALTH_PER_MINUTE = 100.0
+const GUARDIAN_HEALTH = 450.0
+const GUARDIAN_HEALTH_PER_MINUTE = 150.0
 ## Ley words are made-up incantations built from these syllables, fresh every run.
 ## Set GENERATED_WORDS false to draw from WORDS instead.
 const GENERATED_WORDS = true
@@ -122,6 +134,9 @@ func _process(delta):
 		return
 	var real = delta / maxf(Engine.time_scale, 0.01)
 	var player_pos = game.player.global_position
+	var monsters = game.get_node_or_null("MonsterManager")
+	if monsters:
+		monsters.ambient_share = SIEGE_AMBIENT_SHARE if engaged_site() else 1.0
 	for site in sites:
 		match site.state:
 			LeySite.State.DORMANT:
@@ -133,11 +148,11 @@ func _process(delta):
 					site.dwell = 0.0
 			LeySite.State.SIEGE:
 				# Leaving pauses the site: no waves, no progress lost.
-				if site.global_position.distance_to(player_pos) <= ENGAGE_RADIUS:
-					site.wave_timer -= real
-					if site.wave_timer <= 0.0:
-						site.wave_timer = WAVE_INTERVAL
-						summon_wave(site)
+				site.wave_timer = maxf(0.0, site.wave_timer - real)
+				if site.pending_waves > 0 and site.wave_timer <= 0.0 and not light_phase() and site.global_position.distance_to(player_pos) <= ENGAGE_RADIUS:
+					site.pending_waves -= 1
+					site.wave_timer = WAVE_GAP
+					summon_wave(site)
 			LeySite.State.GUARDIAN:
 				if not is_instance_valid(site.guardian) or site.guardian.dying:
 					attune(site)
@@ -147,7 +162,15 @@ func wake(site):
 	site.state = LeySite.State.SIEGE
 	site.pulse_flash()
 	site.wave_timer = 0.0
+	site.pending_waves = 1
 	game.show_gameplay_feedback("Ley line awakens · In the circle, press Space and type its words")
+
+## True during the map's light spawn phases (the breathers), and the calm after a boss.
+func light_phase() -> bool:
+	var monsters = game.get_node_or_null("MonsterManager")
+	if not monsters:
+		return false
+	return str(monsters.current_spawn_phase().get("pressure", "")) in ["light", "rest"]
 
 func summon_wave(site):
 	var monsters = game.get_node_or_null("MonsterManager")
@@ -155,8 +178,27 @@ func summon_wave(site):
 		return
 	var count = mini(WAVE_MAX, WAVE_BASE + int(game.game_time / 120.0))
 	var offset = rng.randf() * TAU
+	site.wave_members.clear()
 	for i in count:
-		monsters.spawn_monster({}, false, true, offset + i * TAU / count)
+		var monster = monsters.spawn_monster({}, false, true, offset + i * TAU / count)
+		if monster:
+			site.wave_members.append(monster)
+
+## True when the site will take its next word: no wave waiting and the last one mostly down.
+func site_ready(site) -> bool:
+	if not WORD_WAITS_FOR_WAVE:
+		return true
+	if site.pending_waves > 0:
+		return false
+	var standing = site.wave_members.filter(func(e): return is_instance_valid(e) and not e.dying)
+	return standing.size() <= WAVE_LEFTOVER
+
+## Unbound words the player can type right now (empty unless standing in an awake circle).
+func available_words() -> Array:
+	var site = site_under_player()
+	if site == null or not site_ready(site):
+		return []
+	return site.words.filter(func(w): return w not in site.bound)
 
 ## Called by SpellManager with a submitted Space-cast text. True if it bound a word.
 func try_word(text: String) -> bool:
@@ -166,14 +208,19 @@ func try_word(text: String) -> bool:
 	var word = text.strip_edges().to_lower()
 	if word not in site.words or word in site.bound:
 		return false
+	if not site_ready(site):
+		game.show_gameplay_feedback("The circle is still answering · Clear the wave first")
+		return false
 	site.bound.append(word)
 	site.pulse_flash()
 	if AudioManager:
 		AudioManager.on_typing_complete()
 	if site.bound.size() >= site.words.size():
+		site.pending_waves = 0
 		summon_guardian(site)
 	else:
-		game.show_gameplay_feedback("Ley word bound · %d/%d" % [site.bound.size(), site.words.size()])
+		site.pending_waves += 1
+		game.show_gameplay_feedback("Ley word bound · %d/%d · A wave answers" % [site.bound.size(), site.words.size()])
 	return true
 
 func summon_guardian(site):

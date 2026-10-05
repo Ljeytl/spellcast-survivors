@@ -43,7 +43,7 @@ Publish catalog, index, PNG posters, MP4s and GIFs under builds/current/spell-ga
 
 ## Projectile body sizing and impact contract
 
-The **Projectile artwork only** control uses `ProjectileVisual` to scale drawings, never the physics node. Bolts, the Ice Blast shard fan, Ember/Meteor Lance, Cross Blade, Seeker, Arcane Orbit bodies, Plague/Soul Bloom spores and falling meteor rocks all opt into this contract. Orbit centers, cast reach, movement speed, collisions, meteor warning rings and explosion radii remain authored values. Particle size controls decorative fragments separately, including the directional particle demonstration.
+The **Projectile artwork only** control uses `ProjectileVisual` to scale drawings, never the physics node. Bolts, the Ice Blast shard fan, Ember/Meteor Spear, Cross Blade, Seeker, Arcane Orbit bodies, Plague/Soul Bloom spores and falling meteor rocks all opt into this contract. Orbit centers, cast reach, movement speed, collisions, meteor warning rings and explosion radii remain authored values. Particle size controls decorative fragments separately, including the directional particle demonstration.
 
 Ice Blast applies damage, slow and knockback when a moving shard sweeps across an enemy hurtbox. A shard is consumed on contact; an enemy can take damage only once from one fan. Plague spores attach infection markers only on arrival. Both initial and spread spores travel, including death transfers; pending spores count toward the eight-host cap. Invalidated targets can redirect to another eligible live host within the original acquisition radius, or expire.
 

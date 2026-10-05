@@ -56,6 +56,41 @@ static func select_area(tree: SceneTree, origin: Vector2, radius: float, maximum
 			nearest = distance
 	return selected
 
+## Spears always go through the nearest enemy. Among aim points whose line still passes through
+## that nearest enemy, pick the one that also hits the most enemies behind it. Readable rule:
+## the closest enemy is always hit; the spear only tilts slightly to catch a line behind it.
+static func select_line(tree: SceneTree, origin: Vector2, radius: float, reach: float, viewport: Rect2 = Rect2(), candidates: int = 40):
+	var enemies = tree.get_nodes_in_group("enemies").filter(alive)
+	if viewport.has_area():
+		enemies = enemies.filter(func(e): return e.is_visible_in_tree() and viewport.has_point(e.get_global_transform_with_canvas().origin))
+	if enemies.is_empty():
+		return null
+	enemies.sort_custom(func(a, b): return origin.distance_squared_to(a.global_position) < origin.distance_squared_to(b.global_position))
+	var nearest = enemies[0]
+	var best = nearest
+	var best_count = line_hits(enemies, origin, (nearest.global_position - origin).normalized(), radius, reach)
+	for i in range(1, mini(candidates, enemies.size())):
+		var direction = (enemies[i].global_position - origin).normalized()
+		var to_nearest = nearest.global_position - origin
+		if to_nearest.dot(direction) < 0.0 or absf(to_nearest.cross(direction)) > radius:
+			continue  # this line would miss the nearest enemy
+		var count = line_hits(enemies, origin, direction, radius, reach)
+		if count > best_count:
+			best_count = count
+			best = enemies[i]
+	return best
+
+static func line_hits(enemies: Array, origin: Vector2, direction: Vector2, radius: float, reach: float) -> int:
+	if direction == Vector2.ZERO:
+		return 0
+	var count = 0
+	for enemy in enemies:
+		var offset = enemy.global_position - origin
+		var along = offset.dot(direction)
+		if along >= 0.0 and along <= reach and absf(offset.cross(direction)) <= radius:
+			count += 1
+	return count
+
 static func meteor_weight(distance: float, health: float, coverage: float) -> float:
 	return (1.0 / (1.0 + maxf(0.0, distance) / 300.0)) * clampf(sqrt(maxf(1.0, health) / 30.0), 1.0, 3.0) / (1.0 + maxf(0.0, coverage) * 3.0)
 

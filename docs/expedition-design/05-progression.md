@@ -61,8 +61,8 @@ Recipe discovery is permanent once both bases are known. In a run it activates w
 |Lightning Bolt|Bolt + Lightning|Same|
 |Steam Field|Cinder Field + Ice Blast|Same|
 |Frost Sigil|Rune Trap + Ice Blast|Same|
-|Meteor Lance|Ember Lance + Meteor Shower|Same|
-|Prism Ray|Focus Ray + Ember Lance|Same|
+|Meteor Spear|Ember Spear + Meteor Shower|Same|
+|Prism Ray|Focus Ray + Ember Spear|Same|
 |Soul Bloom|Plague Seed + Regeneration|Same|
 
 Fire Bolt is currently proposed as a discovered base spell because `Fiery Bolt` already has a clear compositional meaning. If standalone Fire becomes a base later, its relationship to Fire Bolt must be reviewed rather than silently adding another recipe. Reaping Spirit remains deferred.

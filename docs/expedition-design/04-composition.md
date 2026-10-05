@@ -55,7 +55,7 @@ A spell is a graph of effect components. Example: Meteor Shower owns a volley sc
 | Big | ×1.35 linear effect dimensions | Only spells with a scalable gameplay area/body; see authoritative allowlist | More coverage, unchanged potency; golem body/reach grow, health unchanged |
 | Powerful | P += 0.50 | Damage/heal/shield/summon attack | Longer input; brighter contact, no false area growth |
 | Swift | travel speed ×1.35 | Travelling projectiles, moving spirits | Same range; shorter flight lifetime; not movement speed or faster typing |
-| Seeking | turn rate 4 rad/s, acquire within 320 wu of projectile | Bolt, Fire Bolt, Ember/Meteor Lance, Water Jet | No extra damage, range or pierce; native seeking retains greater native turn if any |
+| Seeking | turn rate 4 rad/s, acquire within 320 wu of projectile | Bolt, Fire Bolt, Ember/Meteor Spear, Water Jet | No extra damage, range or pierce; native seeking retains greater native turn if any |
 | Repulsing | +70 wu collision-safe push per target per root cast | Contact damage, fields, beams | Displacement not extra DPS; no repeated tick pinball |
 | Duplicating | +1 native output, each initial output ×0.80 potency | Projectile volleys/meteors/spirits/golem/orbit; instant heal/shield excluded | One bolt becomes two; 9 shards become 10, not 18; broad utility differs by spell |
 | Repeating | One follow-up 0.60 s after initial release; ×0.40 potency, ×0.75 geometry | Instant attacks, volleys, fields; self heal/shield/summons/persistent traps excluded | Never recursive; child follows same target rules, never fresh assist |
@@ -88,7 +88,7 @@ A pending Delayed release does not block the next cast; it counts toward eight p
 
 | Shape | Big affects | Swift affects | Duplicating creates | Repeat behavior |
 |---|---|---|---|---|
-| Bolt/lance/jet | Visible body and swept collision width | Travel, with fixed max range | +1 emitted body | Second volley from current caster location at its scheduled time |
+| Bolt/spear/jet | Visible body and swept collision width | Travel, with fixed max range | +1 emitted body | Second volley from current caster location at its scheduled time |
 | Ice Blast fan | Shard body and collision only, not fan angle/range | Shard speed | +1 shard across same fan | New fan; fresh target ledger only for follow-up generation |
 | Meteor Shower | Impact disk and rock body | Incompatible; descent belongs to warning schedule | +1 impact | New smaller marked shower; each generation preserves the original 0.65 + 0.25 i warning schedule |
 | Lightning / radial burst | Actual active disk | Incompatible | Incompatible for pure single-disk burst | New disk; location policy below |
@@ -119,7 +119,7 @@ Ground spells lock their selected location at commit. Repeat reuses the location
 | Candidate | Intended distinct contribution | Why not first slice |
 |---|---|---|
 | Orbiting / Rotating | Projectile adopts caster-relative orbit, limited contacts | Changes hit opportunities radically; needs own collision/expiry rule |
-| Piercing | +2 unique contacts at decreasing potency | Must not duplicate native lance identity without tradeoff |
+| Piercing | +2 unique contacts at decreasing potency | Must not duplicate native spear identity without tradeoff |
 | Wide | Fan angle or beam width without radial-size change | May overlap Big; require useful decision |
 | Super / Omega (beyond implemented MEGA) | Higher commitment tiers with distinct release patterns | Avoid mandatory synonym stack; aspiration is real but mechanics need testing |
 | Quick Cast | Recognized initials, sharply weaker cast | Undermines typing commitment if too efficient; separate accessibility discussion |
@@ -149,7 +149,7 @@ A scheduled area impact counts as an impact body from reservation through active
 |Regeneration|Powerful, Lasting|
 |Earth Shield|Big, Powerful, Lasting, Charged|
 |Meteor Shower|Big, Powerful, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
-|Ember Lance|Big, Powerful, Swift, Seeking, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
+|Ember Spear|Big, Powerful, Swift, Seeking, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
 |Plague Seed|Big, Powerful, Swift, Delayed, Lasting, Fiery, Icy, Earthen|
 |Cinder Field|Big, Powerful, Repulsing, Repeating, Delayed, Charged, Lasting, Fiery, Icy, Earthen|
 |Arcane Orbit|Big, Powerful, Repulsing, Duplicating, Lasting, Fiery, Icy, Earthen|
@@ -173,7 +173,7 @@ A scheduled area impact counts as an impact body from reservation through active
 |Yggdrasil|Big, Powerful, Delayed, Fiery, Icy, Earthen|
 |Lightning Bolt|Big, Powerful, Swift, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
 |Life Bolt|Big, Powerful, Swift, Seeking, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
-|Meteor Lance|Big, Powerful, Swift, Seeking, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
+|Meteor Spear|Big, Powerful, Swift, Seeking, Repulsing, Duplicating, Repeating, Delayed, Charged, Fiery, Icy, Earthen, Venomous|
 |Soul Bloom|Big, Powerful, Swift, Delayed, Lasting, Fiery, Icy, Earthen|
 |Steam Field|Big, Powerful, Repulsing, Repeating, Delayed, Charged, Lasting, Fiery, Icy, Earthen|
 |Prism Ray|Big, Powerful, Repulsing, Lasting, Fiery, Icy, Earthen, Venomous|

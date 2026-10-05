@@ -1050,6 +1050,13 @@ func _on_typing_ended():
 
 
 # Function to upgrade spells
+func enemies_within(center: Vector2, radius: float) -> int:
+	var count = 0
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if _live_spell_target(enemy) and enemy.global_position.distance_to(center) <= radius:
+			count += 1
+	return count
+
 func upgrade_spell(spell_name: String):
 	if spell_name == "mana_bolt":
 		mana_bolt_level += 1
@@ -1195,6 +1202,10 @@ func handle_freeform_typing_input(event: InputEventKey):
 			if AudioManager:
 				AudioManager.play_typing_sound(char)
 			
+			# A finished ley word binds at once, like a finished spell name.
+			if current_typing_text.strip_edges() in ley_words():
+				attempt_freeform_cast()
+				return
 			# Check if we have a perfect match with any spell
 			if not space_casting and (find_cast_spell_slot(current_typing_text) != 0 or current_typing_text == "atomic"):
 				attempt_freeform_cast()
@@ -1282,6 +1293,11 @@ func cast_freeform_spell_by_type(spell_name: String, _spell_data: Dictionary):
 	if is_spell_unlocked(slot):
 		cast_spell_by_type(slot)
 
+## Ley words typable here, from the ley site the player is standing in.
+func ley_words() -> Array:
+	var ley = get_tree().get_first_node_in_group("ley_lines")
+	return ley.available_words() if ley and ley.has_method("available_words") else []
+
 func update_freeform_typing_display():
 	if game_manager and game_manager.has_method("update_typing_display"):
 		var display_text = ""
@@ -1294,6 +1310,10 @@ func update_freeform_typing_display():
 
 			if is_instance_valid(game_manager.style_session) and game_manager.style_session.atomic_available() and "atomic".begins_with(current_typing_text):
 				potential_matches.append("atomic")
+			# Ley words in reach match like spells do.
+			for word in ley_words():
+				if not normalized.is_empty() and str(word).begins_with(normalized):
+					potential_matches.append(word)
 			display_text = current_typing_text if not current_typing_text.is_empty() else "Type an equipped spell…"
 			if not current_typing_text.is_empty() and potential_matches.is_empty():
 				display_text += " · No matching spell"
@@ -1499,6 +1519,11 @@ func cast_build_spell(slot: int) -> bool:
 		volley.configure(info, calculate_spell_damage(info), player)
 		return true
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
+	if info.type == "piercing":
+		var lance_reach = 700.0 * 1.5 * float(cast_stat("projectile_speed_multiplier"))
+		var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("lance_radius", 24.0)), lance_reach, get_viewport().get_visible_rect())
+		if line_target != null:
+			target = line_target
 	if info.type == "field":
 		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
 	if info.type == "plague" and target == null:
@@ -1516,15 +1541,34 @@ func cast_build_spell(slot: int) -> bool:
 				return true
 	if active.size() >= int(info.get("active_limit", 3)):
 		if info.get("extend_at_cap", false):
-			var weakest = active[0]
+			# At the cap a recast goes where the horde is: extend the field already covering the
+			# target, otherwise move the emptiest field there. Fields never sit extended on empty ground.
+			var covering = null
+			if target != null and is_instance_valid(target):
+				for existing in active:
+					if existing.global_position.distance_to(target.global_position) <= float(existing.info.get("radius", 150.0)):
+						covering = existing
+						break
+			if covering == null and (target == null or not is_instance_valid(target)):
+				covering = active[0]
+				for existing in active:
+					if existing.remaining < covering.remaining:
+						covering = existing
+			if covering != null:
+				var added = covering.queue_cast_extension(info, calculate_spell_damage(info))
+				DamageSource.stamp(covering)
+				spell_extended.emit(info.id, added)
+				return true
+			var emptiest = active[0]
+			var fewest = INF
 			for existing in active:
-				if existing.remaining < weakest.remaining:
-					weakest = existing
-			var added = weakest.queue_cast_extension(info, calculate_spell_damage(info))
-			DamageSource.stamp(weakest)
-			spell_extended.emit(info.id, added)
-			return true
-		active[0].queue_free()
+				var inside = enemies_within(existing.global_position, float(existing.info.get("radius", 150.0)))
+				if inside < fewest or (inside == fewest and existing.remaining < emptiest.remaining):
+					fewest = inside
+					emptiest = existing
+			emptiest.queue_free()
+		else:
+			active[0].queue_free()
 	if tactical:
 		target = null
 		var distance = INF

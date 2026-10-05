@@ -1,3 +1,62 @@
+# Experiment (experiment/day-cycle) — Dusk and night look
+
+- New colour grade (shaders/day_grade.gdshader): light colour (per-channel gain), split toning (shadows and highlights tinted separately), hue rotation, saturation, contrast, and a sky glow washed down from the top of the screen. Replaces the flat tint that turned the field mustard, brown and flat teal.
+- The day goes: plain 3 pm → warmer afternoon → golden hour (yellow-green, warm highlights) → sunset (amber, orange sky glow) → twilight (cool ground, mauve sky glow, purple shadows) → night (deep blue-green, moonlit highlights, still bright enough to read).
+- Lights pop: bright, saturated pixels (spells, fire, the wizard) keep most of their own colour, more so as night falls.
+- Nightfall is a moment: the world dips dark for 2 s and eases back, the screen shakes, and the banner reads NIGHT FALLS with the boss's name. Banners no longer cut each other off.
+- Keyframes live in DayCycle.SKY_KEYS (data/day_sky.tres is gone).
+
+# Experiment (experiment/day-cycle) — Console: day command
+
+- Developer console (~): `day 3` starts day 3 (run time moves forward to match, never back), `day dusk` puts you 3 s before the dusk warning, `day night` brings the boss now. Test: day_console_regression.
+# Unreleased — Lance → Spear
+
+- **Ember Lance is now Ember Spear** (type `ember spear`), and **Meteor Lance is now Meteor Spear** (`meteor spear`). It's thrown, so it's a spear. The old incantations no longer cast. Internal ids (`ember_lance`, `meteor_lance`, `lance_radius`) are unchanged, so saves, unlocks and telemetry carry over.
+- Design docs use Spear for the family and every idea in it (Ice / Glacial / Earth / Plague / Life Spear; Lightning Spear can land as a rod).
+
+# 0.2.7 — Casting circle, burning Ember Lance, Cinder fix
+
+- **Casting circle.** Every typed letter is a rune on a circle under the wizard. Rings fill at 3 / 6 / 9 runes (spaces inside a spell count), the colour switches as soon as the element is certain, ghost runes show the rest once the spell is certain, and a typo cracks the rune red. Power words (MEGA) orbit as satellites and scale the burst. Rings drift so the hat never hides the same slot. Ley words build the circle in ley colours inside an awakened site.
+- **Casting feel.** On a typed release: short hitstop and camera kick scaled by incantation length and power word, the staff flares, screen edges take the element colour while charging, the sealed rings stay scorched on the ground for a moment, and element sparks fly off (embers, ice shards, storm forks, spores, holy crosses). All off with Reduced effects.
+- **Ember Lance burns.** The throw leaves a fire strip along its path for ~1.5 s; anything in it or walking into it burns every 0.5 s. Impact ~20% lower (rank 8 ~372) so it still one-shots trash. Max 3 lines. It always goes through the nearest enemy and only tilts to also catch a line behind it.
+- **Cinder Field fix.** At the 3-field cap a recast extends the field covering the horde or moves the emptiest field onto it; fields no longer sit extended on empty ground.
+- Spells carry an element (fire, ice, storm, plague, holy, arcane, spirit, steel, earth, death).
+- Bot: `--rank-schedule` grants focus ranks on a clock, removing rank-card luck from balance runs.
+- **Day-night expedition** (merged from experiment/day-cycle): four-day run with a day-night colour grade, night bosses, camp, paced ley sieges. Details below.
+
+# Experiment (experiment/day-cycle) — Boss nights on the normal cycle, XP is never left behind
+
+- Boss nights run the normal 2-minute spawn cycle on the run timer (light / heavy / medium as before day shapes existed), and difficulty keeps climbing with the run timer. The day clock is stopped at night, so a long night means the next day starts harder: kill the boss fast.
+- When the boss falls the rest still flee, and now every XP orb on the map flies to the player during the 6 s quiet before camp (including the boss's own drop).
+- Boss health rebalanced so each night is a fight of similar length (bot runs: 27–53 s, 37–94 s, 29–58 s, 15–62 s before the Warden bump): The Gatekeeper 1000, The Pursuer 5000, The Iron Guard 9000, The Warden 18000. Before, bosses 2–4 died roughly ten times faster than the first.
+- Bot: in invulnerable runs it walks to the boss instead of kiting away, so boss fight lengths are measurable.
+
+# Experiment (experiment/day-cycle) — Balance pass: days with a shape, real rests
+
+- Spawn pressure follows the day clock, not the run timer (scaling.day_spawn_phases). Every day has the same shape: a 30 s light opening after waking, four heavy waves that build toward dusk (spawn interval 1.4 → 1.25 → 1.1 → 0.95 s before difficulty scaling), a medium tail after each of the first three, a light breather between waves, and a 25 s calm before the boss. About 47% of daylight is light, 38% heavy, 15% medium.
+- Light phases are a real rest all run long. Each phase has a "growth" (how much of the run's difficulty ramp it takes): heavy 1.0, medium 0.85, light 0.3. Before, a late-run light phase spawned 3.2 enemies/s, more than an early heavy phase (2/s); now it is about 1.1/s. Light phases also keep only 35% of the usual minimum crowd (medium 70%), so clearing the screen actually leaves it clear.
+- XP per kill ×1.6 (scaling.xp_multiplier). With quieter light phases a run has about half the kills; bot runs fell ~25 levels behind without it.
+- The boss night has its own light spawn phase (interval 6 s, 30% minimum crowd, growth 0.6), so the fight is the boss, not the adds.
+- When the boss falls, every other monster flees (no kill, no XP). The field stays quiet for 6 s ("The night goes quiet") to grab the chest and XP, then camp opens.
+- Boss health: The Gatekeeper 1200 → 900, The Pursuer 1800 → 3500, The Iron Guard 2600 → 5500, The Warden 4000 → 8000. Bot runs had days 2–4 bosses dying in 10–30 s.
+- Ley sieges: the circle takes one word at a time. The next word can only be bound once the last wave has arrived and at most 2 of it are still standing (LeyLines.WORD_WAITS_FOR_WAVE). A fast typist could bind all four words in seconds and stack four waves plus the guardian. While a site is engaged, the map's own spawning drops to 50% (SIEGE_AMBIENT_SHARE), so the site's waves replace the ambient pressure instead of stacking on top. Ley Guardian health 900 + 100/min → 450 + 150/min (cheaper early, same by minute 9).
+- Tests: suites that cover the classic 20-minute run (console, crowd replenishment, full-run lifecycle, midgame curve, balance) switch the day cycle off; stale expectations from the earlier breathing-room change fixed (crowd replenishment, spawn phase timer).
+- Tools: the bot can play the day cycle (it wakes from camp), records 5-second pressure samples (enemies alive and near, damage, spawn phase), has a skilled mode (crowd-aware kiting, types in gaps), a ley mode (walks to sites and types their words), and takes --cps / --cast-gap for typing speed.
+
+# Experiment (experiment/day-cycle) — Breathing room
+
+- The 2-minute spawn cycle has more rest: light phases 0–25 s and 65–85 s (45 s of every 120, up from 25 s) and lighter (a spawn every 4 s, up from 3). Heavy phases 25–50 s and 85–105 s (45 s, down from 60) at the same intensity, so peaks hit as hard but come less often.
+- Ley sites no longer send waves on a timer. Waking a site earns one wave and each bound word earns another (the last word brings the guardian). Earned waves hold during the map's light phases and arrive at least 4 s apart, so light phases are the time to step in and type. Leaving the site still pauses everything.
+
+# Experiment (experiment/day-cycle) — Four-day expedition
+
+- A run is four days of 5 minutes of daylight each (the wizard sleeps till 3 pm). The world's colour grade shifts from plain afternoon through golden hour and dusk to night; a "Dusk falls" warning comes at 80% of the day.
+- When daylight runs out it turns to night and that day's boss emerges (The Gatekeeper, The Pursuer, The Iron Guard, then The Warden). The day clock stops at night; the run timer keeps counting, so runs last longer than 20 minutes.
+- Killing the boss opens a camp screen: the game pauses, combo is kept. Waking up starts the next day at 3 pm with a 10 s no-decay grace. The fourth boss leads to extraction ("4 DAYS SURVIVED"); continuing into endless keeps the days going with tougher repeat bosses.
+- MonsterManager.day_cycle_driven turns off the fixed 5/10/15-minute bosses and the 20:00 end. New GameState.CAMP. Training has no day cycle.
+- The grade is a screen shader (shaders/day_grade.gdshader) that tints like coloured light and restores each pixel's brightness, so night reads through colour, not darkness. The HUD is above it and never tinted. Colours are a Gradient in data/day_sky.tres, editable in the Godot editor (colour = hue, alpha = strength).
+- Tests: new day_cycle_regression.
+
 # Unreleased — Bigger ley circles, fixed sites, minimap
 
 - Ley circles are nearly four times wider (radius 90 to 340) so there is room to move and fight inside while typing; ring, rune marks and core scaled up. Engage radius 900 to 1200.

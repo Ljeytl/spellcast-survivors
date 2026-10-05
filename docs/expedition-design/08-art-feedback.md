@@ -53,7 +53,7 @@ Milliseconds are duration units, not fixed render frames. At 60 Hz, 33 ms ≈ 2 
 | Event | Contact / reaction / decay | Global interruption |
 |---|---|---|
 |Ordinary Bolt|Immediate 33 ms local accent; 80 ms target sprite recoil; 120 ms tiny directional fragments|None|
-|Heavy lance or blade|33 ms sharp contact; 100 ms recoil; 180 ms thin debris|Optional 25 ms, root's first qualifying hit only|
+|Heavy spear or blade|33 ms sharp contact; 100 ms recoil; 180 ms thin debris|Optional 25 ms, root's first qualifying hit only|
 |Charged major area|50 ms local silhouette/rim; 100 ms expanding impact shape; 250 ms thinning aftermath|50 ms once/root|
 |Repeated follow-up|20 ms small accent; 80 ms local reaction; 120 ms decay|None|
 |Damage-over-time tick|Brief lesion/fire pulse synchronized with damage; no burst cloud|None|
@@ -90,7 +90,7 @@ This is the art list the spell list depends on. Each campaign spell gets a 36 ×
 
 | Family | Required source assets | Used by |
 |---|---|---|
-|Projectile|Arcane core, ember point, ice shard, water head, spore, lightning knot, leaf seed; 4 frames each maximum initially|Bolt, Fire Bolt, Ice Blast, lances, Water Jet, Plague, Lightning Bolt, Life Bolt|
+|Projectile|Arcane core, ember point, ice shard, water head, spore, lightning knot, leaf seed; 4 frames each maximum initially|Bolt, Fire Bolt, Ice Blast, spears, Water Jet, Plague, Lightning Bolt, Life Bolt|
 |Ground|Rune ring, irregular flame fill, steam roll, crack mask, ice fracture, moon rune; 4–6 frames or parameterized shapes|All fields, traps, Lightning, Earthquake, Moonfall|
 |Large strike|Meteor rock 3 frames + shadow, impact rim 3 frames, arcane lightning star 3 frames|Meteor Shower, Mana Storm, Lightning|
 |Persistent body|Spirit face/tail 4 frames, cross blade 4, orbit mote 4, stone piece 3, leaf 4|Seeker, Cross Blade, Arcane Orbit, Earth Shield, Regen|

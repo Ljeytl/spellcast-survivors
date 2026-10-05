@@ -11,44 +11,10 @@
     "maximum_enemies": 160,
     "opening_spawn_interval": 3.0,
     "spawn_growth_start_seconds": 180.0,
-    "spawn_phases": [
-      {
-        "start": 0,
-        "pressure": "light",
-        "interval": 3
-      },
-      {
-        "start": 15,
-        "pressure": "heavy",
-        "interval": 1
-      },
-      {
-        "start": 45,
-        "pressure": "medium",
-        "interval": 2
-      },
-      {
-        "start": 60,
-        "pressure": "light",
-        "interval": 3
-      },
-      {
-        "start": 70,
-        "pressure": "medium",
-        "interval": 2
-      },
-      {
-        "start": 80,
-        "pressure": "heavy",
-        "interval": 1
-      },
-      {
-        "start": 110,
-        "pressure": "medium",
-        "interval": 2
-      }
-    ],
+    "spawn_phases": [{"start": 0, "pressure": "light", "interval": 4}, {"start": 25, "pressure": "heavy", "interval": 1}, {"start": 50, "pressure": "medium", "interval": 2}, {"start": 65, "pressure": "light", "interval": 4}, {"start": 85, "pressure": "heavy", "interval": 1}, {"start": 105, "pressure": "medium", "interval": 2}],
     "spawn_cycle_seconds": 120,
+    "day_spawn_phases": [{"start": 0, "pressure": "light", "interval": 4, "floor": 0.35, "growth": 0.3}, {"start": 30, "pressure": "heavy", "interval": 1.4, "floor": 1.0, "growth": 1.0}, {"start": 55, "pressure": "medium", "interval": 2.4, "floor": 0.7, "growth": 0.85}, {"start": 70, "pressure": "light", "interval": 4, "floor": 0.35, "growth": 0.3}, {"start": 100, "pressure": "heavy", "interval": 1.25, "floor": 1.0, "growth": 1.0}, {"start": 130, "pressure": "medium", "interval": 2.2, "floor": 0.7, "growth": 0.85}, {"start": 145, "pressure": "light", "interval": 4, "floor": 0.35, "growth": 0.3}, {"start": 175, "pressure": "heavy", "interval": 1.1, "floor": 1.0, "growth": 1.0}, {"start": 205, "pressure": "medium", "interval": 2, "floor": 0.7, "growth": 0.85}, {"start": 220, "pressure": "light", "interval": 4, "floor": 0.35, "growth": 0.3}, {"start": 245, "pressure": "heavy", "interval": 0.95, "floor": 1.0, "growth": 1.0}, {"start": 275, "pressure": "light", "interval": 4, "floor": 0.35, "growth": 0.3}],
+    "xp_multiplier": 1.6,
     "spawn_growth_factor": 1.28,
     "spawn_difficulty_points": [
       {"time": 0, "multiplier": 1.0},

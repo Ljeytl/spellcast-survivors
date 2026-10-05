@@ -129,6 +129,8 @@ func advance(delta: float):
 	if info.type == "piercing":
 		var start = global_position
 		global_position += direction * 700.0 * float(info.get("projectile_speed_multiplier", 1.0)) * elapsed
+		if info.get("burn_trail", false):
+			update_burn_trail(start)
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()):
 				continue
@@ -175,6 +177,23 @@ func advance_orbit(delta: float):
 
 func valid_target(enemy) -> bool:
 	return is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and not enemy.get("dying") and float(enemy.get("current_health")) > 0.0
+
+## Ember Spear: the line it flies through stays on fire (EmberTrail), less impact, more over time.
+var burn_trail_ref: WeakRef = null
+func update_burn_trail(start: Vector2):
+	var trail = burn_trail_ref.get_ref() if burn_trail_ref else null
+	if trail == null and burn_trail_ref == null:
+		trail = preload("res://scripts/EmberTrail.gd").new()
+		DamageSource.stamp(trail, DamageSource.of(self))
+		trail.a = start
+		trail.radius = float(info.get("lance_radius", Geometry.LANCE_RADIUS)) * float(info.get("projectile_size_multiplier", 1.0))
+		trail.tick_damage = damage * float(info.get("burn_tick_ratio", 0.12))
+		trail.tick_interval = float(info.get("burn_tick", 0.5))
+		trail.linger = float(info.get("burn_duration", 1.5))
+		get_parent().add_child(trail)
+		burn_trail_ref = weakref(trail)
+	if is_instance_valid(trail):
+		trail.b = global_position
 
 func deal_damage(enemy, amount: float) -> float:
 	if not valid_target(enemy):

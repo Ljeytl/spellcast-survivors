@@ -76,7 +76,7 @@ func run():
 			miss.global_position = fixture.game.player.global_position + Vector2(100, 24 * factor + 1)
 			effects[0].direction = Vector2.RIGHT
 			effects[0].advance(0.2)
-			check(hit.current_health < 10000 and miss.current_health == 10000, "Ember Lance hits only inside the compact projectile edge")
+			check(hit.current_health < 10000 and miss.current_health == 10000, "Ember Spear hits only inside the compact projectile edge")
 		check(is_equal_approx(size.aspect(), 285.0 / 131.0), id + " original atlas aspect ratio preserved")
 		check(is_equal_approx(geometry.stamp_offset("lance", geometry.LANCE_RADIUS * factor).x + size.x / 2, geometry.LANCE_RADIUS * factor), id + " visual tip matches damage leading edge")
 	var workshop = load("res://tools/workshop/VisualWorkshop.gd").new()

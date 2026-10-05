@@ -8,7 +8,8 @@ enum GameState {
 	LEVEL_UP,    # Player is selecting upgrades, game is paused
 	GAME_OVER,   # Player has died, showing game over screen
 	EXTRACTION,
-	PAUSED       # Game is temporarily suspended via ESC key
+	PAUSED,      # Game is temporarily suspended via ESC key
+	CAMP         # Night camp between days (experiment/day-cycle); paused, combo kept
 }
 
 # UI animation and visual effect constants
@@ -142,6 +143,9 @@ func _ready():
 		var ley_lines = preload("res://scripts/LeyLines.gd").new()
 		ley_lines.game = self
 		add_child(ley_lines)
+		var day_cycle = preload("res://scripts/DayCycle.gd").new()
+		day_cycle.game = self
+		add_child(day_cycle)
 	
 
 # Master setup function that initializes all game systems
@@ -443,6 +447,10 @@ func setup_ui():
 func setup_player():
 	if player:
 		player.add_child(preload("res://scripts/OrbitingStaff.gd").new())
+		var casting_circle = preload("res://scripts/CastingCircle.gd").new()
+		casting_circle.manager = spell_manager
+		casting_circle.sprite = player.get_node("Sprite2D")
+		player.add_child(casting_circle)
 		player.health_changed.connect(_on_player_health_changed)
 		player.xp_changed.connect(_on_player_xp_changed)
 		player.player_died.connect(_on_player_died)

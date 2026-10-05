@@ -37,7 +37,7 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Ice Blast | Ice gathers → forward cone of shards expands → impacts/knockback only inside cone → slow accents on affected survivors → melt/break. | Confirmed directional cone. Clear origin, opening angle and reach; no radial visual suggesting hits behind the wizard. |
 | Earth Shield | Proposed earth protection assembles near caster → damage cracks → readable remaining protection/erosion → break or expiry. | Final geometry awaits Shield versus Earth Wall distinction; do not generate a placed-wall asset and assume it defines the shield. |
 | Meteor Shower | Strong invocation → separate descending meteors and landing cues → forceful rock/fire impacts → only real lingering effects → settling debris. | Major earned crowd payoff. Optional brief bounded shake on impact. |
-| Ember Lance | Narrow ignition → long piercing spear silhouette → sparks at each real hit → none → extinguished tail. | Precise destructive line. Not a recolored small bolt. |
+| Ember Spear | Narrow ignition → long piercing spear silhouette → sparks at each real hit → none → extinguished tail. | Precise destructive line. Not a recolored small bolt. |
 | Plague Seed | Seed forms → visible travel and planting in host → infection onset → persistent plant marker plus travelling host-to-host transfer → withering. | “I am infecting the horde.” Show actual source/destination, never fictional spread. |
 | Cinder Field | Ground ignition → irregular low-flame patch → tick embers at actual contacts → burning ground with clear gaps → cooling ash. | Persistent dangerous ground. Not isolated flame icons around a ring. |
 | Arcane Orbit | Fragments assemble → satellites circle wizard → flare on actual satellite contact → individually readable orbiting objects → retract/dissolve. | Close protection through motion; distinguish from autonomous creatures. |
@@ -53,7 +53,7 @@ Every row covers cast → travel/placement → hit → sustained state → endin
 | Identity | Intended visible sequence | Distinction / constraint |
 |---|---|---|
 | Life Bolt | Seed-accented projectile → actual impact plants small healing seed → persistent collectable seed → pickup bloom → brief actual healing pulses. | Physical collection is required. No automatic healing return; distinguish plant seed from XP crystal. |
-| Meteor Lance | Dense ignition → molten piercing spear → compact explosion on each qualifying hit → brief debris → cooling. | Composite spear/local explosion, not another full Meteor Shower. |
+| Meteor Spear | Dense ignition → molten piercing spear → compact explosion on each qualifying hit → brief debris → cooling. | Composite spear/local explosion, not another full Meteor Shower. |
 | Soul Bloom | Seed → planting → flowering infection → visible spread and earned healing motes → wither. | Distinguish infection from its healing reward. |
 | Steam Field | Heat/frost meet → low rolling vapor → contact ticks → transparent steam → rapid thinning. | Steam silhouette, not a blue flame field or opaque cloud. |
 | Prism Ray | Faceted focus → coherent piercing beam → real contact points → readable aligned targets → facet/beam collapse. | Show the actual affected line, never decorative false branches. |

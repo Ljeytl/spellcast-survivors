@@ -647,7 +647,7 @@ Space/Enter casting, movement lock while typing, Life Bolt acquisition and a per
 
 ### Gameplay build expansion — September 26, 2026
 
-Implemented Ember Lance, Plague Seed, Cinder Field and Arcane Orbit, plus Life Bolt, Meteor Lance, Soul Bloom and Steam Field evolutions. Five manual slots create build commitments. Next: full-run human play alongside multiple bot seeds, then tune spell value, discovery frequency and boss pressure from evidence. Graphics remain deferred. Consider explicit replacement choices and additional recipes only after this pool produces satisfying runs.
+Implemented Ember Spear, Plague Seed, Cinder Field and Arcane Orbit, plus Life Bolt, Meteor Spear, Soul Bloom and Steam Field evolutions. Five manual slots create build commitments. Next: full-run human play alongside multiple bot seeds, then tune spell value, discovery frequency and boss pressure from evidence. Graphics remain deferred. Consider explicit replacement choices and additional recipes only after this pool produces satisfying runs.
 
 ### Playtest hypotheses — September 26
 

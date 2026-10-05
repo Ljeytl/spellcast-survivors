@@ -39,8 +39,8 @@ class DocumentationChecks(unittest.TestCase):
         for spell_id in ids:
             if spell_id in spells:
                 self.assertIn(spells[spell_id]['name'], table)
-        for name in ('Ember Lance', 'Plague Seed', 'Cinder Field', 'Arcane Orbit',
-                     'Lightning Bolt', 'Life Bolt', 'Meteor Lance', 'Soul Bloom',
+        for name in ('Ember Spear', 'Plague Seed', 'Cinder Field', 'Arcane Orbit',
+                     'Lightning Bolt', 'Life Bolt', 'Meteor Spear', 'Soul Bloom',
                      'Steam Field', 'Prism Ray', 'Frost Sigil'):
             self.assertIn(name, table)
         selected = table.split('## Examples and historical proposals')[0]
