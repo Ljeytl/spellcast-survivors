@@ -76,7 +76,8 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison, bleed) are fully elemental. Raw damage is reduced only by armour; elemental damage only by that element's resistance.
 - **Element keywords add, never convert:** extra elemental damage (+35% of the base hit, tuning range 25–50%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
 - **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Holy/Life. Merged schools share one damage type, signature status and resistance (6.1).
-- **Fusion and reactions, both** (section 6.4). Two elements on one spell **fuse**: both effects coexist with a fused name and look (a flaming ice weapon stays one). Elements from **different casts react**: the second consumes the first's status and fires a burst.
+- **Fusion and reactions, both** (section 6.4). One spell with two elements **fuses**: everything coexists. Different casts react only through a short list of five reactions; most pairs simply coexist. Damage mixing never interacts.
+- **DoT rule:** getting hit again stacks damage and duration, no caps. Burn: every fire hit adds its own 1.5 s burn, all ticking together; bleed is plain; poison ramps and spreads; chill stacks to frozen (5.3).
 - **Custom spells** may have their own code but must still honour the keyword contract (section 10). No current spell needs to be custom.
 - **Spear, not Lance.** The thrown fire weapon is a spear everywhere, including internal ids (section 11). **Lance** is reserved for a different future spell, probably a melee thrust (filed near Slash in doc 16).
 - **Homing Bolt** is a homing signature on Bolt, not a new spell (section 8).
@@ -263,48 +264,50 @@ A status is data:
 | kind | `dot`, `control`, `modifier`, `transform`, `buff` |
 | damage type, tick | for DoTs: what each tick deals and how often |
 | duration | default length |
-| stacking | `independent`, `intensity`, `refresh_strongest`, `replace` |
-| cap | maximum instances or stacks |
-| at cap | what happens when the cap is reached (e.g. chill → freeze) |
+| reapply | how a new application combines (bleed and poison add damage and duration; burn adds a separate instance; poison keeps its ramp) |
+| threshold | what happens at a stack count, if any (chill → frozen at 5) |
 | class | `soft_cc` or `hard_cc` for control resistance |
 | visual | body overlay and icon ids (section 13) |
 
-| Stacking rule | Behaviour | Fits |
+
+**Base rule for every damage-over-time status: getting hit again stacks it.** More applications mean more damage (bleed and poison add damage and duration; burn adds separate short burns). No caps. That is just how effects work; each DoT then has its own identity on top:
+
+| Status | Identity | How it behaves |
 |---|---|---|
-| `independent` | each application has its own timer; all tick | bleed |
-| `intensity` | one timer; stacks rise to the cap; strength scales with stacks; reapplying refreshes the timer | poison, chill |
-| `refresh_strongest` | one instance; keeps the stronger strength and longer remaining time | burn, vulnerable, weaken |
-| `replace` | newest wins | transform, taunt |
+| **Burn** (Fire) | Pour it on. The fastest DoT. | **Every fire hit starts its own burn** that lasts 1.5 s. All active burns tick at once, so more fire hits means more burns burning together. No pool, no timer resets, no cap. |
+| **Bleed** (Earth/Steel) | The simple one. If you're bleeding, you're bleeding. | Each hit adds its bleed damage and duration. Plain, steady damage over time. |
+| **Poison** (Plague/Death) | Inevitable. Slow start, brutal finish, spreads. | Gets worse every second it stays on (1×, 2×, 3×…). New poison adds damage and refreshes the duration **without resetting the ramp**. When a poisoned enemy dies, its poison spreads to neighbours. |
+| **Chill** (Water/Ice) | Lock them down. Control, not damage. | Each hit deals a small **frostbite** hit and adds one stack (more slow per stack). At 5 stacks the enemy becomes **Frozen** (separate status); chill clears and it cannot be frozen again for a short time. |
 
-Rules:
+Other rules:
 
-- **Different statuses always coexist.** Burn, bleed and poison all tick at once, each on its own interval.
-- **Same status from different spells** pools under that status's rule. Each instance remembers its source spell for style credit and kill attribution.
+- **Different statuses always coexist.** Burn, bleed and poison all tick at once.
+- **Each application remembers its source spell** for style credit and kill attribution.
 - **Slows don't multiply into a lock:** strongest slow plus 10% of each other slow, capped at 70%.
-- **Hard control** (stun, freeze, root, transform): bosses and elites have diminishing returns; each application shortens the next by 50% for 4 seconds.
+- **Hard control** (frozen, stunned, rooted, transform): bosses and elites have diminishing returns; each application shortens the next by 50% for 4 seconds.
 
 ### 5.4 Status catalogue (proposed)
 
-| Status | Element | Kind | Stacking | Effect |
-|---|---|---|---|---|
-| burn | fire | dot | refresh_strongest | Fire damage each 0.5 s |
-| bleed | earth/steel | dot | independent, cap 10 | Earth/steel damage each 0.5 s; more bleeds, more damage |
-| poison | plague/death | dot | intensity, cap 8 | Plague/death damage each 1 s × stacks |
-| infection | plague/death | dot + spread | special (Plague Seed rules) | Ticks and transfers to neighbours (section 12) |
-| chill | water/ice | control (soft) | intensity, cap 5 | Slow per stack; at cap becomes freeze |
-| freeze | water/ice | control (hard) | refresh_strongest | Cannot move or attack |
-| shock | storm | control (soft) | refresh_strongest | Brief stagger on application; enables chain reactions |
-| root | earth/steel, holy/life | control (hard) | refresh_strongest | Cannot move; can still attack |
-| stun | storm, earth/steel | control (hard) | refresh_strongest | Cannot move or attack |
-| weaken | plague/death | modifier | refresh_strongest | Deals less damage |
-| vulnerable | arcane | modifier | refresh_strongest | Takes more damage |
-| taunt | none | control | replace | Attacks the taunter instead of the player |
-| transform | arcane | transform | replace | Replaced by a harmless form for the duration (Polymorph) |
-| radiant | holy | control (soft) | refresh_strongest | Blinded: attacks miss 30% of the time |
-| mark | none | modifier | replace | Target for other parts (Lightning rod, homing) |
-| haste / power / ward | various | buff (friendly) | refresh_strongest | Player buffs from restoration and auras |
-| invulnerable | arcane | buff (friendly) | refresh_strongest | Prismatic Shield |
-| reflect | arcane | buff (friendly) | refresh_strongest | Returns part of incoming damage |
+| Status | Element | Kind | Effect |
+|---|---|---|---|
+| burn | Fire | dot | Each fire hit adds its own 1.5 s burn; all tick together |
+| bleed | Earth/Steel | dot | Steady damage; hits add damage and duration |
+| poison | Plague/Death | dot | Ramps every second; spreads on death |
+| infection | Plague/Death | dot + spread | Plague Seed's host-to-host transfer (section 12) |
+| chilled | Water/Ice | control (soft) | Slow per stack, frostbite hit per stack; 5 stacks → frozen |
+| frozen | Water/Ice | control (hard) | Cannot move or attack; ends early if shattered or thawed |
+| shocked | Storm | control (soft) | Brief stagger; **arcs to one nearby enemy** on application |
+| radiant | Holy/Life | control (soft) | Blinded: attacks miss 30% of the time |
+| rooted | Earth/Steel, Holy/Life | control (hard) | Cannot move; can still attack |
+| stunned | Storm, Earth/Steel | control (hard) | Cannot move or attack |
+| weakened | Plague/Death | modifier | Deals less damage |
+| vulnerable | Arcane | modifier | Takes more damage |
+| taunted | none | control | Attacks the taunter instead of the player |
+| transformed | Arcane | transform | Replaced by a harmless form (Polymorph) |
+| marked | none | modifier | Target for other parts (Lightning rod, homing) |
+| haste / power / ward | various | buff (friendly) | Player buffs from restoration and auras |
+| invulnerable | Arcane | buff (friendly) | Prismatic Shield |
+| reflect | Arcane | buff (friendly) | Returns part of incoming damage |
 
 ### 5.5 Resistance
 
@@ -361,43 +364,30 @@ An element word **adds** to a spell; it never removes the spell's own element.
 
 When a hit carrying element X lands on an enemy holding a status of element Y **from a different cast**, the pair fires `on_reaction`: the status is consumed and a burst fires. Reaction bursts are parts like any other, use the cast's hit record, and count toward link depth. Per-enemy reaction cooldown: 1 s. **One cast never reacts with itself; it fuses** (6.4). The full chart of fusions and reactions is in 6.4.
 
-### 6.4 Interaction chart: fusion and reactions
+### 6.4 Interactions: fusion and reactions
 
-Two elements can meet in two ways, with different rules:
+Two layers, kept separate:
 
-| Situation | Rule | Example |
+1. **Mixing damage never interacts.** A hit is a list of damage entries (raw + elements); each meets its own resistance and the results add up.
+2. **Mixing statuses** is the only place interactions live, and only where it makes physical sense. **Most pairs do nothing: both statuses simply apply.** That is the default, not a gap.
+
+| Situation | Rule |
+|---|---|
+| **Same spell** (its own element + an element word, or two element words) | **Fusion:** everything coexists, nothing consumes anything. The spell gets a fused look (blended colour ramps). `icy ember spear` burns and chills; the burn never melts the chill. A flaming ice weapon stays one. |
+| **Different casts** meeting on one enemy | Only the reactions below. Everything else coexists. Each reaction has a 1 s cooldown per enemy. |
+| **Same element twice** (`icy ice blast`) | **Intensify:** the status is 50% stronger and lasts 50% longer. |
+
+**Reactions, first set (proposed):**
+
+| When | Reaction | Effect |
 |---|---|---|
-| **Fusion**: both elements are on the **same spell** (its own element plus an element word, or two element words) | Both statuses apply and **neither consumes the other**. The pair gets its own name, look (fused colour ramp and particles) and a small twist. The fantasy of a flaming ice weapon is preserved. | `icy ember spear` is a Frostfire spear: it burns and slows, and the burn never melts the chill |
-| **Reaction**: the elements come from **different casts** and meet on one enemy | The second element **consumes** the first one's status and fires a reaction burst. 1 s cooldown per enemy. | Ember Spear on an enemy chilled by Ice Blast: Steam Burst |
-| **Same element twice** | **Intensify:** the status is 50% stronger and lasts 50% longer | `icy ice blast` |
+| Fire hits **chilled** or **frozen** | **Thaw** | Steam burst around the target; removes chill/frozen |
+| A heavy hit (Earth/Steel) hits **frozen** | **Shatter** | Big bonus damage; ends the freeze |
+| Fire hits **poisoned** | **Toxic Flare** | The poison explodes onto nearby enemies |
+| Arcane hits any DoT | **Overload** | The DoT's remaining damage lands at once |
+| Holy hits **poisoned** or **weakened** | **Purge** | Removes them; holy damage per amount removed |
 
-Fusion replaces the earlier "self-reactions off" rule: a single cast never reacts with itself; it fuses. All names and twists below are *proposed*.
-
-Seven elements, matching the school rows in doc 16. Signature statuses: Arcane = vulnerable, Fire = burn, Water/Ice = chill (builds to freeze), Storm = shock, Earth/Steel = bleed, Plague/Death = poison, Holy/Life = radiant.
-
-| Pair | Same spell: fusion | Different spells: reaction |
-|---|---|---|
-| Arcane + Fire | **Spellfire**: Burn + vulnerable. Burn ticks +15% while vulnerable lasts. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
-| Arcane + Water/Ice | **Prismatic Ice**: Chill + vulnerable. Frozen enemies take +25% from all sources. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
-| Arcane + Storm | **Arc Mana**: Shock + vulnerable. Shock staggers last twice as long on vulnerable enemies. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
-| Arcane + Earth/Steel | **Runed Steel**: Bleed + vulnerable. Each bleed on an enemy adds +2% damage taken. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
-| Arcane + Plague/Death | **Doom**: Poison + vulnerable. Enemies below 15% health die on the next hit (not bosses). | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
-| Arcane + Holy/Life | **Starlight**: Radiant + vulnerable. Radiant blinds last 50% longer. | **Overload**: Arcane hit on the other element's status: it detonates at once for its remaining value (DoTs deal their remaining damage; control statuses become a short stun). |
-| Fire + Water/Ice | **Frostfire**: Burn + chill coexist; the burn never melts the chill. White-blue flame. | **Steam Burst**: Fire on chilled/frozen (or water/ice on burning): steam burst around the target and a brief steam cloud that slows; removes the chill. |
-| Fire + Storm | **Plasma**: Burn + shock. Shock arcs carry burn to the enemies they hit. | **Overcharge**: Fire on shocked: small explosion around the target; removes shock. |
-| Fire + Earth/Steel | **Magma**: Burn + bleed. Burn ticks +50% on bleeding enemies; kills leave short lava patches. | **Cauterize**: Fire on bleeding: consumes all bleeds for instant fire damage per stack. |
-| Fire + Plague/Death | **Fever**: Burn + poison. When a burning, poisoned enemy dies, its poison spreads to neighbours. | **Toxic Flare**: Fire on poisoned: poison stacks explode as plague damage around the target. |
-| Fire + Holy/Life | **Sunfire**: Burn + radiant. Burning kills heal you a little. | **Purifying Flame**: Fire on radiant: consumes radiant for a holy-fire nova around the target. |
-| Water/Ice + Storm | **Tempest**: Chill + shock. Shocks automatically arc to chilled enemies nearby. | **Conduct**: Storm on chilled: arcs jump to every chilled enemy nearby; removes chill. |
-| Water/Ice + Earth/Steel | **Permafrost**: Chill + bleed. Bleeding enemies are slowed an extra 10%; roots last 50% longer on chilled enemies. | **Shatter**: Earth/steel on frozen: big bonus damage and the target bursts into a ring of shards; ends the freeze. |
-| Water/Ice + Plague/Death | **Bog Rot**: Chill + poison. Poison spreads between chilled enemies that touch. | **Rime Rot**: Plague on frozen: the target cracks open into a poison cloud. |
-| Water/Ice + Holy/Life | **Holy Water**: Chill + radiant. Hits heal you slightly. | **Glimmer**: Holy on chilled/frozen: shatters in light, healing you and cleansing your debuffs. |
-| Storm + Earth/Steel | **Magnetic**: Shock + bleed. Shocks ripple through the ground to bleeding enemies nearby; your steel projectiles curve toward shocked enemies. | **Magnetise**: Storm on bleeding: bleeding enemies are pulled together briefly. |
-| Storm + Plague/Death | **Plague Arc**: Shock + poison. Shock arcs carry poison stacks. | **Spark Rot**: Storm on poisoned: all remaining poison ticks happen at once. |
-| Storm + Holy/Life | **Judgment**: Shock + radiant. Every few seconds a strike falls from the sky on a marked enemy. | **Smite**: Storm on radiant: a lightning strike from the sky on the target. |
-| Earth/Steel + Plague/Death | **Blight**: Bleed + poison. Poison stacks twice as fast on bleeding enemies; bleeding kills leave spore ground. | **Sepsis**: Plague on bleeding: each bleed becomes two poison stacks. |
-| Earth/Steel + Holy/Life | **Blessed Steel**: Bleed + radiant. Bleed ticks also deal holy damage. | **Mend**: Holy on bleeding: consumes bleeds and heals you per stack. |
-| Plague/Death + Holy/Life | **Twilight**: Poison + radiant. Enemies deal less damage and miss more often; each poison tick heals you a sliver. | **Purge**: Holy on poisoned/infected/weakened: removes them and deals holy damage per stack removed. |
+New reactions are added only when one earns its place in play. Shock's chaining is built into shocked itself, so no "wet" status is needed.
 
 ## 7. What enemies need to support this
 
@@ -511,17 +501,18 @@ Rule of thumb for count words: total output of TWIN ≈ 1.2× and TRIPLE ≈ 1.3
 
 ### 9.2 Statuses
 
-| Status | Strength | Tick | Duration | Cap |
-|---|---|---|---|---|
-| burn | 12–15% of the applying hit per tick | 0.5 s | 3 s | 1 (refresh strongest) |
-| bleed | 5% of the applying hit per tick | 0.5 s | 4 s | 10 instances |
-| poison | 3% of the applying hit × stacks | 1 s | 4 s | 8 stacks |
-| chill | 6% slow per stack | — | 2 s | 5 stacks → freeze 1.5 s |
-| shock | 0.2 s stagger | — | 2 s marker | 1 |
-| weaken | enemy deals 20% less | — | 4 s | 1 |
-| vulnerable | enemy takes 15% more | — | 4 s | 1 |
-| root | cannot move | — | 1.5 s | 1 |
-| stun | cannot move or attack | — | 0.8 s | 1 |
+| Status | Starting value | Notes |
+|---|---|---|
+| burn | each fire hit starts a burn dealing 15% of its fire damage over 1.5 s (ticks every 0.25 s) | fastest DoT; instances are independent, no cap |
+| bleed | each hit adds 5% of the hit per 0.5 s for 4 s (damage and duration add) | no cap |
+| poison | 2% of the applying hit per second, ×1 in the first second, ×2 in the second, and so on; 6 s, refreshed by new poison without resetting the ramp | no cap; spreads on death |
+| chilled | frostbite 4% of the hit per stack applied; 6% slow per stack | 5 stacks → frozen 1.5 s, then 2 s freeze immunity |
+| shocked | 0.2 s stagger; arcs to one enemy within 150 for 40% of the hit | |
+| weakened | enemy deals 20% less | 4 s |
+| vulnerable | enemy takes 15% more | 4 s |
+| radiant | attacks miss 30% | 3 s |
+| rooted | cannot move | 1.5 s |
+| stunned | cannot move or attack | 0.8 s |
 
 Slow cap 70%. Hard-control diminishing returns on bosses and elites: −50% duration for 4 s after each application.
 
@@ -1087,13 +1078,13 @@ Each needs a body overlay or attachment and a small icon.
 
 | Status | Overlay |
 |---|---|
-| burn | flames licking the sprite |
-| bleed | drips; intensity by stack count |
-| poison | green bubbles; stack pips |
+| burn | flames that grow with the number of active burns |
+| bleed | drips |
+| poison | green tint that deepens as it ramps |
 | infection | spores and veins |
-| chill | frost creep, 5 stages |
-| freeze | ice block encasing |
-| shock | crackle flicker |
+| chilled | frost creep, 5 stages |
+| frozen | ice block encasing |
+| shocked | crackle flicker + arc |
 | root | vines or stone around the feet |
 | stun | circling stars or sparks |
 | weaken | drooping dark wisps |
@@ -1106,9 +1097,9 @@ Player buffs (haste, power, ward, invulnerable, reflect) need a matching small a
 
 ### 13.5 Fusions and reactions
 
-**Fusions (21 pairs):** no new drawings needed by default. A fused spell blends the two colour ramps (primary on the body, secondary on the rim and particles). Showcase fusions (Frostfire, Plasma, Magma, Sunfire, Soulfire) may get a dedicated ramp.
+**Fusions:** no new drawings needed by default. A fused spell blends the two colour ramps (primary on the body, secondary on the rim and particles).
 
-**Reactions:** one burst each from 6.4, about 16 distinct effects (Overload is shared by all six arcane pairs). Many share a base shape (burst disk, cloud field, arc chain, shard ring) with a different colour ramp, so the unique drawings are closer to 8.
+**Reactions:** five bursts: Thaw (steam), Shatter (ice shards), Toxic Flare, Overload, Purge.
 
 ### 13.6 Keyword treatments
 
@@ -1144,7 +1135,7 @@ Custom art only for showcase signatures: Homing Bolt's small homing bolts and sp
 | Spellbook discovery entry frame | one, plus a "signature discovered" flourish |
 | Rejected-word feedback | cracked red rune (exists in the casting circle) |
 
-**Rough total for the core set:** about 28 delivery shapes, 11 barrier/summon sets, 7 element sets, 14 status overlays, about 8 reaction bursts, a rune per keyword, plus icons. New spells after that mostly reuse existing pieces.
+**Rough total for the core set:** about 28 delivery shapes, 11 barrier/summon sets, 7 element sets, 14 status overlays, 5 reaction bursts, a rune per keyword, plus icons. New spells after that mostly reuse existing pieces.
 
 ## 14. Rewrite plan
 
@@ -1172,7 +1163,7 @@ Per phase: run the existing regression suite, the documentation validator and, w
 5. Plague Seed's player name: Plague Seed, Infection or Infestation.
 6. Ultimates (Black Hole, Time Stop): how they are earned and limited.
 7. Whether chill-into-freeze at max stacks becomes the general pattern (poison bursts at cap, bleed hemorrhages).
-8. Fusion and reaction names, twists and strengths in 6.4, especially Overload and the executes (Doom, Soulfreeze).
+8. Which reactions to add beyond the first five in 6.4.
 9. Cost of each keyword beyond letters, where 8.2 says "—".
 10. Mana or cooldowns as a second cost alongside length ("casts").
 11. Whether players can type bare forms (e.g. `spear`) or only named spells.
