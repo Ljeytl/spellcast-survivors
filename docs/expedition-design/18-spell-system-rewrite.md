@@ -418,23 +418,24 @@ New reactions are added only when one earns its place in play. Shock's chaining 
 
 ### 6.5 Type chart
 
-A natural cycle of five elements, each link grounded in how the forces behave:
+One natural cycle of six elements. Every element beats exactly one and loses to exactly one, and every link follows how the forces behave:
 
 ```mermaid
 flowchart LR
-  S[Storm] --> I[Water/Ice] --> F[Fire] --> L[Life] --> E[Earth/Steel] --> S
-  F --> P[Plague/Death] --> L
+  S[Storm] --> I[Water/Ice] --> F[Fire] --> P[Plague/Death] --> L[Life] --> E[Earth/Steel] --> S
 ```
 
-| Element | Strong against | Weak to | Why |
+| Element | Strong against | Weak to | Why it wins |
 |---|---|---|---|
-| Storm | Water/Ice | Earth/Steel | lightning runs through water; stone grounds it |
+| Storm | Water/Ice | Earth/Steel | lightning runs through water |
 | Water/Ice | Fire | Storm | water puts out fire |
-| Fire | Life, Plague/Death | Water/Ice | plants burn; fire purifies rot |
-| Life | Earth/Steel | Fire, Plague/Death | roots crack stone; rot kills growth |
-| Earth/Steel | Storm | Life | stone grounds lightning |
+| Fire | Plague/Death | Water/Ice | fire purifies rot |
 | Plague/Death | Life | Fire | rot kills growth |
+| Life | Earth/Steel | Plague/Death | roots crack stone |
+| Earth/Steel | Storm | Life | stone grounds lightning |
 | Arcane | none | none | raw mana: the scholar's neutral, all-purpose tool |
+
+Elements three steps apart on the cycle (Storm and Plague/Death, Water/Ice and Life, Fire and Earth/Steel) are neutral to each other.
 
 Rules:
 
@@ -1355,7 +1356,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Cooldowns | None for now; revisit on tier words only if the keyword matrix shows MEGA/OMEGA spam |
 | Bare forms allowed | Yes, for now (`spear`, `nova`…) |
 | Raw/elemental split | Per spell, by fantasy (6.1) |
-| Type chart | Storm > Water/Ice > Fire > Life > Earth/Steel > Storm; Fire > Plague/Death > Life; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
+| Type chart | Storm > Water/Ice > Fire > Plague/Death > Life > Earth/Steel > Storm; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
 | Stone type | None. Earth/Steel deals raw damage plus bleed; armour is its resistance; bleed ignores armour |
 | Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
 | Bare forms | Deliberately weak; how weak depends on the form's purpose |
