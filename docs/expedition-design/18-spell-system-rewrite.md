@@ -360,6 +360,17 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 2. **Elemental:** the element itself (fire, cold, lightning, mana, rot, growth). Reduced by that element's resistance; affected by the type chart.
 3. **DoT:** a damage-over-time status (burn, bleed, poison, infection). **Most spells apply none.** A DoT belongs to a spell only when it is that spell's identity (Ember Spear's burning trail, Infestation's spread). Players add DoTs on purpose with element words.
 
+**Ask where the damage comes from: the body or the force.** The same form can sit anywhere on the scale. Spears show it best: a spear is a physical spear thrown and charged with an element, and each spear weighs raw and elemental differently.
+
+| Spear | Raw | Elemental | DoT | Why |
+|---|---|---|---|---|
+| Ember Spear | 75% | 25% fire | burn trail | a heavy spear that is on fire |
+| Meteor Spear | 85% | 15% fire (+ explosion 50/50) | none | doubles down on weight and impact |
+| Ice Spear | 60% | 40% water/ice | none (chill) | a spear of solid ice |
+| Lightning Spear | 25% | 75% storm | none (shock) | the lightning does the work |
+| Earth Spear | 100% | 0% | none | stone that shatters into shards |
+| Shillelagh (life spear) | 40% | 60% life | none | roots and vines do most of it |
+
 Starting splits for the current spells:
 
 | Spell | Raw | Elemental | DoT | Why |
@@ -656,7 +667,7 @@ Player-visible behaviour does not change during the migration. Each spell is reb
 | Meteor Shower | `meteor_shower` | projectile · scatter 3 · staggered 0.3 s · fall with 0.65 s warning → volume disk · fire damage | Needs `fall` motion |
 | Ember Spear | `ember_spear` (was `ember_lance`) | section 4.6 | |
 | Infestation (was Plague Seed) | `infestation` (was `plague_seed`) | projectile or direct · status infection → afflicted events spread to neighbours, spore on death | Data name and incantation are currently "Infection"; decide the player name (section 15) |
-| Cinder Field | `cinder_field` | field · disk at target · periodic · fire damage + burn | At-cap rule `extend` / replace emptiest |
+| Cinder Field | `cinder_field` | field · disk at target · periodic · fire damage | At-cap rule `extend` / replace emptiest |
 | Arcane Orbit | `arcane_orbit` | projectile · ring 2 · orbit caster · contact rehit 0.5 s · arcane damage | |
 | Focus Ray | `focus_ray` | beam · aim track target · channel · arcane damage | |
 | Rune Trap | `rune_trap` | trap · trigger disk 60 → volume disk 120 · arcane damage | |
@@ -798,13 +809,13 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 
 **Fireball** · filed under Ball in doc 16
 - **What:** the classic: a round fiery projectile that explodes on impact.
-- **Parts:** `orb` projectile · body r18 · straight 650 · fire 30 → `on_hit` `blast` volume · disk r90 · instant · fire 60 + burn.
+- **Parts:** `orb` projectile · body r18 · straight 650 · fire 30 → `on_hit` `blast` volume · disk r90 · instant · fire 60.
 - **Keywords:** MEGA = bigger explosion; SPLITTING = cluster bombs; HOMING.
 - **Enemies:** none special.
 
 **Scorching Ray** · filed under Ray in doc 16
 - **What:** two or three lingering fire beams.
-- **Parts:** beam · fan 3 · length 380 · aim `distinct` targets (or fixed triangle variant) · channel 2 s · fire 18 per 0.25 s + burn.
+- **Parts:** beam · fan 3 · length 380 · aim `distinct` targets (or fixed triangle variant) · channel 2 s · fire 18 per 0.25 s.
 - **Keywords:** TRIPLE adds beams; WIDE thickens; HOMING tracks targets.
 - **Enemies:** none special.
 - **Open:** triangle around you versus aimed at enemies.
@@ -817,14 +828,14 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 
 **Volcano** · filed under Strike in doc 16
 - **What:** an eruption at a point that leaves a lingering volcanic vent which keeps lobbing lava at nearby enemies.
-- **Parts:** `eruption` volume · disk r110 · instant · fire 80 → `vent` field · disk r40 · 6 s · `on_tick 0.6 s` → `lava` projectile · lob onto nearest enemy within 300 · land volume r50 · fire 25 + burn.
+- **Parts:** `eruption` volume · disk r110 · instant · fire 80 → `vent` field · disk r40 · 6 s · `on_tick 0.6 s` → `lava` projectile · lob onto nearest enemy within 300 · land volume r50 · raw 10 + fire 15.
 - **Keywords:** LASTING = vent lives longer; DOUBLE = two vents; MEGA = bigger eruption.
 - **Enemies:** none special.
 - **Open:** whether Volcano replaces or sits beside Meteor Shower.
 
 **Fire Shield** · filed under Shield in doc 16
 - **What:** a fiery shield; when something hits you, it answers with a fire blast.
-- **Parts:** aura on caster · 12 s · absorb 30 · `on_caster_hit` → volume · disk r120 around you · fire 40 + burn · cooldown 0.8 s.
+- **Parts:** aura on caster · 12 s · absorb 30 · `on_caster_hit` → volume · disk r120 around you · raw 15 + fire 25 · cooldown 0.8 s.
 - **Keywords:** MEGA = bigger blast; LASTING.
 - **Enemies:** attack identity.
 
@@ -835,7 +846,7 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 
 **Flame Seed** · filed under Seed in doc 16
 - **What:** plant an ember; it takes root, brightens, and blooms into a fire-flower turret.
-- **Parts:** trap · at target · phases `plant 0.3 s` → `grow 2 s` (visible stages) → `mature 8 s`: `on_tick 0.5 s` → projectile at nearest enemy within 350 · fire 18 + burn.
+- **Parts:** trap · at target · phases `plant 0.3 s` → `grow 2 s` (visible stages) → `mature 8 s`: `on_tick 0.5 s` → projectile at nearest enemy within 350 · fire 18.
 - **Keywords:** LASTING extends maturity (not the growth wait); TRIPLE = three seeds; SWIFT = faster turret shots.
 - **Enemies:** none; decide whether enemies can trample seeds.
 
@@ -904,7 +915,7 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 
 **Lightning Spear (rod)** · filed under Spear in doc 16
 - **What:** a spear that embeds in an enemy (or the ground at range end) and becomes a lightning rod that keeps calling strikes on nearby enemies, even after its host dies.
-- **Parts:** `spear` projectile · stops on first hit · storm 60 → `on_hit` `rod` aura anchored to the host (lost-anchor: stays on the ground) · 4 s · `on_tick 0.5 s` → `strike` volume disk r50 on a random enemy within 220 · storm 30 + shock.
+- **Parts:** `spear` projectile · stops on first hit · raw 15 + storm 45 → `on_hit` `rod` aura anchored to the host (lost-anchor: stays on the ground) · 4 s · `on_tick 0.5 s` → `strike` volume disk r50 on a random enemy within 220 · storm 30 + shock.
 - **Keywords:** HOMING signature (8.5); LASTING = longer rod; TRIPLE = three rods.
 - **Enemies:** anchor points; death event so the rod drops in place.
 
@@ -941,7 +952,7 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 - **Parts:** volume · line 30 × 90 at target · 0.25 s warning · instant · raw 60 + bleed.
 
 **Bullet / Spray** · filed under Bolt in doc 16
-- **Parts:** projectile · line 6 · staggered 0.06 s · body r6 · straight 1100 · raw 12 + bleed.
+- **Parts:** projectile · line 6 · staggered 0.06 s · body r6 · straight 1100 · raw 12.
 - **Keywords:** TRIPLE = three streams; HOMING.
 
 **Boulder** · filed under Ball in doc 16
@@ -962,7 +973,7 @@ Ultimates (Black Hole, Time Stop, and later ones) follow the pattern **Atomic** 
 - **Parts:** projectile · fan 4 in 50° · body r10 · straight 700 · pierce 2 · raw 30 + impulse away 500 + bleed.
 
 **Shrapnel** · filed under Blast in doc 16
-- **Parts:** projectile · single lob → `on_land` projectile · ring 12 · straight 500 · raw 15 + bleed.
+- **Parts:** projectile · single lob → `on_land` projectile · ring 12 · straight 500 · raw 15.
 - **Open:** delivery (grenade not required).
 
 **Earth Nova** · filed under Nova in doc 16
