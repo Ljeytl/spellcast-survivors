@@ -109,6 +109,16 @@ func run():
 		check(enemy.status != null and enemy.status.bleed_meter > 0.0, "Element word status reaches a real enemy")
 		target.add_to_group("enemies")
 
+	# SANGUINE pays in health and the health bar hears about it.
+	var heard: Array = []
+	game.player.health_changed.connect(func(h, _m, _o): heard.append(h))
+	game.player.health = game.player.max_health
+	check(manager.cast_freeform_spell("sanguine spear"), "Sanguine spear casts")
+	for i in 3:
+		await physics_frame
+	check(game.player.health < game.player.max_health and not heard.is_empty() and is_equal_approx(heard.back(), game.player.health), "Sanguine cost emits health_changed")
+	check(game.player.last_damage_context.get("kind", "") == "sanguine", "Sanguine cost is attributed")
+
 	# Auto-cast rules.
 	check(manager.generic_autocast_ready("spear"), "Bare spear auto-casts")
 	check(not manager.generic_autocast_ready("spea"), "Partial name does not")

@@ -229,8 +229,9 @@ func resolve_impact(generation: int = -1):
 	reservation_remaining = 0.0
 	for enemy in contacts:
 		hit_enemy(enemy)
-	if projectile_type != "lightning":
-		despawn()
+	# Before the id rename this compared against "lightning_arc", which no projectile type ever equals,
+	# so every projectile despawned on contact. Keep that behaviour; do not exempt lightning arcs.
+	despawn()
 
 func hit_enemy(enemy):
 	if not Targeting.alive(enemy) or hit_ids.has(enemy.get_instance_id()):

@@ -86,6 +86,11 @@ func _start_cast(c: Dictionary) -> void:
 		if flags.has("sanguine") and is_instance_valid(caster) and caster.get("health") != null:
 			var cost = float(caster.get("max_health")) * float(flags.sanguine.get("health_cost", 0.1))
 			caster.set("health", maxf(1.0, float(caster.get("health")) - cost))
+			# Blood price: not damage (no hurt, ignores invulnerability) but the health bar and telemetry must see it.
+			if caster.get("last_damage_context") != null:
+				caster.set("last_damage_context", {"kind": "sanguine", "damage": cost})
+			if caster.has_signal("health_changed"):
+				caster.health_changed.emit(float(caster.get("health")), float(caster.get("max_health")), float(caster.get("overheal")) if caster.get("overheal") != null else 0.0)
 		if flags.has("blinking") and is_instance_valid(caster):
 			var near = nearest_enemy(caster.global_position, INF, {})
 			var away = near.global_position.direction_to(caster.global_position) if near else Vector2.LEFT
