@@ -30,6 +30,7 @@ For **what to build next**, start with [Development order](15-development-order.
 16. [Element × family matrix](16-element-family-matrix.md): implemented spells, user ideas and explicitly unselected proposals.
 
 17. [Element and spell ideas](17-element-spell-ideas.md): exhaustive latest user concepts, alternatives, rejections and unresolved taxonomy.
+18. [Spell system rewrite](18-spell-system-rewrite.md): spells as parts × axes, keywords, effects, statuses and resistance, enemy requirements, every current and approved spell specified, art list, starting numbers and the rewrite plan.
 
 ## How to interpret this package
 
