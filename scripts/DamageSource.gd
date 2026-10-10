@@ -18,8 +18,12 @@ static func stamp(node: Object, source: Dictionary = current) -> void:
 static func of(node: Object) -> Dictionary:
 	return node.get_meta("damage_source", {}) if node and node.has_meta("damage_source") else {}
 
+static var _next_cast_id := 0
+
+## cast_id tells one cast's statuses apart from another's (fusion vs reactions, doc 18 §6.4).
 static func make(spell: String, cast_clock: float) -> Dictionary:
-	return {"spell": spell, "cast_clock": cast_clock}
+	_next_cast_id += 1
+	return {"spell": spell, "cast_clock": cast_clock, "cast_id": _next_cast_id}
 
 ## Returns a callable that restores the cast source captured now when it later runs.
 static func wrap(callable: Callable) -> Callable:

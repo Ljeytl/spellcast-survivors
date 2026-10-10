@@ -17,7 +17,7 @@ func run():
   return
  var checks = 0
  var failures = 0
- for id in ["mana_bolt","bolt","lightning_bolt","life_bolt","ice_blast","ember_lance","meteor_lance","returning_blade","seeking_spirit","arcane_orbit","plague_seed","soul_bloom","meteor_shower"]:
+ for id in ["mana_bolt","bolt","lightning_bolt","life_bolt","ice_blast","ember_spear","meteor_spear","cross_blade","seeker","arcane_orbit","infestation","soul_bloom","meteor_shower"]:
   paused = false
   Engine.time_scale = 1.0
   fixture.settings.projectile = 1.0

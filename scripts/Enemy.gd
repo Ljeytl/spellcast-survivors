@@ -261,6 +261,16 @@ var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_decay: float = 0.9  # How quickly knockback fades
 var slow_multiplier: float = 1.0  # Speed multiplier (1.0 = normal, 0.5 = half speed)
 var slow_timer: float = 0.0
+var legacy_slow: float = 1.0  # apply_slow() from older spells; combined with statuses each frame
+
+# Spell engine (doc 18 §5–6): element for the type chart, per-element resistances, armour on raw damage,
+# and the status component created on the first status or typed hit.
+const Effects = preload("res://scripts/engine/Effects.gd")
+var element: String = ""
+var resistances: Dictionary = {}
+var armour: float = 0.0
+var status = null
+var _typed_hit := false
 
 # Elite-specific variables
 var regeneration_rate: float = 0.0  # Health per second for regenerators
@@ -439,7 +449,8 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF, 
 	# Apply armor reduction for armored elites
 	var previous_health = current_health
 	var final_damage = damage_amount
-	if is_elite and elite_type == EliteType.ARMORED:
+	# Typed hits from apply_effect() already applied armour to their raw share only.
+	if not _typed_hit and is_elite and elite_type == EliteType.ARMORED:
 		final_damage = damage_amount * (1.0 - damage_reduction)
 	
 	# Reduce health, don't go below 0
@@ -579,8 +590,27 @@ func calculate_knockback_resistance() -> float:
 	# Cap resistance at 70% (always allow some knockback)
 	return min(0.7, resistance)
 
+## Spell engine entry point: damage (typed entries), impulse, status, heal. See scripts/engine/Effects.gd.
+func apply_effect(effect: Dictionary, source: Dictionary = {}, origin: Vector2 = Vector2.INF) -> float:
+	if dying:
+		return 0.0
+	return Effects.apply_to_entity(self, effect, source, origin)
+
+## Damage that has already been resolved for type, resistance and armour.
+func receive_damage(amount: float, origin: Vector2 = Vector2.INF, source: Dictionary = {}):
+	_typed_hit = true
+	take_damage(amount, origin, source)
+	_typed_hit = false
+
+func armour_value() -> float:
+	var value = armour
+	if is_elite and elite_type == EliteType.ARMORED:
+		value = maxf(value, damage_reduction)
+	return value
+
 func apply_slow(slow_amount: float, duration: float):
-	slow_multiplier = slow_amount
+	legacy_slow = slow_amount
+	slow_multiplier = legacy_slow * (status.move_multiplier() if status else 1.0)
 	slow_timer = duration
 	
 	# Apply blue frozen visual effect
@@ -593,7 +623,7 @@ func process_status_effects(delta: float):
 	if slow_timer > 0:
 		slow_timer -= delta
 		if slow_timer <= 0:
-			slow_multiplier = 1.0  # Return to normal speed
+			legacy_slow = 1.0  # Return to normal speed
 			# Remove blue frozen visual effect
 			var sprite = $Sprite2D
 			if sprite:
@@ -601,6 +631,9 @@ func process_status_effects(delta: float):
 					apply_elite_visual_effects()  # Restore elite appearance
 				else:
 					sprite.modulate = Color.WHITE  # Return to normal color
+	if status:
+		status.tick(delta)
+	slow_multiplier = legacy_slow * (status.move_multiplier() if status else 1.0)
 
 # Apply elite modifications to stats
 func apply_elite_modifications():
@@ -620,6 +653,7 @@ func apply_elite_modifications():
 		EliteType.FROST:
 			base_health *= 1.3  # 30% more health
 			base_speed *= 0.8  # 20% slower
+			element = "water"  # type chart: resists Water/Ice, weak to Storm
 		EliteType.EXPLOSIVE:
 			explosion_damage = base_damage * 2.5  # High explosion damage
 			base_health *= 0.9  # 10% less health since they explode

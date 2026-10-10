@@ -147,7 +147,7 @@ func run():
 	check(is_equal_approx(orbit_node.remaining, 11.9), "Duration extends orbit")
 	clear_effects()
 	player.spell_size_multiplier = 1
-	learn(["focus_ray", "ember_lance", "prism_ray"])
+	learn(["focus_ray", "ember_spear", "prism_ray"])
 	var target = host(origin + Vector2(200,0))
 	manager.cast_build_spell(manager.find_spell_slot("prism_ray"))
 	var prism = get_nodes_in_group("active_spell_channels")[-1]
@@ -166,14 +166,14 @@ func run():
 	var focus_max = float(focus_info.get("rank_growth", {}).get("duration", {}).get("max", focus_info.duration))
 	check(is_equal_approx(prism.remaining, focus_max * 2.0 - 0.3), "Prism duration scales")
 	clear_effects()
-	learn(["bolt", "lightning_arc", "lightning_bolt"])
+	learn(["bolt", "lightning", "lightning_bolt"])
 	player.spell_damage_multiplier = 2
 	manager.get_spell_info(manager.find_spell_slot("bolt")).level = 3
-	manager.get_spell_info(manager.find_spell_slot("lightning_arc")).level = 4
+	manager.get_spell_info(manager.find_spell_slot("lightning")).level = 4
 	var info = manager.resolve_cast_info(manager.find_spell_slot("lightning_bolt"))
 	var Scaling = preload("res://scripts/CombinationScaling.gd")
 	var expected_impact = 2.0 * Scaling.ingredient_damage("bolt", 3, 0.0)
-	var expected_splash = 2.0 * Scaling.ingredient_damage("lightning_arc", 4, 0.0)
+	var expected_splash = 2.0 * Scaling.ingredient_damage("lightning", 4, 0.0)
 	check(is_equal_approx(manager.calculate_spell_damage(info),expected_impact), "Combination impact gets ingredient and Power once")
 	check(is_equal_approx(info.splash_damage,expected_splash), "Combination splash gets Lightning and Power once")
 	var direct = host(origin + Vector2(100,0))
@@ -186,7 +186,7 @@ func run():
 	check(is_equal_approx(crowd.current_health,10000.0 - expected_splash), "Lightning splash reaches crowd")
 	check(is_equal_approx(get_nodes_in_group("lingering_spell_areas")[-1].duration,0.4), "Lightning Bolt splash duration scales once")
 	clear_effects()
-	learn(["plague_seed", "regeneration", "soul_bloom"])
+	learn(["infestation", "regeneration", "soul_bloom"])
 	var doomed = host(origin + Vector2(50,0))
 	doomed.current_health = 1
 	manager.cast_build_spell(manager.find_spell_slot("soul_bloom"))

@@ -52,7 +52,7 @@ func ice():
 	effect.set_physics_process(false)
 	return effect
 
-func plague(host, type = "plague_seed"):
+func plague(host, type = "infestation"):
 	var effect = preload("res://scripts/BuildSpellEffect.gd").new()
 	effect.configure({"id": type, "type": "plague", "duration": 5, "tick_interval": 0.5, "cast_range": 300}, 9, player, host)
 	arena.add_child(effect)
@@ -92,7 +92,7 @@ func run():
 	check(effect.contact_fraction(body, Vector2.ZERO, Vector2(300, 0)) >= 0, "Large real hurtbox edge receives swept contact")
 	body.position.y = 100
 	check(effect.contact_fraction(body, Vector2.ZERO, Vector2(300, 0)) < 0, "Large hurtbox still misses a true gap")
-	for spell_id in ["plague_seed", "soul_bloom"]:
+	for spell_id in ["infestation", "soul_bloom"]:
 		clear()
 		first = target(Vector2(200, 0))
 		var neighbor = target(Vector2(270, 0))

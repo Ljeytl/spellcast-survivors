@@ -49,5 +49,5 @@ func run():
 	nearest.queue_free()
 	await process_frame
 	check(Targeting.select_line(self, Vector2.ZERO, 24.0, 1050.0) == null, "No enemies, no target")
-	print("lance_aim_regression: %d checks, %d failures" % [checks, failures])
+	print("spear_aim_regression: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)

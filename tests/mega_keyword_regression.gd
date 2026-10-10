@@ -135,7 +135,7 @@ func run():
 	manager.cast_spell_by_type(life, 1.5)
 	check(is_equal_approx(game.player.health - 10, ordinary_heal * 1.5), "MEGA Life heals more")
 	check(game.particle_manager.get_children().any(func(v): return v is Node2D and is_equal_approx(v.scale.x, 1.5)), "MEGA healing is visibly larger")
-	for id in ["regeneration", "arcane_orbit", "ember_trail"]:
+	for id in ["regeneration", "arcane_orbit", "firewalk"]:
 		var owned_slot = manager.find_spell_slot(id)
 		manager.cast_spell_by_type(owned_slot)
 		manager.cast_spell_by_type(owned_slot, 1.5)

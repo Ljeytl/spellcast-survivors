@@ -34,7 +34,7 @@ func run():
 		await fixture.setup(root, entry.id)
 		entry.start_frame = Engine.get_frames_drawn()
 		entry.poster = entry.id + ".png"
-		var poster_time = {"meteor_shower": 0.85, "rune_trap": 0.85, "frost_sigil": 1.5, "ember_trail": 3.0, "plague_seed": 1.2, "soul_bloom": 1.2}.get(entry.id, 0.15)
+		var poster_time = {"meteor_shower": 0.85, "rune_trap": 0.85, "frost_sigil": 1.5, "firewalk": 3.0, "infestation": 1.2, "soul_bloom": 1.2}.get(entry.id, 0.15)
 		if entry.group == "Particles":
 			poster_time = minf(fixture.duration * 0.25, 0.15)
 		var frame_count = ceili(fixture.duration * FPS)

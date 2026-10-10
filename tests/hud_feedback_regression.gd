@@ -50,7 +50,7 @@ func run():
 	manager = game.spell_manager
 	interface = game.get_node("GameplayReadability")
 	game.player.is_invincible = true
-	for id in ["ember_trail", "arcane_orbit", "earth_shield", "focus_ray", "regeneration"]:
+	for id in ["firewalk", "arcane_orbit", "earth_shield", "focus_ray", "regeneration"]:
 		manager.learn_spell(id)
 	game.style_session.score.combo = 95.0
 	game.style_session.score.grace_remaining = 3600.0
@@ -204,28 +204,28 @@ func verify_feedback():
 	check(style.badge.scale == Vector2.ONE and style.meter.modulate != Color.WHITE, "reduced effects preserves color without movement")
 	game.particle_manager.reduced_effects = false
 	var policy = load("res://scripts/CastingReference.gd")
-	for id in ["bolt", "ice_blast", "lightning_arc", "focus_ray", "seeking_spirit", "meteor_shower"]:
+	for id in ["bolt", "ice_blast", "lightning", "focus_ray", "seeker", "meteor_shower"]:
 		check(not policy.shows_status(root.get_node("DataManager").get_spell_data(id)), "no unnecessary timer: " + id)
-	for id in ["ember_trail", "arcane_orbit", "earth_shield", "regeneration", "rune_trap"]:
+	for id in ["firewalk", "arcane_orbit", "earth_shield", "regeneration", "rune_trap"]:
 		check(policy.shows_status(root.get_node("DataManager").get_spell_data(id)), "useful maintained status: " + id)
 	check(policy.shows_status({"type":"beam","recast_behavior":"extend"}), "extendable lifecycle exposes useful status")
 	var status = load("res://scripts/SpellDurationStatus.gd")
 	for first in ["ground", "active"]:
 		var states = {}
-		status.add(states, "ember_trail", 6 if first == "ground" else 1, first)
-		status.add(states, "ember_trail", 1 if first == "ground" else 6, "active" if first == "ground" else "ground")
-		check(states.ember_trail.phase == "active" and states.ember_trail.seconds == 1 and states.ember_trail.count == 1, "mixed trail phase has honest remaining emission and count")
-	for id in ["ember_trail", "arcane_orbit", "earth_shield", "regeneration"]:
+		status.add(states, "firewalk", 6 if first == "ground" else 1, first)
+		status.add(states, "firewalk", 1 if first == "ground" else 6, "active" if first == "ground" else "ground")
+		check(states.firewalk.phase == "active" and states.firewalk.seconds == 1 and states.firewalk.count == 1, "mixed trail phase has honest remaining emission and count")
+	for id in ["firewalk", "arcane_orbit", "earth_shield", "regeneration"]:
 		manager.cast_spell_by_type(manager.find_spell_slot(id))
 	await settle()
 	reference._process(0)
-	check(reference.status_bars.ember_trail.visible and "active" in reference.entries.ember_trail.text, "Firewalk shows active drain")
+	check(reference.status_bars.firewalk.visible and "active" in reference.entries.firewalk.text, "Firewalk shows active drain")
 	check(reference.status_bars.arcane_orbit.visible, "orbit shows active drain")
 	check("charge" in reference.entries.earth_shield.text and not reference.status_bars.earth_shield.visible, "shield charges not cooldown")
 	check(not reference.status_bars.bolt.visible and not "\n" in reference.entries.bolt.text, "Bolt stays name only")
-	manager.cast_spell_by_type(manager.find_spell_slot("ember_trail"))
+	manager.cast_spell_by_type(manager.find_spell_slot("firewalk"))
 	reference._process(0)
-	check("+" in reference.entries.ember_trail.text, "recast extension remains observable")
+	check("+" in reference.entries.firewalk.text, "recast extension remains observable")
 	var recipe = manager.Synergies.RECIPES.frost_sigil
 	var bonus = manager.spell_catalog.rune_trap.duplicate(true)
 	bonus.merge(recipe.overrides, true)

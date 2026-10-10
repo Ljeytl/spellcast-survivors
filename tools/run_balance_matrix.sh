@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 SECONDS_LIMIT="${1:-1200}"; shift || true
 SEEDS=("${@:-11 12 13}"); [ "$#" -eq 0 ] && SEEDS=(11 12 13)
 GODOT="${GODOT:-/Applications/Godot.app/Contents/MacOS/Godot}"
-BUILDS="${BUILDS:-meteor_shower,plague_seed,ice_blast;ember_trail,cinder_field,arcane_orbit;bolt,ember_lance,rune_trap;seeking_spirit,focus_ray,returning_blade;lightning_arc,plague_seed,meteor_shower}"
+BUILDS="${BUILDS:-meteor_shower,infestation,ice_blast;firewalk,cinder_field,arcane_orbit;bolt,ember_spear,rune_trap;seeker,focus_ray,cross_blade;lightning,infestation,meteor_shower}"
 OUT="builds/balance/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$OUT"
 FLAGS=(--headless --fast --seconds "$SECONDS_LIMIT" --seeds "${SEEDS[@]}")

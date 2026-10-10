@@ -174,12 +174,12 @@ func compare_meteor():
 	var solo: Array = []
 	var crowds: Array = []
 	for evolved in [false, true]:
-		var info = fresh("meteor_lance", evolved)
+		var info = fresh("meteor_spear", evolved)
 		var enemy = target(Vector2(70, 0))
 		var spell = effect(info, enemy)
 		spell.advance(0.1)
 		solo.append(10000 - enemy.current_health)
-		info = fresh("meteor_lance", evolved)
+		info = fresh("meteor_spear", evolved)
 		var enemies = [target(Vector2(70, 0)), target(Vector2(70, 60)), target(Vector2(70, -60)), target(Vector2(70, 85))]
 		spell = effect(info, enemies[0])
 		spell.advance(0.1)
@@ -268,7 +268,7 @@ func compare_traps():
 
 func compare_optional_offers():
 	fresh("life_bolt", false)
-	for id in ["plague_seed", "cinder_field", "ice_blast", "regeneration"]:
+	for id in ["infestation", "cinder_field", "ice_blast", "regeneration"]:
 		manager.learn_spell(id)
 	# Combination cards need both ingredients at rank 8.
 	for info in manager.spells.values():
@@ -285,7 +285,7 @@ func compare_optional_offers():
 	if "--known-bad-forced-evolution" not in OS.get_cmdline_user_args():
 		screen.ensure_optional_evolutions(forced)
 	check(not forced.all(screen.is_evolution_card), "All-evolution composition must be repaired")
-	check(forced.any(func(card): return ["rank:bolt", "rank:plague_seed", "rank:cinder_field"].any(func(key): return screen.get_upgrade_key(card) == key or screen.get_upgrade_key(card).begins_with(key + ":"))), "Repair prefers a primary rank alternative")
+	check(forced.any(func(card): return ["rank:bolt", "rank:infestation", "rank:cinder_field"].any(func(key): return screen.get_upgrade_key(card) == key or screen.get_upgrade_key(card).begins_with(key + ":"))), "Repair prefers a primary rank alternative")
 	var locked = evolutions.duplicate(true)
 	screen.ensure_optional_evolutions(locked, [0, 1, 2])
 	check(locked == evolutions, "Explicitly locking all three choices preserves user choices")

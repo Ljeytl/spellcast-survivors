@@ -107,7 +107,7 @@ func run():
 					game.player.is_invincible = false
 					game.player.take_damage(10, {"source_position": game.player.global_position + Vector2(100, 0)})
 					game.player.is_invincible = true
-				if id == "ember_trail":
+				if id == "firewalk":
 					game.player.position.x += delta * 85.0
 			frames.append(await capture(id, index))
 		entries.append({"id":id,"name":title,"group":"Spells","frames":frames,"times":TIMES,"bonus":recipes.has(id)})

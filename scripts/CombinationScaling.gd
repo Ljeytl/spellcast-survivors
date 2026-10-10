@@ -31,18 +31,18 @@ static func resolve(data: Dictionary, ranks: Dictionary) -> Dictionary:
 			info.healing_seed_lifetime = 10.0
 		"lightning_bolt":
 			info.damage = dmg.call("bolt", 40.0)
-			info.splash_damage = dmg.call("lightning_arc", 80.0)
-			info.splash_radius = 80.0 * (1.0 + 0.05 * bonus.call("lightning_arc"))
+			info.splash_damage = dmg.call("lightning", 80.0)
+			info.splash_radius = 80.0 * (1.0 + 0.05 * bonus.call("lightning"))
 			info.splash_duration = 0.2
 			info.bounce_count = 4 + own
-		"meteor_lance":
-			info.damage = dmg.call("ember_lance", 45.0) * (1.0 + 0.1 * own)
+		"meteor_spear":
+			info.damage = dmg.call("ember_spear", 45.0) * (1.0 + 0.1 * own)
 			info.explosion_damage = dmg.call("meteor_shower", 30.0) * 0.8 * (1.0 + 0.1 * own)
 			info.explosion_radius = 90.0 * (1.0 + 0.05 * bonus.call("meteor_shower") + 0.1 * own)
 			info.explosion_duration = 0.2
 			info.body_size_multiplier = 1.0 + 0.1 * own
 		"soul_bloom":
-			info.damage = ingredient_damage("plague_seed", int(ranks.get("plague_seed", 1)), 9.0)
+			info.damage = ingredient_damage("infestation", int(ranks.get("infestation", 1)), 9.0)
 			info.healing_bloom_amount = 6.0 * (1.0 + 0.15 * bonus.call("regeneration"))
 			info.healing_bloom_radius = 60.0
 			info.healing_bloom_lifetime = 10.0 * (1.0 + 0.1 * own)
@@ -54,7 +54,7 @@ static func resolve(data: Dictionary, ranks: Dictionary) -> Dictionary:
 			info.radius = 150.0 * (1.0 + 0.1 * own)
 			info.duration = 5.0 * (1.0 + 0.1 * own)
 		"prism_ray":
-			info.damage = dmg.call("focus_ray", 13.0) * 1.4 * (1.0 + 0.05 * bonus.call("ember_lance") + 0.1 * own)
+			info.damage = dmg.call("focus_ray", 13.0) * 1.4 * (1.0 + 0.05 * bonus.call("ember_spear") + 0.1 * own)
 			info.beam_radius = 32.0
 			info.beam_turn_speed = 0.25
 		"frost_sigil":
@@ -75,7 +75,7 @@ static func next_description(id: String, rank: int) -> String:
 	match id:
 		"life_bolt": return "+1 projectile" if rank % 2 == 1 else "+healing area"
 		"lightning_bolt": return "+1 bounce"
-		"meteor_lance": return "+damage, +area"
+		"meteor_spear": return "+damage, +area"
 		"soul_bloom": return "+duration"
 		"steam_field": return "+area, +duration"
 		"prism_ray": return "+damage"

@@ -23,7 +23,7 @@ func check(value, message):
 		printerr("FAIL: ", message)
 
 func lance_effects() -> Array:
-	return get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.id == "ember_lance" and not e.is_queued_for_deletion())
+	return get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.id == "ember_spear" and not e.is_queued_for_deletion())
 
 func trails() -> Array:
 	return get_nodes_in_group("ember_trails").filter(func(t): return not t.is_queued_for_deletion())
@@ -43,7 +43,7 @@ func run():
 	front.position = start + Vector2(200, 0)
 	game.add_child(front)
 	front.add_to_group("enemies")
-	manager.learn_spell("ember_lance")
+	manager.learn_spell("ember_spear")
 	manager.cast_freeform_spell("ember spear")
 	var spear = lance_effects().back()
 	spear.set_physics_process(false)

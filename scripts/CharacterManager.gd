@@ -132,7 +132,7 @@ func load_progression_data(slot: int = current_save_slot):
 			var save_data = json.data
 			current_character = save_data.get("current_character", "wizard")
 			unlocked_characters = save_data.get("unlocked_characters", ["wizard"])
-			unlocked_spells = save_data.get("unlocked_spells", ["mana_bolt", "bolt", "life"])
+			unlocked_spells = preload("res://scripts/SpellIdMigration.gd").ids(save_data.get("unlocked_spells", ["mana_bolt", "bolt", "life"]))
 			persistent_xp = save_data.get("persistent_xp", 0)
 			total_games_played = save_data.get("total_games_played", 0)
 			best_survival_time = save_data.get("best_survival_time", 0.0)
@@ -141,7 +141,7 @@ func load_progression_data(slot: int = current_save_slot):
 			achievements = save_data.get("achievements", [])
 			var saved_discoveries = save_data.get("discovered_synergies", [])
 			if saved_discoveries is Array:
-				discovered_synergies = saved_discoveries.filter(func(id): return id in preload("res://scripts/SynergyCatalog.gd").RECIPES)
+				discovered_synergies = preload("res://scripts/SpellIdMigration.gd").ids(saved_discoveries).filter(func(id): return id in preload("res://scripts/SynergyCatalog.gd").RECIPES)
 			print("Save slot ", slot, " progression data loaded")
 		else:
 			print("Error parsing progression data from slot ", slot)
