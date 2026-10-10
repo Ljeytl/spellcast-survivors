@@ -1,3 +1,12 @@
+# 0.2.8 — Integrate the spell-system foundation
+
+- Integrate the spell-system specification and phase-one engine: shared typed effects, statuses, reactions, keyword planning, generic spell parts, and Spear save-ID migration.
+- Completed generic spell parts belong to their cast and are released on completion or cancellation. Instant volumes retain a brief visible result without repeating damage.
+- Fix a pre-existing casting test teardown that tried to free an already-expired Ice Blast.
+- Add lifecycle regression coverage for completed casts, cancelled projectiles, and instant-volume presentation. Track generated script IDs so a fresh import stays clean.
+- Existing spells retain their compatibility paths. Attack suppression during frozen/stunned states and migration of legacy spells to shared effects remain follow-up work; this integration does not claim the full roster is implemented.
+- Next: review damage-over-time behavior with the user, then implement selected spell batches on the integrated foundation. The parallel VFX work remains separate until ready for review.
+
 # Unreleased — Power-word runes behave like runes
 
 - A power word (mega) now builds its own small circle with the same rules as the main one: each letter pops in, a typo cracks it red and shakes it, the rest of the word shows as ghost runes (the next one pulsing), and the ring fills as you type.

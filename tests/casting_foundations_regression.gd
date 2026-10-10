@@ -202,7 +202,8 @@ func run():
 	await process_frame
 	manager.cast_freeform_spell("lightning")
 	check(front.current_health < before_lightning and side.current_health < 1000 and inside.current_health == neighbor_health, "Lightning strikes nearby group and excludes enemies beyond circle")
-	ice.queue_free()
+	if is_instance_valid(ice):
+		ice.queue_free()
 	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 8
 	manager.cast_freeform_spell("ice blast")
 	var ring = get_nodes_in_group("ice_blasts").back()

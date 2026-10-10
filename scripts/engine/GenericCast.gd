@@ -39,6 +39,8 @@ func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictio
 func _physics_process(delta: float) -> void:
 	if not manual:
 		step(delta)
+		if finished and get_child_count() == 0:
+			queue_free()
 
 func step(delta: float) -> void:
 	if finished:
@@ -59,8 +61,6 @@ func step(delta: float) -> void:
 	parts = parts.filter(func(p): return is_instance_valid(p) and not p.done)
 	if pending.is_empty() and spawns.is_empty() and parts.is_empty():
 		finished = true
-		if not manual:
-			queue_free()
 
 ## Run until finished or out of time (tests).
 ## on_step lets a test tick other systems (statuses) on the same clock.
@@ -194,7 +194,7 @@ func _make_part(name: String, pos: Vector2, dir: Vector2, depth: int, power: flo
 	part.size_scale = size
 	part.depth = depth
 	part.name = "Part_" + name
-	(world if is_instance_valid(world) else self).add_child(part)
+	add_child(part)
 	part.setup(self, name, plan.parts[name], pos, dir)
 	parts.append(part)
 	return part

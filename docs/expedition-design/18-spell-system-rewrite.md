@@ -1,6 +1,8 @@
 # Spell system rewrite: spells, keywords, effects and art
 
-**Draft v0.1 · 5 October 2026 · design for review, no runtime change yet**
+**Design recorded 5 October 2026; phase-one implementation integrated in 0.2.8.** This is a target specification, not a claim that every feature below is implemented. Legacy spells still use compatibility paths; attack suppression for frozen/stunned enemies and further roster migration remain follow-up work.
+
+**9 October follow-up decisions (design, not runtime changes):** Flame Wall is a large ring around the player, with radius and band thickness scaling proportionally with area size; following versus fixed placement is still open. Arcane Slash carves a glyph, gains one slash per level, and gains a small final explosion at its last level. Scorching Ray provisionally uses separate enemy-aimed beams, with a V arrangement retained as an alternative. Ice/Glacial Spear and Lightning Spear/Rod are paused. Shillelagh is one spell combining a rooting trail with vines pulling enemies into it. These decisions supersede conflicting earlier spell descriptions and phase-one demonstration data below.
 
 This document defines the spell system we are rebuilding toward: what a spell is, what each keyword does, how effects such as damage types, statuses, knockback and gravity work, how enemies must behave to support them, how every current spell maps onto the new system, a complete specification of every approved idea from [doc 17](17-element-spell-ideas.md), the full art list, starting numbers, and the order of the rewrite.
 

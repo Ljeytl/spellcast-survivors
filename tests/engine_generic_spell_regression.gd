@@ -121,6 +121,7 @@ func run():
 	clear()
 	fusion_and_reactions()
 	clear()
+	await lifecycle_cleanup()
 	print("engine_generic_spell_regression: ", checks, " checks, ", failures, " failures")
 	quit(1 if failures > 0 else 0)
 
@@ -436,3 +437,31 @@ func fusion_and_reactions():
 	a.element = "plague"
 	cast("fireball", 2.0)
 	check(a.received[0] > 30.0, "Fireball beats a plague enemy (" + str(a.received[0]) + ")")
+
+func lifecycle_cleanup():
+	clear()
+	var target = foe(Vector2(60, 0))
+	var c = cast("slash", 0.0)
+	c.step(DT)
+	check(c.finished and target.taken() > 0.0, "Instant slash resolves damage immediately")
+	var damage = target.taken()
+	var visuals = c.get_children()
+	check(visuals.size() == 1, "Cast owns its completed slash visual")
+	if not visuals.is_empty():
+		check(visuals[0].done and float(visuals[0].get("visual_remaining")) > 0.0, "Instant slash retains a brief visual after damage resolves")
+	c.manual = false
+	await create_timer(0.3).timeout
+	await process_frame
+	check(not is_instance_valid(c), "Running cast frees itself after visual expiry")
+	check(near(target.taken(), damage), "Visual linger never repeats slash damage")
+	check(root.get_children().filter(func(n): return n.name.begins_with("Part_")).is_empty(), "Finished cast leaves no orphan parts in world")
+	clear()
+	c = cast("spear", 0.0)
+	c.step(DT)
+	check(c.parts.size() == 1, "Cancellation fixture has an active projectile")
+	var part = weakref(c.parts[0]) if not c.parts.is_empty() else null
+	c.queue_free()
+	await process_frame
+	await process_frame
+	check(part != null and part.get_ref() == null, "Cancelling cast also frees its active projectile")
+	clear()

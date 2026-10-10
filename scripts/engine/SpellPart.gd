@@ -23,6 +23,7 @@ var assigned = null
 var parent_hit = null
 var age := 0.0
 var done := false
+var visual_remaining := 0.0
 var hits: Dictionary = {}     # instance id -> age of last hit
 var hit_count := 0
 var phase := 0
@@ -335,6 +336,9 @@ func finish(natural: bool) -> void:
 	if done:
 		return
 	done = true
+	visual_remaining = 0.12 if delivery == "volume" else 0.0
+	if visual_remaining <= 0.0:
+		queue_free()
 	if natural:
 		fire("on_expire", global_position, null)
 	cast.part_finished(self)
@@ -360,8 +364,16 @@ func _aim_once() -> void:
 				direction = global_position.direction_to(best.global_position)
 
 # --- placeholder art (doc 18 §10: shape from delivery, colour from element) ----------------
+func _process(delta: float) -> void:
+	if not done:
+		return
+	visual_remaining = maxf(0.0, visual_remaining - delta)
+	if visual_remaining <= 0.0:
+		queue_free()
+	queue_redraw()
+
 func _draw() -> void:
-	if done:
+	if done and visual_remaining <= 0.0:
 		return
 	var color: Color = COLORS.get(cast.plan.get("element", "") if cast else "", COLORS[""])
 	match geo_type():
