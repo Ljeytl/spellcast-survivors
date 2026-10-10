@@ -30,7 +30,7 @@ func run():
 	game.spell_manager.set_process(false)
 	game.get_node("MonsterManager").spawn_timer.stop()
 	game.get_node("MonsterManager").set_process(false)
-	game.spell_manager.learn_spell("seeking_spirit")
+	game.spell_manager.learn_spell("seeker")
 	var record = AudioEffectRecord.new()
 	record.format = AudioStreamWAV.FORMAT_16_BITS
 	AudioServer.add_bus_effect(0, record)
@@ -41,7 +41,7 @@ func run():
 	await create_timer(1.0).timeout
 	game.spell_manager.fire_mana_bolt()
 	await create_timer(1.0).timeout
-	game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("seeking_spirit"))
+	game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("seeker"))
 	await create_timer(1.5).timeout
 	if is_instance_valid(target):
 		target.take_damage(10000)

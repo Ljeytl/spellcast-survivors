@@ -67,6 +67,8 @@ def main():
     parser.add_argument("--mode", choices=["idle", "movement", "casting", "active"], default="active")
     parser.add_argument("--fast", action="store_true", help="Fixed 60 FPS simulation without wall-clock pacing; not identical to realtime")
     parser.add_argument("--output", type=Path, default=Path("builds/bot"))
+    parser.add_argument("--learn-generic", action="store_true", help="Debug: every data-only generic spell is castable")
+    parser.add_argument("--incantations", default="", help="Debug: '|'-separated extra incantations typed in rotation (generic spells + keywords)")
     parser.add_argument("--focus", default="", help="Debug: comma-separated spell ids to level evenly and cast exclusively")
     parser.add_argument("--passives", default="spell_damage,area_size,spell_duration,projectile_speed", help="Debug: comma-separated passives to prefer when no focus card is offered")
     parser.add_argument("--invulnerable", action="store_true", help="Debug: player takes no damage")
@@ -102,7 +104,7 @@ def main():
                 command += ["--headless"]
             if args.fast:
                 command += ["--fixed-fps", "60", "--disable-render-loop"]
-            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}", f"--focus={args.focus}", f"--passives={args.passives}", f"--invulnerable={'1' if args.invulnerable else '0'}", f"--magnet={'1' if args.magnet else '0'}", f"--no-missile={'1' if args.no_missile else '0'}", f"--unlimited-atomic={'1' if args.unlimited_atomic else '0'}", f"--telemetry={output / f'{seed}-telemetry.json'}", f"--rank-schedule={args.rank_schedule}"]
+            command += ["--", f"--seed={seed}", f"--limit={args.seconds}", f"--report={report}", f"--mode={args.mode}", f"--focus={args.focus}", f"--passives={args.passives}", f"--invulnerable={'1' if args.invulnerable else '0'}", f"--magnet={'1' if args.magnet else '0'}", f"--no-missile={'1' if args.no_missile else '0'}", f"--unlimited-atomic={'1' if args.unlimited_atomic else '0'}", f"--telemetry={output / f'{seed}-telemetry.json'}", f"--rank-schedule={args.rank_schedule}", f"--incantations={args.incantations}", f"--learn-generic={'1' if args.learn_generic else '0'}"]
             print(f"Running seed {seed}; results: {output}", flush=True)
             with (output / f"{seed}.log").open("w") as log:
                 subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=3700)

@@ -344,12 +344,12 @@ func verify_kill_points():
 	xp = await kill(Vector2(0, 300), DamageSource.make("mana_bolt", 100.0))
 	check(session.score.combo == combo_before and session.score.run_score > run_before, "Magic Missile kill banks score but adds no combo")
 	combo_before = session.score.combo
-	xp = await kill(Vector2(-300, 0), DamageSource.make("plague_seed", 90.0))
+	xp = await kill(Vector2(-300, 0), DamageSource.make("infestation", 90.0))
 	check(is_equal_approx(session.score.combo, combo_before + xp * 0.5), "Kill from a ten-second-old cast gives half combo")
 	combo_before = session.score.combo
-	await kill(Vector2(0, -300), DamageSource.make("plague_seed", 100.0 - 480.0))
+	await kill(Vector2(0, -300), DamageSource.make("infestation", 100.0 - 480.0))
 	check(session.score.combo - combo_before < 0.01, "Kill from an eight-minute-old cast gives effectively no combo")
-	check(session.damage_by_spell.has("bolt") and session.damage_by_spell.has("mana_bolt") and session.damage_by_spell.has("plague_seed"), "Damage is recorded by spell")
+	check(session.damage_by_spell.has("bolt") and session.damage_by_spell.has("mana_bolt") and session.damage_by_spell.has("infestation"), "Damage is recorded by spell")
 	var monsters = game.get_node("MonsterManager")
 	var second = monsters.spawn_monster(monsters.get_available_variants(0)[0])
 	second.set_physics_process(false)

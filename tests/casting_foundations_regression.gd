@@ -86,7 +86,7 @@ func run():
 	var before = manager.spells.duplicate(true)
 	root.get_node("CharacterManager").discovered_synergies = ["life_bolt", "lightning_bolt"]
 	check(not manager.learn_spell("life_bolt") and manager.spells == before, "Discovery memory cannot grant bonus without current ingredients")
-	for id in ["life", "regeneration", "lightning_arc", "ice_blast", "earth_shield"]:
+	for id in ["life", "regeneration", "lightning", "ice_blast", "earth_shield"]:
 		check(manager.learn_spell(id), "Fill primary: " + id)
 	check(manager.spells.size() == 6 and not manager.learn_spell("meteor_shower"), "Seventh base cannot enter full kit")
 	manager.upgrade_spell("bolt")
@@ -194,7 +194,7 @@ func run():
 	check(front.current_health < 1000 and inside.current_health < 1000 and boundary.current_health == 1000, "Ice shards hit their paths and the leading enemy blocks its shard")
 	check(behind.current_health == 1000 and side.current_health == 1000 and beyond.current_health == 1000, "Ice cone excludes behind, outside angle and beyond reach")
 	check(front.slowed and inside.slowed and not behind.slowed, "Ice control follows the same cone as damage")
-	manager.learn_spell("lightning_arc")
+	manager.learn_spell("lightning")
 	var before_lightning = front.current_health
 	var neighbor_health = inside.current_health
 	# Area spells only centre on visible enemies; give the headless viewport a real screen size.
@@ -216,8 +216,8 @@ func run():
 	root.size = Vector2i(1280, 720)
 	game.get_node("Camera2D").global_position = game.player.global_position
 	game.get_node("Camera2D").force_update_scroll()
-	manager.learn_spell("plague_seed")
-	var plague_slot = manager.find_spell_slot("plague_seed")
+	manager.learn_spell("infestation")
+	var plague_slot = manager.find_spell_slot("infestation")
 	var plague_info = manager.get_spell_info(plague_slot)
 	var corpse = target_at(Vector2(10, 0))
 	corpse.dying = true

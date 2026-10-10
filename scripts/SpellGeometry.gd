@@ -1,7 +1,7 @@
 extends RefCounted
 
 const BOLT_RADIUS = 17.0
-const LANCE_RADIUS = 24.0
+const SPEAR_RADIUS = 24.0
 const BEAM_RADIUS = 20.0
 const SPIRIT_RADIUS = 24.0
 const Art = preload("res://scripts/EffectArt.gd")
@@ -56,7 +56,7 @@ static func stamp_dimensions(kind: String, radius: float) -> Vector2:
 		var body: Rect2 = Art.MOTIF_BODIES[kind]
 		return Vector2(radius * 2 * crop.size.x / body.size.x, radius * 2 * crop.size.y / body.size.y)
 	match kind:
-		"lance": return Vector2(radius * 2.0 * Art.motif_region("lance").size.aspect(), radius * 2.0)
+		"spear": return Vector2(radius * 2.0 * Art.motif_region("spear").size.aspect(), radius * 2.0)
 		"blade", "orbit": return Vector2.ONE * radius * 2.0
 	return Vector2.ONE * radius * 2.0
 
@@ -67,6 +67,6 @@ static func stamp_offset(kind: String, radius: float) -> Vector2:
 		var size = stamp_dimensions(kind, radius)
 		var relative = (body.get_center() - crop.get_center()) / crop.size * size
 		return Vector2(relative.x if kind in ["mana", "bolt"] else -relative.x, -relative.y)
-	if kind == "lance":
+	if kind == "spear":
 		return Vector2(radius - stamp_dimensions(kind, radius).x * 0.5, 0)
 	return Vector2.ZERO

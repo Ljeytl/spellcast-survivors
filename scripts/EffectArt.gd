@@ -3,12 +3,12 @@ extends RefCounted
 const PARTICLE_STAMPS = preload("res://assets/effects/particle-stamps.png")
 const SPELL_MOTIFS = preload("res://assets/effects/spell-motifs.png")
 const STAMP_REGIONS = {"impact": Rect2(132, 148, 400, 408), "smoke": Rect2(784, 120, 360, 440), "ember": Rect2(208, 768, 272, 352), "shard": Rect2(792, 744, 328, 392)}
-const MOTIF_CELLS = {"mana": 0, "bolt": 1, "lance": 2, "ice": 3, "plague": 4, "spirit": 5, "orbit": 6, "blade": 7, "flame": 8, "steam": 9, "meteor": 10, "stone": 11, "heal": 12, "shard": 13, "ember": 14, "prism": 15}
+const MOTIF_CELLS = {"mana": 0, "bolt": 1, "spear": 2, "ice": 3, "plague": 4, "spirit": 5, "orbit": 6, "blade": 7, "flame": 8, "steam": 9, "meteor": 10, "stone": 11, "heal": 12, "shard": 13, "ember": 14, "prism": 15}
 const MOTIF_BOUNDS = [Rect2(67, 108, 223, 146), Rect2(383, 114, 229, 132), Rect2(650, 122, 285, 131), Rect2(994, 108, 218, 145), Rect2(79, 366, 147, 209), Rect2(367, 375, 212, 200), Rect2(673, 364, 228, 228), Rect2(986, 355, 243, 238), Rect2(88, 658, 153, 239), Rect2(371, 689, 216, 194), Rect2(686, 676, 209, 228), Rect2(996, 696, 208, 193), Rect2(68, 1001, 191, 173), Rect2(377, 1006, 187, 175), Rect2(711, 1034, 167, 122), Rect2(1038, 973, 127, 208)]
 const MOTIF_BODIES = {"mana": Rect2(67, 108, 150, 146), "bolt": Rect2(383, 114, 144, 132), "spirit": Rect2(420, 375, 158, 169)}
 
 const INK = Color("202334")
-const PALETTE = {"mana": Color("69c5ce"), "bolt": Color("f5d779"), "lance": Color("e88d52"), "ice": Color("a3e1e4"), "lightning": Color("b5a3df"), "heal": Color("a9ca79"), "stone": Color("a8a18b"), "spirit": Color("b3c7df"), "flame": Color("e88d52"), "impact": Color("f1dfaf"), "xp": Color("83cbd0"), "smoke": Color("898a94"), "plague": Color("83a35d"), "blade": Color("d6d4eb"), "rune": Color("d2b57a"), "hostile": Color("f27367")}
+const PALETTE = {"mana": Color("69c5ce"), "bolt": Color("f5d779"), "spear": Color("e88d52"), "ice": Color("a3e1e4"), "lightning": Color("b5a3df"), "heal": Color("a9ca79"), "stone": Color("a8a18b"), "spirit": Color("b3c7df"), "flame": Color("e88d52"), "impact": Color("f1dfaf"), "xp": Color("83cbd0"), "smoke": Color("898a94"), "plague": Color("83a35d"), "blade": Color("d6d4eb"), "rune": Color("d2b57a"), "hostile": Color("f27367")}
 
 static func pixel(canvas: CanvasItem, rect: Rect2, color: Color):
 	canvas.draw_rect(rect.grow(1), INK)

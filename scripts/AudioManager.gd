@@ -324,10 +324,10 @@ func spell_sound_type(spell_name: String) -> SoundType:
 		"life", "regeneration", "life_bolt", "soul_bloom": return SoundType.SPELL_LIFE
 		"ice_blast", "frost_sigil": return SoundType.SPELL_ICE_BLAST
 		"earth_shield", "earthshield", "rune_trap": return SoundType.SPELL_EARTHSHIELD
-		"lightning_arc", "lightning", "lightning_bolt", "focus_ray", "prism_ray": return SoundType.SPELL_LIGHTNING
-		"meteor_shower", "meteor_lance": return SoundType.SPELL_METEOR
-		"ember_lance", "ember_trail", "firewalk", "cinder_field", "steam_field": return SoundType.SPELL_IMPACT_FIRE
-		"plague_seed", "seeking_spirit", "seeker", "arcane_orbit": return SoundType.SPELL_LIFE
+		"lightning", "lightning_bolt", "focus_ray", "prism_ray": return SoundType.SPELL_LIGHTNING
+		"meteor_shower", "meteor_spear": return SoundType.SPELL_METEOR
+		"ember_spear", "firewalk", "cinder_field", "steam_field": return SoundType.SPELL_IMPACT_FIRE
+		"infestation", "seeker", "arcane_orbit": return SoundType.SPELL_LIFE
 		_: return SoundType.SPELL_BOLT
 
 func play_spell_sound(spell_name: String, _level: int = 1):

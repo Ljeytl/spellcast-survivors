@@ -7,7 +7,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 PARALLEL="${1:-6}"; LIMIT="${2:-1200}"; SEED="${3:-11}"
 GODOT="${GODOT:-/Applications/Godot.app/Contents/MacOS/Godot}"
-SPELLS="${SPELLS:-bolt ice_blast rune_trap focus_ray ember_lance arcane_orbit meteor_shower seeking_spirit plague_seed cinder_field lightning_arc returning_blade}"
+SPELLS="${SPELLS:-bolt ice_blast rune_trap focus_ray ember_spear arcane_orbit meteor_shower seeker infestation cinder_field lightning cross_blade}"
 OUT="${OUT:-builds/balance/solo-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$OUT"
 # Plain batches (macOS ships bash 3.2 and a BSD xargs that rejects long -I commands).

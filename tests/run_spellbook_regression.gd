@@ -31,7 +31,7 @@ func run():
 	var manager = game.spell_manager
 	var pause_input = game.get_node("PauseInput")
 	check(manager.spells.size() == 1 and manager.find_spell_slot("bolt") == 1, "Fresh run has only owned starter Bolt")
-	for id in ["life", "regeneration", "ice_blast", "earth_shield", "lightning_arc"]:
+	for id in ["life", "regeneration", "ice_blast", "earth_shield", "lightning"]:
 		check(manager.learn_spell(id), "Learn base for six-slot UI journey: " + id)
 	check(manager.learn_spell("lightning_bolt"), "Acquire bonus at full active capacity")
 	var bonus_slot = manager.find_spell_slot("lightning_bolt")

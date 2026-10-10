@@ -76,7 +76,7 @@ func run():
 	var inventory = game.hud.get_node("RunInventory")
 	var reference = game.hud.get_node("CastingReference")
 	check(inventory.cards.has("bolt"), "Starting Bolt has icon/rank card")
-	manager.learn_spell("lightning_arc")
+	manager.learn_spell("lightning")
 	manager.learn_spell("lightning_bolt")
 	manager.upgrade_spell("bolt")
 	game.player.apply_upgrade({"effect": {"type": "spell_damage", "value": 0.1}})
@@ -175,9 +175,9 @@ func run():
 	manager.spells.clear()
 	manager.bonus_spells.clear()
 	manager.acquired_spells.clear()
-	for id in ["bolt", "lightning_arc", "life", "focus_ray", "ember_lance", "meteor_shower"]:
+	for id in ["bolt", "lightning", "life", "focus_ray", "ember_spear", "meteor_shower"]:
 		check(manager.learn_spell(id), "Full-kit fixture learns " + id)
-	for id in ["lightning_bolt", "life_bolt", "prism_ray", "meteor_lance"]:
+	for id in ["lightning_bolt", "life_bolt", "prism_ray", "meteor_spear"]:
 		check(manager.learn_spell(id), "Full-kit fixture discovers " + id)
 	game.player.passive_ranks = {"spell_damage": 6, "movement_speed": 2, "max_health": 3, "xp_range": 4, "projectile_speed": 1, "slowdown_duration": 5}
 	boss.dying = false

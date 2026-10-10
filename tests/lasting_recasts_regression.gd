@@ -33,7 +33,7 @@ func run():
 	manager.set_process(false)
 	manager.spells.clear()
 	manager.acquired_spells.clear()
-	for id in ["arcane_orbit", "ember_trail", "regeneration", "earth_shield", "focus_ray", "rune_trap"]:
+	for id in ["arcane_orbit", "firewalk", "regeneration", "earth_shield", "focus_ray", "rune_trap"]:
 		check(manager.learn_spell(id), "Learn " + id)
 	manager.cast_spell_by_type(1)
 	var orbit = effects("arcane_orbit")[0]
@@ -51,20 +51,20 @@ func run():
 	# Extend recasts queue a segment with its own per-cast power (MEGA); the earned rank applies when that segment starts.
 	check(not orbit.queued_casts.is_empty() and float(orbit.queued_casts.back().damage) > prior_damage and effects("arcane_orbit").size() == 1, "Recast applies earned rank without stacking effects")
 	manager.cast_spell_by_type(2)
-	var trail = effects("ember_trail")[0]
+	var trail = effects("firewalk")[0]
 	trail.set_physics_process(false)
 	trail.advance(2)
 	var patch_age = trail.trail_points[0].age
 	manager.cast_spell_by_type(2)
 	check(trail.emission_deadline == 10, "Firewalk extends laying fire by five seconds")
-	check(trail.trail_points[0].age == patch_age and is_equal_approx(float(trail.info.patch_duration), float(manager.spell_catalog["ember_trail"].patch_duration)), "Existing fire age and linger stay unchanged")
+	check(trail.trail_points[0].age == patch_age and is_equal_approx(float(trail.info.patch_duration), float(manager.spell_catalog["firewalk"].patch_duration)), "Existing fire age and linger stay unchanged")
 	trail.advance(7.5)
 	game.player.position += Vector2(40, 0)
 	trail.advance(0.1)
 	var old_fire = game.player.global_position
 	trail.advance(0.6)
 	game.player.position += Vector2(1000, 0)
-	check(Status.collect(manager).ember_trail.phase == "ground", "Emission expiry distinguishes lingering ground")
+	check(Status.collect(manager).firewalk.phase == "ground", "Emission expiry distinguishes lingering ground")
 	manager.cast_spell_by_type(2)
 	check(is_equal_approx(trail.emission_deadline - trail.age, 5), "Tail recast restores five seconds of emission")
 	check(trail.last_trail_position == game.player.global_position, "Recast does not bridge travel gap")
@@ -72,7 +72,7 @@ func run():
 	trail.advance(0.1)
 	check(not trail.trail_contains(old_fire + Vector2(500, 0)), "Resumed trail cannot damage across unburned gap")
 	check(trail.trail_contains(old_fire), "Old patch still burns without extending its lifetime")
-	check(effects("ember_trail").size() == 1, "Firewalk remains one emitter")
+	check(effects("firewalk").size() == 1, "Firewalk remains one emitter")
 	manager.cast_spell_by_type(3)
 	manager.process_healing_effects(2)
 	manager.add_healing_effect(4, 2)
@@ -115,7 +115,7 @@ func run():
 			root.get_texture().get_image().save_png("res://builds/duration-evidence/" + str(geometry.x) + ".png")
 	trail.emission_deadline = trail.age - 1
 	trail.trail_points.clear()
-	check(not Status.collect(manager).has("ember_trail"), "No ground timer after last patch expires")
+	check(not Status.collect(manager).has("firewalk"), "No ground timer after last patch expires")
 	orbit.remaining = 0
 	check(not Status.collect(manager).has("arcane_orbit"), "Expired timer removed")
 	check(preload("res://scripts/BuildVersion.gd").text() == "v%s · Playtest" % ProjectSettings.get_setting("application/config/version"), "Requested version")

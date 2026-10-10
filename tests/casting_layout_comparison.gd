@@ -20,7 +20,7 @@ func run():
 	manager.set_process(false)
 	game.player.set_physics_process(false)
 	game.player.is_invincible = true
-	for id in ["ember_trail", "arcane_orbit", "earth_shield", "focus_ray", "regeneration"]:
+	for id in ["firewalk", "arcane_orbit", "earth_shield", "focus_ray", "regeneration"]:
 		manager.learn_spell(id)
 	var monsters = game.get_node("MonsterManager")
 	monsters.set_process(false)

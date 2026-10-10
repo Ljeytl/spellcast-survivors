@@ -75,7 +75,7 @@ func run():
 		enemy.global_position = game.player.global_position + Vector2.from_angle(i * TAU / 10.0) * (190 + (i % 3) * 40)
 		enemy.set_physics_process(false)
 	var spells = game.spell_manager
-	for id in ["meteor_shower", "cinder_field", "returning_blade", "lightning_arc", "ice_blast"]:
+	for id in ["meteor_shower", "cinder_field", "cross_blade", "lightning", "ice_blast"]:
 		spells.learn_spell(id)
 	await wait(2.5)  # the opening cast cooldown ignores keys right after load
 	await key(KEY_SPACE)

@@ -6,8 +6,14 @@ var rng = RandomNumberGenerator.new()
 var run_seed = 11
 var limit = 1200.0
 var behavior_mode = "active"
-## Debug: spell ids the bot levels evenly and casts exclusively (e.g. --focus=meteor_shower,plague_seed,ice_blast).
+## Debug: spell ids the bot levels evenly and casts exclusively (e.g. --focus=meteor_shower,infestation,ice_blast).
 var focus_spells: Array = []
+## Debug: extra incantations typed in rotation alongside owned spells, '|'-separated (e.g. --incantations=triple spear|mega icy nova).
+var extra_incantations: Array = []
+var cracked_words: Dictionary = {}
+## Debug: make every data-only generic spell castable (fireball, tsunami, meteor ring...).
+var learn_generic = false
+var engine_peak_parts = 0
 ## Debug: passives taken when no focus card is offered, in priority order.
 var focus_passives: Array = ["spell_damage", "area_size", "spell_duration", "projectile_speed"]
 ## Debug: player takes no damage, for measuring pace and kills without dying.
@@ -89,6 +95,8 @@ func _initialize():
 			"--report": report_path = parts[1]
 			"--mode": behavior_mode = parts[1]
 			"--focus": focus_spells = Array(parts[1].split(",", false))
+			"--learn-generic": learn_generic = parts[1] in ["1", "true", "yes"]
+			"--incantations": extra_incantations = Array(parts[1].split("|", false)).map(func(t): return str(t).strip_edges().to_lower())
 			"--passives": focus_passives = Array(parts[1].split(",", false))
 			"--invulnerable": invulnerable = parts[1] in ["1", "true", "yes"]
 			"--magnet": magnet = parts[1] in ["1", "true", "yes"]
@@ -115,6 +123,9 @@ func start():
 	# Focus mode starts with its spells learned at rank 1, so every spell is measured from minute 0.
 	for id in focus_spells:
 		game.spell_manager.learn_spell(id, false)
+	if learn_generic and "learned_generic_spells" in game.spell_manager:
+		for id in preload("res://scripts/engine/SpellDefs.gd").all():
+			game.spell_manager.learned_generic_spells.append(id)
 	if magnet:
 		game.player.xp_range_multiplier = MAGNET_RANGE_MULTIPLIER
 	previous_position = game.player.global_position
@@ -134,11 +145,19 @@ func start():
 		casts_by_spell[spell] = casts_by_spell.get(spell, 0) + 1
 	)
 	game.spell_manager.spell_locked_error.connect(func(_spell, _required, _level): failures += 1)
+	if game.spell_manager.has_signal("keyword_cracked"):
+		game.spell_manager.keyword_cracked.connect(func(word, _reason): cracked_words[word] = int(cracked_words.get(word, 0)) + 1)
 	started = Time.get_ticks_msec()
 	DisplayServer.window_set_title("SpellCast Survivors — BASELINE BOT — seed %d" % run_seed)
 	ready = true
 
 func _process(delta):
+	if is_instance_valid(game) and learn_generic or not extra_incantations.is_empty():
+		var live = 0
+		for child in game.get_children() if is_instance_valid(game) else []:
+			if child.has_method("caster_position"):
+				live += child.parts.size()
+		engine_peak_parts = maxi(engine_peak_parts, live)
 	if not ready or finished:
 		return false
 	var time = game.get_node("MonsterManager").game_time
@@ -242,6 +261,7 @@ func _process(delta):
 			# Focus mode casts only the focus spells; until one is learned it casts nothing.
 			var focused = focus_incantations()
 			owned = owned.filter(func(name): return name in focused)
+		owned = owned + extra_incantations
 		var ley_words = spells.ley_words() if ley_mode and spells.has_method("ley_words") else []
 		if not ley_words.is_empty():
 			owned = [ley_words[0]]
@@ -446,6 +466,9 @@ func observe_health(health: float, _maximum: float, overheal: float):
 	pending_damage = maxf(0.0, previous_health + previous_overheal - health - overheal)
 	previous_health = health
 	previous_overheal = overheal
+	# SANGUINE's blood price changes health without a player_damaged event; book it as its own source.
+	if pending_damage > 0.0 and str(game.player.last_damage_context.get("kind", "")) == "sanguine":
+		observe_damage()
 
 func sample_timeline(time: float):
 	var position = game.player.global_position
@@ -519,7 +542,7 @@ func finish(outcome: String):
 		"recent_damage": damage_events, "boss_events": boss_events, "surviving_bosses": boss_snapshot(),
 		"uncollected_xp": uncollected_xp(),
 		"spell_attempts": attempts, "successful_casts": successful_casts,
-		"casting_input": "space_enter", "casts_by_spell": casts_by_spell,
+		"casting_input": "space_enter", "casts_by_spell": casts_by_spell, "cracked_words": cracked_words, "engine_peak_parts": engine_peak_parts, "extra_incantations": extra_incantations,
 		"casting_failures": failures, "characters_typed": characters_typed,
 		"distance_walked": distance_walked, "spells_acquired": game.spell_manager.get_unlocked_spell_names(),
 		"upgrade_choices": upgrades, "checkpoints": checkpoints, "timeline": timeline, "camps": camps, "ley_log": ley_log, "ley_states": ley_states(),

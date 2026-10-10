@@ -54,7 +54,7 @@ func run():
 		await create_timer(0.25).timeout
 		await shot("ending-" + suffix)
 		game.game_over_screen.hide()
-	for id in ["life", "regeneration", "ice_blast", "earth_shield", "lightning_arc"]:
+	for id in ["life", "regeneration", "ice_blast", "earth_shield", "lightning"]:
 		game.spell_manager.learn_spell(id)
 	game.spell_manager.learn_spell("lightning_bolt")
 	for geometry in [Vector2i(1280, 720), Vector2i(800, 600)]:

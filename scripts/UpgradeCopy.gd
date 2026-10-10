@@ -6,23 +6,23 @@ const SPELLS = {
 	"regeneration": "Restore health over time.",
 	"ice_blast": "Blast a cone of enemies with ice and push them back.",
 	"earth_shield": "Block one hit and erupt toward the attacker; recasts add charges.",
-	"lightning_arc": "Strike nearby enemies with an area of lightning.",
+	"lightning": "Strike nearby enemies with an area of lightning.",
 	"meteor_shower": "Rain explosive meteors onto nearby enemies.",
-	"ember_lance": "Pierce a line of enemies with fire.",
-	"plague_seed": "Infect a nearby enemy with lingering damage.",
+	"ember_spear": "Pierce a line of enemies with fire.",
+	"infestation": "Infect a nearby enemy with lingering damage.",
 	"cinder_field": "Burn enemies inside a lingering fire field.",
 	"arcane_orbit": "Surround yourself with damaging orbiting magic.",
 	"focus_ray": "Track a nearby enemy with a damaging beam.",
 	"rune_trap": "Place an explosive trap ahead of you.",
-	"seeking_spirit": "Summon a hunter that pursues nearby enemies.",
-	"ember_trail": "Leave burning tracks as you move.",
-	"returning_blade": "Throw spinning blades around you that return to strike again."
+	"seeker": "Summon a hunter that pursues nearby enemies.",
+	"firewalk": "Leave burning tracks as you move.",
+	"cross_blade": "Throw spinning blades around you that return to strike again."
 }
 
 const EVOLUTIONS = {
 	"lightning_bolt": "Bounce lightning between enemies with a blast on every hit.",
 	"life_bolt": "Hits plant a healing seed you can collect.",
-	"meteor_lance": "Pierce enemies with explosive meteor hits.",
+	"meteor_spear": "Pierce enemies with explosive meteor hits.",
 	"soul_bloom": "Infect enemies; their deaths leave healing blooms.",
 	"steam_field": "Scald and slow enemies in a lingering steam field.",
 	"prism_ray": "Carve through a line with a broad, slowly tracking laser.",

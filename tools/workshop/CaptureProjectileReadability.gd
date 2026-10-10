@@ -17,7 +17,7 @@ func run():
 	DirAccess.make_dir_recursive_absolute(folder)
 	var fixture = preload("res://tools/workshop/PreviewFixture.gd").new()
 	fixture.settings.scenery = false
-	for id in ["bolt", "mana_bolt", "life_bolt", "lightning_bolt", "ember_lance", "meteor_lance"]:
+	for id in ["bolt", "mana_bolt", "life_bolt", "lightning_bolt", "ember_spear", "meteor_spear"]:
 		paused = false
 		Engine.time_scale = 1
 		await fixture.setup(root, id)

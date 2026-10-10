@@ -167,7 +167,7 @@ func run():
 	game.console_instance.close_console()
 	await settle()
 	check(not paused, "Closing console from play resumes")
-	for id in ["life", "regeneration", "ice_blast", "earth_shield", "lightning_arc"]:
+	for id in ["life", "regeneration", "ice_blast", "earth_shield", "lightning"]:
 		game.spell_manager.learn_spell(id)
 	game.spell_manager.learn_spell("lightning_bolt")
 	game.update_spell_slot_lock_status()

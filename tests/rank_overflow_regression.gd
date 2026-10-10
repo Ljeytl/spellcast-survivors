@@ -27,7 +27,7 @@ func run():
 		manager.upgrade_spell("bolt")
 	check(manager.get_spell_rank("bolt") == 8, "Ranks stop at 8 while slots are empty")
 	check(not manager.can_rank_up("bolt"), "Rank 9 is locked before every slot is filled")
-	for id in ["life", "ice_blast", "lightning_arc", "cinder_field", "plague_seed"]:
+	for id in ["life", "ice_blast", "lightning", "cinder_field", "infestation"]:
 		manager.learn_spell(id)
 	check(manager.spells.size() == manager.MAX_EQUIPPED_SPELLS, "Fixture fills every slot")
 	check(not manager.overflow_unlocked(), "Filled slots alone do not unlock overflow")

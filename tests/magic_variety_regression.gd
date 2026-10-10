@@ -1,6 +1,6 @@
 extends SceneTree
 
-const NEW_IDS = ["focus_ray", "rune_trap", "seeking_spirit", "ember_trail", "returning_blade"]
+const NEW_IDS = ["focus_ray", "rune_trap", "seeker", "firewalk", "cross_blade"]
 const NEW_RECIPES = ["prism_ray", "frost_sigil"]
 var checks = 0
 var failures = 0
@@ -87,7 +87,7 @@ func run():
 		var slot = manager.find_spell_slot(id)
 		var original_damage = manager.calculate_spell_damage(manager.spells[slot])
 		manager.upgrade_spell(id)
-		if id == "returning_blade":
+		if id == "cross_blade":
 			check(is_equal_approx(manager.calculate_spell_damage(manager.spells[slot]), original_damage + float(manager.spells[slot].rank_growth.damage.per_rank)), "Blade count upgrade also adds its per-rank damage")
 			check("blade" in manager.get_rank_upgrade_description(id), "Next blade rank describes the volley")
 		else:
@@ -110,7 +110,7 @@ func run():
 		for i in range(5):
 			manager.cast_spell_by_type(slot)
 		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion() and not node.get_parent().is_queued_for_deletion())
-		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "returning_blade" else active.size()
+		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "cross_blade" else active.size()
 		# Extend-recast spells (Fire Walk) lengthen one instance instead of stacking up to active_limit.
 		var expected_cap = 1 if manager.spells[slot].get("recast_behavior", "stack") == "extend" else mini(int(manager.spells[slot].active_limit), 7)
 		check(capped == expected_cap, "Per-spell concurrent cap: " + id)
@@ -192,7 +192,7 @@ func run():
 	fresh()
 	await process_frame  # Seeker only targets on-screen enemies; let the new camera settle first
 	near = target(Vector2(100, 0))
-	var spirit = effect("seeking_spirit", near, {"move_speed": 320, "hit_interval": 0.5})  # pursuit timing fixture
+	var spirit = effect("seeker", near, {"move_speed": 320, "hit_interval": 0.5})  # pursuit timing fixture
 	spirit.advance(0.2)
 	check(spirit.global_position.x > game.player.position.x and near.hits == 0, "Spirit travels instead of remote damage")
 	near.position += Vector2(60, 0)
@@ -206,7 +206,7 @@ func run():
 	await process_frame
 	near = target(Vector2(30, 0))
 	far = target(Vector2(80, 0))
-	spirit = effect("seeking_spirit", near, {"reaping": true, "hit_interval": 0.5})  # pre-1.0s-interval fixture timing
+	spirit = effect("seeker", near, {"reaping": true, "hit_interval": 0.5})  # pre-1.0s-interval fixture timing
 	spirit.advance(0.05)
 	check(near.hits == 1 and far.hits == 0 and spirit.burst_remaining == 0, "Reaping spirit survivor hit does not burst or flash")
 	near.current_health = 1
@@ -217,7 +217,7 @@ func run():
 	check(spirit.burst_remaining == 0, "Burst flash expires within the owning spirit without extra nodes")
 	fresh()
 	near = target(Vector2.ZERO)
-	var trail = effect("ember_trail", null, {"patch_duration": 2.0})
+	var trail = effect("firewalk", null, {"patch_duration": 2.0})
 	trail.advance(2.1)
 	var stationary_hits = near.hits
 	trail.advance(2)
@@ -236,7 +236,7 @@ func run():
 	fresh()
 	near = target(Vector2(150, 0))
 	far = target(Vector2(280, 0))
-	var blade = effect("returning_blade", near)
+	var blade = effect("cross_blade", near)
 	blade.advance(0.7)
 	check(near.hits == 1 and far.hits == 1 and blade.leg == 1, "Outbound sweep hits each crossed enemy once")
 	blade.advance(1.6)
@@ -244,7 +244,7 @@ func run():
 	check(near.hits != 3, "Known-bad per-frame blade hit would fail deduplication")
 	fresh()
 	near = target(Vector2(150, 0))
-	blade = effect("returning_blade", near)
+	blade = effect("cross_blade", near)
 	blade.advance(0.7)
 	game.player.position += Vector2(0, 100)
 	blade.advance(1.1)
