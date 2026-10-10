@@ -101,7 +101,7 @@ var commands: Dictionary = {
 	},
 	"vfx": {
 		"description": "Chunky-magic VFX debug: test flame by the wizard, stress test, stats",
-		"usage": "vfx flame | vfx stress <count> | vfx bench [frames] | vfx clear | vfx stats"
+		"usage": "vfx flame | vfx stress <count> | vfx twos [on/off] | vfx bench [frames] | vfx clear | vfx stats"
 	},
 	"bighead": {
 		"description": "Double current enemy art size; off restores original sizes",
@@ -1229,6 +1229,9 @@ func vfx_debug(args: Array):
 			vfx.clear_test_flames()
 			vfx.clear()
 			add_output("VFX cleared.")
+		"twos":
+			vfx.on_twos = not vfx.on_twos if args.size() < 2 else args[1].to_lower() in ["on", "true", "1"]
+			add_output("VFX on twos: " + str(vfx.on_twos))
 		"bench":
 			var frames = int(args[1]) if args.size() > 1 else 300
 			if not vfx.bench_done.is_connected(_on_vfx_bench):

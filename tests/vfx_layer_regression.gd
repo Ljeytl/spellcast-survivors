@@ -23,9 +23,10 @@ func run():
 	if vfx == null:
 		quit(1)
 		return
-	check(is_equal_approx(vfx.CELL, 8.0), "1 VFX cell = 8 world px = 4x4 art px")
+	check(is_equal_approx(vfx.CELL, 4.0), "1 VFX cell = 4 world px = 2x2 art px")
 	check(is_equal_approx(preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM * 2.0, 3.0), "Integer art scaling: 3 screen px per art px")
-	check(is_equal_approx(vfx.CELL * preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM, 12.0), "One VFX cell is 12 screen px at 1080p")
+	check(is_equal_approx(vfx.CELL * preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM, 6.0), "One VFX cell is 6 screen px at 1080p")
+	check(is_equal_approx(vfx.WPS * 192.0, 1280.0), "Sandbox frame (192 su) spans the 1080p view (1280 world px)")
 	check(vfx.GROUND_Z < 0 and vfx.AIR_Z > 20 and vfx.AIR_Z < 4096, "Ground layer under actors, air layer over actors and enemy projectiles")
 	await process_frame
 	check(not vfx._ground_layer.visible and not vfx._air_layer.visible, "Layers hidden with no game camera")
@@ -55,11 +56,13 @@ func run():
 		if vfx._heat[i] > 0.12:
 			hot += 1
 			var c = Vector2i(i % vfx._size.x, i / vfx._size.x)
-			if absi(c.x - fc.x) <= 22 and c.y <= fc.y + 20 and c.y >= fc.y - 30:
+			if absi(c.x - fc.x) <= 40 and c.y <= fc.y + 40 and c.y >= fc.y - 70:
 				near += 1
 	check(hot > 0, "Heat field has burning cells")
 	check(near * 10 >= hot * 9, "Flames sit at the test flame's world position (world-locked)")
-	check(vfx._decals.size() == 1, "Test flame leaves one scorch decal")
+	check(vfx._fields.size() == 1, "Test flame is one sandbox field (floor + rim on the ground layer)")
+	vfx.scorch(flame_world.x / vfx.WPS, flame_world.y / vfx.WPS, 6.0)
+	check(vfx._decals.size() == 1, "Scorch makes one decal")
 	var decal: Sprite2D = vfx._decals[0][0]
 	check(decal.z_index == vfx.GROUND_Z and not decal.z_as_relative, "Scorch decal sits on the ground layer, under actors")
 	check(is_equal_approx(fposmod(decal.position.x, vfx.CELL), 0.0) and is_equal_approx(fposmod(decal.position.y, vfx.CELL), 0.0) and decal.scale == Vector2.ONE * vfx.CELL, "Scorch decal is on the world cell grid")
@@ -79,8 +82,10 @@ func run():
 	# Hit-stop is VFX-only.
 	vfx.hitstop(5)
 	await process_frame
+	await process_frame
 	check(Engine.time_scale == time_scale and not paused, "VFX hit-stop never changes game time")
 	vfx._stop = 0
+	check(vfx.on_twos and is_equal_approx(vfx.STEP_HZ, 30.0), "Effects animate on twos (30 Hz steps) by default")
 
 	vfx.clear_test_flames()
 	vfx.clear()

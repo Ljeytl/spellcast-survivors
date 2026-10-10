@@ -1,3 +1,11 @@
+# Unreleased — Chunky-magic VFX, finer grid + full Cinder Field reference
+
+- VFX pixels are now 2x2 art px (6 screen px at 1080p, a 320x180 grid), down from 4x4. At 12 px the port looked cruder than the sandbox did in its page.
+- The VFX sim now runs in sandbox units, so sandbox numbers port verbatim; shapes keep sandbox proportions and only the pixels get finer.
+- The test flame is now the real sandbox Cinder Field: banded floor and bright rim at the true radius (`shaders/vfx_ground.gdshader`, noise identical to the sandbox) plus warm floor light on the grass.
+- Effects animate on twos (30 Hz steps) by default; `vfx twos off` to compare. Smoke is plum instead of gray; the heat halo is a warm tint instead of the dark-brown that read as dirt on grass.
+- Web (Chromium, M-series Mac): 12 fields / 955 flames cost 1.5 ms per frame on twos.
+
 # Unreleased — Chunky-magic VFX, Milestone 0 (grid and layers)
 
 - **Camera is about 8% closer** (zoom 1.3875 → 1.5, about 14% less visible area). The wizard and world now scale by exactly 3 screen px per art px, so pixels are even. Side effect on pacing: enemies enter from the edge of the visible area, so they now spawn about 50 world px closer, and on-screen-only targeting sees a slightly smaller area. Not retuned; flagged for review.
