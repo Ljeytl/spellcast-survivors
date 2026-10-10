@@ -33,7 +33,7 @@ func run():
 	game.get_node("MonsterManager").set_process(false)
 	game.player.is_invincible = true
 	var reviewed_zoom = preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM
-	check(is_equal_approx(reviewed_zoom, 1.3875), "Reviewed camera zoom remains 1.3875")
+	check(is_equal_approx(reviewed_zoom, 1.5), "Reviewed camera zoom is 1.5 (integer art scaling)")
 	check(game.get_node("Camera2D").zoom == Vector2.ONE * reviewed_zoom, "Camera uses reviewed zoom")
 	check(game.player.get_node("Sprite2D").scale == Vector2.ONE * 2.0, "Player retains baseline art proportions")
 	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(64, 64), "Trunk navigation footprint remains deliberate baseline")

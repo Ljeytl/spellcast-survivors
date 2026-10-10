@@ -99,6 +99,10 @@ var commands: Dictionary = {
 		"description": "Spawn treasure chest at mouse position",
 		"usage": "spawn_chest"
 	},
+	"vfx": {
+		"description": "Chunky-magic VFX debug: test flame by the wizard, stress test, stats",
+		"usage": "vfx flame | vfx stress <count> | vfx bench [frames] | vfx clear | vfx stats"
+	},
 	"bighead": {
 		"description": "Double current enemy art size; off restores original sizes",
 		"usage": "bighead [on/off/toggle]"
@@ -423,6 +427,8 @@ func execute_command(command_text: String):
 			set_player_damage(args)
 		"spawn_chest":
 			spawn_chest_at_mouse()
+		"vfx":
+			vfx_debug(args)
 		"bighead":
 			toggle_bighead_mode(args)
 		"disco":
@@ -1196,3 +1202,43 @@ func set_player_multiplier(args: Array, property: String, label: String):
 	if player:
 		player.set(property, multiplier)
 		add_output("%s: %.2fx base (replaces the current stat multiplier)" % [label, multiplier])
+
+func vfx_debug(args: Array):
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx == null:
+		add_output("[color=red]Vfx autoload missing[/color]")
+		return
+	var sub = args[0].to_lower() if args.size() > 0 else "flame"
+	var player = game_node.player if is_instance_valid(game_node) else null
+	match sub:
+		"flame":
+			if player == null:
+				add_output("No player")
+				return
+			vfx.add_test_flame(player.global_position + Vector2(64, 8))
+			add_output("Test flame placed beside the wizard (world-locked). 'vfx clear' removes it.")
+		"stress":
+			var count = int(args[1]) if args.size() > 1 else 12
+			if player == null:
+				return
+			for i in count:
+				var a = i * 2.4
+				vfx.add_test_flame(player.global_position + Vector2(cos(a), sin(a)) * (200.0 + 60.0 * sqrt(i)))
+			add_output("Placed %d test flames around the wizard." % count)
+		"clear":
+			vfx.clear_test_flames()
+			vfx.clear()
+			add_output("VFX cleared.")
+		"bench":
+			var frames = int(args[1]) if args.size() > 1 else 300
+			if not vfx.bench_done.is_connected(_on_vfx_bench):
+				vfx.bench_done.connect(_on_vfx_bench)
+			vfx.bench(frames)
+			add_output("Benchmarking %d frames..." % frames)
+		"stats":
+			add_output("VFX: %d flames, sim %.2f ms, draw %.2f ms, %d cells" % [vfx.stats.flames, vfx.stats.sim_ms, vfx.stats.draw_ms, vfx.stats.cells])
+		_:
+			add_output("Usage: " + commands["vfx"]["usage"])
+
+func _on_vfx_bench(summary: String):
+	add_output(summary)

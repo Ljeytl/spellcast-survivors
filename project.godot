@@ -25,6 +25,7 @@ UserSettings="*res://scripts/UserSettings.gd"
 CharacterManager="*res://scripts/CharacterManager.gd"
 DataManager="*res://scripts/DataManager.gd"
 AnimationManager="*res://scripts/AnimationManager.gd"
+Vfx="*res://scripts/vfx/Vfx.gd"
 
 [display]
 

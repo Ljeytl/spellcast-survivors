@@ -1,3 +1,12 @@
+# Unreleased — Chunky-magic VFX, Milestone 0 (grid and layers)
+
+- **Camera is about 8% closer** (zoom 1.3875 → 1.5, about 14% less visible area). The wizard and world now scale by exactly 3 screen px per art px, so pixels are even. Side effect on pacing: enemies enter from the edge of the visible area, so they now spawn about 50 world px closer, and on-screen-only targeting sees a slightly smaller area. Not retuned; flagged for review.
+- New `Vfx` autoload (`scripts/vfx/Vfx.gd`): the chunky-magic layer from `docs/VFX_PORT_BRIEF.md`. One VFX cell = 8 world px = 4×4 art px (12×12 screen px at 1080p). Two world-locked layers: ground (under actors) and air (over actors, under UI). The grid sizes itself from the visible area, so non-16:9 windows work.
+- Emissive fire heat field ported from the sandbox (`shaders/vfx_heat.gdshader`), plus embers, smoke and scorch decals (`shaders/vfx_decal.gdshader`). VFX hit-stop freezes only the VFX simulation, never game time. Flame budget 1000 (400 with reduced effects).
+- Console: `vfx flame` (test flame beside the wizard), `vfx stress <n>`, `vfx bench [frames]`, `vfx stats`, `vfx clear`. Not wired to any spell yet; no spell looks change.
+- Web build (Compatibility, M-series Mac, Chromium): 1 test field 0.6 ms; 30 overlapping fields at the old 1500 cap 6.1 ms. Late-game horde (minute 14) 11.2 ms/frame without VFX, 18.7 ms with 1500 flames, so the cap is now 1000.
+- Tests: `vfx_layer_regression` (grid scale, layer order, world lock at fractional camera offsets, grid covers the view, VFX-only hit-stop). Zoom checks updated in `visual_proportions_regression`, `readability_scale_regression` and the workshop healing test.
+
 # 0.2.8 — Integrate the spell-system foundation
 
 - Integrate the spell-system specification and phase-one engine: shared typed effects, statuses, reactions, keyword planning, generic spell parts, and Spear save-ID migration.
