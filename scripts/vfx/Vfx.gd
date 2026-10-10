@@ -89,23 +89,42 @@ var _decal_root: Node2D
 var _air_layer: Sprite2D
 var _tex := {}
 
-static var DISK_XY: Array = _make_disks()
+
+## Flame splat footprints for sandbox radius 0, 1, 2. Each sandbox pixel maps
+## to K cells, so a radius-r flame covers about (r + 0.5) * K cells. Footprints
+## are tall ellipses biased upward (flames rise, so tips stretch) with a ragged
+## edge, in FLAME_VARIANTS shapes per radius; each particle keeps one shape.
+const FLAME_ASPECT := 1.5          # height / width
+const FLAME_RAGGED := 0.55         # edge irregularity
+const FLAME_VARIANTS := 6
+static var DISK_XY: Array = _make_disks()   # [r][variant] -> PackedInt32Array of x, y pairs
 var _disks: Array = []
 var _disk_w := -1
 
-## Splat footprints for sandbox flame radius 0, 1, 2 (sandbox test
-## ox*ox + oy*oy <= r*r + 1), scaled to cells.
 static func _make_disks() -> Array:
 	var out := []
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
 	for r in 3:
-		var lim := (r * r + 1) * K * K
-		var R := ceili(sqrt(lim))
-		var offs := PackedInt32Array()
-		for qy in range(-R, R + 1):
-			for qx in range(-R, R + 1):
-				if qx * qx + qy * qy <= lim:
-					offs.append_array([qx, qy])
-		out.append(offs)
+		var variants := []
+		var rx := (r + 0.5) * K * 0.85
+		var ry := rx * FLAME_ASPECT
+		for v in FLAME_VARIANTS:
+			var offs := PackedInt32Array()
+			var R := ceili(ry + 1.0)
+			var seed := rng.randi() & 0xFFFF
+			for qy in range(-R, R + 1):
+				for qx in range(-R, R + 1):
+					# centre sits low: more of the shape extends upward
+					var ny := (qy + ry * 0.2) / ry
+					var nx := qx / rx
+					var edge := 1.0 + (hs(qx + seed, qy * 7 + seed) - 0.5) * FLAME_RAGGED
+					if nx * nx + ny * ny <= edge:
+						offs.append_array([qx, qy])
+			if offs.is_empty():
+				offs.append_array([0, 0])
+			variants.append(offs)
+		out.append(variants)
 	return out
 
 func _ready():
@@ -566,13 +585,16 @@ func _draw_air():
 	if _disk_w != w:
 		_disk_w = w
 		_disks = []
-		for offs in DISK_XY:
-			var lin := PackedInt32Array()
-			for q in range(0, offs.size(), 2):
-				lin.append(offs[q + 1] * w + offs[q])
-			_disks.append(lin)
+		for variants in DISK_XY:
+			var lv := []
+			for offs in variants:
+				var lin := PackedInt32Array()
+				for q in range(0, offs.size(), 2):
+					lin.append(offs[q + 1] * w + offs[q])
+				lv.append(lin)
+			_disks.append(lv)
 	var disks := _disks
-	var pad := ceili(sqrt(5.0) * K) + 1
+	var pad := ceili(2.5 * K * 0.85 * FLAME_ASPECT) + 3
 	for i in _f_count:
 		var fb := i * FS
 		var k := _fd[fb + AGE] / _fd[fb + LIFE]
@@ -583,12 +605,13 @@ func _draw_air():
 		var h := pow(1.0 - k, 0.7) * _fd[fb + HEAT]
 		var cx := roundi(x * K) - _origin.x
 		var cy := roundi(y * K) - _origin.y
+		var shape := i % FLAME_VARIANTS
 		if cx >= pad and cy >= pad and cx < w - pad and cy < hgt - pad:
 			var base := cy * w + cx
-			for o in disks[r]:
+			for o in disks[r][shape]:
 				_heat[base + o] += h
 		else:
-			var offs: PackedInt32Array = DISK_XY[r]
+			var offs: PackedInt32Array = DISK_XY[r][shape]
 			for q in range(0, offs.size(), 2):
 				var xx := cx + offs[q]
 				var yy := cy + offs[q + 1]
