@@ -97,6 +97,10 @@ var _tex := {}
 const FLAME_ASPECT := 1.5          # height / width
 const FLAME_RAGGED := 0.55         # edge irregularity
 const FLAME_VARIANTS := 6
+# Particle density relative to the sandbox (embers and smoke coming off flames).
+const EMBER_RATE := 3.0
+const SMOKE_RATE := 1.5
+const TIP_EMBERS := 0.35        # embers per second shed by each hot flame tip
 static var DISK_XY: Array = _make_disks()   # [r][variant] -> PackedInt32Array of x, y pairs
 var _disks: Array = []
 var _disk_w := -1
@@ -290,11 +294,11 @@ func flame(anchor, at: Vector2, o: Dictionary = {}):
 	_f_count += 1
 
 func ember(x: float, y: float, vx: float, vy: float, life: float):
-	if _embers.size() < (150 if reduced_effects else 400):
+	if _embers.size() < (250 if reduced_effects else 800):
 		_embers.append([x, y, vx, vy, 0.0, life])
 
 func puff(x: float, y: float, s: int = 0):
-	if _smoke.size() < (60 if reduced_effects else 160):
+	if _smoke.size() < (80 if reduced_effects else 240):
 		_smoke.append([x, y, 0.0, 6.0 + randf() * 5.0, 0.0, 1.6 + randf() * 1.2, s if s > 0 else 2 + randi() % 2])
 
 ## Persistent fire field (sandbox field()): dim banded floor, bright rim at the
@@ -438,9 +442,12 @@ func _update_fields(dt: float):
 			for j in 3:
 				flame(null, at, {"lx": (randf() - 0.5) * 1.5, "ly": randf() - 0.5, "heat": A.heat_k * 0.46,
 					"rise": rise * (0.9 + j * 0.18), "life": lf * (1.0 - j * 0.15), "small": 1.0 if j > 0 else 0.0})
-		if randf() < r * 0.004 * dt * 60.0:
-			ember(A.x + (randf() - 0.5) * r, A.y + (randf() - 0.5) * r * 0.6, (randf() - 0.5) * 10.0, -(14.0 + randf() * 14.0), 0.8 + randf())
-		if not A.trail and randf() < r * 0.003 * dt * 60.0:
+		var ne := r * 0.004 * EMBER_RATE * dt * 60.0
+		while ne > 0.0:
+			if randf() < ne:
+				ember(A.x + (randf() - 0.5) * r, A.y + (randf() - 0.5) * r * 0.6, (randf() - 0.5) * 10.0, -(14.0 + randf() * 14.0), 0.8 + randf())
+			ne -= 1.0
+		if not A.trail and randf() < r * 0.003 * SMOKE_RATE * dt * 60.0:
 			puff(A.x + (randf() - 0.5) * r, A.y - 6.0 + (randf() - 0.5) * r * 0.4)
 	_fields = keep
 
@@ -473,6 +480,13 @@ func _step(dt: float):
 		_fd[b + WY] = wy + _fd[b + VY] * dt
 		_fd[b + VX] *= k93
 		_fd[b + VY] *= k93
+		# hot flames shed embers from their tips, so sparks visibly come off the fire
+		if age > _fd[b + LIFE] * 0.4 and _fd[b + HEAT] > 0.3 and randf() < TIP_EMBERS * dt:
+			var tk := age / _fd[b + LIFE]
+			var tb := pow(tk, _fd[b + GX])
+			var tx := (_fd[b + AX] + _fd[b + LX] + _fd[b + DX]) * (1.0 - tb) + (_fd[b + WX] + _fd[b + DX]) * tb
+			var ty := (_fd[b + AY] + _fd[b + LY] + _fd[b + DY]) * (1.0 - tb) + (_fd[b + WY] + _fd[b + DY]) * tb
+			ember(tx, ty - 2.0, dvx * 0.5 + (randf() - 0.5) * 8.0, -(16.0 + randf() * 14.0), 0.5 + randf() * 0.6)
 		if j != i:
 			var jb := j * FS
 			for q in FS:
@@ -633,7 +647,12 @@ func _draw_air():
 		var k: float = e[4] / e[5]
 		if k > 0.7 and (_steps & 2):
 			continue
-		_put(_over, roundi(e[0] * K), roundi(e[1] * K), FIRE_EMBER[mini(3, int(k * 4.0))])
+		var ex := roundi(e[0] * K)
+		var ey := roundi(e[1] * K)
+		var ec: Color = FIRE_EMBER[mini(3, int(k * 4.0))]
+		_put(_over, ex, ey, ec)
+		if k < 0.35 and absf(e[3]) > 10.0:
+			_put(_over, ex, ey + 1, ec)   # young, fast embers streak 1x2
 	_upload("heat", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RF, _heat.to_byte_array()))
 	_upload("under", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _under))
 	_upload("over", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _over))
