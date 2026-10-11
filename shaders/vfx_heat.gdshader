@@ -30,7 +30,9 @@ void fragment() {
 	ivec2 a = p + origin;
 	bool odd = ((a.x + a.y) & 1) == 1;
 	vec4 col = texelFetch(under_tex, p, 0);
-	if (bl > 0.05 && h < 0.12 && (bl > 0.12 || odd)) {
+	// Halo: checkerboard only. A solid fringe outlined every flame blob on grass,
+	// turning trail ends into dark-rimmed balls.
+	if (bl > 0.05 && h < 0.12 && odd) {
 		col = glow;
 	}
 	if (h > 0.0) {

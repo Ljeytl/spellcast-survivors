@@ -27,6 +27,11 @@ const MARGIN := 4
 const GROUND_Z := -1
 const AIR_Z := 50
 const STEP_HZ := 30.0
+# The reference sandbox advances a fixed 1/60 s per animation frame; on the
+# 120 Hz displays it was tuned on, its effects ran at twice their nominal speed.
+# Effect motion (flames, embers, smoke, debris, rings) runs at that speed here.
+# Gameplay objects (projectiles, areas) are never affected.
+const FX_SPEED := 2.0
 const MAX_FLAMES := 1000             # web budget, see docs/VFX_PORT_BRIEF.md
 const MAX_FLAMES_REDUCED := 400
 const MAX_FIELDS := 32
@@ -42,19 +47,20 @@ const SHADOW := Color("#16141b")
 const FIRE_HEAT := [[1.6, Color("#fff7d6")], [1.1, Color("#ffd54a")], [0.7, Color("#ff8a1f")], [0.35, Color("#e0401c")], [0.12, Color("#7a1f14")]]
 # The sandbox halo (#3a1a12) is darker than flame but lighter than its near-black
 # floor. On the game's grass it read as dirt, so it is a warm translucent tint.
-const FIRE_GLOW := Color(0.85, 0.32, 0.12, 0.42)
+const FIRE_GLOW := Color("#7a1f14")   # solid deep-red fringe; the sandbox #3a1a12 read as dirt on grass, a translucent tint read as haze
 const FIRE_EMBER := [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#e0401c")]
 const FIRE_SMOKE := [Color("#5b4258"), Color("#3f2c44")]   # plum, not gray
-const FIRE_SCORCH := [Color("#141010"), Color("#211715")]
+const FIRE_SCORCH := [Color("#2b2117"), Color("#3e3022")]   # burnt-earth browns: black read as a hole on grass
 const FIRE_RIM := [Color("#ff8a1f"), Color("#ffd54a")]
 const FIRE_FLOOR := [Color("#2a1416"), Color("#3a1512"), Color("#5a1a12")]
 # Floor light: warm tints over whatever ground is there (sandbox lit1/lit2).
-const FIRE_LIT := [Color(1.0, 0.62, 0.25, 0.22), Color(1.0, 0.72, 0.3, 0.4)]
+const FIRE_LIT := [Color(1.0, 0.55, 0.2, 0.1), Color(1.0, 0.6, 0.22, 0.2)]   # faint: stronger read as yellow haze on grass
 
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 var reduced_effects := false
 var on_twos := true
+var fx_speed := FX_SPEED
 var wind := 0.0                      # su/s^2 scale as in the sandbox; visual only
 var stats := {"flames": 0, "sim_ms": 0.0, "draw_ms": 0.0, "cells": 0}
 
@@ -68,7 +74,7 @@ var _origin := Vector2i.ZERO         # world cell of texel (0,0)
 var _size := Vector2i.ZERO
 
 # Flames: interleaved, stride FS, all in sandbox units.
-enum { AX, AY, LX, LY, WX, WY, VX, VY, DVX, DX, DY, RISE, AGE, LIFE, HEAT, GX, SMALL, FS }
+enum { AX, AY, LX, LY, WX, WY, VX, VY, DVX, DX, DY, RISE, AGE, LIFE, HEAT, GX, SMALL, ROUND, FS }
 var _fd := PackedFloat32Array()
 var _f_anchor: Array = []
 var _f_count := 0
@@ -109,7 +115,7 @@ const FLAME_VARIANTS := 6
 const EMBER_RATE := 3.0
 const SMOKE_RATE := 1.5
 const TIP_EMBERS := 0.35        # embers per second shed by each hot flame tip
-static var DISK_XY: Array = _make_disks()   # [r][variant] -> PackedInt32Array of x, y pairs
+static var DISK_XY: Array = _make_disks()   # [r (+3 for round)][variant] -> PackedInt32Array of x, y pairs
 var _disks: Array = []
 var _disk_w := -1
 
@@ -117,10 +123,14 @@ static func _make_disks() -> Array:
 	var out := []
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
-	for r in 3:
+	# 0..2: tall rising tongues (fields, burning). 3..5: round, for flames that
+	# travel sideways (projectile trails), where tall shapes made trails fat.
+	for idx in 6:
+		var r := idx % 3
+		var round_shape := idx >= 3
 		var variants := []
-		var rx := (r + 0.5) * K * 0.85
-		var ry := rx * FLAME_ASPECT
+		var rx := (r + 0.5) * K * (1.0 if round_shape else 0.85)
+		var ry := rx * (1.0 if round_shape else FLAME_ASPECT)
 		for v in FLAME_VARIANTS:
 			var offs := PackedInt32Array()
 			var R := ceili(ry + 1.0)
@@ -128,9 +138,9 @@ static func _make_disks() -> Array:
 			for qy in range(-R, R + 1):
 				for qx in range(-R, R + 1):
 					# centre sits low: more of the shape extends upward
-					var ny := (qy + ry * 0.2) / ry
+					var ny := (qy + (0.0 if round_shape else ry * 0.2)) / ry
 					var nx := qx / rx
-					var edge := 1.0 + (hs(qx + seed, qy * 7 + seed) - 0.5) * FLAME_RAGGED
+					var edge := 1.0 + (hs(qx + seed, qy * 7 + seed) - 0.5) * (0.3 if round_shape else FLAME_RAGGED)
 					if nx * nx + ny * ny <= edge:
 						offs.append_array([qx, qy])
 			if offs.is_empty():
@@ -300,7 +310,7 @@ func flame(anchor, at: Vector2, o: Dictionary = {}):
 		o.get("vx", 0.0) + avx * inh, o.get("vy", 0.0) + avy * inh,
 		0.0, 0.0, 0.0,
 		o.get("rise", 20.0), 0.0, o.get("life", 0.6),
-		o.get("heat", 1.2), 0.2 + o.get("grip", 0.0) * 2.8, o.get("small", 0.0),
+		o.get("heat", 1.2), 0.2 + o.get("grip", 0.0) * 2.8, o.get("small", 0.0), 1.0 if o.get("round", false) else 0.0,
 	]))
 	_f_anchor.append(anchor if anchor is Node2D else null)
 	_f_count += 1
@@ -347,7 +357,7 @@ func scorch(x: float, y: float, r: float, life: float = 6.0):
 				img.set_pixel(qx + R, qy + R, c)
 	var mat := ShaderMaterial.new()
 	mat.shader = DECAL_SHADER
-	mat.set_shader_parameter("limit", 0.95)
+	mat.set_shader_parameter("limit", 0.0)   # dithers in after the blast covers it, no black pop
 	var spr := Sprite2D.new()
 	spr.centered = false
 	spr.texture = ImageTexture.create_from_image(img)
@@ -468,7 +478,7 @@ func _tick(dt: float):
 	if _stop > 0:
 		_stop -= 1
 		return
-	_step(dt)
+	_step(dt * fx_speed)
 
 signal bench_done(summary: String)
 
@@ -555,7 +565,7 @@ func _step(dt: float):
 		_fd[b + VX] *= k93
 		_fd[b + VY] *= k93
 		# hot flames shed embers from their tips, so sparks visibly come off the fire
-		if age > _fd[b + LIFE] * 0.4 and _fd[b + HEAT] > 0.3 and randf() < TIP_EMBERS * dt:
+		if age > _fd[b + LIFE] * 0.4 and _fd[b + HEAT] > 0.3 and _fd[b + HEAT] < 0.5 and randf() < TIP_EMBERS * dt:   # field tongues only; trails already shed embers
 			var tk := age / _fd[b + LIFE]
 			var tb := pow(tk, _fd[b + GX])
 			var tx := (_fd[b + AX] + _fd[b + LX] + _fd[b + DX]) * (1.0 - tb) + (_fd[b + WX] + _fd[b + DX]) * tb
@@ -596,7 +606,8 @@ func _step(dt: float):
 	for d in _decals:
 		d[2] += dt
 		if d[2] < d[3]:
-			d[1].set_shader_parameter("limit", (1.0 - d[2] / d[3]) * 0.95)
+			var fade_in := clampf((d[2] - 0.12) / 0.2, 0.0, 1.0)
+			d[1].set_shader_parameter("limit", minf(fade_in, 1.0 - d[2] / d[3]) * 0.95)
 			keep.append(d)
 		else:
 			d[0].queue_free()
@@ -732,6 +743,8 @@ func _draw_air():
 		var cx := roundi(x * K) - _origin.x
 		var cy := roundi(y * K) - _origin.y
 		var shape := i % FLAME_VARIANTS
+		if _fd[fb + ROUND] > 0.5:
+			r += 3
 		if cx >= pad and cy >= pad and cx < w - pad and cy < hgt - pad:
 			var base := cy * w + cx
 			for o in disks[r][shape]:
@@ -763,8 +776,12 @@ func _draw_air():
 		var ey := roundi(e[1] * K)
 		var ec: Color = FIRE_EMBER[mini(3, int(k * 4.0))]
 		_put(_over, ex, ey, ec)
-		if k < 0.35 and absf(e[3]) > 10.0:
-			_put(_over, ex, ey + 1, ec)   # young, fast embers streak 1x2
+		if k < 0.5:
+			_put(_over, ex + 1, ey, ec)   # young embers are a full sandbox pixel (2x2)
+			_put(_over, ex, ey + 1, ec)
+			_put(_over, ex + 1, ey + 1, ec)
+		elif absf(e[3]) > 10.0:
+			_put(_over, ex, ey + 1, ec)   # older fast embers streak 1x2
 	_draw_impacts()
 	_upload("heat", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RF, _heat.to_byte_array()))
 	_upload("under", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _under))
@@ -829,10 +846,11 @@ func _draw_impacts():
 				continue
 			var X := roundi(r[0] * K + cos(a) * rad)
 			var Y := roundi(r[1] * K + sin(a) * rad)
-			_put(_ground, X, Y, c)
-			if k < 0.3:
-				_put(_ground, X + int(signf(cos(a))), Y, c)
-				_put(_ground, X, Y + int(signf(sin(a))), c)
+			# one sandbox pixel thick (about K cells), doubled while fresh
+			var th := 2 if k < 0.3 else 1
+			for q in th + 1:
+				_put(_ground, X + int(signf(cos(a))) * q, Y, c)
+				_put(_ground, X, Y + int(signf(sin(a))) * q, c)
 	_upload("ground", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _ground))
 	presenter.draw_bodies(_over)
 	for f in _flashes:
@@ -864,7 +882,7 @@ func _draw_impacts():
 		var X := roundi(d[0] * K)
 		var Y := roundi(d[1] * K)
 		var Z := roundi(d[2] * K)
-		var sz: int = maxi(1, roundi(d[9] * K * 0.9)) if d[9] > 1 else 1
+		var sz: int = maxi(1, roundi(d[9] * K))   # sandbox px -> cells: chunks stay readable squares
 		if Z > 2:
 			_put(_over, X, Y, SHADOW)
 		for qy in sz:

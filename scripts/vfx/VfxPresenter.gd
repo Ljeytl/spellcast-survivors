@@ -41,6 +41,8 @@ const MAX_BURNING := 24          # burning enemies drawn at once (nearest the ca
 
 var vfx                          # the Vfx autoload
 var _parts := {}                 # instance id -> state
+var _presented := {}             # instance id -> weakref: parts we draw, kept until freed so
+                                 # finished parts (e.g. a blast's 0.12 s tail) never flash placeholder art
 var enabled := true              # console "vfx present off" shows the placeholders
 
 func _init(owner):
@@ -80,7 +82,7 @@ static func _kind(part) -> String:
 	return ""
 
 func presents(part) -> bool:
-	return enabled and _parts.has(part.get_instance_id())
+	return enabled and _presented.has(part.get_instance_id())
 
 # ------------------------------------------------------------------ events
 
@@ -122,6 +124,7 @@ func part_spawned(part) -> void:
 			var life := float(part.def.get("timing", {}).get("duration", 3.0))
 			st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5)
 	_parts[part.get_instance_id()] = st
+	_presented[part.get_instance_id()] = weakref(part)
 
 func part_hit(part, _enemy, at: Vector2) -> void:
 	var st = _parts.get(part.get_instance_id())
@@ -169,6 +172,9 @@ func part_finished(part, natural: bool) -> void:
 # ------------------------------------------------------------------ per step
 
 func step(dt: float) -> void:
+	for id in _presented.keys():
+		if _presented[id].get_ref() == null:
+			_presented.erase(id)
 	for id in _parts.keys():
 		var st: Dictionary = _parts[id]
 		var part = st.part.get_ref()
@@ -204,14 +210,19 @@ func _emit_trail(part, st: Dictionary, key: String, t: Dictionary, pos: Vector2,
 	var dir := vel / sp if sp > 0.001 else Vector2(part.direction)
 	var back := float(body.get("a", body.get("r", 3.0))) * 0.9
 	st[key] = float(st.get(key, 0.0)) + float(t.rate) * dt * 60.0 + dist * float(t.per_dist)
-	while st[key] >= 1.0:
-		st[key] -= 1.0
+	var n := floori(st[key])
+	st[key] -= n
+	var last: Vector2 = st.last
+	for j in n:
+		# Spread this step's flames along the path covered during the step, so a
+		# fast body leaves a continuous tube instead of a bead per step.
+		var at := last.lerp(pos, (j + randf()) / n)
 		var spread := float(t.spread)
 		vfx.flame(part, pos, {
-			"lx": -dir.x * back + (randf() + randf() - 1.0) * spread,
-			"ly": -dir.y * back + (randf() + randf() - 1.0) * spread * 0.8,
+			"lx": at.x - pos.x - dir.x * back + (randf() + randf() - 1.0) * spread,
+			"ly": at.y - pos.y - dir.y * back + (randf() + randf() - 1.0) * spread * 0.8,
 			"inh": float(t.inh), "grip": float(t.grip), "heat": float(t.heat),
-			"rise": 16.0 + randf() * 10.0, "life": 0.28 + randf() * 0.3, "small": float(t.get("small", 0.0)),
+			"rise": 16.0 + randf() * 10.0, "life": 0.28 + randf() * 0.3, "small": float(t.get("small", 0.0)), "round": true,
 			"avx": vel.x, "avy": vel.y})
 	if randf() < float(t.ember) * dt * 60.0:
 		vfx.ember(pos.x, pos.y, vel.x * 0.3 + (randf() - 0.5) * 16.0, -(12.0 + randf() * 16.0), 0.6 + randf() * 0.7)
