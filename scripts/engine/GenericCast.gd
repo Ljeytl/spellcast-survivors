@@ -97,6 +97,9 @@ func _start_cast(c: Dictionary) -> void:
 			caster.global_position += away * float(flags.blinking.get("distance", 140.0))
 	var target = _pick_target()
 	aim_dir = caster_position().direction_to(target.global_position) if target else _facing()
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx:
+		vfx.cast_started(self)
 	var root_name = str(plan.root)
 	var root: Dictionary = plan.parts[root_name]
 	var arrangement: Dictionary = plan.get("arrangement", {"type": "single", "count": 1})

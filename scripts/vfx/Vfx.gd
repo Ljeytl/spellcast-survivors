@@ -29,12 +29,14 @@ const AIR_Z := 50
 const STEP_HZ := 30.0
 const MAX_FLAMES := 1000             # web budget, see docs/VFX_PORT_BRIEF.md
 const MAX_FLAMES_REDUCED := 400
-const MAX_FIELDS := 16
+const MAX_FIELDS := 32
 const LIGHT_SU := 4.0                # sandbox floor-light grid: 4 su per light cell
 
 const HEAT_SHADER := preload("res://shaders/vfx_heat.gdshader")
 const GROUND_SHADER := preload("res://shaders/vfx_ground.gdshader")
 const DECAL_SHADER := preload("res://shaders/vfx_decal.gdshader")
+const PRESENTER := preload("res://scripts/vfx/VfxPresenter.gd")
+const SHADOW := Color("#16141b")
 
 # Fire material (sandbox MAT_SRC.fire). Thresholds descending.
 const FIRE_HEAT := [[1.6, Color("#fff7d6")], [1.1, Color("#ffd54a")], [0.7, Color("#ff8a1f")], [0.35, Color("#e0401c")], [0.12, Color("#7a1f14")]]
@@ -75,6 +77,12 @@ var _embers: Array = []              # [x, y, vx, vy, age, life]   (su)
 var _smoke: Array = []               # [x, y, vx, rise, age, life, s]
 var _fields: Array = []              # {x, y, r, age, life, acc}    (su)
 var _decals: Array = []              # [sprite, material, age, life]
+var _sparks: Array = []              # [x, y, vx, vy, age, life, palette]
+var _flashes: Array = []             # [x, y, r, age, life, color]
+var _stars: Array = []               # [x, y, size, age, life, points, color]
+var _rings: Array = []               # [x, y, max, age, life, palette, seed]
+var _debris: Array = []              # [x, y, z, vx, vy, vz, palette, age, life, size, bounced]
+var presenter                        # VfxPresenter: spell-engine events -> looks
 
 var _heat := PackedFloat32Array()
 var _under := PackedByteArray()
@@ -133,6 +141,7 @@ static func _make_disks() -> Array:
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_PAUSABLE
+	presenter = PRESENTER.new(self)
 	var gmat := ShaderMaterial.new()
 	gmat.shader = GROUND_SHADER
 	gmat.set_shader_parameter("floor_cols", PackedColorArray(FIRE_FLOOR))
@@ -179,6 +188,7 @@ func clear():
 	_f_anchor.clear()
 	_f_count = 0
 	_embers.clear(); _smoke.clear(); _fields.clear()
+	_sparks.clear(); _flashes.clear(); _stars.clear(); _rings.clear(); _debris.clear()
 	for d in _decals:
 		d[0].queue_free()
 	_decals.clear()
@@ -280,6 +290,8 @@ func flame(anchor, at: Vector2, o: Dictionary = {}):
 		if "velocity" in anchor:
 			var vel: Vector2 = anchor.velocity / WPS
 			avx = vel.x; avy = vel.y
+	if o.has("avx"):
+		avx = o.avx; avy = o.avy
 	var lx: float = o.get("lx", 0.0)
 	var ly: float = o.get("ly", 0.0)
 	var inh: float = o.get("inh", 0.0)
@@ -347,6 +359,66 @@ func scorch(x: float, y: float, r: float, life: float = 6.0):
 	spr.material = mat
 	_decal_root.add_child(spr)
 	_decals.append([spr, mat, 0.0, life])
+
+## One-cell spark with a colour ramp over its life (sandbox sparks).
+func spark(x: float, y: float, vx: float, vy: float, life: float, palette: Array):
+	if _sparks.size() < (150 if reduced_effects else 500):
+		_sparks.append([x, y, vx, vy, 0.0, life, palette])
+
+## Filled flash disk for one or two steps (sandbox flashes). Radius in su.
+func flash(x: float, y: float, r: float, life: float = 0.07, color: Color = Color("#fff7d6")):
+	_flashes.append([x, y, r, 0.0, life, color])
+
+## Designed impact silhouette: a 4- or 8-point star that pops to 120% and
+## settles (principles 2 and 6). Size in su.
+func star(x: float, y: float, size: float, life: float, points: int, color: Color):
+	_stars.append([x, y, size, 0.0, life, points, color])
+
+## Shockwave ring on the ground: eases out, then breaks into segments instead of
+## fading (principles 5 and 6). Radius in su.
+func ring(x: float, y: float, max_r: float, life: float, palette: Array):
+	_rings.append([x, y, max_r, 0.0, life, palette, randf() * 100.0])
+
+## Debris with z-physics: arcs up, falls, bounces once, settles (sandbox chunk()).
+func chunk(x: float, y: float, vx: float, vy: float, vz: float, palette: Array, life: float, size: int = 1):
+	if _debris.size() < (60 if reduced_effects else 200):
+		_debris.append([x, y, 1.0, vx, vy, vz, palette, 0.0, life, size, false])
+
+## Camera shake through the game's own shaker (respects its reduced-effects setting).
+func shake(strength: float):
+	if reduced_effects:
+		return
+	var scene = get_tree().current_scene if get_tree() else null
+	var cs = scene.get("camera_shake") if scene else null
+	if cs and cs.has_method("shake_light"):
+		cs.shake_light() if strength < 0.5 else cs.shake_medium()
+
+# ------------------------------------------------------------------ spell-engine events (docs/VFX_EVENTS.md)
+
+# Events are ignored while no game camera is up (menus, headless engine tests),
+# so nothing piles up off-screen.
+func cast_started(cast) -> void:
+	if _active:
+		presenter.cast_started(cast)
+
+func part_spawned(part) -> void:
+	if _active:
+		presenter.part_spawned(part)
+
+func part_hit(part, enemy, at: Vector2) -> void:
+	if _active:
+		presenter.part_hit(part, enemy, at)
+
+func part_finished(part, natural: bool) -> void:
+	if _active:
+		presenter.part_finished(part, natural)
+
+func part_ticked(_part) -> void:
+	pass
+
+## True when the VFX layer draws this part, so SpellPart skips its placeholder.
+func presents(part) -> bool:
+	return _active and presenter.presents(part)
 
 # ------------------------------------------------------------------ test effects
 
@@ -453,7 +525,9 @@ func _update_fields(dt: float):
 
 func _step(dt: float):
 	_t += dt
+	presenter.step(dt)
 	_update_fields(dt)
+	_step_impacts(dt)
 	var k93 := pow(0.93, dt * 60.0)
 	var k92 := pow(0.92, dt * 60.0)
 	var j := 0
@@ -527,6 +601,44 @@ func _step(dt: float):
 		else:
 			d[0].queue_free()
 	_decals = keep
+
+func _step_impacts(dt: float):
+	var keep: Array = []
+	for s in _sparks:
+		s[4] += dt
+		if s[4] >= s[5]:
+			continue
+		s[0] += s[2] * dt
+		s[1] += s[3] * dt
+		s[2] = _drag(s[2], dt, 0.9)
+		s[3] = _drag(s[3], dt, 0.9)
+		keep.append(s)
+	_sparks = keep
+	for arr in [_flashes, _stars, _rings]:
+		var k2: Array = []
+		for f in arr:
+			f[3] += dt
+			if f[3] < f[4]:
+				k2.append(f)
+		arr.clear()
+		arr.append_array(k2)
+	keep = []
+	for d in _debris:
+		d[7] += dt
+		if d[7] > d[8]:
+			continue
+		d[5] -= 170.0 * dt
+		d[2] += d[5] * dt
+		d[0] += d[3] * dt
+		d[1] += d[4] * dt
+		if d[2] <= 0.0:
+			d[2] = 0.0
+			if not d[10]:
+				d[5] = -d[5] * 0.35; d[3] *= 0.5; d[4] *= 0.5; d[10] = true
+			else:
+				d[5] = 0.0; d[3] = _drag(d[3], dt, 0.8); d[4] = _drag(d[4], dt, 0.8)
+		keep.append(d)
+	_debris = keep
 
 # ------------------------------------------------------------------ render
 
@@ -653,6 +765,7 @@ func _draw_air():
 		_put(_over, ex, ey, ec)
 		if k < 0.35 and absf(e[3]) > 10.0:
 			_put(_over, ex, ey + 1, ec)   # young, fast embers streak 1x2
+	_draw_impacts()
 	_upload("heat", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RF, _heat.to_byte_array()))
 	_upload("under", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _under))
 	_upload("over", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _over))
@@ -692,6 +805,80 @@ func _draw_light():
 		_light[base + ls.x] += h * (1.0 - fx) * fy
 		_light[base + ls.x + 1] += h * fx * fy
 	_upload("light", Image.create_from_data(ls.x, ls.y, false, Image.FORMAT_RF, _light.to_byte_array()))
+
+func _disk(buf: PackedByteArray, cx: int, cy: int, r: float, c: Color):
+	var R := ceili(r)
+	for qy in range(-R, R + 1):
+		for qx in range(-R, R + 1):
+			if qx * qx + qy * qy <= r * r:
+				_put(buf, cx + qx, cy + qy, c)
+
+func _draw_impacts():
+	# rings sit on the ground (sandbox draws them before actors)
+	_ground.fill(0)
+	for r in _rings:
+		var k: float = r[3] / r[4]
+		var rad: float = r[2] * (1.0 - pow(1.0 - k, 3.0)) * K
+		var pal: Array = r[5]
+		var c: Color = pal[mini(pal.size() - 1, int(k * pal.size()))]
+		var steps := maxi(12, ceili(TAU * rad * 1.5))
+		for i in steps:
+			var a := TAU * i / steps
+			# break into segments: whole arcs drop out as the ring ages
+			if k > 0.4 and vn_fast(a * 2.2 + r[6], k * 3.0) < (k - 0.4) * 1.9:
+				continue
+			var X := roundi(r[0] * K + cos(a) * rad)
+			var Y := roundi(r[1] * K + sin(a) * rad)
+			_put(_ground, X, Y, c)
+			if k < 0.3:
+				_put(_ground, X + int(signf(cos(a))), Y, c)
+				_put(_ground, X, Y + int(signf(sin(a))), c)
+	_upload("ground", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _ground))
+	presenter.draw_bodies(_over)
+	for f in _flashes:
+		_disk(_over, roundi(f[0] * K), roundi(f[1] * K), f[2] * K, f[5])
+	for s in _stars:
+		var k: float = s[3] / s[4]
+		var pop: float = 1.2 - 0.2 * minf(1.0, k * 2.0)            # 120% then settle
+		var L: float = s[2] * K * pop
+		var cx := roundi(s[0] * K)
+		var cy := roundi(s[1] * K)
+		var pts: int = s[5]
+		for i in pts:
+			var a := TAU * i / pts
+			var len := L if i % 2 == 0 or pts == 4 else L * 0.55
+			var n := ceili(len)
+			for j in n:
+				var w := 1 if j > n * 0.5 else 0
+				var X := cx + roundi(cos(a) * j)
+				var Y := cy + roundi(sin(a) * j)
+				_put(_over, X, Y, s[6])
+				if w == 0:
+					_put(_over, X + roundi(-sin(a)), Y + roundi(cos(a)), s[6])
+	for d in _debris:
+		var k: float = d[7] / d[8]
+		if k > 0.75 and (_steps & 2):
+			continue
+		var pal: Array = d[6]
+		var c: Color = pal[mini(pal.size() - 1, int(k * pal.size()))]
+		var X := roundi(d[0] * K)
+		var Y := roundi(d[1] * K)
+		var Z := roundi(d[2] * K)
+		var sz: int = maxi(1, roundi(d[9] * K * 0.9)) if d[9] > 1 else 1
+		if Z > 2:
+			_put(_over, X, Y, SHADOW)
+		for qy in sz:
+			for qx in sz:
+				_put(_over, X + qx, Y - Z + qy, c)
+	for s in _sparks:
+		var k: float = s[4] / s[5]
+		var pal: Array = s[6]
+		var c: Color = pal[mini(pal.size() - 1, int(k * pal.size()))]
+		var X := roundi(s[0] * K)
+		var Y := roundi(s[1] * K)
+		_put(_over, X, Y, c)
+		if k < 0.25:
+			_put(_over, X + 1, Y, c); _put(_over, X - 1, Y, c); _put(_over, X, Y + 1, c); _put(_over, X, Y - 1, c)
 
 func _upload(key: String, img: Image):
 	var t: ImageTexture = _tex.get(key)

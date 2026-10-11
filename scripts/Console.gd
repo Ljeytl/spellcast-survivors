@@ -101,7 +101,7 @@ var commands: Dictionary = {
 	},
 	"vfx": {
 		"description": "Chunky-magic VFX debug: test flame by the wizard, stress test, stats",
-		"usage": "vfx flame | vfx stress <count> | vfx twos [on/off] | vfx bench [frames] | vfx clear | vfx stats"
+		"usage": "vfx flame | vfx stress <count> | vfx twos [on/off] | vfx present [on/off] | vfx learn <generic spell id> | vfx cast <text> | vfx bench [frames] | vfx clear | vfx stats"
 	},
 	"bighead": {
 		"description": "Double current enemy art size; off restores original sizes",
@@ -1229,6 +1229,22 @@ func vfx_debug(args: Array):
 			vfx.clear_test_flames()
 			vfx.clear()
 			add_output("VFX cleared.")
+		"present":
+			vfx.presenter.enabled = not vfx.presenter.enabled if args.size() < 2 else args[1].to_lower() in ["on", "true", "1"]
+			add_output("VFX presents spells: " + str(vfx.presenter.enabled) + " (off = placeholder art)")
+		"cast":
+			if args.size() < 2 or not is_instance_valid(game_node):
+				add_output("Usage: vfx cast <incantation with keywords>, e.g. vfx cast fiery spear")
+				return
+			var text = " ".join(args.slice(1))
+			add_output("Cast '" + text + "': " + str(game_node.spell_manager.cast_keyword_spell(text)))
+		"learn":
+			if args.size() < 2 or not is_instance_valid(game_node):
+				add_output("Usage: vfx learn <fireball | flame_wall | meteor_ring | ...>")
+				return
+			if not game_node.spell_manager.learned_generic_spells.has(str(args[1])):
+				game_node.spell_manager.learned_generic_spells.append(str(args[1]))
+			add_output("Learned generic spell for testing: " + str(args[1]))
 		"twos":
 			vfx.on_twos = not vfx.on_twos if args.size() < 2 else args[1].to_lower() in ["on", "true", "1"]
 			add_output("VFX on twos: " + str(vfx.on_twos))

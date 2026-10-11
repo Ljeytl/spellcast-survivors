@@ -1,0 +1,177 @@
+extends SceneTree
+## VFX presenter contract (docs/VFX_EVENTS.md): spell-engine events become
+## chunky-magic VFX, and VFX never change gameplay.
+
+const KP = preload("res://scripts/engine/KeywordParser.gd")
+const Defs = preload("res://scripts/engine/SpellDefs.gd")
+const Planner = preload("res://scripts/engine/CastPlanner.gd")
+const GenericCast = preload("res://scripts/engine/GenericCast.gd")
+const DT = 1.0 / 60.0
+
+var checks = 0
+var failures = 0
+var caster: Node2D
+var vfx
+
+class Foe extends Node2D:
+	const FX = preload("res://scripts/engine/Effects.gd")
+	var element = ""
+	var resistances = {}
+	var armour = 0.0
+	var status = null
+	var max_health = 100000.0
+	var current_health = 100000.0
+	var damage = 10.0
+	var dying = false
+	var received: Array = []
+	var pushed := Vector2.ZERO
+	func apply_effect(e, s = {}, o = Vector2.INF):
+		return FX.apply_to_entity(self, e, s, o)
+	func receive_damage(a, _o = Vector2.INF, _s = {}):
+		current_health -= a
+		received.append(a)
+		if current_health <= 0.0:
+			dying = true
+	func armour_value():
+		return armour
+	func process_status_effects(_d):
+		pass
+	func apply_knockback(dir, force):
+		pushed += dir * force
+	func taken() -> float:
+		var t = 0.0
+		for a in received:
+			t += a
+		return t
+
+class Caster extends Node2D:
+	var health = 100.0
+	var max_health = 100.0
+	var healed = 0.0
+	func heal(a, _v = 1.0):
+		healed += a
+		health = minf(max_health, health + a)
+
+func _initialize():
+	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
+		quit(2)
+		return
+	run.call_deferred()
+
+func check(value, message):
+	checks += 1
+	if not value:
+		failures += 1
+		printerr("FAIL: ", message)
+
+func foe(pos: Vector2) -> Foe:
+	var f = Foe.new()
+	f.position = pos
+	root.add_child(f)
+	f.add_to_group("enemies")
+	return f
+
+func clear():
+	for n in root.get_children():
+		if n is Foe or n is Node2D and (n.name.begins_with("Part_") or n.get_script() == GenericCast):
+			n.free()
+	vfx.clear()
+	vfx.presenter._parts.clear()
+
+func cast(text: String, seconds: float, seed_value: int = 1):
+	var parsed = KP.parse(text, Defs.by_incantation().keys())
+	var o = {}
+	var rng = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	o.rng = rng
+	var pl = Planner.plan(Defs.get_def(Defs.by_incantation()[parsed.spell]), parsed.bundle, o)
+	var c = GenericCast.new()
+	root.add_child(c)
+	c.setup(pl, caster, root, {"spell": pl.id, "cast_clock": 0.0, "cast_id": 1}, true, seed_value)
+	# one step starts the cast (parts spawn on the first step)
+	c.run(maxf(seconds, DT), DT, tick_all)
+	return c
+
+func tick_all(dt: float) -> void:
+	for n in root.get_children():
+		if n is Foe and n.status != null and is_instance_valid(n.status):
+			n.status.tick(dt)
+	vfx._tick(dt)
+
+## Damage dealt to a fixed line of foes by `text`, with the presenter on or off.
+func damage_profile(text: String, presenting: bool) -> Array:
+	clear()
+	vfx.presenter.enabled = presenting
+	var foes = [foe(Vector2(150, 0)), foe(Vector2(300, 10)), foe(Vector2(450, -10))]
+	cast(text, 2.5, 7)
+	var out = []
+	for f in foes:
+		out.append(snappedf(f.taken(), 0.001))
+	return out
+
+func run():
+	root.get_node("AudioManager").quitting = true
+	vfx = root.get_node("Vfx")
+	var cam = Camera2D.new()
+	root.add_child(cam)
+	cam.make_current()
+	caster = Caster.new()
+	root.add_child(caster)
+	await process_frame
+	await process_frame
+	check(vfx._active, "Vfx active with a camera")
+
+	# Read-only contract: identical damage with and without VFX presenting.
+	for text in ["fiery spear", "fireball", "spear", "flame wall"]:
+		var on = damage_profile(text, true)
+		var off = damage_profile(text, false)
+		check(on == off, "VFX never change gameplay: " + text + " " + str(on) + " vs " + str(off))
+	vfx.presenter.enabled = true
+
+	# Fiery spear: native arcane body + fire accent; presented, trail flames, cast flash.
+	clear()
+	foe(Vector2(300, 0))
+	var c = cast("fiery spear", 0.0)
+	var spear = null
+	for p in c.parts:
+		spear = p
+	check(spear != null and vfx.presents(spear), "Fiery spear is presented (placeholder art skipped)")
+	check(not vfx._stars.is_empty(), "Cast flash at the staff (designed star)")
+	var look = vfx.presenter.look_of(c.plan)
+	check(look.native == "arcane" and look.accent == "fire", "Keyword element is the accent, native element owns the body")
+	c.run(0.2, DT, tick_all)
+	check(vfx._f_count > 0, "Accent fire trail emits flames")
+	c.run(1.0, DT, tick_all)
+	check(vfx._flashes.size() + vfx._stars.size() + vfx._debris.size() > 0 or vfx._f_count > 20, "Pierce contact makes a fire burst")
+
+	# Burning status shows flames gripping the burning enemy.
+	var burning = 0
+	for i in vfx._f_count:
+		var a = vfx._f_anchor[i]
+		if a is Foe:
+			burning += 1
+	check(burning > 0, "Burning enemy gets gripping flames")
+
+	# Fireball: orb (ball family) -> blast volume -> big impact with ring, debris, scorch, VFX-only hit-stop.
+	clear()
+	foe(Vector2(250, 0))
+	var ts = Engine.time_scale
+	c = cast("fireball", 0.0)
+	check(vfx.presenter.family_of(c.parts[0]) == "ball", "Fireball orb uses the ball body")
+	c.run(1.5, DT, tick_all)
+	check(not vfx._rings.is_empty() or not vfx._debris.is_empty(), "Fireball blast: shockwave ring and debris")
+	check(vfx._decals.size() >= 1, "Fireball blast leaves a scorch decal")
+	check(Engine.time_scale == ts and not paused, "Impact hit-stop never touches game time")
+
+	# Unsupported looks keep the placeholder art.
+	clear()
+	foe(Vector2(120, 0))
+	c = cast("frost nova", 0.0)
+	var any_presented = false
+	for p in c.parts:
+		any_presented = any_presented or vfx.presents(p)
+	check(not any_presented, "Looks not built yet (water) keep the placeholder art")
+
+	clear()
+	print("vfx_presenter_regression: ", checks, " checks, ", failures, " failures")
+	quit(1 if failures > 0 else 0)

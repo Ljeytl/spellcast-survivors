@@ -10,7 +10,7 @@ uniform float k;                       // cells per sandbox unit
 uniform float t;                       // VFX sim time (s)
 uniform int tick;                      // sandbox (frame >> 3)
 uniform int field_count;
-uniform vec4 fields[16];               // center x, y (cells), radius (cells), fade-in/out vis
+uniform vec4 fields[32];               // center x, y (cells), radius (cells), fade-in/out vis
 uniform vec4 floor_cols[3];
 uniform vec4 rim_cols[2];
 uniform sampler2D light_tex : filter_nearest;
@@ -52,7 +52,7 @@ void fragment() {
 	ivec2 a = p + origin;
 	vec4 col = texelFetch(TEXTURE, p, 0);
 	bool covered = false;
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 32; i++) {
 		if (i >= field_count) {
 			break;
 		}

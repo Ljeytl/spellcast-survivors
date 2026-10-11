@@ -36,6 +36,7 @@ var armed := false
 var tick_acc: Dictionary = {}
 var start_pos := Vector2.ZERO
 var drift_speed := 0.0
+var _vfx = null               # Vfx autoload: reads this part, never changes it (docs/VFX_EVENTS.md)
 
 func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2) -> void:
 	cast = p_cast
@@ -51,6 +52,9 @@ func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2
 			released = false
 		break
 	_aim_once()
+	_vfx = get_node_or_null("/root/Vfx")
+	if _vfx:
+		_vfx.part_spawned(self)
 
 # --- geometry -------------------------------------------------------------------------
 func geo(key: String, fallback: float = 0.0) -> float:
@@ -320,6 +324,8 @@ func hit(enemy) -> void:
 					dir = direction
 				Effects.apply(enemy, {"type": "impulse", "direction": dir, "force": float(item.get("force", 0.0))}, cast.source, global_position)
 	cast.record_hit(self, enemy)
+	if _vfx:
+		_vfx.part_hit(self, enemy, at)
 	var killed = not _alive(enemy)
 	if hit_count == 1:
 		fire("on_first_hit", at, enemy)
@@ -339,6 +345,8 @@ func finish(natural: bool) -> void:
 	visual_remaining = 0.12 if delivery == "volume" else 0.0
 	if visual_remaining <= 0.0:
 		queue_free()
+	if _vfx:
+		_vfx.part_finished(self, natural)
 	if natural:
 		fire("on_expire", global_position, null)
 	cast.part_finished(self)
@@ -374,6 +382,8 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	if done and visual_remaining <= 0.0:
+		return
+	if _vfx and _vfx.presents(self):
 		return
 	var color: Color = COLORS.get(cast.plan.get("element", "") if cast else "", COLORS[""])
 	match geo_type():

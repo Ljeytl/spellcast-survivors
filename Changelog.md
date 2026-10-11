@@ -1,3 +1,11 @@
+# Unreleased (0.3) — VFX meets the spell engine
+
+- New event contract (`docs/VFX_EVENTS.md`): the generic spell engine announces cast, part spawned, hit and finished; the VFX layer decides the look from the cast plan. VFX only read gameplay; a test casts the same spells with VFX on and off and requires identical damage.
+- Native element owns the body, keyword element owns the accent: `fiery spear` is an arcane spear with an orange edge, a flame trail, fire bursts on every pierce, and burning enemies.
+- Fire looks on generic spells: projectile bodies (bolt / spear / ball) with flame trails, impact recipe sized to the real radius (designed star, flash, flame bloom, ring that breaks into segments, big-and-small debris, smoke, scorch, VFX-only hit-stop, shake on big hits), fire fields with floor and rim at the real radius that erode when they end, cast flash at the staff, flames on burning enemies.
+- Shapes and elements without a look yet keep the placeholder art. Legacy spells get VFX when they move to the generic engine.
+- Console: `vfx cast <text>` (cast any incantation with keywords), `vfx learn <id>` (data-only generic spells such as fireball), `vfx present off|on`.
+
 # Unreleased — Chunky-magic VFX, finer grid + full Cinder Field reference
 
 - VFX pixels are now 2x2 art px (6 screen px at 1080p, a 320x180 grid), down from 4x4. At 12 px the port looked cruder than the sandbox did in its page.
