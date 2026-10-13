@@ -40,7 +40,7 @@ Base values at realm 1, time 0. HP time/realm multipliers apply to ordinary enem
 |---|---:|---:|---:|---:|---|
 |Grunt: Drifter|80|48|8|1|Round medium slime; two Bolt hits; direct pursuit|
 |Grunt: Skirmisher|65|60|8|1|Narrower cap; shallow lateral weave, no invisible dodge|
-|Grunt: Bulwark|130|38|10|2|Broad flat silhouette; front armor purely visual in v0.1, no hidden damage reduction|
+|Grunt: Bulwark|130|38|10|2|Broad flat silhouette; front guard takes 35% less from the front, matching the live Shieldbearer (amended 13 Oct, doc 20 §13.8)|
 |Runner: Swarmer|30|115|5|1|Small but visible pointed blob; one Bolt; groups of 3–6|
 |Runner: Dart|35|135|6|1|Elongated body; commits straight for 0.8 s then turns|
 |Runner: Pursuer|60|70|9|2|Tall wisp/slime; 0.65 s warning, dash 260 wu at 360 wu/s, rest 1.4 s|

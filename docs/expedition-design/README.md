@@ -31,6 +31,8 @@ For **what to build next**, start with [Development order](15-development-order.
 
 17. [Element and spell ideas](17-element-spell-ideas.md): exhaustive latest user concepts, alternatives, rejections and unresolved taxonomy.
 18. [Spell system rewrite](18-spell-system-rewrite.md): spells as parts × axes, keywords, effects, statuses and resistance, enemy requirements, every current and approved spell specified, art list, starting numbers and the rewrite plan.
+19. [Engine architecture](19-engine-architecture.md): data-driven spell engine, statuses, stats, event bus, co-op-ready rules and the migration plan (signed off 13 Oct).
+20. [Game systems architecture](20-game-systems-architecture.md): damage and resistance, enemies, elites, bosses, director, objectives, progression, saves, run flow (signed off 13 Oct).
 
 ## How to interpret this package
 
