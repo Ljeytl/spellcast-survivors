@@ -245,6 +245,8 @@ func _spawn_root(s: Dictionary) -> void:
 	if part == null:
 		return
 	part.orbit_angle = float(s.orbit)
+	if part.delivery == "beam" and s.target != null and is_instance_valid(s.target):
+		part.target_ref = weakref(s.target)
 	if plan.get("arrangement", {}).has("stagger_life"):
 		# Old Meteor Shower: every mark shows at once; each lands one interval after the last.
 		part.life_total = part.total_life() + float(plan.arrangement.stagger_life) * int(s.get("index", 0))
@@ -305,7 +307,7 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 		remaining = int(ev.hops) if ev.has("hops") else parent.hops
 		if remaining <= 0:
 			return
-	elif parent.depth + 1 > MAX_LINK_DEPTH:
+	elif parent.depth + 1 > int(plan.get("max_depth", MAX_LINK_DEPTH)):
 		return
 	var exclude: Dictionary = parent.exclude.duplicate() if is_chain else {}
 	if victim != null and is_instance_valid(victim) and bool(ev.get("exclude_hit", false)):
@@ -342,6 +344,20 @@ func spawn_trail(parent, ev: Dictionary) -> void:
 	child.trail_parent = weakref(parent)
 	child.trail_from = parent.global_position
 	child.geo_override.length = 0.0
+
+## A collectible healing seed for the caster (Life Bolt).
+func spawn_seed(at: Vector2, item: Dictionary) -> void:
+	if not is_instance_valid(caster) or world == null:
+		return
+	var seed = preload("res://scripts/HealingSeed.gd").new()
+	seed.player_ref = weakref(caster)
+	seed.healing_amount = float(item.get("amount", 6.0))
+	seed.healing_duration = float(item.get("duration", 2.0))
+	seed.remaining = float(item.get("lifetime", 10.0))
+	seed.cap = maxi(1, int(item.get("cap", 6)))
+	seed.radius = float(item.get("radius", 28.0))
+	world.add_child(seed)
+	seed.global_position = at
 
 func part_finished(_part) -> void:
 	pass

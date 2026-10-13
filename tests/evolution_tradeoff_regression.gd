@@ -75,6 +75,7 @@ func effect(info: Dictionary, aim):
 		cast.forced_target = aim
 		cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), game.player, game, {"spell": str(info.id)}, true)
 		game.add_child(cast)
+		cast.step(0.0)
 		return cast
 	var node = load("res://scripts/TacticalSpellEffect.gd").new() if info.type in ["beam", "trap", "spirit"] else load("res://scripts/BuildSpellEffect.gd").new()
 	node.configure(info, manager.calculate_spell_damage(info), game.player, aim)
@@ -135,7 +136,7 @@ func run():
 func volley() -> Array:
 	var out: Array = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
 	for c in game.get_children():
-		if c.get("plan") is Dictionary and str(c.plan.get("id", "")) == "bolt":
+		if c.get("plan") is Dictionary and str(c.plan.get("id", "")) in ["bolt", "life_bolt"]:
 			for p in c.parts:
 				if is_instance_valid(p) and not p.done:
 					out.append(p)
@@ -191,9 +192,8 @@ func compare_life():
 	hurt.name = "HurtBox"
 	enemy.add_child(hurt)
 	manager.cast_spell_by_type(manager.find_spell_slot("life_bolt"))
-	var projectile = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") == "life_bolt")[0]
-	projectile._on_area_entered(hurt)
-	projectile.resolve_impact()
+	var projectile = volley()[0]
+	land(projectile, enemy, hurt)
 	check(game.player.health == game.player.max_health, "Life Bolt provides no overheal at full health")
 
 func compare_meteor():
@@ -264,7 +264,8 @@ func compare_prism():
 		var enemies = [target(Vector2(100, 0)), target(Vector2(200, 0)), target(Vector2(300, 0))]
 		var spell = effect(info, enemies[0])
 		if evolved:
-			check(spell.beam_radius() >= 32, "Prism has wide laser footprint")
+			var footprint = spell.root_parts()[0].geo("width") * 0.5 if spell.get("plan") is Dictionary else spell.beam_radius()
+			check(footprint >= 32, "Prism has wide laser footprint")
 			check(is_equal_approx(float(info.get("beam_turn_speed", -1)), 0.25), "Prism slow-tracking contract")
 		spell.advance(2)
 		solos.append(10000 - enemies[0].current_health)

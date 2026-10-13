@@ -117,17 +117,24 @@ func run():
 		hurtbox.name = "HurtBox"
 		target.add_child(hurtbox)
 		chain_targets.append(target)
-	manager.cast_bouncing_bolt(chain_slot)
-	var chain
-	for candidate in get_nodes_in_group("spell_projectiles"):
-		if candidate.projectile_type == "lightning_bolt":
-			chain = candidate
-	check(is_instance_valid(chain), "Upgraded Lightning Bolt spawns an actual traveling chain")
+	# Lightning Bolt runs on the generic engine (doc 18 phase 2): each bounce is a new part aimed at the next enemy.
+	manager.cast_spell_by_type(chain_slot)
+	var chain_cast = manager.last_generic_cast
+	chain_cast.manual = true
+	var chain = chain_cast.root_parts()[0] if not chain_cast.root_parts().is_empty() else null
+	check(chain != null, "Upgraded Lightning Bolt spawns an actual traveling chain")
+	var struck: Dictionary = {}
 	for i in 6:
-		var victim = chain.target
+		if chain == null:
+			break
+		var victim = chain.assigned
+		struck[victim.get_instance_id()] = true
 		chain.global_position = victim.global_position
-		chain._on_area_entered(victim.get_node("HurtBox"))
-	check(chain.hit_ids.size() == 6 and chain.despawning, "Five bounces damage six distinct enemies and terminate")
+		chain.hit(victim)
+		chain.finish(false)
+		var next = chain_cast.parts.filter(func(p): return is_instance_valid(p) and not p.done and p.part_name == "bounce")
+		chain = next.back() if not next.is_empty() else null
+	check(struck.size() == 6 and chain == null, "Five bounces damage six distinct enemies and terminate")
 	check(chain_targets.all(func(target): return target.current_health < 1000.0), "Impact splash can hit the seventh enemy without another direct bounce")
 	for target in chain_targets:
 		target.free()

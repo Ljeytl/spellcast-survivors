@@ -178,13 +178,16 @@ func run():
 	check(is_equal_approx(info.splash_damage,expected_splash), "Combination splash gets Lightning and Power once")
 	var direct = host(origin + Vector2(100,0))
 	var crowd = host(origin + Vector2(120,0))
-	manager.cast_bouncing_bolt(manager.find_spell_slot("lightning_bolt"))
-	var bolt = get_nodes_in_group("spell_projectiles")[-1]
-	bolt.set_process(false)
-	bolt.hit_enemy(direct)
+	# Lightning Bolt runs on the generic engine (doc 18 phase 2).
+	manager.cast_spell_by_type(manager.find_spell_slot("lightning_bolt"))
+	var bolt_cast = manager.last_generic_cast
+	bolt_cast.manual = true
+	var bolt = bolt_cast.root_parts()[0]
+	bolt.hit(direct)
 	check(is_equal_approx(direct.current_health,10000.0 - expected_impact - expected_splash), "Direct lightning target takes impact and splash")
 	check(is_equal_approx(crowd.current_health,10000.0 - expected_splash), "Lightning splash reaches crowd")
-	check(is_equal_approx(get_nodes_in_group("lingering_spell_areas")[-1].duration,0.4), "Lightning Bolt splash duration scales once")
+	check(is_equal_approx(float(bolt_cast.plan.parts.splash.geometry.radius), float(info.splash_radius) * preload("res://scripts/SpellGeometry.gd").multiplier(player)), "Lightning Bolt splash size scales once")
+	bolt_cast.queue_free()
 	clear_effects()
 	learn(["infestation", "regeneration", "soul_bloom"])
 	var doomed = host(origin + Vector2(50,0))
@@ -244,11 +247,12 @@ func run():
 	var a = host(origin+Vector2(100,0))
 	var b = host(origin+Vector2(200,50))
 	manager.upgrade_spell("life_bolt")
-	manager.cast_life_bolt(manager.find_spell_slot("life_bolt"))
-	var shots = get_nodes_in_group("spell_projectiles")
-	check(shots.size()==2 and shots[0].target!=shots[1].target, "Life Bolt own upgrade adds distinct targeted outputs")
-	for shot in shots: shot.set_process(false)
-	shots[0].hit_enemy(a)
+	manager.cast_spell_by_type(manager.find_spell_slot("life_bolt"))
+	var life_cast = manager.last_generic_cast   # generic engine (doc 18 phase 2)
+	life_cast.manual = true
+	var shots = life_cast.root_parts()
+	check(shots.size()==2 and shots[0].assigned!=shots[1].assigned, "Life Bolt own upgrade adds distinct targeted outputs")
+	shots[0].hit(a)
 	var patch = get_nodes_in_group("healing_seeds")[0]
 	patch.set_physics_process(false)
 	check(is_equal_approx(patch.healing_amount,12) and is_equal_approx(patch.remaining,20), "Life seed power and duration apply once")

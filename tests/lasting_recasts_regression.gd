@@ -92,7 +92,7 @@ func run():
 	manager.cast_spell_by_type(4)
 	manager.cast_spell_by_type(5)
 	manager.cast_spell_by_type(5)
-	check(effects("focus_ray").size() == 2, "Beam recasts remain independent")
+	check(manager.ported_casts("focus_ray").size() == 2, "Beam recasts remain independent")
 	manager.cast_spell_by_type(6)
 	var trap_cast = manager.last_generic_cast
 	trap_cast.manual = true

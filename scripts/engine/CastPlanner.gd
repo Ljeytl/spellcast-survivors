@@ -179,7 +179,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 					if periodic and str(s.status) == "chilled":
 						s.no_freeze = true
 					payload.append(s)
-				"impulse", "slow":
+				"impulse", "slow", "seed":
 					payload.append(item.duplicate())
 				"heal":
 					payload.append({"type": "heal", "amount": float(item.amount) * part_power, "visual_size": float(item.get("visual_size", 1.0)) * size})
@@ -276,7 +276,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		"parts": parts, "arrangement": arrangement, "release": release, "casts": casts,
 		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle,
 		"quick": bool(opts.get("quick", false)), "max_spawns": int(def.get("max_spawns", 48)),
-		"needs_target": bool(def.get("needs_target", false))
+		"needs_target": bool(def.get("needs_target", false)), "max_depth": int(def.get("max_depth", 3))
 	}
 
 static func _word_for(words: Dictionary, category: String) -> String:

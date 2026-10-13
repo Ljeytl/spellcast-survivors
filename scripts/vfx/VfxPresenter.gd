@@ -90,6 +90,8 @@ const ACCENT_TRAIL := {"rate": 1.0, "per_dist": 0.25, "heat": 0.65, "spread": 0.
 const METEOR_WARN := [Color("#8a3a1a"), Color("#e8603a")]
 const METEOR_WARN_HOT := [Color("#ff9a3a"), Color("#fff1b0")]
 
+const RAINBOW := [Color("#ff5a5a"), Color("#ffb03a"), Color("#ffe85a"), Color("#6ee07a"), Color("#5ac8ff"), Color("#9a7aff")]
+
 const MAX_BURNING := 24          # burning enemies drawn at once (nearest the camera)
 
 var vfx                          # the Vfx autoload
@@ -153,6 +155,8 @@ static func family_of(part) -> String:
 
 static func _kind(part) -> String:
 	match part.delivery:
+		"beam":
+			return "beam"
 		"self":
 			return "self"
 		"projectile":
@@ -454,6 +458,8 @@ func step(dt: float) -> void:
 				_water_wave(part, st, dt)
 			"meteor":
 				_meteor_fall(part, st, pos, dt)
+			"beam":
+				_beam_step(part, st, pos, dt)
 			"charge":
 				st.age += dt / vfx.fx_speed      # telegraph runs on game time: it must land with the real strike
 				if randf() < 0.5 * dt * 60.0:
@@ -1813,6 +1819,11 @@ func draw_bodies(buf: PackedByteArray) -> void:
 			if wp != null and is_instance_valid(wp) and not wp.done:
 				_draw_wave_rim(buf, wp)
 			continue
+		if st.kind == "beam":
+			var bp = st.part.get_ref()
+			if bp != null and is_instance_valid(bp) and not bp.done:
+				_draw_beam(buf, bp, st)
+			continue
 		if st.kind == "meteor":
 			var mp = st.part.get_ref()
 			if mp != null and is_instance_valid(mp) and not mp.done:
@@ -1949,3 +1960,40 @@ func _meteor_fall(part, st: Dictionary, target: Vector2, dt: float) -> void:
 ## 0 when the rock leaves the sky, 1 when it lands.
 func _meteor_k(st: Dictionary) -> float:
 	return clampf((float(st.age) - (float(st.life) - METEOR_FALL)) / METEOR_FALL, 0.0, 1.0)
+
+## Beams (sandbox drawBeams): bands across the true width; arcane is a white core in blue with an
+## orb where it stops, a piercing (prism) beam is rainbow bands that shift along.
+func _beam_step(part, st: Dictionary, pos: Vector2, dt: float) -> void:
+	var end: Vector2 = pos + Vector2(part.beam_end) / WPS
+	var pierce: bool = bool(part.def.get("limits", {}).get("beam_piercing", false))
+	if pierce:
+		if randf() < 0.4 * dt * 60.0:
+			var t := randf()
+			var at := pos.lerp(end, t)
+			vfx.spark(at.x, at.y, (randf() - 0.5) * 20.0, (randf() - 0.5) * 20.0, 0.3, [RAINBOW[randi() % 6], RAINBOW[randi() % 6]])
+	elif randf() < 0.3 * dt * 60.0:
+		var pal: Array = SPARK.get(st.look.native, SPARK.arcane)
+		vfx.spark(end.x, end.y, (randf() - 0.5) * 30.0, (randf() - 0.5) * 30.0, 0.25, pal)
+
+func _draw_beam(buf: PackedByteArray, part, st: Dictionary) -> void:
+	var el = vfx.elements
+	var a: Vector2 = part.global_position / WPS
+	var b: Vector2 = a + Vector2(part.beam_end) / WPS
+	var d: Vector2 = (b - a)
+	if d.length() < 0.5:
+		return
+	var n: Vector2 = d.normalized().orthogonal()
+	var age: float = float(part.age)
+	var k: float = minf(1.0, minf(age / 0.1, (float(part.total_life()) - age) / 0.15))
+	var hw: int = maxi(1, roundi(float(part.geo("width", 24.0)) * 0.5 / WPS * k))
+	var pierce: bool = bool(part.def.get("limits", {}).get("beam_piercing", false))
+	var pal: Array = SPARK.get(st.look.native, SPARK.arcane)
+	for o in range(-hw, hw + 1):
+		var c: Color
+		if pierce:
+			c = Color.WHITE if o == 0 else RAINBOW[posmod(o + 3 + (vfx._steps >> 2), 6)]
+		else:
+			c = pal[0] if o == 0 else (pal[1] if absi(o) < hw else pal[3])
+		el.line(buf, a + n * o, b + n * o, c)
+	if not pierce:
+		el.body(buf, b, Vector2.RIGHT, {"t": "orb", "r": 2.5}, BODY.get(st.look.native, BODY.arcane))

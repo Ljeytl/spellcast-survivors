@@ -166,6 +166,13 @@ const PAGES := [
 		["Rune Trap / Frost Sigil", "legacy rune trap|legacy frost sigil", 3.0],
 		["Cinder Field / Steam Field / Arcane Orbit", "legacy cinder field|legacy steam field|legacy arcane orbit", 3.4],
 	]],
+	["Shipping2", [
+		["Lightning Bolt (bounces, splash at every hit)", "legacy lightning bolt", 1.6],
+		["Life Bolt (hits plant healing seeds)", "legacy life bolt", 1.2],
+		["Focus Ray (tracks, hits the first enemy)", "legacy focus ray", 2.4],
+		["Prism Ray (fixed, pierces everything)", "legacy prism ray", 2.4],
+		["fiery focus ray (keyword on a shipping spell)", "legacy fiery focus ray", 2.4],
+	]],
 	["Combos", [
 		["fiery tsunami (water + fire: boiling wall, steam)", "fiery tsunami", 2.6],
 		["shocking tsunami (water + lightning)", "shocking tsunami", 2.6],

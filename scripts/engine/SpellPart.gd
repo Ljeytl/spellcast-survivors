@@ -43,6 +43,9 @@ var trail_from := Vector2.ZERO
 var life_total := -1.0             # set when a recast extends this part (old "extend" spells)
 var segments: Array = []           # queued recasts: {def, length}; each takes over when the last runs out
 var segment_end := -1.0
+var beam_end := Vector2.ZERO       # beams: where the beam stops, local to the part (last enemy it reaches)
+var target_ref: WeakRef = null     # beams: the enemy it tracks (other beams avoid it)
+var beam_offset := Vector2.ZERO    # beams: lane offset from the caster
 var _vfx = null               # Vfx autoload: reads this part, never changes it (docs/VFX_EVENTS.md)
 
 func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2) -> void:
@@ -64,6 +67,10 @@ func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2
 	if delivery == "projectile":
 		# Targeting (SpellTargeting.incoming) skips enemies this projectile will already kill.
 		add_to_group("engine_projectiles")
+	if delivery == "beam":
+		# The style meter holds while a beam channels; other beams avoid this one's target.
+		add_to_group("active_spell_channels")
+		beam_end = direction * geo("length", 450.0)
 	if delivery == "projectile" and def.has("trail"):
 		cast.spawn_trail(self, def.trail)
 	_vfx = get_node_or_null("/root/Vfx")
@@ -141,7 +148,7 @@ func _propagation() -> String:
 func total_life() -> float:
 	if life_total >= 0.0:
 		return life_total
-	if delivery in ["field", "aura", "trap"]:
+	if delivery in ["field", "aura", "trap", "beam"]:
 		return float(def.get("timing", {}).get("duration", 3.0 if delivery != "trap" else 8.0))
 	var lifetime = float(def.get("limits", {}).get("lifetime", 0.0))
 	return lifetime if lifetime > 0.0 else INF
@@ -174,6 +181,8 @@ func step(delta: float) -> void:
 			_step_periodic(delta)
 		"trap":
 			_step_trap(delta)
+		"beam":
+			_step_beam(delta)
 		"self":
 			_apply_self()
 			finish(false)
@@ -375,6 +384,70 @@ func _step_periodic(delta: float) -> void:
 	if age + 0.000001 >= total_life():
 		finish(true)
 
+## Beam (old Focus Ray / Prism Ray): anchored at the caster, turns toward the enemy it tracks,
+## and every interval hits the first `targets` enemies along it (every enemy when piercing).
+func _step_beam(delta: float) -> void:
+	global_position = cast.caster_position() + beam_offset
+	var reach_len = geo("length", 450.0)
+	var turn = float(def.get("aim", {}).get("turn", 4.0))
+	if turn > 0.0:
+		var target = _beam_track(reach_len)
+		if target != null:
+			var desired = global_position.direction_to(target.global_position).angle()
+			direction = Vector2.from_angle(rotate_toward(direction.angle(), desired, turn * delta))
+	var piercing = bool(def.get("limits", {}).get("beam_piercing", false))
+	var reach = global_position + direction * reach_len
+	var found: Array = []
+	for enemy in cast.enemies():
+		var along = (enemy.global_position - global_position).dot(direction)
+		var closest = Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach)
+		if closest.distance_to(enemy.global_position) <= geo("width", 24.0) * 0.5 + pad_for(enemy):
+			found.append({"enemy": enemy, "contact": clampf(along, 0.0, reach_len)})
+	found.sort_custom(func(a, b): return a.contact < b.contact)
+	var struck = found if piercing else found.slice(0, int(def.get("limits", {}).get("targets", 1)))
+	if turn <= 0.0:
+		target_ref = weakref(struck[0].enemy) if not struck.is_empty() else null
+	beam_end = direction * reach_len
+	if not piercing and not struck.is_empty():
+		beam_end = direction * minf(reach_len, float(struck[-1].contact) + 8.0)
+	var interval = float(def.get("timing", {}).get("interval", 0.25))
+	tick_acc["payload"] = float(tick_acc.get("payload", 0.0)) + delta
+	while float(tick_acc.payload) + 0.000001 >= interval and not done:
+		tick_acc.payload = float(tick_acc.payload) - interval
+		for entry in struck:
+			if _alive(entry.enemy):
+				hit(entry.enemy)
+	if age + 0.000001 >= total_life():
+		finish(true)
+
+## The enemy a beam keeps on: its current one while alive and in reach, else the nearest one no
+## other live beam is already on.
+func _beam_track(reach_len: float):
+	var target = target_ref.get_ref() if target_ref else null
+	if _alive(target) and global_position.distance_to(target.global_position) <= reach_len:
+		return target
+	var reserved: Array = []
+	for other in get_tree().get_nodes_in_group("active_spell_channels"):
+		if other != self and other.has_method("is_style_channel_active") and other.is_style_channel_active() and other.get("target_ref"):
+			var o = other.target_ref.get_ref()
+			if _alive(o):
+				reserved.append(o)
+	target = null
+	var best = INF
+	for enemy in cast.enemies():
+		var d = global_position.distance_to(enemy.global_position)
+		if d <= reach_len:
+			var score = d + (reach_len + 1.0 if enemy in reserved else 0.0)
+			if score < best:
+				best = score
+				target = enemy
+	target_ref = weakref(target) if target else null
+	return target
+
+func is_style_channel_active() -> bool:
+	return delivery == "beam" and not done and cast != null and is_instance_valid(cast.caster) \
+		and (cast.caster.get("health") == null or float(cast.caster.health) > 0.0)
+
 ## A trail is a line field from where the projectile was thrown to where it is now.
 func _follow_trail() -> void:
 	if trail_parent == null:
@@ -439,6 +512,7 @@ func hit(enemy) -> void:
 	cast.shared_hits[enemy.get_instance_id()] = cast.clock
 	hit_count += 1
 	var at = enemy.global_position
+	var dealt := 0.0
 	for idx in def.get("payload", []).size():
 		var item: Dictionary = def.payload[idx]
 		if bool(item.get("once_per_cast", false)):
@@ -448,6 +522,10 @@ func hit(enemy) -> void:
 				continue
 			cast.once[key] = true
 		match str(item.type):
+			"seed":
+				# Old Life Bolt: a hit that dealt damage plants a healing seed to collect.
+				if dealt > 0.0:
+					cast.spawn_seed(at, item)
 			"slow":
 				if _alive(enemy):
 					Effects.apply(enemy, {"type": "slow", "factor": float(item.get("factor", 0.6)), "duration": float(item.get("duration", 2.0))}, cast.source, global_position)
@@ -457,7 +535,7 @@ func hit(enemy) -> void:
 					var scaled = e.duplicate()
 					scaled.amount = float(e.amount) * power_scale
 					entries.append(scaled)
-				Effects.apply(enemy, {"type": "damage", "entries": entries, "element": str(item.get("element", "raw"))}, cast.source, global_position)
+				dealt += Effects.apply(enemy, {"type": "damage", "entries": entries, "element": str(item.get("element", "raw"))}, cast.source, global_position)
 			"status":
 				if not _alive(enemy):
 					continue

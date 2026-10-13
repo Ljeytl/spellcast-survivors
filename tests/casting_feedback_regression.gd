@@ -48,40 +48,45 @@ func run():
 	check(spells.learn_spell("prism_ray"), "Learn Prism")
 	var focus_slot = spells.find_spell_slot("focus_ray")
 	var prism_slot = spells.find_spell_slot("prism_ray")
+	# Focus Ray and Prism Ray run on the generic engine (doc 18 phase 2).
 	for slot in [focus_slot, focus_slot, prism_slot, prism_slot]:
-		check(spells.cast_build_spell(slot), "Beam recast succeeds")
-	var beams = get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.type == "beam" and not e.is_queued_for_deletion())
-	check(beams.size() == 4, "Two Focus and two Prism beams coexist")
-	for beam in beams:
-		beam.set_physics_process(false)
-	check(beams[0].target_ref.get_ref() != beams[1].target_ref.get_ref(), "Recast seeks a second enemy")
-	check(is_equal_approx(beams[0].info.beam_radius, 12), "Focus radius reduced")
-	var prism = beams.filter(func(e): return e.info.id == "prism_ray")[0]
+		check(spells.cast_spell_by_type(slot), "Beam recast succeeds")
+	var focus_casts = spells.ported_casts("focus_ray")
+	var prism_casts = spells.ported_casts("prism_ray")
+	check(focus_casts.size() + prism_casts.size() == 4, "Two Focus and two Prism beams coexist")
+	for c in focus_casts + prism_casts:
+		c.manual = true
+	var focus_beams = focus_casts.map(func(c): return c.root_parts()[0])
+	check(focus_beams[0].target_ref.get_ref() != focus_beams[1].target_ref.get_ref(), "Recast seeks a second enemy")
+	check(is_equal_approx(focus_beams[0].geo("width"), 24.0), "Focus radius reduced")
+	var prism = prism_casts[0].root_parts()[0]
 	if "--known-bad-prism" in OS.get_cmdline_user_args():
-		prism.info.beam_piercing = false
-	prism.info.beam_origin_offset = Vector2.ZERO
+		prism.def.limits.beam_piercing = false
+	prism.beam_offset = Vector2.ZERO
 	prism.direction = Vector2.RIGHT
 	prism.target_ref = weakref(enemies[0])
-	prism.advance_beam(0.25, game.player)
+	prism.step(0.25)
 	for enemy in enemies:
 		check(enemy.current_health < 1000, "Prism damages every aligned enemy including fourth")
 	check(is_equal_approx(prism.beam_end.length(), 450), "Prism remains full length through targets")
-	var focus = beams[0]
-	focus.info.beam_origin_offset = Vector2.ZERO
+	var focus = focus_beams[0]
+	focus.beam_offset = Vector2.ZERO
 	focus.direction = Vector2.RIGHT
 	enemies[0].global_position = game.player.global_position + Vector2(0, 150)
 	focus.target_ref = weakref(enemies[0])
-	focus.advance_beam(0.05, game.player)
+	focus.step(0.05)
 	check(focus.direction.angle() > 0 and focus.direction.angle() < 0.21, "Focus turns smoothly without snapping")
 	for index in range(4):
-		spells.cast_build_spell(focus_slot)
-	var surviving_focus = get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.id == "focus_ray" and not e.is_queued_for_deletion())
+		spells.cast_spell_by_type(focus_slot)
+	var surviving_focus = spells.ported_casts("focus_ray")
 	var focus_limit = int(preload("res://scripts/SpellProgression.gd").resolve(spells.spells[focus_slot]).active_limit)
 	check(surviving_focus.size() == focus_limit, "Repeated recasts retain exactly the rank's Focus beam limit")
 	var lanes = {}
-	for beam in surviving_focus:
-		lanes[beam.info.beam_lane] = true
+	for c in surviving_focus:
+		lanes[int(c.get_meta("beam_lane", 0))] = true
 	check(lanes.size() == focus_limit, "Replacement keeps distinct visual emission lanes")
+	for c in get_nodes_in_group("generic_casts"):
+		c.queue_free()
 	for beam in get_nodes_in_group("build_spell_effects"):
 		beam.queue_free()
 	await process_frame

@@ -38,7 +38,7 @@ static func collect(manager: Node) -> Dictionary:
 				continue   # marks and telegraphs (Meteor Shower) are not a lasting effect
 			if part.delivery == "trap":
 				add(states, str(cast.plan.id), 0.0, "armed" if part.armed else "arming")
-			elif part.delivery in ["field", "aura"] or float(part.def.get("limits", {}).get("lifetime", 0.0)) > 0.0:
+			elif part.delivery in ["field", "aura", "beam"] or float(part.def.get("limits", {}).get("lifetime", 0.0)) > 0.0:
 				add(states, str(cast.plan.id), maxf(0.0, part.remaining_life()))
 			break   # one entry per cast (Arcane Orbit's sparks are one spell)
 	for effect in manager.active_healing_effects:

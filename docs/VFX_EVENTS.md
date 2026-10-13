@@ -72,7 +72,7 @@ Optional per-part hint in `data/generic_spells.json`: `"vfx": {"family": "spear"
 ## Wiring status
 
 - Generic spells (doc 18 runner): wired. Hooks are one-line calls guarded by `get_node_or_null("/root/Vfx")`, so engine tests without the autoload are unaffected.
-- Legacy spells (old `SpellManager` dispatch): not wired, by design. They move to the generic runner one at a time (doc 18 §14 phase 2, `scripts/engine/LegacyBridge.gd`) and get VFX for free when they do. Ported so far: Ember Spear, Meteor Spear, Bolt, Ice Blast, Life, Lightning, Rune Trap, Frost Sigil, Cinder Field, Steam Field, Arcane Orbit, Meteor Shower.
+- Legacy spells (old `SpellManager` dispatch): not wired, by design. They move to the generic runner one at a time (doc 18 §14 phase 2, `scripts/engine/LegacyBridge.gd`) and get VFX for free when they do. Ported so far: Ember Spear, Meteor Spear, Bolt, Ice Blast, Life, Lightning, Rune Trap, Frost Sigil, Cinder Field, Steam Field, Arcane Orbit, Meteor Shower, Lightning Bolt, Life Bolt, Focus Ray, Prism Ray.
 
 ## Debug
 

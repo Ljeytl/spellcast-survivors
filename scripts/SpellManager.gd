@@ -579,17 +579,13 @@ func _dispatch_spell(slot: int) -> bool:
 		return true
 	
 	match spell_type:
-		"life_bolt":
-			cast_life_bolt(slot)
-		"plague", "beam", "spirit", "trail", "returning":
+		"plague", "spirit", "trail", "returning":
 			if not cast_build_spell(slot):
 				return false
 		"heal_over_time":
 			cast_life_spell(slot)
 		"shield":
 			cast_earthshield_spell(slot)
-		"bouncing_projectile":
-			cast_bouncing_bolt(slot)
 	AudioManager.play_spell_sound(str(spell_info.id))
 	return true
 
@@ -663,23 +659,6 @@ func cast_earthshield_spell(slot: int):
 		"travel_time": float(info.get("retaliation_travel_time", 0.22)),
 		"damage_source": DamageSource.current
 	})
-
-func cast_bouncing_bolt(slot: int):
-	var info = resolve_cast_info(slot)
-	var target = Targeting.select(get_tree(), player.global_position)
-	if not _live_spell_target(target):
-		return
-	var projectile = spell_projectile_scene.instantiate()
-	projectile.speed = 550.0 * cast_stat("projectile_speed_multiplier")
-	projectile.set_meta("splash_damage", info.splash_damage)
-	projectile.set_meta("splash_radius", float(info.splash_radius) * (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier))
-	projectile.set_meta("splash_duration", float(info.splash_duration) * maxf(1.0, cast_stat("spell_duration_multiplier")))
-	projectile.set_meta("bounce_count", int(info.get("bounce_count", 4)))
-	projectile.set_meta("bounce_range", float(info.get("bounce_range", 240.0)))
-	projectile.lifetime = maxf(3.0, (int(info.get("bounce_count", 4)) + 1) * float(info.get("bounce_range", 240.0)) / projectile.speed + 1.0)
-	get_parent().add_child(projectile)
-	projectile.set_meta("cast_size_snapshot", maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
-	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
 
 # Helper functions
 func get_closest_enemy():
@@ -1180,38 +1159,6 @@ func generic_autocast_ready(text: String) -> bool:
 			return false
 	return true
 
-func cast_life_bolt(slot: int):
-	var info = resolve_cast_info(slot)
-	var coverage: Dictionary = {}
-	var offscreen: Dictionary = {}
-	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if not enemy.is_visible_in_tree() or not get_viewport().get_visible_rect().has_point(enemy.get_global_transform_with_canvas().origin):
-			offscreen[enemy.get_instance_id()] = true
-	for index in range(int(info.get("projectile_count", 1))):
-		var projectile = spell_projectile_scene.instantiate()
-		projectile.speed *= cast_stat("projectile_speed_multiplier")
-		for key in ["healing_seed_amount", "healing_seed_duration", "healing_seed_lifetime", "healing_seed_radius"]:
-			var value = float(info[key])
-			if key == "healing_seed_lifetime":
-				value *= maxf(1.0, cast_stat("spell_duration_multiplier"))
-			elif key == "healing_seed_radius":
-				value *= (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
-			projectile.set_meta(key, value)
-		projectile.set_meta("healing_seed_cap", 6)
-		projectile.set_meta("healing_seed_owner", weakref(player))
-		get_parent().add_child(projectile)
-		var excluded = offscreen.duplicate()
-		excluded.merge(coverage)
-		var target = Targeting.select(get_tree(), player.global_position, INF, excluded)
-		if not _live_spell_target(target):
-			target = Targeting.select(get_tree(), player.global_position, INF, offscreen)
-		if _live_spell_target(target):
-			coverage[target.get_instance_id()] = float(coverage.get(target.get_instance_id(), 0)) + 1.0
-		var direction = player.global_position.direction_to(target.global_position) if _live_spell_target(target) else Vector2.RIGHT.rotated(index * 0.15)
-		projectile.set_meta("cast_size_snapshot", maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
-		projectile.setup(player.global_position, direction, calculate_spell_damage(info), Color.GREEN, "life_bolt")
-		projectile.assign_target(target)
-
 func add_healing_effect(amount: float, duration: float):
 	if amount <= 0.0 or duration <= 0.0 or not is_instance_valid(player):
 		return
@@ -1571,12 +1518,33 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 	cast.target_picker = ported_target.bind(scaled, speed_mult)
 	if str(info.get("type", "")) == "multi_aoe":
 		cast.point_picker = meteor_points.bind(float(scaled.get("radius", 220.0)))
+	if str(info.get("type", "")) == "life_bolt":
+		cast.target_picker = life_bolt_picker()
 	cast.setup(plan, player, get_parent(), DamageSource.current if not DamageSource.current.is_empty() else DamageSource.make(str(def.id), style_clock()))
 	get_parent().add_child(cast)
 	last_generic_cast = cast
 	# Old spells left the caster the moment they were cast; so do ported ones (and targeting sees them).
 	cast.step(0.0)
+	if str(info.get("type", "")) == "beam":
+		_beam_lane(cast)
 	return true
+
+## Old Focus Ray lanes: up to three beams sit side by side (18 px apart) instead of on top of each other.
+func _beam_lane(cast) -> void:
+	var roots: Array = cast.root_parts()
+	if roots.is_empty():
+		return
+	var taken: Array = []
+	for other in ported_casts(str(cast.plan.id)):
+		if other != cast:
+			taken.append(int(other.get_meta("beam_lane", 0)))
+	for lane in [-1, 0, 1]:
+		if lane not in taken:
+			cast.set_meta("beam_lane", lane)
+			for part in roots:
+				part.beam_offset = part.direction.orthogonal() * float(lane) * 18.0
+				part.global_position = cast.caster_position() + part.beam_offset
+			return
 
 ## Live casts of a ported spell owned by the player, oldest first.
 func ported_casts(id: String) -> Array:
@@ -1644,6 +1612,24 @@ func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
 		cast.source = DamageSource.current   # later hits count toward the newest cast (style meter)
 	spell_extended.emit(str(plan.id), added)
 
+## Old Life Bolt aim: each bolt goes to a different on-screen enemy first, then any on-screen one.
+func life_bolt_picker() -> Callable:
+	var offscreen: Dictionary = {}
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not enemy.is_visible_in_tree() or not get_viewport().get_visible_rect().has_point(enemy.get_global_transform_with_canvas().origin):
+			offscreen[enemy.get_instance_id()] = true
+	var coverage: Dictionary = {}
+	return func():
+		var excluded = offscreen.duplicate()
+		excluded.merge(coverage)
+		var target = Targeting.select(get_tree(), player.global_position, INF, excluded)
+		if not _live_spell_target(target):
+			target = Targeting.select(get_tree(), player.global_position, INF, offscreen)
+		if _live_spell_target(target):
+			coverage[target.get_instance_id()] = true
+			return target
+		return null
+
 ## Old Meteor Shower aim: weighted picks over visible enemies, spread by what earlier meteors cover.
 func meteor_points(count: int, radius: float) -> Array:
 	var coverage: Dictionary = {}
@@ -1668,6 +1654,9 @@ func ported_target(info: Dictionary, speed_mult: float):
 			return line_target if line_target != null else get_closest_enemy()
 		"projectile":
 			return Targeting.select(get_tree(), player.global_position) if is_instance_valid(player) else null
+		"bouncing_projectile":
+			var first = Targeting.select(get_tree(), player.global_position) if is_instance_valid(player) else null
+			return first if _live_spell_target(first) else null
 		"direct_strike", "chain":
 			var area = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)), INF, {}, get_viewport().get_visible_rect())
 			return area if _live_spell_target(area) else null
@@ -1678,6 +1667,22 @@ func ported_target(info: Dictionary, speed_mult: float):
 			return spot if _live_spell_target(spot) else null
 		"orbit":
 			return null
+		"beam":
+			# nearest within reach, preferring enemies no live beam is already on
+			var occupied: Array = []
+			for beam in get_tree().get_nodes_in_group("active_spell_channels"):
+				if beam.has_method("is_style_channel_active") and beam.is_style_channel_active() and beam.get("target_ref") and is_instance_valid(beam.target_ref.get_ref()):
+					occupied.append(beam.target_ref.get_ref())
+			var best = null
+			var distance = INF
+			for enemy in get_tree().get_nodes_in_group("enemies"):
+				if not _live_spell_target(enemy) or player.global_position.distance_to(enemy.global_position) > 450.0:
+					continue
+				var score = player.global_position.distance_squared_to(enemy.global_position) + (1000000.0 if enemy in occupied else 0.0)
+				if score < distance:
+					distance = score
+					best = enemy
+			return best
 	return get_closest_enemy()
 
 func get_visible_plague_host(info: Dictionary):

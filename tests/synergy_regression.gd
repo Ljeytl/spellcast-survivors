@@ -117,19 +117,17 @@ func run():
 	game.player.health = 50.0
 	check(spells.cast_freeform_spell("life bolt"), "Owned synergy casts")
 	check(game.player.health == 50.0, "Casting alone cannot heal")
-	var projectile
-	for child in game.get_children():
-		if child is Area2D and child.has_meta("healing_seed_amount"):
-			projectile = child
-	check(projectile != null, "Life Bolt creates seed-bearing projectile")
-	projectile.global_position = target.global_position
-	projectile._on_area_entered(hurt)
-	projectile.resolve_impact()
+	# Life Bolt runs on the generic engine (doc 18 phase 2): its bolt carries a seed payload.
+	var life_cast = spells.last_generic_cast
+	life_cast.manual = true
+	var projectile = life_cast.root_parts()[0] if not life_cast.root_parts().is_empty() else null
+	check(projectile != null and projectile.def.payload.any(func(item): return str(item.type) == "seed"), "Life Bolt creates seed-bearing projectile")
+	projectile.global_position = target.global_position - projectile.direction * 8.0
+	life_cast.step(1.0 / 60.0)
 	check(game.player.health == 50.0, "Damaging hit does not remotely heal")
 	var seeds = get_nodes_in_group("healing_seeds")
 	check(seeds.size() == 1 and seeds[0].global_position == target.global_position, "Actual impact plants one seed at the enemy")
-	projectile._on_area_entered(hurt)
-	projectile.resolve_impact()
+	life_cast.step(1.0 / 60.0)
 	check(get_nodes_in_group("healing_seeds").size() == 1, "Same projectile cannot plant twice")
 	var seed = seeds[0]
 	seed.set_physics_process(false)

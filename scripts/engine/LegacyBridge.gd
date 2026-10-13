@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe"]
+const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -40,6 +40,12 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 			return _regeneration(info, ctx)
 		"multi_aoe":
 			return _meteor_shower(info, damage, ctx)
+		"bouncing_projectile":
+			return _lightning_bolt(info, damage, ctx)
+		"life_bolt":
+			return _life_bolt(info, damage, ctx)
+		"beam":
+			return _beam(info, damage, ctx)
 	return {}
 
 ## How a recast meets the casts already out (the old recast_behavior / active_limit / extend_at_cap).
@@ -256,4 +262,80 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 	}
 	var def = _shell(info, "mark", {"mark": mark, "impact": impact})
 	def.arrangement = {"type": "points", "count": int(info.get("meteor_count", 3)), "stagger_life": float(info.get("delay_interval", 0.3))}
+	return def
+
+## Lightning Bolt: a homing bolt that bounces to the next enemy (never the same one twice),
+## striking a small lightning area at every hit.
+static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var speed = 550.0 * float(ctx.get("speed_mult", 1.0))
+	var hops = int(info.get("bounce_count", 4))
+	var reach = float(info.get("bounce_range", 240.0))
+	var events = {"on_hit": {"part": "splash"}, "on_hit#bounce": {"part": "bounce", "chain": true, "hops": hops, "range": reach, "exclude_hit": true}}
+	var bolt := {
+		"delivery": "projectile", "origin": "caster",
+		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
+		"motion": [{"type": "guided", "speed": speed, "turn": 5.0, "range": maxf(3.0 * speed, (hops + 1) * reach + speed)}],
+		"payload": _damage(id, damage),
+		"limits": {"pierce": 0},
+		"events": events,
+		"vfx": {"family": "bolt"},
+	}
+	var bounce = bolt.duplicate(true)
+	bounce.origin = "parent"
+	bounce.motion = [{"type": "guided", "speed": speed, "turn": 9.0, "range": reach * 1.5}]
+	bounce.events = {"on_hit": {"part": "splash"}, "on_hit#bounce": {"part": "bounce", "chain": true, "range": reach, "exclude_hit": true}}
+	var splash := {
+		"delivery": "volume", "origin": "parent",
+		"geometry": {"type": "disk", "radius": float(info.get("splash_radius", 80.0)) * float(info.get("spell_size_multiplier", 1.0)), "pad": 0.0},
+		"propagation": {"type": "instant"},
+		"payload": _damage(id, float(info.get("splash_damage", 0.0))),
+	}
+	var def = _shell(info, "bolt", {"bolt": bolt, "bounce": bounce, "splash": splash})
+	def.release = {"type": "together", "retarget": true}
+	def.max_spawns = 64
+	def.max_depth = hops + 2       # splashes still land after the last bounce
+	def.needs_target = true        # no enemy, no bolt (old behaviour)
+	return def
+
+## Life Bolt: bolts spread over different enemies (on screen first); a hit that deals damage
+## plants a healing seed the caster can walk over.
+static func _life_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var speed = 400.0 * float(ctx.get("speed_mult", 1.0))
+	var payload = _damage(id, damage)
+	payload.append({"type": "seed", "amount": float(info.get("healing_seed_amount", 6.0)), "duration": float(info.get("healing_seed_duration", 2.0)),
+		"lifetime": float(info.get("healing_seed_lifetime", 10.0)) * float(info.get("spell_duration_multiplier", 1.0)),
+		"radius": float(info.get("healing_seed_radius", 28.0)) * float(info.get("spell_size_multiplier", 1.0)), "cap": 6})
+	var bolt := {
+		"delivery": "projectile", "origin": "caster",
+		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
+		"motion": [{"type": "straight", "speed": speed, "range": speed * 3.0}],
+		"payload": payload,
+		"limits": {"pierce": 0, "contact_all": true},
+		"vfx": {"family": "bolt"},
+	}
+	var def = _shell(info, "bolt", {"bolt": bolt})
+	def.arrangement = {"type": "single", "count": maxi(1, int(info.get("projectile_count", 1)))}
+	def.release = {"type": "together", "retarget": true}
+	return def
+
+## Focus Ray (and Prism Ray): a beam from the caster that turns toward the enemy it tracks and hits
+## the first enemy along it four times a second; Prism Ray is fixed, wide and pierces everything.
+static func _beam(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var piercing = bool(info.get("beam_piercing", false))
+	var turn = float(info.get("beam_turn_speed", info.get("turn_speed", 4.0)))
+	if not piercing:
+		turn *= float(ctx.get("speed_mult", 1.0))
+	var beam := {
+		"delivery": "beam", "origin": "caster",
+		"geometry": {"type": "line", "length": 450.0, "width": float(info.get("beam_radius", SpellGeometry.BEAM_RADIUS)) * float(info.get("spell_size_multiplier", 1.0)) * 2.0, "pad": "hurtbox"},
+		"aim": {"turn": turn},
+		"timing": {"interval": 0.25, "duration": float(info.get("duration", 2.0))},
+		"payload": _damage(id, damage),
+		"limits": {"targets": int(info.get("beam_targets", 1)), "beam_piercing": piercing},
+	}
+	var def = _shell(info, "beam", {"beam": beam})
+	def.recast = _recast(info)
 	return def
