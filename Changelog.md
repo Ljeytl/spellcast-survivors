@@ -1,3 +1,17 @@
+# Unreleased (0.3) — VFX: every element, every shape, test arena
+
+- **Test arena** (`tools/vfx-arena/VfxArena.tscn`, web build via the arena export): the sandbox layout with the real spell engine. Tab cycles element pages (Arcane, Fire, Ice, Water, Plague, Earth, Lightning, Life), 1-9 picks a spell, B grass/dark floor, S slow-mo, P placeholder art, T ones/twos, R reset. `compare.html` runs ones and twos side by side with shared keys.
+- **Effects run on ones by default** (picked in the side-by-side); twos stays available. The sandbox's effects ran at 2x on 120 Hz displays, so effect motion runs at 2x here (gameplay untouched).
+- **Fire:** projectiles are made of flames (no drawn body); the fireball is bigger with a magma core; flame wall as a line field on its true hitbox; fire nova.
+- **Ice:** shatter with shards on z-physics, pixel snowflakes (3 sizes, spinning), crystal field, snow-wave nova, chilled status.
+- **Lightning:** sandbox pixel-staircase arcs with a calm cadence (a few at a time), strike telegraph that lands with the real strike, sky strike with spidering scorch, quiet range ring for Lightning Rod.
+- **Water:** goo technique (water in the air and on the ground), splash crowns, ripples, puddles, pool, Tsunami wall.
+- **Life:** leaves, grass and flowers growing, vines, Regrowth bloom at the caster, entangled vine wrap.
+- **Plague / Earth:** outlined goo and popping bubbles, stain; boulders, rubble, stone spikes, cracks.
+- **Arcane and shapes:** bare nova, field, orbit, rune trap, slash smear; keyword accents layer the accent element over the arcane look (fiery nova, icy field, shocking slash).
+- Every engine element now has a look; only unknown elements keep the placeholder art. Water resolves to Ice when the spell applies chilled/frozen.
+- Perf (headless arm VM, arena): all-elements stress 8.6 ms draw; pool and plague goo and the Tsunami wall run in the shaders.
+
 # Unreleased (0.3) — VFX meets the spell engine
 
 - New event contract (`docs/VFX_EVENTS.md`): the generic spell engine announces cast, part spawned, hit and finished; the VFX layer decides the look from the cast plan. VFX only read gameplay; a test casts the same spells with VFX on and off and requires identical damage.

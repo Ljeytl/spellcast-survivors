@@ -38,19 +38,23 @@ Optional per-part hint in `data/generic_spells.json`: `"vfx": {"family": "spear"
 
 - **Native look** = `plan.element` (`""` and `arcane` → Arcane, `fire` → Fire). It owns the body shape and palette.
 - **Accent look** = the first keyword element in `plan.elements` that differs from the native one. It owns the rim colour, an extra trail, the impact and the status (plan §5.1). `fiery spear` = Arcane spear body with an orange edge, a light flame trail, fire bursts on each contact, burning enemies.
-- Looks built so far: Fire (full; projectiles are made of flames, fireball has a magma core), Ice (full), Arcane (body + twinkle trail + spark impact). Storm, Earth, Plague, Life and non-cold Water keep the placeholder until their looks land.
-- **Water vs Ice:** the engine has one `water` element. A spell gets the Ice look when a part's payload applies `chilled` or `frozen`, or a part has `"vfx": {"look": "ice"}`; a water keyword accent (`icy`, `frosty`) carries `chilled`, so it is Ice. Other water spells get the Water look (not built yet).
+- Looks built: Fire, Ice, Lightning (`storm`), Water, Life, Plague, Earth, Arcane (`""` / `arcane`). Every engine element resolves to a look; only unknown elements keep the placeholder.
+- **Water vs Ice:** the engine has one `water` element. A spell gets the Ice look when a part's payload applies `chilled` or `frozen`, or a part has `"vfx": {"look": "ice"}`; water keyword accents (`icy`, `frosty`) carry `chilled`, so they are Ice. Other water spells get the Water look.
+- **Accents on areas:** on fields and novas the accent element's particles run at half rate over the native look; on bursts the accent owns the impact.
 
-## Shapes presented so far
+## Shapes presented
 
 | Delivery / geometry | Presented as |
 |---|---|
-| projectile · body | shaded body (bolt / spear / ball), trail per distance with attach `inherit`/`grip`, contact bursts |
-| volume · disk · instant | impact recipe sized to the real radius: designed star, flash, flame bloom, ring that breaks into segments, 1:3:9 debris, smoke, scorch, VFX-only hit-stop, camera shake on big hits |
-| field / aura · disk | banded floor + bright rim at the real radius, flame tongues, embers, smoke (Ice: rime floor, crystals snapping up and shattering, motes); follows the part; erodes when it ends |
-| field / aura · line | fire wall: floor + rim exactly on the rect hitbox, tall flames along it |
-| volume · ring · expanding | Ice: crystals erupt along the live front (`part.front`) and shatter; dashed rim at the front |
-| everything else (instant rings, cones, travelling rects, traps) | placeholder for now |
+| projectile · body | per look: fire = knot of flames (ball: magma core), ice/earth/life/arcane = drawn body, lightning = held arc knot, water/plague = goo; trails per distance; orbit motion = orbiter crystals |
+| volume · disk · instant | the impact look sized to the real radius (fire bloom, ice shatter, sky strike, splash, bloom, rune burst, bubble burst, rubble) |
+| volume · ring · expanding | nova on the live front (`part.front`) |
+| volume · rect · travelling | Water: Tsunami wall on the hitbox band (shader), spray off the leading edge |
+| volume · cone · instant | slash smear over the real arc and radius |
+| field / aura · disk | floor + rim at the real radius in the look's palette, look particles; payload-less auras: short + `on_expire` = strike telegraph, long = quiet range ring |
+| field / aura · line | wall floor + rim on the rect hitbox, tall flames |
+| trap · disk | rune ring draws itself on the real radius while arming, pulses when armed |
+| self | Life: bloom at the caster (Regrowth) |
 
 ## Wiring status
 
