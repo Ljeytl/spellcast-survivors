@@ -517,31 +517,53 @@ static func _in_disk(x: float, y: float, r: float) -> Vector2:
 
 func _lightning_trail(st: Dictionary, p: Vector2, vel: Vector2, dt: float) -> void:
 	var el = vfx.elements
-	st.arc_acc = float(st.get("arc_acc", 0.0)) + 0.5 * dt * 60.0     # sandbox: every other frame
+	# A few arcs with gaps between them, at a fixed real-time rate (the sandbox
+	# rate was per display frame: on ones that was a continuous sheet of arcs).
+	var rt: float = dt / vfx.fx_speed
+	st.arc_acc = float(st.get("arc_acc", 0.0)) + LIGHTNING_RATE.trail * rt
 	while st.arc_acc >= 1.0:
 		st.arc_acc -= 1.0
-		el.arc(p.x, p.y, p.x - vel.x * 0.07 / 2.0 + (randf() - 0.5) * 8.0, p.y - vel.y * 0.07 / 2.0 + (randf() - 0.5) * 8.0, 2.5, 0.08, 1)
-	if randf() < 0.6 * dt * 60.0:
+		el.arc(p.x, p.y, p.x - vel.x * 0.035 + (randf() - 0.5) * 8.0, p.y - vel.y * 0.035 + (randf() - 0.5) * 8.0, 2.5, 0.1, 1)
+	st.hop_acc = float(st.get("hop_acc", 0.0)) + LIGHTNING_RATE.hops * rt
+	while st.hop_acc >= 1.0:
+		st.hop_acc -= 1.0
 		el.hop(p.x, p.y, 0.2 + randf() * 0.25)
 
-## Body = a knot of arcs regenerated every frame (bolt) or a jagged rod (spear).
-func _draw_lightning_body(buf: PackedByteArray, pos: Vector2, dir: Vector2, family: String, sc: float) -> void:
+## Lightning cadence, events per real second. Bodies re-roll their arcs on a
+## held beat instead of every frame.
+const LIGHTNING_RATE := {"trail": 9.0, "hops": 14.0, "body_hold": 0.09, "field_bursts": 8.0, "zap": 0.6, "status": 3.0}
+
+## Body = a small knot of arcs (bolt) or a jagged rod (spear); the shape holds
+## for body_hold seconds, then re-rolls.
+func _draw_lightning_body(buf: PackedByteArray, pos: Vector2, dir: Vector2, family: String, sc: float, st: Dictionary = {}) -> void:
 	var el = vfx.elements
 	var A: Array = LIT.arc
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if float(st.get("body_t", -1.0)) < now:
+		st.body_t = now + LIGHTNING_RATE.body_hold * (0.6 + randf() * 0.8)
+		var shapes := []
+		if family == "spear":
+			shapes.append([el.jag(-10.0 * sc, 0.0, 0.0, 0.0, 1.5), 1])
+			if randf() < 0.6:
+				var a0 := (randf() - 0.5) * 2.4
+				shapes.append([el.jag(0.0, 0.0, cos(a0) * 4.0, sin(a0) * 4.0, 1.0), 2])
+		else:
+			var n := 3 if family == "bolt" else 5
+			var reach := 1.0 if family == "bolt" else 1.5
+			for i in n:
+				var a := randf() * TAU
+				var r := (4.0 + randf() * 3.0) * reach * sc
+				shapes.append([el.jag(0.0, 0.0, cos(a) * r, sin(a) * r, 1.5), 1 if i < 1 else 2])
+		st.body_shapes = shapes
+	# spear shapes are built along +x: rotate into the motion direction
+	for sh in st.get("body_shapes", []):
+		var pts := PackedVector2Array()
+		for q in sh[0]:
+			pts.append(pos + (q.rotated(dir.angle()) if family == "spear" else q))
+		el.path(buf, pts, A[sh[1]])
 	if family == "spear":
-		var tail := pos - dir * 10.0 * sc
-		el.path(buf, el.jag(tail.x, tail.y, pos.x, pos.y, 1.5), A[1])
-		el.line(buf, tail + dir * 3.0, pos, A[0])
-		for i in 2:
-			var a := randf() * TAU
-			el.path(buf, el.jag(pos.x, pos.y, pos.x + cos(a) * 4.0, pos.y + sin(a) * 4.0, 1.0), A[2])
+		el.line(buf, pos - dir * 7.0 * sc, pos, A[0])
 		return
-	var n := 5 if family == "bolt" else 8
-	var reach := 1.0 if family == "bolt" else 1.5
-	for i in n:
-		var a := randf() * TAU
-		var r := (4.0 + randf() * 3.0) * reach * sc
-		el.path(buf, el.jag(pos.x, pos.y, pos.x + cos(a) * r, pos.y + sin(a) * r, 1.5), A[1] if i < 2 else A[2])
 	# sandbox: 3x3 sandbox-pixel core, white plus, pale corners
 	for oy in range(-1, 2):
 		for ox in range(-1, 2):
@@ -610,7 +632,7 @@ func _lightning_field(A: Dictionary, dt: float) -> void:
 	var scale := clampf(r * r / 400.0, 1.0, 1.5)
 	# expected sandbox frames' worth of spawns this step (a capped probability
 	# under-spawns at low frame rates)
-	var ev := 0.85 * dt * 60.0 * sqrt(scale)
+	var ev: float = LIGHTNING_RATE.field_bursts * dt / vfx.fx_speed * scale
 	var bursts := floori(ev) + (1 if randf() < ev - floorf(ev) else 0)
 	for b in bursts:
 		for i in 2:
@@ -619,8 +641,8 @@ func _lightning_field(A: Dictionary, dt: float) -> void:
 			var L := 8.0 + randf() * 12.0
 			var e := Vector2(q.x + cos(a) * L, q.y + sin(a) * L * 0.8)
 			if e.distance_to(Vector2(A.x, A.y)) < r:
-				el.arc(q.x, q.y, e.x, e.y, 3.0, 0.1, 0 if randf() < 0.3 else 1)
-	if randf() < 0.05 * dt * 60.0:
+				el.arc(q.x, q.y, e.x, e.y, 3.0, 0.2, 0 if randf() < 0.3 else 1)
+	if randf() < LIGHTNING_RATE.zap * dt / vfx.fx_speed:
 		var inside := []
 		for e2 in vfx.get_tree().get_nodes_in_group("enemies"):
 			if is_instance_valid(e2) and (e2.global_position / WPS).distance_to(Vector2(A.x, A.y)) < r:
@@ -631,7 +653,7 @@ func _lightning_field(A: Dictionary, dt: float) -> void:
 			el.arc(q2.x, q2.y, t.x, t.y, 3.0, 0.08, 0)
 			for i in 5:
 				el.hop(t.x, t.y, 0.2)
-	if randf() < 0.25 * dt * 60.0 * sqrt(scale):
+	if randf() < 4.0 * dt / vfx.fx_speed * scale:
 		var q3 := _in_disk(A.x, A.y, r)
 		el.hop(q3.x, q3.y, 0.2)
 
@@ -663,8 +685,8 @@ func _shocked(dt: float) -> void:
 		var p: Vector2 = e.global_position / WPS
 		if randf() < 0.08 * dt * 60.0:
 			vfx.elements.hop(p.x + (randf() - 0.5) * 6.0, p.y - 3.0, 0.12)
-		if randf() < 0.25 * dt * 60.0:
-			vfx.elements.arc(p.x - 3.0, p.y - 5.0 + randf() * 3.0, p.x + 3.0, p.y - 2.0 - randf() * 3.0, 2.0, 0.04, 1)
+		if randf() < LIGHTNING_RATE.status * dt / vfx.fx_speed:
+			vfx.elements.arc(p.x - 3.0, p.y - 5.0 + randf() * 3.0, p.x + 3.0, p.y - 2.0 - randf() * 3.0, 2.0, 0.1, 1)
 
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():
@@ -738,7 +760,7 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var sc: float = float(part.size_scale)
 		var pal: Array = BODY[st.look.native]
 		if st.look.native == "lightning":
-			_draw_lightning_body(buf, pos, dir, st.family, sc)
+			_draw_lightning_body(buf, pos, dir, st.family, sc, st)
 			continue
 		if st.look.native == "ice":
 			var ib: Dictionary = ICE_BODY[st.family]
