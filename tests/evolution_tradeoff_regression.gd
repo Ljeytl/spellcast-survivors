@@ -77,11 +77,8 @@ func effect(info: Dictionary, aim):
 		game.add_child(cast)
 		cast.step(0.0)
 		return cast
-	var node = load("res://scripts/TacticalSpellEffect.gd").new() if info.type in ["beam", "trap", "spirit"] else load("res://scripts/BuildSpellEffect.gd").new()
-	node.configure(info, manager.calculate_spell_damage(info), game.player, aim)
-	game.add_child(node)
-	node.set_physics_process(false)
-	return node
+	check(false, "Every spell measured here runs on the generic engine: " + str(info.id))
+	return null
 
 func run():
 	root.size = Vector2i(1280, 720)

@@ -74,14 +74,15 @@ func build_text() -> String:
 		var display = "Magic Missile" if spell == "mana_bolt" else str(info.get("name", spell))
 		lines.append("%-15s %4s %7.0f %7.0f %9.0f %6d %5d %4.0f%%" % [display.substr(0, 15), str(manager.get_spell_rank(spell)) if spell in manager.get_unlocked_spell_names() else "-", float(dps10.get(spell, 0.0)), float(dps60.get(spell, 0.0)), float(totals.get(spell, 0.0)), int(kills.get(spell, 0)), int(telemetry.casts_by_spell.get(spell, 0)), 100.0 * float(totals.get(spell, 0.0)) / maxf(1.0, grand)])
 	var active = {}
-	for effect in get_tree().get_nodes_in_group("build_spell_effects"):
-		if not effect.is_queued_for_deletion() and effect.get("info") is Dictionary:
-			var id = str(effect.info.get("id", "?"))
-			active[id] = int(active.get(id, 0)) + 1
 	var hosts = 0
-	for effect in get_tree().get_nodes_in_group("build_spell_effects"):
-		if effect.get("infections") is Array:
-			hosts += effect.infections.size()
+	for cast in get_tree().get_nodes_in_group("generic_casts"):
+		if cast.is_queued_for_deletion() or cast.finished:
+			continue
+		var id = str(cast.plan.get("id", "?"))
+		active[id] = int(active.get(id, 0)) + 1
+		for part in cast.root_parts():
+			if part.infection != null:
+				hosts += part.infection.hosts.size()
 	lines.append("ACTIVE  " + ", ".join(active.keys().map(func(k): return "%s ×%d" % [k, active[k]])) + ("  infected %d" % hosts if hosts > 0 else ""))
 	lines.append("F4 hides · logs: " + (telemetry.log_path if not telemetry.log_path.is_empty() else "off (debug builds or --telemetry=path)"))
 	return "\n".join(lines)

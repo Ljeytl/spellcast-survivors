@@ -46,15 +46,26 @@ func clear():
 		if is_instance_valid(node): node.free()
 	nodes.clear()
 
-func effect(type: String, target = null, extra: Dictionary = {}):
-	var data = {"type": type, "duration": 1.0, "tick_interval": 0.1}
+## Every shipping spell runs on the generic engine (doc 18 phase 2): build a cast from data.
+func generic(info: Dictionary, damage: float, aim = null):
+	var scaled = load("res://scripts/SpellGeometry.gd").scaled_data(info, caster)
+	var def = load("res://scripts/engine/LegacyBridge.gd").build(scaled, damage, {})
+	var cast = load("res://scripts/engine/GenericCast.gd").new()
+	cast.forced_target = aim
+	cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), caster, root, {"spell": str(info.id)}, true)
+	root.add_child(cast)
+	nodes.append(cast)
+	cast.step(0.0)
+	return cast
+
+## Infestation's plague state (scripts/engine/Infection.gd); spore_linger 3 as the old fixture default.
+func plague_on(first, extra: Dictionary = {}):
+	var data = {"id": "infestation", "type": "plague", "duration": 1.0, "tick_interval": 0.1, "spore_linger": 3.0}
 	data.merge(extra, true)
-	var node = load("res://scripts/TacticalSpellEffect.gd" if type in ["beam", "trail", "returning", "trap", "spirit"] else "res://scripts/BuildSpellEffect.gd").new()
-	node.configure(data, 10.0, caster, target)
-	root.add_child(node)
-	node.set_physics_process(false)
-	nodes.append(node)
-	return node
+	return generic(data, 10.0, first)
+
+func spores(cast) -> Array:
+	return cast.parts[0].infection.spores if not cast.parts.is_empty() else []
 
 func run():
 	root.get_node("AudioManager").quitting = true
@@ -79,107 +90,99 @@ func run():
 		check(spear_in.current_health < 1000, "piercing %sx hits just inside visible body" % scale)
 		check(spear_out.current_health == 1000, "piercing %sx misses just outside visible body" % scale)
 		clear()
+		var ids = {"field": "cinder_field", "trail": "firewalk", "trap": "rune_trap", "beam": "focus_ray", "returning": "cross_blade", "spirit": "seeker", "orbit": "arcane_orbit"}
 		for type in ["field", "trail", "trap", "beam", "returning", "spirit", "orbit"]:
 			var radius = {"field":150, "trail":65, "trap":130, "beam":20, "returning":33.6, "spirit":24, "orbit":42}[type] * scale
 			var center = Vector2.ZERO
 			if type == "trap": center = Vector2(160, 0)
 			if type == "orbit": center = Vector2(130 * scale, 0)
+			if type == "beam": center = Vector2(100, 0)
 			var inside = host(center + Vector2(0, radius - 0.1))
 			var outside = host(center + Vector2(0, radius + 0.1))
-			var node = effect(type, null, {"arm_delay":0.0,"angular_speed":0.0,"orb_count":1})
+			var cast = generic({"id": ids[type], "type": type, "duration": 1.0, "tick_interval": 0.1, "arm_delay": 0.0, "angular_speed": 0.0, "orb_count": 1, "blade_count": 1}, 10.0)
+			# The part that deals the damage, placed where the old fixture measured it.
+			var part
 			match type:
+				"trail":
+					part = cast.parts.filter(func(p): return p.part_name == "patch")[0]
 				"trap":
-					host(center)
-					node.advance_trap()
-				"beam":
-					node.target_ref = null
-					inside.position.x = 100
-					outside.position.x = 100
-					var guide = host(Vector2(300,0))
-					node.target_ref = weakref(guide)
-					node.info.beam_targets = 5
-					node.tick_remaining = 0
-					node.advance_beam(0.01, caster)
-				"spirit":
-					node.target_ref = weakref(inside)
-					node.advance_spirit(0, caster)
-					node.strike_ready = 0
-					node.target_ref = weakref(outside)
-					node.advance_spirit(0, caster)
-				"orbit": node.advance_orbit(0.01)
-				"returning": node.advance_returning(0, caster)
-				_: node.advance(0.11)
-			check(inside.current_health < 1000, "%s %sx hits just inside visible body" % [type, scale])
-			check(outside.current_health == 1000, "%s %sx misses just outside visible body" % [type, scale])
+					part = cast._make_part("burst", center, Vector2.RIGHT, 1, 1.0, 1.0)
+				_:
+					part = cast.root_parts()[0]
+			part.global_position = Vector2.ZERO if type == "beam" else center
+			part.direction = Vector2.RIGHT
+			check(part.contains(inside.global_position, part.pad_for(inside)), "%s %sx hits just inside visible body" % [type, scale])
+			check(not part.contains(outside.global_position, part.pad_for(outside)), "%s %sx misses just outside visible body" % [type, scale])
 			clear()
-		var ice = load("res://scripts/IceBlast.gd").new()
-		ice.configure(Vector2.ZERO, Vector2.RIGHT, 400, 10, 0, 1, 0.5, 1, scale)
-		root.add_child(ice)
-		ice.set_physics_process(false)
-		nodes.append(ice)
+		var ice = generic({"id": "ice_blast", "type": "aoe", "radius": 400}, 10.0)
+		var shard = ice.root_parts()[0]
+		shard.prev_pos = Vector2.ZERO
+		shard.global_position = Vector2(100, 0)
 		var inside = host(Vector2(50, 12 * scale - 0.1))
 		var outside = host(Vector2(50, 12 * scale + 0.1))
-		check(ice.contact_fraction(inside, Vector2.ZERO, Vector2(100,0)) >= 0, "Ice shard inside boundary")
-		check(ice.contact_fraction(outside, Vector2.ZERO, Vector2(100,0)) < 0, "Ice shard outside boundary")
+		check(shard._swept_contains(inside), "Ice shard inside boundary")
+		check(not shard._swept_contains(outside), "Ice shard outside boundary")
 		clear()
 	caster.spell_size_multiplier = 1
 	var first = host(Vector2.ZERO)
-	var plague = effect("plague", first)
+	var plague = plague_on(first)
 	plague.advance(0.9)
 	first.take_damage(2000)
-	if "--known-bad-spores" in OS.get_cmdline_user_args():
-		plague.resting_spores.clear()
-		plague.remaining = 0.01
-	check(plague.resting_spores.size() == 1, "Other spell kill leaves one resting spore near original expiry")
-	plague._on_infected_host_died(first)
-	check(plague.resting_spores.size() == 1, "Duplicate death notification does not duplicate spore")
-	plague.advance(2.9)
-	check(not plague.is_queued_for_deletion(), "Resting spore survives original cast lifetime")
+	plague.advance(0.025)
+	check(spores(plague).size() == 1, "Other spell kill leaves one resting spore near original expiry")
+	first.enemy_died.emit(first)
+	plague.advance(0.025)
+	check(spores(plague).size() == 1, "Duplicate death notification does not duplicate spore")
+	plague.advance(2.85)
+	check(not plague.finished, "Resting spore survives original cast lifetime")
 	var second = host(Vector2(120,0))
 	plague.advance(0.025)
-	check(second.current_health == 1000 and plague.infection_links.size() == 1, "Spore launches without instant infection")
+	check(second.current_health == 1000 and plague.parts[0].infection.links.size() == 1, "Spore launches without instant infection")
 	plague.advance(0.5)
 	check(second.current_health < 1000, "Late recipient takes infection damage after arrival beyond original lifetime")
 	clear()
 	first = host(Vector2.ZERO)
 	first.current_health = 5
-	plague = effect("plague", first)
+	plague = plague_on(first)
 	plague.advance(0.2)
-	check(plague.resting_spores.size() == 1, "Plague kill leaves resting spore")
+	check(spores(plague).size() == 1, "Plague kill leaves resting spore")
 	plague.advance(3.1)
-	check(plague.resting_spores.is_empty() and plague.is_queued_for_deletion(), "Unclaimed spore expires and effect ends")
+	check(spores(plague).is_empty() and plague.finished, "Unclaimed spore expires and effect ends")
 	clear()
 	first = host(Vector2.ZERO)
 	first.delayed = true
-	plague = effect("plague", first)
+	plague = plague_on(first)
 	plague.advance(0.1)
 	first.take_damage(2000)
 	plague.advance(0.025)
-	check(plague.resting_spores.size() == 1, "Delayed death signal detected through dead host state")
+	check(spores(plague).size() == 1, "Delayed death signal detected through dead host state")
 	first.enemy_died.emit(first)
-	check(plague.resting_spores.size() == 1, "Delayed signal cannot duplicate transfer")
+	plague.advance(0.025)
+	check(spores(plague).size() == 1, "Delayed signal cannot duplicate transfer")
 	clear()
 	first = host(Vector2(100,0))
-	plague = effect("plague", first)
+	plague = plague_on(first)
 	first.take_damage(2000)
 	plague.advance(0.025)
-	check(plague.resting_spores.size() == 1, "Pending target dies: traveling spore rests")
+	check(spores(plague).size() == 1, "Pending target dies: traveling spore rests")
 	clear()
 	first = host(Vector2.ZERO)
-	plague = effect("plague", first, {"duration":2.0})
+	plague = plague_on(first, {"duration": 2.0})
+	var spread = plague.parts[0].infection
 	for index in range(15): host(Vector2(index + 1, 0))
 	plague.advance(2.5)
-	check(plague.hosts_started > 8, "A cast can spread beyond eight hosts")
+	check(spread.hosts_started > 8, "A cast can spread beyond eight hosts")
 	clear()
 	first = host(Vector2(200, 0))
-	plague = effect("plague", first)
-	var deadline = plague.infection_links[0].expires
+	plague = plague_on(first)
+	spread = plague.parts[0].infection
+	var deadline = spread.links[0].expires
 	for index in range(9):
 		first.take_damage(2000)
 		first = host(Vector2(200,0))
 		plague.advance(0.01)
-	check(plague.hosts_started == 0 and plague.infection_links.size() == 1, "Failed pending targets do not consume infection budget")
-	check(is_equal_approx(plague.infection_links[0].expires, deadline), "Retargeting preserves absolute pending deadline")
+	check(spread.hosts_started == 0 and spread.links.size() == 1, "Failed pending targets do not consume infection budget")
+	check(not spread.links.is_empty() and is_equal_approx(spread.links[0].expires, deadline), "Retargeting preserves absolute pending deadline")
 	clear()
 	caster.spell_size_multiplier = 1
 	var projectile = load("res://scenes/SpellProjectile.tscn").instantiate()

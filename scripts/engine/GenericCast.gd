@@ -23,6 +23,7 @@ var release_acc := 0.0
 var aim_dir := Vector2.RIGHT
 var shared_hits: Dictionary = {} # enemy id -> cast clock of the last hit (limits.rehit_shared)
 var once: Dictionary = {}      # payload items marked once_per_cast: "item@enemy" already applied
+var had_caster := false        # a cast whose caster is freed ends (run teardown, old effect nodes)
 var forced_dir := Vector2.ZERO  # aim set by the caller
 var forced_target = null       # ported spells keep their old targeting: the caller picks the target
 var target_picker: Callable    # or picks it when each copy is released (release.retarget)
@@ -31,6 +32,7 @@ var point_picker: Callable     # arrangement "points": the caller picks the grou
 func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictionary, p_manual: bool = false, seed_value: int = -1) -> void:
 	plan = p_plan
 	caster = p_caster
+	had_caster = p_caster != null
 	world = p_world
 	source = p_source
 	manual = p_manual
@@ -61,6 +63,15 @@ func _physics_process(delta: float) -> void:
 
 func step(delta: float) -> void:
 	if finished:
+		return
+	if had_caster and not is_instance_valid(caster):
+		for p in parts:
+			if is_instance_valid(p) and not p.done:
+				p.finish(false)
+		parts.clear()
+		pending.clear()
+		spawns.clear()
+		finished = true
 		return
 	clock += delta
 	for c in pending.duplicate():

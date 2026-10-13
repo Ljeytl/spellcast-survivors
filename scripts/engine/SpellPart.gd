@@ -179,7 +179,8 @@ func step(delta: float) -> void:
 	if done:
 		return
 	age += delta
-	while not segments.is_empty() and age >= segment_end:
+	# A tick on the boundary still belongs to the running numbers; the queued ones take over after it.
+	while not segments.is_empty() and age - 0.000001 > segment_end:
 		var seg: Dictionary = segments.pop_front()
 		def = seg.def
 		segment_end += float(seg.length)
@@ -253,7 +254,7 @@ func _step_projectile(delta: float) -> void:
 			prev_pos = global_position
 			global_position += direction * move
 			phase_travel += move
-			if ph.has("range") and phase_travel >= float(ph.range):
+			if ph.has("range") and phase_travel + 0.001 >= float(ph.range):
 				_next_phase(false)
 		"hold":
 			# Old Cross Blade linger: stay put; pulse everything inside every interval at a share of the hit.
@@ -373,8 +374,11 @@ func _can_hit(enemy, rehit: float) -> bool:
 func _step_volume(delta: float) -> void:
 	match _propagation():
 		"instant":
+			# linger: the burst stays live that long and still hits late entrants, each once
+			# (old Lightning: 0.2 s, scaled by Duration).
 			_hit_all_inside(0.0)
-			finish(true)
+			if age + 0.000001 >= float(def.get("propagation", {}).get("linger", 0.0)):
+				finish(true)
 		"expanding":
 			front += float(def.propagation.get("speed", 600.0)) * delta
 			var full = geo("radius", 100.0)
@@ -415,6 +419,15 @@ func _step_periodic(delta: float) -> void:
 	if not def.get("payload", []).is_empty() and bool(timing.get("per_target", false)):
 		# Each enemy is hit as it enters, then every interval while it stays inside.
 		_hit_all_inside(interval)
+	elif not def.get("payload", []).is_empty() and bool(timing.get("shared_clock", false)):
+		# Old Fire Walk: one tick for the whole trail, on the cast's clock, so a moving enemy is hit
+		# every interval however many patches it crosses (patch phases never stagger the cooldown).
+		var beat = int(floor((cast.clock + 0.000001) / interval))
+		if not tick_acc.has("beat"):
+			tick_acc.beat = beat
+		elif beat > int(tick_acc.beat):
+			tick_acc.beat = beat
+			_hit_all_inside(maxf(0.0, interval - 0.001) if float(def.get("limits", {}).get("rehit", 0.0)) <= 0.0 else float(def.limits.rehit))
 	elif not def.get("payload", []).is_empty():
 		tick_acc["payload"] = float(tick_acc.get("payload", 0.0 if bool(timing.get("delay_first", false)) else interval)) + delta
 		if float(tick_acc.payload) + 0.000001 >= interval:
@@ -461,7 +474,7 @@ func _step_beam(delta: float) -> void:
 		var along = (enemy.global_position - global_position).dot(direction)
 		var closest = Geometry2D.get_closest_point_to_segment(enemy.global_position, global_position, reach)
 		if closest.distance_to(enemy.global_position) <= geo("width", 24.0) * 0.5 + pad_for(enemy):
-			found.append({"enemy": enemy, "contact": clampf(along, 0.0, reach_len)})
+			found.append({"enemy": enemy, "contact": clampf(_beam_front(enemy, along), 0.0, reach_len)})
 	found.sort_custom(func(a, b): return a.contact < b.contact)
 	var struck = found if piercing else found.slice(0, int(def.get("limits", {}).get("targets", 1)))
 	if turn <= 0.0:
@@ -478,6 +491,18 @@ func _step_beam(delta: float) -> void:
 				hit(entry.enemy)
 	if age + 0.000001 >= total_life():
 		finish(true)
+
+## Where the beam first touches an enemy along its length: the near face of its hurtbox (old
+## Focus Ray stopped at body contact, not the centre).
+func _beam_front(enemy, along: float) -> float:
+	var shape_node = enemy.get_node_or_null("HurtBox/HurtBoxShape") as CollisionShape2D if enemy is Node else null
+	if shape_node != null and not shape_node.disabled and shape_node.shape is RectangleShape2D:
+		var half: Vector2 = shape_node.shape.size * 0.5
+		var first = INF
+		for corner in [Vector2(-half.x, -half.y), Vector2(half.x, -half.y), half, Vector2(-half.x, half.y)]:
+			first = minf(first, (shape_node.to_global(corner) - global_position).dot(direction))
+		return first
+	return along - pad_for(enemy)
 
 ## The enemy a beam keeps on: its current one while alive and in reach, else the nearest one no
 ## other live beam is already on.

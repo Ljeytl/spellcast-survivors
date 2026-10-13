@@ -63,16 +63,15 @@ func run():
 	enemy.set_physics_process(false)
 	enemy.global_position = game.player.global_position + Vector2(20, 0)
 	enemy.current_health = 500
-	var trap = preload("res://scripts/TacticalSpellEffect.gd").new()
-	trap.configure(spells.spell_catalog.rune_trap.duplicate(true), spells.spell_catalog.rune_trap.damage, game.player, enemy)
-	game.add_child(trap)
-	trap.set_process(false)
-	trap.age = 1
-	trap.advance_trap()
+	# Rune Trap runs on the generic engine: it arms, then bursts once on proximity.
+	var trap = spells.spawn_ported(spells.spell_catalog.rune_trap.duplicate(true), float(spells.spell_catalog.rune_trap.damage), {}, enemy)
+	trap.manual = true
+	trap.run(1.0)
 	var trap_health = 500.0 - float(spells.spell_catalog.rune_trap.damage)
-	check(is_equal_approx(enemy.current_health, trap_health), "Trap deals its data damage")
-	trap.advance_trap()
+	check(is_equal_approx(enemy.current_health, trap_health), "Trap deals its data damage (%s)" % enemy.current_health)
+	trap.run(2.0)
 	check(is_equal_approx(enemy.current_health, trap_health), "Trap cannot trigger twice")
+	trap.free()
 	check(enemy.knockback_velocity == Vector2.ZERO, "Trap does not add knockback")
 	check(Targeting.meteor_weight(100, 100, 0) > Targeting.meteor_weight(500, 100, 0), "Closer enemies have higher weight")
 	check(Targeting.meteor_weight(100, 500, 0) > Targeting.meteor_weight(100, 30, 0), "Stronger enemies have higher weight")

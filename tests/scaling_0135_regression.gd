@@ -1,9 +1,7 @@
 extends SceneTree
 
 const Geometry = preload("res://scripts/SpellGeometry.gd")
-const Area = preload("res://scripts/LingeringArea.gd")
-const Build = preload("res://scripts/BuildSpellEffect.gd")
-const Tactical = preload("res://scripts/TacticalSpellEffect.gd")
+const Bridge = preload("res://scripts/engine/LegacyBridge.gd")
 var checks = 0
 var failures = 0
 var game
@@ -45,12 +43,19 @@ func host(point: Vector2):
 	return node
 
 func clear_effects():
-	for group in ["build_spell_effects", "spell_projectiles", "lingering_spell_areas", "healing_seeds", "lightning_areas", "ice_blasts"]:
+	for group in ["generic_casts", "spell_projectiles", "lingering_spell_areas", "healing_seeds"]:
 		for node in get_nodes_in_group(group):
 			if is_instance_valid(node): node.free()
 	for node in hosts:
 		if is_instance_valid(node): node.free()
 	hosts.clear()
+
+## Ported spells run on the generic engine (doc 18 phase 2): spawn one from explicit data, driven by hand.
+func ported(info: Dictionary, damage: float, aim = null):
+	var cast = manager.spawn_ported(info, damage, {}, aim)
+	if cast != null:
+		cast.manual = true
+	return cast
 
 func learn(ids: Array):
 	manager.spells.clear()
@@ -95,38 +100,33 @@ func run():
 	player.spell_damage_multiplier = 1.0
 	for kind in ["lightning", "meteor"]:
 		var first = host(origin)
-		var late = host(origin + Vector2(300, 0))
 		var effect
 		if kind == "lightning":
-			effect = load("res://scripts/LightningArea.gd").new()
-			effect.configure(origin, {"radius":80}, 20, player)
+			effect = ported({"id": "lightning", "type": "direct_strike", "radius": 80}, 20, first)
 		else:
-			manager.create_meteor_strike(origin, 20, 80)
-			effect = get_nodes_in_group("lingering_spell_areas")[-1]
-		if kind == "lightning": game.add_child(effect)
-		effect.set_physics_process(false)
-		check(is_equal_approx(first.current_health, 9980), kind + " immediate damage")
+			effect = ported({"id": "meteor_shower", "type": "multi_aoe", "radius": 80, "meteor_count": 1, "warning_duration": 0.0}, 20, first)
+		var late = host(origin + Vector2(300, 0))   # after the cast: the meteor lands on `first`
+		check(is_equal_approx(first.current_health, 9980), kind + " immediate damage (%s)" % first.current_health)
 		effect.advance(0.21)
 		late.global_position = origin
 		effect.advance(0.01)
 		check(is_equal_approx(late.current_health, 9980), kind + " duration admits late entrant")
 		check(is_equal_approx(first.current_health, 9980), kind + " does not repeat hit")
-		check(is_equal_approx(effect.duration, 0.4), kind + " active lifetime doubled")
+		var blast = effect.plan.parts.strike if kind == "lightning" else effect.plan.parts.impact
+		check(is_equal_approx(float(blast.propagation.linger), 0.4), kind + " active lifetime doubled")
 		effect.advance(0.2)
-		check(effect.is_queued_for_deletion(), kind + " expires")
+		check(effect.finished, kind + " expires")
 		clear_effects()
 	var trigger = host(origin + Vector2(100, 0))
-	var trap = Tactical.new()
-	trap.configure({"type":"trap", "duration":6.0, "arm_delay":0.8}, 20, player, trigger)
-	game.add_child(trap)
-	trap.set_physics_process(false)
+	var trap = ported({"id": "rune_trap", "type": "trap", "duration": 6.0, "arm_delay": 0.8}, 20, trigger)
+	var rune_at = trap.root_parts()[0].global_position
 	trap.advance(0.79)
-	check(not trap.triggered, "Trap does not arm early")
+	check(is_equal_approx(trigger.current_health, 10000), "Trap does not arm early")
 	trap.advance(0.02)
-	check(trap.triggered, "Duration does not delay trap arming")
-	var newcomer = host(trap.global_position + Vector2(500, 0))
+	check(is_equal_approx(trigger.current_health, 9980), "Duration does not delay trap arming")
+	var newcomer = host(rune_at + Vector2(500, 0))
 	trap.advance(0.26)
-	newcomer.global_position = trap.global_position
+	newcomer.global_position = rune_at
 	trap.advance(0.01)
 	check(is_equal_approx(newcomer.current_health, 9980), "Trap expanded aftermath admits late entrant")
 	check(is_equal_approx(trigger.current_health, 9980), "Trap no repeat hit")
@@ -134,37 +134,39 @@ func run():
 	player.spell_size_multiplier = 2
 	var orbit = Geometry.scaled_data({"type":"orbit", "duration":6}, player)
 	check(is_equal_approx(orbit.body_radius, 84) and is_equal_approx(orbit.orbit_radius, 260), "Size grows orbit and bodies")
-	var icy = load("res://scripts/IceBlast.gd").new()
-	icy.configure(origin, Vector2.RIGHT, 400, 10, 0, 1, 0.5, 2, 2)
-	check(is_equal_approx(icy.reach,800) and is_equal_approx(icy.shard_radius,24) and is_equal_approx(icy.speed,1240), "Ice size and velocity map to real shards/reach")
-	icy.free()
-	var orbit_node = Build.new()
-	orbit_node.configure({"type":"orbit", "duration":6, "projectile_speed_multiplier":2}, 20, player, null)
-	game.add_child(orbit_node)
-	orbit_node.set_physics_process(false)
-	orbit_node.advance(0.1)
-	check(is_equal_approx(orbit_node.angle, 0.8), "Velocity increases angular speed")
-	check(is_equal_approx(orbit_node.remaining, 11.9), "Duration extends orbit")
-	clear_effects()
+	var icy = Bridge.build(Geometry.scaled_data({"id": "ice_blast", "type": "aoe", "radius": 400}, player), 10, {"speed_mult": 2.0})
+	var shard = icy.parts.shard
+	check(is_equal_approx(float(shard.motion[0].range), 800) and is_equal_approx(float(shard.geometry.radius), 24) and is_equal_approx(float(shard.motion[0].speed), 1240), "Ice size and velocity map to real shards/reach")
 	player.spell_size_multiplier = 1
+	player.projectile_speed_multiplier = 2
+	var orbit_cast = ported({"id": "arcane_orbit", "type": "orbit", "duration": 6}, 20)
+	var orb = orbit_cast.root_parts()[0]
+	var start_angle = orb.orbit_angle
+	orbit_cast.advance(0.1)
+	check(is_equal_approx(orb.orbit_angle - start_angle, 0.8), "Velocity increases angular speed")
+	check(is_equal_approx(orb.remaining_life(), 11.9), "Duration extends orbit")
+	clear_effects()
 	learn(["focus_ray", "ember_spear", "prism_ray"])
 	var target = host(origin + Vector2(200,0))
-	manager.cast_build_spell(manager.find_spell_slot("prism_ray"))
-	var prism = get_nodes_in_group("active_spell_channels")[-1]
-	prism.set_physics_process(false)
-	prism.info.projectile_speed_multiplier = 10
+	player.projectile_speed_multiplier = 10
+	manager.cast_spell_by_type(manager.find_spell_slot("prism_ray"))
+	var prism_cast = manager.last_generic_cast
+	prism_cast.manual = true
+	var prism = prism_cast.root_parts()[0]
 	if "--known-bad-prism-turn" in OS.get_cmdline_user_args():
-		prism.info.beam_turn_speed = 4.0
+		prism.def = prism.def.duplicate(true)
+		prism.def.aim = {"turn": 4.0}
 	var initial = prism.direction
 	target.global_position = origin + Vector2(0,200)
-	prism.advance(0.3)
-	check(is_equal_approx(absf(initial.angle_to(prism.direction)), 0.075), "Prism tracks slowly even at high velocity")
+	prism_cast.advance(0.3)
+	check(is_equal_approx(absf(initial.angle_to(prism.direction)), 0.075), "Prism tracks slowly even at high velocity (%s)" % absf(initial.angle_to(prism.direction)))
 	check(prism.target_ref != null and prism.target_ref.get_ref() == target, "Prism keeps tracking its moving target")
-	check(is_equal_approx(prism.beam_radius(),32), "Prism is broad")
+	check(is_equal_approx(prism.geo("width") * 0.5, 32), "Prism is broad")
 	# Prism starts at Focus Ray's maxed duration; Duration ×2, minus the 0.3s advanced above.
 	var focus_info = manager.spell_catalog.focus_ray
 	var focus_max = float(focus_info.get("rank_growth", {}).get("duration", {}).get("max", focus_info.duration))
-	check(is_equal_approx(prism.remaining, focus_max * 2.0 - 0.3), "Prism duration scales")
+	check(is_equal_approx(prism.remaining_life(), focus_max * 2.0 - 0.3), "Prism duration scales")
+	player.projectile_speed_multiplier = 1
 	clear_effects()
 	learn(["bolt", "lightning", "lightning_bolt"])
 	player.spell_damage_multiplier = 2
@@ -192,56 +194,52 @@ func run():
 	learn(["infestation", "regeneration", "soul_bloom"])
 	var doomed = host(origin + Vector2(50,0))
 	doomed.current_health = 1
-	manager.cast_build_spell(manager.find_spell_slot("soul_bloom"))
-	var bloom = get_nodes_in_group("build_spell_effects")[-1]
-	bloom.set_physics_process(false)
-	bloom.advance(1.1)
+	manager.cast_spell_by_type(manager.find_spell_slot("soul_bloom"))
+	var bloom_cast = manager.last_generic_cast
+	bloom_cast.manual = true
+	var bloom = bloom_cast.root_parts()[0].infection
+	bloom_cast.advance(1.1)
 	check(get_nodes_in_group("healing_seeds").size()==1, "Soul Bloom death creates healing area")
-	check(bloom.resting_spores.size()==1, "Soul Bloom death independently preserves infectious spore")
+	check(bloom.spores.size()==1, "Soul Bloom death independently preserves infectious spore")
 	if get_nodes_in_group("healing_seeds").size()==1:
 		var seed = get_nodes_in_group("healing_seeds")[0]
 		check(is_equal_approx(seed.healing_amount,12), "Soul healing power once")
 		check(is_equal_approx(seed.remaining,20), "Soul bloom collection lifetime duration once")
-	check(is_equal_approx(bloom.spore_lifetime(),10), "Soul spore duration scales")
+	check(is_equal_approx(bloom.spore_life(),10), "Soul spore duration scales")
 	clear_effects()
 	var slow_target = host(origin + Vector2(40,0))
 	var fast_target = host(origin + Vector2(50,0))
-	var seeker = Tactical.new()
-	seeker.configure({"type":"spirit", "duration":5.0},20,player,slow_target)
-	game.add_child(seeker)
-	seeker.set_physics_process(false)
+	var seeker = ported({"id": "seeker", "type": "spirit", "duration": 5.0}, 20, slow_target)
 	seeker.advance(0.15)
 	check(slow_target.current_health==9980 and fast_target.current_health==9980, "Seeker damages all contacts within body")
 	seeker.advance(0.1)
 	check(slow_target.current_health==9980 and fast_target.current_health==9980, "Seeker per-enemy repeat gate")
 	clear_effects()
-	var trail = Tactical.new()
-	trail.configure({"type":"trail", "duration":11.0, "emission_duration":5.0, "patch_duration":6.0},20,player,null)
-	game.add_child(trail)
-	trail.set_physics_process(false)
-	check(is_equal_approx(trail.emission_deadline,10) and is_equal_approx(trail.info.patch_duration,12), "Duration extends trail emission and patch life")
-	check(is_equal_approx(trail.remaining,22), "Emitter remains alive for final patch")
-	check(is_equal_approx(trail.extend_duration({"type":"trail", "duration":11.0, "emission_duration":5.0, "patch_duration":6.0}),10), "Recast adds scaled emission once")
+	var walk_data = {"id": "firewalk", "type": "trail", "duration": 11.0, "emission_duration": 5.0, "patch_duration": 6.0, "recast_behavior": "extend"}
+	var trail = ported(walk_data, 20)
+	var emitter = trail.root_parts()[0]
+	check(is_equal_approx(emitter.total_life(), 10) and is_equal_approx(float(trail.plan.parts.patch.timing.duration), 12), "Duration extends trail emission and patch life")
+	check(ported(walk_data, 20) == trail and is_equal_approx(emitter.total_life(), 20), "Recast adds scaled emission once")
+	trail.advance(19.85)
+	player.position += Vector2(40, 0)
+	trail.advance(0.2)
+	player.position -= Vector2(40, 0)
+	check(emitter.done and not trail.finished, "Emitter ends while the final patch still burns")
+	trail.advance(12.0)
+	check(trail.finished, "Trail ends once the final patch burns out")
 	clear_effects()
-	var blade = Tactical.new()
-	blade.configure({"type":"returning", "duration":4.0, "linger_duration":0.9},20,player,null)
-	game.add_child(blade)
-	blade.set_physics_process(false)
-	blade.global_position = origin + Vector2(300,0)
-	blade.leg = 1
-	blade.linger_remaining = 0
-	blade.advance_returning(0.1,player)
-	check(blade.global_position.distance_to(origin)<300, "Duration never delays blade return")
-	check(get_nodes_in_group("lingering_spell_areas").size()==1, "Duration leaves a useful blade aftermath")
-	clear_effects()
+	var blade = Bridge.build(Geometry.scaled_data({"id": "cross_blade", "type": "returning", "duration": 4.0, "linger_duration": 0.9}, player), 20, {})
+	check(is_equal_approx(float(blade.parts.blade.motion[1].time), 0.9), "Duration never delays blade return")
+	check(blade.parts.has("echo") and is_equal_approx(float(blade.parts.echo.timing.duration), 0.9), "Duration leaves a useful blade aftermath")
 	var guide = host(origin + Vector2(0,200))
-	var focus = Tactical.new()
-	focus.configure({"type":"beam", "duration":2.0,"projectile_speed_multiplier":2.0},20,player,null)
-	game.add_child(focus)
-	focus.set_physics_process(false)
-	focus.target_ref = weakref(guide)
-	focus.advance(0.1)
-	check(is_equal_approx(focus.direction.angle(),0.8), "Velocity doubles Focus turning")
+	player.projectile_speed_multiplier = 2
+	var focus_cast = ported({"id": "focus_ray", "type": "beam", "duration": 2.0}, 20, guide)
+	var focus = focus_cast.root_parts()[0]
+	focus.direction = Vector2.RIGHT
+	focus.beam_offset = Vector2.ZERO
+	focus_cast.advance(0.1)
+	check(is_equal_approx(focus.direction.angle(),0.8), "Velocity doubles Focus turning (%s)" % focus.direction.angle())
+	player.projectile_speed_multiplier = 1
 	clear_effects()
 	learn(["bolt","life","life_bolt"])
 	var a = host(origin+Vector2(100,0))

@@ -34,39 +34,30 @@ func run():
 		enemy.set_physics_process(false)
 		if index == 0:
 			host = enemy
-	for entry in [["cinder_field", Vector2(-260, -130)], ["rune_trap", Vector2(-300, 160)], ["arcane_orbit", Vector2.ZERO], ["infestation", Vector2.ZERO]]:
-		var info = game.spell_manager.spell_catalog[entry[0]]
-		var effect = load("res://scripts/TacticalSpellEffect.gd" if info.type == "trap" else "res://scripts/BuildSpellEffect.gd").new()
-		effect.configure(info, 0, game.player, host if info.type == "plague" else null)
-		game.add_child(effect)
-		effect.set_physics_process(false)
+	# Ported spells run on the generic engine and draw through the VFX layer (doc 18 phase 2).
+	var spells = game.spell_manager
+	for entry in [["cinder_field", Vector2(-260, -130)], ["rune_trap", Vector2(-300, 160)], ["arcane_orbit", Vector2.ZERO], ["infestation", Vector2.ZERO], ["lightning", Vector2(240, 75)], ["meteor_shower", Vector2(-30, -230)]]:
+		var info = spells.spell_catalog[entry[0]]
+		var cast = spells.spawn_ported(info, 0, {}, host)
+		if cast == null:
+			continue
+		cast.manual = true
 		if info.type == "plague":
+			var plague = cast.root_parts()[0].infection
 			for enemy in get_nodes_in_group("enemies").slice(1, 8):
-				effect.infect(enemy, host.global_position)
+				plague.infect(enemy, host.global_position, 600.0)
+			cast.advance(0.6)
+		elif info.type == "orbit":
+			pass
 		else:
-			effect.position = origin + entry[1]
+			for part in cast.root_parts():
+				part.global_position = origin + entry[1]
 			if info.type == "trap":
-				effect.age = 1
-	var trail = load("res://scripts/TacticalSpellEffect.gd").new()
-	trail.configure(game.spell_manager.spell_catalog.firewalk, 0, game.player, null)
-	game.add_child(trail)
-	trail.set_physics_process(false)
-	trail.trail_points.clear()
+				cast.advance(1.0)
+	var trail = spells.spawn_ported(spells.spell_catalog.firewalk, 0, {}, null)
+	trail.manual = true
 	for index in range(7):
-		trail.trail_points.append({"position": origin + Vector2(-150 + index * 45, 190), "age": 1.0})
-	var lightning = load("res://scripts/LightningArea.gd").new()
-	lightning.configure(origin + Vector2(240, 75), {"radius": 160, "active_duration": 0.2}, 0, game.player)
-	game.add_child(lightning)
-	lightning.set_physics_process(false)
-	lightning.age = 0.08
-	var warning = load("res://scenes/SpellProjectile.tscn").instantiate()
-	warning.setup_aoe_effect(origin + Vector2(-30, -230), 150, Color.RED, "warning")
-	warning.lifetime = 1
-	game.add_child(warning)
-	warning.lifetime_timer = 0.55
-	warning.set_process(false)
-	for node in get_nodes_in_group("build_spell_effects"):
-		node.queue_redraw()
+		trail._make_part("patch", origin + Vector2(-150 + index * 45, 190), Vector2.RIGHT, 1, 1.0, 1.0)
 	await create_timer(0.3).timeout
 	paused = true
 	await process_frame

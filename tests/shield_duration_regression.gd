@@ -44,8 +44,6 @@ func eruptions() -> Array:
 	return out
 
 func clear_eruptions():
-	for effect in get_nodes_in_group("earth_shield_eruptions"):
-		effect.free()
 	for c in get_nodes_in_group("generic_casts"):
 		if str(c.plan.get("id", "")) == "earth_shield":
 			c.free()

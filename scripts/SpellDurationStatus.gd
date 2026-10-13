@@ -2,32 +2,7 @@ extends RefCounted
 
 static func collect(manager: Node) -> Dictionary:
 	var states = {}
-	for effect in manager.get_tree().get_nodes_in_group("build_spell_effects"):
-		if effect.is_queued_for_deletion() or effect.remaining <= 0 or not effect.caster or effect.caster.get_ref() != manager.player:
-			continue
-		var kind = str(effect.info.type)
-		if kind in ["piercing", "returning"]:
-			continue
-		var seconds = float(effect.remaining)
-		var phase = "active"
-		if kind == "trail":
-			seconds = maxf(0, effect.emission_deadline - effect.age)
-			if seconds <= 0:
-				phase = "ground"
-				seconds = 0.0
-				for point in effect.trail_points:
-					seconds = maxf(seconds, float(effect.info.get("patch_duration", 6.0)) - point.age)
-				if seconds <= 0:
-					continue
-		elif kind == "trap":
-			if effect.triggered:
-				continue
-			phase = "arming" if effect.age < float(effect.info.get("arm_delay", 0.8)) else "armed"
-		elif kind == "plague":
-			if effect.infections.is_empty() and effect.infection_links.is_empty() and effect.resting_spores.is_empty():
-				continue
-		add(states, effect.info.id, seconds, phase)
-	# Spells ported to the generic engine (doc 18 phase 2): their root parts carry the timers.
+	# Every shipping spell runs on the generic engine (doc 18 phase 2): its root parts carry the timers.
 	for cast in manager.get_tree().get_nodes_in_group("generic_casts"):
 		if cast.is_queued_for_deletion() or cast.caster != manager.player:
 			continue

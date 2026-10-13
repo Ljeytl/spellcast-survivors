@@ -1,6 +1,5 @@
 extends SceneTree
 
-const Tactical = preload("res://scripts/TacticalSpellEffect.gd")
 var checks = 0
 var failures = 0
 
@@ -87,25 +86,25 @@ func run():
 	check(lanes.size() == focus_limit, "Replacement keeps distinct visual emission lanes")
 	for c in get_nodes_in_group("generic_casts"):
 		c.queue_free()
-	for beam in get_nodes_in_group("build_spell_effects"):
-		beam.queue_free()
 	await process_frame
 	for index in range(enemies.size()):
 		enemies[index].global_position = game.player.global_position + Vector2(70 + index * 50, 0)
 		enemies[index].current_health = 1000
-	var blade = Tactical.new()
-	blade.configure(spells.spell_catalog.cross_blade, 20, game.player, enemies[0])
-	game.add_child(blade)
-	blade.set_physics_process(false)
-	blade.global_position = game.player.global_position + Vector2(300, 0)
-	blade.leg = 1
-	blade.linger_remaining = 0
-	blade.advance_returning(0.5, game.player)
-	for enemy in enemies:
-		check(is_equal_approx(enemy.current_health, 960), "Return pierces and damages each enemy once at double strength")
-	blade.advance_returning(0, game.player)
-	check(is_equal_approx(enemies[0].current_health, 960), "Return does not double-hit same enemy")
-	blade.queue_free()
+	# Cross Blade runs on the generic engine: one blade out and back along the line of enemies.
+	var blade_info = spells.spell_catalog.cross_blade.duplicate(true)
+	blade_info.blade_count = 1
+	var blade_cast = spells.spawn_ported(blade_info, 20, {}, enemies[0])
+	blade_cast.manual = true
+	var blade = blade_cast.root_parts()[0]
+	var guard = 0
+	while blade.phase < 2 and guard < 600:
+		blade_cast.step(1.0 / 60.0)
+		guard += 1
+	var before_return = enemies.map(func(e): return e.current_health)
+	blade_cast.run(3.0)
+	for index in range(enemies.size()):
+		check(is_equal_approx(before_return[index] - enemies[index].current_health, 40), "Return pierces and damages each enemy once at double strength (%s)" % (before_return[index] - enemies[index].current_health))
+	blade_cast.queue_free()
 	check(spells.spell_catalog.seeker.damage == 15 and spells.spell_catalog.seeker.hit_interval == 1.0, "Seeker hits for 15 at most once per second at rank 1")
 	for id in spells.Synergies.RECIPES:
 		if not spells.Synergies.RECIPES[id].get("enabled", true):

@@ -172,7 +172,7 @@ static func _lightning(info: Dictionary, damage: float, _ctx: Dictionary) -> Dic
 	var strike := {
 		"delivery": "volume", "origin": "target",
 		"geometry": {"type": "disk", "radius": float(info.get("radius", 160.0)), "pad": 0.0},
-		"propagation": {"type": "instant"},
+		"propagation": {"type": "instant", "linger": float(info.get("active_duration", 0.2 * float(info.get("spell_duration_multiplier", 1.0))))},
 		"payload": _damage(id, damage),
 	}
 	var def = _shell(info, "strike", {"strike": strike})
@@ -198,7 +198,8 @@ static func _trap(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictiona
 	var burst := {
 		"delivery": "volume", "origin": "parent",
 		"geometry": {"type": "disk", "radius": float(info.get("trap_radius", 130.0)), "pad": 0.0},
-		"propagation": {"type": "instant"},
+		# old rune: the burst stays live 0.25 s (× Duration) and catches late entrants once
+		"propagation": {"type": "instant", "linger": float(info.get("active_duration", 0.25 * float(info.get("spell_duration_multiplier", 1.0))))},
 		"payload": blast_payload,
 	}
 	return _shell(info, "rune", {"rune": rune, "burst": burst})
@@ -267,7 +268,8 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 	var impact := {
 		"delivery": "volume", "origin": "parent",
 		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
-		"propagation": {"type": "instant"},
+		# old meteor strike: a 0.2 s (× Duration) blast that still catches late entrants
+		"propagation": {"type": "instant", "linger": 0.2 * float(info.get("spell_duration_multiplier", 1.0))},
 		"payload": _damage(id, damage),
 	}
 	var def = _shell(info, "mark", {"mark": mark, "impact": impact})
@@ -298,7 +300,7 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 	var splash := {
 		"delivery": "volume", "origin": "parent",
 		"geometry": {"type": "disk", "radius": float(info.get("splash_radius", 80.0)) * float(info.get("spell_size_multiplier", 1.0)), "pad": 0.0},
-		"propagation": {"type": "instant"},
+		"propagation": {"type": "instant", "linger": 0.2},   # old splash: 0.2 s, late entrants still hit once
 		"payload": _damage(id, float(info.get("splash_damage", 0.0))),
 	}
 	var def = _shell(info, "bolt", {"bolt": bolt, "bounce": bounce, "splash": splash})
@@ -362,7 +364,16 @@ static func _seeker(info: Dictionary, damage: float, ctx: Dictionary) -> Diction
 		"limits": {"pierce": -1, "rehit": float(info.get("hit_interval", 0.5)), "lifetime": float(info.get("duration", 5.0)), "visible_only": true},
 		"vfx": {"family": "ghost"},
 	}
-	var def = _shell(info, "spirit", {"spirit": spirit})
+	var parts := {"spirit": spirit}
+	if bool(info.get("reaping", false)):
+		# Reaping Spirit (disabled combination): a kill bursts for half damage around the victim.
+		spirit.events = {"on_kill": {"part": "reap", "exclude_hit": true}}
+		parts.reap = {
+			"delivery": "volume", "origin": "parent",
+			"geometry": {"type": "disk", "radius": 100.0 * float(info.get("spell_size_multiplier", 1.0)), "pad": 0.0},
+			"payload": _damage(id, damage * 0.5),
+		}
+	var def = _shell(info, "spirit", parts)
 	def.recast = _recast(info)
 	return def
 
@@ -383,7 +394,7 @@ static func _firewalk(info: Dictionary, damage: float, _ctx: Dictionary) -> Dict
 	var patch := {
 		"delivery": "field", "origin": "parent",
 		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
-		"timing": {"interval": interval, "duration": float(info.get("patch_duration", 6.0))},
+		"timing": {"interval": interval, "duration": float(info.get("patch_duration", 6.0)), "shared_clock": true},
 		"payload": _damage(id, damage),
 		"limits": {"rehit": interval - 0.001, "rehit_shared": true},
 		"vfx": {"family": "firewalk"},

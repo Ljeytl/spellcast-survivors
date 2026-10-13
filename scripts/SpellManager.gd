@@ -16,7 +16,6 @@ const TIME_SCALE_DURING_TYPING = 0.2
 const SPELL_DAMAGE_MULTIPLIER = 0.15
 const MANA_BOLT_COOLDOWN = 1.5
 const CHAIN_LIGHTNING_RANGE = 200.0
-const CHAIN_DAMAGE_REDUCTION = 0.8
 const PLAYER_TRANSPARENCY_TYPING = 1.0
 const METEOR_DELAY_INTERVAL = 0.5
 const METEOR_SPREAD_RANGE = 300.0
@@ -720,84 +719,6 @@ func create_simple_spell_flash(pos: Vector2, color: Color):
 		flash.scale = Vector2(0.5, 0.5)  # Make it smaller than AoE effects
 		get_parent().add_child(flash)
 
-func create_shield_effect():
-	var particles = get_parent().get("particle_manager")
-	if is_instance_valid(particles) and particles.has_method("create_persistent_shield_circle"):
-		particles.create_persistent_shield_circle(player, player.overheal_timer)
-
-func create_aoe_explosion(pos: Vector2, radius: float, damage: float, color: Color, effect_type: String, duration_snapshot: float = -1.0):
-	var effect = load("res://scripts/LingeringArea.gd").new()
-	var slow_factor = 0.5 if effect_type == "ice" else 1.0
-	var slow_time = 3.0 if effect_type == "ice" else 0.0
-	effect.configure(pos, radius, damage, 0.2 * (duration_snapshot if duration_snapshot > 0 else maxf(1.0, cast_stat("spell_duration_multiplier"))), color, effect_type, {}, slow_factor, slow_time)
-	get_parent().add_child(effect)
-
-func create_meteor_strike(pos: Vector2, damage: float, radius: float = 220.0, duration_snapshot: float = -1.0):
-	# Larger radius and higher damage for meteors with big explosion
-	create_aoe_explosion(pos, radius, damage, Color.RED, "meteor", duration_snapshot)
-
-func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
-	# Create a warning indicator at the target position showing the impact radius
-	var warning = spell_projectile_scene.instantiate()
-	warning.setup_aoe_effect(pos, radius, Color.ORANGE_RED, "warning")
-	warning.lifetime = delay
-	get_parent().add_child(warning)
-
-## Ice Blast shard count: one shard per degrees_per_shard of cone when the spell sets it, so wider cones stay just as dense.
-func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
-	if not _live_spell_target(target) or remaining_chains <= 0:
-		return
-	
-	# Damage current target
-	target.take_damage(damage, Vector2.INF, DamageSource.current)
-	hit_enemies.append(target.get_instance_id())
-	
-	# Find next target
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	var enemies = scene_tree.get_nodes_in_group("enemies")
-	var next_target = null
-	var closest_distance = INF
-	
-	for enemy in enemies:
-		if not _live_spell_target(enemy) or enemy.get_instance_id() in hit_enemies:
-			continue
-		
-		var distance = target.global_position.distance_to(enemy.global_position)
-		if distance <= CHAIN_LIGHTNING_RANGE and distance < closest_distance:
-			closest_distance = distance
-			next_target = enemy
-	
-	# Create lightning visual effect with position validation
-	if next_target and is_instance_valid(next_target):
-		var from_pos = target.global_position
-		var to_pos = next_target.global_position
-		
-		# Validate positions before creating arc
-		if from_pos.length() > 5.0 and to_pos.length() > 5.0:
-			create_lightning_arc_visual(from_pos, to_pos, next_target, target)
-		else:
-			print("Warning: Invalid chain lightning positions - skipping visual")
-		
-		# Chain to next target with reduced damage (with validation in callback)
-		var tree = get_tree()
-		if tree:
-			tree.create_timer(0.1).timeout.connect(
-				DamageSource.wrap(_delayed_chain.bind(weakref(next_target), damage * CHAIN_DAMAGE_REDUCTION, remaining_chains - 1, hit_enemies.duplicate()))
-			)
-
-func create_lightning_arc_visual(from_pos: Vector2, to_pos: Vector2, target_enemy: Node2D = null, from_target: Node2D = null):
-	# Validate positions to prevent top-left corner bugs
-	if from_pos.length() < 5.0 or to_pos.length() < 5.0:
-		print("Warning: Invalid lightning arc positions - from:", from_pos, " to:", to_pos)
-		return
-	
-	# Create lightning arc visual effect
-	var lightning = spell_projectile_scene.instantiate()
-	lightning.setup_lightning_arc(from_pos, to_pos, Color.YELLOW)
-	get_parent().add_child(lightning)
-
 # Player transparency effects
 func _on_typing_started():
 	if player_sprite:
@@ -852,14 +773,6 @@ func get_mana_bolt_damage() -> float:
 	
 	return damage
 
-
-# Get list of available spells for current player level
-func get_available_spells() -> Array:
-	var available: Array = []
-	for slot in get_all_spells():
-		if is_spell_unlocked(slot):
-			available.append({"slot": slot, "name": get_spell_info(slot).name, "unlock_level": 1})
-	return available
 
 func get_unlocked_spell_names() -> Array:
 	var owned: Array = ["mana_bolt"]
@@ -1379,89 +1292,6 @@ func rank_change_summary(spell_id: String) -> String:
 		parts.append("+push")
 	return ", ".join(parts) if not parts.is_empty() else "+damage"
 
-func cast_build_spell(slot: int) -> bool:
-	var info = resolve_cast_info(slot)
-	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
-	if info.type == "field":
-		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
-	if info.type == "plague" and target == null:
-		last_cast_failure = "No target in range"
-		return false
-	info.projectile_speed_multiplier = cast_stat("projectile_speed_multiplier")
-	var tactical = info.type in ["beam", "trap", "spirit", "trail", "returning"]
-	var active = get_tree().get_nodes_in_group("build_spell_effects").filter(func(effect): return effect.info.id == info.id and not effect.is_queued_for_deletion())
-	if info.get("recast_behavior", "stack") == "extend":
-		for existing in active:
-			if existing.remaining > 0 and existing.caster and existing.caster.get_ref() == player:
-				var added = existing.queue_cast_extension(info, calculate_spell_damage(info))
-				DamageSource.stamp(existing)
-				spell_extended.emit(info.id, added)
-				return true
-	if active.size() >= int(info.get("active_limit", 3)):
-		if info.get("extend_at_cap", false):
-			# At the cap a recast goes where the horde is: extend the field already covering the
-			# target, otherwise move the emptiest field there. Fields never sit extended on empty ground.
-			var covering = null
-			if target != null and is_instance_valid(target):
-				for existing in active:
-					if existing.global_position.distance_to(target.global_position) <= float(existing.info.get("radius", 150.0)):
-						covering = existing
-						break
-			if covering == null and (target == null or not is_instance_valid(target)):
-				covering = active[0]
-				for existing in active:
-					if existing.remaining < covering.remaining:
-						covering = existing
-			if covering != null:
-				var added = covering.queue_cast_extension(info, calculate_spell_damage(info))
-				DamageSource.stamp(covering)
-				spell_extended.emit(info.id, added)
-				return true
-			var emptiest = active[0]
-			var fewest = INF
-			for existing in active:
-				var inside = enemies_within(existing.global_position, float(existing.info.get("radius", 150.0)))
-				if inside < fewest or (inside == fewest and existing.remaining < emptiest.remaining):
-					fewest = inside
-					emptiest = existing
-			emptiest.queue_free()
-		else:
-			active[0].queue_free()
-	if tactical:
-		target = null
-		var distance = INF
-		var occupied_targets: Array = []
-		if info.type == "beam":
-			for beam in get_tree().get_nodes_in_group("active_spell_channels"):
-				if beam.is_style_channel_active() and beam.target_ref and is_instance_valid(beam.target_ref.get_ref()):
-					occupied_targets.append(beam.target_ref.get_ref())
-		for enemy in get_tree().get_nodes_in_group("enemies"):
-			if not _live_spell_target(enemy):
-				continue
-			if info.type == "beam" and player.global_position.distance_to(enemy.global_position) > 450.0:
-				continue
-			var target_distance = player.global_position.distance_squared_to(enemy.global_position) + (1000000.0 if enemy in occupied_targets else 0.0)
-			if target_distance < distance:
-				distance = target_distance
-				target = enemy
-	if info.type == "spirit":
-		target = Targeting.select_spirit(get_tree(), player)
-	if info.type == "beam":
-		var beam_direction = player.global_position.direction_to(target.global_position) if target else Vector2.RIGHT
-		var occupied_lanes: Array = []
-		for beam in active:
-			if not beam.is_queued_for_deletion():
-				occupied_lanes.append(int(beam.info.get("beam_lane", 0)))
-		for lane in [-1, 0, 1]:
-			if lane not in occupied_lanes:
-				info.beam_lane = lane
-				info.beam_origin_offset = beam_direction.orthogonal() * float(lane) * 18.0
-				break
-	var effect = preload("res://scripts/TacticalSpellEffect.gd").new() if tactical else preload("res://scripts/BuildSpellEffect.gd").new()
-	effect.configure(info, calculate_spell_damage(info), player, target)
-	get_parent().add_child(effect)
-	return true
-
 ## Doc 18 phase 2: a shipping spell rebuilt on the generic engine (scripts/engine/LegacyBridge.gd).
 ## Same numbers and targeting as before; the generic runner moves and hits, and the VFX present it.
 var ported_bundle: Dictionary = {}
@@ -1476,27 +1306,35 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 	if str(info.get("type", "")) == "plague" and get_visible_plague_host(info) == null:
 		last_cast_failure = "No target in range"
 		return false
+	return spawn_ported(info, calculate_spell_damage(info), bundle) != null
+
+## Builds and starts the generic cast for resolved spell info. Returns the cast, or null when the
+## definition is empty or a recast rule absorbed it (extended or stacked onto a live cast).
+## `forced_target` pins the first target (tests); otherwise the old targeting picks.
+func spawn_ported(info: Dictionary, damage: float, bundle: Dictionary = {}, forced_target = null):
 	var scaled = Geometry.scaled_data(info, player)
 	var speed_mult = float(cast_stat("projectile_speed_multiplier"))
 	var ctx = {"speed_mult": speed_mult}
 	if str(info.get("type", "")) == "heal":
 		ctx.heal = float(info.heal_amount) * (1.0 + 0.15 * (int(info.level) - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
-	var def = LegacyBridge.build(scaled, calculate_spell_damage(info), ctx)
+	var def = LegacyBridge.build(scaled, damage, ctx)
 	if def.is_empty():
-		return false
+		return null
 	var plan = CastPlanner.plan(def, bundle, {})
 	last_cracked = plan.rejected
 	for r in plan.rejected:
 		keyword_cracked.emit(str(r.word), str(r.reason))
 	if def.has("recast") and _apply_recast(def, plan, ported_target.bind(scaled, speed_mult)):
-		return true
+		return last_generic_cast  # the cast the recast extended
 	var cast = GenericCast.new()
+	cast.forced_target = forced_target
 	cast.name = "GenericCast_" + str(def.id)
-	cast.target_picker = ported_target.bind(scaled, speed_mult)
+	if forced_target == null:
+		cast.target_picker = ported_target.bind(scaled, speed_mult)
+		if str(info.get("type", "")) == "life_bolt":
+			cast.target_picker = life_bolt_picker()
 	if str(info.get("type", "")) == "multi_aoe":
 		cast.point_picker = meteor_points.bind(float(scaled.get("radius", 220.0)))
-	if str(info.get("type", "")) == "life_bolt":
-		cast.target_picker = life_bolt_picker()
 	cast.setup(plan, player, get_parent(), DamageSource.current if not DamageSource.current.is_empty() else DamageSource.make(str(def.id), style_clock()))
 	get_parent().add_child(cast)
 	last_generic_cast = cast
@@ -1504,7 +1342,7 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 	cast.step(0.0)
 	if str(info.get("type", "")) == "beam":
 		_beam_lane(cast)
-	return true
+	return cast
 
 ## Old Focus Ray lanes: up to three beams sit side by side (18 px apart) instead of on top of each other.
 func _beam_lane(cast) -> void:
@@ -1575,6 +1413,7 @@ func _apply_recast(def: Dictionary, plan: Dictionary, picker: Callable) -> bool:
 	return false
 
 func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
+	last_generic_cast = cast
 	var new_root: Dictionary = plan.parts[str(plan.root)]
 	var one = float(new_root.get("timing", {}).get("duration", new_root.get("limits", {}).get("lifetime", 0.0)))
 	var roots: Array = cast.root_parts()
@@ -1583,6 +1422,13 @@ func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
 		added = clampf(one * float(rule.max_banked) - roots[0].remaining_life(), 0.0, one)
 	if added <= 0.0:
 		return
+	if new_root.has("emit"):
+		# Fire Walk: the recast's patches keep the recast's numbers (MEGA), so its emitted part
+		# joins the live plan under its own name.
+		new_root = new_root.duplicate(true)
+		var key = "%s@%d" % [str(new_root.emit.part), cast.plan.parts.size()]
+		cast.plan.parts[key] = plan.parts[str(new_root.emit.part)]
+		new_root.emit.part = key
 	for part in roots:
 		part.extend_with(new_root, added)
 	if not DamageSource.current.is_empty():
@@ -1714,10 +1560,3 @@ func _delayed_mana_bolt(reference: WeakRef, damage: float, index: int):
 		return
 	var target = reference.get_ref()
 	create_mana_bolt_projectile(target, damage, index)
-
-func _delayed_chain(reference: WeakRef, damage: float, remaining: int, hit_ids: Array):
-	if not is_inside_tree() or not is_instance_valid(player):
-		return
-	var target = reference.get_ref()
-	if _live_spell_target(target):
-		chain_lightning(target, damage, remaining, hit_ids)

@@ -45,13 +45,13 @@ func run():
 		enemy.update_health_bar()
 	for id in ["focus_ray","ember_spear","prism_ray"]:
 		check(manager.learn_spell(id), "Learn "+id)
-	check(manager.cast_build_spell(manager.find_spell_slot("prism_ray")),"Cast Prism")
-	var beam = get_nodes_in_group("active_spell_channels")[-1]
-	beam.set_physics_process(false)
-	beam.advance(0.25)
-	check(beam.beam_radius()==32,"Prism visible width")
+	check(manager.cast_spell_by_type(manager.find_spell_slot("prism_ray")),"Cast Prism")
+	var beam = get_nodes_in_group("active_spell_channels")[-1]   # generic beam part (doc 18 phase 2)
+	beam.cast.manual = true
+	beam.cast.advance(0.25)
+	check(beam.geo("width") * 0.5 == 32,"Prism visible width")
 	await capture("prism-gameplay")
-	beam.queue_free()
+	beam.cast.queue_free()
 	var area = load("res://scripts/LingeringArea.gd").new()
 	area.configure(game.player.global_position+Vector2(160,0),100,10,2,Color("8dcfff"),"lightning")
 	game.add_child(area)

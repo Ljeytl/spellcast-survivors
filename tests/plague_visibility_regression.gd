@@ -93,18 +93,18 @@ func run():
 		enemy.set_physics_process(false)
 		enemy.current_health = 1
 		group.append(enemy)
-	var chain = load("res://scripts/BuildSpellEffect.gd").new()
-	chain.configure({"id": "infestation", "type": "plague", "duration": 12.0}, 9, game.player, group[0])
-	game.add_child(chain)
-	chain.set_physics_process(false)
+	# Infestation runs on the generic engine (scripts/engine/Infection.gd).
+	var chain = game.spell_manager.spawn_ported({"id": "infestation", "type": "plague", "duration": 12.0}, 9, {}, group[0])
+	chain.manual = true
+	var spread = chain.root_parts()[0].infection
 	chain.advance(1.25)
-	check(chain.hosts_started == 2, "Plague killing tick launches spore which transfers on arrival")
+	check(spread.hosts_started == 2, "Plague killing tick launches spore which transfers on arrival (%d)" % spread.hosts_started)
 	await process_frame
-	check(chain.hosts_started == 2, "Deferred death signal does not transfer twice")
+	check(spread.hosts_started == 2, "Deferred death signal does not transfer twice")
 	for index in range(20):
 		chain.advance(0.5)
 		await process_frame
-	check(chain.hosts_started == 10, "Death chain reaches all ten available hosts")
+	check(spread.hosts_started == 10, "Death chain reaches all ten available hosts (%d)" % spread.hosts_started)
 	var survivors = group.filter(func(enemy): return is_instance_valid(enemy) and not enemy.dying)
 	check(survivors.is_empty(), "No survivors protected by an eight-host cap")
 	game.queue_free()

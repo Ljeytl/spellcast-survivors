@@ -45,13 +45,6 @@ func cast_for(game, id):
 func spear_hits(target, amount) -> int:
 	return target.hits.filter(func(h): return is_equal_approx(h, amount)).size()
 
-func effect_for(game, id):
-	for effect in get_nodes_in_group("build_spell_effects"):
-		if effect.info.id == id and not effect.is_queued_for_deletion():
-			effect.set_physics_process(false)
-			return effect
-	return null
-
 func run():
 	root.get_node("CharacterManager").reset_progression()
 	for recipe_id in preload("res://scripts/SynergyCatalog.gd").RECIPES:
@@ -225,26 +218,24 @@ func run():
 	check(is_equal_approx(orb.global_position.distance_to(game.player.global_position), orbit_radius), "Orbit follows player")
 	orbit_cast.run(6.0)
 	check(orbit_cast.finished, "Persistent spells expire")
-	for candidate in get_nodes_in_group("build_spell_effects"):
-		candidate.queue_free()
+	for candidate in get_nodes_in_group("generic_casts"):
+		candidate.free()
 	a.current_health = 1000.0
 	a.position = game.player.position
 	b.position = game.player.position + Vector2(1000, 0)
 	var fixture_info = manager.spell_catalog.cinder_field
-	var bulk = preload("res://scripts/BuildSpellEffect.gd").new()
-	bulk.configure(fixture_info, 12.0, game.player, a)
-	game.add_child(bulk)
-	bulk.set_physics_process(false)
-	bulk.advance(5.0)
-	check(a.current_health == 880.0, "Five seconds produces exactly ten half-second ticks")
+	# Cinder Field on the generic engine: frame partition does not change the tick count.
+	var bulk = manager.spawn_ported(fixture_info, 12.0, {}, a)
+	bulk.manual = true
+	bulk.run(5.0, 0.5)
+	check(a.current_health == 880.0, "Five seconds produces exactly ten half-second ticks (%s)" % a.current_health)
+	bulk.free()
 	a.current_health = 1000.0
-	var sliced = preload("res://scripts/BuildSpellEffect.gd").new()
-	sliced.configure(fixture_info, 12.0, game.player, a)
-	game.add_child(sliced)
-	sliced.set_physics_process(false)
-	for i in range(10):
-		sliced.advance(0.5)
-	check(a.current_health == 880.0, "Tick totals independent of frame partition")
+	var sliced = manager.spawn_ported(fixture_info, 12.0, {}, a)
+	sliced.manual = true
+	sliced.run(5.0)
+	check(a.current_health == 880.0, "Tick totals independent of frame partition (%s)" % a.current_health)
+	sliced.free()
 	for i in range(5):
 		manager.cast_freeform_spell("arcane orbit")
 	var active = manager.ported_casts("arcane_orbit")
@@ -273,7 +264,7 @@ func run():
 	game.queue_free()
 	await process_frame
 	await process_frame
-	check(get_nodes_in_group("build_spell_effects").is_empty(), "Run teardown removes all spell effects")
+	check(get_nodes_in_group("generic_casts").is_empty(), "Run teardown removes all spell effects")
 	for child in root.get_node("AudioManager").get_children():
 		if child is AudioStreamPlayer:
 			child.stop()

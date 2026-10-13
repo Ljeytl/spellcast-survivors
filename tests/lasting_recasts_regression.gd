@@ -16,9 +16,6 @@ func check(ok, message):
 		failures += 1
 		printerr("FAIL: ", message)
 
-func effects(id):
-	return get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.id == id and not e.is_queued_for_deletion())
-
 func run():
 	root.get_node("AudioManager").quitting = true
 	root.size = Vector2i(1280, 720)
@@ -58,7 +55,7 @@ func run():
 	walk.manual = true
 	walk.run(2)
 	var emitter = walk.root_parts()[0]
-	var first_patch = walk.parts.filter(func(p): return is_instance_valid(p) and p.part_name == "patch")[0]
+	var first_patch = walk.parts.filter(func(p): return is_instance_valid(p) and p.part_name.begins_with("patch"))[0]
 	var patch_age = first_patch.age
 	manager.cast_spell_by_type(2)
 	check(is_equal_approx(emitter.total_life(), 10.0), "Firewalk extends laying fire by five seconds")
@@ -80,7 +77,7 @@ func run():
 	var burning = func(point: Vector2) -> bool:
 		for c in [walk, walk2]:
 			for p in c.parts:
-				if is_instance_valid(p) and not p.done and p.part_name == "patch" and p.contains(point, 0.0):
+				if is_instance_valid(p) and not p.done and p.part_name.begins_with("patch") and p.contains(point, 0.0):
 					return true
 		return false
 	check(not burning.call(old_fire + Vector2(500, 0)), "Resumed trail cannot damage across unburned gap")
@@ -110,8 +107,8 @@ func run():
 	trap_cast.manual = true
 	trap_cast.root_parts()[0].armed = true
 	check(Status.caption(Status.collect(manager).rune_trap) == "armed", "Trap shows armed instead of invented duration")
-	for effect in get_nodes_in_group("build_spell_effects"):
-		effect.set_physics_process(false)
+	for cast in get_nodes_in_group("generic_casts"):
+		cast.manual = true
 	var reference = game.hud.get_node("CastingReference")
 	for geometry in [Vector2i(1280, 720), Vector2i(640, 480), Vector2i(480, 640)]:
 		root.size = geometry

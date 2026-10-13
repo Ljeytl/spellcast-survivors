@@ -60,30 +60,13 @@ func run():
 	current_scene = stage
 	label_at("BOLT / Magic Missile", Vector2(28, 25))
 	label_at("Damage       Heal       Slow / ice", Vector2(40, 310))
-	label_at("STEAM FIELD · DAMAGE + SLOW", Vector2(425, 25))
-	label_at("LIGHTNING", Vector2(828, 25))
 	label_at("METEOR · WARNING / DESCENT", Vector2(25, 425))
 	label_at("METEOR · IMPACT", Vector2(425, 425))
-	label_at("PLAGUE SEED · SPREAD", Vector2(825, 425))
 	var player = Node2D.new()
 	stage.add_child(player)
-	var steam = preload("res://scripts/BuildSpellEffect.gd").new()
-	stage.add_child(steam)
-	steam.configure({"type": "field", "radius": 132, "slow": 0.4}, 0, player, null)
-	steam.position = Vector2(600, 230)
-	steam.elapsed_time = 0.6
-	steam.set_physics_process(false)
-	var lightning = preload("res://scripts/LightningArea.gd").new()
-	lightning.configure(Vector2(1000, 240), {"radius": 130}, 0, player)
-	stage.add_child(lightning)
-	lightning.set_physics_process(false)
+	# Steam Field, Lightning and Plague Seed draw through the VFX layer now (doc 18 phase 2; docs/VFX_EVENTS.md).
 	projectile("warning", Vector2(200, 645), 120, 0.68)
 	projectile("meteor", Vector2(600, 640), 130, 0.45)
-	var plague = preload("res://scripts/BuildSpellEffect.gd").new()
-	stage.add_child(plague)
-	plague.configure({"type": "plague"}, 0, player, null)
-	plague.infection_links = [{"from": Vector2(860, 640), "position": Vector2(980, 585)}, {"from": Vector2(980, 585), "position": Vector2(1100, 670)}]
-	plague.set_physics_process(false)
 	for point in [Vector2(100, 172), Vector2(480, 260), Vector2(910, 280), Vector2(860, 650), Vector2(980, 595), Vector2(1100, 680)]:
 		var wizard = Sprite2D.new()
 		wizard.texture = preload("res://assets/typecast/Main Character/Wizard 2.0.png")
