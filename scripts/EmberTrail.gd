@@ -51,7 +51,9 @@ func advance(delta: float):
 		if Geometry2D.get_closest_point_to_segment(enemy.global_position, a, b).distance_to(enemy.global_position) > radius:
 			continue
 		next_hits[id] = age + tick_interval
-		enemy.take_damage(tick_damage, enemy.global_position, DamageSource.of(self))
+		var source = DamageSource.of(self).duplicate()
+		source.part = "trail"  # only the trail burns (data/spell_damage.json); the spear hit does not
+		enemy.take_damage(tick_damage, enemy.global_position, source)
 	queue_redraw()
 
 func _draw():

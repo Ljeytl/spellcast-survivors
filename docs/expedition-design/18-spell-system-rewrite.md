@@ -77,7 +77,7 @@ Keyword rules bind to **type**. Two spells in the same matrix column can behave 
 - **Effects are payload, not events.** Events decide when new parts appear; payload decides what happens to each target.
 - **All statuses go through one path** into one status component per enemy, with per-status stacking rules and per-enemy resistance profiles.
 - **Damage type lives on each damage entry**, so one hit can carry several types. A spell's element is its theme and default type.
-- **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison, bleed) are fully elemental. Raw damage is reduced only by armour; elemental damage only by that element's resistance.
+- **Every damaging spell splits raw + its own element:** about 75–80% `raw` and 20–25% elemental on direct hits. DoTs (burn, poison) are fully elemental; bleed is its own damage type. **No separate armour (decided 9 Oct):** every damage type, raw included, has one resistance, so each share of a hit is resisted independently.
 - **Element keywords add, never convert:** extra elemental damage scaled by the word's length (about 5% of the base hit per letter: ICY 15%, FIERY 25%, SCORCHING 45%) plus that element's status, applied to **every damaging part** of the spell, including its fields and trails. `icy ember spear`: the spear hits for raw + fire + ice and chills; its burning strip also slows.
 - **Life, not Holy.** The seventh element is Life: druidic magic of vines, roots, flowers, plants and soil that heals. No holy or faith magic (principle 8). A holy or light school is parked: light and sun imagery reads as religious too easily. It may return later as its own kind of wizard.
 - **Seven elements, one per school:** Arcane, Fire, Water/Ice, Storm, Earth/Steel, Plague/Death, Life. Merged schools share one damage type, signature status and resistance (6.1).
@@ -255,7 +255,7 @@ Events decide **when** new parts appear. Payload decides **what happens** to eac
 
 ### 5.2 Damage order
 
-base amount → caster power (rank, keywords, passives, ley sites) → target modifiers (vulnerable, weaken) → **armour for `raw`, resistance for each element** → absorb and block → health. Each damage entry goes through this separately; the results are summed into one number.
+base amount → caster power (rank, keywords, passives, ley sites) → target modifiers (vulnerable, weaken) → **one resistance per damage type (raw, each element, bleed)** → absorb and block → health. Each damage entry goes through this separately; the results are summed into one number.
 
 ### 5.3 Status system
 
@@ -324,7 +324,7 @@ Each enemy type has a resistance profile in data:
 | damage, per type | 0.5 = takes half, −0.25 = takes 25% more; `immune` allowed but rare. DoTs use their damage type, so burn on a fire-resistant enemy is resisted too. |
 | status, per status | duration and strength reduction, or `immune` |
 | control | hard-control reduction and diminishing returns |
-| armour | flat percentage reduction of `raw` damage only (today's armoured-elite `damage_reduction`) |
+| ~~armour~~ | **Removed (9 Oct).** Raw is a damage type like any other; an armoured enemy is a profile such as `elite_armored` in `data/resistances.json` (30% on everything, 15% arcane so mana partly pierces). If a level later needs a big-hit check, flat per-hit armour is the version that is not just extra HP. |
 | weight | divides impulse and force (knockback, pull, gravity) |
 
 Guardrail from docs 15 and 16: no compulsory elemental hard counters, no early resistance puzzles. Keep resistances within ±25–50%; full immunity is mostly bosses against hard control.
@@ -358,7 +358,7 @@ Seven elements, one per school row in [doc 16](16-element-family-matrix.md). Mer
 
 **Damage has three parts, and the mix depends on the spell's fantasy:**
 
-1. **Raw:** the force of a physical body (spears, shards, boulders, blades, meteors, bullets). Reduced by armour.
+1. **Raw:** the force of a physical body (spears, shards, boulders, blades, meteors, bullets). Reduced by raw resistance.
 2. **Elemental:** the element itself (fire, cold, lightning, mana, rot, growth). Reduced by that element's resistance; affected by the type chart.
 3. **DoT:** a damage-over-time status (burn, bleed, poison, infection). **Most spells apply none.** A DoT belongs to a spell only when it is that spell's identity (Infestation's spread). Players add DoTs on purpose with element words.
 
@@ -392,7 +392,7 @@ Starting splits for the current spells:
 | Cross Blade | 90% | 10% earth | bleed | a steel blade |
 | Earth Shield retaliation | 80% | 20% earth | bleed | stone shards |
 
-**Raw is physical; elemental is magical.** Every element, including Earth, has its own magical damage type. Earth/Steel spells lean heavily raw (Earthquake about 80% raw / 20% earth) but still carry earth magic, so the type chart and earth resistance apply to that share. Bleed ticks are raw but **ignore armour**.
+**Raw is physical; elemental is magical.** Every element, including Earth, has its own magical damage type. Earth/Steel spells lean heavily raw (Earthquake about 80% raw / 20% earth) but still carry earth magic, so the type chart and earth resistance apply to that share. Bleed ticks are their own `bleed` damage type, so raw resistance never reduces them.
 
 Fully elemental spells meet resistance on all of their damage, so they feel resistances more; resistances stay mild (5.5) so this steers rather than walls.
 
@@ -435,6 +435,25 @@ Two layers, kept separate:
 
 New reactions are added only when one earns its place in play. Shock's chaining is built into shocked itself, so no "wet" status is needed.
 
+### 6.1a Implementation (9 October 2026)
+
+Shipping spells now deal typed damage. `data/spell_damage.json` holds each spell's damage mix (the table above) and on-hit status; `scripts/engine/SpellDamage.gd` splits every spell hit in `Enemy.take_damage`, resolves each share against the enemy's element and resistances, lets existing statuses react (Overload, Thaw…), then applies the on-hit status. Cross Blade and Earth Shield apply bleed. Woodland enemies are neutral, so damage there is unchanged except against armoured elites (arcane now takes 15% off instead of 30%) and the FROST elite (Water/Ice on the chart). Atomic deals `pure` damage, which nothing resists. Damage numbers show damage after resistance and the chart.
+
+### 6.1b Status assignment (11 October 2026, decided)
+
+Damage-over-time statuses and control statuses are different things. Most direct hits apply neither. One job per element: fire = area denial (burn), earth = build-up damage (bleed → hemorrhage), cold = build-up control (chill → freeze), storm = chain (shock), plague = attrition (poison, weakness, infection), arcane = detonator (Overload, armour pierce).
+
+| Spell | Status | Kind |
+|---|---|---|
+| Ember Spear trail, Cinder Field, Firewalk, Steam Field | burn | damage over time: fire on the ground keeps burning briefly after you leave it |
+| Cross Blade, Earth Shield | bleed | damage over time (meter → hemorrhage) |
+| Infestation, Soul Bloom | their own infection | exceptions, own systems |
+| Ice Blast, Frost Sigil | chilled (5 stacks → frozen) | control; chill adds 4% frostbite. Ice Blast keeps its old slow on top. Freeze only, no burst; Shatter (Earth on frozen, +50%) is the damage follow-up |
+| Lightning, Lightning Bolt | shocked: a 3 s mark + 0.2 s stagger | control. The next hit decides: Lightning (another cast) **chains** it (40% of the hit to the 2 nearest within 150, shocking them); Water/Ice **conducts** it (50% of the hit as storm damage within 90); Earth **grounds** it (removed, no bonus); anything else leaves it. The cast that applied a shock never sets it off |
+| Ember Spear hit, Meteor Shower, Meteor Spear, Seeker, every arcane spell | none | direct raw + elemental damage; arcane is its own thing (pierce, Overload) |
+
+Bleed stacks are per application: each hit's bleed expires 4 s after that hit, so bleed scales with hit rate, not fight length. Poison has no spell yet; before one gets it, poison needs the same treatment (today its ramp and refresh are unbounded). Statuses live in `data/spell_damage.json` (`statuses: [{status, part?, strength?}]`).
+
 ### 6.5 Type chart
 
 One natural cycle of six elements. Every element beats exactly one and loses to exactly one, and every link follows how the forces behave:
@@ -473,7 +492,7 @@ Every capability below is engine work on the enemy side. Spells depend on them; 
 |---|---|---|
 | **`apply_effect(effect, source)`** single entry point for damage, impulse, force, status, cleanse | everything | separate `take_damage`, `apply_knockback`, `apply_slow` |
 | **Status component** with the stacking rules in 5.3, ticking, events and visuals | every DoT and control effect | slow only |
-| **Resistance profile** in data (damage per type, status, control, weight) | resistances, bosses | flat armour for armoured elites; computed knockback resistance; FROST type hard-coded immune to ice |
+| **Resistance profile** in data (damage per type, status, control, weight) | resistances, bosses | **Done (9 Oct):** per-type resistances on `Enemy.resistances`, armoured elite profile in `data/resistances.json`, FROST elite is element `water`; knockback resistance still computed |
 | **Damage types** carried on every hit | resistances, reactions, damage-number colours | element exists on spells but damage ignores it |
 | **Force accumulator**: summed continuous forces per frame, clamped, collision-safe | Black Hole, Whirlpool, Undertow, Maelstrom, magnetise | none |
 | **Movement and attack locks** for root, freeze, stun, transform | control statuses | partial (slow) |
@@ -1376,7 +1395,7 @@ Scheduled-rank bot runs on 0.2.7: Ice Blast kills an average enemy in about 10 s
 | Bare forms allowed | Yes, for now (`spear`, `nova`…) |
 | Damage split | Raw + elemental + DoT, per spell by fantasy; most spells apply no DoT (6.1) |
 | Type chart | Storm > Water/Ice > Fire > Plague/Death > Life > Earth/Steel > Storm; Arcane neutral; ±25%, enemies only, keyed on spell element (6.5) |
-| Damage model | Raw (physical) + magical typed by element, including earth. Earth spells lean raw. Bleed ignores armour |
+| Damage model | Raw (physical) + magical typed by element, including earth. Earth spells lean raw. No armour; one resistance per damage type. Bleed is its own type |
 | Reactions | Stay at the five in 6.4. A full element × element matrix is not planned now |
 | Bare forms | Deliberately weak; how weak depends on the form's purpose |
 

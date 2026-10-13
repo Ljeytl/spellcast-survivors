@@ -95,6 +95,8 @@ func _ready():
 	
 	# Initialize all game systems in the correct order
 	setup_all_systems()
+	if preload("res://scripts/RunMode.gd").prepared and not preload("res://scripts/RunMode.gd").training:
+		spell_manager.begin_prepared_run(preload("res://scripts/Preparation.gd").load_slots())
 	style_session = preload("res://scripts/StyleSession.gd").new()
 	style_session.game = self
 	add_child(style_session)
@@ -778,9 +780,29 @@ func show_damage_number(pos: Vector2, damage: float):
 func _on_player_level_up(new_level: int, _player_stats: Dictionary):
 	if current_state == GameState.GAME_OVER:
 		return
+	if open_prepared_spell(new_level):
+		return
 	pending_level_ups.append(new_level)
 	if current_state == GameState.PLAYING:
 		show_next_level_up()
+
+## Preparation runs: a level in Preparation.ACTIVATION_LEVELS opens the next prepared spell
+## instead of a power-up choice. An empty slot falls through to a normal power-up.
+func open_prepared_spell(level: int) -> bool:
+	var order: Array = spell_manager.prepared_order
+	var index = preload("res://scripts/Preparation.gd").slot_for_level(level)
+	if index <= 0 or index >= order.size():
+		return false
+	var id = str(order[index])
+	if id.is_empty() or not spell_manager.learn_spell(id):
+		return false
+	update_spell_slot_lock_status()
+	var slot = spell_manager.find_spell_slot(id)
+	var info = spell_manager.get_spell_info(slot)
+	if particle_manager and player:
+		particle_manager.create_spell_unlock_effect(player.global_position)
+	show_gameplay_feedback("%s ready · Press %d, then type %s" % [info.name, slot, info.display_name])
+	return true
 
 func queue_boss_reward() -> bool:
 	if current_state == GameState.GAME_OVER:

@@ -12,7 +12,7 @@ static var _defs: Dictionary = {}
 var entity: Node = null
 var clock := 0.0
 var burns: Array = []        # {per_tick, ticks_left, acc, tick, source, cast}
-var bleed: Dictionary = {}   # {per_tick, remaining, acc, source, cast}
+var bleed: Dictionary = {}   # {stacks: [{per_tick, remaining, spell}], acc, source, cast, by_spell}
 var bleed_meter := 0.0
 var bleed_since_hit := 999.0
 var poison: Dictionary = {}  # {base, remaining, acc, ticks, source, cast}
@@ -76,9 +76,11 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 		"bleed":
 			var per_tick = float(params.get("per_tick", float(d.share_per_tick) * hit * float(params.get("strength", 1.0))))
 			if bleed.is_empty():
-				bleed = {"per_tick": 0.0, "remaining": 0.0, "acc": 0.0, "source": source, "cast": cast, "last_add": 0.0}
-			bleed.per_tick += per_tick
-			bleed.remaining += duration
+				bleed = {"stacks": [], "acc": 0.0, "source": source, "cast": cast, "last_add": 0.0, "by_spell": {}}
+			# Each application is its own stack with its own timer: bleed stacks without a cap, but its
+			# strength follows how fast you hit, not how long the fight has lasted.
+			bleed.stacks.append({"per_tick": per_tick, "remaining": duration, "spell": str(source.get("spell", ""))})
+			_refresh_bleed_split()
 			bleed.source = source
 			bleed.cast = cast
 			bleed.last_add = per_tick
@@ -92,15 +94,16 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 		"poison":
 			var add = float(params.get("base", float(d.share_per_tick) * hit * float(params.get("strength", 1.0))))
 			if poison.is_empty():
-				poison = {"base": 0.0, "remaining": 0.0, "acc": 0.0, "ticks": 0, "source": source, "cast": cast}
+				poison = {"base": 0.0, "remaining": 0.0, "acc": 0.0, "ticks": 0, "source": source, "cast": cast, "by_spell": {}}
 			poison.base += add
+			_contribute(poison, source, add)
 			poison.remaining = maxf(float(poison.remaining), duration)
 			poison.source = source
 			poison.cast = cast
 		"chilled":
 			var stacks = int(params.get("stacks", 1))
 			if hit > 0.0 and not bool(params.get("no_frostbite", false)):
-				_deal(float(d.frostbite_share) * hit * stacks, "water", source, false)
+				_deal(float(d.frostbite_share) * hit * stacks, "water", source, "frostbite")
 			if chill.is_empty():
 				chill = {"stacks": 0, "remaining": 0.0, "source": source, "cast": cast}
 			var cap = int(d.cap)
@@ -120,9 +123,9 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 				entangle_times.clear()
 				apply("rooted", {"duration": float(d.root_duration)}, source)
 		"shocked":
+			# A mark: the next Lightning hit chains it, Water/Ice conducts it, Earth grounds it (doc 18 §6.1b).
 			_set_timed(id, duration, 1.0, source)
-			if hit > 0.0 and not bool(params.get("no_arc", false)):
-				_arc(hit * float(d.arc_share), float(d.arc_range), source)
+			_set_timed("shock_stagger", float(d.get("stagger", 0.2)), 1.0, source)
 		_:
 			if str(d.get("kind", "")) == "hard":
 				if (is_boss() or is_elite()) and clock - last_hard_cc < float(rule("hard_cc_window", 4.0)):
@@ -143,32 +146,33 @@ func _hemorrhage(per_tick_added: float, source: Dictionary) -> void:
 	var pct = float(d.boss_max_health) if is_boss() else (float(d.elite_max_health) if is_elite() else float(d.max_health))
 	bleed_meter = 0.0
 	reactions_fired.append("hemorrhage")
-	_deal(max_health * pct + float(d.bleed_multiplier) * per_tick_added, "raw", source, true)
+	_deal(max_health * pct + float(d.bleed_multiplier) * per_tick_added, "bleed", source, "hemorrhage")
 
-func _arc(amount: float, reach: float, source: Dictionary) -> void:
+## Chain: storm damage arcs to the nearest few enemies and shocks them. They carry this hit's cast,
+## so the same cast cannot chain them again; the next cast can.
+func _chain(amount: float, count: int, reach: float, source: Dictionary) -> void:
 	var e = _owner()
 	if e == null or not e.is_inside_tree():
 		return
-	var best = null
-	var best_d = reach
+	var near: Array = []
 	for other in e.get_tree().get_nodes_in_group("enemies"):
 		if other == e or not is_instance_valid(other) or bool(other.get("dying")):
 			continue
 		var dist = (other.global_position - e.global_position).length()
-		if dist <= best_d:
-			best = other
-			best_d = dist
-	if best:
-		preload("res://scripts/engine/Effects.gd").apply(best, {"type": "damage", "entries": [{"amount": amount, "damage_type": "storm"}], "element": "storm", "dot": true}, source, e.global_position)
-		if best.has_method("apply_effect"):
-			best.apply_effect({"type": "status", "status": "shocked", "no_arc": true}, source, e.global_position)
+		if dist <= reach:
+			near.append([dist, other])
+	near.sort_custom(func(a, b): return a[0] < b[0])
+	var effects = preload("res://scripts/engine/Effects.gd")
+	for pair in near.slice(0, count):
+		var other = pair[1]
+		effects.apply(other, {"type": "damage", "entries": [{"amount": amount, "damage_type": "storm"}], "element": "storm", "dot": true}, tag(source, "chain"), e.global_position)
+		if is_instance_valid(other) and not bool(other.get("dying")):
+			effects.apply(other, {"type": "status", "status": "shocked"}, source, e.global_position)
 
 # ---------------------------------------------------------------- reactions
 
 ## Called by the effects pipeline for every direct (non-DoT) damage hit. Returns extra damage for this entity.
 func on_hit(effect: Dictionary, source: Dictionary, origin: Vector2) -> float:
-	if clock < reaction_ready_at:
-		return 0.0
 	var elements := {}
 	var total := 0.0
 	for entry in effect.get("entries", []):
@@ -181,13 +185,27 @@ func on_hit(effect: Dictionary, source: Dictionary, origin: Vector2) -> float:
 	if spell_element != "":
 		elements[spell_element] = true
 	var cast = source.get("cast_id", null)
+	# Grounded: Earth removes shock with no bonus, even during the reaction cooldown.
+	if elements.has("earth") and timed.has("shocked"):
+		timed.erase("shocked")
+	if clock < reaction_ready_at:
+		return 0.0
 	var extra := 0.0
 	var fired := ""
-	if elements.has("fire") and (_other(chill, cast) or _other(timed.get("frozen", {}), cast)):
+	var shock_def = def("shocked")
+	if elements.has("storm") and _other(timed.get("shocked", {}), cast):
+		fired = "chain"
+		timed.erase("shocked")
+		_chain(total * float(shock_def.chain_share), int(shock_def.chain_targets), float(shock_def.chain_range), source)
+	elif elements.has("water") and _other(timed.get("shocked", {}), cast):
+		fired = "conduct"
+		timed.erase("shocked")
+		_burst(total * float(shock_def.conduct_share), "storm", float(shock_def.conduct_radius), source, "conduct")
+	elif elements.has("fire") and (_other(chill, cast) or _other(timed.get("frozen", {}), cast)):
 		fired = "thaw"
 		chill = {}
 		timed.erase("frozen")
-		_burst(total * 0.3, "water", 90.0, source)
+		_burst(total * 0.3, "water", 90.0, source, "thaw")
 	elif elements.has("earth") and _other(timed.get("frozen", {}), cast):
 		fired = "shatter"
 		timed.erase("frozen")
@@ -195,14 +213,24 @@ func on_hit(effect: Dictionary, source: Dictionary, origin: Vector2) -> float:
 	elif elements.has("fire") and _other(poison, cast):
 		fired = "toxic_flare"
 		var remaining = _poison_remaining()
+		var poisoners = _shared(poison)
 		poison = {}
-		_burst(remaining * 0.6, "plague", 100.0, source)
+		_burst(remaining * 0.6, "plague", 100.0, poisoners, "toxic flare")
 	elif elements.has("arcane") and (_other(bleed, cast) or _other(poison, cast) or burns.any(func(b): return b.cast == null or b.cast != cast)):
 		fired = "overload"
-		extra += _bleed_remaining() + _poison_remaining() + _burns_remaining()
+		# The DoTs' remaining damage lands now, credited to the spells that applied them.
+		var pending: Array = []
+		if not bleed.is_empty():
+			pending.append([_bleed_remaining(), "bleed", _shared(bleed)])
+		if not poison.is_empty():
+			pending.append([_poison_remaining(), "plague", _shared(poison)])
+		for b in burns:
+			pending.append([float(b.per_tick) * int(b.ticks_left), "fire", b.source])
 		bleed = {}
 		poison = {}
 		burns.clear()
+		for p in pending:
+			_deal(float(p[0]), str(p[1]), p[2], "overload")
 	elif elements.has("life") and (_other(poison, cast) or _other(timed.get("weakened", {}), cast)):
 		fired = "cleanse"
 		extra += _poison_remaining() + (10.0 if timed.has("weakened") else 0.0)
@@ -220,7 +248,8 @@ func _other(instance: Dictionary, cast) -> bool:
 	var mine = instance.get("cast", null)
 	return mine == null or cast == null or mine != cast
 
-func _burst(amount: float, kind: String, reach: float, source: Dictionary) -> void:
+func _burst(amount: float, kind: String, reach: float, source: Dictionary, via: String) -> void:
+	source = tag(source, via)
 	var e = _owner()
 	if amount <= 0.0 or e == null or not e.is_inside_tree():
 		return
@@ -244,7 +273,20 @@ func _poison_remaining() -> float:
 func _bleed_remaining() -> float:
 	if bleed.is_empty():
 		return 0.0
-	return float(bleed.per_tick) * ceil(float(bleed.remaining) / float(def("bleed").tick))
+	var tick_len = float(def("bleed").tick)
+	var total = 0.0
+	for stack in bleed.stacks:
+		total += float(stack.per_tick) * ceil(float(stack.remaining) / tick_len - 0.0001)
+	return total
+
+## Credit for the next bleed tick goes to the spells whose stacks are still active.
+func _refresh_bleed_split() -> void:
+	var by_spell := {}
+	for stack in bleed.get("stacks", []):
+		var spell = str(stack.spell)
+		if not spell.is_empty():
+			by_spell[spell] = float(by_spell.get(spell, 0.0)) + float(stack.per_tick)
+	bleed.by_spell = by_spell
 
 func _burns_remaining() -> float:
 	var total = 0.0
@@ -280,7 +322,7 @@ func tick(delta: float) -> void:
 		while float(b.acc) >= float(b.tick) - 0.00001 and int(b.ticks_left) > 0:
 			b.acc = float(b.acc) - float(b.tick)
 			b.ticks_left = int(b.ticks_left) - 1
-			_deal(float(b.per_tick), "fire", b.source, false)
+			_deal(float(b.per_tick), "fire", b.source, "burn")
 	burns = burns.filter(func(b): return int(b.ticks_left) > 0)
 	# Bleed
 	bleed_since_hit += delta
@@ -289,11 +331,18 @@ func tick(delta: float) -> void:
 	if not bleed.is_empty():
 		var tick_len = float(def("bleed").tick)
 		bleed.acc = float(bleed.acc) + delta
-		while float(bleed.acc) >= tick_len - 0.00001 and float(bleed.remaining) > 0.0:
+		while float(bleed.acc) >= tick_len - 0.00001 and not bleed.stacks.is_empty():
 			bleed.acc = float(bleed.acc) - tick_len
-			bleed.remaining = float(bleed.remaining) - tick_len
-			_deal(float(bleed.per_tick), "raw", bleed.source, true)
-		if float(bleed.remaining) <= 0.00001:
+			var amount = 0.0
+			for stack in bleed.stacks:
+				amount += float(stack.per_tick)
+				stack.remaining = float(stack.remaining) - tick_len
+			_refresh_bleed_split()
+			_deal(amount, "bleed", _shared(bleed), "bleed")
+			if bleed.is_empty():
+				break  # the tick killed the enemy and cleared its statuses
+			bleed.stacks = bleed.stacks.filter(func(stack): return float(stack.remaining) > 0.00001)
+		if not bleed.is_empty() and bleed.stacks.is_empty():
 			bleed = {}
 	# Poison
 	if not poison.is_empty():
@@ -302,17 +351,46 @@ func tick(delta: float) -> void:
 		while float(poison.acc) >= float(d.tick) - 0.00001 and float(poison.remaining) > 0.0:
 			poison.acc = float(poison.acc) - float(d.tick)
 			poison.remaining = float(poison.remaining) - float(d.tick)
-			_deal(float(poison.base) * pow(1.0 + float(d.ramp), int(poison.ticks)), "plague", poison.source, false)
+			_deal(float(poison.base) * pow(1.0 + float(d.ramp), int(poison.ticks)), "plague", _shared(poison), "poison")
 			poison.ticks = int(poison.ticks) + 1
 		if float(poison.remaining) <= 0.00001:
 			poison = {}
 	_refresh_modifiers()
 
-func _deal(amount: float, kind: String, source: Dictionary, ignores_armour: bool) -> void:
+## DoT and status damage. Bleed is its own damage type, so only a bleed resistance reduces it.
+func _deal(amount: float, kind: String, source: Dictionary, via: String) -> void:
 	var e = _owner()
 	if amount <= 0.0 or e == null or bool(e.get("dying")):
 		return
-	preload("res://scripts/engine/Effects.gd").apply(e, {"type": "damage", "entries": [{"amount": amount, "damage_type": kind, "ignores_armour": ignores_armour}], "element": kind, "dot": true}, source)
+	preload("res://scripts/engine/Effects.gd").apply(e, {"type": "damage", "entries": [{"amount": amount, "damage_type": kind}], "element": kind, "dot": true}, tag(source, via))
+
+## Shared pools (bleed, poison) remember how much each spell added, so ticks can be split between them.
+static func _contribute(pool: Dictionary, source: Dictionary, amount: float) -> void:
+	var spell = str(source.get("spell", ""))
+	if spell.is_empty() or amount <= 0.0:
+		return
+	pool.by_spell[spell] = float(pool.by_spell.get(spell, 0.0)) + amount
+
+## The pool's latest source plus "split": {spell: fraction} for damage credit (kills still go to the latest).
+static func _shared(pool: Dictionary) -> Dictionary:
+	var shared: Dictionary = pool.get("source", {}).duplicate()
+	var by_spell: Dictionary = pool.get("by_spell", {})
+	var total = 0.0
+	for spell in by_spell:
+		total += float(by_spell[spell])
+	if by_spell.size() > 1 and total > 0.0:
+		var split := {}
+		for spell in by_spell:
+			split[spell] = float(by_spell[spell]) / total
+		shared["split"] = split
+	return shared
+
+## The casting spell's source plus how this damage was dealt (bleed, burn, thaw…), so the end screen
+## can credit DoTs and reactions to the spell that caused them.
+static func tag(source: Dictionary, via: String) -> Dictionary:
+	var tagged = source.duplicate()
+	tagged["via"] = via
+	return tagged
 
 # ---------------------------------------------------------------- queries
 

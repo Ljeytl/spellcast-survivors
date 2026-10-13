@@ -131,6 +131,20 @@ func load_spells_from_data():
 		spell_catalog[id] = info
 	spells[1] = spell_catalog.bolt.duplicate(true)
 
+## Prepared spellbook for this run (see Preparation.gd). Empty means the legacy level-up learning flow.
+var prepared_order: Array = []
+
+## Starts a preparation run: the first prepared spell replaces Bolt in slot 1; the rest arrive by level.
+func begin_prepared_run(order: Array):
+	var starter = str(order[0]) if not order.is_empty() else ""
+	if not spell_catalog.has(starter):
+		return
+	prepared_order = order.duplicate()
+	spells.clear()
+	acquired_spells = {starter: true}
+	spells[1] = spell_catalog[starter].duplicate(true)
+	rebuild_freeform_library()
+
 func _process(delta):
 	var frame_scale = _scale_before_change if _scale_change_frame == Engine.get_process_frames() else Engine.time_scale
 	var unscaled_delta = delta / maxf(frame_scale, 0.01)
@@ -1553,7 +1567,8 @@ func rebuild_freeform_library():
 
 func get_learnable_spell_cards() -> Array:
 	var cards: Array = []
-	if spells.size() < MAX_EQUIPPED_SPELLS:
+	# Preparation runs get base spells from the spellbook, not cards; combinations are still cards.
+	if spells.size() < MAX_EQUIPPED_SPELLS and prepared_order.is_empty():
 		for id in spell_catalog:
 			if acquired_spells.has(id):
 				continue

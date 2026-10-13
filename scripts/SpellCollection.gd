@@ -8,6 +8,8 @@ const READABILITY = preload("res://scripts/GameplayReadability.gd")
 const PREVIEW = preload("res://scripts/SpellBookPreview.gd")
 const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
 const KEYWORDS = preload("res://scripts/KeywordRules.gd")
+const TYPE_CHART = preload("res://scripts/engine/TypeChart.gd")
+const SPELL_DAMAGE = preload("res://scripts/engine/SpellDamage.gd")
 
 var entries: VBoxContainer
 var catalog_ids: Array[String] = []
@@ -36,7 +38,7 @@ func _ready():
 	ART.apply_heading(title, 36)
 	column.add_child(title)
 	var summary = Label.new()
-	summary.text = "All keywords, spells & combinations. Learn spells during a run to cast them."
+	summary.text = "All keywords, spells & combinations. Prepare up to six spells at the Woodland doorway before a run."
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	summary.add_theme_font_size_override("font_size", 20)
 	column.add_child(summary)
@@ -73,8 +75,8 @@ func populate():
 	add_heading("SPELLS & COMBINATIONS")
 	for id in load("res://scripts/SpellManager.gd").BASE_SPELL_IDS:
 		var data = get_tree().root.get_node("DataManager").get_spell_data(id)
-		add_entry(id, data.name, data.get("incantation", id.replace("_", " ")), COPY.SPELLS.get(id, ""), "Starting spell" if id == "bolt" else "Learn during a run")
-	add_entry("mana_bolt", "Magic Missile", "", "Automatically fires at nearby enemies.", "Automatic · no active slot")
+		add_entry(id, data.name, data.get("incantation", id.replace("_", " ")), with_element(id, COPY.SPELLS.get(id, "")), "Default starter · prepare it in the Woodland doorway" if id == "bolt" else "Prepare it in the Woodland doorway")
+	add_entry("mana_bolt", "Magic Missile", "", with_element("mana_bolt", "Automatically fires at nearby enemies."), "Automatic · no active slot")
 	var discoveries = get_tree().root.get_node("CharacterManager").discovered_synergies
 	for id in RECIPES:
 		var recipe = RECIPES[id]
@@ -84,7 +86,29 @@ func populate():
 		for ingredient in recipe.ingredients:
 			ingredients.append(ingredient_name(ingredient))
 		var status = "Discovered" if id in discoveries else "Undiscovered"
-		add_entry(id, recipe.name, recipe.incantation, COPY.EVOLUTIONS.get(id, ""), "%s · Bonus spell · no active slot\n%s\nReach rank 8 in both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
+		add_entry(id, recipe.name, recipe.incantation, with_element(id, COPY.EVOLUTIONS.get(id, "")), "%s · Bonus spell · no active slot\n%s\nReach rank 8 in both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
+	add_element_chart()
+
+## Element chart (doc 18 §6.5): six elements in a cycle, each +25% against the next, -25% against itself.
+func add_element_chart():
+	add_heading("ELEMENTS")
+	add_note("Every spell has an element. Against an enemy of the element it beats, it deals +25%. Against an enemy of its own element, -25%. Everything else is normal. Woodland enemies have no element; Frost elites are Water/Ice. Elemental enemies arrive in later realms.")
+	for element in TYPE_CHART.CYCLE:
+		add_note(TYPE_CHART.matchup_line(element), TYPE_CHART.color(element))
+	add_note(TYPE_CHART.matchup_line("arcane") + ". Arcane also partly pierces armoured enemies.", TYPE_CHART.color("arcane"))
+	add_note("Damage is part raw (the spell's weight) and part elemental. Enemies resist each type separately. Bleed is its own type.")
+
+func add_note(text: String, color: Color = READABILITY.PAPER):
+	var label = Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", color)
+	entries.add_child(label)
+
+func with_element(id: String, description: String) -> String:
+	var element = SPELL_DAMAGE.describe(id)
+	return description if element.is_empty() else description + "\n" + element
 
 func add_heading(text: String):
 	var label = Label.new()

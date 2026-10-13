@@ -246,6 +246,7 @@ func run():
 		await process_frame
 	check(current_scene.has_method("depart"), "Retry returns to tower")
 	current_scene.depart()
+	if is_instance_valid(current_scene.get("archive")) and current_scene.archive.has_method("begin_run"): current_scene.archive.begin_run()  # Woodland opens preparation first
 	for i in 10:
 		await process_frame
 	game = current_scene

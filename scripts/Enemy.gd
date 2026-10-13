@@ -263,18 +263,17 @@ var slow_multiplier: float = 1.0  # Speed multiplier (1.0 = normal, 0.5 = half s
 var slow_timer: float = 0.0
 var legacy_slow: float = 1.0  # apply_slow() from older spells; combined with statuses each frame
 
-# Spell engine (doc 18 §5–6): element for the type chart, per-element resistances, armour on raw damage,
-# and the status component created on the first status or typed hit.
+# Spell engine (doc 18 §5–6): element for the type chart, one resistance per damage type (raw included,
+# no separate armour), and the status component created on the first status or typed hit.
 const Effects = preload("res://scripts/engine/Effects.gd")
+const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 var element: String = ""
 var resistances: Dictionary = {}
-var armour: float = 0.0
 var status = null
 var _typed_hit := false
 
 # Elite-specific variables
 var regeneration_rate: float = 0.0  # Health per second for regenerators
-var damage_reduction: float = 0.0  # Damage reduction percentage for armored
 var split_count: int = 2  # Number of enemies to split into (splitters)
 var frost_aura_range: float = 80.0  # Range of frost aura effect
 var explosion_damage: float = 0.0  # Damage dealt on explosive death
@@ -446,12 +445,14 @@ var last_damage_source: Dictionary = {}
 func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF, source: Dictionary = {}):
 	if dying:
 		return
-	# Apply armor reduction for armored elites
-	var previous_health = current_health
 	var final_damage = damage_amount
-	# Typed hits from apply_effect() already applied armour to their raw share only.
-	if not _typed_hit and is_elite and elite_type == EliteType.ARMORED:
-		final_damage = damage_amount * (1.0 - damage_reduction)
+	# Typed hits from apply_effect() are already resolved; everything else is split by its spell here.
+	if not _typed_hit:
+		final_damage = resolve_untyped_hit(damage_amount, source, _source_position)
+		if dying:
+			return  # a reaction this hit triggered (Overload) already killed it
+	# After resolving, so reaction damage dealt during resolution is not credited to this hit.
+	var previous_health = current_health
 	
 	# Reduce health, don't go below 0
 	current_health -= final_damage
@@ -463,7 +464,7 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF, 
 		style_game.style_session.record_damage(source, previous_health - current_health)
 	
 	# Show floating damage number
-	enemy_damaged.emit(damage_amount, global_position)
+	enemy_damaged.emit(final_damage, global_position)  # after resistances and the type chart
 	
 	# Update visual health bar
 	update_health_bar()
@@ -596,17 +597,27 @@ func apply_effect(effect: Dictionary, source: Dictionary = {}, origin: Vector2 =
 		return 0.0
 	return Effects.apply_to_entity(self, effect, source, origin)
 
-## Damage that has already been resolved for type, resistance and armour.
+## Damage that has already been resolved for type, element and resistance.
 func receive_damage(amount: float, origin: Vector2 = Vector2.INF, source: Dictionary = {}):
 	_typed_hit = true
 	take_damage(amount, origin, source)
 	_typed_hit = false
 
-func armour_value() -> float:
-	var value = armour
-	if is_elite and elite_type == EliteType.ARMORED:
-		value = maxf(value, damage_reduction)
-	return value
+## A shipping spell's hit arrives as one number. Split it by the spell's damage profile
+## (data/spell_damage.json), resolve each type against element and resistances, let existing statuses
+## react, then apply the spell's statuses (data/spell_damage.json: bleed, burn, chill, shock).
+func resolve_untyped_hit(amount: float, source: Dictionary, origin: Vector2) -> float:
+	var spell = str(source.get("spell", ""))
+	var effect = SpellDamage.effect(amount, spell)
+	var total: float = Effects.resolve_damage(self, effect)[0]
+	if status != null and is_instance_valid(status):
+		total += status.on_hit(effect, source, origin)
+	if amount > 0.0:
+		for rule in SpellDamage.statuses_for(spell, str(source.get("part", ""))):
+			var component = Effects.ensure_status(self)
+			if component:
+				component.apply(str(rule.status), {"hit": amount, "strength": float(rule.get("strength", 1.0))}, source)
+	return total
 
 func apply_slow(slow_amount: float, duration: float):
 	legacy_slow = slow_amount
@@ -642,7 +653,7 @@ func apply_elite_modifications():
 	
 	match elite_type:
 		EliteType.ARMORED:
-			damage_reduction = 0.3  # 30% damage reduction
+			resistances = SpellDamage.resistance_profile("elite_armored")  # data/resistances.json
 			base_health *= 1.2  # 20% more health
 		EliteType.REGENERATOR:
 			regeneration_rate = base_health * 0.02  # 2% health per second

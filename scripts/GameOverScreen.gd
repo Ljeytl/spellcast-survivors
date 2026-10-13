@@ -18,7 +18,7 @@ var keyboard_armed_at = 0
 var last_stats: Dictionary = {}
 var style_label: Label
 var defeat_label: Label
-var damage_label: Label
+var damage_chart: VBoxContainer
 
 func _ready():
 	preload("res://scripts/BuildVersion.gd").attach(self)
@@ -95,8 +95,7 @@ func display_stats(stats: Dictionary):
 	kit_label.text = "FINAL SPELL KIT\n" + "\n".join(stats.get("final_kit", [])) + "\nAutomatic Magic Missile · Rank %d" % stats.get("mana_bolt_rank", 1)
 	var discoveries = stats.get("discoveries", [])
 	discovery_label.visible = debug or not discoveries.is_empty()
-	damage_label.text = damage_summary(style.get("damage_by_spell", {}))
-	damage_label.visible = not damage_label.text.is_empty()
+	damage_chart.visible = damage_chart.populate(style)
 	discovery_label.text = "NEW DISCOVERIES\n" + (", ".join(discoveries) if not discoveries.is_empty() else "No new evolutions discovered this run.")
 	# Format survival time
 	var total_seconds = stats.get("survival_time", 0.0)
@@ -149,17 +148,22 @@ func setup_run_summary():
 	kit_label.name = "FinalKit"
 	discovery_label = Label.new()
 	discovery_label.name = "Discoveries"
-	damage_label = Label.new()
-	damage_label.name = "DamageBySpell"
-	for label in [style_label, damage_label, defeat_label, kit_label, discovery_label]:
+	for label in [style_label, defeat_label, kit_label, discovery_label]:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 18)
 		label.add_theme_color_override("font_color", Color("eee8d8"))
 		summary.add_child(label)
+	# Damage bar chart, right after the score line; damage_summary() below is the plain-text form.
+	damage_chart = preload("res://scripts/DamageChart.gd").new()
+	damage_chart.name = "DamageChart"
+	summary.add_child(damage_chart)
+	summary.move_child(damage_chart, style_label.get_index() + 1)
+	scroll.follow_focus = true
 	content.add_theme_constant_override("separation", 12)
 
 ## "DAMAGE BY SPELL" block, largest first, with share of total damage dealt.
-func damage_summary(totals: Dictionary) -> String:
+## DoT and reaction damage is credited to the spell that applied it and listed after it ("· bleed 310").
+func damage_summary(totals: Dictionary, effects: Dictionary = {}) -> String:
 	var total = 0.0
 	for value in totals.values():
 		total += float(value)
@@ -174,7 +178,14 @@ func damage_summary(totals: Dictionary) -> String:
 		if name.is_empty():
 			var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
 			name = str(recipes[id].name) if recipes.has(id) else str(data.get_spell_data(id).get("name", id)) if data else str(id)
-		lines.append("%s  %d  (%d%%)" % [name, int(round(float(totals[id]))), int(round(100.0 * float(totals[id]) / total))])
+		var line = "%s  %d  (%d%%)" % [name, int(round(float(totals[id]))), int(round(100.0 * float(totals[id]) / total))]
+		var parts: Dictionary = effects.get(id, {})
+		var vias = parts.keys()
+		vias.sort_custom(func(a, b): return float(parts[a]) > float(parts[b]))
+		for via in vias:
+			if float(parts[via]) >= 1.0:
+				line += "  · %s %d" % [via, int(round(float(parts[via])))]
+		lines.append(line)
 	return "\n".join(lines)
 
 func describe_final_hit(context: Dictionary) -> String:

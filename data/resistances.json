@@ -1,0 +1,4 @@
+{
+  "_doc": "Resistance profiles by damage type (doc 18 §5.5). 0.3 = takes 30% less, -0.25 = takes 25% more. There is no separate armour: raw is one more damage type. Types: raw, arcane, fire, water, storm, earth, plague, life, bleed, pure.",
+  "elite_armored": {"raw": 0.3, "fire": 0.3, "water": 0.3, "storm": 0.3, "earth": 0.3, "plague": 0.3, "life": 0.3, "arcane": 0.15}
+}

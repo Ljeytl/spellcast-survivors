@@ -101,6 +101,8 @@ func run():
 		await physics_frame
 		if not Input.is_physical_key_pressed(KEY_W): key(KEY_W,true)
 	key(KEY_W,false)
+	check(is_instance_valid(tower.archive) and tower.archive.has_method("begin_run"), "Walking into the doorway opens preparation")
+	if is_instance_valid(current_scene.get("archive")) and current_scene.archive.has_method("begin_run"): current_scene.archive.begin_run()  # Woodland opens preparation first
 	await settle()
 	check(current_scene.scene_file_path.ends_with("Game.tscn"), "Actual walking crosses doorway into run")
 	if not current_scene.scene_file_path.ends_with("Game.tscn"):

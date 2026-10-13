@@ -51,7 +51,7 @@ static func _legacy_apply(target: Object, effect: Dictionary, source: Dictionary
 				target.heal(float(effect.get("amount", 0.0)))
 	return 0.0
 
-## Final damage of each entry against an entity with element / resistances / armour / statuses.
+## Final damage of each entry against an entity with element / resistances / statuses.
 ## Returns [total, per_type Dictionary].
 static func resolve_damage(entity: Object, effect: Dictionary) -> Array:
 	var entries: Array = effect.get("entries", [])
@@ -59,7 +59,6 @@ static func resolve_damage(entity: Object, effect: Dictionary) -> Array:
 		entries = [{"amount": float(effect.amount), "damage_type": str(effect.get("damage_type", "raw"))}]
 	var enemy_element = str(entity.get("element")) if entity.get("element") != null else ""
 	var resistances: Dictionary = entity.get("resistances") if entity.get("resistances") is Dictionary else {}
-	var armour = float(entity.call("armour_value")) if entity.has_method("armour_value") else 0.0
 	var taken = 1.0
 	var status = entity.get("status")
 	if status != null and is_instance_valid(status):
@@ -75,11 +74,8 @@ static func resolve_damage(entity: Object, effect: Dictionary) -> Array:
 		# damage, the element word's element for damage an element word added.
 		var chart_element = TypeChart.normalize(str(entry.get("chart_element", effect.get("element", kind))))
 		amount *= TypeChart.multiplier(chart_element, enemy_element)
-		if kind == "raw":
-			if not bool(entry.get("ignores_armour", false)):
-				amount *= clampf(1.0 - armour, 0.0, 1.0)
-		else:
-			amount *= clampf(1.0 - float(resistances.get(kind, 0.0)), 0.0, 2.0)
+		# One resistance per damage type, raw included; there is no separate armour (doc 18 §5.5).
+		amount *= clampf(1.0 - float(resistances.get(kind, 0.0)), 0.0, 2.0)
 		amount *= taken
 		total += amount
 		by_type[kind] = float(by_type.get(kind, 0.0)) + amount

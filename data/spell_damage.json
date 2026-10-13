@@ -1,0 +1,28 @@
+{
+  "_doc": "Typed damage for shipping spells (doc 18 §6.1). damage = share of each hit by damage type; raw shares use the spell's element on the type chart. element defaults to spells.json. statuses are applied on hit: {status, part?, strength?}; part limits it to hits tagged with that part (Ember Spear's trail), strength scales it. Damage-over-time: burn, bleed. Control: chilled, shocked. pure is untyped damage no resistance reduces.",
+  "spells": {
+    "mana_bolt":     {"damage": {"arcane": 1.0}},
+    "bolt":          {"damage": {"arcane": 1.0}},
+    "ice_blast":     {"damage": {"raw": 0.6, "water": 0.4}, "statuses": [{"status": "chilled"}]},
+    "earth_shield":  {"damage": {"raw": 0.8, "earth": 0.2}, "statuses": [{"status": "bleed"}]},
+    "lightning":     {"damage": {"storm": 1.0}, "statuses": [{"status": "shocked"}]},
+    "meteor_shower": {"damage": {"raw": 0.5, "fire": 0.5}},
+    "ember_spear":   {"damage": {"raw": 0.75, "fire": 0.25}, "statuses": [{"status": "burn", "part": "trail"}]},
+    "infestation":   {"damage": {"plague": 1.0}},
+    "cinder_field":  {"damage": {"fire": 1.0}, "statuses": [{"status": "burn"}]},
+    "arcane_orbit":  {"damage": {"arcane": 1.0}},
+    "focus_ray":     {"damage": {"arcane": 1.0}},
+    "rune_trap":     {"damage": {"arcane": 1.0}},
+    "seeker":        {"damage": {"plague": 1.0}},
+    "firewalk":      {"damage": {"fire": 1.0}, "statuses": [{"status": "burn"}]},
+    "cross_blade":   {"damage": {"raw": 0.9, "earth": 0.1}, "statuses": [{"status": "bleed"}]},
+    "lightning_bolt": {"element": "storm",  "damage": {"storm": 1.0}, "statuses": [{"status": "shocked"}]},
+    "life_bolt":      {"element": "arcane", "damage": {"arcane": 1.0}},
+    "meteor_spear":   {"element": "fire",   "damage": {"raw": 0.85, "fire": 0.15}},
+    "soul_bloom":     {"element": "plague", "damage": {"plague": 1.0}},
+    "steam_field":    {"element": "fire",   "damage": {"fire": 0.5, "water": 0.5}, "statuses": [{"status": "burn"}]},
+    "prism_ray":      {"element": "arcane", "damage": {"arcane": 1.0}},
+    "frost_sigil":    {"element": "arcane", "damage": {"arcane": 0.5, "water": 0.5}, "statuses": [{"status": "chilled"}]},
+    "atomic":         {"element": "",       "damage": {"pure": 1.0}}
+  }
+}

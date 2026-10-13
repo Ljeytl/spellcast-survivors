@@ -11,7 +11,6 @@ class Fake extends Node2D:
 	const FX = preload("res://scripts/engine/Effects.gd")
 	var element = ""
 	var resistances = {}
-	var armour = 0.0
 	var status = null
 	var max_health = 1000.0
 	var current_health = 1000.0
@@ -24,8 +23,6 @@ class Fake extends Node2D:
 	func receive_damage(a, _o = Vector2.INF, _s = {}):
 		current_health -= a
 		received.append(a)
-	func armour_value():
-		return armour
 	func process_status_effects(_delta):
 		pass
 
@@ -111,14 +108,16 @@ func type_chart():
 
 func damage_resolution():
 	var f = fake()
-	f.armour = 0.3
+	f.resistances = {"raw": 0.3, "arcane": 0.15}
 	f.apply_effect(dmg([{"amount": 100, "damage_type": "raw"}]))
-	check(near(f.received.back(), 70), "Armour reduces raw damage")
+	check(near(f.received.back(), 70), "Raw resistance reduces raw damage")
 	f.apply_effect(dmg([{"amount": 100, "damage_type": "fire"}], "fire"))
-	check(near(f.received.back(), 100), "Armour does not touch elemental damage")
-	f.apply_effect(dmg([{"amount": 100, "damage_type": "raw", "ignores_armour": true}]))
-	check(near(f.received.back(), 100), "ignores_armour bypasses armour")
-	f.armour = 0.0
+	check(near(f.received.back(), 100), "A type with no resistance is untouched")
+	f.apply_effect(dmg([{"amount": 60, "damage_type": "raw"}, {"amount": 40, "damage_type": "arcane"}]))
+	check(near(f.received.back(), 60 * 0.7 + 40 * 0.85), "Each damage type meets its own resistance")
+	f.apply_effect(dmg([{"amount": 100, "damage_type": "bleed"}]))
+	check(near(f.received.back(), 100), "Bleed is its own type, untouched by raw resistance")
+	f.resistances = {}
 	f.element = "fire"
 	f.apply_effect(dmg([{"amount": 74, "damage_type": "raw"}, {"amount": 22, "damage_type": "fire"}], "fire"))
 	check(near(f.received.back(), 96 * 0.75), "Same element resists the whole Ember Spear hit (keyed on spell element)")
@@ -189,10 +188,10 @@ func bleed():
 	Effects.apply(boss, {"type": "status", "status": "bleed", "hit": 100}, src(1))
 	check(near(1000 - boss.current_health, 0.03 * 1000 + 9, 0.05), "Boss hemorrhage uses 3% of max health")
 	var armoured = fake()
-	armoured.armour = 0.5
+	armoured.resistances = {"raw": 0.5}
 	Effects.apply(armoured, {"type": "status", "status": "bleed", "hit": 100}, src(1))
 	run_ticks(armoured, 4.0)
-	check(near(1000 - armoured.current_health, 24, 0.05), "Bleed ticks ignore armour")
+	check(near(1000 - armoured.current_health, 24, 0.05), "Bleed ticks ignore raw resistance")
 	var decaying = fake()
 	Effects.apply(decaying, {"type": "status", "status": "bleed", "hit": 100}, src(1))
 	run_ticks(decaying, 4.0)
@@ -278,11 +277,38 @@ func shock():
 	var a = fake(Vector2(0, 0))
 	var b = fake(Vector2(100, 0))
 	var far = fake(Vector2(400, 0))
+	var c = fake(Vector2(0, 120))
+	# Shock is a mark: applying it deals nothing and staggers briefly.
 	Effects.apply(a, {"type": "status", "status": "shocked", "hit": 100}, src(1))
-	check(near(1000 - b.current_health, 40), "Shock arcs to the nearest enemy for 40% of the hit")
-	check(b.status != null and b.status.has("shocked"), "The arc shocks its target")
-	check(far.current_health == 1000, "Shock does not reach enemies outside 150")
+	check(b.current_health == 1000 and a.current_health == 1000, "Applying shock deals no damage")
 	check(a.status.locked("move"), "Shocked enemies stagger briefly")
+	run_ticks(a, 0.3)
+	check(not a.status.locked("move") and a.status.has("shocked"), "The stagger ends; the mark stays")
+	# Chain: a storm hit from another cast arcs to the 2 nearest within 150 and shocks them.
+	a.apply_effect(dmg([{"amount": 100, "damage_type": "storm"}], "storm"), src(2))
+	check("chain" in a.status.reactions_fired and not a.status.has("shocked"), "Chain uses up the shock")
+	check(near(1000 - b.current_health, 40) and near(1000 - c.current_health, 40), "Chain arcs 40% of the hit to the two nearest")
+	check(b.status.has("shocked") and c.status.has("shocked"), "Chained enemies are shocked")
+	check(far.current_health == 1000, "Chain does not reach enemies outside 150")
+	# The same cast cannot chain its own marks again.
+	b.apply_effect(dmg([{"amount": 100, "damage_type": "storm"}], "storm"), src(2))
+	check(not ("chain" in b.status.reactions_fired), "The cast that shocked an enemy cannot chain it")
+	# Conduct: water/ice on a shocked enemy bursts storm damage around it.
+	var hp_c = c.current_health
+	var hp_b = b.current_health
+	c.apply_effect(dmg([{"amount": 100, "damage_type": "water"}], "water"), src(3))
+	check("conduct" in c.status.reactions_fired and not c.status.has("shocked"), "Water conducts the shock")
+	check(hp_c - c.current_health > 100.0, "Conduct adds storm damage to the target")
+	# Grounded: earth removes shock with no bonus.
+	var g = fake(Vector2(2000, 2000))
+	Effects.apply(g, {"type": "status", "status": "shocked"}, src(4))
+	g.apply_effect(dmg([{"amount": 100, "damage_type": "raw"}, {"amount": 10, "damage_type": "earth"}], "earth"), src(5))
+	check(not g.status.has("shocked") and near(1000 - g.current_health, 110), "Earth grounds the shock for no bonus")
+	# Anything else leaves it.
+	var f = fake(Vector2(3000, 3000))
+	Effects.apply(f, {"type": "status", "status": "shocked"}, src(6))
+	f.apply_effect(dmg([{"amount": 100, "damage_type": "fire"}], "fire"), src(7))
+	check(f.status.has("shocked") and near(1000 - f.current_health, 100), "Fire leaves the shock alone")
 	clear()
 
 func reactions():
@@ -315,7 +341,10 @@ func reactions():
 	var e = fake(Vector2(2000, 0))
 	Effects.apply(e, {"type": "status", "status": "bleed", "hit": 100}, src(8))
 	e.apply_effect(dmg([{"amount": 10, "damage_type": "arcane"}], "arcane"), src(9))
-	check("overload" in e.status.reactions_fired and near(e.received.back(), 10 + 24), "Overload lands the remaining bleed at once")
+	var landed = 0.0
+	for amount in e.received:
+		landed += amount
+	check("overload" in e.status.reactions_fired and near(landed, 10 + 24), "Overload lands the remaining bleed at once (as its own hit, credited to the bleed)")
 	# Cleanse
 	var g = fake(Vector2(2500, 0))
 	Effects.apply(g, {"type": "status", "status": "poison", "hit": 100}, src(10))
@@ -369,15 +398,15 @@ func real_enemy():
 	check(near(enemy.slow_multiplier, 0.5), "Legacy apply_slow still works on its own")
 	enemy.is_elite = true
 	enemy.elite_type = enemy.EliteType.ARMORED
-	enemy.damage_reduction = 0.3
+	enemy.resistances = preload("res://scripts/engine/SpellDamage.gd").resistance_profile("elite_armored")
 	hp = enemy.current_health
 	enemy.take_damage(100)
-	check(near(hp - enemy.current_health, 70), "Legacy take_damage still applies elite armour")
+	check(near(hp - enemy.current_health, 70), "Untyped hit is raw and meets the armoured profile")
 	hp = enemy.current_health
 	enemy.apply_effect({"type": "damage", "entries": [{"amount": 100, "damage_type": "raw"}]}, src(2))
-	check(near(hp - enemy.current_health, 70), "Typed raw damage applies armour once, not twice")
+	check(near(hp - enemy.current_health, 70), "Typed raw damage is resisted once, not twice")
 	hp = enemy.current_health
-	enemy.apply_effect({"type": "damage", "entries": [{"amount": 100, "damage_type": "fire"}], "element": "fire"}, src(3))
-	check(near(hp - enemy.current_health, 100), "Typed fire ignores armour on a real enemy")
+	enemy.apply_effect({"type": "damage", "entries": [{"amount": 100, "damage_type": "arcane"}], "element": "arcane"}, src(3))
+	check(near(hp - enemy.current_health, 85), "Arcane partly pierces the armoured profile")
 	game.queue_free()
 	await process_frame

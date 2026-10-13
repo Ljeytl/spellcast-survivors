@@ -12,6 +12,10 @@ Permanent profile: completed tutorial steps, known base spell IDs, known keyword
 
 Tutorial grants Bolt, Life, Ice Blast, Lightning and Big. Learning Bolt + Life discovers Life Bolt; learning Bolt + Lightning discovers Lightning Bolt. These bonuses become usable only once both ingredient pages are active in a particular run. Tutorial completion therefore knows four bases, two recipes and one keyword, not six prepared pages.
 
+## Current implementation — pick and prepare (9 October 2026)
+
+Permanent unlocks are off for now; every base spell is available to prepare. Walking through the Woodland doorway opens the preparation screen (`scripts/PreparationScreen.gd`, data in `scripts/Preparation.gd`). Six ordered slots; slot 1 must be an attack (Bolt is the default) and is ready at the start. Slots 2–6 open automatically at player levels **2, 4, 7, 11, 16** (+1, +2, +3, +4, +5). A level that opens a spell gives no power-up choice; every other level does. An empty slot gives a normal power-up at its level. Level-up no longer offers base spells; combinations remain level-up cards outside the six slots. This replaces the mana thresholds below until the mana curve is revisited. Tests and bots that load `Game.tscn` directly keep the old level-up learning flow (`RunMode.prepared` is false).
+
 ## Preparation screen contract
 
 - Six slots is the proposed cap. Empty slots are allowed; duplicates are not. First expedition fixes Bolt in slot 1. After one extraction or guardian clear, starter eligibility expands to Bolt, Ice Blast, Lightning, Wave, Water Jet, Seeker and Fire Bolt if known. Slot 1 must be damage-capable because mana activation requires kills; Life and other non-damaging openers are disabled with that explanation. This is a proposed preparation constraint, not a hidden combat penalty.

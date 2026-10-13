@@ -143,9 +143,26 @@ func is_open(index: int) -> bool:
 func depart():
 	if transitioning or not is_open(selected) or not settled():
 		return
+	if selected == 0:
+		open_preparation()
+		return
 	transitioning = true
-	preload("res://scripts/RunMode.gd").training = selected == TRAINING_PORTAL
+	preload("res://scripts/RunMode.gd").training = true
+	preload("res://scripts/RunMode.gd").prepared = false
 	SceneManager.goto_scene("res://scenes/Game.tscn")
+
+## Woodland runs start from the spellbook preparation screen. Back returns the wizard to the room.
+func open_preparation():
+	archive = preload("res://scripts/PreparationScreen.gd").new()
+	hud.add_child(archive)
+	archive.confirmed.connect(func():
+		transitioning = true
+		preload("res://scripts/RunMode.gd").training = false
+		preload("res://scripts/RunMode.gd").prepared = true
+		SceneManager.goto_scene("res://scenes/Game.tscn"))
+	archive.closed.connect(func():
+		archive = null
+		wizard.position = Vector2(0, -230))
 
 func move_wizard(direction: Vector2, _delta: float):
 	var before = wizard.position

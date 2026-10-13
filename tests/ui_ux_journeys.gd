@@ -245,6 +245,7 @@ func run():
 	await settle(0.5)
 	check(current_scene.scene_file_path.ends_with("Tower.tscn"), "Death returns home")
 	current_scene.depart()
+	if is_instance_valid(current_scene.get("archive")) and current_scene.archive.has_method("begin_run"): current_scene.archive.begin_run()  # Woodland opens preparation first
 	await settle(0.5)
 	game = current_scene
 	check(game.game_time < 2 and game.spell_manager.spells.size() == 1 and not paused, "Retry resets time, kit and pause")
