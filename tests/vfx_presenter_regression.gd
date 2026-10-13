@@ -203,13 +203,19 @@ func run():
 			shown = shown or not vfx.elements.slashes.is_empty()
 		check(shown, "Bare %s is presented (arcane look), no placeholder art" % spell)
 
-	# Looks not built yet keep the placeholder art.
+	# Every engine element has a look; anything unknown keeps the placeholder art.
 	clear()
 	foe(Vector2(120, 0))
 	c = cast("spear", 0.0)
 	var bare = c.plan.duplicate(true)
 	bare.element = "earth"
-	check(vfx.presenter.look_of(bare).native == "", "Looks not built yet (earth) resolve to no look: placeholder art stays")
+	var all_built = true
+	for el in ["", "arcane", "fire", "water", "storm", "earth", "plague", "life"]:
+		bare.element = el
+		all_built = all_built and vfx.presenter.look_of(bare).native != ""
+	check(all_built, "Every engine element resolves to a built look")
+	bare.element = "made_up"
+	check(vfx.presenter.look_of(bare).native == "", "Unknown elements resolve to no look: placeholder art stays")
 
 	clear()
 	print("vfx_presenter_regression: ", checks, " checks, ", failures, " failures")

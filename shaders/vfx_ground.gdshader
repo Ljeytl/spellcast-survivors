@@ -19,7 +19,7 @@ uniform vec2 light_origin;             // light texel (0,0) in light cells
 uniform float light_cell;              // cells per light texel
 uniform vec4 lit1;
 uniform vec4 lit2;
-uniform sampler2D water_tex : filter_nearest;   // g = ground goo (sandbox wGround)
+uniform sampler2D water_tex : filter_nearest;   // g = water ground (sandbox wGround), a = plague ground (gooGround)
 uniform bool water_on = false;
 
 const int BAYER[16] = int[](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
@@ -101,6 +101,24 @@ void fragment() {
 		}
 		covered = true;
 		break;
+	}
+	// Plague goo on the ground (sandbox drawGoo(gooGround)): outlined pockets.
+	if (water_on && texelFetch(TEXTURE, p, 0).a < 0.01) {
+		ivec2 gsz = textureSize(water_tex, 0);
+		float gv = texelFetch(water_tex, p, 0).a;
+		if (gv >= 0.5) {
+			float u = texelFetch(water_tex, clamp(p + ivec2(0, -1), ivec2(0), gsz - 1), 0).a;
+			float d2 = texelFetch(water_tex, clamp(p + ivec2(0, 1), ivec2(0), gsz - 1), 0).a;
+			float l = texelFetch(water_tex, clamp(p + ivec2(-1, 0), ivec2(0), gsz - 1), 0).a;
+			float r2 = texelFetch(water_tex, clamp(p + ivec2(1, 0), ivec2(0), gsz - 1), 0).a;
+			float u2 = texelFetch(water_tex, clamp(p + ivec2(0, -2), ivec2(0), gsz - 1), 0).a;
+			if (u < 0.5 || d2 < 0.5 || l < 0.5 || r2 < 0.5) {
+				col = vec4(0.106, 0.102, 0.173, 1.0);
+			} else {
+				col = u2 < 0.5 ? vec4(0.651, 0.894, 0.369, 1.0) : vec4(0.337, 0.698, 0.243, 1.0);
+			}
+			covered = true;
+		}
 	}
 	// Ground water (sandbox drawWater, ground): see-through checker surface with
 	// glints, foam edge. Under rings and crystals (CPU texels), over floors.

@@ -45,6 +45,7 @@ const ELEMENTS := preload("res://scripts/vfx/VfxElements.gd")
 const SHADOW := Color("#16141b")
 const FROST := [Color("#2a3c50"), Color("#3d5a78")]
 const PUDDLE := [Color("#1b3050"), Color("#2a4f80")]
+const STAIN := [Color("#16201a"), Color("#1f3322")]
 
 # Fire material (sandbox MAT_SRC.fire). Thresholds descending.
 const FIRE_HEAT := [[1.6, Color("#fff7d6")], [1.1, Color("#ffd54a")], [0.7, Color("#ff8a1f")], [0.35, Color("#e0401c")], [0.12, Color("#7a1f14")]]
@@ -68,6 +69,8 @@ const FIELD_LOOKS := [
 	{"name": "water", "style": 1, "floor": ["#151d2e", "#192842", "#20385e"], "rim": ["#4fb2f0", "#e8f8ff"]},
 	{"name": "life", "style": 1, "floor": ["#19221a", "#1f2e1e", "#2a4026"], "rim": ["#7fcf4a", "#d4f58a"]},
 	{"name": "arcane", "style": 1, "floor": ["#1a1830", "#201d3e", "#2a2656"], "rim": ["#8fa8f5", "#e2f6ff"]},
+	{"name": "plague", "style": 1, "floor": ["#17201a", "#1d2c1f", "#25402a"], "rim": ["#6fd04a", "#c4f383"]},
+	{"name": "earth", "style": 1, "floor": ["#1e1a18", "#262019", "#30281c"], "rim": ["#c9a46a", "#e8dcc0"]},
 ]
 static func field_look(name: String) -> int:
 	for i in FIELD_LOOKS.size():
@@ -111,7 +114,7 @@ var presenter                        # VfxPresenter: spell-engine events -> look
 var elements                         # VfxElements: motes, shards, crystals (non-fire looks)
 
 var _heat := PackedFloat32Array()
-var _water := PackedFloat32Array()     # goo field, 2 per cell: air, ground (sandbox wAir / wGround)
+var _water := PackedFloat32Array()     # goo fields, 4 per cell: water air, water ground, plague air, plague ground
 var _water_used := false
 var _under := PackedByteArray()
 var _over := PackedByteArray()
@@ -391,7 +394,9 @@ func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "sco
 			var edge := rc * (0.7 + 0.55 * vn(X / K * 0.3 + seed, Y / K * 0.3))
 			if dist < edge and dist >= edge * inner:
 				var c: Color
-				if kind == "puddle":
+				if kind == "stain":
+					c = STAIN[0] if dist < edge * 0.55 else STAIN[1]
+				elif kind == "puddle":
 					c = PUDDLE[0] if dist < edge * 0.55 else PUDDLE[1]
 				elif kind == "frost":
 					# sandbox drawEDecals 'frost': rime with a lighter rim and glints
@@ -415,39 +420,76 @@ func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "sco
 	_decal_root.add_child(spr)
 	_decals.append([spr, mat, 0.0, life])
 
-## Spidering scorch where lightning struck (sandbox decal 'spider'): jagged
-## rays dithering away, dark scorched center. Baked once like scorch().
+## Spidering scorch where lightning struck (sandbox decal 'spider').
 func spider(x: float, y: float, life: float = 5.0):
-	if _decals.size() >= 40:
-		var old = _decals.pop_front()
-		old[0].queue_free()
-	var cols := [Color("#14111c"), Color("#2a2342")]
-	var pts := []
+	var rays := []
 	for r in 6:
 		var a := randf() * TAU
 		var L := 5.0 + randf() * 5.0
-		for q in elements.jag(x, y, x + cos(a) * L, y + sin(a) * L * 0.8, 1.5):
-			pts.append(q)
-	var R := ceili(12.0 * K)
+		rays.append(elements.jag(x, y, x + cos(a) * L, y + sin(a) * L * 0.8, 1.5))
+	path_decal(x, y, rays, [Color("#2a2342"), Color("#2a2342")], life, Color("#14111c"))
+
+## Ground cracks (sandbox crackDecal): n jagged rays of length ~L from the centre.
+func crack_decal(x: float, y: float, n: int, L: float, life: float = 6.0):
+	var rays := []
+	for i in n:
+		var a := float(i) / n * TAU + randf() * 0.5
+		rays.append(elements.jag(x, y, x + cos(a) * L * (0.6 + randf() * 0.5), y + sin(a) * L * 0.7 * (0.6 + randf() * 0.5), 1.5))
+	path_decal(x, y, rays, [Color("#0d0b0b"), Color("#3a2e22")], life)
+
+## Bakes jagged paths (su) into a dithering decal: sandbox-pixel Bresenham lines,
+## first half of each path in cols[0], the rest in cols[1]; optional dark centre.
+func path_decal(x: float, y: float, paths: Array, cols: Array, life: float, centre = null):
+	if _decals.size() >= 40:
+		var old = _decals.pop_front()
+		old[0].queue_free()
+	var reach := 2.0
+	for pts in paths:
+		for q in pts:
+			reach = maxf(reach, Vector2(q.x - x, q.y - y).length())
+	var R := ceili((reach + 2.0) * K)
 	var cx := roundi(x * K)
 	var cy := roundi(y * K)
 	var img := Image.create_empty(2 * R + 1, 2 * R + 1, false, Image.FORMAT_RGBA8)
-	for q in pts:
-		var qx := roundi(q.x * K) - cx + R
-		var qy := roundi(q.y * K) - cy + R
-		for oy in 2:
-			for ox in 2:
-				var X := qx + ox
-				var Y := qy + oy
-				if X >= 0 and Y >= 0 and X <= 2 * R and Y <= 2 * R:
-					var c: Color = cols[1]
-					c.a = (BAYER[(((Y + cy) & 3) << 2) | ((X + cx) & 3)] + 1) / 17.0
-					img.set_pixel(X, Y, c)
-	for oy in range(-2, 3):
-		for ox in range(-2, 3):
-			var c2: Color = cols[0]
-			c2.a = 0.05
-			img.set_pixel(R + ox, R + oy, c2)
+	var plot := func(X: int, Y: int, c: Color):
+		for py in range(floori(Y * K), maxi(floori((Y + 1) * K), floori(Y * K) + 1)):
+			for px in range(floori(X * K), maxi(floori((X + 1) * K), floori(X * K) + 1)):
+				var ix: int = px - cx + R
+				var iy: int = py - cy + R
+				if ix >= 0 and iy >= 0 and ix <= 2 * R and iy <= 2 * R:
+					var cc := c
+					cc.a = (BAYER[((py & 3) << 2) | (px & 3)] + 1) / 17.0
+					img.set_pixel(ix, iy, cc)
+	for pts in paths:
+		var n: int = pts.size()
+		for i in range(1, n):
+			var a: Vector2 = pts[i - 1]
+			var b: Vector2 = pts[i]
+			var c: Color = cols[0] if i < n / 2.0 else cols[1]
+			var x0 := roundi(a.x)
+			var y0 := roundi(a.y)
+			var x1 := roundi(b.x)
+			var y1 := roundi(b.y)
+			var dx := absi(x1 - x0)
+			var dy := -absi(y1 - y0)
+			var sx := 1 if x0 < x1 else -1
+			var sy := 1 if y0 < y1 else -1
+			var e := dx + dy
+			for k in 200:
+				plot.call(x0, y0, c)
+				if x0 == x1 and y0 == y1:
+					break
+				var e2 := 2 * e
+				if e2 >= dy:
+					e += dy
+					x0 += sx
+				if e2 <= dx:
+					e += dx
+					y0 += sy
+	if centre != null:
+		for oy in range(-1, 2):
+			for ox in range(-1, 2):
+				plot.call(roundi(x) + ox, roundi(y) + oy, centre)
 	_add_decal(img, cx - R, cy - R, life)
 
 func _add_decal(img: Image, x0: int, y0: int, life: float):
@@ -812,7 +854,7 @@ func _place_grid() -> bool:
 		_size = size
 		var n := size.x * size.y
 		_heat.resize(n)
-		_water.resize(n * 2)
+		_water.resize(n * 4)
 		_water.fill(0.0)
 		_under.resize(n * 4)
 		_over.resize(n * 4)
@@ -858,8 +900,9 @@ func _render(stepped: bool):
 	g.set_shader_parameter("fields", fl)
 	g.set_shader_parameter("field_axis", fa)
 
-## Water goo splat (sandbox gsplat): linear falloff to 2*re, into the air (0)
-## or ground (1) layer. Position and radius in su. Thresholded in the shaders.
+## Goo splat (sandbox gsplat): linear falloff to 2*re. Layers: 0 water air,
+## 1 water ground, 2 plague air, 3 plague ground. Position and radius in su.
+## Thresholded in the shaders.
 func gsplat(layer: int, x: float, y: float, re: float, v: float = 1.0):
 	var r := re * 2.0 * K
 	var R := ceili(r)
@@ -877,7 +920,7 @@ func gsplat(layer: int, x: float, y: float, re: float, v: float = 1.0):
 			var d := sqrt(float(ox * ox + oy * oy))
 			if d >= r:
 				continue
-			_water[(Y * w + X) * 2 + layer] += v * (1.0 - d / r)
+			_water[(Y * w + X) * 4 + layer] += v * (1.0 - d / r)
 	_water_used = true
 
 ## Adds goo to one cell (world cell coords): area fills like the sandbox pool.
@@ -886,7 +929,7 @@ func water_cell(layer: int, X: int, Y: int, v: float):
 	Y -= _origin.y
 	if X < 0 or Y < 0 or X >= _size.x or Y >= _size.y:
 		return
-	_water[(Y * _size.x + X) * 2 + layer] += v
+	_water[(Y * _size.x + X) * 4 + layer] += v
 	_water_used = true
 
 func _draw_water():
@@ -896,7 +939,7 @@ func _draw_water():
 	elements.accumulate_water()
 	presenter.accumulate_water()
 	if _water_used or not _tex.has("water"):
-		_upload("water", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGF, _water.to_byte_array()))
+		_upload("water", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBAF, _water.to_byte_array()))
 	(_air_layer.material as ShaderMaterial).set_shader_parameter("water_on", _water_used)
 	(_ground_layer.material as ShaderMaterial).set_shader_parameter("water_on", _water_used)
 

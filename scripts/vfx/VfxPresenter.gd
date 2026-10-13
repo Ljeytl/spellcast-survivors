@@ -13,17 +13,19 @@ extends RefCounted
 const WPS := 1280.0 / 192.0
 
 # Looks implemented so far. Element ids are the spell engine's (SpellDefs.ELEMENTS).
-const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire", "water": "water", "storm": "lightning", "life": "life"}
-const ACCENT_LOOK := {"fire": "fire", "water": "water", "storm": "lightning", "life": "life"}
+const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire", "water": "water", "storm": "lightning", "life": "life", "plague": "plague", "earth": "earth"}
+const ACCENT_LOOK := {"fire": "fire", "water": "water", "storm": "lightning", "life": "life", "plague": "plague", "earth": "earth"}
 # The engine has one "water" element for water and ice spells (plan section 7:
 # Water/Ice spells pick Water or Ice). Cold statuses or a vfx.look hint pick Ice.
 const COLD := ["chilled", "frozen"]
-const BUILT := ["arcane", "fire", "ice", "lightning", "water", "life"]
+const BUILT := ["arcane", "fire", "ice", "lightning", "water", "life", "plague", "earth"]
 const ICE := preload("res://scripts/vfx/VfxElements.gd").ICE
 const LIT := preload("res://scripts/vfx/VfxElements.gd").LIGHTNING
 const WAT := preload("res://scripts/vfx/VfxElements.gd").WATER
 const LIFE := preload("res://scripts/vfx/VfxElements.gd").LIFE
 const ARC := preload("res://scripts/vfx/VfxElements.gd").ARCANE
+const PLG := preload("res://scripts/vfx/VfxElements.gd").PLAGUE
+const EAR := preload("res://scripts/vfx/VfxElements.gd").EARTH
 
 # Body palettes (sandbox MAT.*.body): core, light, mid, dark, outline.
 const BODY := {
@@ -33,6 +35,8 @@ const BODY := {
 	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0"), Color("#2a1f5e")],
 	"water": [Color("#ffffff"), Color("#a6e6ff"), Color("#3f9fe4"), Color("#2063b0"), Color("#0f1d3a")],
 	"life": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a"), Color("#3e8f3a"), Color("#1e2e16")],
+	"plague": [Color("#e4fbb0"), Color("#a6e45e"), Color("#56b23e"), Color("#2c6e3a"), Color("#1b1a2c")],
+	"earth": [Color("#e8dcc0"), Color("#c9b48c"), Color("#9a7d5a"), Color("#5e4630"), Color("#2a1e16")],
 }
 const SPARK := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#e0401c")],
@@ -41,15 +45,20 @@ const SPARK := {
 	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0")],
 	"water": [Color("#ffffff"), Color("#cdeffd"), Color("#7cc4f2"), Color("#3f9fe4")],
 	"life": [Color("#d4f58a"), Color("#86d24c"), Color("#46963c"), Color("#275c2e")],
+	"plague": [Color("#e4fbb0"), Color("#a6e45e"), Color("#56b23e"), Color("#2c6e3a")],
+	"earth": [Color("#c9b48c"), Color("#9a7d5a"), Color("#7a6a58"), Color("#5e4630")],
 }
-const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff"), "water": Color("#4fb2f0"), "life": Color("#7fcf4a")}
-const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")], "water": [Color("#4fb2f0"), Color("#e8f8ff")], "life": [Color("#7fcf4a"), Color("#d4f58a")], "arcane": [Color("#8fa8f5"), Color("#e2f6ff")]}
+const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff"), "water": Color("#4fb2f0"), "life": Color("#7fcf4a"), "plague": Color("#6fd04a"), "earth": Color("#c9a46a")}
+const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")], "water": [Color("#4fb2f0"), Color("#e8f8ff")], "life": [Color("#7fcf4a"), Color("#d4f58a")], "arcane": [Color("#8fa8f5"), Color("#e2f6ff")],
+	"plague": [Color("#6fd04a"), Color("#c4f383")], "earth": [Color("#c9a46a"), Color("#e8dcc0")]}
 # Slash smear colours (sandbox smearCols): core, light, mid.
 const SMEAR := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f")], "arcane": [Color("#ffffff"), Color("#c9f4ff"), Color("#8fb6f5")],
 	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee")], "lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff")],
 	"water": [Color("#ffffff"), Color("#a6e6ff"), Color("#3f9fe4")], "life": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a")],
+	"plague": [Color("#e4fbb0"), Color("#a6e45e"), Color("#56b23e")], "earth": [Color("#e8dcc0"), Color("#c9b48c"), Color("#9a7d5a")],
 }
+const EARTH_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.2}, "bolt": {"t": "orb", "r": 3.2}, "spear": {"t": "diamond", "a": 8.0, "b": 2.0}, "ball": {"t": "orb", "r": 4.6}}
 # Rigid looks keep a drawn body (that IS the technique: crystal sprites).
 const LIFE_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
 const ICE_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
@@ -210,6 +219,9 @@ func part_spawned(part) -> void:
 					vfx.elements.vine(pos.x, pos.y, float(i) / 10.0 * TAU + randf() * 0.3, R0, R0 / maxf(1.0, sp0) * vfx.fx_speed, R0 / maxf(1.0, sp0) * vfx.fx_speed + 0.5, 0.45)
 			if look.native == "fire":
 				_fire_nova_start(pos, float(part.geo("radius", 100.0)) / WPS)
+			if look.native == "earth":
+				vfx.shake(0.4)
+				vfx.crack_decal(pos.x, pos.y, 8, float(part.geo("radius", 100.0)) / WPS * 0.6)
 		"wave":
 			if look.native != "water":
 				return
@@ -225,7 +237,7 @@ func part_spawned(part) -> void:
 			st.age = 0.0
 			st.life = float(part.def.get("timing", {}).get("duration", 0.45))
 		"field":
-			if look.native in ["ice", "lightning", "water", "life", "arcane"]:
+			if look.native in ["ice", "lightning", "water", "life", "arcane", "plague", "earth"]:
 				var r_su2: float = part.geo("radius", 60.0) / WPS
 				if part.geo_type() != "disk":
 					return
@@ -235,6 +247,8 @@ func part_spawned(part) -> void:
 				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look(look.native)})
 				if look.native == "life":
 					_life_field_start(st.field)
+				elif look.native == "earth":
+					_earth_field_start(st.field)
 				_parts[part.get_instance_id()] = st
 				_presented[part.get_instance_id()] = weakref(part)
 				return
@@ -264,6 +278,15 @@ func part_hit(part, _enemy, at: Vector2) -> void:
 			spawns_burst = true
 	if impact_look == "lightning":
 		_zap(p.x, p.y)
+		return
+	if impact_look == "plague" or impact_look == "earth":
+		if st.family == "spear" or st.look.native != impact_look:
+			if impact_look == "plague":
+				_plague_contact(p.x, p.y)
+			else:
+				_earth_contact(p.x, p.y)
+		elif not spawns_burst:
+			_burst(impact_look, p, 11.0)
 		return
 	if impact_look == "life":
 		if st.family == "spear" or st.look.native != "life":
@@ -350,6 +373,10 @@ func step(dt: float) -> void:
 					_life_field(st.field, dt)
 				elif st.look.native == "arcane":
 					_arcane_field(st.field, dt)
+				elif st.look.native == "plague":
+					_plague_field(st.field, dt)
+				elif st.look.native == "earth":
+					_earth_field(st.field, dt)
 				if st.look.accent != "":
 					_accent_field(st.look.accent, st.field, dt)
 			"wave":
@@ -376,6 +403,10 @@ func step(dt: float) -> void:
 					_life_nova(pos, float(part.front) / WPS, dt)
 				elif st.look.native == "arcane":
 					_arcane_nova(pos, float(part.front) / WPS, dt)
+				elif st.look.native == "plague":
+					_plague_nova(pos, float(part.front) / WPS, dt)
+				elif st.look.native == "earth":
+					_earth_nova(pos, float(part.front) / WPS, dt)
 				if st.look.accent != "":
 					_accent_nova(st.look.accent, pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
 				else:
@@ -386,6 +417,7 @@ func step(dt: float) -> void:
 	_shocked(dt)
 	_entangled(dt)
 	_vulnerable(dt)
+	_poisoned(dt)
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	var vel: Vector2 = (pos - st.last) / maxf(dt, 0.0001)
@@ -405,6 +437,10 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		_water_trail(st, pos, vel, dt, native == "water")
 	if native == "life" or accent == "life":
 		_life_trail(st, pos, vel, dt)
+	if native == "plague" or accent == "plague":
+		_plague_trail(pos, vel, dt)
+	if native == "earth" or accent == "earth":
+		_earth_trail(pos, vel, dt)
 	if native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
@@ -852,6 +888,9 @@ func _shocked(dt: float) -> void:
 func accumulate_water() -> void:
 	var t: float = vfx._t
 	for st in _parts.values():
+		if st.look.native == "plague":
+			_plague_goo(st, t)
+			continue
 		if st.look.native != "water":
 			continue
 		var part = st.part.get_ref()
@@ -1132,6 +1171,10 @@ func _burst(look: String, pos: Vector2, r_su: float) -> void:
 		"arcane":
 			_arcane_impact(pos.x, pos.y, clampf(r_su / 12.0, 0.6, 2.5))
 			vfx.ring(pos.x, pos.y, r_su, 0.25, SPARK.arcane)
+		"plague":
+			_plague_impact(pos.x, pos.y, clampf(r_su / 11.0, 0.6, 2.5))
+		"earth":
+			_earth_impact(pos.x, pos.y, clampf(r_su / 12.0, 0.6, 2.5))
 
 ## Rune burst: glyph ring, spark spray, ring, rune decal.
 func _arcane_impact(x: float, y: float, s: float) -> void:
@@ -1203,6 +1246,10 @@ func _accent_field(accent: String, A: Dictionary, dt: float) -> void:
 			_water_field(A, dt * 0.5)
 		"life":
 			_life_field(A, dt * 0.5)
+		"plague":
+			_plague_field(A, dt * 0.5)
+		"earth":
+			_earth_field(A, dt * 0.5)
 
 func _accent_nova(accent: String, c: Vector2, r: float, k: float, dt: float) -> void:
 	match accent:
@@ -1217,6 +1264,10 @@ func _accent_nova(accent: String, c: Vector2, r: float, k: float, dt: float) -> 
 			_water_nova(c, r, dt * 0.5)
 		"life":
 			_life_nova(c, r, dt)
+		"plague":
+			_plague_nova(c, r, dt * 0.5)
+		"earth":
+			_earth_nova(c, r, dt * 0.5)
 
 ## Slash (instant cone): the sandbox smear sweeping the cone's real arc and
 ## radius, emitting the impact look along its leading edge.
@@ -1255,6 +1306,16 @@ func _emit_at(el_name: String, x: float, y: float, fx: float, fy: float) -> void
 				el.blade(x, y, 2 + randi() % 3, 0.0, 0.9 + randf() * 0.5, randf() < 0.15)
 			if randf() < 0.15:
 				el.leaf(x, y - 2.0, fx * 14.0, -8.0, LIFE.petal if randf() < 0.3 else LIFE.leaf, 0.9)
+		"plague":
+			if randf() < 0.12:
+				el.gblob(x, y, fx * 40.0 + (randf() - 0.5) * 10.0, fy * 30.0 + (randf() - 0.5) * 8.0, 1.4 + randf(), 0.45 + randf() * 0.3, true)
+			if randf() < 0.45:
+				el.bubble(x, y, randf() < 0.2)
+		"earth":
+			if randf() < 0.15:
+				el.crystal(x, y, 5.0 + randf() * 5.0, 0.4 + randf() * 0.3, EAR.body)
+			if randf() < 0.35:
+				el.dust(x, y, fx * 16.0, fy * 10.0)
 		"arcane":
 			if randf() < 0.6:
 				vfx.spark(x, y, fx * 30.0, fy * 24.0, 0.4, SPARK.arcane)
@@ -1301,6 +1362,160 @@ func _vulnerable(dt: float) -> void:
 	_marked = list
 
 var _marked: Array = []
+
+# ------------------------------------------------------------------ plague (sandbox FX.plague, polish pass 2: bubbles first)
+
+func _plague_goo(st: Dictionary, t: float) -> void:
+	var part = st.part.get_ref()
+	if part == null or not is_instance_valid(part) or part.done:
+		return
+	var pos: Vector2 = part.global_position / WPS
+	match st.kind:
+		"projectile":
+			var d: Vector2 = pos - st.last
+			var u: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
+			if st.family == "spear":
+				for i in 5:
+					vfx.gsplat(2, pos.x - u.x * i * 2.2, pos.y - u.y * i * 2.2, 2.3 - i * 0.3)
+				return
+			var big := 1.35 if st.family == "ball" else 1.0
+			vfx.gsplat(2, pos.x, pos.y, (3.4 + sin(t * 13.0) * 0.3) * big)
+			vfx.gsplat(2, pos.x - u.x * 3.0 + cos(t * 11.0) * 0.6, pos.y - u.y * 3.0 + sin(t * 9.0) * 0.6, 2.3 * big)
+			vfx.gsplat(2, pos.x - u.x * 5.5, pos.y - u.y * 5.5, 1.4 * big)
+		"field":
+			var A: Dictionary = st.field
+			var K: float = vfx.K
+			var R := ceili((A.r - 2.0) * K)
+			var cx := roundi(A.x * K)
+			var cy := roundi(A.y * K)
+			var thr: float = 0.9 - minf(1.0, A.age * 2.0) * 0.06
+			for oy in range(-R, R + 1):
+				for ox in range(-R, R + 1):
+					if ox * ox + oy * oy > R * R:
+						continue
+					var X := (cx + ox) / K
+					var Y := (cy + oy) / K
+					if vfx.vn_fast(X * 0.16, Y * 0.16 + t * 0.25) + vfx.vn_fast(X * 0.4 + 5.0, Y * 0.4 - t * 0.5) * 0.3 > thr:
+						vfx.water_cell(3, cx + ox, cy + oy, 1.1)
+
+func _plague_trail(p: Vector2, vel: Vector2, dt: float) -> void:
+	var el = vfx.elements
+	if randf() < 0.15 * dt * 60.0:
+		el.gblob(p.x, p.y, 0.0, 0.0, 0.9, 0.3, false, 60.0)
+	if randf() < 0.6 * dt * 60.0:
+		el.bubble(p.x - vel.x * 0.03 + (randf() - 0.5) * 4.0, p.y + (randf() - 0.5) * 4.0, randf() < 0.2)
+
+func _plague_impact(x: float, y: float, s: float) -> void:
+	var el = vfx.elements
+	for i in roundi(24 * s):
+		el.bubble(x + (randf() - 0.5) * 14.0 * s, y + (randf() - 0.5) * 14.0 * s * 0.6, randf() < 0.3)
+	for i in roundi(5 * s):
+		var a := randf() * TAU
+		el.gblob(x, y, cos(a) * 25.0, sin(a) * 18.0, 1.1, 0.5, true)
+	vfx.ring(x, y, 11.0 * s, 0.3, [PLG.hi, PLG.light, PLG.mid])
+	vfx.scorch(x, y, 6.0 * s, 6.0, "stain")
+	vfx.hitstop(1)
+
+func _plague_contact(x: float, y: float) -> void:
+	for i in 6:
+		var a := randf() * TAU
+		vfx.elements.gblob(x, y, cos(a) * 30.0, sin(a) * 22.0, 1.3, 0.5, true)
+	vfx.elements.bubble(x, y - 2.0, false)
+
+func _plague_field(A: Dictionary, dt: float) -> void:
+	if randf() < minf(1.0, 1.0 * dt * 60.0 * maxf(1.0, A.r / 20.0)):
+		var q := _in_disk(A.x, A.y, A.r)
+		vfx.elements.bubble(q.x, q.y, randf() < 0.25)
+
+func _plague_nova(c: Vector2, r: float, dt: float) -> void:
+	var n := TAU * r * 0.07 * dt * 60.0
+	var i := 0.0
+	while i < n:
+		if i + 1.0 > n and randf() > n - i:
+			break
+		var a := randf() * TAU
+		vfx.elements.bubble(c.x + cos(a) * r, c.y + sin(a) * r, randf() < 0.3)
+		i += 1.0
+
+## Poison: bubbles boiling off the enemy.
+func _poisoned(dt: float) -> void:
+	var tree = vfx.get_tree()
+	if tree == null:
+		return
+	var n := 0
+	for e in tree.get_nodes_in_group("enemies"):
+		if n >= MAX_BURNING:
+			break
+		if not is_instance_valid(e) or e.get("status") == null:
+			continue
+		var s = e.status
+		if s.has_method("has") and s.has("poison"):
+			n += 1
+			var p: Vector2 = e.global_position / WPS
+			if randf() < 0.3 * dt * 60.0:
+				vfx.elements.bubble(p.x + (randf() - 0.5) * 7.0, p.y - 3.0 - randf() * 4.0, randf() < 0.15)
+		elif s.has_method("has") and s.has("bleed") and randf() < 0.1 * dt * 60.0:
+			var p2: Vector2 = e.global_position / WPS
+			vfx.elements.dust(p2.x + (randf() - 0.5) * 5.0, p2.y, (randf() - 0.5) * 6.0, -3.0)
+
+# ------------------------------------------------------------------ earth (sandbox FX.earth, rigid)
+
+func _earth_trail(p: Vector2, vel: Vector2, dt: float) -> void:
+	if randf() < 0.5 * dt * 60.0:
+		vfx.elements.dust(p.x - vel.x * 0.03, p.y + 1.0, (randf() - 0.5) * 6.0, -2.0)
+	if randf() < 0.12 * dt * 60.0:
+		vfx.chunk(p.x, p.y, vel.x * 0.1, vel.y * 0.1, 5.0, EAR.debris, 0.6, 1)
+
+## Boulder hit: rubble on z-physics (1:3:9), dust ring, stone spikes, cracks.
+func _earth_impact(x: float, y: float, s: float) -> void:
+	var el = vfx.elements
+	for i in roundi(14 * s):
+		var a := randf() * TAU
+		var sp := (18.0 + randf() * 34.0) * sqrt(s)
+		vfx.chunk(x, y, cos(a) * sp, sin(a) * sp * 0.7, 50.0 + randf() * 60.0, EAR.debris, 1.4 + randf(), 2 if randf() < 0.5 else 1)
+	for i in roundi(12 * s):
+		var a2 := randf() * TAU
+		el.dust(x + cos(a2) * 4.0, y + sin(a2) * 3.0, cos(a2) * 18.0, sin(a2) * 10.0)
+	for i in roundi(3 * s):
+		el.crystal(x + (randf() - 0.5) * 8.0 * s, y + (randf() - 0.5) * 5.0 * s, 5.0 + randf() * 4.0, 0.6 + randf() * 0.4, EAR.body)
+	vfx.crack_decal(x, y, 5, 10.0 * s)
+	vfx.shake(0.4)
+	vfx.hitstop(3)
+
+func _earth_contact(x: float, y: float) -> void:
+	for i in 5:
+		var a := randf() * TAU
+		vfx.chunk(x, y, cos(a) * 20.0, sin(a) * 14.0, 30.0 + randf() * 30.0, EAR.debris, 0.8, 1)
+	vfx.elements.dust(x, y, 0.0, -4.0)
+
+func _earth_field_start(A: Dictionary) -> void:
+	var el = vfx.elements
+	for i in roundi(9.0 * maxf(1.0, A.r * A.r / 400.0)):
+		var q := _in_disk(A.x, A.y, A.r)
+		var h := 6.0 + randf() * 6.0
+		var life: float = A.life - 1.1
+		el.later.append([randf() * 0.5, func(): el.crystal(q.x, q.y, h, life, EAR.body)])
+	vfx.crack_decal(A.x, A.y, 7, A.r, A.life)
+
+func _earth_field(A: Dictionary, dt: float) -> void:
+	if randf() < 0.4 * dt * 60.0 * maxf(1.0, A.r / 20.0):
+		var q := _in_disk(A.x, A.y, A.r)
+		vfx.elements.dust(q.x, q.y, (randf() - 0.5) * 6.0, -2.0)
+
+## Earth nova: stone spikes burst up along the live front (an earth-spike nova
+## is exactly right here), dust thrown outward.
+func _earth_nova(c: Vector2, r: float, dt: float) -> void:
+	var n := TAU * r * 0.018 * dt * 60.0
+	var i := 0.0
+	while i < n:
+		if i + 1.0 > n and randf() > n - i:
+			break
+		var a := randf() * TAU
+		vfx.elements.crystal(c.x + cos(a) * r, c.y + sin(a) * r, 5.0 + randf() * 5.0, 0.4 + randf() * 0.3, EAR.body)
+		i += 1.0
+	if randf() < 0.7 * dt * 60.0:
+		var a2 := randf() * TAU
+		vfx.elements.dust(c.x + cos(a2) * r, c.y + sin(a2) * r, cos(a2) * 14.0, sin(a2) * 8.0)
 
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():
@@ -1390,6 +1605,13 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var pal: Array = BODY[st.look.native]
 		if st.look.native == "lightning":
 			_draw_lightning_body(buf, pos, dir, st.family, sc, st)
+			continue
+		if st.look.native == "plague":
+			continue       # plague body is goo: accumulate_water
+		if st.look.native == "earth":
+			vfx.elements.body(buf, pos, dir, EARTH_BODY[st.family], BODY.earth, RIM[st.look.accent] if st.look.accent != "" else null, true, sc)
+			if st.family != "spear":
+				vfx.elements.spx(buf, roundi(pos.x) + 1, roundi(pos.y), BODY.earth[3])
 			continue
 		if st.look.native == "life":
 			vfx.elements.body(buf, pos, dir, LIFE_BODY[st.family], BODY.life, RIM[st.look.accent] if st.look.accent != "" else null, true, sc)

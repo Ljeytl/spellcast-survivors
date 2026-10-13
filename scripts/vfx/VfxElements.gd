@@ -78,6 +78,17 @@ const ARCANE := {
 	"floor2": Color("#2a2656"),
 }
 const GLYPH := [[".x.x.", "xxxxx", "..x..", ".x.x.", "x...x"], ["xxx..", "..x..", ".xxx.", "..x..", "..xxx"], ["x...x", ".x.x.", "..x..", ".x.x.", "x...x"], [".xxx.", "x...x", "x.x.x", "x...x", ".xxx."]]
+# Sandbox EL.plague / EL.earth
+const PLAGUE := {
+	"hi": Color("#e4fbb0"), "light": Color("#a6e45e"), "mid": Color("#56b23e"), "dark": Color("#2c6e3a"), "outline": Color("#1b1a2c"),
+	"rim": [Color("#6fd04a"), Color("#c4f383")],
+}
+const EARTH := {
+	"body": [Color("#e8dcc0"), Color("#c9b48c"), Color("#9a7d5a"), Color("#5e4630"), Color("#2a1e16")],
+	"debris": [Color("#c9b48c"), Color("#9a7d5a"), Color("#5e4630")],
+	"dust": [Color("#9a8670"), Color("#7a6a58"), Color("#5a4c40")],
+	"rim": [Color("#c9a46a"), Color("#e8dcc0")],
+}
 const SHADOW := Color("#16141b")
 const INK := Color("#120e14")
 
@@ -88,7 +99,8 @@ var crystals: Array = []    # [x, y, h, tilt, age, life, pal]
 var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch, pts]  pts null = regenerate every step
 var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
 var flakes: Array = []      # [x, y, vx, vy, age, life, size, spin, ph, g]
-var blobs: Array = []       # [x, y, vx, vy, r, age, life, g, stick]   water goo blobs (sandbox wblob)
+var blobs: Array = []       # [x, y, vx, vy, r, age, life, g, stick, layer]   goo blobs; layer 0 water, 2 plague
+var bubbles: Array = []     # [x, y, vy, r, age, life]                 plague bubbles
 var streaks: Array = []     # [x0, y0, x1, y1, age, life, cols]        foam streaks
 var rays: Array = []        # [x, y, ang, len, age, life, cols, r0]    spray rays
 var later: Array = []       # [t, Callable]                            delayed spawns (ripples)
@@ -105,7 +117,7 @@ func _init(owner):
 
 func clear():
 	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear(); flakes.clear()
-	blobs.clear(); streaks.clear(); rays.clear(); later.clear()
+	blobs.clear(); streaks.clear(); rays.clear(); later.clear(); bubbles.clear()
 	leaves.clear(); blades.clear(); vines.clear(); tufts.clear()
 	glyphs.clear(); runes.clear(); slashes.clear()
 
@@ -127,7 +139,21 @@ func flake(x: float, y: float, vx: float, vy: float, life: float, size: int = 1,
 # --- water (sandbox FX.water helpers)
 func wblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stick: bool, g: float = 0.0):
 	if blobs.size() < (60 if vfx.reduced_effects else 200):
-		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick])
+		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick, 0])
+
+## Plague goo blob (sandbox blobs, non-water): outlined green goo.
+func gblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stick: bool, g: float = 0.0):
+	if blobs.size() < (60 if vfx.reduced_effects else 200):
+		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick, 2])
+
+## Bubble: rises and wobbles, swells, pops into a few motes (sandbox bubble).
+func bubble(x: float, y: float, big: bool):
+	if bubbles.size() < (80 if vfx.reduced_effects else 240):
+		bubbles.append([x, y, -(5.0 + randf() * 7.0), 2.0 if big else 1.2, 0.0, 0.5 + randf() * 0.7])
+
+## Earth dust: a falling-up mote in dust tones (sandbox dust).
+func dust(x: float, y: float, vx: float, vy: float):
+	mote(x, y, vx, vy, EARTH.dust, 0.6 + randf() * 0.4, -2.0, 2.0)
 
 func droplet(x: float, y: float, vx: float, vy: float, vz: float):
 	vfx.chunk(x, y, vx, vy, vz, WATER.foam, 0.5 + randf() * 0.5, 1)
@@ -153,7 +179,7 @@ func ray(x: float, y: float, ang: float, len: float, life: float, cols: Array, r
 func accumulate_water():
 	for b in blobs:
 		var k: float = b[5] / b[6]
-		vfx.gsplat(1 if b[8] and k > 0.35 else 0, b[0], b[1], b[4] * (1.0 - k * 0.5))
+		vfx.gsplat(b[9] + (1 if b[8] and k > 0.35 else 0), b[0], b[1], b[4] * (1.0 - k * 0.5))
 
 # --- life (sandbox FX.life helpers)
 func leaf(x: float, y: float, vx: float, vy: float, cols: Array, life: float):
@@ -292,6 +318,18 @@ func step(dt: float):
 		b[1] += b[3] * dt
 		keep.append(b)
 	blobs = keep
+	keep = []
+	for q in bubbles:
+		q[4] += dt
+		q[1] += q[2] * dt
+		q[0] += sin(q[4] * 9.0 + q[1]) * 3.0 * dt
+		if q[4] > q[5]:
+			for i in 3:
+				var a := randf() * TAU
+				mote(q[0], q[1], cos(a) * 14.0, sin(a) * 14.0, [PLAGUE.hi, PLAGUE.light], 0.15)
+			continue
+		keep.append(q)
+	bubbles = keep
 	for arr in [streaks, rays]:
 		var k2: Array = []
 		for q in arr:
@@ -494,6 +532,18 @@ func draw_over(buf: PackedByteArray):
 		draw_glyph(buf, g[0], g[1], g[5], cols[mini(cols.size() - 1, int(kg * cols.size()))])
 	for sl in slashes:
 		_draw_slash(buf, sl)
+	# bubbles: dark rim, light body, one specular pixel; swell before popping
+	for q in bubbles:
+		var kb: float = q[4] / q[5]
+		var r: float = q[3] + (0.6 if kb > 0.75 else 0.0)
+		var R := ceili(r + 1.0)
+		for oy in range(-R, R + 1):
+			for ox in range(-R, R + 1):
+				var d := Vector2(ox, oy).length()
+				if d > r + 0.5:
+					continue
+				spx(buf, roundi(q[0]) + ox, roundi(q[1]) + oy, PLAGUE.outline if d > r - 0.5 else PLAGUE.light)
+		spx(buf, roundi(q[0]) - roundi(r * 0.5), roundi(q[1]) - roundi(r * 0.5), PLAGUE.hi)
 	for q in rays:
 		var k: float = q[4] / q[5]
 		var len: float = q[3] * (k / 0.3 if k < 0.3 else 1.0)

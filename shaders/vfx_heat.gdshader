@@ -9,7 +9,7 @@ uniform float thresholds[5];
 uniform vec4 colors[5];
 uniform vec4 glow;
 uniform ivec2 origin;   // world cell of texel (0,0), keeps dither parity world-locked
-uniform sampler2D water_tex : filter_nearest;   // r = air goo (sandbox wAir), g = ground goo
+uniform sampler2D water_tex : filter_nearest;   // r = water air (sandbox wAir), g = water ground, b = plague air (gooAir), a = plague ground
 uniform bool water_on = false;
 const vec4 W_HI = vec4(1.0);
 const vec4 W_LIGHT = vec4(0.651, 0.902, 1.0, 1.0);    // #a6e6ff
@@ -17,6 +17,31 @@ const vec4 W_MID = vec4(0.247, 0.624, 0.894, 1.0);    // #3f9fe4
 
 float water_at(ivec2 p, ivec2 sz) {
 	return texelFetch(water_tex, clamp(p, ivec2(0), sz - 1), 0).r;
+}
+float goo_at(ivec2 p, ivec2 sz) {
+	return texelFetch(water_tex, clamp(p, ivec2(0), sz - 1), 0).b;
+}
+// sandbox EL.plague
+const vec4 G_HI = vec4(0.894, 0.984, 0.690, 1.0);     // #e4fbb0
+const vec4 G_LIGHT = vec4(0.651, 0.894, 0.369, 1.0);  // #a6e45e
+const vec4 G_MID = vec4(0.337, 0.698, 0.243, 1.0);    // #56b23e
+const vec4 G_DARK = vec4(0.173, 0.431, 0.227, 1.0);   // #2c6e3a
+const vec4 G_LINE = vec4(0.106, 0.102, 0.173, 1.0);   // #1b1a2c
+
+// sandbox drawGoo: dark outline, highlight up-left, shade down-right
+vec4 goo_color(ivec2 p, ivec2 sz, vec4 fallback) {
+	if (goo_at(p, sz) < 0.5) {
+		return fallback;
+	}
+	if (goo_at(p + ivec2(0, -1), sz) < 0.5 || goo_at(p + ivec2(0, 1), sz) < 0.5 || goo_at(p + ivec2(-1, 0), sz) < 0.5 || goo_at(p + ivec2(1, 0), sz) < 0.5) {
+		return G_LINE;
+	}
+	bool tl = goo_at(p + ivec2(0, -2), sz) < 0.5 || goo_at(p + ivec2(-2, 0), sz) < 0.5;
+	bool br = goo_at(p + ivec2(0, 2), sz) < 0.5 || goo_at(p + ivec2(2, 0), sz) < 0.5;
+	if (tl && goo_at(p + ivec2(-1, -2), sz) < 0.5 && goo_at(p + ivec2(-2, -1), sz) < 0.5) {
+		return G_HI;
+	}
+	return tl ? G_LIGHT : (br ? G_DARK : G_MID);
 }
 
 float heat_at(ivec2 p, ivec2 sz) {
@@ -42,6 +67,7 @@ void fragment() {
 	// Water in the air (sandbox drawWater, air): no dark outline, water is mostly
 	// light; the top edge and the band just under it catch white.
 	if (water_on) {
+		col = goo_color(p, sz, col);
 		float wv = water_at(p, sz);
 		if (wv >= 0.5) {
 			bool up = water_at(p + ivec2(0, -1), sz) < 0.5;
