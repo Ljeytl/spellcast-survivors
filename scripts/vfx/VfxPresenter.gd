@@ -27,12 +27,15 @@ const SPARK := {
 }
 const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5")}
 const INK := Color("#120e14")
+# Magma core (fireball): dark crust, glowing cracks, hot seams. Hue-shifted
+# toward red in the dark end, white kept out (white is for impacts).
+const MAGMA := [Color("#2a0f0c"), Color("#4a1a12"), Color("#c2361a"), Color("#ff8a1f"), Color("#ffd54a")]
 
 # Sandbox projectile presets (SPELLS.bolt / spear / fireball / fiery), sandbox units.
 const FAMILY := {
 	"bolt": {"body": {"t": "diamond", "a": 4.0, "b": 2.0}, "trail": {"rate": 2.0, "per_dist": 0.5, "heat": 1.0, "spread": 0.8, "grip": 0.15, "inh": 0.25, "ember": 0.15}, "impact": 0.55},
 	"spear": {"body": {"t": "diamond", "a": 8.0, "b": 1.4}, "trail": {"rate": 3.0, "per_dist": 0.8, "heat": 1.1, "spread": 0.8, "grip": 0.2, "inh": 0.35, "ember": 0.3}, "impact": 0.35},
-	"ball": {"body": {"t": "orb", "r": 3.5}, "trail": {"rate": 5.0, "per_dist": 0.9, "heat": 1.35, "spread": 2.2, "grip": 0.35, "inh": 0.3, "ember": 0.35}, "impact": 1.4},
+	"ball": {"body": {"t": "orb", "r": 3.5}, "trail": {"rate": 6.0, "per_dist": 1.1, "heat": 1.0, "spread": 3.0, "grip": 0.35, "inh": 0.3, "ember": 0.35}, "impact": 1.4},
 }
 # Fire-native projectiles have no drawn shape: the body is a knot of hot,
 # high-grip flames riding the projectile plus a tiny white core. "r" = knot
@@ -41,7 +44,7 @@ const FAMILY := {
 const FIRE_BODY := {
 	"bolt": {"r": 1.3, "n": 1.5, "len": 1.6, "heat": 0.45, "core": 1},
 	"spear": {"r": 0.7, "n": 2.0, "len": 5.0, "heat": 0.45, "core": 1},
-	"ball": {"r": 2.4, "n": 3.0, "len": 1.0, "heat": 0.5, "core": 2},
+	"ball": {"r": 3.6, "n": 5.0, "len": 1.0, "heat": 0.4, "core": 0, "magma": 3.2},
 }
 # Keyword-accent trail (sandbox "Fiery Bolt"): light flames under the native body.
 const ACCENT_TRAIL := {"rate": 1.0, "per_dist": 0.25, "heat": 0.65, "spread": 0.6, "grip": 0.1, "inh": 0.2, "ember": 0.3, "small": 1.0}
@@ -332,6 +335,37 @@ func _staff_su(caster) -> Vector2:
 
 # ------------------------------------------------------------------ bodies
 
+## Magma ball: lumpy disk (noise on the radius), crust with crack bands that
+## crawl over time, a brighter leading face. Pattern is in body-local cells so
+## the cracks ride with the ball instead of sliding through it.
+func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, seed: int) -> void:
+	var K: float = vfx.K
+	var cx := roundi(pos.x * K)
+	var cy := roundi(pos.y * K)
+	var R: float = r_su * K
+	var t: float = vfx._t
+	var sd := float(seed % 97)
+	var n := ceili(R + 2.0)
+	for oy in range(-n, n + 1):
+		for ox in range(-n, n + 1):
+			var d := Vector2(ox, oy).length()
+			var ang := atan2(float(oy), float(ox))
+			var edge: float = R * (0.86 + 0.22 * vfx.vn(cos(ang) * 1.6 + sd + t * 2.0, sin(ang) * 1.6))
+			if d > edge:
+				continue
+			var cr: float = vfx.vn(ox * 0.55 + sd + t * 1.3, oy * 0.55 - t * 0.9)
+			var lead := (ox * dir.x + oy * dir.y) / maxf(R, 1.0)
+			var c: Color
+			if absf(cr - 0.5) < 0.07 + 0.05 * lead:
+				c = MAGMA[4] if lead > 0.3 else MAGMA[3]
+			elif absf(cr - 0.5) < 0.14:
+				c = MAGMA[2]
+			elif d > edge - 1.0:
+				c = MAGMA[0] if lead < 0.2 else MAGMA[2]
+			else:
+				c = MAGMA[1] if cr > 0.5 else MAGMA[0]
+			vfx._put(buf, cx + ox, cy + oy, c)
+
 ## Projectile bodies (sandbox drawBody): shaded shape in the native palette,
 ## oriented to motion, dark outer outline so the hitbox reads over its own tail,
 ## edge in the accent colour when a keyword element is present.
@@ -352,7 +386,11 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		if st.look.native == "fire":
 			# No shape: the flame knot is the body. A small white-hot core keeps the
 			# hitbox readable over its own tail (white only for the hottest point).
-			var cc: int = FIRE_BODY[st.family].core
+			var fbd: Dictionary = FIRE_BODY[st.family]
+			if fbd.has("magma"):
+				_draw_magma(buf, pos, dir, float(fbd.magma) * sc, part.get_instance_id())
+				continue
+			var cc: int = fbd.core
 			var ccx := roundi(pos.x * K + dir.x * K * 0.5)
 			var ccy := roundi(pos.y * K + dir.y * K * 0.5)
 			for oy in range(-cc, cc):
