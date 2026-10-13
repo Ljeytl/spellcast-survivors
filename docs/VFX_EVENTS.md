@@ -38,7 +38,8 @@ Optional per-part hint in `data/generic_spells.json`: `"vfx": {"family": "spear"
 
 - **Native look** = `plan.element` (`""` and `arcane` → Arcane, `fire` → Fire). It owns the body shape and palette.
 - **Accent look** = the first keyword element in `plan.elements` that differs from the native one. It owns the rim colour, an extra trail, the impact and the status (plan §5.1). `fiery spear` = Arcane spear body with an orange edge, a light flame trail, fire bursts on each contact, burning enemies.
-- Looks built so far: Fire (full), Arcane (body + twinkle trail + spark impact). Water, Storm, Earth, Plague, Life keep the placeholder until their looks land.
+- Looks built so far: Fire (full; projectiles are made of flames, fireball has a magma core), Ice (full), Arcane (body + twinkle trail + spark impact). Storm, Earth, Plague, Life and non-cold Water keep the placeholder until their looks land.
+- **Water vs Ice:** the engine has one `water` element. A spell gets the Ice look when a part's payload applies `chilled` or `frozen`, or a part has `"vfx": {"look": "ice"}`; a water keyword accent (`icy`, `frosty`) carries `chilled`, so it is Ice. Other water spells get the Water look (not built yet).
 
 ## Shapes presented so far
 
@@ -46,8 +47,10 @@ Optional per-part hint in `data/generic_spells.json`: `"vfx": {"family": "spear"
 |---|---|
 | projectile · body | shaded body (bolt / spear / ball), trail per distance with attach `inherit`/`grip`, contact bursts |
 | volume · disk · instant | impact recipe sized to the real radius: designed star, flash, flame bloom, ring that breaks into segments, 1:3:9 debris, smoke, scorch, VFX-only hit-stop, camera shake on big hits |
-| field / aura · disk | banded floor + bright rim at the real radius, flame tongues, embers, smoke; follows the part; erodes when it ends |
-| everything else (rings, cones, lines, rects, traps) | placeholder for now |
+| field / aura · disk | banded floor + bright rim at the real radius, flame tongues, embers, smoke (Ice: rime floor, crystals snapping up and shattering, motes); follows the part; erodes when it ends |
+| field / aura · line | fire wall: floor + rim exactly on the rect hitbox, tall flames along it |
+| volume · ring · expanding | Ice: crystals erupt along the live front (`part.front`) and shatter; dashed rim at the front |
+| everything else (instant rings, cones, travelling rects, traps) | placeholder for now |
 
 ## Wiring status
 

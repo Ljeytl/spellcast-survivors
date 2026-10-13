@@ -41,7 +41,9 @@ const HEAT_SHADER := preload("res://shaders/vfx_heat.gdshader")
 const GROUND_SHADER := preload("res://shaders/vfx_ground.gdshader")
 const DECAL_SHADER := preload("res://shaders/vfx_decal.gdshader")
 const PRESENTER := preload("res://scripts/vfx/VfxPresenter.gd")
+const ELEMENTS := preload("res://scripts/vfx/VfxElements.gd")
 const SHADOW := Color("#16141b")
+const FROST := [Color("#2a3c50"), Color("#3d5a78")]
 
 # Fire material (sandbox MAT_SRC.fire). Thresholds descending.
 const FIRE_HEAT := [[1.6, Color("#fff7d6")], [1.1, Color("#ffd54a")], [0.7, Color("#ff8a1f")], [0.35, Color("#e0401c")], [0.12, Color("#7a1f14")]]
@@ -55,6 +57,18 @@ const FIRE_RIM := [Color("#ff8a1f"), Color("#ffd54a")]
 const FIRE_FLOOR := [Color("#2a1416"), Color("#3a1512"), Color("#5a1a12")]
 # Floor light: warm tints over whatever ground is there (sandbox lit1/lit2).
 const FIRE_LIT := [Color(1.0, 0.55, 0.2, 0.1), Color(1.0, 0.6, 0.22, 0.2)]   # faint: stronger read as yellow haze on grass
+
+# Field floor looks, indexed by field "look" (0 = fire). Ground shader style:
+# 0 = fire floor (sandbox drawAreas), 1 = element floor (sandbox drawEFields).
+const FIELD_LOOKS := [
+	{"name": "fire", "style": 0},
+	{"name": "ice", "style": 1, "floor": ["#1c2433", "#233247", "#2f4560"], "rim": ["#8fd3ee", "#ffffff"]},
+]
+static func field_look(name: String) -> int:
+	for i in FIELD_LOOKS.size():
+		if FIELD_LOOKS[i].name == name:
+			return i
+	return 0
 
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
@@ -89,6 +103,7 @@ var _stars: Array = []               # [x, y, size, age, life, points, color]
 var _rings: Array = []               # [x, y, max, age, life, palette, seed]
 var _debris: Array = []              # [x, y, z, vx, vy, vz, palette, age, life, size, bounced]
 var presenter                        # VfxPresenter: spell-engine events -> looks
+var elements                         # VfxElements: motes, shards, crystals (non-fire looks)
 
 var _heat := PackedFloat32Array()
 var _under := PackedByteArray()
@@ -152,10 +167,20 @@ static func _make_disks() -> Array:
 func _ready():
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	presenter = PRESENTER.new(self)
+	elements = ELEMENTS.new(self)
 	var gmat := ShaderMaterial.new()
 	gmat.shader = GROUND_SHADER
-	gmat.set_shader_parameter("floor_cols", PackedColorArray(FIRE_FLOOR))
-	gmat.set_shader_parameter("rim_cols", PackedColorArray(FIRE_RIM))
+	var fc := PackedColorArray(FIRE_FLOOR)
+	var rc := PackedColorArray(FIRE_RIM)
+	for look in FIELD_LOOKS.slice(1):
+		for h in look.floor:
+			fc.append(Color(h))
+		for h in look.rim:
+			rc.append(Color(h))
+	fc.resize(24)
+	rc.resize(16)
+	gmat.set_shader_parameter("floor_cols", fc)
+	gmat.set_shader_parameter("rim_cols", rc)
 	gmat.set_shader_parameter("lit1", FIRE_LIT[0])
 	gmat.set_shader_parameter("lit2", FIRE_LIT[1])
 	gmat.set_shader_parameter("k", K)
@@ -198,6 +223,8 @@ func clear():
 	_f_anchor.clear()
 	_f_count = 0
 	_embers.clear(); _smoke.clear(); _fields.clear()
+	if elements:
+		elements.clear()
 	_sparks.clear(); _flashes.clear(); _stars.clear(); _rings.clear(); _debris.clear()
 	for d in _decals:
 		d[0].queue_free()
@@ -330,7 +357,7 @@ func puff(x: float, y: float, s: int = 0):
 func field(x: float, y: float, r: float, life: float, o: Dictionary = {}) -> Dictionary:
 	var f := {"x": x, "y": y, "r": r, "age": 0.0, "life": life, "acc": 0.0,
 		"rate": o.get("rate", 1.0), "heat_k": o.get("heat_k", 0.8), "trail": o.get("trail", false),
-		"axis": o.get("axis", Vector2.ZERO)}
+		"axis": o.get("axis", Vector2.ZERO), "look": int(o.get("look", 0))}
 	_fields.append(f)
 	if _fields.size() > MAX_FIELDS:
 		_fields.pop_front()
@@ -338,7 +365,7 @@ func field(x: float, y: float, r: float, life: float, o: Dictionary = {}) -> Dic
 
 ## Scorch decal (sandbox drawDecals), rasterized once into a world-locked sprite;
 ## the dissolve runs in vfx_decal.gdshader. Position/radius in su.
-func scorch(x: float, y: float, r: float, life: float = 6.0):
+func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "scorch"):
 	if _decals.size() >= 40:
 		var old = _decals.pop_front()
 		old[0].queue_free()
@@ -355,7 +382,12 @@ func scorch(x: float, y: float, r: float, life: float = 6.0):
 			var dist := Vector2(qx, qy * 1.25).length()
 			var edge := rc * (0.7 + 0.55 * vn(X / K * 0.3 + seed, Y / K * 0.3))
 			if dist < edge:
-				var c: Color = FIRE_SCORCH[0] if dist < edge * 0.55 else FIRE_SCORCH[1]
+				var c: Color
+				if kind == "frost":
+					# sandbox drawEDecals 'frost': rime with a lighter rim and glints
+					c = FROST[1] if dist > edge * 0.6 or hs(X, Y) > 0.8 else FROST[0]
+				else:
+					c = FIRE_SCORCH[0] if dist < edge * 0.55 else FIRE_SCORCH[1]
 				c.a = (BAYER[((Y & 3) << 2) | (X & 3)] + 1) / 17.0
 				img.set_pixel(qx + R, qy + R, c)
 	var mat := ShaderMaterial.new()
@@ -518,6 +550,8 @@ func _update_fields(dt: float):
 		if axis != Vector2.ZERO:
 			_update_line_field(A, axis, dt)
 			continue
+		if A.look != 0:
+			continue          # element fields: their look's presenter emits the particles
 		# Sandbox: max(1, n/3) tongues per 60 fps frame, made frame-rate independent.
 		var n: float = r * r * 0.0042 * A.rate
 		A.acc += maxf(1.0, n / 3.0) * dt * 60.0
@@ -562,6 +596,7 @@ func _update_line_field(A: Dictionary, axis: Vector2, dt: float):
 func _step(dt: float):
 	_t += dt
 	presenter.step(dt)
+	elements.step(dt)
 	_update_fields(dt)
 	_step_impacts(dt)
 	var k93 := pow(0.93, dt * 60.0)
@@ -737,7 +772,7 @@ func _render(stepped: bool):
 		var v := minf(1.0, minf(A.age / 0.25, (A.life - A.age) / 0.5))
 		fl.append(Vector4(roundf(A.x * K), roundf(A.y * K), A.r * K, v))
 		var ax: Vector2 = A.axis * K
-		fa.append(Vector4(ax.x, ax.y, 0.0, 0.0))
+		fa.append(Vector4(ax.x, ax.y, float(A.look), float(FIELD_LOOKS[A.look].style)))
 	g.set_shader_parameter("field_count", fl.size())
 	fl.resize(MAX_FIELDS)
 	fa.resize(MAX_FIELDS)
@@ -882,8 +917,10 @@ func _draw_impacts():
 			for q in th + 1:
 				_put(_ground, X + int(signf(cos(a))) * q, Y, c)
 				_put(_ground, X, Y + int(signf(sin(a))) * q, c)
+	elements.draw_ground(_ground)
 	_upload("ground", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _ground))
 	presenter.draw_bodies(_over)
+	elements.draw_over(_over)
 	for f in _flashes:
 		_disk(_over, roundi(f[0] * K), roundi(f[1] * K), f[2] * K, f[5])
 	for s in _stars:

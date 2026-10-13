@@ -163,10 +163,24 @@ func run():
 	check(vfx._decals.size() >= 1, "Fireball blast leaves a scorch decal")
 	check(Engine.time_scale == ts and not paused, "Impact hit-stop never touches game time")
 
-	# Unsupported looks keep the placeholder art.
+	# Ice look: water spells with a cold status. Frost nova = crystals along the live front.
 	clear()
 	foe(Vector2(120, 0))
 	c = cast("frost nova", 0.0)
+	var nova = null
+	for p in c.parts:
+		nova = p
+	check(nova != null and vfx.presents(nova), "Frost nova is presented (ice look)")
+	check(vfx.presenter.look_of(c.plan).native == "ice", "Water + chilled payload resolves to the Ice look")
+	c.run(0.15, DT, tick_all)
+	check(vfx.elements.crystals.size() > 0, "Ice nova raises crystals along the front")
+	c.run(1.0, DT, tick_all)
+	check(vfx.elements.shards.size() + vfx.elements.motes.size() > 0, "Crystals shatter into shards and motes (break up, don't fade)")
+
+	# Water without a cold status has no look yet: placeholder art stays.
+	clear()
+	foe(Vector2(120, 0))
+	c = cast("tsunami", 0.0)
 	var any_presented = false
 	for p in c.parts:
 		any_presented = any_presented or vfx.presents(p)

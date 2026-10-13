@@ -11,9 +11,9 @@ uniform float t;                       // VFX sim time (s)
 uniform int tick;                      // sandbox (frame >> 3)
 uniform int field_count;
 uniform vec4 fields[32];               // center x, y (cells), radius / half-width (cells), fade-in/out vis
-uniform vec4 field_axis[32];           // line fields: half-length axis x, y (cells); zero for disks
-uniform vec4 floor_cols[3];
-uniform vec4 rim_cols[2];
+uniform vec4 field_axis[32];           // line fields: half-length axis x, y (cells), zero for disks; z = look index; w = floor style
+uniform vec4 floor_cols[24];           // 3 per look
+uniform vec4 rim_cols[16];             // 2 per look
 uniform sampler2D light_tex : filter_nearest;
 uniform vec2 light_origin;             // light texel (0,0) in light cells
 uniform float light_cell;              // cells per light texel
@@ -52,8 +52,9 @@ void fragment() {
 	ivec2 p = clamp(ivec2(floor(UV * vec2(sz))), ivec2(0), sz - 1);
 	ivec2 a = p + origin;
 	vec4 col = texelFetch(TEXTURE, p, 0);
-	bool covered = false;
-	for (int i = 0; i < 32; i++) {
+	// CPU ground texels (rings, crystals) sit on top of field floors
+	bool covered = col.a > 0.01;
+	for (int i = 0; i < 32 && !covered; i++) {
 		if (i >= field_count) {
 			break;
 		}
@@ -74,8 +75,18 @@ void fragment() {
 		if (d > r + 0.5 * k || bayer(a) >= f.w) {
 			continue;
 		}
+		int look = int(field_axis[i].z + 0.5);
 		if (abs(d - r) < 0.7 * k) {
-			col = rim_cols[((a.x + a.y + tick) & 3) == 0 ? 1 : 0];
+			col = rim_cols[look * 2 + (((a.x + a.y + tick) & 3) == 0 ? 1 : 0)];
+		} else if (field_axis[i].w > 0.5) {
+			// sandbox drawEFields: element floor; ice barely drifts and glints
+			vec2 s = vec2(a) / k;
+			float drift = look == 1 ? 0.05 : 0.4;
+			float n = vn(s.x * 0.3, s.y * 0.3 + t * drift) * 0.7 + vn(s.x * 0.8 + 3.0, s.y * 0.8) * 0.3;
+			col = n > 0.68 ? floor_cols[look * 3 + 2] : (n > 0.48 ? floor_cols[look * 3 + 1] : floor_cols[look * 3]);
+			if (look == 1 && hs(a.x, a.y) > 0.985 && ((tick + a.x) % 7) == 0) {
+				col = vec4(1.0);
+			}
 		} else if (L > 0.0) {
 			vec2 s = vec2(a) / k;
 			col = vn(s.x * 0.25, s.y * 0.25 + t * 0.8) > 0.6 ? floor_cols[1] : floor_cols[0];

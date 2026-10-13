@@ -13,19 +13,28 @@ extends RefCounted
 const WPS := 1280.0 / 192.0
 
 # Looks implemented so far. Element ids are the spell engine's (SpellDefs.ELEMENTS).
-const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire"}
-const ACCENT_LOOK := {"fire": "fire"}
+const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire", "water": "water"}
+const ACCENT_LOOK := {"fire": "fire", "water": "water"}
+# The engine has one "water" element for water and ice spells (plan section 7:
+# Water/Ice spells pick Water or Ice). Cold statuses or a vfx.look hint pick Ice.
+const COLD := ["chilled", "frozen"]
+const BUILT := ["arcane", "fire", "ice"]
+const ICE := preload("res://scripts/vfx/VfxElements.gd").ICE
 
 # Body palettes (sandbox MAT.*.body): core, light, mid, dark, outline.
 const BODY := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#c2361a"), Color("#4a1610")],
 	"arcane": [Color("#ffffff"), Color("#c9f4ff"), Color("#8fb6f5"), Color("#6a4ad0"), Color("#1c1650")],
+	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8"), Color("#1a2e5a")],
 }
 const SPARK := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#e0401c")],
 	"arcane": [Color("#ffffff"), Color("#bdf3ff"), Color("#a98af5"), Color("#6a4ad0")],
+	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8")],
 }
-const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5")}
+const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff")}
+# Rigid looks keep a drawn body (that IS the technique: crystal sprites).
+const ICE_BODY := {"bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
 const INK := Color("#120e14")
 # Magma core (fireball): dark crust, glowing cracks, hot seams. Hue-shifted
 # toward red in the dark end, white kept out (white is for impacts).
@@ -63,14 +72,31 @@ func _init(owner):
 # ------------------------------------------------------------------ look resolution
 
 static func look_of(plan: Dictionary) -> Dictionary:
-	var native = NATIVE_LOOK.get(str(plan.get("element", "")), "")
+	var native: String = NATIVE_LOOK.get(str(plan.get("element", "")), "")
+	if native == "water":
+		native = "ice" if _plan_is_cold(plan) else "water"
+	if not native in BUILT:
+		native = ""
 	var accent := ""
 	for e in plan.get("elements", []):
-		var a = ACCENT_LOOK.get(str(e.get("element", "")), "")
-		if a != "" and a != native:
+		var a: String = ACCENT_LOOK.get(str(e.get("element", "")), "")
+		if a == "water":
+			a = "ice" if str(e.get("status", "")) in COLD else "water"
+		if a in BUILT and a != native:
 			accent = a
 			break
 	return {"native": native, "accent": accent}
+
+static func _plan_is_cold(plan: Dictionary) -> bool:
+	for pname in plan.get("parts", {}):
+		var pd: Dictionary = plan.parts[pname]
+		var hint := str(pd.get("vfx", {}).get("look", ""))
+		if hint != "":
+			return hint == "ice"
+		for pay in pd.get("payload", []):
+			if str(pay.get("status", "")) in COLD:
+				return true
+	return false
 
 static func family_of(part) -> String:
 	var hint = str(part.def.get("vfx", {}).get("family", ""))
@@ -88,6 +114,8 @@ static func _kind(part) -> String:
 		"volume":
 			if part.geo_type() == "disk" and part._propagation() == "instant":
 				return "burst"
+			if part.geo_type() == "ring" and part._propagation() == "expanding":
+				return "nova"
 		"field", "aura":
 			if part.geo_type() in ["disk", "line"]:
 				return "field"
@@ -126,11 +154,26 @@ func part_spawned(part) -> void:
 		"projectile":
 			st.family = family_of(part)
 		"burst":
-			if look.native != "fire" and look.accent != "fire":
-				return
 			var r_su: float = part.geo("radius", 90.0) / WPS
-			_damage_disk(pos.x, pos.y, maxf(0.35, (r_su - 3.0) / 9.0), {})
+			if look.native == "ice":
+				_ice_impact(pos.x, pos.y, maxf(0.6, r_su / 12.0))
+			elif look.native == "fire" or look.accent == "fire":
+				_damage_disk(pos.x, pos.y, maxf(0.35, (r_su - 3.0) / 9.0), {})
+			else:
+				return
+		"nova":
+			if look.native != "ice":
+				return
 		"field":
+			if look.native == "ice":
+				var r_su2: float = part.geo("radius", 60.0) / WPS
+				if part.geo_type() != "disk":
+					return
+				var life2 := float(part.def.get("timing", {}).get("duration", 3.0))
+				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look("ice")})
+				_parts[part.get_instance_id()] = st
+				_presented[part.get_instance_id()] = weakref(part)
+				return
 			if look.native != "fire" and look.accent != "fire":
 				return
 			var life := float(part.def.get("timing", {}).get("duration", 3.0))
@@ -155,6 +198,12 @@ func part_hit(part, _enemy, at: Vector2) -> void:
 	for key in part.def.get("events", {}):
 		if str(key).begins_with("on_hit"):
 			spawns_burst = true
+	if impact_look == "ice":
+		if st.family == "spear" or st.look.native != "ice":
+			_ice_contact(p.x, p.y)
+		elif not spawns_burst:
+			_ice_impact(p.x, p.y, 1.0)
+		return
 	if impact_look == "fire":
 		if st.family == "spear":
 			_damage_disk(p.x, p.y, 0.35, {"nodecal": true, "stop": 0})
@@ -207,8 +256,13 @@ func step(dt: float) -> void:
 			"field":
 				st.field.x = pos.x
 				st.field.y = pos.y
+				if st.look.native == "ice":
+					_ice_field(st.field, dt)
+			"nova":
+				_ice_nova(pos, float(part.front) / WPS, dt)
 		st.last = pos
 	_burning(dt)
+	_chilled(dt)
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	var vel: Vector2 = (pos - st.last) / maxf(dt, 0.0001)
@@ -220,6 +274,8 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		_emit_trail(part, st, "acc", FAMILY[st.family].trail, pos, vel, dist, dt)
 	elif accent == "fire":
 		_emit_trail(part, st, "acc", ACCENT_TRAIL, pos, vel, dist, dt)
+	if native == "ice" or accent == "ice":
+		_ice_trail(pos, vel, dt)
 	if native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
@@ -327,6 +383,95 @@ func _damage_disk(x: float, y: float, s: float, o: Dictionary) -> void:
 	elif s >= 0.5:
 		vfx.hitstop(1)
 
+# ------------------------------------------------------------------ ice (sandbox FX.ice)
+
+func _ice_trail(p: Vector2, vel: Vector2, dt: float) -> void:
+	if randf() < 0.9 * dt * 60.0:
+		vfx.elements.mote(p.x - vel.x * 0.02 + (randf() - 0.5) * 3.0, p.y + (randf() - 0.5) * 3.0,
+			vel.x * 0.08 + (randf() - 0.5) * 6.0, 4.0 + randf() * 6.0, ICE.mote, 0.6 + randf() * 0.6, 4.0, 6.0)
+
+## Shatter: shards tumble and bounce on z-physics, frost burst, rime decal.
+func _ice_impact(x: float, y: float, s: float) -> void:
+	var el = vfx.elements
+	for i in roundi(8 * s):
+		var a := randf() * TAU
+		var sp := (18.0 + randf() * 36.0) * sqrt(s)
+		el.shard(x, y, cos(a) * sp, sin(a) * sp * 0.7, 35.0 + randf() * 45.0, 2.0 + randf() * 1.5, 1.0 + randf() * 0.6)
+	for i in roundi(16 * s):
+		var a := randf() * TAU
+		var sp := (15.0 + randf() * 35.0) * sqrt(s)
+		el.mote(x, y, cos(a) * sp, sin(a) * sp * 0.7, ICE.mote, 0.6 + randf() * 0.6, 8.0, 4.0)
+	if s > 1.2:
+		for i in roundi(4 * s):
+			var a := randf() * TAU
+			var d := sqrt(randf()) * 6.0 * s
+			el.crystal(x + cos(a) * d, y + sin(a) * d * 0.8, 6.0 + randf() * 5.0, 0.35 + randf() * 0.35)
+	vfx.star(x, y, 2.6 * maxf(0.8, s), 0.06, 4, ICE.body[0])
+	vfx.flash(x, y, 2.5 * s, 0.05, ICE.body[0])
+	vfx.scorch(x, y, 8.0 * s, 6.0, "frost")
+	vfx.hitstop(2)
+
+## Per-contact pop (spears, keyword accent): sandbox eContact ice.
+func _ice_contact(x: float, y: float) -> void:
+	var el = vfx.elements
+	for i in 3:
+		var a := randf() * TAU
+		el.shard(x, y, cos(a) * 25.0, sin(a) * 18.0, 30.0 + randf() * 20.0, 1.8, 0.7)
+	for i in 6:
+		el.mote(x, y, (randf() - 0.5) * 30.0, (randf() - 0.5) * 20.0, ICE.mote, 0.5, 6.0, 3.0)
+	vfx.flash(x, y, 1.5, 0.04, ICE.body[0])
+
+## Rime field: crystals snap up and shatter, motes drift.
+func _ice_field(A: Dictionary, dt: float) -> void:
+	var el = vfx.elements
+	var r: float = A.r
+	var left: float = A.life - A.age - 0.5
+	if el.crystals.size() < 10 + int(r * 0.4) and left > 0.3 and randf() < 0.2 * dt * 60.0 * maxf(1.0, r / 20.0):
+		var q := _in_disk(A.x, A.y, r)
+		el.crystal(q.x, q.y, 7.0 + randf() * 6.0, minf(left, 1.6 + randf() * 1.5))
+	if randf() < 0.5 * dt * 60.0 * maxf(1.0, r / 20.0):
+		var q2 := _in_disk(A.x, A.y, r)
+		el.mote(q2.x, q2.y - 4.0, (randf() - 0.5) * 3.0, 2.0 + randf() * 3.0, ICE.mote, 1.0 + randf(), 1.0, 5.0)
+
+## Nova front: crystals erupt along the live front (the hitbox) and shatter.
+func _ice_nova(c: Vector2, r: float, dt: float) -> void:
+	var el = vfx.elements
+	var n := TAU * r * 0.035 * dt * 60.0
+	var i := 0.0
+	while i < n:
+		if i + 1.0 > n and randf() > n - i:
+			break
+		var a := randf() * TAU
+		el.crystal(c.x + cos(a) * r, c.y + sin(a) * r, 6.0 + randf() * 5.0, 0.35 + randf() * 0.25)
+		i += 1.0
+	if randf() < 0.6 * dt * 60.0:
+		var a2 := randf() * TAU
+		el.mote(c.x + cos(a2) * r, c.y + sin(a2) * r, cos(a2) * 20.0, sin(a2) * 14.0, ICE.mote, 0.6, 6.0, 3.0)
+
+## Chilled / frozen status: frost motes on the enemy (reads StatusComponent).
+func _chilled(dt: float) -> void:
+	var tree = vfx.get_tree()
+	if tree == null:
+		return
+	var n := 0
+	for e in tree.get_nodes_in_group("enemies"):
+		if n >= MAX_BURNING:
+			break
+		if not is_instance_valid(e) or e.get("status") == null:
+			continue
+		var s = e.status
+		if not s.has_method("has") or not (s.has("chilled") or s.has("frozen")):
+			continue
+		n += 1
+		var p: Vector2 = e.global_position / WPS
+		if randf() < 0.2 * dt * 60.0:
+			vfx.elements.mote(p.x + (randf() - 0.5) * 7.0, p.y - 6.0 + randf() * 3.0, (randf() - 0.5) * 3.0, 3.0 + randf() * 4.0, ICE.mote, 0.6, 3.0, 4.0)
+
+static func _in_disk(x: float, y: float, r: float) -> Vector2:
+	var a := randf() * TAU
+	var d := sqrt(randf()) * r * 0.9
+	return Vector2(x + cos(a) * d, y + sin(a) * d)
+
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():
 		if c is Node2D and "staff" in str(c.name).to_lower():
@@ -372,6 +517,12 @@ func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, 
 func draw_bodies(buf: PackedByteArray) -> void:
 	var K: float = vfx.K
 	for st in _parts.values():
+		if st.kind == "nova":
+			var np = st.part.get_ref()
+			if np != null and is_instance_valid(np) and not np.done:
+				var c: Vector2 = np.global_position / WPS
+				vfx.elements.draw_nova(buf, c.x, c.y, float(np.front) / WPS, ICE.rim)
+			continue
 		if st.kind != "projectile":
 			continue
 		var part = st.part.get_ref()
@@ -383,6 +534,14 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var b: Dictionary = FAMILY[st.family].body
 		var sc: float = float(part.size_scale)
 		var pal: Array = BODY[st.look.native]
+		if st.look.native == "ice":
+			var ib: Dictionary = ICE_BODY[st.family]
+			var rim_c = RIM[st.look.accent] if st.look.accent != "" else null
+			vfx.elements.body(buf, pos, dir, ib, BODY.ice, rim_c, true, sc)
+			# glint: one core pixel blinks near the tail every few frames
+			if (vfx._steps >> 1) % 6 == 0:
+				vfx._put(buf, roundi((pos.x - dir.x) * K), roundi((pos.y - 1.0) * K), BODY.ice[0])
+			continue
 		if st.look.native == "fire":
 			# No shape: the flame knot is the body. A small white-hot core keeps the
 			# hitbox readable over its own tail (white only for the hottest point).

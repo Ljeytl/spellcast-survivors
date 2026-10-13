@@ -6,8 +6,8 @@ extends Node2D
 ## 192 x 108 sandbox units. Spells loop at the sandbox's cadence through the real
 ## spell engine (GenericCast), so what you see here is what the game draws.
 ##
-## Keys: 1-9 pick a spell · B grass / sandbox-dark floor · Space pause ·
-##       S slow-mo · P VFX on/off (placeholder art) · T on twos · R reset
+## Keys: Tab next page (element) · 1-9 pick a spell · B grass / sandbox-dark floor ·
+##       Space pause · S slow-mo · P VFX on/off (placeholder art) · T on twos · R reset
 
 const KP = preload("res://scripts/engine/KeywordParser.gd")
 const Defs = preload("res://scripts/engine/SpellDefs.gd")
@@ -44,20 +44,50 @@ static func arena_defs() -> Dictionary:
 		"arena_cinder_field": {"name": "Cinder Field", "incantation": "arena cinder field", "element": "fire", "acquire": "data_only", "root": "field",
 			"parts": {"field": {"delivery": "field", "origin": "target", "geometry": {"type": "disk", "radius": 20 * WPS},
 				"timing": {"type": "periodic", "interval": 0.5, "duration": 6.0}, "payload": [{"type": "status", "status": "burn"}]}}},
+		# Sandbox ice: eShoot 160 (shatter r 11), ice spear 230, eField r 20 for 6 s, eNova 34 su over 0.5 s
+		"arena_ice_bolt": {"name": "Ice Bolt", "incantation": "arena ice bolt", "element": "water", "acquire": "data_only", "root": "bolt",
+			"parts": {"bolt": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
+				"motion": [{"type": "straight", "speed": 2 * 160 * WPS, "range": 1400}], "payload": [{"type": "damage", "amount": 1}],
+				"limits": {"pierce": 0}, "vfx": {"family": "bolt", "look": "ice"}, "events": {"on_hit": {"part": "shatter"}}},
+				"shatter": {"delivery": "volume", "origin": "parent", "geometry": {"type": "disk", "radius": 11 * WPS},
+				"payload": [{"type": "status", "status": "chilled"}]}}},
+		"arena_ice_spear": {"name": "Ice Spear", "incantation": "arena ice spear", "element": "water", "acquire": "data_only", "root": "spear",
+			"parts": {"spear": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
+				"motion": [{"type": "straight", "speed": 2 * 230 * WPS, "range": 1400}], "payload": [{"type": "damage", "amount": 1}, {"type": "status", "status": "chilled"}],
+				"limits": {"pierce": -1}, "vfx": {"family": "spear", "look": "ice"}}}},
+		"arena_ice_field": {"name": "Ice Field", "incantation": "arena ice field", "element": "water", "acquire": "data_only", "root": "field",
+			"parts": {"field": {"delivery": "field", "origin": "target", "geometry": {"type": "disk", "radius": 20 * WPS},
+				"timing": {"type": "periodic", "interval": 0.5, "duration": 6.0}, "payload": [{"type": "status", "status": "chilled"}]}}},
+		"arena_ice_nova": {"name": "Ice Nova", "incantation": "arena ice nova", "element": "water", "acquire": "data_only", "root": "ring",
+			"parts": {"ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 34 * WPS, "thickness": 6 * WPS},
+				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "status", "status": "chilled"}]}}},
 	}
 
 # label, incantation, cadence (s) — cadence from the sandbox's SPELLS[*].every
-const MENU := [
-	["Fire Bolt (sandbox: Fire > Fire Bolt)", "arena fire bolt", 0.55],
-	["Fireball (sandbox: Fire > Fireball)", "arena fireball", 1.7],
-	["Ember Spear (sandbox: Fire > Ember Spear)", "arena ember spear", 1.1],
-	["Cinder Field (sandbox: Fire > Cinder Field)", "arena cinder field", 6.6],
-	["fireball (game data)", "fireball", 1.7],
-	["fiery spear (keyword accent)", "fiery spear", 1.1],
-	["flame wall (game data)", "flame wall", 6.0],
-	["spear (bare, arcane)", "spear", 1.1],
-	["frost nova (no look yet: placeholder)", "frost nova", 2.2],
+const PAGES := [
+	["Fire", [
+		["Fire Bolt (sandbox: Fire > Fire Bolt)", "arena fire bolt", 0.55],
+		["Fireball (sandbox: Fire > Fireball)", "arena fireball", 1.7],
+		["Ember Spear (sandbox: Fire > Ember Spear)", "arena ember spear", 1.1],
+		["Cinder Field (sandbox: Fire > Cinder Field)", "arena cinder field", 6.6],
+		["fireball (game data)", "fireball", 1.7],
+		["fiery spear (keyword accent)", "fiery spear", 1.1],
+		["flame wall (game data)", "flame wall", 6.0],
+		["spear (bare, arcane)", "spear", 1.1],
+	]],
+	["Ice", [
+		["Ice Bolt (sandbox: Ice > Bolt)", "arena ice bolt", 0.6],
+		["Ice Spear (sandbox: Ice > Spear)", "arena ice spear", 1.1],
+		["Ice Field (sandbox: Ice > Field)", "arena ice field", 6.6],
+		["Ice Nova (sandbox: Ice > Nova)", "arena ice nova", 2.2],
+		["frost nova (game data)", "frost nova", 2.2],
+		["icy spear (keyword accent)", "icy spear", 1.1],
+	]],
 ]
+var page := 0
+var MENU: Array:
+	get:
+		return PAGES[page][1]
 
 class Dummy extends Node2D:
 	const FX = preload("res://scripts/engine/Effects.gd")
@@ -185,6 +215,9 @@ func _unhandled_input(event):
 	var k: int = event.keycode
 	if k >= KEY_1 and k <= KEY_9 and k - KEY_1 < MENU.size():
 		select(k - KEY_1)
+	elif k == KEY_TAB:
+		page = (page + 1) % PAGES.size()
+		select(0)
 	elif k == KEY_B:
 		dark = not dark
 		floor_node.queue_redraw()
@@ -223,7 +256,7 @@ func select(i: int):
 
 func _update_hud():
 	var v = get_node_or_null("/root/Vfx")
-	var lines := ["VFX ARENA   " + str(MENU[current][0])]
+	var lines := ["VFX ARENA   [%s]  %s      Tab: next page" % [PAGES[page][0], str(MENU[current][0])]]
 	var menu := []
 	for i in MENU.size():
 		menu.append(str(i + 1) + " " + str(MENU[i][0]).split(" (")[0])
