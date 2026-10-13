@@ -73,6 +73,7 @@ const FAMILY := {
 	"spear": {"body": {"t": "diamond", "a": 8.0, "b": 1.4}, "trail": {"rate": 3.0, "per_dist": 0.8, "heat": 1.1, "spread": 0.8, "grip": 0.2, "inh": 0.35, "ember": 0.3}, "impact": 0.35},
 	"orbiter": {"body": {"t": "diamond", "a": 3.5, "b": 2.0}, "trail": {"rate": 1.5, "per_dist": 0.3, "heat": 0.9, "spread": 0.6, "grip": 0.15, "inh": 0.2, "ember": 0.15}, "impact": 0.4},
 	"ball": {"body": {"t": "orb", "r": 3.5}, "trail": {"rate": 6.0, "per_dist": 1.1, "heat": 1.0, "spread": 3.0, "grip": 0.35, "inh": 0.3, "ember": 0.35}, "impact": 1.4},
+	"blade": {"body": {"t": "orb", "r": 2.0}, "trail": {"rate": 1.0, "per_dist": 0.2, "heat": 0.6, "spread": 0.6, "grip": 0.1, "inh": 0.2, "ember": 0.1}, "impact": 0.5},
 	"ghost": {"body": {"t": "orb", "r": 2.0}, "trail": {"rate": 1.0, "per_dist": 0.2, "heat": 0.6, "spread": 0.6, "grip": 0.1, "inh": 0.2, "ember": 0.1}, "impact": 0.4},
 }
 # Fire-native projectiles have no drawn shape: the body is a knot of hot,
@@ -97,6 +98,8 @@ const RAINBOW := [Color("#ff5a5a"), Color("#ffb03a"), Color("#ffe85a"), Color("#
 const GHOST := [".ooo.", "oeoeo", "ooooo", "o.o.o"]
 const GHOST_COL := {"o": Color("#f0f8ff"), "e": Color("#0a0c14")}
 const DEATH_MIST := [Color("#c8dcec"), Color("#93a8c0"), Color("#5a6a80")]
+
+const BLADE_COL := [Color("#ffffff"), Color("#e8eef6"), Color("#a9b4c2"), Color("#5c6675")]
 
 const MAX_BURNING := 24          # burning enemies drawn at once (nearest the camera)
 
@@ -529,6 +532,11 @@ func step(dt: float) -> void:
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	if st.family == "ghost":
 		_ghost_step(st, pos, dt)
+		return
+	if st.family == "blade":
+		if randf() < 0.25 * dt * 60.0:
+			var a := randf() * TAU
+			vfx.spark(pos.x + cos(a) * 2.0, pos.y + sin(a) * 2.0, cos(a) * 25.0, sin(a) * 25.0, 0.2, BLADE_COL)
 		return
 	var vel: Vector2 = (pos - st.last) / maxf(dt, 0.0001)
 	var dist := pos.distance_to(st.last)
@@ -1891,6 +1899,9 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		if st.family == "ghost":
 			_draw_ghost(buf, pos, part)
 			continue
+		if st.family == "blade":
+			_draw_blade(buf, pos, part)
+			continue
 		var b: Dictionary = FAMILY[st.family].body
 		var sc: float = float(part.size_scale)
 		var pal: Array = BODY[st.look.native]
@@ -2053,3 +2064,17 @@ func _draw_ghost(buf: PackedByteArray, pos: Vector2, part) -> void:
 			for sy in roundi(s):
 				for sx in roundi(s):
 					vfx.elements.spx(buf, roundi(pos.x + (i - 2) * s) + sx, roundi(pos.y + bob + (j - 2) * s) + sy, c)
+
+## Cross Blade: a four-armed blade spinning at the true radius, steel with a bright edge.
+func _draw_blade(buf: PackedByteArray, pos: Vector2, part) -> void:
+	var el = vfx.elements
+	var r: float = float(part.geo("radius", 33.6)) / WPS
+	var spin: float = float(part.age) * 16.0
+	for arm in 4:
+		var a := spin + arm * PI * 0.5
+		var tip := pos + Vector2(cos(a), sin(a)) * r
+		var side := pos + Vector2(cos(a + 0.5), sin(a + 0.5)) * r * 0.45
+		el.line(buf, pos, tip, BLADE_COL[1])
+		el.line(buf, side, tip, BLADE_COL[0])
+		el.line(buf, pos, side, BLADE_COL[3])
+	el.spx(buf, roundi(pos.x), roundi(pos.y), BLADE_COL[3])

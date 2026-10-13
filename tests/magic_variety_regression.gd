@@ -112,7 +112,7 @@ func run():
 		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion() and not node.get_parent().is_queued_for_deletion())
 		# Spells on the generic engine (doc 18 phase 2) count their live casts.
 		active.append_array(manager.ported_casts(id))
-		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "cross_blade" else active.size()
+		var capped = active.size()
 		# Extend-recast spells (Fire Walk) lengthen one instance instead of stacking up to active_limit.
 		var expected_cap = 1 if manager.spells[slot].get("recast_behavior", "stack") == "extend" else mini(int(manager.spells[slot].active_limit), 7)
 		check(capped == expected_cap, "Per-spell concurrent cap: " + id)

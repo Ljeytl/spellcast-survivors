@@ -170,6 +170,10 @@ func _start_cast(c: Dictionary) -> void:
 					pos = base + Vector2.RIGHT.rotated(ang) * radius
 					if str(root.delivery) == "projectile":
 						dir = Vector2.RIGHT.rotated(ang)
+						if bool(arrangement.get("aimed", false)):
+							# Old Cross Blade: the ring is turned so one blade flies at the target.
+							var aim_angle = aim_dir.angle() if target != null else float(arrangement.get("default_angle", -PI / 2.0))
+							dir = Vector2.from_angle(aim_angle + float(arrangement.get("offset", 0.0)) + ang)
 			"line":
 				var step_len = maxf(40.0, radius)
 				pos = base + dir.orthogonal() * step_len * (i - (count - 1) * 0.5)

@@ -4,7 +4,7 @@ extends RefCounted
 const DATA_PATH = "res://data/generic_spells.json"
 const DELIVERIES = ["projectile", "volume", "field", "aura", "trap", "self"]
 const GEOMETRIES = ["body", "disk", "ring", "cone", "line", "rect"]
-const MOTIONS = ["straight", "guided", "spiral", "orbit", "chase", "none"]
+const MOTIONS = ["straight", "guided", "spiral", "orbit", "chase", "hold", "return", "none"]
 const PAYLOADS = ["damage", "status", "impulse", "heal", "slow", "seed"]
 const EVENTS = ["on_hit", "on_first_hit", "on_kill", "on_expire", "on_tick", "on_travel", "on_trigger"]
 const ORIGINS = ["caster", "target", "parent", "behind_caster", "toward_target", "target_or_caster"]

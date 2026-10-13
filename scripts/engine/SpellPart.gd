@@ -46,6 +46,7 @@ var segment_end := -1.0
 var beam_end := Vector2.ZERO       # beams: where the beam stops, local to the part (last enemy it reaches)
 var target_ref: WeakRef = null     # beams: the enemy it tracks (other beams avoid it)
 var beam_offset := Vector2.ZERO    # beams: lane offset from the caster
+var hit_mult := 1.0                # phase damage share (Cross Blade: x2 on the way back, x0.5 pulses)
 var emit_last := Vector2.INF        # emitters: where the last patch was laid
 var emit_timer := 0.0
 var _vfx = null               # Vfx autoload: reads this part, never changes it (docs/VFX_EVENTS.md)
@@ -245,6 +246,33 @@ func _step_projectile(delta: float) -> void:
 			phase_travel += move
 			if ph.has("range") and phase_travel >= float(ph.range):
 				_next_phase(false)
+		"hold":
+			# Old Cross Blade linger: stay put; pulse everything inside every interval at a share of the hit.
+			var pulse: Dictionary = ph.get("pulse", {})
+			if not pulse.is_empty():
+				tick_acc["hold"] = float(tick_acc.get("hold", 0.0)) + delta
+				while float(tick_acc.hold) + 0.000001 >= float(pulse.get("interval", 0.3)) and not done:
+					tick_acc.hold = float(tick_acc.hold) - float(pulse.get("interval", 0.3))
+					var keep = hit_mult
+					hit_mult = float(pulse.get("mult", 0.5))
+					for enemy in cast.enemies():
+						if enemy.global_position.distance_to(global_position) <= geo("radius", 12.0) + pad_for(enemy):
+							hit(enemy)
+					hit_mult = keep
+			if phase_time + 0.000001 >= float(ph.get("time", 0.9)):
+				_next_phase(false)
+			return
+		"return":
+			# Old Cross Blade return: fly back to the caster; caught within `catch`.
+			var home: Vector2 = cast.caster_position()
+			prev_pos = global_position
+			global_position = global_position.move_toward(home, float(ph.get("speed", 500.0)) * delta)
+			if global_position != prev_pos:
+				direction = prev_pos.direction_to(global_position)
+			_collide()
+			if not done and global_position.distance_to(home) <= float(ph.get("catch", 18.0)):
+				finish(true)
+			return
 		"none":
 			pass
 	if not done:
@@ -258,6 +286,12 @@ func _next_phase(retarget: bool) -> void:
 	if phase >= phases.size():
 		finish(true)
 		return
+	var next: Dictionary = phases[phase]
+	hit_mult = float(next.get("mult", 1.0))
+	if bool(next.get("fresh_hits", false)):
+		hits.clear()   # a new leg: every enemy can be hit again once
+	if next.has("on_enter"):
+		cast.spawn_event(self, next.on_enter, global_position, null)
 	if retarget:
 		var target = assigned if _alive(assigned) else cast.nearest_enemy(global_position, INF, exclude)
 		if target:
@@ -599,7 +633,7 @@ func hit(enemy) -> void:
 				var entries := []
 				for e in item.entries:
 					var scaled = e.duplicate()
-					scaled.amount = float(e.amount) * power_scale
+					scaled.amount = float(e.amount) * power_scale * hit_mult
 					entries.append(scaled)
 				dealt += Effects.apply(enemy, {"type": "damage", "entries": entries, "element": str(item.get("element", "raw"))}, cast.source, global_position)
 			"status":
@@ -607,7 +641,7 @@ func hit(enemy) -> void:
 					continue
 				var eff = item.duplicate()
 				eff.type = "status"
-				eff.hit = float(item.get("hit", 0.0)) * power_scale
+				eff.hit = float(item.get("hit", 0.0)) * power_scale * hit_mult
 				Effects.apply(enemy, eff, cast.source, global_position)
 			"impulse":
 				if not _alive(enemy):

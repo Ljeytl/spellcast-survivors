@@ -174,6 +174,7 @@ const PAGES := [
 		["fiery focus ray (keyword on a shipping spell)", "legacy fiery focus ray", 2.4],
 		["Seeker (a spirit hunts on-screen enemies)", "legacy seeker", 6.0],
 		["Fire Walk (patches along the caster's path)", "legacy fire walk", 6.0],
+		["Cross Blade rank 8 (out, linger, back)", "legacy rank8 cross blade", 3.0],
 	]],
 	["Combos", [
 		["fiery tsunami (water + fire: boiling wall, steam)", "fiery tsunami", 2.6],

@@ -579,7 +579,7 @@ func _dispatch_spell(slot: int) -> bool:
 		return true
 	
 	match spell_type:
-		"plague", "returning":
+		"plague":
 			if not cast_build_spell(slot):
 				return false
 		"heal_over_time":
@@ -1400,15 +1400,6 @@ func rank_change_summary(spell_id: String) -> String:
 
 func cast_build_spell(slot: int) -> bool:
 	var info = resolve_cast_info(slot)
-	if info.id == "cross_blade":
-		var volleys = get_tree().get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion())
-		if volleys.size() >= int(info.get("active_limit", 3)):
-			volleys[0].queue_free()
-		info.projectile_speed_multiplier = cast_stat("projectile_speed_multiplier")
-		var volley = preload("res://scripts/CrossBladeVolley.gd").new()
-		get_parent().add_child(volley)
-		volley.configure(info, calculate_spell_damage(info), player)
-		return true
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
 	if info.type == "field":
 		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
@@ -1667,6 +1658,8 @@ func ported_target(info: Dictionary, speed_mult: float):
 			return spot if _live_spell_target(spot) else null
 		"orbit", "spirit", "trail":
 			return null
+		"returning":
+			return Targeting.select(get_tree(), player.global_position, 600.0)
 		"beam":
 			# nearest within reach, preferring enemies no live beam is already on
 			var occupied: Array = []
