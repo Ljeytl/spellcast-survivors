@@ -13,15 +13,16 @@ extends RefCounted
 const WPS := 1280.0 / 192.0
 
 # Looks implemented so far. Element ids are the spell engine's (SpellDefs.ELEMENTS).
-const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire", "water": "water", "storm": "lightning"}
-const ACCENT_LOOK := {"fire": "fire", "water": "water", "storm": "lightning"}
+const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire", "water": "water", "storm": "lightning", "life": "life"}
+const ACCENT_LOOK := {"fire": "fire", "water": "water", "storm": "lightning", "life": "life"}
 # The engine has one "water" element for water and ice spells (plan section 7:
 # Water/Ice spells pick Water or Ice). Cold statuses or a vfx.look hint pick Ice.
 const COLD := ["chilled", "frozen"]
-const BUILT := ["arcane", "fire", "ice", "lightning", "water"]
+const BUILT := ["arcane", "fire", "ice", "lightning", "water", "life"]
 const ICE := preload("res://scripts/vfx/VfxElements.gd").ICE
 const LIT := preload("res://scripts/vfx/VfxElements.gd").LIGHTNING
 const WAT := preload("res://scripts/vfx/VfxElements.gd").WATER
+const LIFE := preload("res://scripts/vfx/VfxElements.gd").LIFE
 
 # Body palettes (sandbox MAT.*.body): core, light, mid, dark, outline.
 const BODY := {
@@ -30,6 +31,7 @@ const BODY := {
 	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8"), Color("#1a2e5a")],
 	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0"), Color("#2a1f5e")],
 	"water": [Color("#ffffff"), Color("#a6e6ff"), Color("#3f9fe4"), Color("#2063b0"), Color("#0f1d3a")],
+	"life": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a"), Color("#3e8f3a"), Color("#1e2e16")],
 }
 const SPARK := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#e0401c")],
@@ -37,10 +39,12 @@ const SPARK := {
 	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8")],
 	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0")],
 	"water": [Color("#ffffff"), Color("#cdeffd"), Color("#7cc4f2"), Color("#3f9fe4")],
+	"life": [Color("#d4f58a"), Color("#86d24c"), Color("#46963c"), Color("#275c2e")],
 }
-const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff"), "water": Color("#4fb2f0")}
-const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")], "water": [Color("#4fb2f0"), Color("#e8f8ff")]}
+const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff"), "water": Color("#4fb2f0"), "life": Color("#7fcf4a")}
+const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")], "water": [Color("#4fb2f0"), Color("#e8f8ff")], "life": [Color("#7fcf4a"), Color("#d4f58a")]}
 # Rigid looks keep a drawn body (that IS the technique: crystal sprites).
+const LIFE_BODY := {"bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
 const ICE_BODY := {"bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
 const INK := Color("#120e14")
 # Magma core (fireball): dark crust, glowing cracks, hot seams. Hue-shifted
@@ -116,6 +120,8 @@ static func family_of(part) -> String:
 
 static func _kind(part) -> String:
 	match part.delivery:
+		"self":
+			return "self"
 		"projectile":
 			return "projectile" if part.geo_type() == "body" else ""
 		"volume":
@@ -174,6 +180,8 @@ func part_spawned(part) -> void:
 				_strike(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.0))
 			elif look.native == "water":
 				_water_impact(pos.x, pos.y, clampf(r_su / 11.0, 0.6, 2.5))
+			elif look.native == "life":
+				_life_impact(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.5))
 			elif look.native == "fire" or look.accent == "fire":
 				_damage_disk(pos.x, pos.y, maxf(0.35, (r_su - 3.0) / 9.0), {})
 			else:
@@ -182,12 +190,21 @@ func part_spawned(part) -> void:
 			if not NOVA_RIM.has(look.native) and look.native != "fire":
 				return
 			st.seed = randf() * 6.0
+			if look.native == "life":
+				var R0: float = float(part.geo("radius", 100.0)) / WPS
+				var sp0: float = float(part.def.get("propagation", {}).get("speed", 600.0)) / WPS
+				for i in 10:
+					vfx.elements.vine(pos.x, pos.y, float(i) / 10.0 * TAU + randf() * 0.3, R0, R0 / maxf(1.0, sp0) * vfx.fx_speed, R0 / maxf(1.0, sp0) * vfx.fx_speed + 0.5, 0.45)
 			if look.native == "fire":
 				_fire_nova_start(pos, float(part.geo("radius", 100.0)) / WPS)
 		"wave":
 			if look.native != "water":
 				return
 			st.acc = 0.0
+		"self":
+			if look.native != "life":
+				return
+			_life_bloom(_staff_su(part.cast.caster) + Vector2(-1.5, 5.0) if is_instance_valid(part.cast.caster) else pos)
 		"charge", "zone":
 			if look.native != "lightning":
 				return
@@ -195,7 +212,7 @@ func part_spawned(part) -> void:
 			st.age = 0.0
 			st.life = float(part.def.get("timing", {}).get("duration", 0.45))
 		"field":
-			if look.native == "ice" or look.native == "lightning" or look.native == "water":
+			if look.native == "ice" or look.native == "lightning" or look.native == "water" or look.native == "life":
 				var r_su2: float = part.geo("radius", 60.0) / WPS
 				if part.geo_type() != "disk":
 					return
@@ -203,6 +220,8 @@ func part_spawned(part) -> void:
 				if part.def.get("timing", {}).get("duration") == null:
 					life2 = 4.0
 				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look(look.native)})
+				if look.native == "life":
+					_life_field_start(st.field)
 				_parts[part.get_instance_id()] = st
 				_presented[part.get_instance_id()] = weakref(part)
 				return
@@ -232,6 +251,12 @@ func part_hit(part, _enemy, at: Vector2) -> void:
 			spawns_burst = true
 	if impact_look == "lightning":
 		_zap(p.x, p.y)
+		return
+	if impact_look == "life":
+		if st.family == "spear" or st.look.native != "life":
+			_life_contact(p.x, p.y)
+		elif not spawns_burst:
+			_life_impact(p.x, p.y, 1.0)
 		return
 	if impact_look == "water":
 		if st.family == "spear" or st.look.native != "water":
@@ -308,6 +333,8 @@ func step(dt: float) -> void:
 					_lightning_field(st.field, dt)
 				elif st.look.native == "water":
 					_water_field(st.field, dt)
+				elif st.look.native == "life":
+					_life_field(st.field, dt)
 			"wave":
 				_water_wave(part, st, dt)
 			"charge":
@@ -328,12 +355,15 @@ func step(dt: float) -> void:
 					_fire_nova(pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
 				elif st.look.native == "water":
 					_water_nova(pos, float(part.front) / WPS, dt)
+				elif st.look.native == "life":
+					_life_nova(pos, float(part.front) / WPS, dt)
 				else:
 					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
 	_burning(dt)
 	_chilled(dt)
 	_shocked(dt)
+	_entangled(dt)
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	var vel: Vector2 = (pos - st.last) / maxf(dt, 0.0001)
@@ -351,6 +381,8 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		_lightning_trail(st, pos, vel, dt)
 	if native == "water" or accent == "water":
 		_water_trail(st, pos, vel, dt, native == "water")
+	if native == "life" or accent == "life":
+		_life_trail(st, pos, vel, dt)
 	if native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
@@ -958,6 +990,106 @@ func _draw_wave_rim(buf: PackedByteArray, part) -> void:
 		el.spx(buf, roundi(p.x), roundi(p.y), WAT.rim[1] if ((i + (frame >> 2)) % 5) == 0 else WAT.rim[0])
 		el.spx(buf, roundi(p.x - w.dir.x * 1.2), roundi(p.y - w.dir.y * 1.2), WAT.rim[0])
 
+# ------------------------------------------------------------------ life (sandbox FX.life, growth)
+
+func _life_trail(st: Dictionary, p: Vector2, vel: Vector2, dt: float) -> void:
+	st.leaf_acc = float(st.get("leaf_acc", 0.0)) + vel.length() * dt * 0.22
+	while st.leaf_acc >= 1.0:
+		st.leaf_acc -= 1.0
+		vfx.elements.leaf(p.x - vel.x * 0.02, p.y, vel.x * 0.12 + (randf() - 0.5) * 10.0, -6.0 - randf() * 8.0, LIFE.leaf, 1.0 + randf() * 0.7)
+
+## Bloom: leaves and petals burst, a ring of flowers pops open, grass tuft.
+func _life_impact(x: float, y: float, s: float) -> void:
+	var el = vfx.elements
+	for i in roundi(26 * s):
+		var a := randf() * TAU
+		var sp := (18.0 + randf() * 40.0) * sqrt(s)
+		el.leaf(x, y, cos(a) * sp, sin(a) * sp * 0.7 - 10.0, LIFE.petal if randf() < 0.55 else LIFE.leaf, 1.1 + randf() * 0.9)
+	var n := roundi(9 * s)
+	for i in n:
+		var a2 := float(i) / n * TAU
+		var d := (5.0 + randf() * 3.0) * s
+		el.blade(x + cos(a2) * d, y + sin(a2) * d * 0.7, 2, 0.05 + i * 0.03, 3.0, true)
+	vfx.flash(x, y, 2.0, 0.05, LIFE.petal[2])
+	el.grass_tuft(x, y, 6.0 * s)
+	vfx.ring(x, y, 10.0 * s, 0.25, LIFE.petal)
+	vfx.hitstop(2)
+
+func _life_contact(x: float, y: float) -> void:
+	for i in 7:
+		var a := randf() * TAU
+		vfx.elements.leaf(x, y, cos(a) * 25.0, sin(a) * 18.0 - 6.0, LIFE.petal if randf() < 0.4 else LIFE.leaf, 0.8)
+
+func _life_field_start(A: Dictionary) -> void:
+	var el = vfx.elements
+	var n := roundi(70.0 * maxf(1.0, A.r * A.r / 400.0))
+	for i in mini(n, 260):
+		var q := _in_disk(A.x, A.y, A.r)
+		el.blade(q.x, q.y, 2 + randi() % 3, Vector2(q.x - A.x, q.y - A.y).length() / A.r * 0.6, A.life - 0.5, randf() < 0.1)
+	for i in 5:
+		el.vine(A.x, A.y, float(i) / 5.0 * TAU + randf() * 0.5, A.r * (0.6 + randf() * 0.3), 1.2, A.life - 0.5, 0.7)
+
+func _life_field(A: Dictionary, dt: float) -> void:
+	if randf() < 0.12 * dt * 60.0 * maxf(1.0, A.r / 20.0):
+		var q := _in_disk(A.x, A.y, A.r)
+		vfx.elements.leaf(q.x, q.y - 3.0, (randf() - 0.5) * 6.0, -4.0, LIFE.petal if randf() < 0.3 else LIFE.leaf, 1.4)
+
+func _life_nova(c: Vector2, r: float, dt: float) -> void:
+	if randf() < 0.5 * dt * 60.0:
+		var a := randf() * TAU
+		vfx.elements.leaf(c.x + cos(a) * r, c.y + sin(a) * r, cos(a) * 14.0, -8.0, LIFE.petal if randf() < 0.3 else LIFE.leaf, 0.9)
+
+## Self heal (Regrowth): not in the sandbox; built from growth parts. Flowers
+## pop open in a ring at the caster's feet, petals and leaves lift, grass tuft.
+func _life_bloom(at: Vector2) -> void:
+	var el = vfx.elements
+	for i in 10:
+		var a := float(i) / 10.0 * TAU + randf() * 0.3
+		var d := 5.0 + randf() * 2.0
+		el.blade(at.x + cos(a) * d, at.y + sin(a) * d * 0.6, 2 + randi() % 2, 0.03 * i, 1.8, true)
+	for i in 16:
+		var a2 := randf() * TAU
+		el.leaf(at.x + cos(a2) * 4.0, at.y - 2.0, cos(a2) * 10.0, -18.0 - randf() * 14.0, LIFE.petal if randf() < 0.5 else LIFE.leaf, 0.9 + randf() * 0.6)
+	for i in 8:
+		el.mote(at.x + (randf() - 0.5) * 8.0, at.y - 4.0 - randf() * 6.0, 0.0, -10.0 - randf() * 8.0, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]], 0.7, 0.0, 3.0)
+	el.grass_tuft(at.x, at.y, 5.0, 3.0)
+	vfx.ring(at.x, at.y, 9.0, 0.3, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]])
+
+## Entangled / rooted: a vine wrapped around the enemy, a leaf now and then.
+func _entangled(dt: float) -> void:
+	var tree = vfx.get_tree()
+	if tree == null:
+		return
+	var n := 0
+	var list := []
+	for e in tree.get_nodes_in_group("enemies"):
+		if n >= MAX_BURNING:
+			break
+		if not is_instance_valid(e) or e.get("status") == null:
+			continue
+		var s = e.status
+		if not s.has_method("has") or not (s.has("entangled") or s.has("rooted")):
+			continue
+		n += 1
+		list.append(e.global_position / WPS)
+		if randf() < 0.03 * dt * 60.0:
+			var p: Vector2 = e.global_position / WPS
+			vfx.elements.leaf(p.x, p.y - 5.0, (randf() - 0.5) * 8.0, -6.0, LIFE.leaf, 0.8)
+	_wrapped = list
+
+var _wrapped: Array = []
+
+func draw_statuses(buf: PackedByteArray) -> void:
+	var el = vfx.elements
+	var t: float = vfx._t
+	for p in _wrapped:
+		for i in 18:
+			var a := float(i) / 18.0 * TAU
+			if sin(a * 3.0 + t * 3.0) <= -0.3:
+				continue
+			el.spx(buf, roundi(p.x + cos(a) * 4.0), roundi(p.y - 2.0 + sin(a) * 1.6 - (0.0 if i % 9 < 4 else 2.0)), LIFE.vine[i & 1])
+		el.spx(buf, roundi(p.x + 3.0), roundi(p.y - 5.0), LIFE.leaf[1])
+
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():
 		if c is Node2D and "staff" in str(c.name).to_lower():
@@ -1036,6 +1168,9 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var pal: Array = BODY[st.look.native]
 		if st.look.native == "lightning":
 			_draw_lightning_body(buf, pos, dir, st.family, sc, st)
+			continue
+		if st.look.native == "life":
+			vfx.elements.body(buf, pos, dir, LIFE_BODY[st.family], BODY.life, RIM[st.look.accent] if st.look.accent != "" else null, true, sc)
 			continue
 		if st.look.native == "water":
 			if st.family == "spear":

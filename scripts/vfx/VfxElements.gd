@@ -63,6 +63,14 @@ const WATER := {
 	"foam": [Color("#ffffff"), Color("#cdeffd"), Color("#7cc4f2")],
 	"rim": [Color("#4fb2f0"), Color("#e8f8ff")],
 }
+# Sandbox EL.life
+const LIFE := {
+	"leaf": [Color("#d4f58a"), Color("#86d24c"), Color("#46963c"), Color("#275c2e")],
+	"vine": [Color("#7ab24a"), Color("#4e823a"), Color("#2a4a22")],
+	"petal": [Color("#ffb0d0"), Color("#ffe27a"), Color("#ffffff")],
+	"body": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a"), Color("#3e8f3a"), Color("#1e2e16")],
+	"rim": [Color("#7fcf4a"), Color("#d4f58a")],
+}
 const SHADOW := Color("#16141b")
 const INK := Color("#120e14")
 
@@ -77,6 +85,10 @@ var blobs: Array = []       # [x, y, vx, vy, r, age, life, g, stick]   water goo
 var streaks: Array = []     # [x0, y0, x1, y1, age, life, cols]        foam streaks
 var rays: Array = []        # [x, y, ang, len, age, life, cols, r0]    spray rays
 var later: Array = []       # [t, Callable]                            delayed spawns (ripples)
+var leaves: Array = []      # [x, y, vx, vy, cols, age, life, ph]
+var blades: Array = []      # [x, y, h, delay, age, life, c, ph, flower]  grass growing out of the ground
+var vines: Array = []       # [x, y, ang, len, grow_t, age, life, curl, ph]
+var tufts: Array = []       # [x, y, c, age, life]                     grass decal (sandbox 'grass')
 
 func _init(owner):
 	vfx = owner
@@ -84,6 +96,7 @@ func _init(owner):
 func clear():
 	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear(); flakes.clear()
 	blobs.clear(); streaks.clear(); rays.clear(); later.clear()
+	leaves.clear(); blades.clear(); vines.clear(); tufts.clear()
 
 # ------------------------------------------------------------------ spawners (sandbox signatures)
 
@@ -130,6 +143,27 @@ func accumulate_water():
 	for b in blobs:
 		var k: float = b[5] / b[6]
 		vfx.gsplat(1 if b[8] and k > 0.35 else 0, b[0], b[1], b[4] * (1.0 - k * 0.5))
+
+# --- life (sandbox FX.life helpers)
+func leaf(x: float, y: float, vx: float, vy: float, cols: Array, life: float):
+	if leaves.size() < (120 if vfx.reduced_effects else 400):
+		leaves.append([x, y, vx, vy, cols, 0.0, life, randf() * 6.0])
+
+func blade(x: float, y: float, h: int, delay: float, life: float, flower: bool = false):
+	if blades.size() < (200 if vfx.reduced_effects else 600):
+		blades.append([x, y, h, delay, 0.0, life, randi() % 3, randf() * 6.0, flower])
+
+func vine(x: float, y: float, ang: float, len: float, grow_t: float, life: float, curl: float = 0.5):
+	if vines.size() < 60:
+		vines.append([x, y, ang, len, grow_t, 0.0, life, curl, randf() * 6.0])
+
+func grass_tuft(x: float, y: float, r: float, life: float = 6.0):
+	for i in 14:
+		var a := randf() * TAU
+		var d := randf() * r
+		tufts.append([x + cos(a) * d, y + sin(a) * d * 0.7, randi() % 3, 0.0, life])
+	while tufts.size() > 400:
+		tufts.pop_front()
 
 func crystal(x: float, y: float, h: float, life: float, pal: Array = ICE.body):
 	if crystals.size() < (40 if vfx.reduced_effects else 120):
@@ -242,6 +276,28 @@ func step(dt: float):
 		later.erase(l)
 		l[1].call()
 	keep = []
+	for l in leaves:
+		l[5] += dt
+		if l[5] > l[6]:
+			continue
+		l[2] = vfx._drag(l[2], dt, 0.9)
+		l[3] = vfx._drag(l[3], dt, 0.92) + 16.0 * dt
+		l[0] += (l[2] + sin(l[7] + t * 5.0) * 9.0 + vfx.wind * 0.8) * dt
+		l[1] += l[3] * dt
+		keep.append(l)
+	leaves = keep
+	for spec in [[blades, 4, 5], [vines, 5, 6], [tufts, 3, 4]]:
+		var arr: Array = spec[0]
+		var ai: int = spec[1]
+		var li: int = spec[2]
+		var k3: Array = []
+		for q in arr:
+			q[ai] += dt
+			if q[ai] < q[li]:
+				k3.append(q)
+		arr.clear()
+		arr.append_array(k3)
+	keep = []
 	for f in flakes:
 		f[4] += dt
 		if f[4] > f[5]:
@@ -279,6 +335,7 @@ func step(dt: float):
 ## Crystals stand on the ground (sandbox drawGround): under actors.
 func draw_ground(buf: PackedByteArray):
 	var K: float = vfx.K
+	_draw_growth(buf)
 	for c in crystals:
 		var age: float = c[4]
 		var g := minf(1.0, age / 0.1)
@@ -291,6 +348,56 @@ func draw_ground(buf: PackedByteArray):
 			vfx._put(buf, roundi((x + q) * K), roundi((y + 1.0) * K), SHADOW)
 		body(buf, Vector2(x + c[3] * h * 0.5, y - h * 0.5), Vector2(c[3], -1.0).normalized(),
 			{"t": "diamond", "a": maxf(1.5, h * 0.5), "b": maxf(1.2, h * 0.22)}, c[6], null, true)
+
+## Grass tufts, blades with flowers, vines (sandbox drawEDecals 'grass' + drawGround).
+func _draw_growth(buf: PackedByteArray):
+	var t: float = vfx._t
+	var L: Dictionary = LIFE
+	for q in tufts:
+		var k: float = q[3] / q[4]
+		var X := roundi(q[0])
+		var Y := roundi(q[1])
+		if vfx._bayer(X, Y) >= 1.0 - k:
+			continue
+		spx(buf, X, Y, L.leaf[2 + (q[2] & 1)])
+		if q[2] == 0:
+			spx(buf, X, Y - 1, L.leaf[1])
+	for b in blades:
+		var age: float = b[4]
+		if age < b[3]:
+			continue
+		var h: int = mini(b[2], ceili((age - b[3]) * 18.0))
+		var k2: float = age / b[5]
+		var X2 := roundi(b[0])
+		var Y2 := roundi(b[1])
+		if k2 > 0.85 and vfx._bayer(X2, Y2) < (k2 - 0.85) * 6.6:
+			continue
+		var sway := roundi(sin(t * 2.2 + b[7]) * 0.7)
+		for j in h:
+			spx(buf, X2 + (sway if j == h - 1 else 0), Y2 - j, L.leaf[1] if j == h - 1 else L.leaf[2 + (b[6] & 1)])
+		if b[8] and age - b[3] > (0.15 if b[5] < 3.5 else 0.8):
+			var c: Color = L.petal[b[6] % 2]
+			spx(buf, X2 + sway, Y2 - h, L.petal[1])
+			spx(buf, X2 + sway - 1, Y2 - h, c)
+			spx(buf, X2 + sway + 1, Y2 - h, c)
+			spx(buf, X2 + sway, Y2 - h - 1, c)
+	for v in vines:
+		var Lg: float = v[3] * minf(1.0, v[5] / v[4])
+		var k3: float = v[5] / v[6]
+		var x: float = v[0]
+		var y: float = v[1]
+		var sgo := 0.0
+		while sgo < Lg:
+			var a: float = v[2] + sin(sgo * 0.22 + v[8]) * v[7]
+			x += cos(a) * 0.8
+			y += sin(a) * 0.8 * 0.8
+			sgo += 0.8
+			if k3 > 0.8 and vfx._bayer(roundi(x), roundi(y)) < (k3 - 0.8) * 5.0:
+				continue
+			spx(buf, roundi(x), roundi(y), L.vine[1])
+			if int(sgo * 10.0) % 60 < 8:
+				spx(buf, roundi(x + sin(a) * 1.5), roundi(y - cos(a) * 1.5), L.leaf[1])
+		spx(buf, roundi(x), roundi(y), L.vine[0])
 
 func draw_over(buf: PackedByteArray):
 	var K: float = vfx.K
@@ -330,8 +437,16 @@ func draw_over(buf: PackedByteArray):
 		var k2: float = q[4] / q[5]
 		var cols2: Array = q[6]
 		line(buf, Vector2(q[0], q[1]), Vector2(q[2], q[3]), cols2[mini(cols2.size() - 1, int(k2 * cols2.size()))])
-	var pal: Array = ICE.mote
 	var t: float = vfx._t
+	for l in leaves:
+		var kl: float = l[5] / l[6]
+		if vfx.dissolved(l[7], kl, 0.8):
+			continue
+		var flip := sin(l[7] + t * 7.0) > 0.0
+		var cols: Array = l[4]
+		spx(buf, roundi(l[0]), roundi(l[1]), cols[0 if flip else 1])
+		spx(buf, roundi(l[0]) + (1 if flip else 0), roundi(l[1]) + (0 if flip else 1), cols[2 if cols.size() > 3 else 1])
+	var pal: Array = ICE.mote
 	for f in flakes:
 		var k: float = f[4] / f[5]
 		if vfx.dissolved(f[8], k, 0.75):

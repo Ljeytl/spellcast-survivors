@@ -66,6 +66,7 @@ const FIELD_LOOKS := [
 	{"name": "ice", "style": 1, "floor": ["#1c2433", "#233247", "#2f4560"], "rim": ["#8fd3ee", "#ffffff"]},
 	{"name": "lightning", "style": 1, "floor": ["#1c1a2c", "#211e38", "#2a2550"], "rim": ["#8fb2ff", "#ffffff"]},
 	{"name": "water", "style": 1, "floor": ["#151d2e", "#192842", "#20385e"], "rim": ["#4fb2f0", "#e8f8ff"]},
+	{"name": "life", "style": 1, "floor": ["#19221a", "#1f2e1e", "#2a4026"], "rim": ["#7fcf4a", "#d4f58a"]},
 ]
 static func field_look(name: String) -> int:
 	for i in FIELD_LOOKS.size():
@@ -1040,6 +1041,7 @@ func _draw_impacts():
 	elements.draw_ground(_ground)
 	_upload("ground", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _ground))
 	presenter.draw_bodies(_over)
+	presenter.draw_statuses(_over)
 	elements.draw_over(_over)
 	for f in _flashes:
 		_disk(_over, roundi(f[0] * K), roundi(f[1] * K), f[2] * K, f[5])
