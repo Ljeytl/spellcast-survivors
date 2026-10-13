@@ -23,6 +23,8 @@ func _process(_delta):
 	for slot in manager.get_all_spells():
 		var info = manager.get_spell_info(slot)
 		next += str(slot) + ":" + str(info.id) + ":" + str(info.display_name)
+	for upcoming in upcoming_spells():
+		next += "|" + str(upcoming.id)
 	if next != signature:
 		signature = next
 		rebuild()
@@ -95,6 +97,40 @@ func rebuild():
 		bar.offset_bottom = -3
 		bar.hide()
 		status_bars[info.id] = bar
+	# Preparation runs: the spells still to come, dimmed, with the level that opens each.
+	for upcoming in upcoming_spells():
+		var label = Label.new()
+		label.name = "Upcoming_" + str(upcoming.id)
+		label.text = "Lv %d  %s" % [upcoming.level, upcoming.incantation]
+		label.mouse_filter = Control.MOUSE_FILTER_PASS
+		label.tooltip_text = "%s opens at level %d" % [upcoming.name, upcoming.level]
+		label.add_theme_font_size_override("font_size", 18)
+		label.add_theme_color_override("font_color", STYLE.MUTED)
+		label.modulate.a = 0.7
+		var style = STYLE.panel_style(Color("3d4636"), Color("17231c"))
+		style.content_margin_top = 4
+		style.content_margin_bottom = 9
+		style.content_margin_left = 8
+		style.content_margin_right = 8
+		label.add_theme_stylebox_override("normal", style)
+		add_child(label)
+
+## Prepared spells not yet open, in arrival order: [{id, name, incantation, level}].
+func upcoming_spells() -> Array:
+	var upcoming: Array = []
+	if not game.has_method("upcoming_prepared_slot"):
+		return upcoming
+	var manager = game.spell_manager
+	var index = manager.spells.size()
+	while true:
+		var next = game.upcoming_prepared_slot(index)
+		if next.is_empty():
+			break
+		next = next.duplicate()
+		next.incantation = str(manager.spell_catalog[next.id].get("display_name", next.name)).to_lower()
+		upcoming.append(next)
+		index += 1
+	return upcoming
 
 static func shows_status(info: Dictionary) -> bool:
 	return info.get("recast_behavior", "") == "extend" or info.get("type", "") in ["shield", "trap", "field", "plague"]

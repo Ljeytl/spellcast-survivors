@@ -5,6 +5,14 @@ extends SceneTree
 const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const Recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
 
+class VfxStub extends Node:
+	var seen: Array = []
+	var chain_targets = 0
+	func status_event(_enemy, event: String, data: Dictionary):
+		seen.append(event + ":" + str(data.get("status", data.get("name", ""))))
+		if data.get("name", "") == "chain":
+			chain_targets = data.get("targets", []).size()
+
 var checks = 0
 var failures = 0
 var manager
@@ -156,6 +164,30 @@ func run():
 	hit(burning, 100.0, "cinder_field")
 	burning.status.tick(2.0)
 	check(float(game.style_session.damage_by_effect.get("cinder_field", {}).get("burn", 0.0)) > 0.0, "Cinder Field's burn is credited as burn")
+	# Status moments reach /root/Vfx.status_event when it exists (docs/VFX_EVENTS.md).
+	var real_vfx = root.get_node_or_null("Vfx")
+	if real_vfx:
+		real_vfx.name = "VfxReal"
+	var stub = VfxStub.new()
+	stub.name = "Vfx"
+	root.add_child(stub)
+	var watched = fresh()
+	watched.global_position = Vector2(9000, 9000)
+	var watched_near = fresh()
+	watched_near.global_position = Vector2(9080, 9000)
+	hit(watched, 100.0, "lightning")
+	watched.status.reaction_ready_at = 0.0
+	hit(watched, 100.0, "lightning")
+	check(stub.seen.has("applied:shocked"), "Applying shock is announced")
+	check(stub.seen.has("reaction:chain") and stub.chain_targets == 1, "Chain is announced with its target positions")
+	hit(watched_near, 100.0, "cross_blade")
+	check(stub.seen.has("reaction:grounded"), "Grounding is announced")
+	watched_near.status.tick(5.0)
+	check(stub.seen.has("expired:bleed"), "Bleed ending is announced")
+	stub.queue_free()
+	root.remove_child(stub)
+	if real_vfx:
+		real_vfx.name = "Vfx"
 	# DoT credit: bleed ticks count toward Cross Blade and are listed separately on the end screen.
 	var session = game.style_session
 	session.damage_by_spell.clear()

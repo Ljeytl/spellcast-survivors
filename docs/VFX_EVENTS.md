@@ -23,7 +23,19 @@ The spell engine (`scripts/engine/GenericCast.gd`, `SpellPart.gd`) announces mom
 | `part_ticked(part)` | reserved | periodic payload tick | tick shimmer synced to real ticks (not wired yet) |
 | `presents(part) -> bool` | `SpellPart._draw` | every redraw | skip placeholder art when VFX draws the part |
 
-Statuses are read, not evented: each VFX step, the presenter polls enemies in the `enemies` group whose `status` (`StatusComponent`) reports `has("burn")`, nearest the camera first (cap 24). Status *moments* (applied, tick, reaction) can be added as events when a look needs them.
+Persistent statuses are read, not evented: each VFX step, the presenter polls enemies in the `enemies` group whose `status` (`StatusComponent`) reports `has("burn")` / `has("chilled")` / `has("shocked")`, nearest the camera first (cap 24).
+
+### Status moments (13 October 2026)
+
+One-off status moments are announced. `StatusComponent` calls `/root/Vfx.status_event(enemy, event, data)` **if that method exists** (no handler yet = nothing happens). Same rules: read-only, one call per moment, no return value. `data.position` is always the enemy's position.
+
+| `event` | `data` | When |
+|---|---|---|
+| `applied` | `status`, `stacks` | any status lands. `stacks` = chill stacks (1–4; the 5th freezes and announces `applied frozen`), bleed stacks, burn instances, else 1 |
+| `reaction` | `name`, `targets` | a reaction fires: `chain` (`targets` = positions it arced to), `conduct`, `thaw`, `shatter`, `toxic_flare`, `overload`, `cleanse`, `hemorrhage`, `grounded` |
+| `expired` | `status` | a status ends on its own (timer), not when a reaction consumes it |
+
+Which spells apply what is in doc 18 §6.1b and `data/spell_damage.json`. Looks still missing: **bleed** (persistent, no poll yet; `has("bleed")`, `bleed.stacks.size()`, `bleed_meter` 0–1 toward hemorrhage), and the reaction moments above. Shock is now a 3 s mark (+0.2 s stagger), so `has("shocked")` lasts long enough to read as a mark.
 
 ## What a handler may read
 

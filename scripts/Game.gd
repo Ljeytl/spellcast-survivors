@@ -216,7 +216,11 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot_container.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if is_unlocked else Control.CURSOR_ARROW
 	name_label.text = info.get("name", "Empty")
-	slot_container.visible = is_unlocked or interface_debug
+	# Preparation runs show the spells still to come, greyed, with the level that opens them.
+	var upcoming = {} if is_unlocked else upcoming_prepared_slot(index)
+	if not upcoming.is_empty():
+		name_label.text = upcoming.name
+	slot_container.visible = is_unlocked or interface_debug or not upcoming.is_empty()
 	name_label.modulate = Color.WHITE if is_unlocked else Color("a6b4c8")
 	# Set up the level label
 	var level_label = slot_container.get_node_or_null("LevelLabel")
@@ -224,6 +228,10 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 		update_spell_level_display(level_label, spell_name)
 		if is_unlocked:
 			update_spell_level_display(level_label, spell_name)
+		elif not upcoming.is_empty():
+			level_label.text = "Lv %d" % upcoming.level
+			level_label.visible = true
+			level_label.modulate = Color(0.75, 0.75, 0.75, 1.0)
 		else:
 			level_label.text = "Learn at level-up"
 			level_label.modulate = Color(0.6, 0.6, 0.6, 1.0)
@@ -786,6 +794,21 @@ func _on_player_level_up(new_level: int, _player_stats: Dictionary):
 	if current_state == GameState.PLAYING:
 		show_next_level_up()
 
+## The prepared spell that will fill HUD slot `index` (0-based) next, {id, name, level}, or {} when the
+## slot is already filled, the run is not a preparation run, or nothing more is coming.
+func upcoming_prepared_slot(index: int) -> Dictionary:
+	var order: Array = spell_manager.prepared_order
+	if order.is_empty():
+		return {}
+	var pending: Array = []
+	for i in range(1, order.size()):
+		var id = str(order[i])
+		if id.is_empty() or spell_manager.acquired_spells.has(id) or not spell_manager.spell_catalog.has(id):
+			continue
+		pending.append({"id": id, "name": str(spell_manager.spell_catalog[id].name), "level": preload("res://scripts/Preparation.gd").ACTIVATION_LEVELS[i]})
+	var k = index - spell_manager.spells.size()
+	return pending[k] if k >= 0 and k < pending.size() else {}
+
 ## Preparation runs: a level in Preparation.ACTIVATION_LEVELS opens the next prepared spell
 ## instead of a power-up choice. An empty slot falls through to a normal power-up.
 func open_prepared_spell(level: int) -> bool:
@@ -1093,7 +1116,11 @@ func update_spell_slot_lock_status():
 	for i in range(spell_slots.size()):
 		var info = spell_manager.spells.get(i + 1, {})
 		setup_individual_spell_slot(spell_slots[i], i, info.get("id", ""))
-		spell_slots[i].tooltip_text = ("Click or press %d, then type: %s" % [i + 1, info.display_name]) if not info.is_empty() else "Learn a spell when you level up (six equipped spells maximum)"
+		var upcoming = upcoming_prepared_slot(i) if info.is_empty() else {}
+		if not upcoming.is_empty():
+			spell_slots[i].tooltip_text = "%s opens at level %d" % [upcoming.name, upcoming.level]
+		else:
+			spell_slots[i].tooltip_text = ("Click or press %d, then type: %s" % [i + 1, info.display_name]) if not info.is_empty() else "Learn a spell when you level up (six equipped spells maximum)"
 
 func _on_spell_slot_input(event: InputEvent, slot: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

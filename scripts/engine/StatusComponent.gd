@@ -134,6 +134,8 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 			var strength = float(params.get("strength", d.get("slow", 1.0)))
 			_set_timed(id, duration, strength, source)
 	_refresh_modifiers()
+	if id != "frozen" or has("frozen"):
+		_announce("applied", {"status": id, "stacks": _stacks_of(id)})
 
 func _set_timed(id: String, duration: float, strength: float, source: Dictionary) -> void:
 	var current = timed.get(id, {})
@@ -146,14 +148,16 @@ func _hemorrhage(per_tick_added: float, source: Dictionary) -> void:
 	var pct = float(d.boss_max_health) if is_boss() else (float(d.elite_max_health) if is_elite() else float(d.max_health))
 	bleed_meter = 0.0
 	reactions_fired.append("hemorrhage")
+	_announce("reaction", {"name": "hemorrhage"})
 	_deal(max_health * pct + float(d.bleed_multiplier) * per_tick_added, "bleed", source, "hemorrhage")
 
 ## Chain: storm damage arcs to the nearest few enemies and shocks them. They carry this hit's cast,
 ## so the same cast cannot chain them again; the next cast can.
-func _chain(amount: float, count: int, reach: float, source: Dictionary) -> void:
+func _chain(amount: float, count: int, reach: float, source: Dictionary) -> Array:
 	var e = _owner()
+	var targets: Array = []
 	if e == null or not e.is_inside_tree():
-		return
+		return targets
 	var near: Array = []
 	for other in e.get_tree().get_nodes_in_group("enemies"):
 		if other == e or not is_instance_valid(other) or bool(other.get("dying")):
@@ -165,9 +169,11 @@ func _chain(amount: float, count: int, reach: float, source: Dictionary) -> void
 	var effects = preload("res://scripts/engine/Effects.gd")
 	for pair in near.slice(0, count):
 		var other = pair[1]
+		targets.append(other.global_position)
 		effects.apply(other, {"type": "damage", "entries": [{"amount": amount, "damage_type": "storm"}], "element": "storm", "dot": true}, tag(source, "chain"), e.global_position)
 		if is_instance_valid(other) and not bool(other.get("dying")):
 			effects.apply(other, {"type": "status", "status": "shocked"}, source, e.global_position)
+	return targets
 
 # ---------------------------------------------------------------- reactions
 
@@ -188,15 +194,17 @@ func on_hit(effect: Dictionary, source: Dictionary, origin: Vector2) -> float:
 	# Grounded: Earth removes shock with no bonus, even during the reaction cooldown.
 	if elements.has("earth") and timed.has("shocked"):
 		timed.erase("shocked")
+		_announce("reaction", {"name": "grounded"})
 	if clock < reaction_ready_at:
 		return 0.0
 	var extra := 0.0
 	var fired := ""
+	var chained_to: Array = []
 	var shock_def = def("shocked")
 	if elements.has("storm") and _other(timed.get("shocked", {}), cast):
 		fired = "chain"
 		timed.erase("shocked")
-		_chain(total * float(shock_def.chain_share), int(shock_def.chain_targets), float(shock_def.chain_range), source)
+		chained_to = _chain(total * float(shock_def.chain_share), int(shock_def.chain_targets), float(shock_def.chain_range), source)
 	elif elements.has("water") and _other(timed.get("shocked", {}), cast):
 		fired = "conduct"
 		timed.erase("shocked")
@@ -240,6 +248,7 @@ func on_hit(effect: Dictionary, source: Dictionary, origin: Vector2) -> float:
 		reactions_fired.append(fired)
 		reaction_ready_at = clock + float(rule("reaction_cooldown", 1.0))
 		_refresh_modifiers()
+		_announce("reaction", {"name": fired, "targets": chained_to})
 	return extra
 
 func _other(instance: Dictionary, cast) -> bool:
@@ -312,10 +321,12 @@ func tick(delta: float) -> void:
 			expired.append(id)
 	for id in expired:
 		timed.erase(id)
+		_announce("expired", {"status": id})
 	if not chill.is_empty():
 		chill.remaining = float(chill.remaining) - delta
 		if float(chill.remaining) <= 0.0:
 			chill = {}
+			_announce("expired", {"status": "chilled"})
 	# Burns
 	for b in burns:
 		b.acc = float(b.acc) + delta
@@ -323,7 +334,10 @@ func tick(delta: float) -> void:
 			b.acc = float(b.acc) - float(b.tick)
 			b.ticks_left = int(b.ticks_left) - 1
 			_deal(float(b.per_tick), "fire", b.source, "burn")
+	var was_burning = not burns.is_empty()
 	burns = burns.filter(func(b): return int(b.ticks_left) > 0)
+	if was_burning and burns.is_empty():
+		_announce("expired", {"status": "burn"})
 	# Bleed
 	bleed_since_hit += delta
 	if bleed_since_hit > float(def("bleed").get("meter_decay_delay", 2.0)):
@@ -344,6 +358,7 @@ func tick(delta: float) -> void:
 			bleed.stacks = bleed.stacks.filter(func(stack): return float(stack.remaining) > 0.00001)
 		if not bleed.is_empty() and bleed.stacks.is_empty():
 			bleed = {}
+			_announce("expired", {"status": "bleed"})
 	# Poison
 	if not poison.is_empty():
 		var d = def("poison")
@@ -355,7 +370,29 @@ func tick(delta: float) -> void:
 			poison.ticks = int(poison.ticks) + 1
 		if float(poison.remaining) <= 0.00001:
 			poison = {}
+			_announce("expired", {"status": "poison"})
 	_refresh_modifiers()
+
+## Status moments for the VFX layer (docs/VFX_EVENTS.md): calls /root/Vfx.status_event(enemy, event, data)
+## when it exists. Read-only for VFX; one call per moment; never waits on it.
+## event: "applied" {status, stacks}, "reaction" {name, targets}, "expired" {status}; data always has position.
+func _announce(event: String, data: Dictionary) -> void:
+	var e = _owner()
+	if e == null or not e.is_inside_tree():
+		return
+	var vfx = e.get_node_or_null("/root/Vfx")
+	if vfx == null or not vfx.has_method("status_event"):
+		return
+	data["position"] = e.global_position
+	vfx.status_event(e, event, data)
+
+## Current stack count of a status, for VFX intensity: chill stacks, bleed stacks, burn instances, else 1.
+func _stacks_of(id: String) -> int:
+	match id:
+		"chilled": return int(chill.get("stacks", 0))
+		"bleed": return bleed.get("stacks", []).size()
+		"burn": return burns.size()
+	return 1 if has(id) else 0
 
 ## DoT and status damage. Bleed is its own damage type, so only a bleed resistance reduces it.
 func _deal(amount: float, kind: String, source: Dictionary, via: String) -> void:

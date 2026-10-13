@@ -35,6 +35,18 @@ func run():
 	var spells = game.spell_manager
 	check(spells.get_unlocked_spell_names() == ["mana_bolt", "ice_blast"], "Run starts with the prepared opener only")
 	check(spells.get_spell_info(1).id == "ice_blast", "Opener sits in key 1")
+	# HUD: slots not yet open show the next prepared spells, greyed, with their level.
+	var slot2 = game.spell_slots[1]
+	check(slot2.visible and slot2.get_node("VBox/SpellName").text == "Bolt", "HUD slot 2 shows the upcoming Bolt")
+	var level2 = slot2.get_node_or_null("LevelLabel")
+	check(level2 == null or (level2.visible and level2.text == "Lv 2"), "HUD slot 2 shows it opens at level 2")
+	var slot3 = game.spell_slots[2]
+	check(slot3.get_node("VBox/SpellName").text == "Life" and (slot3.get_node_or_null("LevelLabel") == null or slot3.get_node("LevelLabel").text == "Lv 7"), "Empty prepared slot 3 is skipped: HUD slot 3 shows Life at level 7")
+	check(game.upcoming_prepared_slot(5).is_empty(), "Nothing upcoming past the prepared spells")
+	var strip = game.hud.get_node("CastingReference")
+	strip._process(0.0)
+	var upcoming_labels = strip.get_children().filter(func(c): return str(c.name).begins_with("Upcoming_"))
+	check(upcoming_labels.size() == 4 and upcoming_labels[0].text == "Lv 2  bolt", "Bottom strip lists upcoming spells with their levels")
 	game._on_player_level_up(2, {})
 	check(spells.acquired_spells.has("bolt"), "Level 2 opens slot 2")
 	check(game.pending_level_ups.is_empty() and not game.level_up_screen.visible, "Spell level gives no power-up choice")
