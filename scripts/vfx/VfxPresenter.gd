@@ -23,6 +23,7 @@ const ICE := preload("res://scripts/vfx/VfxElements.gd").ICE
 const LIT := preload("res://scripts/vfx/VfxElements.gd").LIGHTNING
 const WAT := preload("res://scripts/vfx/VfxElements.gd").WATER
 const LIFE := preload("res://scripts/vfx/VfxElements.gd").LIFE
+const ARC := preload("res://scripts/vfx/VfxElements.gd").ARCANE
 
 # Body palettes (sandbox MAT.*.body): core, light, mid, dark, outline.
 const BODY := {
@@ -42,10 +43,16 @@ const SPARK := {
 	"life": [Color("#d4f58a"), Color("#86d24c"), Color("#46963c"), Color("#275c2e")],
 }
 const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff"), "water": Color("#4fb2f0"), "life": Color("#7fcf4a")}
-const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")], "water": [Color("#4fb2f0"), Color("#e8f8ff")], "life": [Color("#7fcf4a"), Color("#d4f58a")]}
+const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")], "water": [Color("#4fb2f0"), Color("#e8f8ff")], "life": [Color("#7fcf4a"), Color("#d4f58a")], "arcane": [Color("#8fa8f5"), Color("#e2f6ff")]}
+# Slash smear colours (sandbox smearCols): core, light, mid.
+const SMEAR := {
+	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f")], "arcane": [Color("#ffffff"), Color("#c9f4ff"), Color("#8fb6f5")],
+	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee")], "lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff")],
+	"water": [Color("#ffffff"), Color("#a6e6ff"), Color("#3f9fe4")], "life": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a")],
+}
 # Rigid looks keep a drawn body (that IS the technique: crystal sprites).
-const LIFE_BODY := {"bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
-const ICE_BODY := {"bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
+const LIFE_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
+const ICE_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
 const INK := Color("#120e14")
 # Magma core (fireball): dark crust, glowing cracks, hot seams. Hue-shifted
 # toward red in the dark end, white kept out (white is for impacts).
@@ -55,6 +62,7 @@ const MAGMA := [Color("#2a0f0c"), Color("#4a1a12"), Color("#c2361a"), Color("#ff
 const FAMILY := {
 	"bolt": {"body": {"t": "diamond", "a": 4.0, "b": 2.0}, "trail": {"rate": 2.0, "per_dist": 0.5, "heat": 1.0, "spread": 0.8, "grip": 0.15, "inh": 0.25, "ember": 0.15}, "impact": 0.55},
 	"spear": {"body": {"t": "diamond", "a": 8.0, "b": 1.4}, "trail": {"rate": 3.0, "per_dist": 0.8, "heat": 1.1, "spread": 0.8, "grip": 0.2, "inh": 0.35, "ember": 0.3}, "impact": 0.35},
+	"orbiter": {"body": {"t": "diamond", "a": 3.5, "b": 2.0}, "trail": {"rate": 1.5, "per_dist": 0.3, "heat": 0.9, "spread": 0.6, "grip": 0.15, "inh": 0.2, "ember": 0.15}, "impact": 0.4},
 	"ball": {"body": {"t": "orb", "r": 3.5}, "trail": {"rate": 6.0, "per_dist": 1.1, "heat": 1.0, "spread": 3.0, "grip": 0.35, "inh": 0.3, "ember": 0.35}, "impact": 1.4},
 }
 # Fire-native projectiles have no drawn shape: the body is a knot of hot,
@@ -63,6 +71,7 @@ const FAMILY := {
 # the motion (spears), "core" = white core half-size in cells.
 const FIRE_BODY := {
 	"bolt": {"r": 1.3, "n": 1.5, "len": 1.6, "heat": 0.45, "core": 1},
+	"orbiter": {"r": 1.2, "n": 1.5, "len": 1.4, "heat": 0.45, "core": 1},
 	"spear": {"r": 0.7, "n": 2.0, "len": 5.0, "heat": 0.45, "core": 1},
 	"ball": {"r": 3.6, "n": 5.0, "len": 1.0, "heat": 0.4, "core": 0, "magma": 3.2},
 }
@@ -113,6 +122,9 @@ static func family_of(part) -> String:
 	var hint = str(part.def.get("vfx", {}).get("family", ""))
 	if hint != "":
 		return hint
+	var motion: Array = part.def.get("motion", [])
+	if not motion.is_empty() and str(motion[0].get("type", "")) == "orbit" and str(motion[0].get("until", "")) == "":
+		return "orbiter"
 	var pierce = int(part.def.get("limits", {}).get("pierce", 0))
 	if pierce != 0:
 		return "spear"
@@ -131,6 +143,11 @@ static func _kind(part) -> String:
 				return "nova"
 			if part.geo_type() == "rect" and part._propagation() == "travelling":
 				return "wave"
+			if part.geo_type() == "cone" and part._propagation() == "instant":
+				return "slash"
+		"trap":
+			if part.geo_type() == "disk":
+				return "trap"
 		"field", "aura":
 			if part.geo_type() == "disk" and part.def.get("payload", []).is_empty() and part.def.get("events", {}).size() > 0:
 				# no payload: the disk is a range for its events, not a damage area
@@ -174,18 +191,14 @@ func part_spawned(part) -> void:
 			st.family = family_of(part)
 		"burst":
 			var r_su: float = part.geo("radius", 90.0) / WPS
-			if look.native == "ice":
-				_ice_impact(pos.x, pos.y, maxf(0.6, r_su / 12.0))
-			elif look.native == "lightning":
-				_strike(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.0))
-			elif look.native == "water":
-				_water_impact(pos.x, pos.y, clampf(r_su / 11.0, 0.6, 2.5))
-			elif look.native == "life":
-				_life_impact(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.5))
-			elif look.native == "fire" or look.accent == "fire":
-				_damage_disk(pos.x, pos.y, maxf(0.35, (r_su - 3.0) / 9.0), {})
-			else:
-				return
+			# the accent owns the impact (plan 5.1); an arcane base adds its glyph flourish
+			_burst(look.accent if look.accent != "" else look.native, pos, r_su)
+			if look.accent != "" and look.native == "arcane":
+				_arcane_impact(pos.x, pos.y, 0.5)
+		"slash":
+			_slash(part, look, pos)
+		"trap":
+			st.k = randi() % 4
 		"nova":
 			if not NOVA_RIM.has(look.native) and look.native != "fire":
 				return
@@ -212,7 +225,7 @@ func part_spawned(part) -> void:
 			st.age = 0.0
 			st.life = float(part.def.get("timing", {}).get("duration", 0.45))
 		"field":
-			if look.native == "ice" or look.native == "lightning" or look.native == "water" or look.native == "life":
+			if look.native in ["ice", "lightning", "water", "life", "arcane"]:
 				var r_su2: float = part.geo("radius", 60.0) / WPS
 				if part.geo_type() != "disk":
 					return
@@ -335,6 +348,10 @@ func step(dt: float) -> void:
 					_water_field(st.field, dt)
 				elif st.look.native == "life":
 					_life_field(st.field, dt)
+				elif st.look.native == "arcane":
+					_arcane_field(st.field, dt)
+				if st.look.accent != "":
+					_accent_field(st.look.accent, st.field, dt)
 			"wave":
 				_water_wave(part, st, dt)
 			"charge":
@@ -357,6 +374,10 @@ func step(dt: float) -> void:
 					_water_nova(pos, float(part.front) / WPS, dt)
 				elif st.look.native == "life":
 					_life_nova(pos, float(part.front) / WPS, dt)
+				elif st.look.native == "arcane":
+					_arcane_nova(pos, float(part.front) / WPS, dt)
+				if st.look.accent != "":
+					_accent_nova(st.look.accent, pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
 				else:
 					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
@@ -364,6 +385,7 @@ func step(dt: float) -> void:
 	_chilled(dt)
 	_shocked(dt)
 	_entangled(dt)
+	_vulnerable(dt)
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	var vel: Vector2 = (pos - st.last) / maxf(dt, 0.0001)
@@ -1082,6 +1104,9 @@ var _wrapped: Array = []
 func draw_statuses(buf: PackedByteArray) -> void:
 	var el = vfx.elements
 	var t: float = vfx._t
+	if (vfx._steps >> 3) & 1:
+		for p in _marked:
+			el.draw_glyph(buf, p.x, p.y - 11.0, 0, ARC.spark[2])
 	for p in _wrapped:
 		for i in 18:
 			var a := float(i) / 18.0 * TAU
@@ -1089,6 +1114,193 @@ func draw_statuses(buf: PackedByteArray) -> void:
 				continue
 			el.spx(buf, roundi(p.x + cos(a) * 4.0), roundi(p.y - 2.0 + sin(a) * 1.6 - (0.0 if i % 9 < 4 else 2.0)), LIFE.vine[i & 1])
 		el.spx(buf, roundi(p.x + 3.0), roundi(p.y - 5.0), LIFE.leaf[1])
+
+# ------------------------------------------------------------------ arcane + shapes (sandbox FX.arcane, eSlash, traps)
+
+func _burst(look: String, pos: Vector2, r_su: float) -> void:
+	match look:
+		"ice":
+			_ice_impact(pos.x, pos.y, maxf(0.6, r_su / 12.0))
+		"lightning":
+			_strike(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.0))
+		"water":
+			_water_impact(pos.x, pos.y, clampf(r_su / 11.0, 0.6, 2.5))
+		"life":
+			_life_impact(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.5))
+		"fire":
+			_damage_disk(pos.x, pos.y, maxf(0.35, (r_su - 3.0) / 9.0), {})
+		"arcane":
+			_arcane_impact(pos.x, pos.y, clampf(r_su / 12.0, 0.6, 2.5))
+			vfx.ring(pos.x, pos.y, r_su, 0.25, SPARK.arcane)
+
+## Rune burst: glyph ring, spark spray, ring, rune decal.
+func _arcane_impact(x: float, y: float, s: float) -> void:
+	var el = vfx.elements
+	for i in 6:
+		var a := float(i) / 6.0 * TAU
+		el.glyph(x + cos(a) * 8.0 * s, y + sin(a) * 6.0 * s, -4.0, 0.45)
+	for i in roundi(16 * s):
+		var a2 := randf() * TAU
+		var sp := (20.0 + randf() * 40.0) * sqrt(s)
+		vfx.spark(x, y, cos(a2) * sp, sin(a2) * sp * 0.8, 0.35 + randf() * 0.2, SPARK.arcane)
+	vfx.ring(x, y, 12.0 * s, 0.3, SPARK.arcane)
+	vfx.flash(x, y, 2.5 * s, 0.05, BODY.arcane[0])
+	vfx.star(x, y, 2.6 * s, 0.06, 4, BODY.arcane[0])
+	el.rune(x, y, 8.0 * s)
+	vfx.hitstop(1)
+
+func _arcane_field(A: Dictionary, dt: float) -> void:
+	var f := dt * 60.0 * maxf(1.0, A.r / 20.0)
+	if randf() < 0.5 * f:
+		var q := _in_disk(A.x, A.y, A.r)
+		vfx.spark(q.x, q.y, 0.0, -12.0 - randf() * 8.0, 0.6 + randf() * 0.4, SPARK.arcane)
+	if randf() < 0.04 * f:
+		var q2 := _in_disk(A.x, A.y, A.r)
+		vfx.elements.glyph(q2.x, q2.y, -10.0, 0.9)
+
+## Inner dashed circle with six glyphs orbiting it (sandbox fieldDraw).
+func _draw_arcane_field(buf: PackedByteArray, A: Dictionary) -> void:
+	var el = vfx.elements
+	var r: float = A.r * 0.62
+	var steps := ceili(TAU * r * 1.3)
+	for i in steps:
+		if i % 3 == 0:
+			continue
+		var a := TAU * i / steps
+		el.spx(buf, roundi(A.x + cos(a) * r), roundi(A.y + sin(a) * r), ARC.rim[0])
+	var t: float = vfx._t
+	var frame: int = vfx._steps
+	for i in 6:
+		var a2 := t * 0.8 + float(i) / 6.0 * TAU
+		el.draw_glyph(buf, A.x + cos(a2) * r, A.y + sin(a2) * r, i % 4, ARC.spark[2] if (i + (frame >> 3)) % 3 != 0 else ARC.spark[1])
+
+func _arcane_nova(c: Vector2, r: float, dt: float) -> void:
+	var n := TAU * r * 0.08 * dt * 60.0
+	var i := 0.0
+	while i < n:
+		if i + 1.0 > n and randf() > n - i:
+			break
+		var a := randf() * TAU
+		vfx.spark(c.x + cos(a) * r, c.y + sin(a) * r, cos(a) * 18.0, sin(a) * 14.0, 0.35, SPARK.arcane)
+		i += 1.0
+	if randf() < 0.25 * dt * 60.0:
+		var a2 := randf() * TAU
+		vfx.elements.glyph(c.x + cos(a2) * r, c.y + sin(a2) * r, 0.0, 0.3)
+
+## Keyword accent on a field or nova: the accent element's particles at half rate
+## over the native look (fiery field, icy nova...).
+func _accent_field(accent: String, A: Dictionary, dt: float) -> void:
+	match accent:
+		"fire":
+			if randf() < 0.35 * dt * 60.0 * maxf(1.0, A.r / 20.0):
+				var q := _in_disk(A.x, A.y, A.r * 0.9)
+				vfx.flame(null, q, {"heat": 0.45, "rise": 20.0 + randf() * 10.0, "life": 0.45 + randf() * 0.3, "small": 1.0})
+		"ice":
+			_ice_field(A, dt * 0.5)
+		"lightning":
+			_lightning_field(A, dt * 0.5)
+		"water":
+			_water_field(A, dt * 0.5)
+		"life":
+			_life_field(A, dt * 0.5)
+
+func _accent_nova(accent: String, c: Vector2, r: float, k: float, dt: float) -> void:
+	match accent:
+		"fire":
+			_fire_nova(c, r, k, dt * 0.5)
+		"ice":
+			_ice_nova(c, r, dt * 0.5)
+		"lightning":
+			if randf() < 0.5:
+				_lightning_nova(c, r, randf() * 6.0, dt)
+		"water":
+			_water_nova(c, r, dt * 0.5)
+		"life":
+			_life_nova(c, r, dt)
+
+## Slash (instant cone): the sandbox smear sweeping the cone's real arc and
+## radius, emitting the impact look along its leading edge.
+var _flip := 1
+
+func _slash(part, look: Dictionary, pos: Vector2) -> void:
+	var key: String = look.accent if look.accent != "" else look.native
+	var R: float = float(part.geo("radius", 100.0)) / WPS
+	var span := deg_to_rad(float(part.def.get("geometry", {}).get("angle", 90.0)))
+	var mid: float = Vector2(part.direction).angle()
+	_flip = -_flip
+	var emit := func(x: float, y: float, fx: float, fy: float): _emit_at(key, x, y, fx, fy)
+	vfx.elements.slash(pos.x, pos.y, mid - span * 0.5 * _flip, span, _flip, R * 0.3, R, SMEAR[key], emit)
+
+## Per-element emission along a moving edge (sandbox emitAt).
+func _emit_at(el_name: String, x: float, y: float, fx: float, fy: float) -> void:
+	var el = vfx.elements
+	match el_name:
+		"fire":
+			vfx.flame(null, Vector2(x, y), {"vx": fx * 30.0, "vy": fy * 24.0, "rise": 18.0 + randf() * 10.0, "life": 0.28 + randf() * 0.2, "heat": 1.35})
+		"ice":
+			if randf() < 0.4:
+				el.mote(x, y, fx * 20.0, fy * 14.0 - 4.0, ICE.mote, 0.6, 6.0, 3.0)
+			if randf() < 0.12:
+				el.flake(x, y, fx * 16.0, fy * 12.0 - 4.0, 0.7, 0, 4.0)
+		"lightning":
+			if randf() < 0.25:
+				el.hop(x, y, 0.2)
+		"water":
+			if randf() < 0.3:
+				el.foam_streak(x, y, fx, fy, 6.0)
+			if randf() < 0.5:
+				el.droplet(x, y, fx * 40.0 + (randf() - 0.5) * 10.0, fy * 30.0, 30.0 + randf() * 40.0)
+		"life":
+			if randf() < 0.3:
+				el.blade(x, y, 2 + randi() % 3, 0.0, 0.9 + randf() * 0.5, randf() < 0.15)
+			if randf() < 0.15:
+				el.leaf(x, y - 2.0, fx * 14.0, -8.0, LIFE.petal if randf() < 0.3 else LIFE.leaf, 0.9)
+		"arcane":
+			if randf() < 0.6:
+				vfx.spark(x, y, fx * 30.0, fy * 24.0, 0.4, SPARK.arcane)
+			if randf() < 0.05:
+				el.glyph(x, y, -6.0, 0.4)
+
+## Rune trap (sandbox traps): the ring draws itself around the real radius while
+## arming, then pulses; the glyph in the middle lights up when armed.
+func _draw_trap(buf: PackedByteArray, part, st: Dictionary) -> void:
+	var el = vfx.elements
+	var c: Vector2 = part.global_position / WPS
+	var r: float = float(part.geo("radius", 45.0)) / WPS
+	var arming := float(part.def.get("timing", {}).get("arming", 0.4))
+	var k := clampf(float(part.age) / maxf(0.01, arming), 0.0, 1.0)
+	var armed: bool = part.armed
+	var frame: int = vfx._steps
+	var acc: String = st.look.accent
+	var hot: Color = RIM[acc] if acc != "" else ARC.spark[(frame >> 3) & 1]
+	var steps := ceili(TAU * r * 1.3)
+	for i in steps:
+		if not armed and float(i) / steps > k:
+			continue
+		var a := TAU * i / steps
+		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), hot if armed and ((i + (frame >> 2)) % 4 != 0) else ARC.spark[3])
+	el.draw_glyph(buf, c.x, c.y, 3, (ARC.spark[1] if (frame >> 2) & 1 else ARC.spark[2]) if armed else ARC.spark[3])
+
+## Vulnerable (arcane status): rising sparks and a blinking glyph overhead.
+func _vulnerable(dt: float) -> void:
+	var tree = vfx.get_tree()
+	if tree == null:
+		return
+	var list := []
+	for e in tree.get_nodes_in_group("enemies"):
+		if list.size() >= MAX_BURNING:
+			break
+		if not is_instance_valid(e) or e.get("status") == null:
+			continue
+		var s = e.status
+		if s.has_method("has") and s.has("vulnerable"):
+			var p: Vector2 = e.global_position / WPS
+			list.append(p)
+			if randf() < 0.08 * dt * 60.0:
+				vfx.spark(p.x + (randf() - 0.5) * 6.0, p.y - 4.0, 0.0, -10.0, 0.4, SPARK.arcane)
+	_marked = list
+
+var _marked: Array = []
 
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():
@@ -1135,6 +1347,16 @@ func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, 
 func draw_bodies(buf: PackedByteArray) -> void:
 	var K: float = vfx.K
 	for st in _parts.values():
+		if st.kind == "trap":
+			var tp = st.part.get_ref()
+			if tp != null and is_instance_valid(tp) and not tp.done:
+				_draw_trap(buf, tp, st)
+			continue
+		if st.kind == "field" and st.look.native == "arcane":
+			var fp = st.part.get_ref()
+			if fp != null and is_instance_valid(fp) and not fp.done:
+				_draw_arcane_field(buf, st.field)
+			continue
 		if st.kind == "wave":
 			var wp = st.part.get_ref()
 			if wp != null and is_instance_valid(wp) and not wp.done:

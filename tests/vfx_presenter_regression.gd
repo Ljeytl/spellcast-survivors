@@ -191,6 +191,18 @@ func run():
 	check(vfx._water_used, "Tsunami accumulates water goo for the shaders")
 	check(not vfx._debris.is_empty(), "Tsunami throws droplets off its leading edge")
 
+	# Shapes on the bare (arcane) spells: slash smear, rune trap, orbiters, arcane nova/field.
+	for spell in ["slash", "trap", "orbit", "nova", "field"]:
+		clear()
+		foe(Vector2(90, 0))
+		c = cast(spell, 0.0)
+		var shown = false
+		for p in c.parts:
+			shown = shown or vfx.presents(p)
+		if spell == "slash":
+			shown = shown or not vfx.elements.slashes.is_empty()
+		check(shown, "Bare %s is presented (arcane look), no placeholder art" % spell)
+
 	# Looks not built yet keep the placeholder art.
 	clear()
 	foe(Vector2(120, 0))

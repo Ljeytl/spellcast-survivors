@@ -67,6 +67,7 @@ const FIELD_LOOKS := [
 	{"name": "lightning", "style": 1, "floor": ["#1c1a2c", "#211e38", "#2a2550"], "rim": ["#8fb2ff", "#ffffff"]},
 	{"name": "water", "style": 1, "floor": ["#151d2e", "#192842", "#20385e"], "rim": ["#4fb2f0", "#e8f8ff"]},
 	{"name": "life", "style": 1, "floor": ["#19221a", "#1f2e1e", "#2a4026"], "rim": ["#7fcf4a", "#d4f58a"]},
+	{"name": "arcane", "style": 1, "floor": ["#1a1830", "#201d3e", "#2a2656"], "rim": ["#8fa8f5", "#e2f6ff"]},
 ]
 static func field_look(name: String) -> int:
 	for i in FIELD_LOOKS.size():

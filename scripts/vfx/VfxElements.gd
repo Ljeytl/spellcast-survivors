@@ -71,6 +71,13 @@ const LIFE := {
 	"body": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a"), Color("#3e8f3a"), Color("#1e2e16")],
 	"rim": [Color("#7fcf4a"), Color("#d4f58a")],
 }
+# Sandbox EL.arcane (wide slice) + GLYPH sprites (5x5 sandbox pixels)
+const ARCANE := {
+	"spark": [Color("#ffffff"), Color("#bdf3ff"), Color("#a98af5"), Color("#6a4ad0")],
+	"rim": [Color("#8fa8f5"), Color("#e2f6ff")],
+	"floor2": Color("#2a2656"),
+}
+const GLYPH := [[".x.x.", "xxxxx", "..x..", ".x.x.", "x...x"], ["xxx..", "..x..", ".xxx.", "..x..", "..xxx"], ["x...x", ".x.x.", "..x..", ".x.x.", "x...x"], [".xxx.", "x...x", "x.x.x", "x...x", ".xxx."]]
 const SHADOW := Color("#16141b")
 const INK := Color("#120e14")
 
@@ -89,6 +96,9 @@ var leaves: Array = []      # [x, y, vx, vy, cols, age, life, ph]
 var blades: Array = []      # [x, y, h, delay, age, life, c, ph, flower]  grass growing out of the ground
 var vines: Array = []       # [x, y, ang, len, grow_t, age, life, curl, ph]
 var tufts: Array = []       # [x, y, c, age, life]                     grass decal (sandbox 'grass')
+var glyphs: Array = []      # [x, y, vy, age, life, k, cols]           rising rune glyphs
+var runes: Array = []       # [x, y, r, age, life, seed]               rune decal (sandbox 'rune')
+var slashes: Array = []     # {cx, cy, a0, span, dir, t, dur, linger, rin, rout, cols, emit}
 
 func _init(owner):
 	vfx = owner
@@ -97,6 +107,7 @@ func clear():
 	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear(); flakes.clear()
 	blobs.clear(); streaks.clear(); rays.clear(); later.clear()
 	leaves.clear(); blades.clear(); vines.clear(); tufts.clear()
+	glyphs.clear(); runes.clear(); slashes.clear()
 
 # ------------------------------------------------------------------ spawners (sandbox signatures)
 
@@ -164,6 +175,28 @@ func grass_tuft(x: float, y: float, r: float, life: float = 6.0):
 		tufts.append([x + cos(a) * d, y + sin(a) * d * 0.7, randi() % 3, 0.0, life])
 	while tufts.size() > 400:
 		tufts.pop_front()
+
+# --- arcane / slice
+func glyph(x: float, y: float, vy: float, life: float, cols: Array = ARCANE.spark):
+	if glyphs.size() < 120:
+		glyphs.append([x, y, vy, 0.0, life, randi() % 4, cols])
+
+func rune(x: float, y: float, r: float, life: float = 4.0):
+	if runes.size() < 30:
+		runes.append([x, y, r, 0.0, life, randf() * 6.0])
+
+## Crescent smear (sandbox eSlash): sweeps across the swing, thick in the middle,
+## tapered at the ends; the trailing part dithers out. emit(x, y, fx, fy) is
+## called along the leading edge while it sweeps.
+func slash(cx: float, cy: float, a0: float, span: float, dir: int, rin: float, rout: float, cols: Array, emit: Callable, dur: float = 0.13):
+	slashes.append({"cx": cx, "cy": cy, "a0": a0, "span": span, "dir": dir, "t": 0.0, "dur": dur, "linger": 0.14, "rin": rin, "rout": rout, "cols": cols, "emit": emit})
+
+func draw_glyph(buf: PackedByteArray, x: float, y: float, k: int, c: Color):
+	var P: Array = GLYPH[k]
+	for j in 5:
+		for i in 5:
+			if P[j][i] == "x":
+				spx(buf, roundi(x) - 2 + i, roundi(y) - 2 + j, c)
 
 func crystal(x: float, y: float, h: float, life: float, pal: Array = ICE.body):
 	if crystals.size() < (40 if vfx.reduced_effects else 120):
@@ -275,6 +308,22 @@ func step(dt: float):
 	for l in due:
 		later.erase(l)
 		l[1].call()
+	for g in glyphs:
+		g[3] += dt
+		g[1] += g[2] * dt
+	glyphs = glyphs.filter(func(g): return g[3] < g[4])
+	for r in runes:
+		r[3] += dt
+	runes = runes.filter(func(r): return r[3] < r[4])
+	for sl in slashes:
+		sl.t += dt
+		var k: float = minf(1.0, sl.t / sl.dur)
+		if k < 1.0 and sl.emit.is_valid():
+			var cur: float = sl.a0 + sl.span * k * sl.dir
+			for i in 4:
+				var rr: float = sl.rin + randf() * (sl.rout - sl.rin)
+				sl.emit.call(sl.cx + cos(cur) * rr, sl.cy + sin(cur) * rr, cos(cur), sin(cur))
+	slashes = slashes.filter(func(sl): return sl.t < sl.dur + sl.linger)
 	keep = []
 	for l in leaves:
 		l[5] += dt
@@ -352,6 +401,21 @@ func draw_ground(buf: PackedByteArray):
 ## Grass tufts, blades with flowers, vines (sandbox drawEDecals 'grass' + drawGround).
 func _draw_growth(buf: PackedByteArray):
 	var t: float = vfx._t
+	# rune decal (sandbox DECAL.rune): dashed ellipse dithering away, 4 dots
+	for q in runes:
+		var f: float = 1.0 - q[3] / q[4]
+		var r: float = q[2]
+		var steps := ceili(TAU * r * 1.3)
+		for i in steps:
+			var a := TAU * i / steps
+			var X := roundi(q[0] + cos(a) * r)
+			var Y := roundi(q[1] + sin(a) * r * 0.7)
+			if (i & 1) and vfx._bayer(X, Y) < f:
+				spx(buf, X, Y, ARCANE.floor2)
+		if f > 0.3:
+			for i in 4:
+				var a2: float = float(i) / 4.0 * TAU + q[5]
+				spx(buf, roundi(q[0] + cos(a2) * r), roundi(q[1] + sin(a2) * r * 0.7), ARCANE.spark[3])
 	var L: Dictionary = LIFE
 	for q in tufts:
 		var k: float = q[3] / q[4]
@@ -422,6 +486,14 @@ func draw_over(buf: PackedByteArray):
 			vfx._put(buf, X + 1, Y, c)
 			tt += 0.4
 	draw_paths(buf)
+	for g in glyphs:
+		var kg: float = g[3] / g[4]
+		if vfx.dissolved(g[4], kg, 0.7):
+			continue
+		var cols: Array = g[6]
+		draw_glyph(buf, g[0], g[1], g[5], cols[mini(cols.size() - 1, int(kg * cols.size()))])
+	for sl in slashes:
+		_draw_slash(buf, sl)
 	for q in rays:
 		var k: float = q[4] / q[5]
 		var len: float = q[3] * (k / 0.3 if k < 0.3 else 1.0)
@@ -540,6 +612,35 @@ func draw_paths(buf: PackedByteArray):
 		var c: Color = A[0] if k < 0.3 else (A[1] if k < 0.6 else A[2])
 		spx(buf, roundi(h[0]), roundi(h[1]), c)
 		spx(buf, roundi(h[0] - h[2] * 0.012), roundi(h[1] - h[3] * 0.012), A[2])
+
+func _draw_slash(buf: PackedByteArray, sl: Dictionary):
+	var k: float = minf(1.0, sl.t / sl.dur)
+	var cur: float = sl.span * k
+	var cols: Array = sl.cols
+	var steps := ceili(sl.span * sl.rout * 1.6)
+	for i in steps + 1:
+		var rel: float = float(i) / steps * sl.span
+		if rel > cur:
+			break
+		var age: float = (cur - rel) / sl.span * sl.dur + maxf(0.0, sl.t - sl.dur)
+		var fade: float = 1.0 - age / (sl.dur * 0.9 + sl.linger * 0.6)
+		if fade <= 0.0:
+			continue
+		var a: float = sl.a0 + rel * sl.dir
+		var ca := cos(a)
+		var sa := sin(a)
+		var thick: float = (sl.rout - sl.rin) * (0.3 + 0.7 * sin(rel / sl.span * PI))
+		var r: float = sl.rout - thick
+		while r <= sl.rout:
+			var X := roundi(sl.cx + ca * r)
+			var Y := roundi(sl.cy + sa * r)
+			if vfx._bayer(X, Y) <= fade:
+				var band: float = (sl.rout - r) / thick
+				spx(buf, X, Y, cols[0] if band < 0.2 else (cols[1] if band < 0.55 else cols[2]))
+			r += 0.7
+	if k < 1.0:
+		var a3: float = sl.a0 + cur * sl.dir
+		line(buf, Vector2(sl.cx + cos(a3) * sl.rin, sl.cy + sin(a3) * sl.rin), Vector2(sl.cx + cos(a3) * (sl.rout + 1.0), sl.cy + sin(a3) * (sl.rout + 1.0)), cols[0])
 
 ## Nova front rim (sandbox drawElementTop, enovas): dashed bright band at the
 ## live radius, marching. Radius from the gameplay part, so it is the hitbox.

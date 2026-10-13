@@ -122,6 +122,17 @@ static func arena_defs() -> Dictionary:
 
 # label, incantation, cadence (s) — cadence from the sandbox's SPELLS[*].every
 const PAGES := [
+	["Arcane", [
+		["nova", "nova", 1.6],
+		["field", "field", 3.5],
+		["orbit", "orbit", 4.5],
+		["trap", "trap", 3.0],
+		["slash", "slash", 0.9],
+		["fiery nova (keyword accent)", "fiery nova", 1.6],
+		["icy field (keyword accent)", "icy field", 3.5],
+		["shocking slash (keyword accent)", "shocking slash", 0.9],
+		["verdant trap (keyword accent)", "verdant trap", 3.0],
+	]],
 	["Fire", [
 		["Fire Bolt (sandbox: Fire > Fire Bolt)", "arena fire bolt", 0.55],
 		["Fireball (sandbox: Fire > Fireball)", "arena fireball", 1.7],
