@@ -107,7 +107,16 @@ static func look_of(plan: Dictionary) -> Dictionary:
 	if not native in BUILT:
 		native = ""
 	var accent := ""
+	# a rejected element word changes nothing in play, so it must not show either
+	var rejected := {}
+	var words: Dictionary = preload("res://scripts/engine/KeywordParser.gd").data().get("words", {})
+	for r in plan.get("rejected", []):
+		var w = words.get(str(r.get("word", "")), {})
+		if str(w.get("category", "")) == "element":
+			rejected[str(w.get("element", ""))] = true
 	for e in plan.get("elements", []):
+		if rejected.has(str(e.get("element", ""))):
+			continue
 		var a: String = ACCENT_LOOK.get(str(e.get("element", "")), "")
 		if a == "water":
 			a = "ice" if str(e.get("status", "")) in COLD else "water"
@@ -171,6 +180,23 @@ func presents(part) -> bool:
 
 # ------------------------------------------------------------------ events
 
+## Delayed / charged casts (plan 5.2): energy gathers at the staff and a ring
+## grows until the cast releases. Also remembers where the caster stood, for blinking.
+var _charges: Array = []      # {caster (weakref), age, dur, key, big}
+var _queued_from := {}        # cast instance id -> caster position (su) when queued
+
+func cast_queued(cast) -> void:
+	if not enabled or cast == null or not is_instance_valid(cast.caster):
+		return
+	_queued_from[cast.get_instance_id()] = cast.caster.global_position / WPS
+	var look = look_of(cast.plan)
+	if look.native == "" or cast.pending.is_empty():
+		return
+	var first: float = float(cast.pending[0].at)
+	if first > 0.05:
+		_charges.append({"caster": weakref(cast.caster), "age": 0.0, "dur": first,
+			"key": look.accent if look.accent != "" else look.native, "big": cast.plan.get("flags", {}).has("charged")})
+
 func cast_started(cast) -> void:
 	if not enabled or cast == null or not is_instance_valid(cast.caster):
 		return
@@ -178,6 +204,13 @@ func cast_started(cast) -> void:
 	if look.native == "":
 		return
 	var key: String = look.accent if look.accent != "" else look.native
+	var flags: Dictionary = cast.plan.get("flags", {})
+	var from = _queued_from.get(cast.get_instance_id())
+	_queued_from.erase(cast.get_instance_id())
+	if flags.has("blinking") and from != null:
+		_blink_fx(from, cast.caster.global_position / WPS, key)
+	if flags.has("sanguine"):
+		_blood_fx(cast.caster.global_position / WPS + Vector2(0.0, -5.0))
 	# Cast flash at the staff (2-4 steps), principle 7: anticipation before release.
 	var at := _staff_su(cast.caster)
 	vfx.star(at.x, at.y, 3.2, 0.1, 4, BODY[key][0])
@@ -201,9 +234,14 @@ func part_spawned(part) -> void:
 		"burst":
 			var r_su: float = part.geo("radius", 90.0) / WPS
 			# the accent owns the impact (plan 5.1); an arcane base adds its glyph flourish
-			_burst(look.accent if look.accent != "" else look.native, pos, r_su)
+			var pw := _power(part)
+			_burst(look.accent if look.accent != "" else look.native, pos, r_su, pw)
 			if look.accent != "" and look.native == "arcane":
 				_arcane_impact(pos.x, pos.y, 0.5)
+			elif look.accent != "":
+				_burst(look.native, pos, r_su * 0.45, 1.0)      # the native keeps a small say in the impact
+				_react(look.native, look.accent, pos, clampf(r_su / 11.0, 0.6, 2.5))
+			_force_fx(part.cast.plan, pos, look.accent if look.accent != "" else look.native)
 		"slash":
 			_slash(part, look, pos)
 		"trap":
@@ -266,10 +304,18 @@ func part_spawned(part) -> void:
 	_parts[part.get_instance_id()] = st
 	_presented[part.get_instance_id()] = weakref(part)
 
-func part_hit(part, _enemy, at: Vector2) -> void:
+func part_hit(part, enemy, at: Vector2) -> void:
 	var st = _parts.get(part.get_instance_id())
 	if st == null or st.kind != "projectile":
 		return
+	_part_hit_look(part, enemy, at)
+	var p: Vector2 = part.global_position / WPS
+	_force_fx(part.cast.plan, p, st.look.accent if st.look.accent != "" else st.look.native)
+	if st.look.accent != "" and st.look.native != "arcane":
+		_react(st.look.native, st.look.accent, p, 0.6)
+
+func _part_hit_look(part, _enemy, at: Vector2) -> void:
+	var st = _parts.get(part.get_instance_id())
 	var p: Vector2 = part.global_position / WPS
 	var impact_look: String = st.look.accent if st.look.accent != "" else st.look.native
 	var spawns_burst := false
@@ -379,6 +425,8 @@ func step(dt: float) -> void:
 					_earth_field(st.field, dt)
 				if st.look.accent != "":
 					_accent_field(st.look.accent, st.field, dt)
+					_steam_if(st.look, _in_disk(st.field.x, st.field.y, st.field.r), dt)
+				_field_force(part.cast.plan, st.field, st.look.accent if st.look.accent != "" else st.look.native, dt)
 			"wave":
 				_water_wave(part, st, dt)
 			"charge":
@@ -409,9 +457,12 @@ func step(dt: float) -> void:
 					_earth_nova(pos, float(part.front) / WPS, dt)
 				if st.look.accent != "":
 					_accent_nova(st.look.accent, pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
+					var na := randf() * TAU
+					_steam_if(st.look, pos + Vector2(cos(na), sin(na)) * float(part.front) / WPS, dt * 3.0)
 				else:
 					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
+	_step_charges(dt)
 	_burning(dt)
 	_chilled(dt)
 	_shocked(dt)
@@ -1036,6 +1087,11 @@ func _water_wave(part, st: Dictionary, dt: float) -> void:
 			el.droplet(p.x, p.y, dir.x * 40.0 + (randf() - 0.5) * 10.0, dir.y * 30.0, 30.0 + randf() * 40.0)
 		if randf() < 0.2:
 			el.mote(p.x, p.y - 3.0, dir.x * 30.0, -12.0, WAT.foam, 0.4, 20.0, 0.0)
+		if st.look.accent != "" and randf() < 0.35:
+			_emit_at(st.look.accent, p.x, p.y, dir.x, dir.y)
+		if st.look.accent == "fire" and randf() < 0.12:
+			# reaction (fire + water): the wall boils, steam pours off the crest
+			vfx.elements.mist(p.x - dir.x * 3.0, p.y - 2.0, dir.x * 10.0 + (randf() - 0.5) * 6.0, -10.0 - randf() * 8.0, 2.6, 7.0, 0.8 + randf() * 0.6)
 		if randf() < 0.035:
 			var back: Vector2 = w.o + dir * (w.front - w.half) + w.nrm * ((randf() * 2.0 - 1.0) * w.hw)
 			el.wblob(back.x, back.y, 0.0, 0.0, 1.6 + randf(), 1.2 + randf(), true)
@@ -1158,7 +1214,16 @@ func draw_statuses(buf: PackedByteArray) -> void:
 
 # ------------------------------------------------------------------ arcane + shapes (sandbox FX.arcane, eSlash, traps)
 
-func _burst(look: String, pos: Vector2, r_su: float) -> void:
+## Impact scale from cast power (tier / power / charged / sanguine words): one
+## impact tier up for strong casts; MEGA-class casts add shake and hit-stop.
+static func _power(part) -> float:
+	return clampf(sqrt(maxf(0.01, float(part.power_scale))), 0.8, 1.7)
+
+func _burst(look: String, pos: Vector2, r_su: float, pw: float = 1.0) -> void:
+	r_su *= pw
+	if pw > 1.3:
+		vfx.shake(0.6)
+		vfx.hitstop(3)
 	match look:
 		"ice":
 			_ice_impact(pos.x, pos.y, maxf(0.6, r_su / 12.0))
@@ -1276,12 +1341,16 @@ func _accent_nova(accent: String, c: Vector2, r: float, k: float, dt: float) -> 
 var _flip := 1
 
 func _slash(part, look: Dictionary, pos: Vector2) -> void:
-	var key: String = look.accent if look.accent != "" else look.native
+	var key: String = look.native      # body = native (plan 5.1); the accent emits along the edge too
+	var acc: String = look.accent
 	var R: float = float(part.geo("radius", 100.0)) / WPS
 	var span := deg_to_rad(float(part.def.get("geometry", {}).get("angle", 90.0)))
 	var mid: float = Vector2(part.direction).angle()
 	_flip = -_flip
-	var emit := func(x: float, y: float, fx: float, fy: float): _emit_at(key, x, y, fx, fy)
+	var emit := func(x: float, y: float, fx: float, fy: float):
+		_emit_at(key, x, y, fx, fy)
+		if acc != "" and randf() < 0.5:
+			_emit_at(acc, x, y, fx, fy)
 	vfx.elements.slash(pos.x, pos.y, mid - span * 0.5 * _flip, span, _flip, R * 0.3, R, SMEAR[key], emit)
 
 ## Per-element emission along a moving edge (sandbox emitAt).
@@ -1518,6 +1587,139 @@ func _earth_nova(c: Vector2, r: float, dt: float) -> void:
 	if randf() < 0.7 * dt * 60.0:
 		var a2 := randf() * TAU
 		vfx.elements.dust(c.x + cos(a2) * r, c.y + sin(a2) * r, cos(a2) * 14.0, sin(a2) * 8.0)
+
+# ------------------------------------------------------------------ keywords (plan 5.2) and reactions (plan 5.3)
+
+func _step_charges(dt: float) -> void:
+	var keep := []
+	var rt: float = dt / vfx.fx_speed
+	for c in _charges:
+		var caster = c.caster.get_ref()
+		c.age += rt
+		if caster == null or not is_instance_valid(caster) or c.age > c.dur:
+			continue
+		keep.append(c)
+		var at := _staff_su(caster)
+		var k: float = c.age / c.dur
+		var rate: float = (14.0 if c.big else 9.0) * (0.4 + k)
+		if randf() < rate * rt * 3.0:
+			var a := randf() * TAU
+			var r := (10.0 if c.big else 7.0) + randf() * 5.0
+			# gathering: sparks start out on a ring and fly into the staff
+			vfx.spark(at.x + cos(a) * r, at.y + sin(a) * r * 0.8, -cos(a) * r * 3.2, -sin(a) * r * 2.6, 0.3, SPARK[c.key])
+	_charges = keep
+
+func draw_charges(buf: PackedByteArray) -> void:
+	var el = vfx.elements
+	for c in _charges:
+		var caster = c.caster.get_ref()
+		if caster == null or not is_instance_valid(caster):
+			continue
+		var at := _staff_su(caster)
+		var k: float = clampf(c.age / c.dur, 0.0, 1.0)
+		var r: float = (2.0 + k * (9.0 if c.big else 6.0))
+		var steps := maxi(8, ceili(TAU * r * 1.2))
+		var col: Color = SPARK[c.key][0] if k > 0.8 and (vfx._steps & 2) else SPARK[c.key][1 if k > 0.5 else 2]
+		for i in steps:
+			if (i + (vfx._steps >> 2)) % 3 == 0:
+				continue
+			var a := TAU * i / steps
+			el.spx(buf, roundi(at.x + cos(a) * r), roundi(at.y + sin(a) * r * 0.8), col)
+		if c.big and k > 0.5:
+			el.draw_glyph(buf, at.x, at.y - r - 3.0, 3, SPARK[c.key][1])
+
+## Blinking: a poof where the caster stood, a dotted streak, a flash on arrival.
+func _blink_fx(from: Vector2, to: Vector2, key: String) -> void:
+	var el = vfx.elements
+	for i in 10:
+		var a := randf() * TAU
+		vfx.spark(from.x, from.y - 4.0, cos(a) * 26.0, sin(a) * 20.0, 0.35, SPARK[key])
+	el.mist(from.x, from.y - 4.0, 0.0, -6.0, 2.4, 5.0, 0.5)
+	vfx.ring(from.x, from.y, 6.0, 0.2, SPARK[key])
+	var d := to - from
+	var n := maxi(2, int(d.length() / 3.0))
+	for i in n:
+		var q := from + d * (float(i) / n)
+		vfx.spark(q.x, q.y - 4.0, d.x * 0.05, d.y * 0.05, 0.15 + 0.25 * float(i) / n, SPARK[key])
+	vfx.star(to.x, to.y - 4.0, 3.5, 0.08, 4, BODY[key][0])
+	vfx.flash(to.x, to.y - 4.0, 2.0, 0.06, BODY[key][1])
+
+## Sanguine: the cast is paid in blood.
+const BLOOD := [Color("#ff5a5a"), Color("#c41f2e"), Color("#7a0f1e")]
+func _blood_fx(at: Vector2) -> void:
+	for i in 12:
+		var a := randf() * TAU
+		vfx.chunk(at.x, at.y, cos(a) * (14.0 + randf() * 18.0), sin(a) * 10.0, 25.0 + randf() * 30.0, BLOOD, 0.7 + randf() * 0.4, 1)
+	vfx.ring(at.x, at.y + 3.0, 8.0, 0.25, BLOOD)
+	vfx.flash(at.x, at.y, 1.8, 0.05, BLOOD[0])
+
+## Pulling / repulsing: rings and streaks show the push direction at the hit.
+func _force_fx(plan: Dictionary, p: Vector2, key: String) -> void:
+	var flags: Dictionary = plan.get("flags", {})
+	if flags.has("repulsing"):
+		vfx.ring(p.x, p.y, 9.0, 0.22, SPARK[key])
+		for i in 6:
+			var a := float(i) / 6.0 * TAU + randf() * 0.3
+			vfx.elements.streak(p.x + cos(a) * 4.0, p.y + sin(a) * 3.0, p.x + cos(a) * 10.0, p.y + sin(a) * 8.0, 0.16, SPARK[key])
+	elif flags.has("pulling"):
+		vfx.elements.pull_ring(p.x, p.y, 14.0, 0.3, SPARK[key])
+		for i in 6:
+			var a2 := float(i) / 6.0 * TAU + randf() * 0.3
+			vfx.elements.streak(p.x + cos(a2) * 12.0, p.y + sin(a2) * 9.0, p.x + cos(a2) * 5.0, p.y + sin(a2) * 4.0, 0.18, SPARK[key])
+
+## Pulling / repulsing on areas: streaks drift in from (or out to) the rim.
+func _field_force(plan: Dictionary, A: Dictionary, key: String, dt: float) -> void:
+	var flags: Dictionary = plan.get("flags", {})
+	var pull := flags.has("pulling")
+	if not pull and not flags.has("repulsing"):
+		return
+	if randf() < 0.5 * dt * 60.0:
+		var a := randf() * TAU
+		var r: float = A.r
+		var outer := Vector2(A.x + cos(a) * r, A.y + sin(a) * r)
+		var inner := Vector2(A.x + cos(a) * r * 0.7, A.y + sin(a) * r * 0.7)
+		if pull:
+			vfx.elements.streak(outer.x, outer.y, inner.x, inner.y, 0.2, SPARK[key])
+		else:
+			vfx.elements.streak(inner.x, inner.y, outer.x, outer.y, 0.2, SPARK[key])
+
+## Reaction table (plan 5.3): pairs where plain body + accent would miss the payoff.
+func _react(native: String, accent: String, p: Vector2, s: float) -> void:
+	var el = vfx.elements
+	var pair := [native, accent]
+	pair.sort()
+	var a: String = pair[0]
+	var b: String = pair[1]
+	if a == "fire" and (b == "water" or b == "ice"):
+		for i in roundi(10 * s):           # steam burst
+			var ang := randf() * TAU
+			var sp := 10.0 + randf() * 18.0
+			el.mist(p.x, p.y - 2.0, cos(ang) * sp, sin(ang) * sp * 0.6 - 8.0, 2.4 + randf(), 7.0 + randf() * 4.0, 0.8 + randf() * 0.5)
+	elif a == "earth" and b == "fire":
+		vfx.crack_decal(p.x, p.y, 6, 9.0 * s, 4.0, [Color("#ff8a1f"), Color("#c2361a")])    # magma cracks
+	elif a == "fire" and b == "life":
+		for i in roundi(12 * s):           # burning leaves, ember to ash
+			var ang2 := randf() * TAU
+			el.leaf(p.x, p.y, cos(ang2) * 22.0, sin(ang2) * 14.0 - 10.0, [Color("#ffd54a"), Color("#ff8a1f"), Color("#c2361a"), Color("#3a2a24")], 1.0 + randf() * 0.6)
+	elif a == "lightning" and b == "water":
+		for i in 5:                        # arcs run across the splash
+			var q1 := p + Vector2(randf() - 0.5, randf() - 0.5) * 18.0 * s
+			var q2 := p + Vector2(randf() - 0.5, randf() - 0.5) * 18.0 * s
+			el.arc(q1.x, q1.y, q2.x, q2.y, 2.0, 0.12, 1)
+		for i in 6:
+			el.hop(p.x + (randf() - 0.5) * 14.0 * s, p.y + (randf() - 0.5) * 8.0 * s, 0.25)
+	elif a == "earth" and b == "ice":
+		vfx.crack_decal(p.x, p.y, 6, 9.0 * s, 5.0, [Color("#8fd3ee"), Color("#3d5a78")])    # permafrost
+	elif a == "life" and b == "plague":
+		for i in 7:                        # stains bloom into flowers
+			var ang3 := float(i) / 7.0 * TAU
+			el.blade(p.x + cos(ang3) * 5.0 * s, p.y + sin(ang3) * 3.5 * s, 2, 0.15 + i * 0.04, 2.5, true)
+
+## Continuous reaction on areas: fire meeting water / ice steams.
+func _steam_if(look: Dictionary, p: Vector2, dt: float) -> void:
+	var pair := [look.native, look.accent]
+	if pair.has("fire") and (pair.has("water") or pair.has("ice")) and randf() < 0.25 * dt * 60.0:
+		vfx.elements.mist(p.x, p.y - 2.0, (randf() - 0.5) * 6.0, -8.0 - randf() * 6.0, 2.2, 6.0, 0.9 + randf() * 0.5)
 
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():

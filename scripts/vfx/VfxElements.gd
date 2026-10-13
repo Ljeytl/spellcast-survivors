@@ -89,6 +89,8 @@ const EARTH := {
 	"dust": [Color("#9a8670"), Color("#7a6a58"), Color("#5a4c40")],
 	"rim": [Color("#c9a46a"), Color("#e8dcc0")],
 }
+# Sandbox EL.steam (soft technique): reactions (fire + water/ice) make steam.
+const STEAM := [Color("#f2f6f8"), Color("#c5d0d9"), Color("#8e9cab")]
 const SHADOW := Color("#16141b")
 const INK := Color("#120e14")
 
@@ -101,6 +103,8 @@ var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
 var flakes: Array = []      # [x, y, vx, vy, age, life, size, spin, ph, g]
 var blobs: Array = []       # [x, y, vx, vy, r, age, life, g, stick, layer]   goo blobs; layer 0 water, 2 plague
 var bubbles: Array = []     # [x, y, vy, r, age, life]                 plague bubbles
+var mists: Array = []       # [x, y, vx, vy, r, grow, age, life]       steam puffs (sandbox mist)
+var pulls: Array = []       # [x, y, r0, age, life, cols]              rings closing in (pulling keyword)
 var streaks: Array = []     # [x0, y0, x1, y1, age, life, cols]        foam streaks
 var rays: Array = []        # [x, y, ang, len, age, life, cols, r0]    spray rays
 var later: Array = []       # [t, Callable]                            delayed spawns (ripples)
@@ -117,7 +121,7 @@ func _init(owner):
 
 func clear():
 	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear(); flakes.clear()
-	blobs.clear(); streaks.clear(); rays.clear(); later.clear(); bubbles.clear()
+	blobs.clear(); streaks.clear(); rays.clear(); later.clear(); bubbles.clear(); mists.clear(); pulls.clear()
 	leaves.clear(); blades.clear(); vines.clear(); tufts.clear()
 	glyphs.clear(); runes.clear(); slashes.clear()
 
@@ -150,6 +154,20 @@ func gblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stic
 func bubble(x: float, y: float, big: bool):
 	if bubbles.size() < (80 if vfx.reduced_effects else 240):
 		bubbles.append([x, y, -(5.0 + randf() * 7.0), 2.0 if big else 1.2, 0.0, 0.5 + randf() * 0.7])
+
+## Steam puff (sandbox mist): grows and drifts with the wind, dithered.
+func mist(x: float, y: float, vx: float, vy: float, r: float, grow: float, life: float):
+	if mists.size() < (60 if vfx.reduced_effects else 200):
+		mists.append([x, y, vx, vy, r, grow, 0.0, life])
+
+## Ring that closes in on a point (pulling); dashed, in the given palette.
+func pull_ring(x: float, y: float, r0: float, life: float, cols: Array):
+	pulls.append([x, y, r0, 0.0, life, cols])
+
+## Short coloured streak (push / pull lines, foam): fades through cols.
+func streak(x0: float, y0: float, x1: float, y1: float, life: float, cols: Array):
+	if streaks.size() < 200:
+		streaks.append([x0, y0, x1, y1, 0.0, life, cols])
 
 ## Earth dust: a falling-up mote in dust tones (sandbox dust).
 func dust(x: float, y: float, vx: float, vy: float):
@@ -318,6 +336,22 @@ func step(dt: float):
 		b[1] += b[3] * dt
 		keep.append(b)
 	blobs = keep
+	keep = []
+	for m in mists:
+		m[6] += dt
+		if m[6] > m[7]:
+			continue
+		m[2] = vfx._drag(m[2] + vfx.wind * 2.4 * dt, dt, 0.95)
+		m[3] = vfx._drag(m[3], dt, 0.97)
+		m[0] += m[2] * dt
+		m[1] += m[3] * dt
+		m[4] += m[5] * dt
+		m[5] *= pow(0.97, dt * 60.0)
+		keep.append(m)
+	mists = keep
+	for q in pulls:
+		q[3] += dt
+	pulls = pulls.filter(func(q): return q[3] < q[4])
 	keep = []
 	for q in bubbles:
 		q[4] += dt
@@ -532,6 +566,39 @@ func draw_over(buf: PackedByteArray):
 		draw_glyph(buf, g[0], g[1], g[5], cols[mini(cols.size() - 1, int(kg * cols.size()))])
 	for sl in slashes:
 		_draw_slash(buf, sl)
+	# steam: dithered puffs (sandbox drawSoft, per puff): dense core light, edges thin out
+	for m in mists:
+		var km: float = m[6] / m[7]
+		var dens: float = 1.05 * pow(1.0 - km, 0.8)
+		var rc: float = m[4] * K
+		var R := ceili(rc)
+		var cx := roundi(m[0] * K)
+		var cy := roundi(m[1] * K)
+		for oy in range(-R, R + 1):
+			for ox in range(-R, R + 1):
+				var d := sqrt(float(ox * ox + oy * oy))
+				if d >= rc:
+					continue
+				var w := 1.0 - d / rc
+				var v := dens * w * w * 2.2
+				var b: float = vfx._bayer(cx + ox, cy + oy)
+				var L := v + (b - 0.5) * 0.35
+				if L > 1.15:
+					vfx._put(buf, cx + ox, cy + oy, STEAM[0])
+				elif L > 0.7:
+					vfx._put(buf, cx + ox, cy + oy, STEAM[1])
+				elif v > 0.25 and b < v * 1.4:
+					vfx._put(buf, cx + ox, cy + oy, STEAM[2])
+	for q in pulls:
+		var kp: float = q[3] / q[4]
+		var r: float = q[2] * (1.0 - kp * kp)
+		var cols: Array = q[5]
+		var steps := maxi(10, ceili(TAU * r * 1.2))
+		for i in steps:
+			if (i + (vfx._steps >> 1)) % 3 == 0:
+				continue
+			var a := TAU * i / steps
+			spx(buf, roundi(q[0] + cos(a) * r), roundi(q[1] + sin(a) * r), cols[mini(cols.size() - 1, int(kp * cols.size()))])
 	# bubbles: dark rim, light body, one specular pixel; swell before popping
 	for q in bubbles:
 		var kb: float = q[4] / q[5]

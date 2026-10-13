@@ -35,6 +35,10 @@ func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictio
 	for i in plan.get("casts", []).size():
 		var c: Dictionary = plan.casts[i]
 		pending.append({"at": float(c.delay), "power": float(c.power), "size": float(c.size), "first": i == 0})
+	# VFX: anticipation for delayed / charged casts (docs/VFX_EVENTS.md); read-only.
+	var vfx = (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Vfx") if Engine.get_main_loop() is SceneTree else null
+	if vfx:
+		vfx.cast_queued(self)
 
 func _physics_process(delta: float) -> void:
 	if not manual:

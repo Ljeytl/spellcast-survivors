@@ -9,6 +9,7 @@
 - **Life:** leaves, grass and flowers growing, vines, Regrowth bloom at the caster, entangled vine wrap.
 - **Plague / Earth:** outlined goo and popping bubbles, stain; boulders, rubble, stone spikes, cracks.
 - **Arcane and shapes:** bare nova, field, orbit, rune trap, slash smear; keyword accents layer the accent element over the arcane look (fiery nova, icy field, shocking slash).
+- **Keywords and combos** (`docs/VFX_KEYWORDS.md`): element keywords add their particles to the spell's own look (fiery tsunami: a boiling wall with a burning crest); reactions for fire + water/ice (steam), fire + earth (magma cracks), fire + life (burning leaves), lightning + water, earth + ice, plague + life. Delayed/charged casts gather at the staff, sanguine spills blood, blinking leaves a poof and a streak, pulling/repulsing show rings and streaks, strong casts hit harder on screen. Rejected keywords show nothing.
 - Every engine element now has a look; only unknown elements keep the placeholder art. Water resolves to Ice when the spell applies chilled/frozen.
 - Perf (headless arm VM, arena): all-elements stress 8.6 ms draw; pool and plague goo and the Tsunami wall run in the shaders.
 

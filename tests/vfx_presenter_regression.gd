@@ -203,6 +203,20 @@ func run():
 			shown = shown or not vfx.elements.slashes.is_empty()
 		check(shown, "Bare %s is presented (arcane look), no placeholder art" % spell)
 
+	# Keyword visuals (plan 5.2) and reactions (plan 5.3).
+	clear()
+	foe(Vector2(120, 0))
+	c = cast("fiery tsunami", 0.25)
+	check(vfx.presenter.look_of(c.plan).accent == "fire" and not vfx.elements.mists.is_empty(), "Fiery tsunami: water body, fire accent, the wall steams")
+	clear()
+	foe(Vector2(120, 0))
+	c = cast("charged fireball", 0.0)
+	check(not vfx.presenter._charges.is_empty(), "Charged cast gathers energy at the staff before release")
+	clear()
+	foe(Vector2(120, 0))
+	c = cast("sanguine spear", 0.0)
+	check(not vfx._debris.is_empty(), "Sanguine cast spills blood at the caster")
+
 	# Every engine element has a look; anything unknown keeps the placeholder art.
 	clear()
 	foe(Vector2(120, 0))

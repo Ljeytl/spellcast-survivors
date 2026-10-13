@@ -431,12 +431,12 @@ func spider(x: float, y: float, life: float = 5.0):
 	path_decal(x, y, rays, [Color("#2a2342"), Color("#2a2342")], life, Color("#14111c"))
 
 ## Ground cracks (sandbox crackDecal): n jagged rays of length ~L from the centre.
-func crack_decal(x: float, y: float, n: int, L: float, life: float = 6.0):
+func crack_decal(x: float, y: float, n: int, L: float, life: float = 6.0, cols: Array = [Color("#0d0b0b"), Color("#3a2e22")]):
 	var rays := []
 	for i in n:
 		var a := float(i) / n * TAU + randf() * 0.5
 		rays.append(elements.jag(x, y, x + cos(a) * L * (0.6 + randf() * 0.5), y + sin(a) * L * 0.7 * (0.6 + randf() * 0.5), 1.5))
-	path_decal(x, y, rays, [Color("#0d0b0b"), Color("#3a2e22")], life)
+	path_decal(x, y, rays, cols, life)
 
 ## Bakes jagged paths (su) into a dithering decal: sandbox-pixel Bresenham lines,
 ## first half of each path in cols[0], the rest in cols[1]; optional dark centre.
@@ -546,6 +546,10 @@ func shake(strength: float):
 
 # Events are ignored while no game camera is up (menus, headless engine tests),
 # so nothing piles up off-screen.
+func cast_queued(cast) -> void:
+	if _active:
+		presenter.cast_queued(cast)
+
 func cast_started(cast) -> void:
 	if _active:
 		presenter.cast_started(cast)
@@ -1101,6 +1105,7 @@ func _draw_impacts():
 	_upload("ground", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _ground))
 	presenter.draw_bodies(_over)
 	presenter.draw_statuses(_over)
+	presenter.draw_charges(_over)
 	elements.draw_over(_over)
 	for f in _flashes:
 		_disk(_over, roundi(f[0] * K), roundi(f[1] * K), f[2] * K, f[5])

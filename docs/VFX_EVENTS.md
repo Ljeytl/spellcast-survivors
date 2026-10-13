@@ -15,6 +15,7 @@ The spell engine (`scripts/engine/GenericCast.gd`, `SpellPart.gd`) announces mom
 
 | Call | Fired from | When | VFX use |
 |---|---|---|---|
+| `cast_queued(cast)` | `GenericCast.setup` | once per cast, before any delay | anticipation for delayed / charged casts; caster position before a blink (`docs/VFX_KEYWORDS.md`) |
 | `cast_started(cast)` | `GenericCast._start_cast` | once per cast, after aiming | cast flash at the staff (principle 7) |
 | `part_spawned(part)` | `SpellPart.setup` | every part instance, roots and event children | start tracking: projectile body + trail, instant burst, field floor + rim |
 | `part_hit(part, enemy, at)` | `SpellPart.hit` | each real hit, after payload | contact burst (per pierce for spears), impact recipe |

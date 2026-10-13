@@ -114,7 +114,7 @@ static func arena_defs() -> Dictionary:
 				"timing": {"type": "periodic", "interval": 0.5, "duration": 6.0}, "payload": [{"type": "status", "status": "poison"}]}}},
 		"arena_plague_nova": {"name": "Plague Nova", "incantation": "arena plague nova", "element": "plague", "acquire": "data_only", "root": "ring",
 			"parts": {"ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 34 * WPS, "thickness": 6 * WPS},
-				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "status", "status": "poison"}]}}},
+				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "damage", "amount": 1}, {"type": "status", "status": "poison"}]}}},
 		"arena_earth_bolt": {"name": "Earth Bolt", "incantation": "arena earth bolt", "element": "earth", "acquire": "data_only", "root": "bolt",
 			"parts": {"bolt": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
 				"motion": [{"type": "straight", "speed": 2 * 160 * WPS, "range": 1400}], "payload": [{"type": "damage", "amount": 1}],
@@ -130,7 +130,7 @@ static func arena_defs() -> Dictionary:
 				"timing": {"type": "periodic", "interval": 0.5, "duration": 6.0}, "payload": [{"type": "status", "status": "bleed"}]}}},
 		"arena_earth_nova": {"name": "Earth Nova", "incantation": "arena earth nova", "element": "earth", "acquire": "data_only", "root": "ring",
 			"parts": {"ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 34 * WPS, "thickness": 6 * WPS},
-				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "status", "status": "bleed"}]}}},
+				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "damage", "amount": 1}, {"type": "status", "status": "bleed"}]}}},
 		# Sandbox lightning: bolt lands -> sky strike (r 10), spear 230, field r 20, nova 34 su over 0.5 s
 		"arena_lightning_bolt": {"name": "Lightning Bolt", "incantation": "arena lightning bolt", "element": "storm", "acquire": "data_only", "root": "bolt",
 			"parts": {"bolt": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
@@ -155,6 +155,28 @@ static func arena_defs() -> Dictionary:
 
 # label, incantation, cadence (s) — cadence from the sandbox's SPELLS[*].every
 const PAGES := [
+	["Combos", [
+		["fiery tsunami (water + fire: boiling wall, steam)", "fiery tsunami", 2.6],
+		["shocking tsunami (water + lightning)", "shocking tsunami", 2.6],
+		["icy fireball (fire + ice: steam burst)", "icy fireball", 1.7],
+		["earthen fireball (fire + earth: magma cracks)", "earthen fireball", 1.7],
+		["verdant fireball (fire + life: burning leaves)", "verdant fireball", 1.7],
+		["shocking water bolt (water + lightning: arcs on the splash)", "shocking arena water bolt", 0.8],
+		["frosty earth nova (earth + ice: permafrost)", "frosty arena earth nova", 2.2],
+		["living plague bolt (plague + life: stains bloom)", "living arena plague bolt", 0.8],
+		["fiery frost nova (ice + fire: steam)", "fiery frost nova", 2.2],
+	]],
+	["Keywords", [
+		["charged fireball (gathering at the staff)", "charged fireball", 2.6],
+		["delayed nova", "delayed nova", 2.0],
+		["sanguine spear (blood cost)", "sanguine spear", 1.1],
+		["blinking nova (blink away)", "blinking nova", 1.6],
+		["repulsing fireball", "repulsing fireball", 1.7],
+		["pulling field", "pulling field", 3.5],
+		["mega fireball (tier up)", "mega fireball", 1.7],
+		["exploding spear", "exploding spear", 1.1],
+		["chaining fiery spear", "chaining fiery spear", 1.1],
+	]],
 	["Arcane", [
 		["nova", "nova", 1.6],
 		["field", "field", 3.5],
@@ -394,6 +416,7 @@ func _unhandled_input(event):
 func select(i: int):
 	current = i
 	cooldown = 0.0
+	caster.position = PLAYER_SU * WPS     # blinking moves the caster: put it back
 	for n in get_children():
 		if n is GenericCast:
 			n.queue_free()
