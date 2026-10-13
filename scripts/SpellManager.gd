@@ -581,182 +581,19 @@ func _dispatch_spell(slot: int) -> bool:
 	match spell_type:
 		"life_bolt":
 			cast_life_bolt(slot)
-		"plague", "field", "orbit", "beam", "trap", "spirit", "trail", "returning":
+		"plague", "field", "orbit", "beam", "spirit", "trail", "returning":
 			if not cast_build_spell(slot):
 				return false
-		"projectile":
-			cast_enhanced_bolt_spell(slot)
-		"heal":
-			player.heal(float(spell_info.heal_amount) * (1.0 + 0.15 * (spell_info.level - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier), cast_keyword_multiplier)
 		"heal_over_time":
 			cast_life_spell(slot)
-		"aoe":
-			cast_ice_blast_spell(slot)
 		"shield":
 			cast_earthshield_spell(slot)
-		"chain", "direct_strike":
-			cast_lightning_arc_spell(slot)
 		"bouncing_projectile":
 			cast_bouncing_bolt(slot)
 		"multi_aoe":
 			cast_meteor_shower_spell(slot)
 	AudioManager.play_spell_sound(str(spell_info.id))
 	return true
-
-# Individual spell implementations
-func cast_bolt_spell(slot: int):
-	if not player or not is_instance_valid(player):
-		return
-		
-	var spell_info = get_spell_info(slot)
-	if spell_info.is_empty():
-		return
-		
-	var damage = calculate_spell_damage(spell_info)
-	
-	var closest_enemy = Targeting.select(get_tree(), player.global_position)
-	if not closest_enemy or not is_instance_valid(closest_enemy):
-		return
-	
-	# Create bolt visual effect (lightning flash)
-	create_simple_spell_flash(player.global_position, Color.YELLOW)
-	
-	# Create projectile
-	if not spell_projectile_scene:
-		return
-	
-	var projectile = spell_projectile_scene.instantiate()
-	if not projectile or not is_instance_valid(projectile):
-		return
-	
-	var direction = (closest_enemy.global_position - player.global_position).normalized()
-	if direction == Vector2.ZERO:
-		direction = Vector2.RIGHT
-	
-	
-	# Set projectile properties before calling setup
-	projectile.speed = 600.0 * cast_stat("projectile_speed_multiplier")  # Faster than normal
-	
-	# Add to scene first, then setup (this ensures _ready() runs before setup)
-	var parent = get_parent()
-	if parent:
-		parent.add_child(projectile)
-		
-		# Setup projectile after it's been added to the scene
-		projectile.setup(player.global_position, direction, damage, Color.YELLOW, "bolt")
-		projectile.assign_target(closest_enemy)
-	else:
-		projectile.queue_free()  # Clean up if we can't add it
-
-# Enhanced bolt spell with spread firing + homing behavior for higher levels
-func cast_enhanced_bolt_spell(slot: int):
-	if not player or not is_instance_valid(player):
-		return
-		
-	var spell_info = get_spell_info(slot)
-	if spell_info.is_empty():
-		return
-		
-	var damage = calculate_spell_damage(spell_info)
-	var spell_level = spell_info["level"]
-	
-	# Higher level bolt spells fire multiple projectiles with spread + homing
-	var projectile_count = 1 + (spell_level - 1)  # Level 1 = 1 bolt, Level 2 = 2 bolts, etc.
-	projectile_count = min(projectile_count, 5)  # Cap at 5 projectiles
-	
-	# Get enemies for targeting (but allow spread even if no specific targets)
-	var enemies = get_multiple_enemies(projectile_count * 2)  # Get more enemies than bolts for variety
-	
-	# Create bolt visual effect (lightning flash)
-	create_simple_spell_flash(player.global_position, Color.YELLOW)
-	
-	# Get scene tree for timer functionality
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	
-	# Calculate base direction (toward closest enemy or player facing direction)
-	var base_direction = Vector2.RIGHT  # Default direction
-	if enemies.size() > 0:
-		base_direction = (enemies[0].global_position - player.global_position).normalized()
-	
-	# Fire multiple spread + homing projectiles with timing delays
-	for i in range(projectile_count):
-		var delay = i * 0.12  # 120ms delay between each projectile for better visibility
-		var spread_angle = 0.0
-		
-		# Add directional spread for multiple projectiles
-		if projectile_count > 1:
-			# Spread projectiles in an arc (±30 degrees total spread)
-			var max_spread = PI / 6.0  # 30 degrees in radians
-			var spread_step = max_spread * 2 / (projectile_count - 1)
-			spread_angle = -max_spread + (i * spread_step)
-		
-		# Assign target (prefer different enemies, fallback to closest)
-		var target = null
-		if enemies.size() > 0:
-			target = enemies[i % enemies.size()]  # Cycle through available enemies
-		
-		# Create spread + homing projectile with delay
-		if delay > 0:
-			scene_tree.create_timer(delay).timeout.connect(
-				DamageSource.wrap(_delayed_spread_bolt.bind(base_direction, spread_angle, weakref(target) if target else null, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier")))
-			)
-		else:
-			create_spread_homing_bolt_projectile(base_direction, spread_angle, target, damage, i, maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier, cast_stat("projectile_speed_multiplier"))
-
-# Helper function to create individual spread + homing bolt projectiles
-func create_spread_homing_bolt_projectile(base_direction: Vector2, spread_angle: float, target: Node2D, damage: float, projectile_index: int, size_snapshot: float = -1.0, speed_snapshot: float = -1.0):
-	target = Targeting.select(get_tree(), player.global_position)
-	if target:
-		base_direction = player.global_position.direction_to(target.global_position)
-		spread_angle = 0.0
-	if not spell_projectile_scene:
-		return
-	
-	var projectile = null
-	
-	# Try to get from object pool first
-	var scene_tree = get_tree()
-	if scene_tree:
-		var game_node = scene_tree.get_first_node_in_group("game")
-		if game_node and game_node.has_method("get_pooled_object"):
-			projectile = game_node.get_pooled_object("SpellProjectile")
-	
-	# Fallback to creating new instance
-	if not projectile:
-		projectile = spell_projectile_scene.instantiate()
-	
-	if not projectile or not is_instance_valid(projectile):
-		return
-	
-	# Apply spread angle to base direction for initial firing direction
-	var initial_direction = base_direction.rotated(spread_angle)
-	
-	# Vary the color slightly for visual distinction between projectiles
-	var base_color = Color.YELLOW
-	var hue_shift = fmod(projectile_index * 0.15, 1.0)  # Cycle through hues
-	var color_variation = Color.from_hsv(0.15 + hue_shift * 0.3, 0.9, 1.0)  # Yellow to orange range
-	var projectile_color = base_color.lerp(color_variation, 0.5)
-	
-	# Slightly vary speed for additional visual distinction
-	var speed_variation = 500.0 + (projectile_index * 30.0)  # Each bolt slightly faster
-	projectile.speed = speed_variation * (speed_snapshot if speed_snapshot > 0 else cast_stat("projectile_speed_multiplier"))
-	
-	# Set very subtle homing strength for spread bolts (allows many misses but provides minimal guidance)
-	projectile.homing_strength = 1.5  # Very subtle homing to maintain spread pattern and allow many misses
-	
-	# Add to scene first, then setup (this ensures _ready() runs before setup)
-	var parent = get_parent()
-	if parent:
-		parent.add_child(projectile)
-		
-		projectile.set_meta("cast_size_snapshot", size_snapshot if size_snapshot > 0 else maxf(0.1, cast_stat("spell_size_multiplier")))
-		projectile.setup(player.global_position, initial_direction, damage, projectile_color, "bolt")
-		projectile.is_homing = false
-		projectile.assign_target(target)
-	else:
-		projectile.queue_free()  # Clean up if we can't add it
 
 # Helper function to get multiple enemy targets for multi-projectile spells
 func get_multiple_enemies(count: int) -> Array:
@@ -816,18 +653,6 @@ func cast_life_spell(slot: int):
 			visual.scale = Vector2.ONE * visual_size
 
 
-func cast_ice_blast_spell(slot: int):
-	print("🧊 cast_ice_blast_spell called!")
-	var spell_info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
-	var damage = calculate_spell_damage(spell_info)
-	var radius = float(spell_info.get("radius", 400))  # Reach, shards and cone grow through rank_growth
-	var knockback = spell_info.get("knockback", 400) + (spell_info["level"] - 1) * 50  # Knockback grows with level
-	var slow_duration = spell_info.get("slow_duration", 2.0)
-	var slow_strength = spell_info.get("slow_effect", 0.3)
-	
-	print("🧊 Ice blast: radius=", radius, " damage=", damage, " player_pos=", player.global_position)
-	create_ice_explosion(player.global_position, radius, damage, knockback, slow_duration, slow_strength, ice_shard_count(spell_info), float(spell_info.get("cone_degrees", 90.0)), int(spell_info.get("shard_pierce", 0)))
-
 func cast_earthshield_spell(slot: int):
 	var info = get_spell_info(slot)
 	var rank_multiplier = 1.0 + 0.15 * (int(info.get("level", 1)) - 1)
@@ -840,18 +665,6 @@ func cast_earthshield_spell(slot: int):
 		"travel_time": float(info.get("retaliation_travel_time", 0.22)),
 		"damage_source": DamageSource.current
 	})
-
-func cast_lightning_arc_spell(slot: int):
-	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
-	info.keyword_size_multiplier = cast_keyword_multiplier
-	if not release_snapshot.is_empty():
-		info.keyword_stats = release_snapshot.stats.duplicate(true)
-	var target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)), INF, {}, get_viewport().get_visible_rect())
-	if not _live_spell_target(target):
-		return
-	var effect = preload("res://scripts/LightningArea.gd").new()
-	effect.configure(target.global_position, info, calculate_spell_damage(info), player)
-	get_parent().add_child(effect)
 
 func cast_bouncing_bolt(slot: int):
 	var info = resolve_cast_info(slot)
@@ -991,19 +804,6 @@ func create_meteor_warning(pos: Vector2, delay: float, radius: float = 180.0):
 	get_parent().add_child(warning)
 
 ## Ice Blast shard count: one shard per degrees_per_shard of cone when the spell sets it, so wider cones stay just as dense.
-func ice_shard_count(spell_info: Dictionary) -> int:
-	if spell_info.has("degrees_per_shard"):
-		return maxi(1, int(round(float(spell_info.get("cone_degrees", 90.0)) / float(spell_info.degrees_per_shard))))
-	return int(spell_info.get("shard_count", 13))
-
-func create_ice_explosion(pos: Vector2, radius: float, damage: float, knockback_base: float = 200, slow_duration: float = 2.0, slow_strength: float = 0.6, shard_count: int = 13, cone_degrees: float = 90.0, shard_pierce: int = 0):
-	var target = get_closest_enemy()
-	var direction = pos.direction_to(target.global_position) if target else Vector2.RIGHT
-	var effect = preload("res://scripts/IceBlast.gd").new()
-	effect.configure(pos, direction, radius, damage, knockback_base, slow_duration, slow_strength, cast_stat("projectile_speed_multiplier"), (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier), shard_count, cone_degrees)
-	effect.shard_pierce = shard_pierce
-	get_parent().add_child(effect)
-
 func chain_lightning(target, damage: float, remaining_chains: int, hit_enemies: Array):
 	if not _live_spell_target(target) or remaining_chains <= 0:
 		return
@@ -1774,20 +1574,24 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 	var info = resolve_cast_info(slot)
 	var scaled = Geometry.scaled_data(info, player)
 	var speed_mult = float(cast_stat("projectile_speed_multiplier"))
-	var def = LegacyBridge.build(scaled, calculate_spell_damage(info), {"speed_mult": speed_mult})
+	var ctx = {"speed_mult": speed_mult}
+	if str(info.get("type", "")) == "heal":
+		ctx.heal = float(info.heal_amount) * (1.0 + 0.15 * (int(info.level) - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
+	var def = LegacyBridge.build(scaled, calculate_spell_damage(info), ctx)
 	if def.is_empty():
 		return false
-	var target = ported_target(scaled, speed_mult)
 	var plan = CastPlanner.plan(def, bundle, {})
 	last_cracked = plan.rejected
 	for r in plan.rejected:
 		keyword_cracked.emit(str(r.word), str(r.reason))
 	var cast = GenericCast.new()
 	cast.name = "GenericCast_" + str(def.id)
-	cast.forced_target = target
+	cast.target_picker = ported_target.bind(scaled, speed_mult)
 	cast.setup(plan, player, get_parent(), DamageSource.current if not DamageSource.current.is_empty() else DamageSource.make(str(def.id), style_clock()))
 	get_parent().add_child(cast)
 	last_generic_cast = cast
+	# Old spells left the caster the moment they were cast; so do ported ones (and targeting sees them).
+	cast.step(0.0)
 	return true
 
 ## The target each ported spell aimed at before the port.
@@ -1797,6 +1601,13 @@ func ported_target(info: Dictionary, speed_mult: float):
 			var reach = 700.0 * 1.5 * speed_mult
 			var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("spear_radius", 24.0)), reach, get_viewport().get_visible_rect())
 			return line_target if line_target != null else get_closest_enemy()
+		"projectile":
+			return Targeting.select(get_tree(), player.global_position) if is_instance_valid(player) else null
+		"direct_strike", "chain":
+			var area = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)), INF, {}, get_viewport().get_visible_rect())
+			return area if _live_spell_target(area) else null
+		"heal":
+			return null
 	return get_closest_enemy()
 
 func get_visible_plague_host(info: Dictionary):
@@ -1823,14 +1634,6 @@ func _delayed_mana_bolt(reference: WeakRef, damage: float, index: int):
 		return
 	var target = reference.get_ref()
 	create_mana_bolt_projectile(target, damage, index)
-
-func _delayed_spread_bolt(direction: Vector2, angle: float, reference: WeakRef, damage: float, index: int, size_snapshot: float = -1.0, speed_snapshot: float = -1.0):
-	if not is_inside_tree() or not is_instance_valid(player):
-		return
-	var target = Targeting.select(get_tree(), player.global_position)
-	if reference and target == null:
-		return
-	create_spread_homing_bolt_projectile(direction, angle, target, damage, index, size_snapshot, speed_snapshot)
 
 func _delayed_chain(reference: WeakRef, damage: float, remaining: int, hit_ids: Array):
 	if not is_inside_tree() or not is_instance_valid(player):

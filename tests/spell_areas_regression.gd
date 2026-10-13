@@ -77,7 +77,8 @@ func run():
 	game.spell_manager.learn_spell("lightning")
 	check(game.spell_manager.cast_freeform_spell("lightning"), "Owned typed Lightning casts")
 	check(close.current_health == 10000 and cluster.all(func(node): return node.current_health == 9940), "Lightning favors useful group coverage over isolated nearest enemy")
-	check(get_nodes_in_group("lightning_areas").size() == 1, "Lightning uses circular burst, not bouncing projectile")
+	var strike = game.spell_manager.last_generic_cast
+	check(strike != null and strike.plan.id == "lightning" and str(strike.plan.parts[strike.plan.root].geometry.type) == "disk", "Lightning uses circular burst, not bouncing projectile")
 	clear_combat()
 	var weak_a = enemy(Vector2(-350, 0))
 	var weak_b = enemy(Vector2(350, 0))

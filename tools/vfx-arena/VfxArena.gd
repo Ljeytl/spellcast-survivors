@@ -161,6 +161,10 @@ const PAGES := [
 		["Meteor Spear (combination)", "legacy meteor spear", 1.6],
 		["icy ember spear (keyword on a shipping spell)", "legacy icy ember spear", 1.6],
 		["double ember spear", "legacy double ember spear", 1.6],
+		["Bolt rank 5 (five bolts)", "legacy rank8 bolt", 1.4],
+		["Ice Blast rank 1 / rank 8 ring", "legacy ice blast|legacy rank8 ice blast", 1.6],
+		["Lightning", "legacy lightning", 1.2],
+		["Rune Trap / Frost Sigil", "legacy rune trap|legacy frost sigil", 3.0],
 	]],
 	["Combos", [
 		["fiery tsunami (water + fire: boiling wall, steam)", "fiery tsunami", 2.6],
@@ -375,8 +379,15 @@ func _process(delta: float):
 		if what is Array:
 			for w in what:
 				cast(str(w))
+		elif str(what).contains("|"):
+			# "a|b": alternate between the two casts each loop
+			var options = str(what).split("|")
+			cast(options[alternate % options.size()])
+			alternate += 1
 		else:
 			cast(str(what))
+
+var alternate := 0
 
 ## Shipping spells ported to the generic engine (doc 18 phase 2), with their game numbers:
 ## "legacy [rank8] [keywords] <incantation>".
@@ -411,7 +422,10 @@ func cast_legacy(text: String):
 	info = preload("res://scripts/SpellProgression.gd").resolve(info)
 	info = preload("res://scripts/SpellGeometry.gd").scaled_data(info, caster)
 	var damage := float(info.get("damage", 0.0)) * (1.0 if info.get("rank_growth", {}).has("damage") else 1.0 + 0.15 * (rank - 1))
-	var def = preload("res://scripts/engine/LegacyBridge.gd").build(info, damage, {"speed_mult": 1.0})
+	var ctx := {"speed_mult": 1.0}
+	if str(info.get("type", "")) == "heal":
+		ctx.heal = float(info.heal_amount) * (1.0 + 0.15 * (rank - 1))
+	var def = preload("res://scripts/engine/LegacyBridge.gd").build(info, damage, ctx)
 	if def.is_empty():
 		push_warning("arena: not ported yet: " + id)
 		return

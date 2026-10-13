@@ -55,11 +55,12 @@ func run():
 	check(after_ids.all(func(id): return before_ids.has(id)), "Delayed mana projectile skips freed target while existing projectiles may expire")
 	target = target_for(game, game.player.position + Vector2(1000, 0))
 	spells.spells[1].level = 3
-	spells.cast_enhanced_bolt_spell(1)
-	before = projectile_count(game)
+	spells.cast_spell_by_type(1)
+	var bolt_cast = spells.last_generic_cast
+	var thrown = bolt_cast.spawned
 	target.free()
 	await settle(0.3)
-	check(projectile_count(game) <= before, "Delayed spread projectiles skip freed target")
+	check(not is_instance_valid(bolt_cast) or bolt_cast.spawned == thrown, "Delayed spread projectiles skip freed target")
 	var first = target_for(game, game.player.position + Vector2(1000, 0))
 	var second = target_for(game, first.position + Vector2(50, 0))
 	var untouched = target_for(game, first.position + Vector2(100, 0))
@@ -79,7 +80,7 @@ func run():
 	second.free()
 	target = target_for(game, game.player.position + Vector2(1000, 0))
 	spells.fire_mana_bolt()
-	spells.cast_enhanced_bolt_spell(1)
+	spells.cast_spell_by_type(1)
 	second = target_for(game, target.position + Vector2(50, 0))
 	spells.chain_lightning(target, 10.0, 3, [])
 	game.queue_free()

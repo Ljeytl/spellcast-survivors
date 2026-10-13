@@ -188,8 +188,7 @@ func run():
 	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 2
 	manager.cast_freeform_spell("ice blast")
 	check(front.current_health == 1000 and inside.current_health == 1000, "Ice shards do not damage before arrival")
-	var ice = get_nodes_in_group("ice_blasts").back()
-	ice.set_physics_process(false)
+	var ice = manager.last_generic_cast   # Ice Blast runs on the generic engine (doc 18 phase 2)
 	ice.advance(1.0)
 	check(front.current_health < 1000 and inside.current_health < 1000 and boundary.current_health == 1000, "Ice shards hit their paths and the leading enemy blocks its shard")
 	check(behind.current_health == 1000 and side.current_health == 1000 and beyond.current_health == 1000, "Ice cone excludes behind, outside angle and beyond reach")
@@ -206,13 +205,12 @@ func run():
 		ice.queue_free()
 	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 8
 	manager.cast_freeform_spell("ice blast")
-	var ring = get_nodes_in_group("ice_blasts").back()
-	ring.set_physics_process(false)
+	var ring = manager.last_generic_cast
 	ring.advance(1.0)
 	check(behind.current_health < 1000 and behind.slowed, "Rank 8 Ice Blast is a full ring that reaches behind")
 	manager.cast_freeform_spell("bolt")
-	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("is_homing") != null and not node.is_queued_for_deletion())
-	check(bolts.any(func(node): return not node.is_homing and node.get("damage") > 0), "Typed Bolt travels straight")
+	var bolt_plan: Dictionary = manager.last_generic_cast.plan if manager.last_generic_cast else {}
+	check(bolt_plan.get("id", "") == "bolt" and str(bolt_plan.parts.bolt.motion[0].type) == "straight" and float(bolt_plan.parts.bolt.payload[0].hit) > 0, "Typed Bolt travels straight")
 	fresh()
 	root.size = Vector2i(1280, 720)
 	game.get_node("Camera2D").global_position = game.player.global_position

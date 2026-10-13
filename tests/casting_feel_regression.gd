@@ -136,9 +136,11 @@ func run():
 	manager.advance_pending_casts(0.291)
 	check(manager.pending_keyword_casts.is_empty() and session.score.manual_casts==count+1,"release scores original receipt after newer attempt")
 	check(game.player.spell_damage_multiplier==7,"release preserves live stats")
-	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type")=="bolt")
-	check(bolts.any(func(node): return is_equal_approx(node.damage, float(game.spell_manager.spell_catalog.bolt.damage)*original_damage*1.5)),"emitted projectile uses committed power and rank")
-	check(bolts.any(func(node): return is_equal_approx(float(node.get_meta("cast_size_snapshot",0)),1.5)),"emitted projectile keeps committed size")
+	# Bolt runs on the generic engine (doc 18 phase 2): read the committed numbers from its plan.
+	var bolt_plan: Dictionary = game.spell_manager.last_generic_cast.plan if game.spell_manager.last_generic_cast else {}
+	var bolt_part: Dictionary = bolt_plan.get("parts", {}).get("bolt", {})
+	check(not bolt_part.is_empty() and is_equal_approx(float(bolt_part.payload[0].hit), float(game.spell_manager.spell_catalog.bolt.damage)*original_damage*1.5),"emitted projectile uses committed power and rank")
+	check(not bolt_part.is_empty() and is_equal_approx(float(bolt_part.geometry.radius), preload("res://scripts/SpellGeometry.gd").BOLT_RADIUS*1.5*float(preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get("bolt", 1.0))),"emitted projectile keeps committed size")
 	check(game.hud.get_node("StyleHUD").keyword_stamp.text=="MEGA ×1.1","separate MEGA style stamp")
 	await capture("charge-release")
 	var awarded = session.score.run_score

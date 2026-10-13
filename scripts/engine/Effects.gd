@@ -49,6 +49,9 @@ static func _legacy_apply(target: Object, effect: Dictionary, source: Dictionary
 		"heal":
 			if target.has_method("heal"):
 				target.heal(float(effect.get("amount", 0.0)))
+		"slow":
+			if target.has_method("apply_slow"):
+				target.apply_slow(float(effect.get("factor", 0.6)), float(effect.get("duration", 2.0)))
 	return 0.0
 
 ## Final damage of each entry against an entity with element / resistances / statuses.
@@ -103,6 +106,10 @@ static func apply_to_entity(entity: Object, effect: Dictionary, source: Dictiona
 		"heal":
 			if entity.has_method("heal"):
 				entity.heal(float(effect.get("amount", 0.0)))
+		"slow":
+			# The old spells' slow (Ice Blast): a speed factor for a time, beside the status system.
+			if entity.has_method("apply_slow"):
+				entity.apply_slow(float(effect.get("factor", 0.6)), float(effect.get("duration", 2.0)))
 	return 0.0
 
 static func ensure_status(entity: Object):

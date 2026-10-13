@@ -65,7 +65,17 @@ func target(offset: Vector2):
 	enemy.add_to_group("enemies")
 	return enemy
 
+## Ported spells (doc 18 phase 2) run on the generic engine; the cast has advance() like the old nodes.
 func effect(info: Dictionary, aim):
+	var Bridge = load("res://scripts/engine/LegacyBridge.gd")
+	if Bridge.handles(info):
+		var scaled = load("res://scripts/SpellGeometry.gd").scaled_data(info, game.player)
+		var def = Bridge.build(scaled, manager.calculate_spell_damage(info), {"speed_mult": float(game.player.projectile_speed_multiplier)})
+		var cast = load("res://scripts/engine/GenericCast.gd").new()
+		cast.forced_target = aim
+		cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), game.player, game, {"spell": str(info.id)}, true)
+		game.add_child(cast)
+		return cast
 	var node = load("res://scripts/TacticalSpellEffect.gd").new() if info.type in ["beam", "trap", "spirit"] else load("res://scripts/BuildSpellEffect.gd").new()
 	node.configure(info, manager.calculate_spell_damage(info), game.player, aim)
 	game.add_child(node)
@@ -121,6 +131,24 @@ func run():
 	await create_timer(0.2).timeout
 	quit(1 if failures else 0)
 
+## Bolts in flight: old projectiles (Life Bolt) and generic-engine bolt parts (Bolt).
+func volley() -> Array:
+	var out: Array = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
+	for c in game.get_children():
+		if c.get("plan") is Dictionary and str(c.plan.get("id", "")) == "bolt":
+			for p in c.parts:
+				if is_instance_valid(p) and not p.done:
+					out.append(p)
+	return out
+
+func land(shot, enemy, hurt):
+	if shot is Area2D:
+		shot._on_area_entered(hurt)
+		shot.resolve_impact()
+	else:
+		shot.hit(enemy)
+		shot.finish(false)
+
 func compare_life():
 	var totals: Array = []
 	for evolved in [false, true]:
@@ -132,11 +160,10 @@ func compare_life():
 		game.player.health = 50
 		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.4).timeout
-		var projectiles = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
+		var projectiles = volley()
 		check(projectiles.size() == (2 if evolved else 3), "Rank-three Life Bolt has two shots; Bolt has three")
 		for projectile in projectiles:
-			projectile._on_area_entered(hurt)
-			projectile.resolve_impact()
+			land(projectile, enemy, hurt)
 		totals.append(10000 - enemy.current_health)
 		check(game.player.health == 50, "Life Bolt requires seed pickup instead of remote healing")
 	check(totals[0] > totals[1], "Ranked Bolt wins damage against healthy durable enemy")
@@ -152,11 +179,10 @@ func compare_life():
 		durable.add_child(hitbox)
 		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.6).timeout
-		var volley = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
-		check(volley.size() == (3 if evolved else 5), "Rank-five Life Bolt has three shots; Bolt has five")
-		for shot in volley:
-			shot._on_area_entered(hitbox)
-			shot.resolve_impact()
+		var shots = volley()
+		check(shots.size() == (3 if evolved else 5), "Rank-five Life Bolt has three shots; Bolt has five")
+		for shot in shots:
+			land(shot, durable, hitbox)
 		rank_five_damage.append(10000 - durable.current_health)
 	check(rank_five_damage[0] > rank_five_damage[1], "Rank-five basic volley retains damage advantage")
 	fresh("life_bolt", true)

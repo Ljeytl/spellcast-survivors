@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing"]
+const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -22,6 +22,16 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 	match str(info.get("type", "")):
 		"piercing":
 			return _spear(info, damage, ctx)
+		"projectile":
+			return _bolt(info, damage, ctx)
+		"aoe":
+			return _ice_blast(info, damage, ctx)
+		"heal":
+			return _life(info, ctx)
+		"direct_strike", "chain":
+			return _lightning(info, damage, ctx)
+		"trap":
+			return _trap(info, damage, ctx)
 	return {}
 
 static func _damage(spell_id: String, amount: float, part: String = "") -> Array:
@@ -70,3 +80,93 @@ static func _spear(info: Dictionary, damage: float, ctx: Dictionary) -> Dictiona
 			"payload": _damage(id, float(info.get("explosion_damage", damage * 0.5))),
 		}
 	return _shell(info, "spear", parts)
+
+## Bolt: one bolt per rank up to five, 0.12 s apart, each aimed when it leaves at the enemy
+## worth hitting (overkill-aware); a contact hits everything the bolt overlaps, then it is spent.
+static func _bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var count = mini(5, maxi(1, int(info.get("level", 1))))
+	var speed = 500.0 * float(ctx.get("speed_mult", 1.0))
+	var bolt := {
+		"delivery": "projectile", "origin": "caster",
+		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
+		"motion": [{"type": "straight", "speed": speed, "range": speed * 3.0}],
+		"payload": _damage(id, damage),
+		"limits": {"pierce": 0, "contact_all": true},
+		"vfx": {"family": "bolt"},
+	}
+	var def = _shell(info, "bolt", {"bolt": bolt})
+	def.arrangement = {"type": "single", "count": count}
+	def.release = {"type": "staggered", "interval": 0.12, "retarget": true}
+	return def
+
+## Ice Blast: a fan of shards (a full ring by rank 8) toward the nearest enemy. Every shard deals
+## full damage; the push (stronger up close) and the slow land once per enemy per cast.
+static func _ice_blast(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var size = float(info.get("spell_size_multiplier", 1.0))   # scaled_data: passive size x keyword size
+	var cone = float(info.get("cone_degrees", 90.0))
+	var count = maxi(1, int(round(cone / float(info.degrees_per_shard))) if info.has("degrees_per_shard") else int(info.get("shard_count", 13)))
+	var speed = 620.0 * float(ctx.get("speed_mult", 1.0))
+	var knockback = float(info.get("knockback", 400)) + (int(info.get("level", 1)) - 1) * 50.0
+	var payload = _damage(id, damage)
+	payload.append({"type": "impulse", "direction": "travel", "force": knockback, "falloff": [2.0, 1.2], "once_per_cast": true})
+	payload.append({"type": "slow", "factor": float(info.get("slow_effect", 0.3)), "duration": float(info.get("slow_duration", 2.0)), "once_per_cast": true})
+	var shard := {
+		"delivery": "projectile", "origin": "caster",
+		"geometry": {"type": "body", "radius": 12.0 * size, "pad": "hurtbox"},
+		"motion": [{"type": "straight", "speed": speed, "range": float(info.get("radius", 400.0))}],
+		"payload": payload,
+		"limits": {"pierce": int(info.get("shard_pierce", 0))},
+		"vfx": {"family": "bolt", "look": "ice"},
+	}
+	var def = _shell(info, "shard", {"shard": shard})
+	if cone >= 359.0:
+		def.arrangement = {"type": "ring", "count": count, "radius": 0.0}
+	else:
+		def.arrangement = {"type": "fan", "count": count, "spread": cone / maxf(1.0, count - 1.0)}
+	return def
+
+## Life: heal the caster at once.
+static func _life(info: Dictionary, ctx: Dictionary) -> Dictionary:
+	var self_part := {"delivery": "self", "origin": "caster", "payload": [{"type": "heal", "amount": float(ctx.get("heal", 0.0)), "visual_size": float(info.get("keyword_size_multiplier", 1.0))}]}
+	var def = _shell(info, "self", {"self": self_part})
+	def.element = "life"
+	return def
+
+## Lightning: a brief storm circle on the group worth striking; nothing if there is none.
+static func _lightning(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var strike := {
+		"delivery": "volume", "origin": "target",
+		"geometry": {"type": "disk", "radius": float(info.get("radius", 160.0)), "pad": 0.0},
+		"propagation": {"type": "instant"},
+		"payload": _damage(id, damage),
+	}
+	var def = _shell(info, "strike", {"strike": strike})
+	def.needs_target = true
+	return def
+
+## Rune Trap (and Frost Sigil): a rune laid toward the nearest enemy (at most 160 away). It arms,
+## waits for as long as it takes, and bursts when an enemy steps inside its trigger.
+static func _trap(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var blast_payload = _damage(id, damage)
+	if bool(info.get("frost", false)):
+		blast_payload.append({"type": "slow", "factor": 1.0 - float(info.get("slow", 0.4)), "duration": float(info.get("slow_duration", 2.0))})
+	var rune := {
+		"delivery": "trap", "origin": "toward_target", "reach": 160.0,
+		"geometry": {"type": "disk", "radius": float(info.get("trigger_radius", 70.0)), "pad": 0.0},
+		"timing": {"arming": float(info.get("arm_delay", 0.8)), "duration": 1.0e9},
+		"events": {"on_trigger": {"part": "burst"}},
+	}
+	var cap = int(info.get("active_limit", 999))
+	if cap < 999:
+		rune.limits = {"cap": cap}
+	var burst := {
+		"delivery": "volume", "origin": "parent",
+		"geometry": {"type": "disk", "radius": float(info.get("trap_radius", 130.0)), "pad": 0.0},
+		"propagation": {"type": "instant"},
+		"payload": blast_payload,
+	}
+	return _shell(info, "rune", {"rune": rune, "burst": burst})

@@ -1239,6 +1239,13 @@ func _burst(look: String, pos: Vector2, r_su: float, pw: float = 1.0) -> void:
 			_ice_impact(pos.x, pos.y, maxf(0.6, r_su / 12.0))
 		"lightning":
 			_strike(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.0))
+			if r_su >= 8.0:
+				# A storm circle, not a single bolt: a few more strikes inside it and its true edge.
+				for i in 3:
+					var a := randf() * TAU
+					var d := r_su * (0.45 + randf() * 0.3)
+					_strike(pos.x + cos(a) * d, pos.y + sin(a) * d * 0.8, 0.6)
+				vfx.ring(pos.x, pos.y, r_su, 0.2, LIT.arc)
 		"water":
 			_water_impact(pos.x, pos.y, clampf(r_su / 11.0, 0.6, 2.5))
 		"life":

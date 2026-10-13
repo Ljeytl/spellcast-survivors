@@ -1,5 +1,6 @@
 # Unreleased (0.3) — Shipping spells move to the spell engine (doc 18 phase 2)
 
+- **Bolt, Ice Blast, Life, Lightning, Rune Trap and Frost Sigil also run on the generic engine** (same numbers and targeting: Bolt still aims each shot at the enemy worth hitting when it leaves, Ice Blast shards stack damage but push and slow once per enemy, Lightning casts nothing when there is no group to strike, Rune Trap waits until triggered). Their old dispatch branches are gone; `IceBlast.gd`, `LightningArea.gd` and the old trap code stay only for their unit tests until those move over.
 - **Ember Spear and Meteor Spear run on the generic engine** (`scripts/engine/LegacyBridge.gd`). Same numbers, targeting and hitboxes as before (rank, combination scaling, passives and MEGA still resolve in SpellManager); the old dispatch branch, BuildSpellEffect's spear code and `EmberTrail.gd` are gone.
 - **Keywords work on ported spells**: `double ember spear`, `fiery homing ember spear`, `icy ember spear`. A word that changes nothing cracks and the cast goes on, as on generic spells.
 - They get the new VFX: magma spear, the burning trail as a smouldering line on its true hitbox, meteor blasts. Arena page **Shipping** shows the ported spells with game numbers.

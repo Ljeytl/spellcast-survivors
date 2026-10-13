@@ -5,10 +5,11 @@ static func alive(enemy) -> bool:
 
 static func incoming(tree: SceneTree, enemy, excluding = null) -> float:
 	var total = 0.0
-	for projectile in tree.get_nodes_in_group("spell_projectiles"):
-		if projectile == excluding or not projectile.has_method("reserved_damage"):
-			continue
-		total += projectile.reserved_damage(enemy)
+	for group in ["spell_projectiles", "engine_projectiles"]:
+		for projectile in tree.get_nodes_in_group(group):
+			if projectile == excluding or not projectile.has_method("reserved_damage"):
+				continue
+			total += projectile.reserved_damage(enemy)
 	return total
 
 static func select(tree: SceneTree, origin: Vector2, maximum_range: float = INF, excluded: Dictionary = {}, excluding = null):

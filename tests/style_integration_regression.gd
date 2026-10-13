@@ -134,7 +134,7 @@ func run():
 	letters("bolt")
 	check(session.score.manual_casts == 1 and session.score.run_score == 46, "Real slot input scores once at reference pace")
 	var bank = session.score.run_score
-	manager.cast_bolt_spell(1)
+	manager.cast_spell_by_type(1)
 	manager.handle_auto_attack(100.0)
 	check(session.score.run_score == bank and session.score.manual_casts == 1, "Automatic and direct effect calls award nothing")
 	manager.casting_clock += 2.0

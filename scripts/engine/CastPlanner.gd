@@ -179,10 +179,10 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 					if periodic and str(s.status) == "chilled":
 						s.no_freeze = true
 					payload.append(s)
-				"impulse":
+				"impulse", "slow":
 					payload.append(item.duplicate())
 				"heal":
-					payload.append({"type": "heal", "amount": float(item.amount) * part_power})
+					payload.append({"type": "heal", "amount": float(item.amount) * part_power, "visual_size": float(item.get("visual_size", 1.0)) * size})
 		if main_hit > 0.0:
 			for e in elements:
 				if str(e.status) != "":
@@ -199,7 +199,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 	var arrangement: Dictionary = def.get("arrangement", {"type": "single", "count": 1}).duplicate()
 	var release: Dictionary = def.get("release", {"type": "together"}).duplicate()
 	if copies > 1:
-		if str(arrangement.type) == "ring":
+		if str(arrangement.type) == "ring" or int(arrangement.get("count", 1)) > 1:
 			arrangement.count = int(arrangement.get("count", 1)) * copies
 		else:
 			match root_delivery:
@@ -275,7 +275,8 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		"id": str(def.id), "name": str(def.get("name", def.id)), "element": element, "root": root_name,
 		"parts": parts, "arrangement": arrangement, "release": release, "casts": casts,
 		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle,
-		"quick": bool(opts.get("quick", false)), "max_spawns": int(def.get("max_spawns", 48))
+		"quick": bool(opts.get("quick", false)), "max_spawns": int(def.get("max_spawns", 48)),
+		"needs_target": bool(def.get("needs_target", false))
 	}
 
 static func _word_for(words: Dictionary, category: String) -> String:

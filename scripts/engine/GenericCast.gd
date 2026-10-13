@@ -21,7 +21,9 @@ var hits_log: Array = []       # {part, enemy_id} for tests/telemetry
 var finished := false
 var release_acc := 0.0
 var aim_dir := Vector2.RIGHT
+var once: Dictionary = {}      # payload items marked once_per_cast: "item@enemy" already applied
 var forced_target = null       # ported spells keep their old targeting: the caller picks the target
+var target_picker: Callable    # or picks it when each copy is released (release.retarget)
 
 func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictionary, p_manual: bool = false, seed_value: int = -1) -> void:
 	plan = p_plan
@@ -67,6 +69,11 @@ func step(delta: float) -> void:
 	if pending.is_empty() and spawns.is_empty() and parts.is_empty():
 		finished = true
 
+## Same as run(): lets tests drive ported spells like the old effect nodes.
+func advance(seconds: float) -> void:
+	manual = true
+	run(seconds)
+
 ## Run until finished or out of time (tests).
 ## on_step lets a test tick other systems (statuses) on the same clock.
 func run(seconds: float, dt: float = 1.0 / 60.0, on_step: Callable = Callable()) -> void:
@@ -81,9 +88,13 @@ func run(seconds: float, dt: float = 1.0 / 60.0, on_step: Callable = Callable())
 func caster_position() -> Vector2:
 	return caster.global_position if is_instance_valid(caster) else global_position
 
-func heal_caster(amount: float) -> void:
+func heal_caster(amount: float, visual_size: float = 1.0) -> void:
 	if is_instance_valid(caster) and caster.has_method("heal"):
-		caster.heal(amount)
+		var heal: Callable = caster.heal
+		if heal.get_argument_count() >= 2:
+			heal.call(amount, visual_size)   # the player shows bigger heals bigger (MEGA)
+		else:
+			heal.call(amount)
 
 func _start_cast(c: Dictionary) -> void:
 	var flags: Dictionary = plan.get("flags", {})
@@ -101,6 +112,8 @@ func _start_cast(c: Dictionary) -> void:
 			var away = near.global_position.direction_to(caster.global_position) if near else Vector2.LEFT
 			caster.global_position += away * float(flags.blinking.get("distance", 140.0))
 	var target = _pick_target()
+	if target == null and bool(plan.get("needs_target", false)):
+		return   # old area spells with nothing worth striking cast nothing
 	aim_dir = caster_position().direction_to(target.global_position) if target else _facing()
 	var vfx = get_node_or_null("/root/Vfx")
 	if vfx:
@@ -138,7 +151,7 @@ func _start_cast(c: Dictionary) -> void:
 		var at = clock
 		if str(release.get("type", "together")) == "staggered":
 			at += float(release.get("interval", 0.15)) * i
-		var spawn = {"at": at, "pos": pos, "dir": dir, "power": c.power, "size": c.size, "orbit": orbit_angle, "target": t,
+		var spawn = {"at": at, "index": i, "pos": pos, "dir": dir, "power": c.power, "size": c.size, "orbit": orbit_angle, "target": t,
 			"held": str(release.get("type", "together")) == "triggered"}
 		if at <= clock + 0.00001:
 			_spawn_root(spawn)
@@ -155,6 +168,11 @@ func _origin_for(part: Dictionary, target, dir: Vector2) -> Vector2:
 			return target.global_position if target else caster_position() + dir * 220.0
 		"behind_caster":
 			return caster_position() - dir * 120.0
+		"toward_target":
+			# Old Rune Trap: laid toward the target, at most `reach` from the caster.
+			var reach = float(part.get("reach", 160.0))
+			var d = caster_position().distance_to(target.global_position) if target else reach
+			return caster_position() + dir * minf(reach, d)
 	return caster_position()
 
 func _facing() -> Vector2:
@@ -166,6 +184,10 @@ func _facing() -> Vector2:
 	return Vector2.RIGHT
 
 func _pick_target():
+	if target_picker.is_valid():
+		var picked = target_picker.call()
+		if picked != null and is_instance_valid(picked):
+			return picked
 	if forced_target != null and is_instance_valid(forced_target) and forced_target in enemies():
 		return forced_target
 	var pool = enemies()
@@ -184,6 +206,14 @@ func _pick_target():
 
 func _spawn_root(s: Dictionary) -> void:
 	var root_name = str(plan.root)
+	if bool(plan.get("release", {}).get("retarget", false)) and int(s.get("index", 0)) > 0:
+		# Staggered copies aim when they leave the caster, at the target worth hitting then.
+		var t = _pick_target()
+		if t == null:
+			return   # nothing left worth hitting: the later copies are not thrown
+		s.dir = caster_position().direction_to(t.global_position)
+		s.target = t
+		s.pos = _origin_for(plan.parts[root_name], t, s.dir)
 	var part = _make_part(root_name, s.pos, s.dir, 0, float(s.power), float(s.size))
 	if part == null:
 		return
@@ -192,8 +222,14 @@ func _spawn_root(s: Dictionary) -> void:
 		part.global_position = caster_position() + Vector2.RIGHT.rotated(part.orbit_angle) * float(plan.parts[root_name].motion[0].get("radius", 80.0))
 	if s.held:
 		part.released = false
-	if s.target and str(plan.parts[root_name].delivery) == "projectile" and plan.flags.has("scattered"):
+	if s.target and str(plan.parts[root_name].delivery) == "projectile" and (plan.flags.has("scattered") or bool(plan.get("release", {}).get("retarget", false))):
 		part.assigned = s.target
+		var speed = 600.0
+		for ph in part.def.get("motion", []):
+			if ph.has("speed"):
+				speed = float(ph.speed)
+				break
+		part.reserve_until = part.global_position.distance_to(s.target.global_position) / maxf(speed, 1.0) + 0.25
 
 func _make_part(name: String, pos: Vector2, dir: Vector2, depth: int, power: float, size: float):
 	if spawned >= int(plan.get("max_spawns", MAX_SPAWNS)) or not plan.parts.has(name):
@@ -265,6 +301,8 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 			child.hops = remaining - 1
 			child.chain_range = float(ev.get("range", parent.chain_range))
 			child.assigned = target
+		if str(child.delivery) == "volume":
+			child.step(0.0)   # a burst lands the moment its event fires, not a frame later
 
 ## A projectile's trail: a line field that grows from the throw point to the projectile.
 func spawn_trail(parent, ev: Dictionary) -> void:

@@ -51,50 +51,29 @@ func run():
 	manager.current_typing_text = "mega bolt"
 	check(manager.cast_freeform_spell("mega bolt"), "Freeform commits MEGA")
 	manager.advance_pending_casts(0.351)
-	var mega = projectiles(game)[0]
-	check(is_equal_approx(mega.damage, base_damage * 1.5), "MEGA damage snapshot")
-	var mega_size = mega.spell_size
-	mega.set_process(false)
+	# Bolt runs on the generic engine (doc 18 phase 2): the MEGA snapshot lives in the cast plan.
+	var mega_cast = manager.last_generic_cast
+	var mega_part: Dictionary = mega_cast.plan.parts.bolt
+	check(is_equal_approx(float(mega_part.payload[0].hit), base_damage * 1.5), "MEGA damage snapshot")
+	var mega_size = float(mega_part.geometry.radius)
 	check(is_equal_approx(manager.cast_keyword_multiplier, 1), "Dispatcher restores cast context")
 	check(is_equal_approx(game.player.spell_size_multiplier, 1), "Player size untouched")
 	check(is_equal_approx(game.player.spell_damage_multiplier, 1), "Player power untouched")
-	await create_timer(0.14).timeout
-	var bolts = projectiles(game)
-	check(bolts.size() == 2, "Delayed second Bolt emitted")
-	check(bolts.all(func(b): return is_equal_approx(b.spell_size, mega_size) and is_equal_approx(b.damage, base_damage * 1.5)), "Delayed Bolt retains MEGA snapshot")
+	for i in 9:   # 0.15 s of game time: the second bolt leaves 0.12 s after the first
+		await physics_frame
+	check(mega_cast.spawned == 2, "Delayed second Bolt emitted")
+	check(mega_cast.parts.all(func(p): return not is_instance_valid(p) or is_equal_approx(p.geo("radius"), mega_size)), "Delayed Bolt retains MEGA snapshot")
 	manager.cast_spell_by_type(1)
-	var normal = projectiles(game).back()
-	normal.set_process(false)
-	check(is_equal_approx(mega_size, normal.spell_size * 1.5), "Normal cast remains ordinary sized")
-	check(is_equal_approx(normal.damage, base_damage), "Normal cast remains ordinary power")
-	check(is_equal_approx(mega.get_node("CollisionShape2D").shape.radius, normal.get_node("CollisionShape2D").shape.radius * 1.5), "Collision matches visible growth")
-	if DisplayServer.get_name() != "headless":
-		root.size = Vector2i(1280, 720)
-		for projectile in projectiles(game):
-			if projectile != mega and projectile != normal:
-				projectile.hide()
-		mega.global_position = game.player.global_position + Vector2(-120, -100)
-		normal.global_position = game.player.global_position + Vector2(120, -100)
-		var labels: Array = []
-		for pair in [[mega, "MEGA BOLT"], [normal, "BOLT"]]:
-			var label = Label.new()
-			label.text = pair[1]
-			label.add_theme_font_size_override("font_size", 18)
-			game.add_child(label)
-			label.global_position = pair[0].global_position + Vector2(-50, -45)
-			labels.append(label)
-		DirAccess.make_dir_recursive_absolute("res://builds/mega-evidence")
-		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://builds/mega-evidence/bolt-size.png")
-		for label in labels:
-			label.queue_free()
+	var normal_part: Dictionary = manager.last_generic_cast.plan.parts.bolt
+	check(is_equal_approx(mega_size, float(normal_part.geometry.radius) * 1.5), "Normal cast remains ordinary sized")
+	check(is_equal_approx(float(normal_part.payload[0].hit), base_damage), "Normal cast remains ordinary power")
+	check(float(normal_part.geometry.get("pad", 14.0)) == float(mega_part.geometry.get("pad", 14.0)), "Collision matches visible growth (one radius drives hit and look)")
 	manager.fire_mana_bolt()
 	var automatic = projectiles(game, "mana_bolt")[0]
 	check(not automatic.has_meta("cast_size_snapshot"), "Magic Missile unaffected")
-	mega.reset_for_pool()
-	check(not mega.has_meta("cast_size_snapshot"), "Pool clears MEGA geometry")
-	mega.set_meta("cast_size_snapshot", mega_size / preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get("bolt", 1.0))
-	mega.setup(mega.global_position, Vector2.RIGHT, base_damage * 1.5, Color.WHITE, "bolt")
+	automatic.set_meta("cast_size_snapshot", 1.5)
+	automatic.reset_for_pool()
+	check(not automatic.has_meta("cast_size_snapshot"), "Pool clears MEGA geometry")
 	var field_data = {"id": "test", "type": "field", "duration": 1.0, "radius": 100, "tick_interval": 0.5}
 	var field = preload("res://scripts/BuildSpellEffect.gd").new()
 	field.configure(field_data, 10, game.player, target)

@@ -39,14 +39,17 @@ func run():
 		enemies.append(enemy)
 	var sm = game.spell_manager
 	check(sm.cast_freeform_spell("bolt"), "Owned Bolt cast accepted")
-	var first = get_nodes_in_group("spell_projectiles").filter(func(p): return p.projectile_type == "bolt").back()
-	first.set_process(false)
-	check(first.target == enemies[0], "First Bolt picks nearest real enemy")
+	# Bolt runs on the generic engine (doc 18 phase 2); its parts reserve their target's damage.
+	var first_cast = sm.last_generic_cast
+	first_cast.manual = true
+	var first = first_cast.parts.back()
+	check(first.assigned == enemies[0], "First Bolt picks nearest real enemy")
 	check(sm.cast_freeform_spell("bolt"), "Rapid owned Bolt accepted")
-	var second = get_nodes_in_group("spell_projectiles").filter(func(p): return p.projectile_type == "bolt").back()
-	second.set_process(false)
-	check(second.target == enemies[1], "Rapid cast avoids lethally reserved enemy")
-	check(not first.is_homing and not second.is_homing, "Bolt remains straight")
+	var second_cast = sm.last_generic_cast
+	second_cast.manual = true
+	var second = second_cast.parts.back()
+	check(second.assigned == enemies[1], "Rapid cast avoids lethally reserved enemy")
+	check(str(first.def.motion[0].type) == "straight" and str(second.def.motion[0].type) == "straight", "Bolt remains straight")
 	check(Targeting.select_area(self, game.player.position, 50) == enemies[1], "Area selection favors useful clustered coverage")
 	var distant = []
 	for offset in [Vector2(5000, 0), Vector2(5010, 0), Vector2(5020, 0), Vector2(5030, 0)]:
@@ -59,14 +62,15 @@ func run():
 	check(Targeting.select_area(self, game.player.position, 50, INF, {}, view) == enemies[1], "Visible-only area selection ignores the off-screen cluster")
 	for far in distant:
 		far.free()
-	first.reservation_remaining = 0
+	var keep_until = first.reserve_until
+	first.reserve_until = -1.0
 	check(Targeting.select(self, game.player.position) == enemies[0], "Expired estimate releases target")
-	first.assign_target(enemies[0])
+	first.reserve_until = keep_until
 	first.direction = Vector2.LEFT
-	first._process(0.01)
 	check(first.reserved_damage(enemies[0]) == 0, "Missed straight shot releases reservation")
-	first.reset_for_pool()
-	check(first.target == null and first.reservation_remaining == 0, "Pool reuse clears target and estimate")
+	first.finish(false)
+	check(first.reserved_damage(enemies[0]) == 0 and second.reserved_damage(enemies[1]) > 0, "A finished shot releases its target; a live one keeps it")
+	second.finish(false)
 	for p in get_nodes_in_group("spell_projectiles"):
 		p.despawn()
 	enemies[0].current_health = 10000

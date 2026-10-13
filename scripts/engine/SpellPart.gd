@@ -58,6 +58,9 @@ func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2
 		break
 	_aim_once()
 	_enforce_cap()
+	if delivery == "projectile":
+		# Targeting (SpellTargeting.incoming) skips enemies this projectile will already kill.
+		add_to_group("engine_projectiles")
 	if delivery == "projectile" and def.has("trail"):
 		cast.spawn_trail(self, def.trail)
 	_vfx = get_node_or_null("/root/Vfx")
@@ -72,7 +75,25 @@ func geo(key: String, fallback: float = 0.0) -> float:
 
 ## Extra reach for an enemy's body. Ported spells set geometry.pad 0 to keep their old hitboxes.
 func hit_pad() -> float:
-	return float(def.get("geometry", {}).get("pad", ENEMY_RADIUS))
+	var pad = def.get("geometry", {}).get("pad", ENEMY_RADIUS)
+	return ENEMY_RADIUS if pad is String else float(pad)
+
+## Reach for this enemy's body: geometry.pad "hurtbox" uses the enemy's own hurtbox, as the old
+## projectiles' collision did (none for a bare test target).
+func pad_for(enemy) -> float:
+	var pad = def.get("geometry", {}).get("pad", ENEMY_RADIUS)
+	if not (pad is String):
+		return float(pad)
+	var shape_node = enemy.get_node_or_null("HurtBox/HurtBoxShape") as CollisionShape2D if enemy is Node else null
+	if shape_node == null or shape_node.shape == null or shape_node.disabled:
+		return 0.0
+	var sc: Vector2 = shape_node.global_transform.get_scale().abs()
+	if shape_node.shape is RectangleShape2D:
+		var half: Vector2 = shape_node.shape.size * 0.5 * sc
+		return (half.x + half.y) * 0.5
+	if shape_node.shape is CircleShape2D:
+		return shape_node.shape.radius * maxf(sc.x, sc.y)
+	return ENEMY_RADIUS
 
 func geo_type() -> String:
 	return str(def.get("geometry", {}).get("type", "body"))
@@ -197,24 +218,52 @@ func _collide() -> void:
 	var limits: Dictionary = def.get("limits", {})
 	var pierce = int(limits.get("pierce", 0))
 	var rehit = float(limits.get("rehit", 0.0))
+	var contact_all = bool(limits.get("contact_all", false)) and pierce == 0
+	var touching: Array = []
 	for enemy in cast.enemies():
 		if done:
 			return
-		if exclude.has(enemy.get_instance_id()) or not _swept_contains(enemy.global_position):
+		if exclude.has(enemy.get_instance_id()) or not _swept_contains(enemy):
 			continue
 		if not _can_hit(enemy, rehit):
+			continue
+		if contact_all:
+			touching.append(enemy)
 			continue
 		hit(enemy)
 		if pierce >= 0 and hit_count > pierce:
 			finish(false)
 			return
+	if not touching.is_empty():
+		# Old bolts: one contact hits everything the bolt overlaps at that moment, then it is spent.
+		for enemy in touching:
+			hit(enemy)
+		finish(false)
 
 ## A body sweeps the segment it moved along this step, so fast projectiles cannot skip enemies.
-func _swept_contains(point: Vector2) -> bool:
+func _swept_contains(enemy) -> bool:
+	var point: Vector2 = enemy.global_position
+	var pad = pad_for(enemy)
 	if geo_type() != "body" or prev_pos == global_position:
-		return contains(point)
+		return contains(point, pad)
 	var closest = Geometry2D.get_closest_point_to_segment(point, prev_pos, global_position)
-	return closest.distance_to(point) <= geo("radius", 12.0) + hit_pad()
+	return closest.distance_to(point) <= geo("radius", 12.0) + pad
+
+## Damage this projectile has committed to `enemy` (its assigned target), for overkill-aware targeting.
+## Like the old projectiles, the reservation lapses when the shot can no longer arrive: past its
+## estimated arrival (+0.25 s), or when the target is behind it or well off its line.
+var reserve_until := INF
+func reserved_damage(enemy) -> float:
+	if done or enemy != assigned or not _alive(enemy) or age > reserve_until:
+		return 0.0
+	var offset: Vector2 = enemy.global_position - global_position
+	if offset.dot(direction) < -24.0 or absf(offset.cross(direction)) > 60.0:
+		return 0.0
+	var total := 0.0
+	for item in def.get("payload", []):
+		if str(item.type) == "damage":
+			total += float(item.get("hit", 0.0)) * power_scale
+	return total
 
 func _can_hit(enemy, rehit: float) -> bool:
 	var id = enemy.get_instance_id()
@@ -244,7 +293,7 @@ func _hit_all_inside(rehit: float) -> void:
 	for enemy in cast.enemies():
 		if done:
 			return
-		if exclude.has(enemy.get_instance_id()) or not contains(enemy.global_position):
+		if exclude.has(enemy.get_instance_id()) or not contains(enemy.global_position, pad_for(enemy)):
 			continue
 		if _can_hit(enemy, rehit):
 			hit(enemy)
@@ -328,11 +377,11 @@ func _step_trap(_delta: float) -> void:
 		var near = cast.nearest_enemy(global_position, INF, exclude)
 		if near:
 			global_position = global_position.move_toward(near.global_position, drift_speed * _delta)
-	if not armed and age >= float(timing.get("arming", 0.4)):
+	if not armed and age + 0.000001 >= float(timing.get("arming", 0.4)):
 		armed = true
 	if armed:
 		for enemy in cast.enemies():
-			if contains(enemy.global_position):
+			if contains(enemy.global_position, pad_for(enemy)):
 				fire("on_trigger", global_position, enemy)
 				if not def.get("payload", []).is_empty():
 					_hit_all_inside(0.0)
@@ -344,7 +393,7 @@ func _step_trap(_delta: float) -> void:
 func _apply_self() -> void:
 	for item in def.get("payload", []):
 		if str(item.type) == "heal":
-			cast.heal_caster(float(item.amount) * power_scale)
+			cast.heal_caster(float(item.amount) * power_scale, float(item.get("visual_size", 1.0)))
 
 # --- hits and events ------------------------------------------------------------------
 func hit(enemy) -> void:
@@ -353,8 +402,18 @@ func hit(enemy) -> void:
 	hits[enemy.get_instance_id()] = age
 	hit_count += 1
 	var at = enemy.global_position
-	for item in def.get("payload", []):
+	for idx in def.get("payload", []).size():
+		var item: Dictionary = def.payload[idx]
+		if bool(item.get("once_per_cast", false)):
+			# Old Ice Blast: shards stack damage, but push and slow land once per enemy per cast.
+			var key = "%s/%d@%d" % [part_name, idx, enemy.get_instance_id()]
+			if cast.once.has(key):
+				continue
+			cast.once[key] = true
 		match str(item.type):
+			"slow":
+				if _alive(enemy):
+					Effects.apply(enemy, {"type": "slow", "factor": float(item.get("factor", 0.6)), "duration": float(item.get("duration", 2.0))}, cast.source, global_position)
 			"damage":
 				var entries := []
 				for e in item.entries:
@@ -382,7 +441,16 @@ func hit(enemy) -> void:
 						dir = direction
 				if dir == Vector2.ZERO:
 					dir = direction
-				Effects.apply(enemy, {"type": "impulse", "direction": dir, "force": float(item.get("force", 0.0))}, cast.source, global_position)
+				var force = float(item.get("force", 0.0))
+				if item.has("falloff") and delivery == "projectile":
+					# [near, far] multipliers over the projectile's range (old Ice Blast: 2.0 near, 1.2 at full reach)
+					var reach = 0.0
+					for ph in def.get("motion", []):
+						reach = float(ph.get("range", 0.0))
+						break
+					var k = clampf(phase_travel / maxf(reach, 1.0), 0.0, 1.0)
+					force *= lerpf(float(item.falloff[0]), float(item.falloff[1]), k)
+				Effects.apply(enemy, {"type": "impulse", "direction": dir, "force": force}, cast.source, global_position)
 	cast.record_hit(self, enemy)
 	if _vfx:
 		_vfx.part_hit(self, enemy, at)

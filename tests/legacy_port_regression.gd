@@ -89,5 +89,25 @@ func run():
 	check(int(twin.plan.arrangement.count) == 2, "DOUBLE throws two spears")
 	check(manager.cast_keyword_spell("fiery homing ember spear"), "Element and motion words cast on Ember Spear")
 	check(manager.last_cracked.is_empty(), "No word cracks on a damaging projectile")
+
+	# --- Bolt, Ice Blast, Life, Lightning, Rune Trap ------------------------------------------
+	root.size = Vector2i(1280, 720)
+	await process_frame
+	for id in ["ice_blast", "life", "lightning", "rune_trap"]:
+		manager.learn_spell(id)
+	var foe = dummy(game, start + Vector2(140, 0))
+	for text in ["bolt", "ice blast", "lightning", "rune trap", "life"]:
+		check(manager.cast_freeform_spell(text), text + " casts")
+		var c = manager.last_generic_cast
+		check(c != null and str(c.plan.id) == text.replace(" ", "_"), text + " runs on the generic engine")
+		check(manager.cast_keyword_spell("fiery " + text) or text == "life", "fiery " + text + " casts (" + manager.last_cast_failure + ")")
+	var bolt_slot = manager.find_spell_slot("bolt")
+	manager.cast_freeform_spell("bolt")
+	var bolt_cast = manager.last_generic_cast
+	check(is_equal_approx(float(bolt_cast.plan.parts.bolt.payload[0].hit), manager.calculate_spell_damage(manager.spells[bolt_slot])), "Bolt keeps its damage")
+	game.player.health = 10.0
+	var life_slot = manager.find_spell_slot("life")
+	manager.cast_spell_by_type(life_slot)
+	check(game.player.health > 10.0, "Life heals at once")
 	print("legacy_port_regression: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)

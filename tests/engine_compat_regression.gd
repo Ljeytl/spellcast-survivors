@@ -51,16 +51,18 @@ func run():
 	game.add_child(target)
 	target.global_position = game.player.global_position + Vector2(240, 0)
 	target.add_to_group("enemies")
-	var before = bolts(game).size()
-	check(manager.cast_freeform_spell("bolt"), "Legacy Bolt still casts")
-	check(bolts(game).size() > before, "Legacy Bolt spawns its own projectile")
-	check(manager.last_generic_cast == null, "Legacy cast does not touch the generic engine")
+	# Bolt is ported to the generic engine (doc 18 phase 2): same numbers, keywords work.
+	check(manager.cast_freeform_spell("bolt"), "Bolt still casts")
+	check(manager.last_generic_cast != null and manager.last_generic_cast.plan.id == "bolt", "Ported Bolt runs on the generic engine")
 	check(manager.cast_freeform_spell("mega bolt") and manager.pending_keyword_casts.size() == 1, "MEGA Bolt still uses the charge path")
 	manager.discard_pending_casts()
 	check(manager.cast_freeform_spell("bolt mega") and manager.pending_keyword_casts.size() == 1, "MEGA after the name also reaches the legacy charge")
 	manager.discard_pending_casts()
-	check(not manager.cast_freeform_spell("icy bolt") and manager.last_cast_failure == "ICY doesn't work on Bolt yet", "Unsupported keyword on an old spell fails with a reason: " + manager.last_cast_failure)
-	check(not manager.cast_freeform_spell("triple mega bolt") and manager.last_cast_failure.begins_with("TRIPLE"), "Any non-MEGA keyword is refused on old spells")
+	check(manager.cast_freeform_spell("icy bolt") and not manager.last_generic_cast.plan.elements.is_empty(), "Element words work on a ported old spell")
+	# Spells not ported yet keep refusing anything but MEGA.
+	manager.learn_spell("earth_shield")
+	check(not manager.cast_freeform_spell("icy earth shield") and manager.last_cast_failure == "ICY doesn't work on Earth Shield yet", "Unsupported keyword on an old spell fails with a reason: " + manager.last_cast_failure)
+	check(not manager.cast_freeform_spell("triple mega earth shield") and manager.last_cast_failure.begins_with("TRIPLE"), "Any non-MEGA keyword is refused on old spells")
 	check(manager.find_cast_spell_slot("big bolt") == 0, "Legacy slot lookup unchanged")
 
 	# Generic spells.
@@ -91,7 +93,7 @@ func run():
 	check(abs(float(manager.last_generic_cast.plan.bundle.power) - 1.5) < 0.001, "The cracked duplicate adds nothing")
 	cracked.clear()
 	check(manager.cast_freeform_spell("triple warding spear") and cracked.size() == 1 and cracked[0][0] == "warding", "Unbuilt WARDING cracks, TRIPLE still applies")
-	check(not manager.cast_freeform_spell("mega mega bolt") and manager.last_cast_failure.begins_with("MEGA"), "Old spells still refuse anything but one MEGA")
+	check(not manager.cast_freeform_spell("mega mega earth shield") and manager.last_cast_failure.begins_with("MEGA"), "Old spells still refuse anything but one MEGA")
 
 	# Real enemy, typed pipeline.
 	var enemy = mm.spawn_monster(mm.select_monster(), false, true)

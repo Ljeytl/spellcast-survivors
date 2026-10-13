@@ -5,9 +5,9 @@ const DATA_PATH = "res://data/generic_spells.json"
 const DELIVERIES = ["projectile", "volume", "field", "aura", "trap", "self"]
 const GEOMETRIES = ["body", "disk", "ring", "cone", "line", "rect"]
 const MOTIONS = ["straight", "guided", "spiral", "orbit", "none"]
-const PAYLOADS = ["damage", "status", "impulse", "heal"]
+const PAYLOADS = ["damage", "status", "impulse", "heal", "slow"]
 const EVENTS = ["on_hit", "on_first_hit", "on_kill", "on_expire", "on_tick", "on_travel", "on_trigger"]
-const ORIGINS = ["caster", "target", "parent", "behind_caster"]
+const ORIGINS = ["caster", "target", "parent", "behind_caster", "toward_target"]
 const PROPAGATIONS = ["instant", "expanding", "travelling"]
 const ELEMENTS = ["", "arcane", "fire", "water", "storm", "earth", "plague", "life"]
 
