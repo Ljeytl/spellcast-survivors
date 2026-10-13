@@ -13,26 +13,30 @@ extends RefCounted
 const WPS := 1280.0 / 192.0
 
 # Looks implemented so far. Element ids are the spell engine's (SpellDefs.ELEMENTS).
-const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire", "water": "water"}
-const ACCENT_LOOK := {"fire": "fire", "water": "water"}
+const NATIVE_LOOK := {"": "arcane", "arcane": "arcane", "fire": "fire", "water": "water", "storm": "lightning"}
+const ACCENT_LOOK := {"fire": "fire", "water": "water", "storm": "lightning"}
 # The engine has one "water" element for water and ice spells (plan section 7:
 # Water/Ice spells pick Water or Ice). Cold statuses or a vfx.look hint pick Ice.
 const COLD := ["chilled", "frozen"]
-const BUILT := ["arcane", "fire", "ice"]
+const BUILT := ["arcane", "fire", "ice", "lightning"]
 const ICE := preload("res://scripts/vfx/VfxElements.gd").ICE
+const LIT := preload("res://scripts/vfx/VfxElements.gd").LIGHTNING
 
 # Body palettes (sandbox MAT.*.body): core, light, mid, dark, outline.
 const BODY := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#c2361a"), Color("#4a1610")],
 	"arcane": [Color("#ffffff"), Color("#c9f4ff"), Color("#8fb6f5"), Color("#6a4ad0"), Color("#1c1650")],
 	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8"), Color("#1a2e5a")],
+	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0"), Color("#2a1f5e")],
 }
 const SPARK := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#e0401c")],
 	"arcane": [Color("#ffffff"), Color("#bdf3ff"), Color("#a98af5"), Color("#6a4ad0")],
 	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8")],
+	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0")],
 }
-const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff")}
+const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff")}
+const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")]}
 # Rigid looks keep a drawn body (that IS the technique: crystal sprites).
 const ICE_BODY := {"bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
 const INK := Color("#120e14")
@@ -157,20 +161,25 @@ func part_spawned(part) -> void:
 			var r_su: float = part.geo("radius", 90.0) / WPS
 			if look.native == "ice":
 				_ice_impact(pos.x, pos.y, maxf(0.6, r_su / 12.0))
+			elif look.native == "lightning":
+				_strike(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.0))
 			elif look.native == "fire" or look.accent == "fire":
 				_damage_disk(pos.x, pos.y, maxf(0.35, (r_su - 3.0) / 9.0), {})
 			else:
 				return
 		"nova":
-			if look.native != "ice":
+			if not NOVA_RIM.has(look.native):
 				return
+			st.seed = randf() * 6.0
 		"field":
-			if look.native == "ice":
+			if look.native == "ice" or look.native == "lightning":
 				var r_su2: float = part.geo("radius", 60.0) / WPS
 				if part.geo_type() != "disk":
 					return
 				var life2 := float(part.def.get("timing", {}).get("duration", 3.0))
-				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look("ice")})
+				if part.def.get("timing", {}).get("duration") == null:
+					life2 = 4.0
+				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look(look.native)})
 				_parts[part.get_instance_id()] = st
 				_presented[part.get_instance_id()] = weakref(part)
 				return
@@ -198,6 +207,9 @@ func part_hit(part, _enemy, at: Vector2) -> void:
 	for key in part.def.get("events", {}):
 		if str(key).begins_with("on_hit"):
 			spawns_burst = true
+	if impact_look == "lightning":
+		_zap(p.x, p.y)
+		return
 	if impact_look == "ice":
 		if st.family == "spear" or st.look.native != "ice":
 			_ice_contact(p.x, p.y)
@@ -258,11 +270,17 @@ func step(dt: float) -> void:
 				st.field.y = pos.y
 				if st.look.native == "ice":
 					_ice_field(st.field, dt)
+				elif st.look.native == "lightning":
+					_lightning_field(st.field, dt)
 			"nova":
-				_ice_nova(pos, float(part.front) / WPS, dt)
+				if st.look.native == "ice":
+					_ice_nova(pos, float(part.front) / WPS, dt)
+				else:
+					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
 	_burning(dt)
 	_chilled(dt)
+	_shocked(dt)
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	var vel: Vector2 = (pos - st.last) / maxf(dt, 0.0001)
@@ -276,6 +294,8 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		_emit_trail(part, st, "acc", ACCENT_TRAIL, pos, vel, dist, dt)
 	if native == "ice" or accent == "ice":
 		_ice_trail(pos, vel, dt)
+	if native == "lightning" or accent == "lightning":
+		_lightning_trail(st, pos, vel, dt)
 	if native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
@@ -472,6 +492,125 @@ static func _in_disk(x: float, y: float, r: float) -> Vector2:
 	var d := sqrt(randf()) * r * 0.9
 	return Vector2(x + cos(a) * d, y + sin(a) * d)
 
+# ------------------------------------------------------------------ lightning (sandbox FX.lightning, paths)
+
+func _lightning_trail(st: Dictionary, p: Vector2, vel: Vector2, dt: float) -> void:
+	var el = vfx.elements
+	st.arc_acc = float(st.get("arc_acc", 0.0)) + 0.5 * dt * 60.0     # sandbox: every other frame
+	while st.arc_acc >= 1.0:
+		st.arc_acc -= 1.0
+		el.arc(p.x, p.y, p.x - vel.x * 0.07 / 2.0 + (randf() - 0.5) * 8.0, p.y - vel.y * 0.07 / 2.0 + (randf() - 0.5) * 8.0, 2.5, 0.08, 1)
+	if randf() < 0.6 * dt * 60.0:
+		el.hop(p.x, p.y, 0.2 + randf() * 0.25)
+
+## Body = a knot of arcs regenerated every frame (bolt) or a jagged rod (spear).
+func _draw_lightning_body(buf: PackedByteArray, pos: Vector2, dir: Vector2, family: String, sc: float) -> void:
+	var el = vfx.elements
+	var A: Array = LIT.arc
+	if family == "spear":
+		var tail := pos - dir * 10.0 * sc
+		el.path(buf, el.jag(tail.x, tail.y, pos.x, pos.y, 1.5), A[1])
+		el.line(buf, tail + dir * 3.0, pos, A[0])
+		for i in 2:
+			var a := randf() * TAU
+			el.path(buf, el.jag(pos.x, pos.y, pos.x + cos(a) * 4.0, pos.y + sin(a) * 4.0, 1.0), A[2])
+		return
+	var n := 5 if family == "bolt" else 8
+	var reach := 1.0 if family == "bolt" else 1.5
+	for i in n:
+		var a := randf() * TAU
+		var r := (4.0 + randf() * 3.0) * reach * sc
+		el.path(buf, el.jag(pos.x, pos.y, pos.x + cos(a) * r, pos.y + sin(a) * r, 1.5), A[1] if i < 2 else A[2])
+	var K: float = vfx.K
+	var cx := roundi(pos.x * K)
+	var cy := roundi(pos.y * K)
+	for oy in range(-2, 2):
+		for ox in range(-2, 2):
+			vfx._put(buf, cx + ox, cy + oy, A[0] if absi(ox * 2 + 1) + absi(oy * 2 + 1) < 5 else A[1])
+
+## Contact (sandbox eContact lightning): flash, hopping sparks, short forks.
+func _zap(x: float, y: float) -> void:
+	var el = vfx.elements
+	vfx.flash(x, y, 2.0, 0.04, LIT.arc[0])
+	for i in 5:
+		el.hop(x, y, 0.18)
+	for i in 3:
+		var a := randf() * TAU
+		el.arc(x, y, x + cos(a) * 7.0, y + sin(a) * 5.0, 1.5, 0.06, 1)
+
+## Sky strike (sandbox FX.lightning.strike): thick bolt from above with a fork,
+## flash, spark spray, spidering scorch, hit-stop. No charge telegraph here: the
+## engine only reports a strike once its damage has happened.
+func _strike(x: float, y: float, s: float) -> void:
+	var el = vfx.elements
+	var sx := x + (randf() - 0.5) * 10.0
+	el.arc(sx, y - 70.0, x, y, 4.0, 0.13, 0, true, true)
+	vfx.flash(x, y, 5.0 * s, 0.05, LIT.arc[0])
+	vfx.star(x, y, 3.5 * s, 0.05, 4, LIT.arc[0])
+	for i in roundi(12 * s):
+		el.hop(x + (randf() - 0.5) * 4.0 * s, y + (randf() - 0.5) * 3.0 * s, 0.15 + randf() * 0.25)
+	vfx.spider(x, y)
+	vfx.hitstop(2)
+	vfx.shake(0.2 * s)
+
+func _lightning_field(A: Dictionary, dt: float) -> void:
+	var el = vfx.elements
+	var r: float = A.r
+	var scale := maxf(1.0, r * r / 400.0)
+	if randf() < minf(1.0, 0.85 * dt * 60.0 * sqrt(scale)):
+		for i in 2:
+			var q := _in_disk(A.x, A.y, r)
+			var a := randf() * TAU
+			var L := 8.0 + randf() * 12.0
+			var e := Vector2(q.x + cos(a) * L, q.y + sin(a) * L * 0.8)
+			if e.distance_to(Vector2(A.x, A.y)) < r:
+				el.arc(q.x, q.y, e.x, e.y, 3.0, 0.1, 0 if randf() < 0.3 else 1)
+	if randf() < 0.05 * dt * 60.0:
+		var inside := []
+		for e2 in vfx.get_tree().get_nodes_in_group("enemies"):
+			if is_instance_valid(e2) and (e2.global_position / WPS).distance_to(Vector2(A.x, A.y)) < r:
+				inside.append(e2)
+		if not inside.is_empty():
+			var t: Vector2 = inside[randi() % inside.size()].global_position / WPS + Vector2(0.0, -3.0)
+			var q2 := _in_disk(A.x, A.y, r)
+			el.arc(q2.x, q2.y, t.x, t.y, 3.0, 0.08, 0)
+			for i in 5:
+				el.hop(t.x, t.y, 0.2)
+	if randf() < 0.25 * dt * 60.0 * sqrt(scale):
+		var q3 := _in_disk(A.x, A.y, r)
+		el.hop(q3.x, q3.y, 0.2)
+
+## Nova: radial arcs out to the live front, regenerated every frame.
+func _lightning_nova(c: Vector2, r: float, seed: float, dt: float) -> void:
+	var el = vfx.elements
+	for i in 7:
+		var a := float(i) / 7.0 * TAU + seed + (randf() - 0.5) * 0.3
+		el.arc(c.x, c.y, c.x + cos(a) * r, c.y + sin(a) * r, 3.0, 0.02 * 2.0, i & 1, true)
+	if randf() < 0.5 * dt * 60.0:
+		var a2 := randf() * TAU
+		el.hop(c.x + cos(a2) * r, c.y + sin(a2) * r, 0.2)
+
+## Shocked status: hopping sparks and a crackle across the enemy.
+func _shocked(dt: float) -> void:
+	var tree = vfx.get_tree()
+	if tree == null:
+		return
+	var n := 0
+	for e in tree.get_nodes_in_group("enemies"):
+		if n >= MAX_BURNING:
+			break
+		if not is_instance_valid(e) or e.get("status") == null:
+			continue
+		var s = e.status
+		if not s.has_method("has") or not s.has("shocked"):
+			continue
+		n += 1
+		var p: Vector2 = e.global_position / WPS
+		if randf() < 0.08 * dt * 60.0:
+			vfx.elements.hop(p.x + (randf() - 0.5) * 6.0, p.y - 3.0, 0.12)
+		if randf() < 0.25 * dt * 60.0:
+			vfx.elements.arc(p.x - 3.0, p.y - 5.0 + randf() * 3.0, p.x + 3.0, p.y - 2.0 - randf() * 3.0, 2.0, 0.04, 1)
+
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():
 		if c is Node2D and "staff" in str(c.name).to_lower():
@@ -521,7 +660,7 @@ func draw_bodies(buf: PackedByteArray) -> void:
 			var np = st.part.get_ref()
 			if np != null and is_instance_valid(np) and not np.done:
 				var c: Vector2 = np.global_position / WPS
-				vfx.elements.draw_nova(buf, c.x, c.y, float(np.front) / WPS, ICE.rim)
+				vfx.elements.draw_nova(buf, c.x, c.y, float(np.front) / WPS, NOVA_RIM[st.look.native])
 			continue
 		if st.kind != "projectile":
 			continue
@@ -534,6 +673,9 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var b: Dictionary = FAMILY[st.family].body
 		var sc: float = float(part.size_scale)
 		var pal: Array = BODY[st.look.native]
+		if st.look.native == "lightning":
+			_draw_lightning_body(buf, pos, dir, st.family, sc)
+			continue
 		if st.look.native == "ice":
 			var ib: Dictionary = ICE_BODY[st.family]
 			var rim_c = RIM[st.look.accent] if st.look.accent != "" else null

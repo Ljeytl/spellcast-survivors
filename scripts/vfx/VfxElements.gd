@@ -18,6 +18,14 @@ const ICE := {
 	"floor": [Color("#1c2433"), Color("#233247"), Color("#2f4560")],
 	"frost": [Color("#2a3c50"), Color("#3d5a78")],
 }
+# Sandbox EL.lightning
+const LIGHTNING := {
+	"arc": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0")],
+	"dark": Color("#2a1f5e"),
+	"rim": [Color("#8fb2ff"), Color("#ffffff")],
+	"floor": [Color("#1c1a2c"), Color("#211e38"), Color("#2a2550")],
+	"spider": [Color("#14111c"), Color("#2a2342")],
+}
 const SHADOW := Color("#16141b")
 const INK := Color("#120e14")
 
@@ -25,13 +33,14 @@ var vfx
 var motes: Array = []       # [x, y, vx, vy, cols, age, life, g, sway, ph, big]
 var shards: Array = []      # [x, y, z, vx, vy, vz, ang, spin, len, age, life, pal, bounced]
 var crystals: Array = []    # [x, y, h, tilt, age, life, pal]
-var novas: Array = []       # {x, y, r, look, part(weakref), age}
+var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch]  jag path, regenerated each step
+var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
 
 func _init(owner):
 	vfx = owner
 
 func clear():
-	motes.clear(); shards.clear(); crystals.clear(); novas.clear()
+	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear()
 
 # ------------------------------------------------------------------ spawners (sandbox signatures)
 
@@ -46,6 +55,32 @@ func shard(x: float, y: float, vx: float, vy: float, vz: float, len: float, life
 func crystal(x: float, y: float, h: float, life: float, pal: Array = ICE.body):
 	if crystals.size() < (40 if vfx.reduced_effects else 120):
 		crystals.append([x, y, h, (randf() - 0.5) * 0.6, 0.0, life, pal])
+
+## Jagged arc (sandbox jag + arcs). Regenerated every step while it lives, so
+## it crackles. c = arc palette index; thick doubles it in the darker tone;
+## branch adds a side fork from the midpoint (sky strikes).
+func arc(x0: float, y0: float, x1: float, y1: float, amp: float, life: float, c: int = 1, thick: bool = false, branch: bool = false):
+	if arcs.size() < (80 if vfx.reduced_effects else 300):
+		arcs.append([x0, y0, x1, y1, amp, 0.0, life, c, thick, branch])
+
+func hop(x: float, y: float, life: float):
+	if hops.size() < (120 if vfx.reduced_effects else 400):
+		hops.append([x, y, 0.0, 0.0, 0.0, life, 0.0])
+
+static func jag(x0: float, y0: float, x1: float, y1: float, amp: float) -> PackedVector2Array:
+	var dx := x1 - x0
+	var dy := y1 - y0
+	var L := maxf(0.001, sqrt(dx * dx + dy * dy))
+	var n := maxi(2, ceili(L / 4.0))
+	var nx := -dy / L
+	var ny := dx / L
+	var pts := PackedVector2Array([Vector2(x0, y0)])
+	for i in range(1, n):
+		var t := float(i) / n
+		var o := (randf() - 0.5) * 2.0 * amp * sin(t * PI)
+		pts.append(Vector2(x0 + dx * t + nx * o, y0 + dy * t + ny * o))
+	pts.append(Vector2(x1, y1))
+	return pts
 
 # ------------------------------------------------------------------ step
 
@@ -94,6 +129,27 @@ func step(dt: float):
 		m[1] += m[3] * dt
 		keep.append(m)
 	motes = keep
+	keep = []
+	for a in arcs:
+		a[5] += dt
+		if a[5] < a[6]:
+			keep.append(a)
+	arcs = keep
+	keep = []
+	for h in hops:
+		h[4] += dt
+		if h[4] > h[5]:
+			continue
+		h[6] -= dt
+		if h[6] <= 0.0:
+			h[6] = 0.04
+			var an := randf() * TAU
+			h[2] = cos(an) * 70.0
+			h[3] = sin(an) * 70.0
+		h[0] += h[2] * dt
+		h[1] += h[3] * dt
+		keep.append(h)
+	hops = keep
 
 # ------------------------------------------------------------------ draw
 
@@ -115,10 +171,9 @@ func draw_ground(buf: PackedByteArray):
 
 func draw_over(buf: PackedByteArray):
 	var K: float = vfx.K
-	var frame: int = vfx._steps
 	for s in shards:
 		var k: float = s[9] / s[10]
-		if k > 0.75 and (frame & 2):
+		if vfx.dissolved(s[10], k, 0.75):
 			continue
 		var x: float = s[0]
 		var y: float = s[1] - s[2]
@@ -136,9 +191,10 @@ func draw_over(buf: PackedByteArray):
 			vfx._put(buf, X, Y, c)
 			vfx._put(buf, X + 1, Y, c)
 			tt += 0.4
+	draw_paths(buf)
 	for m in motes:
 		var k: float = m[5] / m[6]
-		if k > 0.7 and (frame & 2):
+		if vfx.dissolved(m[9], k, 0.7):
 			continue
 		var cols: Array = m[4]
 		var c: Color = cols[mini(cols.size() - 1, int(k * cols.size()))]
@@ -155,6 +211,39 @@ func draw_over(buf: PackedByteArray):
 
 func _block(buf: PackedByteArray, x: int, y: int, c: Color):
 	vfx._put(buf, x, y, c); vfx._put(buf, x + 1, y, c); vfx._put(buf, x, y + 1, c); vfx._put(buf, x + 1, y + 1, c)
+
+## Sandbox line(): one sandbox pixel thick = a 2x2 block every half su.
+func line(buf: PackedByteArray, a: Vector2, b: Vector2, c: Color):
+	var K: float = vfx.K
+	var d := b - a
+	var n := maxi(1, ceili(d.length() * 2.0))
+	for i in n + 1:
+		var p := a + d * (float(i) / n)
+		_block(buf, roundi(p.x * K), roundi(p.y * K), c)
+
+func path(buf: PackedByteArray, pts: PackedVector2Array, c: Color):
+	for i in range(1, pts.size()):
+		line(buf, pts[i - 1], pts[i], c)
+
+func draw_paths(buf: PackedByteArray):
+	var A: Array = LIGHTNING.arc
+	for a in arcs:
+		var pts := jag(a[0], a[1], a[2], a[3], a[4])
+		if a[8]:
+			var sh := PackedVector2Array()
+			for q in pts:
+				sh.append(q + Vector2(1.0, 0.0))
+			path(buf, sh, A[2])
+		path(buf, pts, A[a[7]])
+		if a[9]:
+			var m := pts[pts.size() / 2]
+			path(buf, jag(m.x, m.y, m.x + (randf() - 0.5) * 16.0, m.y + 6.0 + randf() * 8.0, 3.0), A[a[7]])
+	var K: float = vfx.K
+	for h in hops:
+		var k: float = h[4] / h[5]
+		var c: Color = A[0] if k < 0.3 else (A[1] if k < 0.6 else A[2])
+		_block(buf, roundi(h[0] * K), roundi(h[1] * K), c)
+		_block(buf, roundi((h[0] - h[2] * 0.012) * K), roundi((h[1] - h[3] * 0.012) * K), A[2])
 
 ## Nova front rim (sandbox drawElementTop, enovas): dashed bright band at the
 ## live radius, marching. Radius from the gameplay part, so it is the hitbox.

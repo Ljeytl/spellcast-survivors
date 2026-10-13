@@ -77,7 +77,8 @@ void fragment() {
 		}
 		int look = int(field_axis[i].z + 0.5);
 		if (abs(d - r) < 0.7 * k) {
-			col = rim_cols[look * 2 + (((a.x + a.y + tick) & 3) == 0 ? 1 : 0)];
+			bool flick = look == 2 ? hs(a.x + tick * 8, a.y) > 0.6 : ((a.x + a.y + tick) & 3) == 0;
+			col = rim_cols[look * 2 + (flick ? 1 : 0)];
 		} else if (field_axis[i].w > 0.5) {
 			// sandbox drawEFields: element floor; ice barely drifts and glints
 			vec2 s = vec2(a) / k;

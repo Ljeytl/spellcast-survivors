@@ -61,6 +61,23 @@ static func arena_defs() -> Dictionary:
 		"arena_ice_nova": {"name": "Ice Nova", "incantation": "arena ice nova", "element": "water", "acquire": "data_only", "root": "ring",
 			"parts": {"ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 34 * WPS, "thickness": 6 * WPS},
 				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "status", "status": "chilled"}]}}},
+		# Sandbox lightning: bolt lands -> sky strike (r 10), spear 230, field r 20, nova 34 su over 0.5 s
+		"arena_lightning_bolt": {"name": "Lightning Bolt", "incantation": "arena lightning bolt", "element": "storm", "acquire": "data_only", "root": "bolt",
+			"parts": {"bolt": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
+				"motion": [{"type": "straight", "speed": 2 * 160 * WPS, "range": 1400}], "payload": [{"type": "damage", "amount": 1}],
+				"limits": {"pierce": 0}, "vfx": {"family": "bolt"}, "events": {"on_hit": {"part": "strike"}}},
+				"strike": {"delivery": "volume", "origin": "parent", "geometry": {"type": "disk", "radius": 10 * WPS},
+				"payload": [{"type": "status", "status": "shocked"}]}}},
+		"arena_lightning_spear": {"name": "Lightning Spear", "incantation": "arena lightning spear", "element": "storm", "acquire": "data_only", "root": "spear",
+			"parts": {"spear": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
+				"motion": [{"type": "straight", "speed": 2 * 230 * WPS, "range": 1400}], "payload": [{"type": "damage", "amount": 1}, {"type": "status", "status": "shocked"}],
+				"limits": {"pierce": -1}, "vfx": {"family": "spear"}}}},
+		"arena_lightning_field": {"name": "Lightning Field", "incantation": "arena lightning field", "element": "storm", "acquire": "data_only", "root": "field",
+			"parts": {"field": {"delivery": "field", "origin": "target", "geometry": {"type": "disk", "radius": 20 * WPS},
+				"timing": {"type": "periodic", "interval": 0.5, "duration": 6.0}, "payload": [{"type": "status", "status": "shocked"}]}}},
+		"arena_lightning_nova": {"name": "Lightning Nova", "incantation": "arena lightning nova", "element": "storm", "acquire": "data_only", "root": "ring",
+			"parts": {"ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 34 * WPS, "thickness": 6 * WPS},
+				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "status", "status": "shocked"}]}}},
 	}
 
 # label, incantation, cadence (s) — cadence from the sandbox's SPELLS[*].every
@@ -82,6 +99,14 @@ const PAGES := [
 		["Ice Nova (sandbox: Ice > Nova)", "arena ice nova", 2.2],
 		["frost nova (game data)", "frost nova", 2.2],
 		["icy spear (keyword accent)", "icy spear", 1.1],
+	]],
+	["Lightning", [
+		["Lightning Bolt (sandbox: Lightning > Bolt)", "arena lightning bolt", 0.6],
+		["Lightning Spear (sandbox: Lightning > Spear)", "arena lightning spear", 1.1],
+		["Lightning Field (sandbox: Lightning > Field)", "arena lightning field", 6.6],
+		["Lightning Nova (sandbox: Lightning > Nova)", "arena lightning nova", 2.2],
+		["lightning rod (game data)", "lightning rod", 4.5],
+		["shocking spear (keyword accent)", "shocking spear", 1.1],
 	]],
 ]
 var page := 0
@@ -134,6 +159,15 @@ var paused_cast := false
 var seed_counter := 1
 
 func _ready():
+	# ?page=ice (or fire, lightning) opens that page; ?twos=0 starts on ones
+	if OS.has_feature("web"):
+		var q := str(JavaScriptBridge.eval("location.search", true)).to_lower()
+		for i in PAGES.size():
+			if q.contains("page=" + str(PAGES[i][0]).to_lower()):
+				page = i
+		var v0 = get_node_or_null("/root/Vfx")
+		if v0:
+			v0.on_twos = not q.contains("twos=0")
 	for id in arena_defs():
 		var d: Dictionary = arena_defs()[id].duplicate(true)
 		d.id = id
@@ -194,7 +228,12 @@ func _process(delta: float):
 	cooldown -= delta
 	if cooldown <= 0.0:
 		cooldown = float(MENU[current][2]) * SANDBOX_TIME
-		cast(str(MENU[current][1]))
+		var what = MENU[current][1]
+		if what is Array:
+			for w in what:
+				cast(str(w))
+		else:
+			cast(str(what))
 
 func cast(text: String):
 	var parsed = KP.parse(text, Defs.by_incantation().keys())

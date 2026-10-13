@@ -63,6 +63,7 @@ const FIRE_LIT := [Color(1.0, 0.55, 0.2, 0.1), Color(1.0, 0.6, 0.22, 0.2)]   # f
 const FIELD_LOOKS := [
 	{"name": "fire", "style": 0},
 	{"name": "ice", "style": 1, "floor": ["#1c2433", "#233247", "#2f4560"], "rim": ["#8fd3ee", "#ffffff"]},
+	{"name": "lightning", "style": 1, "floor": ["#1c1a2c", "#211e38", "#2a2550"], "rim": ["#8fb2ff", "#ffffff"]},
 ]
 static func field_look(name: String) -> int:
 	for i in FIELD_LOOKS.size():
@@ -405,6 +406,57 @@ func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "sco
 	_decal_root.add_child(spr)
 	_decals.append([spr, mat, 0.0, life])
 
+## Spidering scorch where lightning struck (sandbox decal 'spider'): jagged
+## rays dithering away, dark scorched center. Baked once like scorch().
+func spider(x: float, y: float, life: float = 5.0):
+	if _decals.size() >= 40:
+		var old = _decals.pop_front()
+		old[0].queue_free()
+	var cols := [Color("#14111c"), Color("#2a2342")]
+	var pts := []
+	for r in 6:
+		var a := randf() * TAU
+		var L := 5.0 + randf() * 5.0
+		for q in elements.jag(x, y, x + cos(a) * L, y + sin(a) * L * 0.8, 1.5):
+			pts.append(q)
+	var R := ceili(12.0 * K)
+	var cx := roundi(x * K)
+	var cy := roundi(y * K)
+	var img := Image.create_empty(2 * R + 1, 2 * R + 1, false, Image.FORMAT_RGBA8)
+	for q in pts:
+		var qx := roundi(q.x * K) - cx + R
+		var qy := roundi(q.y * K) - cy + R
+		for oy in 2:
+			for ox in 2:
+				var X := qx + ox
+				var Y := qy + oy
+				if X >= 0 and Y >= 0 and X <= 2 * R and Y <= 2 * R:
+					var c: Color = cols[1]
+					c.a = (BAYER[(((Y + cy) & 3) << 2) | ((X + cx) & 3)] + 1) / 17.0
+					img.set_pixel(X, Y, c)
+	for oy in range(-2, 3):
+		for ox in range(-2, 3):
+			var c2: Color = cols[0]
+			c2.a = 0.05
+			img.set_pixel(R + ox, R + oy, c2)
+	_add_decal(img, cx - R, cy - R, life)
+
+func _add_decal(img: Image, x0: int, y0: int, life: float):
+	var mat := ShaderMaterial.new()
+	mat.shader = DECAL_SHADER
+	mat.set_shader_parameter("limit", 0.0)
+	var spr := Sprite2D.new()
+	spr.centered = false
+	spr.texture = ImageTexture.create_from_image(img)
+	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	spr.scale = Vector2(CELL, CELL)
+	spr.position = Vector2(x0, y0) * CELL
+	spr.z_index = GROUND_Z
+	spr.z_as_relative = false
+	spr.material = mat
+	_decal_root.add_child(spr)
+	_decals.append([spr, mat, 0.0, life])
+
 ## One-cell spark with a colour ramp over its life (sandbox sparks).
 func spark(x: float, y: float, vx: float, vy: float, life: float, palette: Array):
 	if _sparks.size() < (150 if reduced_effects else 500):
@@ -714,6 +766,13 @@ func _step_impacts(dt: float):
 
 # ------------------------------------------------------------------ render
 
+## Break up, don't fade, and never strobe: past `start`, each particle drops
+## out for good at its own moment (seed = any per-particle random value). The
+## sandbox blinked old particles every other frame, a shimmer at its 120 Hz
+## that became a 7.5 Hz strobe when stepping on twos.
+static func dissolved(seed: float, k: float, start: float) -> bool:
+	return k > start and fposmod(seed * 7919.371, 1.0) < (k - start) / (1.0 - start)
+
 func _bayer(x: int, y: int) -> float:
 	return BAYER[((y & 3) << 2) | (x & 3)] / 16.0
 
@@ -836,7 +895,7 @@ func _draw_air():
 	# embers over heat (sandbox drawTop): one cell, the finest detail
 	for e in _embers:
 		var k: float = e[4] / e[5]
-		if k > 0.7 and (_steps & 2):
+		if dissolved(e[5], k, 0.7):
 			continue
 		var ex := roundi(e[0] * K)
 		var ey := roundi(e[1] * K)
@@ -943,7 +1002,7 @@ func _draw_impacts():
 					_put(_over, X + roundi(-sin(a)), Y + roundi(cos(a)), s[6])
 	for d in _debris:
 		var k: float = d[7] / d[8]
-		if k > 0.75 and (_steps & 2):
+		if dissolved(d[8], k, 0.75):
 			continue
 		var pal: Array = d[6]
 		var c: Color = pal[mini(pal.size() - 1, int(k * pal.size()))]
