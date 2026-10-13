@@ -85,7 +85,7 @@ func run():
 	await process_frame
 	check(Engine.time_scale == time_scale and not paused, "VFX hit-stop never changes game time")
 	vfx._stop = 0
-	check(vfx.on_twos and is_equal_approx(vfx.STEP_HZ, 30.0), "Effects animate on twos (30 Hz steps) by default")
+	check(not vfx.on_twos and is_equal_approx(vfx.STEP_HZ, 30.0), "Effects step every frame by default (ones won the side-by-side); twos stays available at 30 Hz")
 
 	vfx.clear_test_flames()
 	vfx.clear()

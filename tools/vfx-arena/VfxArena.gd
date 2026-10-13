@@ -159,7 +159,7 @@ var paused_cast := false
 var seed_counter := 1
 
 func _ready():
-	# ?page=ice (or fire, lightning) opens that page; ?twos=0 starts on ones
+	# ?page=ice (or fire, lightning) opens that page; ?twos=1 starts on twos
 	if OS.has_feature("web"):
 		var q := str(JavaScriptBridge.eval("location.search", true)).to_lower()
 		for i in PAGES.size():
@@ -167,7 +167,7 @@ func _ready():
 				page = i
 		var v0 = get_node_or_null("/root/Vfx")
 		if v0:
-			v0.on_twos = not q.contains("twos=0")
+			v0.on_twos = q.contains("twos=1")
 	for id in arena_defs():
 		var d: Dictionary = arena_defs()[id].duplicate(true)
 		d.id = id

@@ -16,8 +16,8 @@ extends Node2D
 ##                      decals  -> under actors
 ##   air    (AIR_Z):    heat field, smoke, embers (vfx_heat.gdshader) -> over actors
 ##
-## Effect motion steps at STEP_HZ ("on twos") when on_twos is set: the stepped
-## motion reads as hand-animated. Hit-stop freezes only this simulation.
+## Effect motion steps every frame by default ("on ones"); on_twos steps at
+## STEP_HZ instead (console "vfx twos"). Ones won the side-by-side comparison. Hit-stop freezes only this simulation.
 
 const CELL := 4.0
 const WPS := 1280.0 / 192.0          # world px per sandbox unit
@@ -74,7 +74,7 @@ static func field_look(name: String) -> int:
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 var reduced_effects := false
-var on_twos := true
+var on_twos := false                 # ones by default: picked over twos in the arena side-by-side (Oct 2026)
 var fx_speed := FX_SPEED
 var wind := 0.0                      # su/s^2 scale as in the sandbox; visual only
 var stats := {"flames": 0, "sim_ms": 0.0, "draw_ms": 0.0, "cells": 0}
