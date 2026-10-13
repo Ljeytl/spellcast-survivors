@@ -325,9 +325,12 @@ func puff(x: float, y: float, s: int = 0):
 
 ## Persistent fire field (sandbox field()): dim banded floor, bright rim at the
 ## true radius, rising flame tongues, embers, smoke. Position/radius in su.
+## o.axis (su, half-length vector) makes it a line field (sandbox wall()): a rect
+## |along| <= |axis| + r, |across| <= r, with tall flames rising along it.
 func field(x: float, y: float, r: float, life: float, o: Dictionary = {}) -> Dictionary:
 	var f := {"x": x, "y": y, "r": r, "age": 0.0, "life": life, "acc": 0.0,
-		"rate": o.get("rate", 1.0), "heat_k": o.get("heat_k", 0.8), "trail": o.get("trail", false)}
+		"rate": o.get("rate", 1.0), "heat_k": o.get("heat_k", 0.8), "trail": o.get("trail", false),
+		"axis": o.get("axis", Vector2.ZERO)}
 	_fields.append(f)
 	if _fields.size() > MAX_FIELDS:
 		_fields.pop_front()
@@ -511,6 +514,10 @@ func _update_fields(dt: float):
 			continue
 		keep.append(A)
 		var r: float = A.r
+		var axis: Vector2 = A.axis
+		if axis != Vector2.ZERO:
+			_update_line_field(A, axis, dt)
+			continue
 		# Sandbox: max(1, n/3) tongues per 60 fps frame, made frame-rate independent.
 		var n: float = r * r * 0.0042 * A.rate
 		A.acc += maxf(1.0, n / 3.0) * dt * 60.0
@@ -532,6 +539,25 @@ func _update_fields(dt: float):
 		if not A.trail and randf() < r * 0.003 * SMOKE_RATE * dt * 60.0:
 			puff(A.x + (randf() - 0.5) * r, A.y - 6.0 + (randf() - 0.5) * r * 0.4)
 	_fields = keep
+
+## Sandbox updateAreas, kind 'line': len*0.09 tall flames per 60 fps frame
+## scattered across the band, heat 1.15, plus embers along the line.
+func _update_line_field(A: Dictionary, axis: Vector2, dt: float):
+	var r: float = A.r
+	var half := axis.length() + r
+	var u := axis / axis.length()
+	var nrm := Vector2(-u.y, u.x)
+	A.acc += 2.0 * half * 0.09 * A.rate * dt * 60.0
+	while A.acc >= 1.0:
+		A.acc -= 1.0
+		var at := Vector2(A.x, A.y) + u * (randf() * 2.0 - 1.0) * half + nrm * (randf() - 0.5) * r * 1.4
+		flame(null, at, {"heat": 1.15 * A.heat_k / 0.8, "rise": 24.0 + randf() * 12.0, "life": 0.45 + randf() * 0.35})
+	if randf() < 0.2 * EMBER_RATE * dt * 60.0:
+		var e := Vector2(A.x, A.y) + u * (randf() * 2.0 - 1.0) * half
+		ember(e.x, e.y, (randf() - 0.5) * 8.0, -(20.0 + randf() * 14.0), 1.0 + randf())
+	if randf() < half * 0.002 * SMOKE_RATE * dt * 60.0:
+		var sp := Vector2(A.x, A.y) + u * (randf() * 2.0 - 1.0) * half
+		puff(sp.x, sp.y - 8.0)
 
 func _step(dt: float):
 	_t += dt
@@ -706,12 +732,17 @@ func _render(stepped: bool):
 	g.set_shader_parameter("t", _t)
 	g.set_shader_parameter("tick", int(_t * 60.0) >> 3)
 	var fl := PackedVector4Array()
+	var fa := PackedVector4Array()
 	for A in _fields:
 		var v := minf(1.0, minf(A.age / 0.25, (A.life - A.age) / 0.5))
 		fl.append(Vector4(roundf(A.x * K), roundf(A.y * K), A.r * K, v))
+		var ax: Vector2 = A.axis * K
+		fa.append(Vector4(ax.x, ax.y, 0.0, 0.0))
 	g.set_shader_parameter("field_count", fl.size())
 	fl.resize(MAX_FIELDS)
+	fa.resize(MAX_FIELDS)
 	g.set_shader_parameter("fields", fl)
+	g.set_shader_parameter("field_axis", fa)
 
 func _draw_air():
 	_heat.fill(0.0)
@@ -743,8 +774,8 @@ func _draw_air():
 		var cx := roundi(x * K) - _origin.x
 		var cy := roundi(y * K) - _origin.y
 		var shape := i % FLAME_VARIANTS
-		if _fd[fb + ROUND] > 0.5:
-			r += 3
+		if _fd[fb + ROUND] > 0.5 and k < 0.35:
+			r += 3   # round only while young: old trail flames break into ragged bits, not beads
 		if cx >= pad and cy >= pad and cx < w - pad and cy < hgt - pad:
 			var base := cy * w + cx
 			for o in disks[r][shape]:

@@ -34,6 +34,15 @@ const FAMILY := {
 	"spear": {"body": {"t": "diamond", "a": 8.0, "b": 1.4}, "trail": {"rate": 3.0, "per_dist": 0.8, "heat": 1.1, "spread": 0.8, "grip": 0.2, "inh": 0.35, "ember": 0.3}, "impact": 0.35},
 	"ball": {"body": {"t": "orb", "r": 3.5}, "trail": {"rate": 5.0, "per_dist": 0.9, "heat": 1.35, "spread": 2.2, "grip": 0.35, "inh": 0.3, "ember": 0.35}, "impact": 1.4},
 }
+# Fire-native projectiles have no drawn shape: the body is a knot of hot,
+# high-grip flames riding the projectile plus a tiny white core. "r" = knot
+# radius (su), "n" = flames per 60 fps frame, "len" stretches the knot along
+# the motion (spears), "core" = white core half-size in cells.
+const FIRE_BODY := {
+	"bolt": {"r": 1.3, "n": 1.5, "len": 1.6, "heat": 0.45, "core": 1},
+	"spear": {"r": 0.7, "n": 2.0, "len": 5.0, "heat": 0.45, "core": 1},
+	"ball": {"r": 2.4, "n": 3.0, "len": 1.0, "heat": 0.5, "core": 2},
+}
 # Keyword-accent trail (sandbox "Fiery Bolt"): light flames under the native body.
 const ACCENT_TRAIL := {"rate": 1.0, "per_dist": 0.25, "heat": 0.65, "spread": 0.6, "grip": 0.1, "inh": 0.2, "ember": 0.3, "small": 1.0}
 
@@ -77,7 +86,7 @@ static func _kind(part) -> String:
 			if part.geo_type() == "disk" and part._propagation() == "instant":
 				return "burst"
 		"field", "aura":
-			if part.geo_type() == "disk":
+			if part.geo_type() in ["disk", "line"]:
 				return "field"
 	return ""
 
@@ -122,7 +131,14 @@ func part_spawned(part) -> void:
 			if look.native != "fire" and look.accent != "fire":
 				return
 			var life := float(part.def.get("timing", {}).get("duration", 3.0))
-			st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5)
+			if part.geo_type() == "line":
+				# Field lines lie across the cast direction (SpellPart.contains). Axis =
+				# half-length minus half-width, so the rim lands exactly on the hitbox.
+				var hw: float = part.geo("width", 30.0) * 0.5
+				var axis: Vector2 = Vector2(part.direction).orthogonal().normalized() * maxf(0.0, part.geo("length", 200.0) * 0.5 - hw)
+				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, {"axis": axis / WPS})
+			else:
+				st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5)
 	_parts[part.get_instance_id()] = st
 	_presented[part.get_instance_id()] = weakref(part)
 
@@ -197,12 +213,29 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	var native: String = st.look.native
 	var accent: String = st.look.accent
 	if native == "fire":
+		_fire_body(part, st, pos, vel, dt)
 		_emit_trail(part, st, "acc", FAMILY[st.family].trail, pos, vel, dist, dt)
 	elif accent == "fire":
 		_emit_trail(part, st, "acc", ACCENT_TRAIL, pos, vel, dist, dt)
 	if native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
+
+func _fire_body(part, st: Dictionary, pos: Vector2, vel: Vector2, dt: float) -> void:
+	var fb: Dictionary = FIRE_BODY[st.family]
+	var sp := vel.length()
+	var dir := vel / sp if sp > 0.001 else Vector2(part.direction).normalized()
+	var r: float = float(fb.r) * float(part.size_scale)
+	st.body_acc = float(st.get("body_acc", 0.0)) + float(fb.n) * dt * 60.0
+	while st.body_acc >= 1.0:
+		st.body_acc -= 1.0
+		var ang := randf() * TAU
+		var d := sqrt(randf()) * r
+		# lean the knot backwards a little: the leading edge is the hottest, flames lag
+		var along := cos(ang) * d * float(fb.len) - absf(randf() - randf()) * r * float(fb.len) * 0.6
+		var off := dir * along + dir.orthogonal() * sin(ang) * d
+		vfx.flame(part, pos, {"lx": off.x, "ly": off.y, "inh": 1.0, "grip": 1.0, "heat": float(fb.heat),
+			"rise": 4.0 + randf() * 6.0, "life": 0.1 + randf() * 0.12, "round": true, "avx": vel.x, "avy": vel.y})
 
 func _emit_trail(part, st: Dictionary, key: String, t: Dictionary, pos: Vector2, vel: Vector2, dist: float, dt: float) -> void:
 	var body: Dictionary = FAMILY[st.family].body
@@ -316,6 +349,18 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var b: Dictionary = FAMILY[st.family].body
 		var sc: float = float(part.size_scale)
 		var pal: Array = BODY[st.look.native]
+		if st.look.native == "fire":
+			# No shape: the flame knot is the body. A small white-hot core keeps the
+			# hitbox readable over its own tail (white only for the hottest point).
+			var cc: int = FIRE_BODY[st.family].core
+			var ccx := roundi(pos.x * K + dir.x * K * 0.5)
+			var ccy := roundi(pos.y * K + dir.y * K * 0.5)
+			for oy in range(-cc, cc):
+				for ox in range(-cc, cc):
+					if cc > 1 and absi(ox * 2 + 1) + absi(oy * 2 + 1) > cc * 3:
+						continue
+					vfx._put(buf, ccx + ox, ccy + oy, pal[0])
+			continue
 		var rim = RIM[st.look.accent] if st.look.accent != "" else null
 		var cx := roundi(pos.x * K)
 		var cy := roundi(pos.y * K)

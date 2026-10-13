@@ -10,7 +10,8 @@ uniform float k;                       // cells per sandbox unit
 uniform float t;                       // VFX sim time (s)
 uniform int tick;                      // sandbox (frame >> 3)
 uniform int field_count;
-uniform vec4 fields[32];               // center x, y (cells), radius (cells), fade-in/out vis
+uniform vec4 fields[32];               // center x, y (cells), radius / half-width (cells), fade-in/out vis
+uniform vec4 field_axis[32];           // line fields: half-length axis x, y (cells); zero for disks
 uniform vec4 floor_cols[3];
 uniform vec4 rim_cols[2];
 uniform sampler2D light_tex : filter_nearest;
@@ -57,13 +58,27 @@ void fragment() {
 			break;
 		}
 		vec4 f = fields[i];
-		float d = length(vec2(a) - f.xy);
+		vec2 ax = field_axis[i].xy;
+		float L = length(ax);
+		vec2 off = vec2(a) - f.xy;
 		float r = f.z;
+		float d;
+		if (L > 0.0) {
+			// line field (sandbox wall): the hitbox is a rect, so measure to the rect
+			vec2 u = ax / L;
+			// Chebyshev distance: contour at d = r is the rect |along| <= L + r, |across| <= r
+			d = max(abs(dot(off, u)) - L, abs(dot(off, vec2(-u.y, u.x))));
+		} else {
+			d = length(off);
+		}
 		if (d > r + 0.5 * k || bayer(a) >= f.w) {
 			continue;
 		}
 		if (abs(d - r) < 0.7 * k) {
 			col = rim_cols[((a.x + a.y + tick) & 3) == 0 ? 1 : 0];
+		} else if (L > 0.0) {
+			vec2 s = vec2(a) / k;
+			col = vn(s.x * 0.25, s.y * 0.25 + t * 0.8) > 0.6 ? floor_cols[1] : floor_cols[0];
 		} else {
 			vec2 s = vec2(a) / k;
 			float n = vn(s.x * 0.32, s.y * 0.32 + t * 0.6) * 0.65 + vn(s.x * 0.7 + 9.0, s.y * 0.7 - t * 0.4) * 0.35;
