@@ -172,9 +172,11 @@ func part_spawned(part) -> void:
 			else:
 				return
 		"nova":
-			if not NOVA_RIM.has(look.native):
+			if not NOVA_RIM.has(look.native) and look.native != "fire":
 				return
 			st.seed = randf() * 6.0
+			if look.native == "fire":
+				_fire_nova_start(pos, float(part.geo("radius", 100.0)) / WPS)
 		"charge", "zone":
 			if look.native != "lightning":
 				return
@@ -255,6 +257,8 @@ func part_finished(part, natural: bool) -> void:
 				if key == "fire":
 					vfx.puff(p.x, p.y - 1.0, 2)
 		"nova":
+			if st.look.native == "fire" and natural:
+				_fire_nova_end(part.global_position / WPS, float(part.geo("radius", 100.0)) / WPS)
 			if st.look.native == "ice" and natural:
 				_ice_nova_end(part.global_position / WPS, float(part.geo("radius", 100.0)) / WPS)
 		"field":
@@ -299,6 +303,8 @@ func step(dt: float) -> void:
 			"nova":
 				if st.look.native == "ice":
 					_ice_nova(pos, float(part.front) / WPS, dt)
+				elif st.look.native == "fire":
+					_fire_nova(pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
 				else:
 					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
@@ -390,6 +396,39 @@ func _burning(dt: float) -> void:
 			vfx.ember(p.x, p.y - 5.0, (randf() - 0.5) * 8.0, -(14.0 + randf() * 10.0), 0.7)
 
 # ------------------------------------------------------------------ components
+
+## Fire nova (sandbox novaFront): flash, inner shock ring and a burst of flame at
+## the caster; the live front (the hitbox) is a band of flame tongues thrown
+## outward, embers flying; scorch marks where it stops.
+func _fire_nova_start(c: Vector2, R: float) -> void:
+	vfx.flash(c.x, c.y, 4.0, 0.07, BODY.fire[0])
+	vfx.star(c.x, c.y, 4.0, 0.07, 8, BODY.fire[0])
+	vfx.ring(c.x, c.y, R * 0.55, 0.22, SPARK.fire)
+	for i in 18:
+		var a := randf() * TAU
+		vfx.flame(null, c, {"vx": cos(a) * 40.0, "vy": sin(a) * 30.0, "rise": 12.0, "life": 0.25, "heat": 1.6})
+	vfx.shake(0.3)
+	vfx.hitstop(2)
+
+func _fire_nova(c: Vector2, r: float, k: float, dt: float) -> void:
+	var n := TAU * r * 0.17 * dt * 60.0
+	var i := 0.0
+	while i < n:
+		if i + 1.0 > n and randf() > n - i:
+			break
+		var a := randf() * TAU
+		var rr := r - randf() * 2.5
+		vfx.flame(null, Vector2(c.x + cos(a) * rr, c.y + sin(a) * rr), {"vx": cos(a) * 22.0, "vy": sin(a) * 16.0,
+			"heat": 1.5 * (1.0 - k * 0.45), "rise": 16.0 + randf() * 12.0, "life": 0.28 + randf() * 0.25})
+		i += 1.0
+	if randf() < 0.8 * dt * 60.0:
+		var a2 := randf() * TAU
+		vfx.chunk(c.x + cos(a2) * r, c.y + sin(a2) * r, cos(a2) * 30.0, sin(a2) * 22.0, 30.0 + randf() * 30.0, SPARK.fire, 0.6 + randf() * 0.4, 1)
+
+func _fire_nova_end(c: Vector2, R: float) -> void:
+	for i in 9:
+		var a := float(i) / 9.0 * TAU + randf() * 0.4
+		vfx.scorch(c.x + cos(a) * R, c.y + sin(a) * R, 2.5 + randf() * 1.5, 4.0)
 
 ## Sandbox damageDisk(): impact recipe for a fire hit of size s (1 = big).
 func _damage_disk(x: float, y: float, s: float, o: Dictionary) -> void:
@@ -782,7 +821,7 @@ func draw_bodies(buf: PackedByteArray) -> void:
 				else:
 					_draw_zone(buf, zc, float(zp.geo("radius", 100.0)) / WPS)
 			continue
-		if st.kind == "nova":
+		if st.kind == "nova" and NOVA_RIM.has(st.look.native):
 			var np = st.part.get_ref()
 			if np != null and is_instance_valid(np) and not np.done:
 				var c: Vector2 = np.global_position / WPS

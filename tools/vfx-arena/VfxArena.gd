@@ -44,6 +44,9 @@ static func arena_defs() -> Dictionary:
 		"arena_cinder_field": {"name": "Cinder Field", "incantation": "arena cinder field", "element": "fire", "acquire": "data_only", "root": "field",
 			"parts": {"field": {"delivery": "field", "origin": "target", "geometry": {"type": "disk", "radius": 20 * WPS},
 				"timing": {"type": "periodic", "interval": 0.5, "duration": 6.0}, "payload": [{"type": "status", "status": "burn"}]}}},
+		"arena_fire_nova": {"name": "Fire Nova", "incantation": "arena fire nova", "element": "fire", "acquire": "data_only", "root": "ring",
+			"parts": {"ring": {"delivery": "volume", "origin": "caster", "geometry": {"type": "ring", "radius": 34 * WPS, "thickness": 6 * WPS},
+				"propagation": {"type": "expanding", "speed": 2 * 68 * WPS}, "payload": [{"type": "damage", "amount": 1}, {"type": "status", "status": "burn"}]}}},
 		# Sandbox ice: eShoot 160 (shatter r 11), ice spear 230, eField r 20 for 6 s, eNova 34 su over 0.5 s
 		"arena_ice_bolt": {"name": "Ice Bolt", "incantation": "arena ice bolt", "element": "water", "acquire": "data_only", "root": "bolt",
 			"parts": {"bolt": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
@@ -94,6 +97,7 @@ const PAGES := [
 		["fiery spear (keyword accent)", "fiery spear", 1.1],
 		["flame wall (game data)", "flame wall", 6.0],
 		["spear (bare, arcane)", "spear", 1.1],
+		["Fire Nova (sandbox: Fire > Fire Nova)", "arena fire nova", 2.2],
 	]],
 	["Ice", [
 		["Ice Bolt (sandbox: Ice > Bolt)", "arena ice bolt", 0.6],
