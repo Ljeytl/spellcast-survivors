@@ -603,14 +603,11 @@ func draw_over(buf: PackedByteArray):
 	for q in bubbles:
 		var kb: float = q[4] / q[5]
 		var r: float = q[3] + (0.6 if kb > 0.75 else 0.0)
-		var R := ceili(r + 1.0)
-		for oy in range(-R, R + 1):
-			for ox in range(-R, R + 1):
-				var d := Vector2(ox, oy).length()
-				if d > r + 0.5:
-					continue
-				spx(buf, roundi(q[0]) + ox, roundi(q[1]) + oy, PLAGUE.outline if d > r - 0.5 else PLAGUE.light)
-		spx(buf, roundi(q[0]) - roundi(r * 0.5), roundi(q[1]) - roundi(r * 0.5), PLAGUE.hi)
+		var X0 := roundi(q[0])
+		var Y0 := roundi(q[1])
+		for e in _bubble_px(r):
+			spx(buf, X0 + e[0], Y0 + e[1], PLAGUE.outline if e[2] else PLAGUE.light)
+		spx(buf, X0 - roundi(r * 0.5), Y0 - roundi(r * 0.5), PLAGUE.hi)
 	for q in rays:
 		var k: float = q[4] / q[5]
 		var len: float = q[3] * (k / 0.3 if k < 0.3 else 1.0)
@@ -666,20 +663,49 @@ func draw_over(buf: PackedByteArray):
 		if k < 0.2 and m[8] > 5.0:
 			_block(buf, X + 2, Y, c); _block(buf, X - 2, Y, c); _block(buf, X, Y + 2, c); _block(buf, X, Y - 2, c)
 
+var _bubble_cache := {}
+## Sandbox-pixel offsets of a bubble of radius r: [ox, oy, is_rim], cached.
+func _bubble_px(r: float) -> Array:
+	var key := roundi(r * 10.0)
+	if _bubble_cache.has(key):
+		return _bubble_cache[key]
+	var out := []
+	var R := ceili(r + 1.0)
+	for oy in range(-R, R + 1):
+		for ox in range(-R, R + 1):
+			var d := Vector2(ox, oy).length()
+			if d <= r + 0.5:
+				out.append([ox, oy, d > r - 0.5])
+	_bubble_cache[key] = out
+	return out
+
 func _block(buf: PackedByteArray, x: int, y: int, c: Color):
-	vfx._put(buf, x, y, c); vfx._put(buf, x + 1, y, c); vfx._put(buf, x, y + 1, c); vfx._put(buf, x + 1, y + 1, c)
+	_rect(buf, x, y, x + 2, y + 2, c)
+
+## Fill cells [x0, x1) x [y0, y1) straight into the buffer (clipped once).
+func _rect(buf: PackedByteArray, x0: int, y0: int, x1: int, y1: int, c: Color):
+	var o: Vector2i = vfx._origin
+	var sz: Vector2i = vfx._size
+	x0 = maxi(x0 - o.x, 0); x1 = mini(x1 - o.x, sz.x)
+	y0 = maxi(y0 - o.y, 0); y1 = mini(y1 - o.y, sz.y)
+	if x0 >= x1 or y0 >= y1:
+		return
+	var r := c.r8
+	var g := c.g8
+	var b := c.b8
+	for y in range(y0, y1):
+		var i := (y * sz.x + x0) * 4
+		for x in range(x0, x1):
+			buf[i] = r; buf[i + 1] = g; buf[i + 2] = b; buf[i + 3] = 255
+			i += 4
 
 ## Sandbox put(): one sandbox pixel = the cells it covers (1-2 per axis, K ~ 1.67),
 ## so lines keep the sandbox's exact pixel staircase.
 func spx(buf: PackedByteArray, X: int, Y: int, c: Color):
 	var K: float = vfx.K
 	var x0 := floori(X * K)
-	var x1 := floori((X + 1) * K)
 	var y0 := floori(Y * K)
-	var y1 := floori((Y + 1) * K)
-	for cy in range(y0, maxi(y1, y0 + 1)):
-		for cx in range(x0, maxi(x1, x0 + 1)):
-			vfx._put(buf, cx, cy, c)
+	_rect(buf, x0, y0, maxi(floori((X + 1) * K), x0 + 1), maxi(floori((Y + 1) * K), y0 + 1), c)
 
 ## Sandbox line(): Bresenham on the sandbox pixel grid (su), drawn with spx.
 func line(buf: PackedByteArray, a: Vector2, b: Vector2, c: Color):
@@ -777,35 +803,49 @@ func draw_nova(buf: PackedByteArray, x: float, y: float, r: float, rim: Array):
 ## Shaded body (sandbox drawBody): diamond oriented along dir, or orb.
 ## pal = [core, light, mid, dark, outline]; rim replaces the outline colour;
 ## ink draws a dark outer outline so the body reads over busy ground.
+## The inside test runs once per pixel into a mask; edges are mask lookups.
 func body(buf: PackedByteArray, pos: Vector2, dir: Vector2, b: Dictionary, pal: Array, rim = null, ink: bool = true, scale: float = 1.0):
 	var K: float = vfx.K
 	var orb: bool = b.t == "orb"
 	var ra: float = (float(b.get("r", 0.0)) if orb else float(b.a)) * K * scale
 	var rb: float = (float(b.get("r", 0.0)) if orb else float(b.b)) * K * scale
+	var rb2 := maxf(rb, 0.75)
 	var cx := roundi(pos.x * K)
 	var cy := roundi(pos.y * K)
 	var R := ceili(maxf(ra, rb) + 1.0)
-	var inside := func(ox: int, oy: int) -> bool:
-		if orb:
-			return ox * ox + oy * oy <= ra * ra + 0.5
-		var u := ox * dir.x + oy * dir.y
-		var v := -ox * dir.y + oy * dir.x
-		return absf(u) / ra + absf(v) / maxf(rb, 0.75) <= 1.0
-	for oy in range(-R - 1, R + 2):
-		for ox in range(-R - 1, R + 2):
+	var W := 2 * R + 5                        # mask covers -R-2 .. R+2
+	var mask := PackedByteArray()
+	mask.resize(W * W)
+	var r2 := ra * ra + 0.5
+	for my in W:
+		var oy := my - R - 2
+		for mx in W:
+			var ox := mx - R - 2
+			var inside: bool
+			if orb:
+				inside = ox * ox + oy * oy <= r2
+			else:
+				var u := ox * dir.x + oy * dir.y
+				var v := -ox * dir.y + oy * dir.x
+				inside = absf(u) / ra + absf(v) / rb2 <= 1.0
+			mask[my * W + mx] = 1 if inside else 0
+	for my in range(1, W - 1):
+		var oy2 := my - R - 2
+		for mx in range(1, W - 1):
+			var ox2 := mx - R - 2
+			var m := my * W + mx
 			var c = null
-			if inside.call(ox, oy):
-				var edge: bool = not inside.call(ox + 1, oy) or not inside.call(ox - 1, oy) or not inside.call(ox, oy + 1) or not inside.call(ox, oy - 1)
-				if edge:
+			if mask[m] == 1:
+				if mask[m + 1] == 0 or mask[m - 1] == 0 or mask[m + W] == 0 or mask[m - W] == 0:
 					c = rim if rim != null else pal[4]
-				elif not orb and ox * dir.x + oy * dir.y > ra * 0.45:
+				elif not orb and ox2 * dir.x + oy2 * dir.y > ra * 0.45:
 					c = pal[0]
 				else:
-					var s: float = -(ox + oy) / maxf(ra, 1.0) if orb else -(ox * 0.35 + oy) / maxf(rb, 1.0)
-					c = pal[1] if s > 0.5 else (pal[3] if s < -0.5 else pal[2])
-					if orb and ox == -1 and oy == -1:
+					var sh: float = -(ox2 + oy2) / maxf(ra, 1.0) if orb else -(ox2 * 0.35 + oy2) / maxf(rb, 1.0)
+					c = pal[1] if sh > 0.5 else (pal[3] if sh < -0.5 else pal[2])
+					if orb and ox2 == -1 and oy2 == -1:
 						c = pal[0]
-			elif ink and (inside.call(ox + 1, oy) or inside.call(ox - 1, oy) or inside.call(ox, oy + 1) or inside.call(ox, oy - 1)):
+			elif ink and (mask[m + 1] == 1 or mask[m - 1] == 1 or mask[m + W] == 1 or mask[m - W] == 1):
 				c = INK
 			if c != null:
-				vfx._put(buf, cx + ox, cy + oy, c)
+				vfx._put(buf, cx + ox2, cy + oy2, c)

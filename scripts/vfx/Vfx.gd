@@ -23,10 +23,11 @@ const CELL := 4.0
 const WPS := 1280.0 / 192.0          # world px per sandbox unit
 const K := WPS / CELL                # cells per sandbox unit
 const SANDBOX_SCALE := 1.0 / K       # kept for callers: su per cell
-const MARGIN := 4
+const MARGIN := 10                   # cells of slack around the view (grid re-places only when the view nears its edge)
 const GROUND_Z := -1
 const AIR_Z := 50
-const STEP_HZ := 30.0
+const STEP_HZ := 30.0                # twos
+const ONES_HZ := 60.0                # ones: animation "on ones" is 60 Hz, also on 120 Hz displays (half the cost there)
 # The reference sandbox advances a fixed 1/60 s per animation frame; on the
 # 120 Hz displays it was tuned on, its effects ran at twice their nominal speed.
 # Effect motion (flames, embers, smoke, debris, rings) runs at that speed here.
@@ -603,8 +604,11 @@ func _process(delta: float):
 			_tick(1.0 / STEP_HZ)
 			stepped = true
 	else:
-		_tick(minf(delta, 0.05))
-		stepped = true
+		_step_acc = minf(_step_acc + delta, 3.0 / ONES_HZ)
+		while _step_acc >= 1.0 / ONES_HZ - 0.0005:
+			_step_acc = maxf(0.0, _step_acc - 1.0 / ONES_HZ)
+			_tick(1.0 / ONES_HZ)
+			stepped = true
 	var t1 := Time.get_ticks_usec()
 	# The camera moves every frame, so the grid is re-placed every frame; the
 	# effect pixels themselves only change on step frames.
@@ -832,7 +836,7 @@ func dissolved(seed: float, k: float, start: float) -> bool:
 	if k <= start:
 		return false
 	if not on_twos:
-		return (_steps & 2) != 0
+		return (_steps & 1) != 0      # 60 Hz steps: toggling every step = the sandbox's 120 Hz frame & 2
 	return fposmod(seed * 7919.371, 1.0) < (k - start) / (1.0 - start)
 
 func _bayer(x: int, y: int) -> float:
@@ -848,8 +852,15 @@ func _put(buf: PackedByteArray, x: int, y: int, c: Color):
 
 func _place_grid() -> bool:
 	var vis := _visible_world_rect()
+	# Hysteresis: keep the grid where it is while it still covers the view, so
+	# a walking camera does not force a full redraw every display frame.
+	var want := Vector2i(ceili(vis.size.x / CELL) + 2 * MARGIN, ceili(vis.size.y / CELL) + 2 * MARGIN)
+	if want == _size and _size != Vector2i.ZERO:
+		var have := Rect2(Vector2(_origin) * CELL, Vector2(_size) * CELL).grow(-CELL)
+		if have.encloses(vis):
+			return false
 	var tl := Vector2i(floori(vis.position.x / CELL) - MARGIN, floori(vis.position.y / CELL) - MARGIN)
-	var br := Vector2i(ceili(vis.end.x / CELL) + MARGIN, ceili(vis.end.y / CELL) + MARGIN)
+	var br := tl + want
 	var size := br - tl
 	if size.x <= 0 or size.y <= 0 or size.x * size.y > 400000:
 		return false
@@ -962,8 +973,12 @@ func _draw_water():
 	am.set_shader_parameter("water_on", _water_used)
 	(_ground_layer.material as ShaderMaterial).set_shader_parameter("water_on", _water_used)
 
+var prof := {}                       # per-stage draw cost (ms), last step; console "vfx stats"
+
 func _draw_air():
+	var p0 := Time.get_ticks_usec()
 	_draw_water()
+	var p1 := Time.get_ticks_usec()
 	_heat.fill(0.0)
 	_under.fill(0)
 	_over.fill(0)
@@ -1006,6 +1021,7 @@ func _draw_air():
 				var yy := cy + offs[q + 1]
 				if xx >= 0 and yy >= 0 and xx < w and yy < hgt:
 					_heat[yy * w + xx] += h
+	var p2 := Time.get_ticks_usec()
 	# smoke under heat (sandbox drawSmoke); puff size scales, dither stays per cell
 	for s in _smoke:
 		var k: float = s[4] / s[5]
@@ -1032,10 +1048,18 @@ func _draw_air():
 			_put(_over, ex + 1, ey + 1, ec)
 		elif absf(e[3]) > 10.0:
 			_put(_over, ex, ey + 1, ec)   # older fast embers streak 1x2
+	var p3 := Time.get_ticks_usec()
 	_draw_impacts()
+	var p4 := Time.get_ticks_usec()
 	_upload("heat", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RF, _heat.to_byte_array()))
 	_upload("under", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _under))
 	_upload("over", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _over))
+	var p5 := Time.get_ticks_usec()
+	prof.water = (p1 - p0) / 1000.0
+	prof.flames = (p2 - p1) / 1000.0
+	prof.smoke_embers = (p3 - p2) / 1000.0
+	prof.impacts = (p4 - p3) / 1000.0
+	prof.upload = (p5 - p4) / 1000.0
 
 ## Warm light on the ground near flames (sandbox drawFloorLight): flames are
 ## binned into a coarse world-anchored grid (LIGHT_SU per cell); the radial
@@ -1101,12 +1125,19 @@ func _draw_impacts():
 			for q in th + 1:
 				_put(_ground, X + int(signf(cos(a))) * q, Y, c)
 				_put(_ground, X, Y + int(signf(sin(a))) * q, c)
+	var q0 := Time.get_ticks_usec()
 	elements.draw_ground(_ground)
 	_upload("ground", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _ground))
+	var q1 := Time.get_ticks_usec()
 	presenter.draw_bodies(_over)
 	presenter.draw_statuses(_over)
 	presenter.draw_charges(_over)
+	var q2 := Time.get_ticks_usec()
 	elements.draw_over(_over)
+	var q3 := Time.get_ticks_usec()
+	prof.el_ground = (q1 - q0) / 1000.0
+	prof.bodies = (q2 - q1) / 1000.0
+	prof.el_over = (q3 - q2) / 1000.0
 	for f in _flashes:
 		_disk(_over, roundi(f[0] * K), roundi(f[1] * K), f[2] * K, f[5])
 	for s in _stars:
