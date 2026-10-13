@@ -581,8 +581,6 @@ func _dispatch_spell(slot: int) -> bool:
 	match spell_type:
 		"heal_over_time":
 			cast_life_spell(slot)
-		"shield":
-			cast_earthshield_spell(slot)
 	AudioManager.play_spell_sound(str(spell_info.id))
 	return true
 
@@ -644,20 +642,6 @@ func cast_life_spell(slot: int):
 			visual.scale = Vector2.ONE * visual_size
 
 
-func cast_earthshield_spell(slot: int):
-	var info = get_spell_info(slot)
-	var rank_multiplier = 1.0 + 0.15 * (int(info.get("level", 1)) - 1)
-	player.add_earth_shield_charge({
-		"remaining": float(info.get("duration", 16.0)) * maxf(1.0, cast_stat("spell_duration_multiplier")),
-		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier),
-		"reach": float(info.get("retaliation_reach", 160.0)) * (float(cast_stat("spell_size_multiplier")) * cast_keyword_multiplier),
-		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
-		"knockback": float(info.get("retaliation_knockback", 500.0)),
-		"travel_time": float(info.get("retaliation_travel_time", 0.22)),
-		"damage_source": DamageSource.current
-	})
-
-# Helper functions
 func get_closest_enemy():
 	var scene_tree = get_tree()
 	if not scene_tree:
@@ -1487,6 +1471,8 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 		bundle = ported_bundle
 	ported_bundle = {}
 	var info = resolve_cast_info(slot)
+	if str(info.get("type", "")) == "shield":
+		return _cast_earth_shield(info, bundle if not bundle.is_empty() else ported_bundle)
 	if str(info.get("type", "")) == "plague" and get_visible_plague_host(info) == null:
 		last_cast_failure = "No target in range"
 		return false
@@ -1602,6 +1588,30 @@ func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
 	if not DamageSource.current.is_empty():
 		cast.source = DamageSource.current   # later hits count toward the newest cast (style meter)
 	spell_extended.emit(str(plan.id), added)
+
+## Earth Shield on the generic engine: the charge carries a planned eruption (keywords included),
+## released by EarthShield.block toward the attacker.
+func _cast_earth_shield(info: Dictionary, bundle: Dictionary) -> bool:
+	ported_bundle = {}
+	var rank_multiplier = 1.0 + 0.15 * (int(info.get("level", 1)) - 1)
+	var ctx = {
+		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier),
+		"reach": float(info.get("retaliation_reach", 160.0)) * (float(cast_stat("spell_size_multiplier")) * cast_keyword_multiplier),
+		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
+		"knockback": float(info.get("retaliation_knockback", 500.0)),
+		"travel_time": float(info.get("retaliation_travel_time", 0.22)),
+	}
+	var plan = CastPlanner.plan(LegacyBridge.build(info, 0.0, ctx), bundle, {})
+	last_cracked = plan.rejected
+	for r in plan.rejected:
+		keyword_cracked.emit(str(r.word), str(r.reason))
+	player.add_earth_shield_charge({
+		"remaining": float(info.get("duration", 16.0)) * maxf(1.0, cast_stat("spell_duration_multiplier")),
+		"damage": ctx.damage, "reach": ctx.reach, "half_angle": ctx.half_angle, "knockback": ctx.knockback, "travel_time": ctx.travel_time,
+		"damage_source": DamageSource.current,
+		"plan": plan,
+	})
+	return true
 
 ## Old Life Bolt aim: each bolt goes to a different on-screen enemy first, then any on-screen one.
 func life_bolt_picker() -> Callable:

@@ -181,6 +181,8 @@ static func _kind(part) -> String:
 				return "wave"
 			if part.geo_type() == "cone" and part._propagation() == "instant":
 				return "slash"
+			if part.geo_type() == "cone" and part._propagation() == "expanding":
+				return "eruption"
 		"trap":
 			if part.geo_type() == "disk":
 				return "trap"
@@ -492,6 +494,8 @@ func step(dt: float) -> void:
 				_beam_step(part, st, pos, dt)
 			"infection":
 				_infection_step(part, dt)
+			"eruption":
+				_eruption_step(part, st, pos, dt)
 			"charge":
 				st.age += dt / vfx.fx_speed      # telegraph runs on game time: it must land with the real strike
 				if randf() < 0.5 * dt * 60.0:
@@ -2110,3 +2114,26 @@ func _infection_step(part, dt: float) -> void:
 		if randf() < 0.05 * dt * 60.0:
 			var sq: Vector2 = Vector2(sp.position) / WPS
 			vfx.elements.bubble(sq.x + (randf() - 0.5) * 3.0, sq.y - 1.0, false)
+
+## Earth Shield eruption: stone spikes burst up along the growing cone front (earth nova kit),
+## dust thrown outward; other looks spray their sparks along the front.
+func _eruption_step(part, st: Dictionary, pos: Vector2, dt: float) -> void:
+	if part.done:
+		return
+	var r: float = float(part.front) / WPS
+	var half: float = deg_to_rad(float(part.def.get("geometry", {}).get("angle", 100.0))) * 0.5
+	var base: float = Vector2(part.direction).angle()
+	var n := maxf(1.0, r * half * 2.0 * 0.06) * dt * 60.0
+	while n > 0.0:
+		if n < 1.0 and randf() > n:
+			break
+		n -= 1.0
+		var a := base + (randf() * 2.0 - 1.0) * half
+		var p := pos + Vector2(cos(a), sin(a)) * r * (0.8 + randf() * 0.2)
+		if st.look.native == "earth":
+			vfx.elements.crystal(p.x, p.y, 4.0 + randf() * 5.0, 0.35 + randf() * 0.3, EAR.body)
+			if randf() < 0.4:
+				vfx.elements.dust(p.x, p.y, cos(a) * 16.0, sin(a) * 9.0)
+		else:
+			var pal: Array = SPARK.get(st.look.native, SPARK.arcane)
+			vfx.spark(p.x, p.y, cos(a) * 20.0, sin(a) * 20.0, 0.3, pal)

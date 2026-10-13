@@ -89,7 +89,7 @@ func run():
 	manager.cast_life_spell(manager.find_spell_slot("regeneration"))
 	check(is_equal_approx(manager.active_healing_effects[-1].heal_per_second, 6), "Power doubles regeneration rate")
 	check(is_equal_approx(manager.active_healing_effects[-1].remaining_time, 10), "Duration doubles regeneration lifetime")
-	manager.cast_earthshield_spell(manager.find_spell_slot("earth_shield"))
+	manager.cast_spell_by_type(manager.find_spell_slot("earth_shield"))
 	check(is_equal_approx(player.earth_shield.charges[0].damage, 120), "Power doubles shield retaliation")
 	check(is_equal_approx(player.earth_shield.charges[0].remaining, 32), "Duration doubles shield lifetime")
 	player.spell_damage_multiplier = 1.0

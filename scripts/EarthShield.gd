@@ -47,6 +47,15 @@ func block(source: Dictionary) -> bool:
 	return true
 
 func release_eruption(charge: Dictionary, origin: Vector2, aim: Vector2):
+	if charge.has("plan") and is_instance_valid(get_parent()):
+		# Earth Shield on the generic engine (doc 18 phase 2): the cast planned the eruption.
+		var cast = preload("res://scripts/engine/GenericCast.gd").new()
+		cast.name = "GenericCast_earth_shield"
+		cast.forced_dir = aim
+		cast.setup(charge.plan, get_parent(), get_parent().get_parent(), charge.get("damage_source", {}))
+		get_parent().get_parent().add_child(cast)
+		cast.step(0.0)
+		return
 	var eruption = Eruption.new()
 	DamageSource.stamp(eruption, charge.get("damage_source", {}))
 	eruption.position = origin

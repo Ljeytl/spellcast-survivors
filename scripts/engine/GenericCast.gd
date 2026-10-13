@@ -23,6 +23,7 @@ var release_acc := 0.0
 var aim_dir := Vector2.RIGHT
 var shared_hits: Dictionary = {} # enemy id -> cast clock of the last hit (limits.rehit_shared)
 var once: Dictionary = {}      # payload items marked once_per_cast: "item@enemy" already applied
+var forced_dir := Vector2.ZERO  # aim set by the caller
 var forced_target = null       # ported spells keep their old targeting: the caller picks the target
 var target_picker: Callable    # or picks it when each copy is released (release.retarget)
 var point_picker: Callable     # arrangement "points": the caller picks the ground points (old Meteor Shower)
@@ -128,9 +129,11 @@ func _start_cast(c: Dictionary) -> void:
 			var away = near.global_position.direction_to(caster.global_position) if near else Vector2.LEFT
 			caster.global_position += away * float(flags.blinking.get("distance", 140.0))
 	var target = _pick_target()
+	if forced_dir != Vector2.ZERO:
+		target = null   # aimed by the caller (Earth Shield erupts toward the attacker)
 	if target == null and bool(plan.get("needs_target", false)):
 		return   # old area spells with nothing worth striking cast nothing
-	aim_dir = caster_position().direction_to(target.global_position) if target else _facing()
+	aim_dir = caster_position().direction_to(target.global_position) if target else (forced_dir.normalized() if forced_dir != Vector2.ZERO else _facing())
 	var vfx = get_node_or_null("/root/Vfx")
 	if vfx:
 		vfx.cast_started(self)

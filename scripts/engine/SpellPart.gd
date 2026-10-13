@@ -128,7 +128,8 @@ func contains(point: Vector2, pad: float = -1.0) -> bool:
 			var r = front if _propagation() == "expanding" else geo("radius", 100.0)
 			return offset.length() <= r + geo("thickness", 20.0) * 0.5 + pad
 		"cone":
-			if offset.length() > geo("radius", 100.0) + pad:
+			var reach = front if _propagation() == "expanding" else geo("radius", 100.0)
+			if offset.length() > reach + pad:
 				return false
 			if offset.length() < pad:
 				return true

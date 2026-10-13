@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam", "spirit", "trail", "returning", "plague"]
+const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam", "spirit", "trail", "returning", "plague", "shield"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -54,6 +54,8 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 			return _cross_blade(info, damage, ctx)
 		"plague":
 			return _infestation(info, damage, ctx)
+		"shield":
+			return _earth_eruption(info, ctx)
 	return {}
 
 ## How a recast meets the casts already out (the old recast_behavior / active_limit / extend_at_cap).
@@ -458,3 +460,20 @@ static func _infestation(info: Dictionary, damage: float, ctx: Dictionary) -> Di
 	def.recast = _recast(info)
 	def.needs_target = true
 	return def
+
+## Earth Shield: each cast stores a block charge on the caster (Player.add_earth_shield_charge);
+## a blocked hit erupts a cone of stone toward the attacker. This is that eruption: a cone that
+## grows over travel_time, hitting each enemy once and pushing it away.
+static func _earth_eruption(info: Dictionary, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var reach = float(ctx.get("reach", 160.0))
+	var travel = maxf(0.01, float(ctx.get("travel_time", 0.22)))
+	var payload = _damage(id, float(ctx.get("damage", 60.0)))
+	payload.append({"type": "impulse", "direction": "away", "force": float(ctx.get("knockback", 500.0))})
+	var cone := {
+		"delivery": "volume", "origin": "caster",
+		"geometry": {"type": "cone", "radius": reach, "angle": rad_to_deg(float(ctx.get("half_angle", deg_to_rad(50.0)))) * 2.0, "pad": 0.0},
+		"propagation": {"type": "expanding", "speed": reach / travel},
+		"payload": payload,
+	}
+	return _shell(info, "eruption", {"eruption": cone})
