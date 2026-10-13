@@ -37,7 +37,6 @@ const Geometry = preload("res://scripts/SpellGeometry.gd")
 
 const Targeting = preload("res://scripts/SpellTargeting.gd")
 
-var spell_projectile_scene = preload("res://scenes/SpellProjectile.tscn")
 
 const Synergies = preload("res://scripts/SynergyCatalog.gd")
 @export_range(0.1, 30.0, 0.1) var typing_slowdown_capacity: float = 1.5
@@ -83,8 +82,6 @@ var mana_bolt_timer = 0.0
 var active_healing_effects = []
 
 # Visual effects
-var spell_effects_scene = preload("res://scenes/SpellProjectile.tscn")
-var aoe_effect_scene = preload("res://scenes/SpellProjectile.tscn")
 
 @onready var game_manager = get_parent()
 @onready var player = get_parent().get_node("Player")
@@ -460,93 +457,27 @@ func handle_auto_attack(delta):
 		var adjusted_cooldown = mana_bolt_cooldown / cast_speed_bonus
 		mana_bolt_timer = adjusted_cooldown
 
+## Magic Missile on the generic engine (scripts/engine/LegacyBridge.gd _mana_bolt): same damage,
+## count by level, homing and overkill-aware targets; the VFX layer draws it.
 func fire_mana_bolt():
-	var scene_tree = get_tree()
-	if not scene_tree:
+	if not player or not is_inside_tree() or get_tree().get_nodes_in_group("enemies").is_empty():
 		return
-	var enemies = scene_tree.get_nodes_in_group("enemies")
-	if enemies.size() == 0 or not player:
-		return
-	
-	# Calculate damage
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
 	var damage = mana_bolt_damage * level_multiplier * cast_stat("spell_damage_multiplier")
-	
-	# Determine number of projectiles based on Magic Missile level
-	var projectile_count = 1
+	var count = 1
 	if mana_bolt_level >= 3:
-		projectile_count = 2  # Level 3+: 2 Magic Missiles
+		count = 2
 	if mana_bolt_level >= 6:
-		projectile_count = 3  # Level 6+: 3 Magic Missiles
+		count = 3
 	if mana_bolt_level >= 10:
-		projectile_count = 4  # Level 10+: 4 Magic Missiles
-	
-	# Get multiple targets for higher levels
-	var targets = get_multiple_enemies(projectile_count)
-	if targets.size() == 0:
+		count = 4
+	if Targeting.select(get_tree(), player.global_position) == null:
 		return
-	
-	# Play Magic Missile sound
+	var info = {"id": "mana_bolt", "type": "mana_bolt", "name": "Magic Missile", "projectile_count": count}
+	if spawn_ported(info, damage) == null:
+		return
 	if AudioManager:
 		AudioManager.play_spell_sound("mana_bolt")
-	
-	# Create Magic Missile visual effect (simple flash)
-	create_simple_spell_flash(player.global_position, Color.CYAN)
-	
-	# Fire multiple Magic Missiles with slight timing offset
-	for i in range(projectile_count):
-		var delay = i * 0.05  # 50ms delay between each Magic Missile for smoother effect
-		var target = targets[i % targets.size()]  # Cycle through available targets
-		
-		if delay > 0:
-			scene_tree.create_timer(delay).timeout.connect(
-				DamageSource.wrap(_delayed_mana_bolt.bind(weakref(target), damage, i))
-			)
-		else:
-			create_mana_bolt_projectile(target, damage, i)
-
-# Helper function to create individual Magic Missile projectiles
-func create_mana_bolt_projectile(target: Node2D, damage: float, projectile_index: int):
-	target = Targeting.select(get_tree(), player.global_position)
-	if not target or not is_instance_valid(target):
-		return
-	
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return
-	
-	var game_node = scene_tree.get_first_node_in_group("game")
-	var projectile = null
-	
-	# Try to get from object pool first
-	if game_node and game_node.has_method("get_pooled_object"):
-		projectile = game_node.get_pooled_object("SpellProjectile")
-	
-	if not projectile:
-		projectile = spell_projectile_scene.instantiate()
-	
-	if not projectile or not is_instance_valid(projectile):
-		return
-	
-	# Vary color slightly for multiple Magic Missiles
-	var base_color = Color.CYAN
-	var hue_shift = fmod(projectile_index * 0.1, 1.0)
-	var color_variation = Color.from_hsv(0.5 + hue_shift * 0.15, 0.8, 1.0)  # Cyan to blue range
-	var projectile_color = base_color.lerp(color_variation, 0.3)
-	
-	# Slightly vary speed
-	var speed_variation = 450.0 + (projectile_index * 25.0)
-	projectile.speed = speed_variation * cast_stat("projectile_speed_multiplier")
-	
-	# Strong homing for Magic Missiles
-	projectile.homing_strength = 6.0
-	
-	projectile.setup_homing(player.global_position, target, damage, projectile_color, "mana_bolt")
-	var parent = get_parent()
-	if parent:
-		parent.add_child(projectile)
-	else:
-		projectile.queue_free()  # Clean up if we can't add it
 
 # Main spell casting dispatcher
 func cast_spell_by_type(slot: int, keyword_multiplier: float = 1.0) -> bool:
@@ -577,68 +508,8 @@ func _dispatch_spell(slot: int) -> bool:
 		AudioManager.play_spell_sound(str(spell_info.id))
 		return true
 	
-	match spell_type:
-		"heal_over_time":
-			cast_life_spell(slot)
-	AudioManager.play_spell_sound(str(spell_info.id))
-	return true
-
-# Helper function to get multiple enemy targets for multi-projectile spells
-func get_multiple_enemies(count: int) -> Array:
-	var scene_tree = get_tree()
-	if not scene_tree:
-		return []
-	
-	var enemies = scene_tree.get_nodes_in_group("enemies")
-	if enemies.size() == 0:
-		return []
-	
-	# Sort enemies by distance from player
-	var sorted_enemies = []
-	for enemy in enemies:
-		if not _live_spell_target(enemy):
-			continue
-		var distance = player.global_position.distance_to(enemy.global_position)
-		sorted_enemies.append({"enemy": enemy, "distance": distance})
-	
-	# Sort by distance (closest first)
-	sorted_enemies.sort_custom(func(a, b): return a.distance < b.distance)
-	
-	# Return up to 'count' closest enemies
-	var targets = []
-	for i in range(min(count, sorted_enemies.size())):
-		targets.append(sorted_enemies[i].enemy)
-	
-	return targets
-
-func cast_life_spell(slot: int):
-	var spell_info = get_spell_info(slot)
-	var level_multiplier = 1.0 + 0.15 * (spell_info["level"] - 1)
-	var heal_per_second = spell_info["heal_amount"] * level_multiplier * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
-	var duration = float(spell_info["duration"]) * maxf(1.0, cast_stat("spell_duration_multiplier"))
-	
-	var total_remaining = float(duration)
-	var visual_size = cast_keyword_multiplier
-	var extended = false
-	if spell_info.get("recast_behavior", "stack") == "extend":
-		for effect in active_healing_effects:
-			if effect.get("spell_id", "") == spell_info.id and effect.remaining_time > 0:
-				if not effect.has("segments"):
-					effect.segments = [{"remaining": effect.remaining_time, "rate": effect.heal_per_second, "size": effect.get("keyword_multiplier", 1.0)}]
-				effect.segments.append({"remaining": duration, "rate": heal_per_second, "size": cast_keyword_multiplier})
-				effect.remaining_time += duration
-				total_remaining = effect.remaining_time
-				visual_size = float(effect.segments[0].size)
-				extended = true
-				spell_extended.emit(spell_info.id, duration)
-				break
-	if not extended:
-		active_healing_effects.append({"spell_id": spell_info.id, "keyword_multiplier": cast_keyword_multiplier, "heal_per_second": heal_per_second, "remaining_time": duration})
-	var particles = get_parent().get("particle_manager")
-	if is_instance_valid(particles):
-		var visual = particles.create_persistent_life_circle(player, total_remaining, visual_size)
-		if is_instance_valid(visual):
-			visual.scale = Vector2.ONE * visual_size
+	last_cast_failure = "%s has no cast" % str(spell_info.get("name", spell_type))
+	return false
 
 
 func get_closest_enemy():
@@ -689,35 +560,16 @@ func process_healing_effects(delta):
 					var segment = effect.segments[0]
 					var step = minf(budget, segment.remaining)
 					player.heal(segment.rate * step, segment.size)
-					var particles = get_parent().get("particle_manager")
-					if is_instance_valid(particles):
-						for visual in particles.get_children():
-							if visual.get("mode") == "regeneration":
-								visual.scale = Vector2.ONE * segment.size
 					segment.remaining -= step
 					budget -= step
 					if segment.remaining <= 0:
 						effect.segments.pop_front()
-				if not effect.segments.is_empty():
-					var particles = get_parent().get("particle_manager")
-					if is_instance_valid(particles):
-						for visual in particles.get_children():
-							if visual.get("mode") == "regeneration":
-								visual.scale = Vector2.ONE * effect.segments[0].size
 			else:
 				player.heal(effect["heal_per_second"] * elapsed, effect.get("keyword_multiplier", 1.0))
 			healing_applied.emit(player.health - previous_health)
 		if effect["remaining_time"] <= 0:
 			active_healing_effects.remove_at(i)
 
-# Visual effect functions
-func create_simple_spell_flash(pos: Vector2, color: Color):
-	# Create a simple visual flash effect without circles
-	var flash = spell_projectile_scene.instantiate()
-	if flash:
-		flash.setup_effect(pos, color, "flash", 0.3)
-		flash.scale = Vector2(0.5, 0.5)  # Make it smaller than AoE effects
-		get_parent().add_child(flash)
 
 # Player transparency effects
 func _on_typing_started():
@@ -1317,6 +1169,10 @@ func spawn_ported(info: Dictionary, damage: float, bundle: Dictionary = {}, forc
 	var ctx = {"speed_mult": speed_mult}
 	if str(info.get("type", "")) == "heal":
 		ctx.heal = float(info.heal_amount) * (1.0 + 0.15 * (int(info.level) - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
+	if str(info.get("type", "")) == "heal_over_time":
+		# Old Regeneration: heal per second grows 15% a rank; Duration only ever lengthens it.
+		ctx.heal_rate = float(info.heal_amount) * (1.0 + 0.15 * (int(info.level) - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
+		ctx.duration = float(info.duration) * maxf(1.0, cast_stat("spell_duration_multiplier"))
 	var def = LegacyBridge.build(scaled, damage, ctx)
 	if def.is_empty():
 		return null
@@ -1499,7 +1355,7 @@ func ported_target(info: Dictionary, speed_mult: float):
 			var reach = 700.0 * 1.5 * speed_mult
 			var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("spear_radius", 24.0)), reach, get_viewport().get_visible_rect())
 			return line_target if line_target != null else get_closest_enemy()
-		"projectile":
+		"projectile", "mana_bolt":
 			return Targeting.select(get_tree(), player.global_position) if is_instance_valid(player) else null
 		"bouncing_projectile":
 			var first = Targeting.select(get_tree(), player.global_position) if is_instance_valid(player) else null
@@ -1554,9 +1410,3 @@ func get_visible_plague_host(info: Dictionary):
 
 func _live_spell_target(target) -> bool:
 	return is_instance_valid(target) and not target.is_queued_for_deletion() and not target.get("dying") and float(target.get("current_health")) > 0.0
-
-func _delayed_mana_bolt(reference: WeakRef, damage: float, index: int):
-	if not is_inside_tree() or not is_instance_valid(player):
-		return
-	var target = reference.get_ref()
-	create_mana_bolt_projectile(target, damage, index)

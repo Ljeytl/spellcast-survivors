@@ -152,7 +152,7 @@ func run():
 	check(manager.cast_freeform_spell("mega earth shield"),"second rapid cast")
 	check(manager.pending_keyword_casts.size()==2,"rapid casts have independent payloads")
 	manager.advance_pending_casts(0.351)
-	check(manager.active_healing_effects.size()>0,"queued regeneration effect exists")
+	check(not manager.ported_casts("regeneration").is_empty(),"queued regeneration effect exists")
 	check(game.player.earth_shield.charges.size()>0,"queued shield effect exists")
 	type_spell("mega bolt")
 	manager.cast_freeform_spell("mega bolt")

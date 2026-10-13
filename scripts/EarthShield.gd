@@ -6,6 +6,9 @@ var age: float = 0.0
 func _ready():
 	z_index = 12
 	add_to_group("earth_shields")
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx:
+		vfx.prop_added(self, "shield")   # the VFX layer draws the orbiting stones (docs/VFX_EVENTS.md)
 
 func add_charge(info: Dictionary):
 	charges.append(info.duplicate(true))
@@ -41,6 +44,9 @@ func block(source: Dictionary) -> bool:
 		aim = source.get("incoming_direction", Vector2.LEFT) * -1.0
 	if aim.is_zero_approx():
 		aim = Vector2.RIGHT
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx:
+		vfx.prop_burst("block", global_position + aim.normalized() * 30.0)
 	release_eruption.call_deferred(charge, global_position, aim.normalized())
 	queue_redraw()
 	return true
@@ -57,6 +63,9 @@ func release_eruption(charge: Dictionary, _origin: Vector2, aim: Vector2):
 	cast.step(0.0)
 
 func _draw():
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx and vfx.presents_prop(self):
+		return
 	var count = mini(charges.size(), 12)
 	for index in range(count):
 		var angle = -PI * 0.5 + index * TAU / maxf(1, count) + sin(age * 0.8) * 0.12

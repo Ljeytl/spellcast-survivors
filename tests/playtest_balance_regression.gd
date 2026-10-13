@@ -29,15 +29,18 @@ func run():
 	var spells = game.spell_manager
 	spells.set_process(false)
 	spells.active_healing_effects.clear()
-	spells.spells[2] = spells.spell_catalog.regeneration.duplicate(true)
-	spells.spells[2].level = 1
+	spells.learn_spell("regeneration")
+	var regen_slot = spells.find_spell_slot("regeneration")
+	spells.spells[regen_slot].level = 1
 	game.player.health = 1
-	spells.cast_life_spell(2)
-	spells.process_healing_effects(1.0)
+	check(spells.cast_spell_by_type(regen_slot), "Regeneration casts: " + spells.last_cast_failure)
+	var regen = spells.last_generic_cast   # generic life aura
+	regen.manual = true
+	regen.run(1.0)
 	check(is_equal_approx(game.player.health, 4), "Regen heals three HP during first second")
-	spells.process_healing_effects(4.0)
+	regen.run(4.0)
 	check(is_equal_approx(game.player.health, 16), "Regen heals fifteen total over five seconds")
-	spells.process_healing_effects(1.0)
+	regen.run(1.0)
 	check(is_equal_approx(game.player.health, 16), "Regen stops after five seconds")
 	manager.game_time = 300
 	manager.check_boss_milestones()

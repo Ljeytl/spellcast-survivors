@@ -108,6 +108,7 @@ var _parts := {}                 # instance id -> state
 var _presented := {}             # instance id -> weakref: parts we draw, kept until freed so
                                  # finished parts (e.g. a blast's 0.12 s tail) never flash placeholder art
 var enabled := true              # console "vfx present off" shows the placeholders
+var _props := {}                 # instance id -> {node: WeakRef, kind}: spell objects the engine does not own
 
 func _init(owner):
 	vfx = owner
@@ -487,7 +488,13 @@ func step(dt: float) -> void:
 				if randf() < 0.12 * dt * 60.0:
 					var a := randf() * TAU
 					var d := sqrt(randf()) * float(st.r) * 0.8
-					vfx.flame(null, pos + Vector2(cos(a), sin(a) * 0.7) * d, {"heat": 0.6, "rise": 10.0 + randf() * 8.0, "life": 0.3 + randf() * 0.3, "small": 1.0 if randf() < 0.5 else 0.0})
+					var fp: Vector2 = pos + Vector2(cos(a), sin(a) * 0.7) * d
+					# Flames rise on the air layer: none at the wizard's feet, so fire never covers
+					# the wizard (playtest F41); embers and char still show there.
+					var walker = part.cast.caster if part.cast != null else null
+					if walker == null or not is_instance_valid(walker) or fp.distance_to(walker.global_position / WPS) > 7.0:
+						# low ground fire: short tongues that stay under head height
+						vfx.flame(null, fp, {"heat": 0.6, "rise": 4.0 + randf() * 4.0, "life": 0.25 + randf() * 0.25, "small": 1.0})
 				if randf() < 0.02 * dt * 60.0:
 					vfx.ember(pos.x + (randf() - 0.5) * float(st.r), pos.y, (randf() - 0.5) * 8.0, -(14.0 + randf() * 10.0), 0.8 + randf())
 			"beam":
@@ -529,6 +536,7 @@ func step(dt: float) -> void:
 				else:
 					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
+	_step_props(dt)
 	_step_charges(dt)
 	_burning(dt)
 	_chilled(dt)
@@ -1863,6 +1871,7 @@ func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, 
 ## edge in the accent colour when a keyword element is present.
 func draw_bodies(buf: PackedByteArray) -> void:
 	var K: float = vfx.K
+	_draw_props(buf)
 	for st in _parts.values():
 		if st.kind == "trap":
 			var tp = st.part.get_ref()
@@ -2137,3 +2146,118 @@ func _eruption_step(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		else:
 			var pal: Array = SPARK.get(st.look.native, SPARK.arcane)
 			vfx.spark(p.x, p.y, cos(a) * 20.0, sin(a) * 20.0, 0.3, pal)
+
+# ------------------------------------------------------------------ props: spell objects the engine does not own
+# Healing seeds (Life Bolt, Soul Bloom) and Earth Shield's stored charges are gameplay nodes of
+# their own; they register here and skip their placeholder drawing while the layer is up.
+
+const SEED_STEM := [Color("#7ab24a"), Color("#4e823a")]
+const STONE := [
+	"..ab.",
+	".abbc",
+	"abbcd",
+	".bccd",
+	"..dd.",
+]
+
+func prop_added(node, kind: String) -> void:
+	_props[node.get_instance_id()] = {"node": weakref(node), "kind": kind}
+
+func presents_prop(node) -> bool:
+	return enabled and _props.has(node.get_instance_id())
+
+## One-off moments on props and the player: a heal, a seed picked up, a charge spent on a block.
+func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> void:
+	if not enabled:
+		return
+	var at := world_pos / WPS
+	var el = vfx.elements
+	match kind:
+		"heal":
+			# Small and quick: heals arrive often (Regeneration, seeds), the cast itself blooms bigger.
+			var s := clampf(size, 0.6, 2.0)
+			for i in roundi(7 * s):
+				var a := randf() * TAU
+				el.leaf(at.x + cos(a) * 3.0, at.y - 3.0, cos(a) * 6.0, -14.0 - randf() * 10.0, LIFE.petal if randf() < 0.4 else LIFE.leaf, 0.7 + randf() * 0.4)
+			for i in roundi(5 * s):
+				el.mote(at.x + (randf() - 0.5) * 7.0, at.y - 3.0 - randf() * 5.0, 0.0, -9.0 - randf() * 6.0, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]], 0.6, 0.0, 3.0)
+			vfx.ring(at.x, at.y, 6.0 * s, 0.22, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]])
+		"seed":
+			_life_contact(at.x, at.y)
+			vfx.ring(at.x, at.y, 5.0, 0.2, [LIFE.petal[2], LIFE.leaf[0]])
+		"block":
+			_earth_contact(at.x, at.y)
+			for i in 6:
+				var a2 := randf() * TAU
+				vfx.chunk(at.x + cos(a2) * 4.0, at.y + sin(a2) * 3.0, cos(a2) * 26.0, sin(a2) * 18.0, 40.0 + randf() * 30.0, EAR.debris, 0.9, 2 if randf() < 0.4 else 1)
+			vfx.flash(at.x, at.y, 2.0, 0.05, EAR.body[0])
+
+func _step_props(dt: float) -> void:
+	for id in _props.keys():
+		var pr: Dictionary = _props[id]
+		var node = pr.node.get_ref()
+		if node == null or not is_instance_valid(node) or node.is_queued_for_deletion():
+			_props.erase(id)
+			continue
+		var at: Vector2 = node.global_position / WPS
+		match pr.kind:
+			"seed":
+				if randf() < 0.06 * dt * 60.0:
+					vfx.elements.mote(at.x + (randf() - 0.5) * 4.0, at.y - 3.0, 0.0, -6.0, [LIFE.petal[2], LIFE.leaf[0]], 0.6, 0.0, 2.0)
+			"shield":
+				for i in mini(node.charges.size(), 12):
+					if randf() < 0.015 * dt * 60.0:
+						var q := _stone_at(node, i, at)
+						vfx.elements.dust(q.x, q.y + 2.0, (randf() - 0.5) * 4.0, 2.0)
+
+func _stone_at(node, index: int, centre: Vector2) -> Vector2:
+	var count := maxi(1, mini(node.charges.size(), 12))
+	var age: float = float(node.age)
+	var angle := -PI * 0.5 + index * TAU / count + sin(age * 0.8) * 0.12
+	return centre + Vector2.from_angle(angle) * (35.0 + 3.0 * sin(age * 2.0 + index)) / WPS
+
+func _draw_props(buf: PackedByteArray) -> void:
+	if not enabled:
+		return
+	var el = vfx.elements
+	for pr in _props.values():
+		var node = pr.node.get_ref()
+		if node == null or not is_instance_valid(node) or node.is_queued_for_deletion():
+			continue
+		var at: Vector2 = node.global_position / WPS
+		match pr.kind:
+			"seed":
+				var left: float = float(node.remaining)
+				if left < 1.5 and (vfx._steps >> 2) % 2 == 0:
+					continue          # blinking out
+				# pickup range: a quiet dashed ring at the real radius
+				el.draw_nova(buf, at.x, at.y, float(node.radius) / WPS, LIFE.rim)
+				# sprout: stem, two leaves, a bud that opens and closes
+				var X := roundi(at.x)
+				var Y := roundi(at.y)
+				el.spx(buf, X, Y, SEED_STEM[1])
+				el.spx(buf, X, Y - 1, SEED_STEM[0])
+				el.spx(buf, X - 1, Y - 1, LIFE.leaf[1])
+				el.spx(buf, X + 1, Y - 2, LIFE.leaf[0])
+				el.spx(buf, X, Y - 2, SEED_STEM[0])
+				var open := sin(float(Time.get_ticks_msec()) * 0.006 + float(X)) > 0.0
+				el.spx(buf, X, Y - 3, LIFE.petal[1])
+				if open:
+					el.spx(buf, X - 1, Y - 3, LIFE.petal[0])
+					el.spx(buf, X + 1, Y - 3, LIFE.petal[0])
+					el.spx(buf, X, Y - 4, LIFE.petal[2])
+			"shield":
+				var cols := {"a": EAR.body[0], "b": EAR.body[1], "c": EAR.body[2], "d": EAR.body[3]}
+				for i in mini(node.charges.size(), 12):
+					var remaining: float = float(node.charges[i].get("remaining", 1.0))
+					if remaining < 1.0 and (vfx._steps >> 2) % 2 == 0:
+						continue      # about to crumble
+					var q := _stone_at(node, i, at)
+					var bob := sin(float(node.age) * 3.0 + i) * 0.6
+					for j in STONE.size():
+						var row: String = STONE[j]
+						for k in row.length():
+							if row[k] == ".":
+								continue
+							el.spx(buf, roundi(q.x) + k - 2, roundi(q.y + bob) + j - 2, cols[row[k]])
+

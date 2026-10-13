@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam", "spirit", "trail", "returning", "plague", "shield"]
+const PORTED = ["heal_over_time", "piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam", "spirit", "trail", "returning", "plague", "shield"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -56,7 +56,29 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 			return _infestation(info, damage, ctx)
 		"shield":
 			return _earth_eruption(info, ctx)
+		"mana_bolt":
+			return _mana_bolt(info, damage, ctx)
 	return {}
+
+## Magic Missile (the auto-attack): one missile per count, 0.05 s apart, each homing on the enemy
+## worth hitting when it leaves (overkill-aware) and retargeting if that one dies; a contact hits
+## everything the missile overlaps, then it is spent. Lives three seconds.
+static func _mana_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.get("id", "mana_bolt"))
+	var speed = 450.0 * float(ctx.get("speed_mult", 1.0))
+	var missile := {
+		"delivery": "projectile", "origin": "caster",
+		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
+		"motion": [{"type": "guided", "speed": speed, "turn": 6.0, "range": speed * 3.0}],
+		"payload": _damage(id, damage),
+		"limits": {"pierce": 0, "contact_all": true},
+		"vfx": {"family": "bolt"},
+	}
+	var def = _shell(info, "missile", {"missile": missile})
+	def.arrangement = {"type": "single", "count": maxi(1, int(info.get("projectile_count", 1)))}
+	def.release = {"type": "staggered", "interval": 0.05, "retarget": true}
+	def.needs_target = true
+	return def
 
 ## How a recast meets the casts already out (the old recast_behavior / active_limit / extend_at_cap).
 static func _recast(info: Dictionary) -> Dictionary:

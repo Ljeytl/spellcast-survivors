@@ -59,10 +59,10 @@ func run():
 	check(manager.cast_freeform_spell("bolt mega") and manager.pending_keyword_casts.size() == 1, "MEGA after the name also reaches the legacy charge")
 	manager.discard_pending_casts()
 	check(manager.cast_freeform_spell("icy bolt") and not manager.last_generic_cast.plan.elements.is_empty(), "Element words work on a ported old spell")
-	# Spells not ported yet keep refusing anything but MEGA.
+	# Every shipping spell is on the generic engine: keywords the spell cannot use crack, the cast goes on.
 	manager.learn_spell("regeneration")
-	check(not manager.cast_freeform_spell("icy regeneration") and manager.last_cast_failure == "ICY doesn't work on Regeneration yet", "Unsupported keyword on an old spell fails with a reason: " + manager.last_cast_failure)
-	check(not manager.cast_freeform_spell("triple mega regeneration") and manager.last_cast_failure.begins_with("TRIPLE"), "Any non-MEGA keyword is refused on old spells")
+	check(manager.cast_freeform_spell("triple regeneration"), "Keywords on a ported heal cast: " + manager.last_cast_failure)
+	manager.discard_pending_casts()
 	check(manager.find_cast_spell_slot("big bolt") == 0, "Legacy slot lookup unchanged")
 
 	# Generic spells.
@@ -93,7 +93,8 @@ func run():
 	check(abs(float(manager.last_generic_cast.plan.bundle.power) - 1.5) < 0.001, "The cracked duplicate adds nothing")
 	cracked.clear()
 	check(manager.cast_freeform_spell("triple warding spear") and cracked.size() == 1 and cracked[0][0] == "warding", "Unbuilt WARDING cracks, TRIPLE still applies")
-	check(not manager.cast_freeform_spell("mega mega regeneration") and manager.last_cast_failure.begins_with("MEGA"), "Old spells still refuse anything but one MEGA")
+	check(manager.cast_freeform_spell("mega mega regeneration"), "A doubled MEGA on a ported spell still casts: " + manager.last_cast_failure)
+	manager.discard_pending_casts()
 
 	# Real enemy, typed pipeline.
 	var enemy = mm.spawn_monster(mm.select_monster(), false, true)

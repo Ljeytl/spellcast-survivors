@@ -572,6 +572,22 @@ func part_finished(part, natural: bool) -> void:
 func part_ticked(_part) -> void:
 	pass
 
+## Spell objects outside the engine (healing seeds, Earth Shield charges) and one-off moments
+## (heals, pickups, blocks). Props register even while the layer is down, so they are drawn as
+## soon as a game camera is up.
+func prop_added(node, kind: String) -> void:
+	presenter.prop_added(node, kind)
+
+func presents_prop(node) -> bool:
+	return _active and presenter.presents_prop(node)
+
+## False when the layer is down: the caller shows its own feedback instead.
+func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> bool:
+	if not _active or not presenter.enabled:
+		return false
+	presenter.prop_burst(kind, world_pos, size)
+	return true
+
 ## True when the VFX layer draws this part, so SpellPart skips its placeholder.
 func presents(part) -> bool:
 	return _active and presenter.presents(part)

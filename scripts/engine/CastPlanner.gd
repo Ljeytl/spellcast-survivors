@@ -276,7 +276,8 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		"parts": parts, "arrangement": arrangement, "release": release, "casts": casts,
 		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle,
 		"quick": bool(opts.get("quick", false)), "max_spawns": int(def.get("max_spawns", 48)),
-		"needs_target": bool(def.get("needs_target", false)), "max_depth": int(def.get("max_depth", 3))
+		"needs_target": bool(def.get("needs_target", false)), "max_depth": int(def.get("max_depth", 3)),
+		"legacy": bool(def.get("legacy", false))   # a shipping spell on the bridge (old targeting rules)
 	}
 
 static func _word_for(words: Dictionary, category: String) -> String:

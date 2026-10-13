@@ -91,9 +91,11 @@ func run():
 	player.health = 10
 	manager.cast_spell_by_type(manager.find_spell_slot("life"))
 	check(is_equal_approx(player.health, 18), "Power doubles Life heal")
-	manager.cast_life_spell(manager.find_spell_slot("regeneration"))
-	check(is_equal_approx(manager.active_healing_effects[-1].heal_per_second, 6), "Power doubles regeneration rate")
-	check(is_equal_approx(manager.active_healing_effects[-1].remaining_time, 10), "Duration doubles regeneration lifetime")
+	manager.cast_spell_by_type(manager.find_spell_slot("regeneration"))
+	var regen = manager.last_generic_cast.root_parts()[0]   # generic life aura
+	regen.cast.manual = true
+	check(is_equal_approx(float(regen.def.heal_rate), 6), "Power doubles regeneration rate")
+	check(is_equal_approx(regen.remaining_life(), 10), "Duration doubles regeneration lifetime")
 	manager.cast_spell_by_type(manager.find_spell_slot("earth_shield"))
 	check(is_equal_approx(player.earth_shield.charges[0].damage, 120), "Power doubles shield retaliation")
 	check(is_equal_approx(player.earth_shield.charges[0].remaining, 32), "Duration doubles shield lifetime")

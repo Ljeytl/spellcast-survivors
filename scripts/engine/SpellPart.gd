@@ -7,6 +7,7 @@ const COLORS = {"": Color(0.85, 0.85, 0.9), "arcane": Color(0.7, 0.5, 1.0), "fir
 	"water": Color(0.45, 0.8, 1.0), "storm": Color(0.95, 0.95, 0.4), "earth": Color(0.65, 0.5, 0.3),
 	"plague": Color(0.55, 0.85, 0.25), "life": Color(0.35, 0.9, 0.45)}
 const ENEMY_RADIUS = 14.0
+const Targeting = preload("res://scripts/SpellTargeting.gd")
 
 var cast = null              # GenericCast
 var part_name := ""
@@ -243,6 +244,12 @@ func _step_projectile(delta: float) -> void:
 				direction = prev_pos.direction_to(global_position)
 		"straight", "guided", "spiral":
 			if str(ph.type) == "guided":
+				if not _alive(assigned) and cast.plan.get("legacy", false) and depth == 0:
+					# Old homing shots (Magic Missile, Lightning Bolt): a dead target hands the shot to
+					# the nearest enemy still worth hitting (overkill-aware), which it then reserves.
+					assigned = Targeting.select(get_tree(), global_position, 600.0, exclude, self)
+					if assigned != null:
+						reserve_until = age + global_position.distance_to(assigned.global_position) / maxf(float(ph.get("speed", 600.0)), 1.0) + 0.25
 				var target = assigned if _alive(assigned) else cast.nearest_enemy(global_position, INF, exclude)
 				if target:
 					var want = global_position.direction_to(target.global_position)
@@ -354,8 +361,10 @@ func reserved_damage(enemy) -> float:
 	if done or enemy != assigned or not _alive(enemy) or age > reserve_until:
 		return 0.0
 	var offset: Vector2 = enemy.global_position - global_position
-	if offset.dot(direction) < -24.0 or absf(offset.cross(direction)) > 60.0:
-		return 0.0
+	var phases: Array = def.get("motion", [])
+	var steering = phase < phases.size() and str(phases[phase].get("type", "")) == "guided"
+	if not steering and (offset.dot(direction) < -24.0 or absf(offset.cross(direction)) > 60.0):
+		return 0.0   # a straight shot that has passed or left its target's line no longer arrives
 	var total := 0.0
 	for item in def.get("payload", []):
 		if str(item.type) == "damage":

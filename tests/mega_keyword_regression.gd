@@ -69,11 +69,10 @@ func run():
 	check(is_equal_approx(float(normal_part.payload[0].hit), base_damage), "Normal cast remains ordinary power")
 	check(float(normal_part.geometry.get("pad", 14.0)) == float(mega_part.geometry.get("pad", 14.0)), "Collision matches visible growth (one radius drives hit and look)")
 	manager.fire_mana_bolt()
-	var automatic = projectiles(game, "mana_bolt")[0]
-	check(not automatic.has_meta("cast_size_snapshot"), "Magic Missile unaffected")
-	automatic.set_meta("cast_size_snapshot", 1.5)
-	automatic.reset_for_pool()
-	check(not automatic.has_meta("cast_size_snapshot"), "Pool clears MEGA geometry")
+	# Magic Missile runs on the generic engine; a MEGA cast's size never leaks into it.
+	var automatic: Dictionary = manager.last_generic_cast.plan.parts.missile
+	var plain_missile = preload("res://scripts/SpellGeometry.gd").BOLT_RADIUS * preload("res://scripts/SpellGeometry.gd").multiplier(game.player) * 0.8
+	check(is_equal_approx(float(automatic.geometry.radius), plain_missile), "Magic Missile unaffected (%s vs %s)" % [automatic.geometry.radius, plain_missile])
 	# Fields run on the generic engine (doc 18 phase 2): an extend recast queues a segment.
 	var field_data = {"id": "test", "type": "field", "duration": 1.0, "radius": 100, "tick_interval": 0.5, "recast_behavior": "extend"}
 	var boosted_field = field_data.duplicate(true)
@@ -110,14 +109,24 @@ func run():
 	game.player.next_heal_feedback_msec = 0
 	manager.cast_spell_by_type(life, 1.5)
 	check(is_equal_approx(game.player.health - 10, ordinary_heal * 1.5), "MEGA Life heals more")
+	# With the VFX layer up the heal burst is drawn there (sized by the same value); check the
+	# particle fallback the layer replaces.
+	var vfx = root.get_node("Vfx")
+	game.player.health = 10
+	game.player.next_heal_feedback_msec = 0
+	vfx.presenter.enabled = false
+	manager.cast_spell_by_type(life, 1.5)
+	vfx.presenter.enabled = true
 	check(game.particle_manager.get_children().any(func(v): return v is Node2D and is_equal_approx(v.scale.x, 1.5)), "MEGA healing is visibly larger")
 	for id in ["regeneration", "arcane_orbit", "firewalk"]:
 		var owned_slot = manager.find_spell_slot(id)
 		manager.cast_spell_by_type(owned_slot)
 		manager.cast_spell_by_type(owned_slot, 1.5)
 		if id == "regeneration":
-			check(manager.active_healing_effects.size() == 1, "Mixed regeneration uses one stream")
-			check(is_equal_approx(manager.active_healing_effects[0].segments[1].rate, manager.active_healing_effects[0].segments[0].rate * 1.5), "MEGA regeneration potency")
+			var regen = manager.ported_casts(id)
+			check(regen.size() == 1, "Mixed regeneration uses one stream")
+			var aura = regen[0].root_parts()[0] if not regen.is_empty() else null
+			check(aura != null and not aura.segments.is_empty() and is_equal_approx(float(aura.segments[0].def.heal_rate), float(aura.def.heal_rate) * 1.5), "MEGA regeneration potency")
 		elif id == "arcane_orbit":
 			# Ported to the generic engine: the MEGA recast is a queued segment on the live sparks.
 			var casts = manager.ported_casts(id)

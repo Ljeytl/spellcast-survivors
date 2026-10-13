@@ -243,8 +243,11 @@ func heal(amount: float, visual_size: float = 1.0):
 	health = min(max_health, health + amount)
 	if health > previous_health and Time.get_ticks_msec() >= next_heal_feedback_msec:
 		next_heal_feedback_msec = Time.get_ticks_msec() + 350
+		var vfx = get_node_or_null("/root/Vfx")
 		var particles = get_parent().get("particle_manager")
-		if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
+		if vfx and vfx.prop_burst("heal", global_position, visual_size):
+			pass   # the VFX layer shows heals (docs/VFX_EVENTS.md)
+		elif is_instance_valid(particles) and particles.has_method("create_heal_effect"):
 			var effect = particles.create_heal_effect(global_position)
 			if is_instance_valid(effect):
 				effect.scale = Vector2.ONE * visual_size

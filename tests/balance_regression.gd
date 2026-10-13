@@ -82,16 +82,21 @@ func run():
 	player.health = 20.0
 	spells.learn_spell("regeneration")
 	spells.cast_spell_by_type(2)
-	check(spells.active_healing_effects.size() == 1, "Numbered Regeneration creates healing")
-	spells.process_healing_effects(1.0)
+	# Regeneration runs on the generic engine: a life aura that heals while it lasts.
+	var regen = spells.ported_casts("regeneration")
+	check(regen.size() == 1, "Numbered Regeneration creates healing")
+	regen[0].manual = true
+	regen[0].run(1.0)
 	check(is_equal_approx(player.health, 23.0), "Regeneration restores 3 health in one second")
-	spells.process_healing_effects(10.0)
+	regen[0].run(10.0)
 	check(is_equal_approx(player.health, 35.0), "Final healing tick is clamped to five second lifetime")
-	check(spells.active_healing_effects.is_empty(), "Healing expires")
+	check(regen[0].finished, "Healing expires")
 	player.health = 95.0
 	spells.cast_freeform_spell_by_type("regeneration", spells.freeform_spells["regeneration"])
-	check(spells.active_healing_effects.size() == 1, "Freeform Regeneration creates healing")
-	spells.process_healing_effects(5.0)
+	regen = spells.ported_casts("regeneration")
+	check(regen.size() == 1, "Freeform Regeneration creates healing")
+	regen[0].manual = true
+	regen[0].run(5.0)
 	check(player.health == player.max_health, "Healing cannot exceed max health")
 	player.xp = 15.0
 	player.add_xp(50.0)

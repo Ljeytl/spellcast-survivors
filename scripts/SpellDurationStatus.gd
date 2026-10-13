@@ -26,9 +26,6 @@ static func collect(manager: Node) -> Dictionary:
 			add(states, id, 0.0, "armed" if part.armed else "arming")
 		elif part.delivery in ["field", "aura", "beam"] or float(part.def.get("limits", {}).get("lifetime", 0.0)) > 0.0:
 			add(states, id, maxf(0.0, part.remaining_life()))
-	for effect in manager.active_healing_effects:
-		if effect.has("spell_id") and effect.remaining_time > 0:
-			add(states, effect.spell_id, effect.remaining_time)
 	if is_instance_valid(manager.player) and is_instance_valid(manager.player.earth_shield):
 		for charge in manager.player.earth_shield.charges:
 			add(states, "earth_shield", charge.remaining, "charges")

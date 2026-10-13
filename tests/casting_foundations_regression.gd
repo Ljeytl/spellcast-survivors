@@ -164,8 +164,10 @@ func run():
 	manager.cast_spell_by_type(manager.find_spell_slot("life"))
 	check(game.player.health == 44 and manager.active_healing_effects.is_empty(), "Life heals4HP immediately")
 	manager.cast_spell_by_type(manager.find_spell_slot("regeneration"))
-	manager.process_healing_effects(5)
-	check(game.player.health == 59, "Regeneration provides distinct15HP over5seconds")
+	var regen = manager.ported_casts("regeneration")[0]   # generic life aura
+	regen.manual = true
+	regen.run(5.0)
+	check(is_equal_approx(game.player.health, 59), "Regeneration provides distinct15HP over5seconds")
 	game.player.health = 40
 	game.player.start_healing_over_time(6,2)
 	manager.process_healing_effects(0.5)

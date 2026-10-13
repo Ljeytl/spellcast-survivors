@@ -74,49 +74,32 @@ func run():
 	for p in get_nodes_in_group("spell_projectiles"):
 		p.despawn()
 	enemies[0].current_health = 10000
-	sm.create_mana_bolt_projectile(enemies[0], 15, 0)
-	sm.create_mana_bolt_projectile(enemies[0], 15, 1)
-	var bolts = get_nodes_in_group("spell_projectiles").filter(func(p): return not p.despawning and p.projectile_type == "mana_bolt")
-	check(bolts.size() == 2 and bolts[0].target == enemies[0] and bolts[1].target == enemies[0], "Healthy target receives multiple useful projectiles")
-	for p in bolts:
-		p.set_process(false)
+	# Magic Missile runs on the generic engine: homing missiles reserve their target's damage.
+	var missile_info = {"id": "mana_bolt", "type": "mana_bolt", "projectile_count": 2}
+	var missiles = sm.spawn_ported(missile_info, 15, {}, enemies[0])
+	missiles.manual = true
+	missiles.run(0.06)
+	var shots = missiles.parts.filter(func(p): return p.depth == 0 and not p.done)
+	check(shots.size() == 2 and shots[0].assigned == enemies[0] and shots[1].assigned == enemies[0], "Healthy target receives multiple useful projectiles")
 	enemies[0].take_damage(20000, game.player.position)
-	bolts[0]._process(0.01)
-	bolts[1]._process(0.01)
-	check(bolts[0].target == enemies[1] and bolts[1].target == enemies[2], "Host death retargets homing shots and distributes lethal damage")
+	missiles.step(1.0 / 60.0)
+	check(shots[0].assigned == enemies[1] and shots[1].assigned == enemies[2], "Host death retargets homing shots and distributes lethal damage")
 	check(Targeting.select(self, game.player.position) != null, "All targets reserved still permits sensible fallback")
-	bolts[0].despawn()
-	check(bolts[0].reserved_damage(enemies[1]) == 0, "Despawn releases committed damage")
-	bolts[1].lifetime_timer = 0.001
-	bolts[1]._process(0.01)
-	check(bolts[1].despawning and bolts[1].reserved_damage(enemies[2]) == 0, "Lifetime expiry releases committed damage")
-	sm.create_mana_bolt_projectile(enemies[1], 15, 0)
-	sm.create_mana_bolt_projectile(enemies[1], 15, 1)
-	var weak_bolts = get_nodes_in_group("spell_projectiles").filter(func(p): return not p.despawning and p.projectile_type == "mana_bolt")
-	check(weak_bolts.size() == 2 and weak_bolts[0].target != weak_bolts[1].target, "Weak enemies receive distinct passive projectiles at launch")
-	for p in weak_bolts:
-		p.set_process(false)
-	weak_bolts[0]._on_area_entered(weak_bolts[0].target.get_node("HurtBox"))
-	weak_bolts[0].resolve_impact()
-	check(weak_bolts[0].despawning and weak_bolts[0].reservation_remaining == 0, "Real enemy impact consumes projectile reservation")
-	weak_bolts[1].reset_for_pool()
-	weak_bolts[1].setup_homing(game.player.position, enemies[2], 4, Color.WHITE, "mana_bolt")
-	check(weak_bolts[1].reserved_damage(enemies[2]) == 4, "Reused projectile reserves only its new damage")
-	var pooled = game.object_pool.get_object("SpellProjectile")
-	game.add_child(pooled)
-	pooled.setup_homing(game.player.position, enemies[2], 7, Color.WHITE, "mana_bolt")
-	pooled.set_process(false)
-	check(pooled.reserved_damage(enemies[2]) == 7, "Checked-out pooled projectile commits its impact")
-	pooled.despawn()
-	await process_frame
-	await process_frame
-	check(pooled.get_parent() == null and pooled.reservation_remaining == 0, "Deferred pool return detaches and clears reservation")
-	var reused = game.object_pool.get_object("SpellProjectile")
-	check(reused == pooled and reused.target == null, "Actual pool checkout reuses clean object")
-	game.add_child(reused)
-	reused.setup_homing(game.player.position, enemies[2], 3, Color.WHITE, "mana_bolt")
-	reused.set_process(false)
-	check(reused.reserved_damage(enemies[2]) == 3, "Reattached pool object contributes only current shot")
+	shots[0].finish(false)
+	check(shots[0].reserved_damage(enemies[1]) == 0, "Despawn releases committed damage")
+	shots[1].reserve_until = shots[1].age - 1.0
+	check(shots[1].reserved_damage(enemies[2]) == 0, "Expired estimate releases committed damage")
+	missiles.free()
+	var weak = sm.spawn_ported(missile_info, 15)
+	weak.manual = true
+	weak.run(0.06)
+	var weak_shots = weak.parts.filter(func(p): return p.depth == 0 and not p.done)
+	check(weak_shots.size() == 2 and weak_shots[0].assigned != weak_shots[1].assigned, "Weak enemies receive distinct passive projectiles at launch")
+	var aimed = weak_shots[0].assigned
+	weak.run(1.0)
+	check(not is_instance_valid(weak_shots[0]) or weak_shots[0].done, "Real enemy impact consumes the projectile")
+	check(not Targeting.alive(aimed) or Targeting.incoming(self, aimed) == 0, "Impact releases its reservation")
+	weak.free()
 	for enemy in enemies:
 		if Targeting.alive(enemy):
 			enemy.current_health = 0

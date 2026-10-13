@@ -85,13 +85,16 @@ func run():
 	var emitters = [walk, walk2].filter(func(c): return not c.root_parts().is_empty())
 	check(emitters.size() == 1, "Firewalk remains one emitter")
 	manager.cast_spell_by_type(3)
-	manager.process_healing_effects(2)
+	var regen = manager.ported_casts("regeneration")[0]   # generic life aura
+	regen.manual = true
+	regen.run(2.0)
 	manager.add_healing_effect(4, 2)
-	var rate = manager.active_healing_effects[0].heal_per_second
+	var aura = regen.root_parts()[0]
+	var rate = float(aura.def.heal_rate)
 	manager.cast_spell_by_type(3)
-	check(manager.active_healing_effects.size() == 2, "Regeneration extends without merging independent seed healing")
-	check(manager.active_healing_effects[0].remaining_time == 8, "Regeneration remaining duration extended")
-	check(manager.active_healing_effects[0].heal_per_second == rate, "Regeneration rate not stacked")
+	check(manager.ported_casts("regeneration").size() == 1 and manager.active_healing_effects.size() == 1, "Regeneration extends without merging independent seed healing")
+	check(is_equal_approx(aura.remaining_life(), 8), "Regeneration remaining duration extended")
+	check(aura.segments.size() == 1 and is_equal_approx(float(aura.segments[0].def.heal_rate), rate), "Regeneration rate not stacked")
 	manager.cast_spell_by_type(4)
 	game.player.earth_shield.advance(3)
 	manager.cast_spell_by_type(4)

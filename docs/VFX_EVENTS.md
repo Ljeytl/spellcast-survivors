@@ -72,8 +72,11 @@ Optional per-part hint in `data/generic_spells.json`: `"vfx": {"family": "spear"
 ## Wiring status
 
 - Generic spells (doc 18 runner): wired. Hooks are one-line calls guarded by `get_node_or_null("/root/Vfx")`, so engine tests without the autoload are unaffected.
-- Legacy spells (old `SpellManager` dispatch): not wired, by design. They move to the generic runner one at a time (doc 18 §14 phase 2, `scripts/engine/LegacyBridge.gd`) and get VFX for free when they do. Ported so far: Ember Spear, Meteor Spear, Bolt, Ice Blast, Life, Lightning, Rune Trap, Frost Sigil, Cinder Field, Steam Field, Arcane Orbit, Meteor Shower, Lightning Bolt, Life Bolt, Focus Ray, Prism Ray, Seeker, Fire Walk, Cross Blade, Infestation, Soul Bloom, Earth Shield (expanding cone drawn as an eruption). Only Regeneration is left.
+- Shipping spells: all on the generic runner (doc 18 §14 phase 2, `scripts/engine/LegacyBridge.gd`), Magic Missile and Regeneration included, so every one is drawn here. Fire Walk patches burn as low ground fire and throw no flames at the wizard's feet, so the fire never covers him (playtest F41). `tests/vfx_shipping_coverage_regression.gd` casts each shipping spell in the game scene and fails on any part left to placeholder art.
+- Props (spell objects the engine does not own): `Vfx.prop_added(node, kind)` registers a node the layer draws while it is up; the node skips its own `_draw` when `Vfx.presents_prop(node)`. Kinds: `seed` (healing seeds from Life Bolt and Soul Bloom: sprout with a budding flower inside a dashed ring at the real pickup radius, blinking out in its last 1.5 s) and `shield` (Earth Shield's stored charges: stones orbiting the wizard, blinking in their last second). `Vfx.prop_burst(kind, world_pos, size)` shows a moment and returns false when the layer is down so the caller can fall back: `heal` (every heal on the player, sized by MEGA), `seed` (pickup), `block` (a charge spent on a hit).
 
 ## Debug
+
+In-game showcase (dev tool, not shipped): `tools/vfx-showcase/Showcase.tscn` runs the real Game scene and casts every shipping spell in turn through the real SpellManager. Keys: Space/Right next, Left back, P pause, M MEGA, S slow-mo, K clear enemies. URL (web export with that main scene): `?spell=<id>` repeats one spell, `&mega=1`, `&slow=0.25`, `&empty=1` (no horde).
 
 Console: `vfx present off|on` (placeholder vs VFX), `vfx learn <id>` (make a data-only generic spell castable, e.g. `fireball`, `flame_wall`, `meteor_ring`), `vfx flame`, `vfx stress <n>`, `vfx twos`, `vfx bench`, `vfx stats`, `vfx clear`.

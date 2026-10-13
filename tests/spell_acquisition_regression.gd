@@ -62,7 +62,7 @@ func run():
 	spells.queue_spell(2)
 	check(spells.spell_queue.is_empty(), "Numbered slot rejects unlearned regeneration")
 	spells.cast_freeform_spell("regeneration")
-	check(spells.active_healing_effects.is_empty(), "Freeform rejects unlearned regeneration")
+	check(spells.ported_casts("regeneration").is_empty(), "Freeform rejects unlearned regeneration")
 	game.player.level = 1
 	for i in range(40):
 		screen.show_level_up(2)
@@ -106,12 +106,15 @@ func run():
 	check(is_equal_approx(game.player.health, 44.6) and spells.active_healing_effects.is_empty(), "Ranked Life heals immediately without adding regeneration")
 	spells.upgrade_spell("regeneration")
 	spells.cast_freeform_spell("regeneration")
-	check(spells.active_healing_effects.size() == 1, "Learned freeform regeneration casts")
-	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 3.45), "Freeform casting uses the acquired spell's rank")
-	spells.active_healing_effects.clear()
+	var regen = spells.ported_casts("regeneration")   # generic life aura
+	check(regen.size() == 1, "Learned freeform regeneration casts")
+	check(not regen.is_empty() and is_equal_approx(float(regen[0].root_parts()[0].def.heal_rate), 3.45), "Freeform casting uses the acquired spell's rank")
+	for c in regen:
+		c.free()
 	spells.queue_spell(spells.find_spell_slot("regeneration"))
 	spells.cast_spell()
-	check(is_equal_approx(spells.active_healing_effects[0].heal_per_second, 3.45), "Numbered and freeform healing match")
+	regen = spells.ported_casts("regeneration")
+	check(not regen.is_empty() and is_equal_approx(float(regen[0].root_parts()[0].def.heal_rate), 3.45), "Numbered and freeform healing match")
 	for id in ["ice_blast", "earth_shield", "lightning"]:
 		check(spells.learn_spell(id), "Each remaining spell can be acquired")
 		spells.upgrade_spell(id)
