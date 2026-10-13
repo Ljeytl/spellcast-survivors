@@ -44,6 +44,7 @@ const PRESENTER := preload("res://scripts/vfx/VfxPresenter.gd")
 const ELEMENTS := preload("res://scripts/vfx/VfxElements.gd")
 const SHADOW := Color("#16141b")
 const FROST := [Color("#2a3c50"), Color("#3d5a78")]
+const PUDDLE := [Color("#1b3050"), Color("#2a4f80")]
 
 # Fire material (sandbox MAT_SRC.fire). Thresholds descending.
 const FIRE_HEAT := [[1.6, Color("#fff7d6")], [1.1, Color("#ffd54a")], [0.7, Color("#ff8a1f")], [0.35, Color("#e0401c")], [0.12, Color("#7a1f14")]]
@@ -64,6 +65,7 @@ const FIELD_LOOKS := [
 	{"name": "fire", "style": 0},
 	{"name": "ice", "style": 1, "floor": ["#1c2433", "#233247", "#2f4560"], "rim": ["#8fd3ee", "#ffffff"]},
 	{"name": "lightning", "style": 1, "floor": ["#1c1a2c", "#211e38", "#2a2550"], "rim": ["#8fb2ff", "#ffffff"]},
+	{"name": "water", "style": 1, "floor": ["#151d2e", "#192842", "#20385e"], "rim": ["#4fb2f0", "#e8f8ff"]},
 ]
 static func field_look(name: String) -> int:
 	for i in FIELD_LOOKS.size():
@@ -107,6 +109,8 @@ var presenter                        # VfxPresenter: spell-engine events -> look
 var elements                         # VfxElements: motes, shards, crystals (non-fire looks)
 
 var _heat := PackedFloat32Array()
+var _water := PackedFloat32Array()     # goo field, 2 per cell: air, ground (sandbox wAir / wGround)
+var _water_used := false
 var _under := PackedByteArray()
 var _over := PackedByteArray()
 var _ground := PackedByteArray()
@@ -385,7 +389,9 @@ func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "sco
 			var edge := rc * (0.7 + 0.55 * vn(X / K * 0.3 + seed, Y / K * 0.3))
 			if dist < edge and dist >= edge * inner:
 				var c: Color
-				if kind == "frost":
+				if kind == "puddle":
+					c = PUDDLE[0] if dist < edge * 0.55 else PUDDLE[1]
+				elif kind == "frost":
 					# sandbox drawEDecals 'frost': rime with a lighter rim and glints
 					c = FROST[1] if dist > edge * 0.6 or hs(X, Y) > 0.8 else FROST[0]
 				else:
@@ -804,6 +810,8 @@ func _place_grid() -> bool:
 		_size = size
 		var n := size.x * size.y
 		_heat.resize(n)
+		_water.resize(n * 2)
+		_water.fill(0.0)
 		_under.resize(n * 4)
 		_over.resize(n * 4)
 		_ground.resize(n * 4)
@@ -825,6 +833,9 @@ func _render(stepped: bool):
 	var mat: ShaderMaterial = _air_layer.material
 	mat.set_shader_parameter("heat_tex", _tex.heat)
 	mat.set_shader_parameter("under_tex", _tex.under)
+	if _tex.has("water"):
+		mat.set_shader_parameter("water_tex", _tex.water)
+		(_ground_layer.material as ShaderMaterial).set_shader_parameter("water_tex", _tex.water)
 	mat.set_shader_parameter("origin", _origin)
 	var g: ShaderMaterial = _ground_layer.material
 	g.set_shader_parameter("origin", _origin)
@@ -845,7 +856,50 @@ func _render(stepped: bool):
 	g.set_shader_parameter("fields", fl)
 	g.set_shader_parameter("field_axis", fa)
 
+## Water goo splat (sandbox gsplat): linear falloff to 2*re, into the air (0)
+## or ground (1) layer. Position and radius in su. Thresholded in the shaders.
+func gsplat(layer: int, x: float, y: float, re: float, v: float = 1.0):
+	var r := re * 2.0 * K
+	var R := ceili(r)
+	var cx := roundi(x * K) - _origin.x
+	var cy := roundi(y * K) - _origin.y
+	var w := _size.x
+	for oy in range(-R, R + 1):
+		var Y := cy + oy
+		if Y < 0 or Y >= _size.y:
+			continue
+		for ox in range(-R, R + 1):
+			var X := cx + ox
+			if X < 0 or X >= w:
+				continue
+			var d := sqrt(float(ox * ox + oy * oy))
+			if d >= r:
+				continue
+			_water[(Y * w + X) * 2 + layer] += v * (1.0 - d / r)
+	_water_used = true
+
+## Adds goo to one cell (world cell coords): area fills like the sandbox pool.
+func water_cell(layer: int, X: int, Y: int, v: float):
+	X -= _origin.x
+	Y -= _origin.y
+	if X < 0 or Y < 0 or X >= _size.x or Y >= _size.y:
+		return
+	_water[(Y * _size.x + X) * 2 + layer] += v
+	_water_used = true
+
+func _draw_water():
+	if _water_used:
+		_water.fill(0.0)
+	_water_used = false
+	elements.accumulate_water()
+	presenter.accumulate_water()
+	if _water_used or not _tex.has("water"):
+		_upload("water", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGF, _water.to_byte_array()))
+	(_air_layer.material as ShaderMaterial).set_shader_parameter("water_on", _water_used)
+	(_ground_layer.material as ShaderMaterial).set_shader_parameter("water_on", _water_used)
+
 func _draw_air():
+	_draw_water()
 	_heat.fill(0.0)
 	_under.fill(0)
 	_over.fill(0)

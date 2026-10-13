@@ -57,6 +57,12 @@ static func _make_flakes() -> Array:
 		out.append(poses)
 	return out
 
+# Sandbox EL.water (polish pass 2: no dark outline, mostly light)
+const WATER := {
+	"hi": Color("#ffffff"), "light": Color("#a6e6ff"), "mid": Color("#3f9fe4"), "dark": Color("#2063b0"),
+	"foam": [Color("#ffffff"), Color("#cdeffd"), Color("#7cc4f2")],
+	"rim": [Color("#4fb2f0"), Color("#e8f8ff")],
+}
 const SHADOW := Color("#16141b")
 const INK := Color("#120e14")
 
@@ -67,12 +73,17 @@ var crystals: Array = []    # [x, y, h, tilt, age, life, pal]
 var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch, pts]  pts null = regenerate every step
 var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
 var flakes: Array = []      # [x, y, vx, vy, age, life, size, spin, ph, g]
+var blobs: Array = []       # [x, y, vx, vy, r, age, life, g, stick]   water goo blobs (sandbox wblob)
+var streaks: Array = []     # [x0, y0, x1, y1, age, life, cols]        foam streaks
+var rays: Array = []        # [x, y, ang, len, age, life, cols, r0]    spray rays
+var later: Array = []       # [t, Callable]                            delayed spawns (ripples)
 
 func _init(owner):
 	vfx = owner
 
 func clear():
 	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear(); flakes.clear()
+	blobs.clear(); streaks.clear(); rays.clear(); later.clear()
 
 # ------------------------------------------------------------------ spawners (sandbox signatures)
 
@@ -88,6 +99,37 @@ func shard(x: float, y: float, vx: float, vy: float, vz: float, len: float, life
 func flake(x: float, y: float, vx: float, vy: float, life: float, size: int = 1, g: float = 6.0):
 	if flakes.size() < (80 if vfx.reduced_effects else 260):
 		flakes.append([x, y, vx, vy, 0.0, life, clampi(size, 0, 2), 1.5 + randf() * 3.0, randf() * 6.0, g])
+
+# --- water (sandbox FX.water helpers)
+func wblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stick: bool, g: float = 0.0):
+	if blobs.size() < (60 if vfx.reduced_effects else 200):
+		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick])
+
+func droplet(x: float, y: float, vx: float, vy: float, vz: float):
+	vfx.chunk(x, y, vx, vy, vz, WATER.foam, 0.5 + randf() * 0.5, 1)
+
+func ripple(x: float, y: float, max_r: float, delay: float = 0.0):
+	var go := func(): vfx.ring(x, y, max_r, 0.5, [WATER.foam[0], WATER.foam[1], WATER.foam[2], WATER.rim[0]])
+	if delay > 0.0:
+		later.append([delay, go])
+	else:
+		go.call()
+
+func foam_streak(x: float, y: float, vx: float, vy: float, len: float):
+	var L := maxf(0.001, Vector2(vx, vy).length())
+	if streaks.size() < 200:
+		streaks.append([x, y, x - vx / L * len, y - vy / L * len, 0.0, 0.12, [WATER.hi, WATER.foam[1], WATER.foam[2]]])
+
+func ray(x: float, y: float, ang: float, len: float, life: float, cols: Array, r0: float = 0.0):
+	if rays.size() < 200:
+		rays.append([x, y, ang, len, 0.0, life, cols, r0])
+
+## Goo for the shaders (sandbox accumulateElements): blobs splat into the air
+## layer, or the ground once a sticking blob has landed.
+func accumulate_water():
+	for b in blobs:
+		var k: float = b[5] / b[6]
+		vfx.gsplat(1 if b[8] and k > 0.35 else 0, b[0], b[1], b[4] * (1.0 - k * 0.5))
 
 func crystal(x: float, y: float, h: float, life: float, pal: Array = ICE.body):
 	if crystals.size() < (40 if vfx.reduced_effects else 120):
@@ -173,6 +215,33 @@ func step(dt: float):
 		keep.append(m)
 	motes = keep
 	keep = []
+	for b in blobs:
+		b[5] += dt
+		if b[5] > b[6]:
+			continue
+		b[2] = vfx._drag(b[2], dt, 0.88)
+		b[3] = vfx._drag(b[3], dt, 0.88) + b[7] * dt
+		b[0] += b[2] * dt
+		b[1] += b[3] * dt
+		keep.append(b)
+	blobs = keep
+	for arr in [streaks, rays]:
+		var k2: Array = []
+		for q in arr:
+			q[4] += dt
+			if q[4] < q[5]:
+				k2.append(q)
+		arr.clear()
+		arr.append_array(k2)
+	var due := []
+	for l in later:
+		l[0] -= dt
+		if l[0] <= 0.0:
+			due.append(l)
+	for l in due:
+		later.erase(l)
+		l[1].call()
+	keep = []
 	for f in flakes:
 		f[4] += dt
 		if f[4] > f[5]:
@@ -246,6 +315,21 @@ func draw_over(buf: PackedByteArray):
 			vfx._put(buf, X + 1, Y, c)
 			tt += 0.4
 	draw_paths(buf)
+	for q in rays:
+		var k: float = q[4] / q[5]
+		var len: float = q[3] * (k / 0.3 if k < 0.3 else 1.0)
+		var cols: Array = q[6]
+		var c: Color = cols[mini(cols.size() - 1, int(k * cols.size()))]
+		var a: float = q[2]
+		var p0 := Vector2(q[0] + cos(a) * q[7], q[1] + sin(a) * q[7] * 0.8)
+		var p1 := Vector2(q[0] + cos(a) * (q[7] + len), q[1] + sin(a) * (q[7] + len) * 0.8)
+		if k > 0.6 and vfx._bayer(roundi(p1.x), roundi(p1.y)) < (k - 0.6) * 2.5:
+			continue
+		line(buf, p0, p1, c)
+	for q in streaks:
+		var k2: float = q[4] / q[5]
+		var cols2: Array = q[6]
+		line(buf, Vector2(q[0], q[1]), Vector2(q[2], q[3]), cols2[mini(cols2.size() - 1, int(k2 * cols2.size()))])
 	var pal: Array = ICE.mote
 	var t: float = vfx._t
 	for f in flakes:

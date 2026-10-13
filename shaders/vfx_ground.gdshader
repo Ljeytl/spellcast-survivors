@@ -19,6 +19,8 @@ uniform vec2 light_origin;             // light texel (0,0) in light cells
 uniform float light_cell;              // cells per light texel
 uniform vec4 lit1;
 uniform vec4 lit2;
+uniform sampler2D water_tex : filter_nearest;   // g = ground goo (sandbox wGround)
+uniform bool water_on = false;
 
 const int BAYER[16] = int[](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
 
@@ -99,6 +101,27 @@ void fragment() {
 		}
 		covered = true;
 		break;
+	}
+	// Ground water (sandbox drawWater, ground): see-through checker surface with
+	// glints, foam edge. Under rings and crystals (CPU texels), over floors.
+	if (water_on && texelFetch(TEXTURE, p, 0).a < 0.01) {
+		ivec2 wsz = textureSize(water_tex, 0);
+		float g = texelFetch(water_tex, p, 0).g;
+		if (g >= 0.5) {
+			bool up = texelFetch(water_tex, clamp(p + ivec2(0, -1), ivec2(0), wsz - 1), 0).g < 0.5;
+			bool edge = up || texelFetch(water_tex, clamp(p + ivec2(0, 1), ivec2(0), wsz - 1), 0).g < 0.5
+				|| texelFetch(water_tex, clamp(p + ivec2(-1, 0), ivec2(0), wsz - 1), 0).g < 0.5
+				|| texelFetch(water_tex, clamp(p + ivec2(1, 0), ivec2(0), wsz - 1), 0).g < 0.5;
+			vec4 foam = vec4(0.804, 0.937, 0.992, 1.0);   // #cdeffd
+			vec4 mid = vec4(0.247, 0.624, 0.894, 1.0);    // #3f9fe4
+			if (edge) {
+				col = (up || ((a.x + a.y + tick) & 3) == 0) ? foam : mid;
+				covered = true;
+			} else if (((a.x + a.y) & 1) == 0) {
+				col = hs(a.x, a.y + (tick >> 1)) > 0.96 ? vec4(1.0) : mid;
+				covered = true;
+			}
+		}
 	}
 	if (!covered && col.a < 0.01) {
 		ivec2 lsz = textureSize(light_tex, 0);

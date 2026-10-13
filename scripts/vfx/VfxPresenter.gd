@@ -18,9 +18,10 @@ const ACCENT_LOOK := {"fire": "fire", "water": "water", "storm": "lightning"}
 # The engine has one "water" element for water and ice spells (plan section 7:
 # Water/Ice spells pick Water or Ice). Cold statuses or a vfx.look hint pick Ice.
 const COLD := ["chilled", "frozen"]
-const BUILT := ["arcane", "fire", "ice", "lightning"]
+const BUILT := ["arcane", "fire", "ice", "lightning", "water"]
 const ICE := preload("res://scripts/vfx/VfxElements.gd").ICE
 const LIT := preload("res://scripts/vfx/VfxElements.gd").LIGHTNING
+const WAT := preload("res://scripts/vfx/VfxElements.gd").WATER
 
 # Body palettes (sandbox MAT.*.body): core, light, mid, dark, outline.
 const BODY := {
@@ -28,15 +29,17 @@ const BODY := {
 	"arcane": [Color("#ffffff"), Color("#c9f4ff"), Color("#8fb6f5"), Color("#6a4ad0"), Color("#1c1650")],
 	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8"), Color("#1a2e5a")],
 	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0"), Color("#2a1f5e")],
+	"water": [Color("#ffffff"), Color("#a6e6ff"), Color("#3f9fe4"), Color("#2063b0"), Color("#0f1d3a")],
 }
 const SPARK := {
 	"fire": [Color("#fff7d6"), Color("#ffd54a"), Color("#ff8a1f"), Color("#e0401c")],
 	"arcane": [Color("#ffffff"), Color("#bdf3ff"), Color("#a98af5"), Color("#6a4ad0")],
 	"ice": [Color("#ffffff"), Color("#d6f6ff"), Color("#8fd3ee"), Color("#3f86c8")],
 	"lightning": [Color("#ffffff"), Color("#cfe6ff"), Color("#8fb2ff"), Color("#7a5cf0")],
+	"water": [Color("#ffffff"), Color("#cdeffd"), Color("#7cc4f2"), Color("#3f9fe4")],
 }
-const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff")}
-const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")]}
+const RIM := {"fire": Color("#ff8a1f"), "arcane": Color("#8fb6f5"), "ice": Color("#d6f6ff"), "lightning": Color("#8fb2ff"), "water": Color("#4fb2f0")}
+const NOVA_RIM := {"ice": [Color("#8fd3ee"), Color("#ffffff")], "lightning": [Color("#8fb2ff"), Color("#ffffff")], "water": [Color("#4fb2f0"), Color("#e8f8ff")]}
 # Rigid looks keep a drawn body (that IS the technique: crystal sprites).
 const ICE_BODY := {"bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
 const INK := Color("#120e14")
@@ -120,6 +123,8 @@ static func _kind(part) -> String:
 				return "burst"
 			if part.geo_type() == "ring" and part._propagation() == "expanding":
 				return "nova"
+			if part.geo_type() == "rect" and part._propagation() == "travelling":
+				return "wave"
 		"field", "aura":
 			if part.geo_type() == "disk" and part.def.get("payload", []).is_empty() and part.def.get("events", {}).size() > 0:
 				# no payload: the disk is a range for its events, not a damage area
@@ -167,6 +172,8 @@ func part_spawned(part) -> void:
 				_ice_impact(pos.x, pos.y, maxf(0.6, r_su / 12.0))
 			elif look.native == "lightning":
 				_strike(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.0))
+			elif look.native == "water":
+				_water_impact(pos.x, pos.y, clampf(r_su / 11.0, 0.6, 2.5))
 			elif look.native == "fire" or look.accent == "fire":
 				_damage_disk(pos.x, pos.y, maxf(0.35, (r_su - 3.0) / 9.0), {})
 			else:
@@ -177,6 +184,10 @@ func part_spawned(part) -> void:
 			st.seed = randf() * 6.0
 			if look.native == "fire":
 				_fire_nova_start(pos, float(part.geo("radius", 100.0)) / WPS)
+		"wave":
+			if look.native != "water":
+				return
+			st.acc = 0.0
 		"charge", "zone":
 			if look.native != "lightning":
 				return
@@ -184,7 +195,7 @@ func part_spawned(part) -> void:
 			st.age = 0.0
 			st.life = float(part.def.get("timing", {}).get("duration", 0.45))
 		"field":
-			if look.native == "ice" or look.native == "lightning":
+			if look.native == "ice" or look.native == "lightning" or look.native == "water":
 				var r_su2: float = part.geo("radius", 60.0) / WPS
 				if part.geo_type() != "disk":
 					return
@@ -221,6 +232,12 @@ func part_hit(part, _enemy, at: Vector2) -> void:
 			spawns_burst = true
 	if impact_look == "lightning":
 		_zap(p.x, p.y)
+		return
+	if impact_look == "water":
+		if st.family == "spear" or st.look.native != "water":
+			_water_contact(p.x, p.y)
+		elif not spawns_burst:
+			_water_impact(p.x, p.y, 1.0)
 		return
 	if impact_look == "ice":
 		if st.family == "spear" or st.look.native != "ice":
@@ -289,6 +306,10 @@ func step(dt: float) -> void:
 					_ice_field(st.field, dt)
 				elif st.look.native == "lightning":
 					_lightning_field(st.field, dt)
+				elif st.look.native == "water":
+					_water_field(st.field, dt)
+			"wave":
+				_water_wave(part, st, dt)
 			"charge":
 				st.age += dt / vfx.fx_speed      # telegraph runs on game time: it must land with the real strike
 				if randf() < 0.5 * dt * 60.0:
@@ -305,6 +326,8 @@ func step(dt: float) -> void:
 					_ice_nova(pos, float(part.front) / WPS, dt)
 				elif st.look.native == "fire":
 					_fire_nova(pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
+				elif st.look.native == "water":
+					_water_nova(pos, float(part.front) / WPS, dt)
 				else:
 					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
@@ -326,6 +349,8 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		_ice_trail(pos, vel, dt)
 	if native == "lightning" or accent == "lightning":
 		_lightning_trail(st, pos, vel, dt)
+	if native == "water" or accent == "water":
+		_water_trail(st, pos, vel, dt, native == "water")
 	if native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
@@ -767,6 +792,172 @@ func _shocked(dt: float) -> void:
 		if randf() < LIGHTNING_RATE.status * dt / vfx.fx_speed:
 			vfx.elements.arc(p.x - 3.0, p.y - 5.0 + randf() * 3.0, p.x + 3.0, p.y - 2.0 - randf() * 3.0, 2.0, 0.1, 1)
 
+# ------------------------------------------------------------------ water (sandbox FX.water, polish pass 2)
+
+## Goo for the shaders: drop bodies (air), pools (ground), tsunami walls (air).
+func accumulate_water() -> void:
+	var t: float = vfx._t
+	for st in _parts.values():
+		if st.look.native != "water":
+			continue
+		var part = st.part.get_ref()
+		if part == null or not is_instance_valid(part) or part.done:
+			continue
+		var pos: Vector2 = part.global_position / WPS
+		match st.kind:
+			"projectile":
+				if st.family == "spear":
+					continue
+				var d: Vector2 = (pos - st.last)
+				var dir: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
+				var big := 1.4 if st.family == "ball" else 1.0
+				vfx.gsplat(0, pos.x, pos.y, 3.0 * big * float(part.size_scale))
+				vfx.gsplat(0, pos.x - dir.x * 3.0 * big, pos.y - dir.y * 3.0 * big + sin(t * 12.0) * 0.5, 2.0 * big)
+			"field":
+				_pool_goo(st.field, t)
+			"wave":
+				_wave_goo(part, t)
+
+## Pool (sandbox fieldGoo): mostly-filled water surface with drifting gaps.
+func _pool_goo(A: Dictionary, t: float) -> void:
+	var K: float = vfx.K
+	var r: float = A.r - 1.5
+	var fill := maxf(0.0, 1.0 - A.age * 2.0) * 0.6
+	var R := ceili(r * K)
+	var cx := roundi(A.x * K)
+	var cy := roundi(A.y * K)
+	for oy in range(-R, R + 1):
+		for ox in range(-R, R + 1):
+			if ox * ox + oy * oy > R * R:
+				continue
+			var X := (cx + ox) / K
+			var Y := (cy + oy) / K
+			var n: float = vfx.vn_fast(X * 0.14 + t * 0.3, Y * 0.14) * 0.7 + vfx.vn_fast(X * 0.35, Y * 0.35 - t * 0.6) * 0.3
+			if n > 0.34 + fill:
+				vfx.water_cell(1, cx + ox, cy + oy, 1.1)
+
+func _water_trail(st: Dictionary, p: Vector2, vel: Vector2, dt: float, native: bool) -> void:
+	var el = vfx.elements
+	var f := dt * 60.0
+	if randf() < 0.9 * f:
+		el.mote(p.x - vel.x * 0.03 + (randf() - 0.5) * 2.0, p.y + (randf() - 0.5) * 2.0, vel.x * 0.15 + (randf() - 0.5) * 14.0, (randf() - 0.5) * 10.0, WAT.foam, 0.3, 40.0, 0.0)
+	if randf() < (0.5 if native else 0.25) * f:
+		el.droplet(p.x, p.y, vel.x * 0.15 + (randf() - 0.5) * 14.0, (randf() - 0.5) * 8.0, 15.0 + randf() * 20.0)
+	st.streak_acc = float(st.get("streak_acc", 0.0)) + 0.5 * f
+	while st.streak_acc >= 1.0:
+		st.streak_acc -= 1.0
+		el.foam_streak(p.x - vel.x * 0.03, p.y + (randf() - 0.5) * 3.0, vel.x, vel.y, 5.0 + randf() * 4.0)
+
+## Splash: tall crown of droplets on z-physics, spray rays, three ripples, puddle.
+func _water_impact(x: float, y: float, s: float) -> void:
+	var el = vfx.elements
+	for i in roundi(30 * s):
+		var a := randf() * TAU
+		var sp := (20.0 + randf() * 45.0) * sqrt(s)
+		el.droplet(x + cos(a) * 2.0, y + sin(a), cos(a) * sp, sin(a) * sp * 0.6, 60.0 + randf() * 70.0)
+	for i in 10:
+		el.ray(x, y, float(i) / 10.0 * TAU + randf() * 0.3, (7.0 + randf() * 5.0) * sqrt(s), 0.22, [WAT.hi, WAT.foam[1], WAT.foam[2]], 2.0)
+	for i in roundi(4 * s):
+		var a2 := randf() * TAU
+		el.wblob(x, y, cos(a2) * 18.0, sin(a2) * 12.0, 1.2, 0.4, true)
+	vfx.flash(x, y, 2.5 * s, 0.05, WAT.hi)
+	el.ripple(x, y, 9.0 * s)
+	el.ripple(x, y, 14.0 * s, 0.12)
+	el.ripple(x, y, 19.0 * s, 0.26)
+	vfx.scorch(x, y, 6.0 * s, 4.0, "puddle")
+	vfx.hitstop(2)
+
+func _water_contact(x: float, y: float) -> void:
+	var el = vfx.elements
+	for i in 12:
+		var a := randf() * TAU
+		el.droplet(x, y, cos(a) * 28.0, sin(a) * 18.0, 35.0 + randf() * 30.0)
+	el.ripple(x, y + 2.0, 7.0)
+
+func _water_field(A: Dictionary, dt: float) -> void:
+	var el = vfx.elements
+	var f := dt * 60.0 * maxf(1.0, A.r / 20.0)
+	if randf() < 0.12 * f:
+		var q := _in_disk(A.x, A.y, A.r)
+		el.ripple(q.x, q.y, 4.0 + randf() * 4.0)
+	if randf() < 0.08 * f:
+		var q2 := _in_disk(A.x, A.y, A.r)
+		for i in 4:
+			el.droplet(q2.x, q2.y, (randf() - 0.5) * 16.0, (randf() - 0.5) * 10.0, 25.0 + randf() * 20.0)
+
+func _water_nova(c: Vector2, r: float, dt: float) -> void:
+	var el = vfx.elements
+	var n := TAU * r * 0.08 * dt * 60.0
+	var i := 0.0
+	while i < n:
+		if i + 1.0 > n and randf() > n - i:
+			break
+		var a := randf() * TAU
+		el.droplet(c.x + cos(a) * r, c.y + sin(a) * r, cos(a) * 30.0, sin(a) * 20.0, 40.0 + randf() * 40.0)
+		i += 1.0
+	if randf() < 0.6 * dt * 60.0:
+		var a2 := randf() * TAU
+		el.foam_streak(c.x + cos(a2) * r, c.y + sin(a2) * r, cos(a2), sin(a2), 5.0)
+
+## Tsunami (rect travelling): the hitbox band is a churning wall of goo, the
+## leading edge a bright foam rim, water thrown forward off it, puddles behind.
+func _wave_frame(part) -> Dictionary:
+	var dir: Vector2 = Vector2(part.direction).normalized()
+	var nrm := dir.orthogonal()
+	var o: Vector2 = part.global_position / WPS
+	var front: float = float(part.front) / WPS
+	var half_len: float = float(part.geo("length", 60.0)) * 0.5 / WPS
+	var hw: float = float(part.geo("width", 200.0)) * 0.5 / WPS
+	var reach: float = float(part.geo("reach", 600.0)) / WPS
+	return {"dir": dir, "nrm": nrm, "o": o, "front": front, "half": half_len, "hw": hw, "fade": clampf((reach - front) / 25.0, 0.0, 1.0)}
+
+func _wave_goo(part, t: float) -> void:
+	var w := _wave_frame(part)
+	var o: Vector2 = w.o
+	var dir: Vector2 = w.dir
+	var nrm: Vector2 = w.nrm
+	var hw: float = w.hw
+	var tt := -hw
+	while tt <= hw:
+		var wob := sin(tt * 0.4 + t * 6.0) * 1.2
+		var base: Vector2 = o + dir * (w.front + w.half * 0.4 + wob) + nrm * tt
+		vfx.gsplat(0, base.x, base.y, 2.6 * w.fade)
+		vfx.gsplat(0, base.x - dir.x * w.half * 0.8, base.y - dir.y * w.half * 0.8, 1.8 * w.fade)
+		tt += 2.4
+
+func _water_wave(part, st: Dictionary, dt: float) -> void:
+	var w := _wave_frame(part)
+	var el = vfx.elements
+	var dir: Vector2 = w.dir
+	st.acc += minf(w.hw, 40.0) * 0.75 * dt * 60.0 * w.fade
+	while st.acc >= 1.0:
+		st.acc -= 1.0
+		var p: Vector2 = w.o + dir * (w.front + w.half) + w.nrm * ((randf() * 2.0 - 1.0) * w.hw)
+		if randf() < 0.3:
+			el.wblob(p.x - dir.x * 2.0, p.y - dir.y * 2.0, dir.x * 50.0, dir.y * 38.0, 1.3 + randf() * 0.8, 0.25, false)
+		if randf() < 0.3:
+			el.foam_streak(p.x, p.y, dir.x, dir.y, 6.0)
+		if randf() < 0.7:
+			el.droplet(p.x, p.y, dir.x * 40.0 + (randf() - 0.5) * 10.0, dir.y * 30.0, 30.0 + randf() * 40.0)
+		if randf() < 0.2:
+			el.mote(p.x, p.y - 3.0, dir.x * 30.0, -12.0, WAT.foam, 0.4, 20.0, 0.0)
+		if randf() < 0.035:
+			var back: Vector2 = w.o + dir * (w.front - w.half) + w.nrm * ((randf() * 2.0 - 1.0) * w.hw)
+			el.wblob(back.x, back.y, 0.0, 0.0, 1.6 + randf(), 1.2 + randf(), true)
+
+func _draw_wave_rim(buf: PackedByteArray, part) -> void:
+	var w := _wave_frame(part)
+	var el = vfx.elements
+	var steps := ceili(w.hw * 4.0)
+	var frame: int = vfx._steps
+	for i in steps + 1:
+		var tt: float = -w.hw + float(i) / steps * 2.0 * w.hw
+		var p: Vector2 = w.o + w.dir * (w.front + w.half) + w.nrm * tt
+		if vfx._bayer(roundi(p.x), roundi(p.y)) > w.fade:
+			continue
+		el.spx(buf, roundi(p.x), roundi(p.y), WAT.rim[1] if ((i + (frame >> 2)) % 5) == 0 else WAT.rim[0])
+		el.spx(buf, roundi(p.x - w.dir.x * 1.2), roundi(p.y - w.dir.y * 1.2), WAT.rim[0])
+
 func _staff_su(caster) -> Vector2:
 	for c in caster.get_children():
 		if c is Node2D and "staff" in str(c.name).to_lower():
@@ -812,6 +1003,11 @@ func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, 
 func draw_bodies(buf: PackedByteArray) -> void:
 	var K: float = vfx.K
 	for st in _parts.values():
+		if st.kind == "wave":
+			var wp = st.part.get_ref()
+			if wp != null and is_instance_valid(wp) and not wp.done:
+				_draw_wave_rim(buf, wp)
+			continue
 		if st.kind == "charge" or st.kind == "zone":
 			var zp = st.part.get_ref()
 			if zp != null and is_instance_valid(zp) and not zp.done:
@@ -841,6 +1037,10 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		if st.look.native == "lightning":
 			_draw_lightning_body(buf, pos, dir, st.family, sc, st)
 			continue
+		if st.look.native == "water":
+			if st.family == "spear":
+				vfx.elements.body(buf, pos, dir, {"t": "diamond", "a": 8.0, "b": 1.4}, BODY.water, null, false, sc)
+			continue       # drop body is goo: accumulate_water
 		if st.look.native == "ice":
 			var ib: Dictionary = ICE_BODY[st.family]
 			var rim_c = RIM[st.look.accent] if st.look.accent != "" else null

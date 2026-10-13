@@ -178,14 +178,26 @@ func run():
 	c.run(0.6, DT, tick_all)
 	check(vfx.elements.flakes.size() > before and vfx.elements.crystals.is_empty(), "Where the wave stops: a burst of snow, no crystals")
 
-	# Water without a cold status has no look yet: placeholder art stays.
+	# Water (no cold status): Tsunami is a wall of water goo on the travelling hitbox.
 	clear()
 	foe(Vector2(120, 0))
 	c = cast("tsunami", 0.0)
-	var any_presented = false
+	var wave = null
 	for p in c.parts:
-		any_presented = any_presented or vfx.presents(p)
-	check(not any_presented, "Looks not built yet (water) keep the placeholder art")
+		wave = p
+	check(wave != null and vfx.presents(wave) and vfx.presenter.look_of(c.plan).native == "water", "Tsunami is presented with the Water look")
+	c.run(0.2, DT, tick_all)
+	vfx._draw_water()
+	check(vfx._water_used, "Tsunami accumulates water goo for the shaders")
+	check(not vfx._debris.is_empty(), "Tsunami throws droplets off its leading edge")
+
+	# Looks not built yet keep the placeholder art.
+	clear()
+	foe(Vector2(120, 0))
+	c = cast("spear", 0.0)
+	var bare = c.plan.duplicate(true)
+	bare.element = "earth"
+	check(vfx.presenter.look_of(bare).native == "", "Looks not built yet (earth) resolve to no look: placeholder art stays")
 
 	clear()
 	print("vfx_presenter_regression: ", checks, " checks, ", failures, " failures")
