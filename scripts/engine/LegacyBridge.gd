@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap"]
+const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -32,7 +32,21 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 			return _lightning(info, damage, ctx)
 		"trap":
 			return _trap(info, damage, ctx)
+		"field":
+			return _field(info, damage, ctx)
+		"orbit":
+			return _orbit(info, damage, ctx)
+		"heal_over_time":
+			return _regeneration(info, ctx)
 	return {}
+
+## How a recast meets the casts already out (the old recast_behavior / active_limit / extend_at_cap).
+static func _recast(info: Dictionary) -> Dictionary:
+	var r := {"behavior": str(info.get("recast_behavior", "stack")), "cap": int(info.get("active_limit", 3)),
+		"extend_at_cap": bool(info.get("extend_at_cap", false))}
+	if info.has("max_banked_casts"):
+		r.max_banked = float(info.max_banked_casts)
+	return r
 
 static func _damage(spell_id: String, amount: float, part: String = "") -> Array:
 	var p = SpellDamage.profile(spell_id)
@@ -170,3 +184,50 @@ static func _trap(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictiona
 		"payload": blast_payload,
 	}
 	return _shell(info, "rune", {"rune": rune, "burst": burst})
+
+## Cinder Field (and Steam Field): a burning circle on the group worth hitting (where the caster
+## stands if there is none). First pulse after one interval, then every interval.
+static func _field(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var payload = _damage(id, damage)
+	if float(info.get("slow", 0.0)) > 0.0:
+		payload.append({"type": "slow", "factor": 1.0 - float(info.slow), "duration": 0.7})
+	var field := {
+		"delivery": "field", "origin": "target_or_caster",
+		"geometry": {"type": "disk", "radius": float(info.get("radius", 150.0)), "pad": 0.0},
+		"timing": {"interval": float(info.get("tick_interval", 0.5)), "duration": float(info.get("duration", 5.0)), "delay_first": true},
+		"payload": payload,
+	}
+	var def = _shell(info, "field", {"field": field})
+	def.recast = _recast(info)
+	return def
+
+## Arcane Orbit: sparks circle the caster; one hit cooldown per enemy across all sparks.
+static func _orbit(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var orb := {
+		"delivery": "projectile", "origin": "caster",
+		"geometry": {"type": "body", "radius": float(info.get("body_radius", 42.0)), "pad": 0.0},
+		"motion": [{"type": "orbit", "speed": float(info.get("angular_speed", 4.0)) * float(ctx.get("speed_mult", 1.0)), "radius": float(info.get("orbit_radius", 130.0))}],
+		"payload": _damage(id, damage),
+		"limits": {"pierce": -1, "rehit": float(info.get("tick_interval", 0.5)), "rehit_shared": true, "lifetime": float(info.get("duration", 6.0))},
+	}
+	var def = _shell(info, "orb", {"orb": orb})
+	def.arrangement = {"type": "ring", "count": maxi(1, int(info.get("orb_count", 3))), "radius": float(info.get("orbit_radius", 130.0))}
+	def.recast = _recast(info)
+	return def
+
+## Regeneration: healing flows for the duration; a recast adds a full duration (not a faster rate).
+static func _regeneration(info: Dictionary, ctx: Dictionary) -> Dictionary:
+	var aura := {
+		"delivery": "aura", "origin": "caster", "anchor": "caster",
+		"geometry": {"type": "disk", "radius": 34.0 * float(info.get("keyword_size_multiplier", 1.0))},
+		"timing": {"duration": float(ctx.get("duration", info.get("duration", 5.0)))},
+		"heal_rate": float(ctx.get("heal_rate", 0.0)),
+		"visual_size": float(info.get("keyword_size_multiplier", 1.0)),
+		"payload": [],
+	}
+	var def = _shell(info, "aura", {"aura": aura})
+	def.element = "life"
+	def.recast = _recast(info)
+	return def

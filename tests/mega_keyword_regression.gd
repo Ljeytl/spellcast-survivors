@@ -121,6 +121,13 @@ func run():
 		if id == "regeneration":
 			check(manager.active_healing_effects.size() == 1, "Mixed regeneration uses one stream")
 			check(is_equal_approx(manager.active_healing_effects[0].segments[1].rate, manager.active_healing_effects[0].segments[0].rate * 1.5), "MEGA regeneration potency")
+		elif id == "arcane_orbit":
+			# Ported to the generic engine: the MEGA recast is a queued segment on the live sparks.
+			var casts = manager.ported_casts(id)
+			check(casts.size() == 1, id + " mixed casts preserve one effect")
+			var spark = casts[0].root_parts()[0]
+			check(not spark.segments.is_empty() and is_equal_approx(float(spark.segments[0].def.payload[0].hit), float(spark.def.payload[0].hit) * 1.5), id + " power")
+			check(not spark.segments.is_empty() and is_equal_approx(float(spark.segments[0].def.geometry.radius), float(spark.def.geometry.radius) * 1.5), id + " size")
 		else:
 			var effects = get_nodes_in_group("build_spell_effects").filter(func(v): return v.info.id == id)
 			check(effects.size() == 1, id + " mixed casts preserve one effect")

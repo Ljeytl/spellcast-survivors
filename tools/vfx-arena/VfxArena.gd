@@ -160,11 +160,11 @@ const PAGES := [
 		["Ember Spear rank 8", "legacy rank8 ember spear", 1.6],
 		["Meteor Spear (combination)", "legacy meteor spear", 1.6],
 		["icy ember spear (keyword on a shipping spell)", "legacy icy ember spear", 1.6],
-		["double ember spear", "legacy double ember spear", 1.6],
 		["Bolt rank 5 (five bolts)", "legacy rank8 bolt", 1.4],
 		["Ice Blast rank 1 / rank 8 ring", "legacy ice blast|legacy rank8 ice blast", 1.6],
 		["Lightning", "legacy lightning", 1.2],
 		["Rune Trap / Frost Sigil", "legacy rune trap|legacy frost sigil", 3.0],
+		["Cinder Field / Steam Field / Arcane Orbit", "legacy cinder field|legacy steam field|legacy arcane orbit", 3.4],
 	]],
 	["Combos", [
 		["fiery tsunami (water + fire: boiling wall, steam)", "fiery tsunami", 2.6],

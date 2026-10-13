@@ -243,7 +243,7 @@ func compare_fields():
 		spell.advance(float(info.duration))
 		totals.append(10000 - enemy.current_health)
 		check(enemy.hits == (12 if evolved else 10), "Rank-three Steam adds field lifetime and ticks")
-		check(spell.is_queued_for_deletion(), "Field expires at its own duration")
+		check(spell.is_queued_for_deletion() or spell.get("finished") == true, "Field expires at its own duration")
 		info = fresh("steam_field", evolved)
 		enemy = target(Vector2(100, 0))
 		spell = effect(info, enemy)

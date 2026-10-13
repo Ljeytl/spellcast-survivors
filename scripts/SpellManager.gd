@@ -581,7 +581,7 @@ func _dispatch_spell(slot: int) -> bool:
 	match spell_type:
 		"life_bolt":
 			cast_life_bolt(slot)
-		"plague", "field", "orbit", "beam", "spirit", "trail", "returning":
+		"plague", "beam", "spirit", "trail", "returning":
 			if not cast_build_spell(slot):
 				return false
 		"heal_over_time":
@@ -1584,6 +1584,8 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 	last_cracked = plan.rejected
 	for r in plan.rejected:
 		keyword_cracked.emit(str(r.word), str(r.reason))
+	if def.has("recast") and _apply_recast(def, plan, ported_target.bind(scaled, speed_mult)):
+		return true
 	var cast = GenericCast.new()
 	cast.name = "GenericCast_" + str(def.id)
 	cast.target_picker = ported_target.bind(scaled, speed_mult)
@@ -1593,6 +1595,72 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 	# Old spells left the caster the moment they were cast; so do ported ones (and targeting sees them).
 	cast.step(0.0)
 	return true
+
+## Live casts of a ported spell owned by the player, oldest first.
+func ported_casts(id: String) -> Array:
+	return get_tree().get_nodes_in_group("generic_casts").filter(func(c):
+		return not c.is_queued_for_deletion() and c.caster == player and str(c.plan.get("id", "")) == id and not c.root_parts().is_empty())
+
+## Old recast rules for ported spells. True when the recast was absorbed (an existing cast was
+## extended) and no new cast should start.
+##  extend: a recast adds one cast's duration to the live one; its numbers take over when the
+##          current ones run out.
+##  stack + active_limit: at the cap the oldest goes; with extend_at_cap the recast instead extends
+##          the field already covering the target, or moves the emptiest field to it.
+func _apply_recast(def: Dictionary, plan: Dictionary, picker: Callable) -> bool:
+	var rule: Dictionary = def.recast
+	var live = ported_casts(str(def.id))
+	if str(rule.behavior) == "extend" and not live.is_empty():
+		_extend_ported(live[0], plan, rule)
+		return true
+	if live.size() < int(rule.cap):
+		return false
+	if bool(rule.extend_at_cap):
+		var target = picker.call()
+		var covering = null
+		if target != null and is_instance_valid(target):
+			for c in live:
+				var root = c.root_parts()[0]
+				if root.global_position.distance_to(target.global_position) <= root.geo("radius", 150.0):
+					covering = c
+					break
+		if covering == null and (target == null or not is_instance_valid(target)):
+			covering = live[0]
+			for c in live:
+				if c.root_parts()[0].remaining_life() < covering.root_parts()[0].remaining_life():
+					covering = c
+		if covering != null:
+			_extend_ported(covering, plan, rule)
+			return true
+		var emptiest = live[0]
+		var fewest = INF
+		for c in live:
+			var root = c.root_parts()[0]
+			var inside = enemies_within(root.global_position, root.geo("radius", 150.0))
+			if inside < fewest or (inside == fewest and root.remaining_life() < emptiest.root_parts()[0].remaining_life()):
+				fewest = inside
+				emptiest = c
+		for part in emptiest.root_parts():
+			part.finish(false)
+		return false
+	for part in live[0].root_parts():
+		part.finish(false)
+	return false
+
+func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
+	var new_root: Dictionary = plan.parts[str(plan.root)]
+	var one = float(new_root.get("timing", {}).get("duration", new_root.get("limits", {}).get("lifetime", 0.0)))
+	var roots: Array = cast.root_parts()
+	var added = one
+	if rule.has("max_banked"):
+		added = clampf(one * float(rule.max_banked) - roots[0].remaining_life(), 0.0, one)
+	if added <= 0.0:
+		return
+	for part in roots:
+		part.extend_with(new_root, added)
+	if not DamageSource.current.is_empty():
+		cast.source = DamageSource.current   # later hits count toward the newest cast (style meter)
+	spell_extended.emit(str(plan.id), added)
 
 ## The target each ported spell aimed at before the port.
 func ported_target(info: Dictionary, speed_mult: float):
@@ -1607,6 +1675,11 @@ func ported_target(info: Dictionary, speed_mult: float):
 			var area = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)), INF, {}, get_viewport().get_visible_rect())
 			return area if _live_spell_target(area) else null
 		"heal":
+			return null
+		"field":
+			var spot = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
+			return spot if _live_spell_target(spot) else null
+		"orbit":
 			return null
 	return get_closest_enemy()
 

@@ -35,21 +35,23 @@ func run():
 	manager.acquired_spells.clear()
 	for id in ["arcane_orbit", "firewalk", "regeneration", "earth_shield", "focus_ray", "rune_trap"]:
 		check(manager.learn_spell(id), "Learn " + id)
+	# Arcane Orbit and Rune Trap run on the generic engine (doc 18 phase 2).
 	manager.cast_spell_by_type(1)
-	var orbit = effects("arcane_orbit")[0]
-	orbit.set_physics_process(false)
-	orbit.advance(2)
-	var angle = orbit.angle
-	var before = orbit.remaining
+	var orbit_cast = manager.last_generic_cast
+	orbit_cast.manual = true
+	orbit_cast.run(2)
+	var orbit = orbit_cast.root_parts()[0]
+	var angle = orbit.orbit_angle
+	var before = orbit.remaining_life()
 	manager.cast_spell_by_type(1)
-	check(effects("arcane_orbit").size() == 1, "Orbit stays one instance")
-	check(is_equal_approx(orbit.remaining, before + 6), "Orbit adds full incoming duration")
-	check(orbit.angle == angle, "Orbit recast preserves phase")
-	var prior_damage = orbit.damage
+	check(manager.ported_casts("arcane_orbit").size() == 1, "Orbit stays one instance")
+	check(is_equal_approx(orbit.remaining_life(), before + 6), "Orbit adds full incoming duration")
+	check(orbit.orbit_angle == angle, "Orbit recast preserves phase")
+	var prior_damage = float(orbit.def.payload[0].hit)
 	manager.upgrade_spell("arcane_orbit")
 	manager.cast_spell_by_type(1)
-	# Extend recasts queue a segment with its own per-cast power (MEGA); the earned rank applies when that segment starts.
-	check(not orbit.queued_casts.is_empty() and float(orbit.queued_casts.back().damage) > prior_damage and effects("arcane_orbit").size() == 1, "Recast applies earned rank without stacking effects")
+	# Extend recasts queue a segment with its own numbers; the earned rank applies when that segment starts.
+	check(not orbit.segments.is_empty() and float(orbit.segments.back().def.payload[0].hit) > prior_damage and manager.ported_casts("arcane_orbit").size() == 1, "Recast applies earned rank without stacking effects")
 	manager.cast_spell_by_type(2)
 	var trail = effects("firewalk")[0]
 	trail.set_physics_process(false)
@@ -92,9 +94,9 @@ func run():
 	manager.cast_spell_by_type(5)
 	check(effects("focus_ray").size() == 2, "Beam recasts remain independent")
 	manager.cast_spell_by_type(6)
-	var trap = effects("rune_trap")[0]
-	trap.set_physics_process(false)
-	trap.age = 2
+	var trap_cast = manager.last_generic_cast
+	trap_cast.manual = true
+	trap_cast.root_parts()[0].armed = true
 	check(Status.caption(Status.collect(manager).rune_trap) == "armed", "Trap shows armed instead of invented duration")
 	for effect in get_nodes_in_group("build_spell_effects"):
 		effect.set_physics_process(false)
@@ -116,7 +118,8 @@ func run():
 	trail.emission_deadline = trail.age - 1
 	trail.trail_points.clear()
 	check(not Status.collect(manager).has("firewalk"), "No ground timer after last patch expires")
-	orbit.remaining = 0
+	for part in orbit_cast.root_parts():
+		part.finish(true)
 	check(not Status.collect(manager).has("arcane_orbit"), "Expired timer removed")
 	check(preload("res://scripts/BuildVersion.gd").text() == "v%s · Playtest" % ProjectSettings.get_setting("application/config/version"), "Requested version")
 	game.queue_free()

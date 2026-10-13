@@ -21,6 +21,7 @@ var hits_log: Array = []       # {part, enemy_id} for tests/telemetry
 var finished := false
 var release_acc := 0.0
 var aim_dir := Vector2.RIGHT
+var shared_hits: Dictionary = {} # enemy id -> cast clock of the last hit (limits.rehit_shared)
 var once: Dictionary = {}      # payload items marked once_per_cast: "item@enemy" already applied
 var forced_target = null       # ported spells keep their old targeting: the caller picks the target
 var target_picker: Callable    # or picks it when each copy is released (release.retarget)
@@ -42,6 +43,13 @@ func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictio
 	var vfx = (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Vfx") if Engine.get_main_loop() is SceneTree else null
 	if vfx:
 		vfx.cast_queued(self)
+
+func _ready() -> void:
+	add_to_group("generic_casts")
+
+## Live parts the cast spawned itself (not event children), oldest first.
+func root_parts() -> Array:
+	return parts.filter(func(p): return is_instance_valid(p) and not p.done and p.depth == 0)
 
 func _physics_process(delta: float) -> void:
 	if not manual:
@@ -77,12 +85,19 @@ func advance(seconds: float) -> void:
 ## Run until finished or out of time (tests).
 ## on_step lets a test tick other systems (statuses) on the same clock.
 func run(seconds: float, dt: float = 1.0 / 60.0, on_step: Callable = Callable()) -> void:
-	var t = 0.0
-	while t < seconds and not finished:
+	# Whole steps, then the remainder: exactly `seconds` of game time (no float drift).
+	var whole = int(floor(seconds / dt + 0.000001))
+	for i in whole:
+		if finished:
+			return
 		step(dt)
 		if on_step.is_valid():
 			on_step.call(dt)
-		t += dt
+	var rest = seconds - whole * dt
+	if rest > 0.000001 and not finished:
+		step(rest)
+		if on_step.is_valid():
+			on_step.call(rest)
 
 # --- caster ----------------------------------------------------------------------------
 func caster_position() -> Vector2:
@@ -168,6 +183,8 @@ func _origin_for(part: Dictionary, target, dir: Vector2) -> Vector2:
 			return target.global_position if target else caster_position() + dir * 220.0
 		"behind_caster":
 			return caster_position() - dir * 120.0
+		"target_or_caster":
+			return target.global_position if target else caster_position()
 		"toward_target":
 			# Old Rune Trap: laid toward the target, at most `reach` from the caster.
 			var reach = float(part.get("reach", 160.0))

@@ -40,6 +40,9 @@ var prev_pos := Vector2.ZERO
 var geo_override: Dictionary = {}  # per-part geometry (already scaled), e.g. a growing trail's length
 var trail_parent: WeakRef = null   # trail fields follow the projectile that laid them
 var trail_from := Vector2.ZERO
+var life_total := -1.0             # set when a recast extends this part (old "extend" spells)
+var segments: Array = []           # queued recasts: {def, length}; each takes over when the last runs out
+var segment_end := -1.0
 var _vfx = null               # Vfx autoload: reads this part, never changes it (docs/VFX_EVENTS.md)
 
 func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2) -> void:
@@ -134,10 +137,34 @@ func _propagation() -> String:
 	return str(def.get("propagation", {}).get("type", "instant"))
 
 # --- stepping -------------------------------------------------------------------------
+## How long this part lives in all: its own duration or lifetime, plus any recast extensions.
+func total_life() -> float:
+	if life_total >= 0.0:
+		return life_total
+	if delivery in ["field", "aura", "trap"]:
+		return float(def.get("timing", {}).get("duration", 3.0 if delivery != "trap" else 8.0))
+	var lifetime = float(def.get("limits", {}).get("lifetime", 0.0))
+	return lifetime if lifetime > 0.0 else INF
+
+func remaining_life() -> float:
+	return total_life() - age
+
+## A recast of an "extend" spell: queue its numbers (they take over when the current cast runs
+## out) and lengthen this part's life by `added` seconds.
+func extend_with(new_def: Dictionary, added: float) -> void:
+	if segment_end < 0.0:
+		segment_end = total_life()
+	life_total = total_life() + added
+	segments.append({"def": new_def, "length": added})
+
 func step(delta: float) -> void:
 	if done:
 		return
 	age += delta
+	while not segments.is_empty() and age >= segment_end:
+		var seg: Dictionary = segments.pop_front()
+		def = seg.def
+		segment_end += float(seg.length)
 	match delivery:
 		"projectile":
 			_step_projectile(delta)
@@ -151,8 +178,10 @@ func step(delta: float) -> void:
 			_apply_self()
 			finish(false)
 	if not done:
-		var lifetime = float(def.get("limits", {}).get("lifetime", 0.0))
-		if lifetime > 0.0 and age >= lifetime:
+		if delivery == "projectile":
+			if age + 0.000001 >= total_life():
+				finish(true)
+		elif float(def.get("limits", {}).get("lifetime", 0.0)) > 0.0 and age >= float(def.limits.lifetime):
 			finish(true)
 	queue_redraw()
 
@@ -168,6 +197,7 @@ func _step_projectile(delta: float) -> void:
 		"orbit":
 			var center = cast.caster_position()
 			orbit_angle += float(ph.get("speed", 3.0)) * delta
+			prev_pos = global_position
 			global_position = center + Vector2.RIGHT.rotated(orbit_angle) * float(ph.get("radius", 80.0))
 			direction = Vector2.RIGHT.rotated(orbit_angle + PI * 0.5)
 			var until = str(ph.get("until", ""))
@@ -267,6 +297,9 @@ func reserved_damage(enemy) -> float:
 
 func _can_hit(enemy, rehit: float) -> bool:
 	var id = enemy.get_instance_id()
+	if bool(def.get("limits", {}).get("rehit_shared", false)):
+		# Old Arcane Orbit: one cooldown per enemy across all the orbs of a cast.
+		return not cast.shared_hits.has(id) or rehit > 0.0 and cast.clock - float(cast.shared_hits[id]) >= rehit - 0.000001
 	if not hits.has(id):
 		return true
 	return rehit > 0.0 and age - float(hits[id]) >= rehit
@@ -315,8 +348,8 @@ func _step_periodic(delta: float) -> void:
 		# Each enemy is hit as it enters, then every interval while it stays inside.
 		_hit_all_inside(interval)
 	elif not def.get("payload", []).is_empty():
-		tick_acc["payload"] = float(tick_acc.get("payload", interval)) + delta
-		if float(tick_acc.payload) >= interval:
+		tick_acc["payload"] = float(tick_acc.get("payload", 0.0 if bool(timing.get("delay_first", false)) else interval)) + delta
+		if float(tick_acc.payload) + 0.000001 >= interval:
 			tick_acc.payload = float(tick_acc.payload) - interval
 			_hit_all_inside(maxf(0.0, interval - 0.001) if float(def.get("limits", {}).get("rehit", 0.0)) <= 0.0 else float(def.limits.rehit))
 	for key in def.get("events", {}):
@@ -325,7 +358,7 @@ func _step_periodic(delta: float) -> void:
 		var ev: Dictionary = def.events[key]
 		var every = float(ev.get("interval", interval))
 		tick_acc[key] = float(tick_acc.get(key, 0.0)) + delta
-		while float(tick_acc[key]) >= every and not done:
+		while float(tick_acc[key]) + 0.000001 >= every and not done:
 			tick_acc[key] = float(tick_acc[key]) - every
 			var at = global_position
 			var victim = null
@@ -336,7 +369,10 @@ func _step_periodic(delta: float) -> void:
 				victim = pool[cast.rng.randi() % pool.size()]
 				at = victim.global_position
 			cast.spawn_event(self, ev, at, victim)
-	if age >= float(timing.get("duration", 3.0)):
+	if def.has("heal_rate"):
+		# Old Regeneration: healing flows every frame while the aura lasts.
+		cast.heal_caster(float(def.heal_rate) * power_scale * delta, float(def.get("visual_size", 1.0)))
+	if age + 0.000001 >= total_life():
 		finish(true)
 
 ## A trail is a line field from where the projectile was thrown to where it is now.
@@ -387,7 +423,7 @@ func _step_trap(_delta: float) -> void:
 					_hit_all_inside(0.0)
 				finish(false)
 				return
-	if age >= float(timing.get("duration", 8.0)):
+	if age + 0.000001 >= total_life():
 		finish(true)
 
 func _apply_self() -> void:
@@ -400,6 +436,7 @@ func hit(enemy) -> void:
 	if not _alive(enemy):
 		return
 	hits[enemy.get_instance_id()] = age
+	cast.shared_hits[enemy.get_instance_id()] = cast.clock
 	hit_count += 1
 	var at = enemy.global_position
 	for idx in def.get("payload", []).size():

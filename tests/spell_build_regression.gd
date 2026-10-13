@@ -189,37 +189,40 @@ func run():
 	b = make_target(game, start + Vector2(500, 0))
 	manager.learn_spell("cinder_field")
 	manager.cast_freeform_spell("cinder field")
-	effect = effect_for(game, "cinder_field")
-	effect.advance(0.5)
-	effect.advance(0.5)
+	# Cinder Field, Steam Field and Arcane Orbit run on the generic engine (doc 18 phase 2).
+	var field_cast = cast_for(game, "cinder_field")
+	var field = field_cast.root_parts()[0]
+	field_cast.run(0.5)
+	field_cast.run(0.5)
 	check(a.current_health <= 1000.0 - 2.0 * manager.calculate_spell_damage(manager.spells[manager.find_spell_slot("cinder_field")]) + 0.001 and b.current_health == 1000, "Field ticks repeatedly only inside radius")
-	var position = effect.global_position
+	var position = field.global_position
 	game.player.position += Vector2(400, 0)
-	effect.advance(0.5)
-	check(effect.global_position == position, "Field remains anchored when player moves")
+	field_cast.run(0.5)
+	check(field.global_position == position, "Field remains anchored when player moves")
 	manager.learn_spell("ice_blast")
 	manager.learn_spell("steam_field")
 	manager.cast_freeform_spell("steam field")
-	effect = effect_for(game, "steam_field")
-	effect.advance(0.5)
+	cast_for(game, "steam_field").run(0.5)
 	check(is_equal_approx(b.slow, 0.6), "Steam Field slows damaged nearby target")
 	manager.learn_spell("arcane_orbit")
 	manager.cast_freeform_spell("arcane orbit")
-	effect = effect_for(game, "arcane_orbit")
-	b.position = game.player.position + Vector2.from_angle(2.0) * float(effect.info.orbit_radius)
+	var orbit_cast = cast_for(game, "arcane_orbit")
+	var orb = orbit_cast.root_parts()[0]
+	var orbit_radius = float(orb.def.motion[0].radius)
+	b.position = game.player.position + Vector2.from_angle(2.0) * orbit_radius
 	var old_health = b.current_health
-	effect.advance(0.5)
-	check(is_equal_approx(effect.angle, 2.0), "Orbit naturally rotates four radians per second")
+	orbit_cast.run(0.5)
+	check(is_equal_approx(fposmod(orb.orbit_angle, TAU), 2.0), "Orbit naturally rotates four radians per second")
 	check(b.current_health < old_health, "Orbit damages target at its naturally advanced spark position")
-	b.position = game.player.position + Vector2.from_angle(4.0) * float(effect.info.orbit_radius)
+	b.position = game.player.position + Vector2.from_angle(4.0) * orbit_radius
 	old_health = b.current_health
-	effect.advance(0.5)
+	orbit_cast.run(0.5)
 	check(b.current_health < old_health, "Orbit continues hitting at the next rotated position")
 	game.player.position += Vector2(10, 0)
-	effect.advance(0.1)
-	check(effect.global_position == game.player.global_position, "Orbit follows player")
-	effect.advance(5.0)
-	check(effect.is_queued_for_deletion(), "Persistent spells expire")
+	orbit_cast.run(0.1)
+	check(is_equal_approx(orb.global_position.distance_to(game.player.global_position), orbit_radius), "Orbit follows player")
+	orbit_cast.run(6.0)
+	check(orbit_cast.finished, "Persistent spells expire")
 	for candidate in get_nodes_in_group("build_spell_effects"):
 		candidate.queue_free()
 	a.current_health = 1000.0
@@ -242,8 +245,8 @@ func run():
 	check(a.current_health == 880.0, "Tick totals independent of frame partition")
 	for i in range(5):
 		manager.cast_freeform_spell("arcane orbit")
-	var active = get_nodes_in_group("build_spell_effects").filter(func(item): return item.info.id == "arcane_orbit" and not item.is_queued_for_deletion())
-	check(active.size() == 1 and active[0].remaining >= 30, "Repeated orbit casts extend one maintained effect")
+	var active = manager.ported_casts("arcane_orbit")
+	check(active.size() == 1 and active[0].root_parts()[0].remaining_life() >= 30, "Repeated orbit casts extend one maintained effect")
 	manager.spells.clear()
 	manager.bonus_spells.clear()
 	manager.acquired_spells.clear()

@@ -27,6 +27,18 @@ static func collect(manager: Node) -> Dictionary:
 			if effect.infections.is_empty() and effect.infection_links.is_empty() and effect.resting_spores.is_empty():
 				continue
 		add(states, effect.info.id, seconds, phase)
+	# Spells ported to the generic engine (doc 18 phase 2): their root parts carry the timers.
+	for cast in manager.get_tree().get_nodes_in_group("generic_casts"):
+		if cast.is_queued_for_deletion() or cast.caster != manager.player:
+			continue
+		for part in cast.parts:
+			if not is_instance_valid(part) or part.done or part.depth != 0:
+				continue
+			if part.delivery == "trap":
+				add(states, str(cast.plan.id), 0.0, "armed" if part.armed else "arming")
+			elif part.delivery in ["field", "aura"] or float(part.def.get("limits", {}).get("lifetime", 0.0)) > 0.0:
+				add(states, str(cast.plan.id), maxf(0.0, part.remaining_life()))
+			break   # one entry per cast (Arcane Orbit's sparks are one spell)
 	for effect in manager.active_healing_effects:
 		if effect.has("spell_id") and effect.remaining_time > 0:
 			add(states, effect.spell_id, effect.remaining_time)

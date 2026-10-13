@@ -7,7 +7,7 @@ const GEOMETRIES = ["body", "disk", "ring", "cone", "line", "rect"]
 const MOTIONS = ["straight", "guided", "spiral", "orbit", "none"]
 const PAYLOADS = ["damage", "status", "impulse", "heal", "slow"]
 const EVENTS = ["on_hit", "on_first_hit", "on_kill", "on_expire", "on_tick", "on_travel", "on_trigger"]
-const ORIGINS = ["caster", "target", "parent", "behind_caster", "toward_target"]
+const ORIGINS = ["caster", "target", "parent", "behind_caster", "toward_target", "target_or_caster"]
 const PROPAGATIONS = ["instant", "expanding", "travelling"]
 const ELEMENTS = ["", "arcane", "fire", "water", "storm", "earth", "plague", "life"]
 

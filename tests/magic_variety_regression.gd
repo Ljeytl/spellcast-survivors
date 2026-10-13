@@ -110,12 +110,24 @@ func run():
 		for i in range(5):
 			manager.cast_spell_by_type(slot)
 		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion() and not node.get_parent().is_queued_for_deletion())
+		# Spells on the generic engine (doc 18 phase 2) count their live casts.
+		active.append_array(manager.ported_casts(id))
 		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "cross_blade" else active.size()
 		# Extend-recast spells (Fire Walk) lengthen one instance instead of stacking up to active_limit.
 		var expected_cap = 1 if manager.spells[slot].get("recast_behavior", "stack") == "extend" else mini(int(manager.spells[slot].active_limit), 7)
 		check(capped == expected_cap, "Per-spell concurrent cap: " + id)
 		enemy.free()
 		for node in active:
+			if node.get("plan") is Dictionary:
+				# Generic-engine cast: a trap waits, everything else runs out.
+				var root = node.root_parts()[0] if not node.root_parts().is_empty() else null
+				var is_trap = root != null and root.delivery == "trap"
+				node.advance(20.0)
+				if is_trap:
+					check(not node.finished and not root.done, "Untriggered trap remains prepared in empty arena")
+				else:
+					check(node.finished, "Nonpersistent empty-arena effect expires after large delta")
+				continue
 			node.set_physics_process(false)
 			node.advance(maxf(20.0, float(node.remaining) + 1.0))  # extended recasts accumulate duration
 			if node.info.type == "trap":
@@ -136,6 +148,8 @@ func run():
 			manager.cast_spell_by_type(bonus_slot)
 		var family = manager.spells[primary_slot].type
 		var family_nodes = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.type == family and not node.is_queued_for_deletion())
+		for owned in [recipe.ingredients[0], recipe_id]:
+			family_nodes.append_array(manager.ported_casts(owned))
 		check(family_nodes.size() == mini(int(manager.get_spell_info(bonus_slot).active_limit), 5) + 1, "Bonus keeps its own active limit without replacing ingredient: " + recipe_id)
 	for id in ["rune_trap"]:
 		fresh()
@@ -144,8 +158,8 @@ func run():
 		corpse.dying = true
 		var live = target(Vector2(0, 120))
 		manager.cast_spell_by_type(manager.find_spell_slot(id))
-		var spawned = get_nodes_in_group("build_spell_effects").back()
-		check(spawned.target_ref.get_ref() == live, "Initial tactical aim ignores nearest dying enemy: " + id)
+		var rune = manager.last_generic_cast.root_parts()[0]
+		check(game.player.global_position.direction_to(rune.global_position).dot(Vector2.DOWN) > 0.99, "Initial tactical aim ignores nearest dying enemy: " + id)
 	fresh()
 	var near = target(Vector2(100, 0))
 	var far = target(Vector2(200, 0))
