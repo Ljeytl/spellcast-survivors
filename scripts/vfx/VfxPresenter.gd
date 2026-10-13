@@ -254,6 +254,9 @@ func part_finished(part, natural: bool) -> void:
 					vfx.spark(p.x, p.y, (randf() - 0.5) * 20.0, -(6.0 + randf() * 12.0), 0.3 + randf() * 0.2, SPARK[key])
 				if key == "fire":
 					vfx.puff(p.x, p.y - 1.0, 2)
+		"nova":
+			if st.look.native == "ice" and natural:
+				_ice_nova_end(part.global_position / WPS, float(part.geo("radius", 100.0)) / WPS)
 		"field":
 			# Break up, don't fade: the field erodes over its last half second.
 			var f: Dictionary = st.field
@@ -427,7 +430,10 @@ func _damage_disk(x: float, y: float, s: float, o: Dictionary) -> void:
 # ------------------------------------------------------------------ ice (sandbox FX.ice)
 
 func _ice_trail(p: Vector2, vel: Vector2, dt: float) -> void:
-	if randf() < 0.9 * dt * 60.0:
+	if randf() < 0.25 * dt * 60.0:
+		vfx.elements.flake(p.x - vel.x * 0.02 + (randf() - 0.5) * 3.0, p.y + (randf() - 0.5) * 3.0,
+			vel.x * 0.06 + (randf() - 0.5) * 6.0, 2.0 + randf() * 4.0, 0.7 + randf() * 0.5, 0 if randf() < 0.7 else 1, 5.0)
+	if randf() < 0.6 * dt * 60.0:
 		vfx.elements.mote(p.x - vel.x * 0.02 + (randf() - 0.5) * 3.0, p.y + (randf() - 0.5) * 3.0,
 			vel.x * 0.08 + (randf() - 0.5) * 6.0, 4.0 + randf() * 6.0, ICE.mote, 0.6 + randf() * 0.6, 4.0, 6.0)
 
@@ -442,6 +448,10 @@ func _ice_impact(x: float, y: float, s: float) -> void:
 		var a := randf() * TAU
 		var sp := (15.0 + randf() * 35.0) * sqrt(s)
 		el.mote(x, y, cos(a) * sp, sin(a) * sp * 0.7, ICE.mote, 0.6 + randf() * 0.6, 8.0, 4.0)
+	for i in roundi(5 * s):
+		var a := randf() * TAU
+		var sp := (10.0 + randf() * 22.0) * sqrt(s)
+		el.flake(x, y - 2.0, cos(a) * sp, sin(a) * sp * 0.7 - 6.0, 0.9 + randf() * 0.6, 1 if randf() < 0.6 else 2, 5.0)
 	if s > 1.2:
 		for i in roundi(4 * s):
 			var a := randf() * TAU
@@ -473,21 +483,49 @@ func _ice_field(A: Dictionary, dt: float) -> void:
 	if randf() < 0.5 * dt * 60.0 * maxf(1.0, r / 20.0):
 		var q2 := _in_disk(A.x, A.y, r)
 		el.mote(q2.x, q2.y - 4.0, (randf() - 0.5) * 3.0, 2.0 + randf() * 3.0, ICE.mote, 1.0 + randf(), 1.0, 5.0)
+	if randf() < 0.12 * dt * 60.0 * maxf(1.0, r / 20.0):
+		var q4 := _in_disk(A.x, A.y, r)
+		el.flake(q4.x, q4.y - 10.0, (randf() - 0.5) * 4.0, 3.0 + randf() * 3.0, 1.4 + randf(), 0 if randf() < 0.6 else 1, 2.0)
 
-## Nova front: crystals erupt along the live front (the hitbox) and shatter.
+## Nova front: a frost wave. Snowflakes spill off the live front (the hitbox)
+## and drift outward; crystals only snap up where the wave stops (_ice_nova_end).
+## Crystals all along the front read as an earth-spike nova.
 func _ice_nova(c: Vector2, r: float, dt: float) -> void:
 	var el = vfx.elements
-	var n := TAU * r * 0.035 * dt * 60.0
+	var rt: float = dt / vfx.fx_speed
+	var n := TAU * r * 1.6 * rt
 	var i := 0.0
 	while i < n:
 		if i + 1.0 > n and randf() > n - i:
 			break
 		var a := randf() * TAU
-		el.crystal(c.x + cos(a) * r, c.y + sin(a) * r, 6.0 + randf() * 5.0, 0.35 + randf() * 0.25)
+		var roll := randf()
+		var size := 0 if roll < 0.5 else (1 if roll < 0.85 else 2)
+		el.flake(c.x + cos(a) * r, c.y + sin(a) * r, cos(a) * 22.0, sin(a) * 15.0 - 4.0, 0.7 + randf() * 0.5, size, 4.0)
 		i += 1.0
-	if randf() < 0.6 * dt * 60.0:
+	var m := TAU * r * 1.2 * rt
+	while m > 0.0:
+		if randf() < m:
+			var a2 := randf() * TAU
+			el.mote(c.x + cos(a2) * r, c.y + sin(a2) * r, cos(a2) * 26.0, sin(a2) * 18.0, ICE.mote, 0.45, 4.0, 3.0)
+		m -= 1.0
+
+## Where the wave stops: a burst of snow along the edge (flakes thrown outward,
+## a puff of motes). No rime decal (read as netting) and no crystals (read as
+## random diamonds / an earth-spike nova).
+func _ice_nova_end(c: Vector2, R: float) -> void:
+	var el = vfx.elements
+	var n := roundi(R * 1.1)
+	for i in n:
+		var a := TAU * (i + randf()) / n
+		var rr := R * (0.94 + randf() * 0.08)
+		var roll := randf()
+		el.flake(c.x + cos(a) * rr, c.y + sin(a) * rr, cos(a) * (14.0 + randf() * 14.0), sin(a) * (10.0 + randf() * 10.0) - 6.0,
+			0.8 + randf() * 0.6, 1 if roll < 0.6 else (2 if roll < 0.8 else 0), 5.0)
+	for i in roundi(R * 1.6):
 		var a2 := randf() * TAU
-		el.mote(c.x + cos(a2) * r, c.y + sin(a2) * r, cos(a2) * 20.0, sin(a2) * 14.0, ICE.mote, 0.6, 6.0, 3.0)
+		el.mote(c.x + cos(a2) * R, c.y + sin(a2) * R, cos(a2) * (20.0 + randf() * 20.0), sin(a2) * 14.0, ICE.mote, 0.4 + randf() * 0.3, 6.0, 3.0)
+	vfx.hitstop(1)
 
 ## Chilled / frozen status: frost motes on the enemy (reads StatusComponent).
 func _chilled(dt: float) -> void:
@@ -507,6 +545,8 @@ func _chilled(dt: float) -> void:
 		var p: Vector2 = e.global_position / WPS
 		if randf() < 0.2 * dt * 60.0:
 			vfx.elements.mote(p.x + (randf() - 0.5) * 7.0, p.y - 6.0 + randf() * 3.0, (randf() - 0.5) * 3.0, 3.0 + randf() * 4.0, ICE.mote, 0.6, 3.0, 4.0)
+		if randf() < 0.03 * dt * 60.0:
+			vfx.elements.flake(p.x + (randf() - 0.5) * 6.0, p.y - 8.0, (randf() - 0.5) * 3.0, 2.0, 0.8, 0, 3.0)
 
 static func _in_disk(x: float, y: float, r: float) -> Vector2:
 	var a := randf() * TAU

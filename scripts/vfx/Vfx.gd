@@ -366,7 +366,8 @@ func field(x: float, y: float, r: float, life: float, o: Dictionary = {}) -> Dic
 
 ## Scorch decal (sandbox drawDecals), rasterized once into a world-locked sprite;
 ## the dissolve runs in vfx_decal.gdshader. Position/radius in su.
-func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "scorch"):
+## inner > 0 leaves the middle clear (a ring: the frost a nova leaves behind).
+func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "scorch", inner: float = 0.0):
 	if _decals.size() >= 40:
 		var old = _decals.pop_front()
 		old[0].queue_free()
@@ -382,7 +383,7 @@ func scorch(x: float, y: float, r: float, life: float = 6.0, kind: String = "sco
 			var Y := cy + qy
 			var dist := Vector2(qx, qy * 1.25).length()
 			var edge := rc * (0.7 + 0.55 * vn(X / K * 0.3 + seed, Y / K * 0.3))
-			if dist < edge:
+			if dist < edge and dist >= edge * inner:
 				var c: Color
 				if kind == "frost":
 					# sandbox drawEDecals 'frost': rime with a lighter rim and glints

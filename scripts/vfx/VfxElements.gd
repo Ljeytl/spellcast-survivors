@@ -26,6 +26,37 @@ const LIGHTNING := {
 	"floor": [Color("#1c1a2c"), Color("#211e38"), Color("#2a2550")],
 	"spider": [Color("#14111c"), Color("#2a2342")],
 }
+# Snowflake sprites (cells). 0 = core (white), 1 = arm (light), 2 = tip (mid).
+# Two poses per size, upright (+) and diagonal (x); alternating them reads as a
+# slow spin. Sizes follow 1:3:9-ish contrast with the one-cell motes.
+static var FLAKES: Array = _make_flakes()
+
+static func _make_flakes() -> Array:
+	var art := [
+		# size 0: 3x3
+		[[". 1 .", "1 0 1", ". 1 ."], ["1 . 1", ". 0 .", "1 . 1"]],
+		# size 1: 5x5
+		[["2 . 1 . 2", ". . 1 . .", "1 1 0 1 1", ". . 1 . .", "2 . 1 . 2"],
+		 [". . 2 . .", ". 1 . 1 .", "2 . 0 . 2", ". 1 . 1 .", ". . 2 . ."]],
+		# size 2: 7x7
+		[[". . . 2 . . .", ". 2 . 1 . 2 .", ". . 1 1 1 . .", "2 1 1 0 1 1 2", ". . 1 1 1 . .", ". 2 . 1 . 2 .", ". . . 2 . . ."],
+		 [". 2 . . . 2 .", "2 1 . 1 . 1 2", ". . 1 . 1 . .", ". 1 . 0 . 1 .", ". . 1 . 1 . .", "2 1 . 1 . 1 2", ". 2 . . . 2 ."]],
+	]
+	var out := []
+	for size in art:
+		var poses := []
+		for rows in size:
+			var px := []
+			var h: int = rows.size()
+			for y in h:
+				var cells: PackedStringArray = str(rows[y]).split(" ")
+				for x in cells.size():
+					if cells[x] != ".":
+						px.append([x - cells.size() / 2, y - h / 2, int(cells[x])])
+			poses.append(px)
+		out.append(poses)
+	return out
+
 const SHADOW := Color("#16141b")
 const INK := Color("#120e14")
 
@@ -35,12 +66,13 @@ var shards: Array = []      # [x, y, z, vx, vy, vz, ang, spin, len, age, life, p
 var crystals: Array = []    # [x, y, h, tilt, age, life, pal]
 var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch, pts]  pts null = regenerate every step
 var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
+var flakes: Array = []      # [x, y, vx, vy, age, life, size, spin, ph, g]
 
 func _init(owner):
 	vfx = owner
 
 func clear():
-	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear()
+	motes.clear(); shards.clear(); crystals.clear(); arcs.clear(); hops.clear(); flakes.clear()
 
 # ------------------------------------------------------------------ spawners (sandbox signatures)
 
@@ -51,6 +83,11 @@ func mote(x: float, y: float, vx: float, vy: float, cols: Array, life: float, g:
 func shard(x: float, y: float, vx: float, vy: float, vz: float, len: float, life: float, pal: Array = ICE.body):
 	if shards.size() < (80 if vfx.reduced_effects else 260):
 		shards.append([x, y, 3.0, vx, vy, vz, randf() * TAU, (randf() - 0.5) * 20.0, len, 0.0, life, pal, false])
+
+## Snowflake: drifts with a little gravity and sway; spin = pose swaps per second.
+func flake(x: float, y: float, vx: float, vy: float, life: float, size: int = 1, g: float = 6.0):
+	if flakes.size() < (80 if vfx.reduced_effects else 260):
+		flakes.append([x, y, vx, vy, 0.0, life, clampi(size, 0, 2), 1.5 + randf() * 3.0, randf() * 6.0, g])
 
 func crystal(x: float, y: float, h: float, life: float, pal: Array = ICE.body):
 	if crystals.size() < (40 if vfx.reduced_effects else 120):
@@ -136,6 +173,17 @@ func step(dt: float):
 		keep.append(m)
 	motes = keep
 	keep = []
+	for f in flakes:
+		f[4] += dt
+		if f[4] > f[5]:
+			continue
+		f[2] = vfx._drag(f[2], dt, 0.93)
+		f[3] = vfx._drag(f[3], dt, 0.93) + f[9] * dt
+		f[0] += (f[2] + sin(f[8] + t * 2.2) * 4.0 + vfx.wind * 0.6) * dt
+		f[1] += f[3] * dt
+		keep.append(f)
+	flakes = keep
+	keep = []
 	for a in arcs:
 		a[5] += dt
 		if a[5] < a[6]:
@@ -198,6 +246,21 @@ func draw_over(buf: PackedByteArray):
 			vfx._put(buf, X + 1, Y, c)
 			tt += 0.4
 	draw_paths(buf)
+	var pal: Array = ICE.mote
+	var t: float = vfx._t
+	for f in flakes:
+		var k: float = f[4] / f[5]
+		if vfx.dissolved(f[8], k, 0.75):
+			continue
+		var size: int = f[6]
+		# shrink a size as it ages: break up, don't fade
+		if k > 0.55 and size > 0:
+			size -= 1
+		var pose: int = int(f[8] + t * f[7]) & 1
+		var X := roundi(f[0] * K)
+		var Y := roundi(f[1] * K)
+		for q in FLAKES[size][pose]:
+			vfx._put(buf, X + q[0], Y + q[1], pal[q[2]] if k < 0.4 else pal[mini(3, q[2] + 1)])
 	for m in motes:
 		var k: float = m[5] / m[6]
 		if vfx.dissolved(m[9], k, 0.7):
