@@ -116,6 +116,7 @@ var elements                         # VfxElements: motes, shards, crystals (non
 var _heat := PackedFloat32Array()
 var _water := PackedFloat32Array()     # goo fields, 4 per cell: water air, water ground, plague air, plague ground
 var _water_used := false
+var _wave = null                       # [origin, dir, front, half, hw, fade] su, set by the presenter each frame
 var _under := PackedByteArray()
 var _over := PackedByteArray()
 var _ground := PackedByteArray()
@@ -367,7 +368,7 @@ func puff(x: float, y: float, s: int = 0):
 func field(x: float, y: float, r: float, life: float, o: Dictionary = {}) -> Dictionary:
 	var f := {"x": x, "y": y, "r": r, "age": 0.0, "life": life, "acc": 0.0,
 		"rate": o.get("rate", 1.0), "heat_k": o.get("heat_k", 0.8), "trail": o.get("trail", false),
-		"axis": o.get("axis", Vector2.ZERO), "look": int(o.get("look", 0))}
+		"axis": o.get("axis", Vector2.ZERO), "look": int(o.get("look", 0)), "goo": int(o.get("goo", 0))}
 	_fields.append(f)
 	if _fields.size() > MAX_FIELDS:
 		_fields.pop_front()
@@ -889,14 +890,18 @@ func _render(stepped: bool):
 	g.set_shader_parameter("tick", int(_t * 60.0) >> 3)
 	var fl := PackedVector4Array()
 	var fa := PackedVector4Array()
+	var fg := PackedVector2Array()
 	for A in _fields:
 		var v := minf(1.0, minf(A.age / 0.25, (A.life - A.age) / 0.5))
 		fl.append(Vector4(roundf(A.x * K), roundf(A.y * K), A.r * K, v))
 		var ax: Vector2 = A.axis * K
 		fa.append(Vector4(ax.x, ax.y, float(A.look), float(FIELD_LOOKS[A.look].style)))
+		fg.append(Vector2(float(A.goo), A.age))
 	g.set_shader_parameter("field_count", fl.size())
 	fl.resize(MAX_FIELDS)
 	fa.resize(MAX_FIELDS)
+	fg.resize(MAX_FIELDS)
+	g.set_shader_parameter("field_goo", fg)
 	g.set_shader_parameter("fields", fl)
 	g.set_shader_parameter("field_axis", fa)
 
@@ -933,14 +938,24 @@ func water_cell(layer: int, X: int, Y: int, v: float):
 	_water_used = true
 
 func _draw_water():
-	if _water_used:
+	var was_used := _water_used
+	if was_used:
 		_water.fill(0.0)
 	_water_used = false
+	_wave = null
 	elements.accumulate_water()
 	presenter.accumulate_water()
-	if _water_used or not _tex.has("water"):
+	if _water_used or was_used or not _tex.has("water"):   # also once after the last splat, so no stale goo shows
 		_upload("water", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBAF, _water.to_byte_array()))
-	(_air_layer.material as ShaderMaterial).set_shader_parameter("water_on", _water_used)
+	var am := _air_layer.material as ShaderMaterial
+	am.set_shader_parameter("wave_on", _wave != null)
+	am.set_shader_parameter("t", _t)
+	am.set_shader_parameter("k", K)
+	if _wave != null:
+		_water_used = true
+		am.set_shader_parameter("wave_a", Vector4(_wave[0].x * K, _wave[0].y * K, _wave[1].x, _wave[1].y))
+		am.set_shader_parameter("wave_b", Vector4(_wave[2] * K, _wave[3] * K, _wave[4] * K, _wave[5]))
+	am.set_shader_parameter("water_on", _water_used)
 	(_ground_layer.material as ShaderMaterial).set_shader_parameter("water_on", _water_used)
 
 func _draw_air():

@@ -11,6 +11,7 @@ uniform float t;                       // VFX sim time (s)
 uniform int tick;                      // sandbox (frame >> 3)
 uniform int field_count;
 uniform vec4 fields[32];               // center x, y (cells), radius / half-width (cells), fade-in/out vis
+uniform vec2 field_goo[32];            // x: 0 none, 1 water pool, 2 plague pockets; y: field age (s)
 uniform vec4 field_axis[32];           // line fields: half-length axis x, y (cells), zero for disks; z = look index; w = floor style
 uniform vec4 floor_cols[24];           // 3 per look
 uniform vec4 rim_cols[16];             // 2 per look
@@ -47,6 +48,24 @@ float vn(float x, float y) {
 	float c = hs(xi, yi + 1);
 	float d = hs(xi + 1, yi + 1);
 	return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+
+// Pool and plague-pocket goo, computed here instead of on the CPU (sandbox
+// FX.water.fieldGoo / FX.plague.fieldGoo): same noise, same thresholds.
+bool goo_in(ivec2 c, vec2 ctr, float r, float age, int kind) {
+	vec2 s = vec2(c) / k;
+	if (kind == 1) {
+		if (length(vec2(c) - ctr) > r - 1.5 * k) {
+			return false;
+		}
+		float n = vn(s.x * 0.14 + t * 0.3, s.y * 0.14) * 0.7 + vn(s.x * 0.35, s.y * 0.35 - t * 0.6) * 0.3;
+		return n > 0.34 + max(0.0, 1.0 - age * 2.0) * 0.6;
+	}
+	if (length(vec2(c) - ctr) > r - 2.0 * k) {
+		return false;
+	}
+	float n2 = vn(s.x * 0.16, s.y * 0.16 + t * 0.25) + vn(s.x * 0.4 + 5.0, s.y * 0.4 - t * 0.5) * 0.3;
+	return n2 > 0.9 - min(1.0, age * 2.0) * 0.06;
 }
 
 void fragment() {
@@ -89,6 +108,27 @@ void fragment() {
 			col = n > 0.68 ? floor_cols[look * 3 + 2] : (n > 0.48 ? floor_cols[look * 3 + 1] : floor_cols[look * 3]);
 			if (look == 1 && hs(a.x, a.y) > 0.985 && ((tick + a.x) % 7) == 0) {
 				col = vec4(1.0);
+			}
+			int gk = int(field_goo[i].x + 0.5);
+			if (gk > 0 && goo_in(a, f.xy, r, field_goo[i].y, gk)) {
+				float age = field_goo[i].y;
+				bool up = !goo_in(a + ivec2(0, -1), f.xy, r, age, gk);
+				bool edge = up || !goo_in(a + ivec2(0, 1), f.xy, r, age, gk) || !goo_in(a + ivec2(-1, 0), f.xy, r, age, gk) || !goo_in(a + ivec2(1, 0), f.xy, r, age, gk);
+				if (gk == 1) {
+					vec4 foam = vec4(0.804, 0.937, 0.992, 1.0);
+					vec4 mid = vec4(0.247, 0.624, 0.894, 1.0);
+					if (edge) {
+						col = (up || ((a.x + a.y + tick) & 3) == 0) ? foam : mid;
+					} else if (((a.x + a.y) & 1) == 0) {
+						col = hs(a.x, a.y + (tick >> 1)) > 0.96 ? vec4(1.0) : mid;
+					}
+				} else {
+					if (edge) {
+						col = vec4(0.106, 0.102, 0.173, 1.0);
+					} else {
+						col = !goo_in(a + ivec2(0, -2), f.xy, r, age, gk) ? vec4(0.651, 0.894, 0.369, 1.0) : vec4(0.337, 0.698, 0.243, 1.0);
+					}
+				}
 			}
 		} else if (L > 0.0) {
 			vec2 s = vec2(a) / k;

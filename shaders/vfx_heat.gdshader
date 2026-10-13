@@ -11,12 +11,31 @@ uniform vec4 glow;
 uniform ivec2 origin;   // world cell of texel (0,0), keeps dither parity world-locked
 uniform sampler2D water_tex : filter_nearest;   // r = water air (sandbox wAir), g = water ground, b = plague air (gooAir), a = plague ground
 uniform bool water_on = false;
+uniform float t;
+// Tsunami wall (one at a time) computed here, not splatted on the CPU.
+uniform bool wave_on = false;
+uniform vec4 wave_a;    // origin x, y (cells), direction x, y
+uniform vec4 wave_b;    // front, half length, half width (cells), fade
+uniform float k;        // cells per sandbox unit
+
+float wave_val(ivec2 p) {
+	vec2 c = vec2(p + origin) - wave_a.xy;
+	vec2 dir = wave_a.zw;
+	float across = dot(c, vec2(-dir.y, dir.x));
+	if (abs(across) > wave_b.z) {
+		return 0.0;
+	}
+	float wob = sin(across / k * 0.4 + t * 6.0) * 1.2 * k;
+	float along = dot(c, dir) - (wave_b.x + wave_b.y * 0.35 + wob);
+	return max(0.0, 1.0 - abs(along) / (wave_b.y * 1.25)) * 1.8 * wave_b.w;
+}
 const vec4 W_HI = vec4(1.0);
 const vec4 W_LIGHT = vec4(0.651, 0.902, 1.0, 1.0);    // #a6e6ff
 const vec4 W_MID = vec4(0.247, 0.624, 0.894, 1.0);    // #3f9fe4
 
 float water_at(ivec2 p, ivec2 sz) {
-	return texelFetch(water_tex, clamp(p, ivec2(0), sz - 1), 0).r;
+	float v = texelFetch(water_tex, clamp(p, ivec2(0), sz - 1), 0).r;
+	return wave_on ? v + wave_val(p) : v;
 }
 float goo_at(ivec2 p, ivec2 sz) {
 	return texelFetch(water_tex, clamp(p, ivec2(0), sz - 1), 0).b;

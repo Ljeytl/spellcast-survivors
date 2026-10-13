@@ -244,7 +244,7 @@ func part_spawned(part) -> void:
 				var life2 := float(part.def.get("timing", {}).get("duration", 3.0))
 				if part.def.get("timing", {}).get("duration") == null:
 					life2 = 4.0
-				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look(look.native)})
+				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look(look.native), "goo": {"water": 1, "plague": 2}.get(look.native, 0)})
 				if look.native == "life":
 					_life_field_start(st.field)
 				elif look.native == "earth":
@@ -906,10 +906,12 @@ func accumulate_water() -> void:
 				var big := 1.4 if st.family == "ball" else 1.0
 				vfx.gsplat(0, pos.x, pos.y, 3.0 * big * float(part.size_scale))
 				vfx.gsplat(0, pos.x - dir.x * 3.0 * big, pos.y - dir.y * 3.0 * big + sin(t * 12.0) * 0.5, 2.0 * big)
-			"field":
-				_pool_goo(st.field, t)
 			"wave":
-				_wave_goo(part, t)
+				if vfx._wave == null:
+					var w := _wave_frame(part)
+					vfx._wave = [w.o, w.dir, w.front, w.half, w.hw, w.fade]
+				else:
+					_wave_goo(part, t)     # a second wave at once: CPU splats
 
 ## Pool (sandbox fieldGoo): mostly-filled water surface with drifting gaps.
 func _pool_goo(A: Dictionary, t: float) -> void:
@@ -1022,11 +1024,11 @@ func _water_wave(part, st: Dictionary, dt: float) -> void:
 	var w := _wave_frame(part)
 	var el = vfx.elements
 	var dir: Vector2 = w.dir
-	st.acc += minf(w.hw, 40.0) * 0.75 * dt * 60.0 * w.fade
+	st.acc += minf(w.hw, 24.0) * 0.6 * dt * 60.0 * w.fade      # sandbox caps the wave at hw 24
 	while st.acc >= 1.0:
 		st.acc -= 1.0
 		var p: Vector2 = w.o + dir * (w.front + w.half) + w.nrm * ((randf() * 2.0 - 1.0) * w.hw)
-		if randf() < 0.3:
+		if randf() < 0.15:
 			el.wblob(p.x - dir.x * 2.0, p.y - dir.y * 2.0, dir.x * 50.0, dir.y * 38.0, 1.3 + randf() * 0.8, 0.25, false)
 		if randf() < 0.3:
 			el.foam_streak(p.x, p.y, dir.x, dir.y, 6.0)
@@ -1382,7 +1384,7 @@ func _plague_goo(st: Dictionary, t: float) -> void:
 			vfx.gsplat(2, pos.x, pos.y, (3.4 + sin(t * 13.0) * 0.3) * big)
 			vfx.gsplat(2, pos.x - u.x * 3.0 + cos(t * 11.0) * 0.6, pos.y - u.y * 3.0 + sin(t * 9.0) * 0.6, 2.3 * big)
 			vfx.gsplat(2, pos.x - u.x * 5.5, pos.y - u.y * 5.5, 1.4 * big)
-		"field":
+		"field_cpu_unused":
 			var A: Dictionary = st.field
 			var K: float = vfx.K
 			var R := ceili((A.r - 2.0) * K)
