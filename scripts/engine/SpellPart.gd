@@ -36,6 +36,10 @@ var armed := false
 var tick_acc: Dictionary = {}
 var start_pos := Vector2.ZERO
 var drift_speed := 0.0
+var prev_pos := Vector2.ZERO
+var geo_override: Dictionary = {}  # per-part geometry (already scaled), e.g. a growing trail's length
+var trail_parent: WeakRef = null   # trail fields follow the projectile that laid them
+var trail_from := Vector2.ZERO
 var _vfx = null               # Vfx autoload: reads this part, never changes it (docs/VFX_EVENTS.md)
 
 func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2) -> void:
@@ -45,6 +49,7 @@ func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2
 	delivery = str(def.get("delivery", "projectile"))
 	global_position = pos
 	start_pos = pos
+	prev_pos = pos
 	direction = dir.normalized() if dir.length() > 0.0 else Vector2.RIGHT
 	drift_speed = float(def.get("drift", {}).get("speed", 0.0))
 	for ph in def.get("motion", []):
@@ -52,18 +57,29 @@ func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2
 			released = false
 		break
 	_aim_once()
+	_enforce_cap()
+	if delivery == "projectile" and def.has("trail"):
+		cast.spawn_trail(self, def.trail)
 	_vfx = get_node_or_null("/root/Vfx")
 	if _vfx:
 		_vfx.part_spawned(self)
 
 # --- geometry -------------------------------------------------------------------------
 func geo(key: String, fallback: float = 0.0) -> float:
+	if geo_override.has(key):
+		return float(geo_override[key])
 	return float(def.get("geometry", {}).get(key, fallback)) * size_scale
+
+## Extra reach for an enemy's body. Ported spells set geometry.pad 0 to keep their old hitboxes.
+func hit_pad() -> float:
+	return float(def.get("geometry", {}).get("pad", ENEMY_RADIUS))
 
 func geo_type() -> String:
 	return str(def.get("geometry", {}).get("type", "body"))
 
-func contains(point: Vector2, pad: float = ENEMY_RADIUS) -> bool:
+func contains(point: Vector2, pad: float = -1.0) -> bool:
+	if pad < 0.0:
+		pad = hit_pad()
 	var offset = point - global_position
 	match geo_type():
 		"body", "disk":
@@ -152,6 +168,7 @@ func _step_projectile(delta: float) -> void:
 			elif str(ph.type) == "spiral":
 				direction = direction.rotated(float(ph.get("spin", 4.0)) * delta)
 			var move = float(ph.get("speed", 600.0)) * delta
+			prev_pos = global_position
 			global_position += direction * move
 			phase_travel += move
 			if ph.has("range") and phase_travel >= float(ph.range):
@@ -183,7 +200,7 @@ func _collide() -> void:
 	for enemy in cast.enemies():
 		if done:
 			return
-		if exclude.has(enemy.get_instance_id()) or not contains(enemy.global_position):
+		if exclude.has(enemy.get_instance_id()) or not _swept_contains(enemy.global_position):
 			continue
 		if not _can_hit(enemy, rehit):
 			continue
@@ -191,6 +208,13 @@ func _collide() -> void:
 		if pierce >= 0 and hit_count > pierce:
 			finish(false)
 			return
+
+## A body sweeps the segment it moved along this step, so fast projectiles cannot skip enemies.
+func _swept_contains(point: Vector2) -> bool:
+	if geo_type() != "body" or prev_pos == global_position:
+		return contains(point)
+	var closest = Geometry2D.get_closest_point_to_segment(point, prev_pos, global_position)
+	return closest.distance_to(point) <= geo("radius", 12.0) + hit_pad()
 
 func _can_hit(enemy, rehit: float) -> bool:
 	var id = enemy.get_instance_id()
@@ -226,6 +250,7 @@ func _hit_all_inside(rehit: float) -> void:
 			hit(enemy)
 
 func _step_periodic(delta: float) -> void:
+	_follow_trail()
 	var anchor = str(def.get("anchor", ""))
 	if anchor == "caster":
 		global_position = cast.caster_position()
@@ -237,7 +262,10 @@ func _step_periodic(delta: float) -> void:
 			global_position = global_position.move_toward(near.global_position, drift_speed * delta)
 	var timing: Dictionary = def.get("timing", {})
 	var interval = float(timing.get("interval", 0.5))
-	if not def.get("payload", []).is_empty():
+	if not def.get("payload", []).is_empty() and bool(timing.get("per_target", false)):
+		# Each enemy is hit as it enters, then every interval while it stays inside.
+		_hit_all_inside(interval)
+	elif not def.get("payload", []).is_empty():
 		tick_acc["payload"] = float(tick_acc.get("payload", interval)) + delta
 		if float(tick_acc.payload) >= interval:
 			tick_acc.payload = float(tick_acc.payload) - interval
@@ -261,6 +289,38 @@ func _step_periodic(delta: float) -> void:
 			cast.spawn_event(self, ev, at, victim)
 	if age >= float(timing.get("duration", 3.0)):
 		finish(true)
+
+## A trail is a line field from where the projectile was thrown to where it is now.
+func _follow_trail() -> void:
+	if trail_parent == null:
+		return
+	var p = trail_parent.get_ref()
+	if p != null and is_instance_valid(p) and not p.done:
+		var a := trail_from
+		var b: Vector2 = p.global_position
+		global_position = (a + b) * 0.5
+		geo_override.length = a.distance_to(b)
+		if a.distance_to(b) > 0.5:
+			# Field lines lie across `direction` (contains), so turn it a quarter to run along the throw.
+			direction = a.direction_to(b).orthogonal()
+	else:
+		trail_parent = null
+
+## limits.cap: at most `max` of this part alive at once; the oldest goes out first.
+func _enforce_cap() -> void:
+	var cap = int(def.get("limits", {}).get("cap", 0))
+	if cap <= 0 or cast == null:
+		return
+	var group = "spell_part_%s_%s" % [str(cast.plan.get("id", "")), part_name]
+	var live: Array = get_tree().get_nodes_in_group(group).filter(func(n): return is_instance_valid(n) and not n.done) if is_inside_tree() else []
+	while live.size() >= cap:
+		var oldest = live[0]
+		for n in live:
+			if n.age > oldest.age:
+				oldest = n
+		oldest.finish(false)
+		live.erase(oldest)
+	add_to_group(group)
 
 func _step_trap(_delta: float) -> void:
 	var timing: Dictionary = def.get("timing", {})

@@ -298,7 +298,13 @@ func part_spawned(part) -> void:
 				# half-length minus half-width, so the rim lands exactly on the hitbox.
 				var hw: float = part.geo("width", 30.0) * 0.5
 				var axis: Vector2 = Vector2(part.direction).orthogonal().normalized() * maxf(0.0, part.geo("length", 200.0) * 0.5 - hw)
-				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, {"axis": axis / WPS})
+				var line_o := {"axis": axis / WPS}
+				if str(part.def.get("vfx", {}).get("style", "")) == "smoulder":
+					# A burning trail, not a wall: sparse low flames and embers along the line.
+					line_o.rate = 0.1
+					line_o.heat_k = 0.5
+					line_o.style = 2
+				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, line_o)
 			else:
 				st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5)
 	_parts[part.get_instance_id()] = st
@@ -409,6 +415,10 @@ func step(dt: float) -> void:
 			"field":
 				st.field.x = pos.x
 				st.field.y = pos.y
+				if part.geo_type() == "line":
+					# Lines can grow (a spear's burning trail follows the spear): keep the axis on the hitbox.
+					var hw: float = part.geo("width", 30.0) * 0.5
+					st.field.axis = Vector2(part.direction).orthogonal().normalized() * maxf(0.0, part.geo("length", 200.0) * 0.5 - hw) / WPS
 				if st.look.native == "ice":
 					_ice_field(st.field, dt)
 				elif st.look.native == "lightning":

@@ -572,11 +572,16 @@ func _dispatch_spell(slot: int) -> bool:
 	
 	var spell_info = get_spell_info(slot)
 	var spell_type = spell_info["type"]
+	if LegacyBridge.handles(spell_info):
+		if not cast_ported(slot):
+			return false
+		AudioManager.play_spell_sound(str(spell_info.id))
+		return true
 	
 	match spell_type:
 		"life_bolt":
 			cast_life_bolt(slot)
-		"piercing", "plague", "field", "orbit", "beam", "trap", "spirit", "trail", "returning":
+		"plague", "field", "orbit", "beam", "trap", "spirit", "trail", "returning":
 			if not cast_build_spell(slot):
 				return false
 		"projectile":
@@ -1265,6 +1270,7 @@ const KeywordParser = preload("res://scripts/engine/KeywordParser.gd")
 const SpellDefs = preload("res://scripts/engine/SpellDefs.gd")
 const CastPlanner = preload("res://scripts/engine/CastPlanner.gd")
 const GenericCast = preload("res://scripts/engine/GenericCast.gd")
+const LegacyBridge = preload("res://scripts/engine/LegacyBridge.gd")
 var learned_generic_spells: Array = []
 var last_generic_cast = null
 var last_parse: Dictionary = {}
@@ -1315,6 +1321,18 @@ func cast_keyword_spell(text: String) -> bool:
 		if parsed.quick:
 			last_cast_failure = "Quick cast doesn't work on %s yet" % spell_label
 			return false
+		var words: Array = parsed.keywords.filter(func(w): return w != "mega")
+		if LegacyBridge.handles(get_spell_info(slot)) and (not words.is_empty() or not parsed.rejected.is_empty()):
+			# Ported spells take every keyword (doc 18 phase 2); rejected words crack and the cast goes on.
+			ported_bundle = parsed.bundle
+			for r in parsed.rejected:
+				keyword_cracked.emit(str(r.word), str(r.reason))
+			spell_queue.clear()
+			queue_spell(slot)
+			spell_queue[0].mega = false
+			var ok = cast_spell()
+			ported_bundle = {}
+			return ok
 		if not parsed.rejected.is_empty():
 			last_cast_failure = "%s: %s" % [str(parsed.rejected[0].word).to_upper(), parsed.rejected[0].reason]
 			return false
@@ -1665,11 +1683,6 @@ func cast_build_spell(slot: int) -> bool:
 		volley.configure(info, calculate_spell_damage(info), player)
 		return true
 	var target = get_visible_plague_host(info) if info.type == "plague" else get_closest_enemy()
-	if info.type == "piercing":
-		var lance_reach = 700.0 * 1.5 * float(cast_stat("projectile_speed_multiplier"))
-		var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("spear_radius", 24.0)), lance_reach, get_viewport().get_visible_rect())
-		if line_target != null:
-			target = line_target
 	if info.type == "field":
 		target = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
 	if info.type == "plague" and target == null:
@@ -1749,6 +1762,42 @@ func cast_build_spell(slot: int) -> bool:
 	effect.configure(info, calculate_spell_damage(info), player, target)
 	get_parent().add_child(effect)
 	return true
+
+## Doc 18 phase 2: a shipping spell rebuilt on the generic engine (scripts/engine/LegacyBridge.gd).
+## Same numbers and targeting as before; the generic runner moves and hits, and the VFX present it.
+var ported_bundle: Dictionary = {}
+
+func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
+	if bundle.is_empty():
+		bundle = ported_bundle
+	ported_bundle = {}
+	var info = resolve_cast_info(slot)
+	var scaled = Geometry.scaled_data(info, player)
+	var speed_mult = float(cast_stat("projectile_speed_multiplier"))
+	var def = LegacyBridge.build(scaled, calculate_spell_damage(info), {"speed_mult": speed_mult})
+	if def.is_empty():
+		return false
+	var target = ported_target(scaled, speed_mult)
+	var plan = CastPlanner.plan(def, bundle, {})
+	last_cracked = plan.rejected
+	for r in plan.rejected:
+		keyword_cracked.emit(str(r.word), str(r.reason))
+	var cast = GenericCast.new()
+	cast.name = "GenericCast_" + str(def.id)
+	cast.forced_target = target
+	cast.setup(plan, player, get_parent(), DamageSource.current if not DamageSource.current.is_empty() else DamageSource.make(str(def.id), style_clock()))
+	get_parent().add_child(cast)
+	last_generic_cast = cast
+	return true
+
+## The target each ported spell aimed at before the port.
+func ported_target(info: Dictionary, speed_mult: float):
+	match str(info.get("type", "")):
+		"piercing":
+			var reach = 700.0 * 1.5 * speed_mult
+			var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("spear_radius", 24.0)), reach, get_viewport().get_visible_rect())
+			return line_target if line_target != null else get_closest_enemy()
+	return get_closest_enemy()
 
 func get_visible_plague_host(info: Dictionary):
 	var nearest = null

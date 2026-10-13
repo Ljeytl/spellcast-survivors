@@ -21,6 +21,7 @@ var hits_log: Array = []       # {part, enemy_id} for tests/telemetry
 var finished := false
 var release_acc := 0.0
 var aim_dir := Vector2.RIGHT
+var forced_target = null       # ported spells keep their old targeting: the caller picks the target
 
 func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictionary, p_manual: bool = false, seed_value: int = -1) -> void:
 	plan = p_plan
@@ -165,6 +166,8 @@ func _facing() -> Vector2:
 	return Vector2.RIGHT
 
 func _pick_target():
+	if forced_target != null and is_instance_valid(forced_target) and forced_target in enemies():
+		return forced_target
 	var pool = enemies()
 	if pool.is_empty():
 		return null
@@ -193,7 +196,7 @@ func _spawn_root(s: Dictionary) -> void:
 		part.assigned = s.target
 
 func _make_part(name: String, pos: Vector2, dir: Vector2, depth: int, power: float, size: float):
-	if spawned >= MAX_SPAWNS or not plan.parts.has(name):
+	if spawned >= int(plan.get("max_spawns", MAX_SPAWNS)) or not plan.parts.has(name):
 		return null
 	spawned += 1
 	var part = SpellPart.new()
@@ -262,6 +265,15 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 			child.hops = remaining - 1
 			child.chain_range = float(ev.get("range", parent.chain_range))
 			child.assigned = target
+
+## A projectile's trail: a line field that grows from the throw point to the projectile.
+func spawn_trail(parent, ev: Dictionary) -> void:
+	var child = _make_part(str(ev.get("part", "")), parent.global_position, parent.direction.orthogonal(), parent.depth + 1, parent.power_scale, parent.size_scale)
+	if child == null:
+		return
+	child.trail_parent = weakref(parent)
+	child.trail_from = parent.global_position
+	child.geo_override.length = 0.0
 
 func part_finished(_part) -> void:
 	pass

@@ -7,8 +7,10 @@ class Target extends Node2D:
 	var current_health = 1000.0
 	var dying = false
 	var slow = 0.0
+	var hits: Array = []
 	func take_damage(amount, _source = Vector2.ZERO, _damage_source = {}):
 		if not dying:
+			hits.append(float(amount))
 			current_health = maxf(0.0, current_health - amount)
 	func apply_slow(amount, _duration):
 		slow = amount
@@ -31,6 +33,17 @@ func make_target(game, position):
 	game.add_child(target)
 	target.add_to_group("enemies")
 	return target
+
+## Spells ported to the generic engine (doc 18 phase 2): the cast node, stepped by hand.
+func cast_for(game, id):
+	for node in game.get_children():
+		if node.get("plan") is Dictionary and str(node.plan.get("id", "")) == id and not node.is_queued_for_deletion():
+			node.manual = true
+			return node
+	return null
+
+func spear_hits(target, amount) -> int:
+	return target.hits.filter(func(h): return is_equal_approx(h, amount)).size()
 
 func effect_for(game, id):
 	for effect in get_nodes_in_group("build_spell_effects"):
@@ -126,18 +139,18 @@ func run():
 	var c = make_target(game, start + Vector2(70, 65))
 	manager.learn_spell("ember_spear")
 	manager.cast_freeform_spell("ember spear")
-	var effect = effect_for(game, "ember_spear")
-	effect.advance(0.3)
-	var lance_health = 1000.0 - manager.calculate_spell_damage(manager.spells[manager.find_spell_slot("ember_spear")])
-	check(is_equal_approx(a.current_health, lance_health) and is_equal_approx(b.current_health, lance_health), "Swept spear pierces two enemies")
+	var spear_cast = cast_for(game, "ember_spear")
+	spear_cast.run(0.3)
+	var lance_damage = manager.calculate_spell_damage(manager.spells[manager.find_spell_slot("ember_spear")])
+	check(spear_hits(a, lance_damage) == 1 and spear_hits(b, lance_damage) == 1, "Swept spear pierces two enemies")
 	check(c.current_health == 1000, "Lance does not damage outside its line")
-	effect.advance(0.5)
-	check(is_equal_approx(a.current_health, lance_health), "Piercing target cannot be hit twice")
+	spear_cast.run(0.5)
+	check(spear_hits(a, lance_damage) == 1, "Piercing target cannot be hit twice")
 	manager.learn_spell("meteor_shower")
 	manager.learn_spell("meteor_spear")
 	manager.cast_freeform_spell("meteor spear")
-	effect = effect_for(game, "meteor_spear")
-	effect.advance(0.3)
+	cast_for(game, "meteor_spear").run(0.3)
+	var effect = null
 	check(c.current_health < 1000, "Meteor Spear splash reaches off-line enemy")
 	manager.learn_spell("infestation")
 	manager.learn_spell("regeneration")

@@ -155,6 +155,13 @@ static func arena_defs() -> Dictionary:
 
 # label, incantation, cadence (s) — cadence from the sandbox's SPELLS[*].every
 const PAGES := [
+	["Shipping", [
+		["Ember Spear rank 1 (ported, game numbers)", "legacy ember spear", 1.6],
+		["Ember Spear rank 8", "legacy rank8 ember spear", 1.6],
+		["Meteor Spear (combination)", "legacy meteor spear", 1.6],
+		["icy ember spear (keyword on a shipping spell)", "legacy icy ember spear", 1.6],
+		["double ember spear", "legacy double ember spear", 1.6],
+	]],
 	["Combos", [
 		["fiery tsunami (water + fire: boiling wall, steam)", "fiery tsunami", 2.6],
 		["shocking tsunami (water + lightning)", "shocking tsunami", 2.6],
@@ -371,7 +378,53 @@ func _process(delta: float):
 		else:
 			cast(str(what))
 
+## Shipping spells ported to the generic engine (doc 18 phase 2), with their game numbers:
+## "legacy [rank8] [keywords] <incantation>".
+func cast_legacy(text: String):
+	var words := text.trim_prefix("legacy ").strip_edges()
+	var rank := 1
+	if words.begins_with("rank8 "):
+		rank = 8
+		words = words.trim_prefix("rank8 ")
+	var spells: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells
+	var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
+	var names := {}
+	for id in spells:
+		names[str(spells[id].get("incantation", spells[id].name)).to_lower()] = id
+	for id in recipes:
+		names[str(recipes[id].incantation)] = id
+	var parsed = KP.parse(words, names.keys())
+	if not parsed.ok:
+		push_warning("arena: cannot parse " + text)
+		return
+	var id: String = names[parsed.spell]
+	var info: Dictionary
+	if recipes.has(id):
+		info = spells[recipes[id].ingredients[0]].duplicate(true)
+		info.merge(recipes[id].overrides, true)
+		info.id = id
+		info.name = recipes[id].name
+		rank = 8
+	else:
+		info = spells[id].duplicate(true)
+	info.level = rank
+	info = preload("res://scripts/SpellProgression.gd").resolve(info)
+	info = preload("res://scripts/SpellGeometry.gd").scaled_data(info, caster)
+	var damage := float(info.get("damage", 0.0)) * (1.0 if info.get("rank_growth", {}).has("damage") else 1.0 + 0.15 * (rank - 1))
+	var def = preload("res://scripts/engine/LegacyBridge.gd").build(info, damage, {"speed_mult": 1.0})
+	if def.is_empty():
+		push_warning("arena: not ported yet: " + id)
+		return
+	seed_counter += 1
+	var plan = Planner.plan(def, parsed.bundle, {})
+	var c = GenericCast.new()
+	add_child(c)
+	c.setup(plan, caster, self, {"spell": plan.id, "cast_clock": t, "cast_id": seed_counter}, false, seed_counter)
+
 func cast(text: String):
+	if text.begins_with("legacy "):
+		cast_legacy(text)
+		return
 	var parsed = KP.parse(text, Defs.by_incantation().keys())
 	if not parsed.ok:
 		push_warning("arena: cannot parse " + text)

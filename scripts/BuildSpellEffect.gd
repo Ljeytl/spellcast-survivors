@@ -56,8 +56,6 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 			global_position = target.global_position
 		if info.type == "plague":
 			infect(target, player.global_position, float(info.get("cast_range", 600.0)))
-	if info.type == "piercing":
-		remaining = 1.5
 	if info.type == "plague":
 		color = Color.GREEN_YELLOW
 		z_index = 3
@@ -66,7 +64,7 @@ func configure(data: Dictionary, amount: float, player: Node2D, target: Node2D):
 	if info.get("slow", 0.0) > 0:
 		color = Color.LIGHT_CYAN
 	add_to_group("build_spell_effects")
-	if info.type in ["piercing", "orbit", "plague", "spirit", "returning"]:
+	if info.type in ["orbit", "plague", "spirit", "returning"]:
 		Visual.register(self)
 
 func queue_cast_extension(data: Dictionary, amount: float) -> float:
@@ -126,32 +124,15 @@ func advance(delta: float):
 	if info.type == "plague":
 		advance_spores(elapsed)
 		refresh_plague_lifetime()
-	if info.type == "piercing":
-		var start = global_position
-		global_position += direction * 700.0 * float(info.get("projectile_speed_multiplier", 1.0)) * elapsed
-		if info.get("burn_trail", false):
-			update_burn_trail(start)
-		for enemy in get_tree().get_nodes_in_group("enemies"):
-			if not valid_target(enemy) or hit_ids.has(enemy.get_instance_id()):
-				continue
-			if Geometry2D.get_closest_point_to_segment(enemy.global_position, start, global_position).distance_to(enemy.global_position) <= float(info.get("spear_radius", Geometry.SPEAR_RADIUS)) * float(info.projectile_size_multiplier):
-				hit_ids[enemy.get_instance_id()] = true
-				deal_damage(enemy, damage)
-				if info.get("explosive", false):
-					var blast = preload("res://scripts/LingeringArea.gd").new()
-					DamageSource.stamp(blast, DamageSource.of(self))
-					blast.configure(enemy.global_position, float(info.get("explosion_radius", 90.0 * float(info.spell_size_multiplier))), float(info.get("explosion_damage", damage * 0.5)), float(info.get("explosion_duration", 0.2 * float(info.spell_duration_multiplier))), Color("ee6257"), "meteor", {enemy.get_instance_id(): true})
-					get_parent().add_child(blast)
-	else:
-		if info.type == "orbit":
-			global_position = player.global_position
-			advance_orbit(elapsed)
-		tick_remaining -= elapsed
-		while tick_remaining <= 0.000001:
-			tick_remaining += float(info.get("tick_interval", 0.5))
-			match info.type:
-				"field": pulse(global_position, float(info.get("radius", 150.0)), damage)
-				"plague": tick_infections()
+	if info.type == "orbit":
+		global_position = player.global_position
+		advance_orbit(elapsed)
+	tick_remaining -= elapsed
+	while tick_remaining <= 0.000001:
+		tick_remaining += float(info.get("tick_interval", 0.5))
+		match info.type:
+			"field": pulse(global_position, float(info.get("radius", 150.0)), damage)
+			"plague": tick_infections()
 	advance_cast_segments(elapsed)
 	queue_redraw()
 	if remaining <= 0.0:
@@ -177,23 +158,6 @@ func advance_orbit(delta: float):
 
 func valid_target(enemy) -> bool:
 	return is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and not enemy.get("dying") and float(enemy.get("current_health")) > 0.0
-
-## Ember Spear: the line it flies through stays on fire (EmberTrail), less impact, more over time.
-var burn_trail_ref: WeakRef = null
-func update_burn_trail(start: Vector2):
-	var trail = burn_trail_ref.get_ref() if burn_trail_ref else null
-	if trail == null and burn_trail_ref == null:
-		trail = preload("res://scripts/EmberTrail.gd").new()
-		DamageSource.stamp(trail, DamageSource.of(self))
-		trail.a = start
-		trail.radius = float(info.get("spear_radius", Geometry.SPEAR_RADIUS)) * float(info.get("projectile_size_multiplier", 1.0))
-		trail.tick_damage = damage * float(info.get("burn_tick_ratio", 0.12))
-		trail.tick_interval = float(info.get("burn_tick", 0.5))
-		trail.linger = float(info.get("burn_duration", 1.5))
-		get_parent().add_child(trail)
-		burn_trail_ref = weakref(trail)
-	if is_instance_valid(trail):
-		trail.b = global_position
 
 func deal_damage(enemy, amount: float) -> float:
 	if not valid_target(enemy):
@@ -370,10 +334,6 @@ func spread_from(center: Vector2) -> bool:
 func _draw():
 	var art = preload("res://scripts/EffectArt.gd")
 	match info.type:
-		"piercing":
-			art.stamp(self, "spear", direction * Geometry.stamp_offset("spear", float(info.get("spear_radius", Geometry.SPEAR_RADIUS)) * float(info.projectile_size_multiplier)).x, Visual.size(self, Geometry.stamp_dimensions("spear", float(info.get("spear_radius", Geometry.SPEAR_RADIUS)) * float(info.projectile_size_multiplier))), Color.WHITE, direction.angle())
-			if info.get("explosive", false):
-				art.stamp(self, "meteor", -direction * 18, Visual.size(self, Vector2.ONE * 24 * float(info.spell_size_multiplier)))
 		"field":
 			var radius = float(info.get("radius", 150.0))
 			if info.get("slow", 0.0) > 0:

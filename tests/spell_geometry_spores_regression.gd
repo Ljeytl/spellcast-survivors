@@ -63,8 +63,24 @@ func run():
 	caster.add_to_group("player")
 	for scale in [1.0, 2.0]:
 		caster.spell_size_multiplier = 1.0 if "--known-bad-size" in OS.get_cmdline_user_args() else scale
-		for type in ["field", "trail", "trap", "beam", "piercing", "returning", "spirit", "orbit"]:
-			var radius = {"field":150, "trail":65, "trap":130, "beam":20, "piercing":24, "returning":33.6, "spirit":24, "orbit":42}[type] * scale
+		# Ember Spear runs on the generic engine (doc 18 phase 2); same hitbox as its old body.
+		var spear_r = 24.0 * scale
+		var Bridge = load("res://scripts/engine/LegacyBridge.gd")
+		var spear_def = Bridge.build({"id": "ember_spear", "type": "piercing", "spear_radius": 24.0, "projectile_size_multiplier": scale}, 10.0, {})
+		var spear_cast = load("res://scripts/engine/GenericCast.gd").new()
+		spear_cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(spear_def, {}, {}), caster, root, {"spell": "ember_spear"}, true)
+		root.add_child(spear_cast)
+		nodes.append(spear_cast)
+		spear_cast.step(1.0 / 60.0)  # no enemies yet: the spear flies right (caster facing)
+		var tip = spear_cast.parts[0].global_position
+		var spear_in = host(tip + Vector2(5, spear_r - 0.1))
+		var spear_out = host(tip + Vector2(5, -spear_r - 0.1))
+		spear_cast.step(1.0 / 60.0)
+		check(spear_in.current_health < 1000, "piercing %sx hits just inside visible body" % scale)
+		check(spear_out.current_health == 1000, "piercing %sx misses just outside visible body" % scale)
+		clear()
+		for type in ["field", "trail", "trap", "beam", "returning", "spirit", "orbit"]:
+			var radius = {"field":150, "trail":65, "trap":130, "beam":20, "returning":33.6, "spirit":24, "orbit":42}[type] * scale
 			var center = Vector2.ZERO
 			if type == "trap": center = Vector2(160, 0)
 			if type == "orbit": center = Vector2(130 * scale, 0)

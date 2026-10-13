@@ -370,6 +370,8 @@ func field(x: float, y: float, r: float, life: float, o: Dictionary = {}) -> Dic
 	var f := {"x": x, "y": y, "r": r, "age": 0.0, "life": life, "acc": 0.0,
 		"rate": o.get("rate", 1.0), "heat_k": o.get("heat_k", 0.8), "trail": o.get("trail", false),
 		"axis": o.get("axis", Vector2.ZERO), "look": int(o.get("look", 0)), "goo": int(o.get("goo", 0))}
+	if o.has("style"):
+		f.style = int(o.style)   # 2 = smoulder: sparse char floor (a burning trail)
 	_fields.append(f)
 	if _fields.size() > MAX_FIELDS:
 		_fields.pop_front()
@@ -910,7 +912,7 @@ func _render(stepped: bool):
 		var v := minf(1.0, minf(A.age / 0.25, (A.life - A.age) / 0.5))
 		fl.append(Vector4(roundf(A.x * K), roundf(A.y * K), A.r * K, v))
 		var ax: Vector2 = A.axis * K
-		fa.append(Vector4(ax.x, ax.y, float(A.look), float(FIELD_LOOKS[A.look].style)))
+		fa.append(Vector4(ax.x, ax.y, float(A.look), float(A.get("style", FIELD_LOOKS[A.look].style))))
 		fg.append(Vector2(float(A.goo), A.age))
 	g.set_shader_parameter("field_count", fl.size())
 	fl.resize(MAX_FIELDS)

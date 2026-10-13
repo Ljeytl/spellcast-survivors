@@ -100,7 +100,7 @@ void fragment() {
 		if (abs(d - r) < 0.7 * k) {
 			bool flick = look == 2 ? hs(a.x + tick * 8, a.y) > 0.6 : ((a.x + a.y + tick) & 3) == 0;
 			col = rim_cols[look * 2 + (flick ? 1 : 0)];
-		} else if (field_axis[i].w > 0.5) {
+		} else if (field_axis[i].w > 0.5 && field_axis[i].w < 1.5) {
 			// sandbox drawEFields: element floor; ice barely drifts and glints
 			vec2 s = vec2(a) / k;
 			float drift = look == 1 ? 0.05 : 0.4;
@@ -130,6 +130,14 @@ void fragment() {
 					}
 				}
 			}
+		} else if (L > 0.0 && field_axis[i].w > 1.5) {
+			// smoulder (a burning trail): only patches of char glow; the grass shows between them
+			vec2 s = vec2(a) / k;
+			float n = vn(s.x * 0.35, s.y * 0.35 + t * 0.5);
+			if (n < 0.56) {
+				continue;
+			}
+			col = n > 0.66 ? floor_cols[1] : floor_cols[0];
 		} else if (L > 0.0) {
 			vec2 s = vec2(a) / k;
 			col = vn(s.x * 0.25, s.y * 0.25 + t * 0.8) > 0.6 ? floor_cols[1] : floor_cols[0];

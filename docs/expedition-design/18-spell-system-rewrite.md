@@ -1269,6 +1269,8 @@ This is a full rewrite of the **spell engine**, done so the game stays playable 
 | 6. Art integration | Grey-value + colour-ramp shader, per-delivery motifs, status overlays, reaction bursts | Can start in parallel once the artist delivers pieces |
 | 7. New spells | Section 12, in batches chosen by play value | Each new spell: data + art + a behaviour test |
 
+**Phase 2 progress (13 October 2026).** `scripts/engine/LegacyBridge.gd` builds each ported spell's definition from its resolved data, so rank, combination scaling, passives and MEGA keep resolving in SpellManager and the numbers do not move; targeting stays the old targeting (`SpellManager.ported_target`). Ported: Ember Spear, Meteor Spear (old `piercing` branch deleted). Keywords work on ported spells. Test: `tests/legacy_port_regression.gd` (one block per spell). Arena page Shipping shows them with game numbers.
+
 Per phase: run the existing regression suite, the documentation validator and, with approval, bot runs to compare balance against the current build. Keep a comparison build of 0.2.7.
 
 ## 15. Balance plan

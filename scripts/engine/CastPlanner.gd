@@ -159,10 +159,15 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 				var raw_share = clampf(float(item.get("raw_share", 1.0 if element == "" else 0.0)), 0.0, 1.0)
 				var entries := []
 				var own_type = element if element != "" else "raw"
-				if raw_share > 0.0:
-					entries.append({"amount": amount * raw_share, "damage_type": "raw"})
-				if raw_share < 1.0:
-					entries.append({"amount": amount * (1.0 - raw_share), "damage_type": own_type})
+				if item.has("mix"):
+					# Ported spells carry their data/spell_damage.json mix; raw shares read the spell's element.
+					for kind in item.mix:
+						entries.append({"amount": amount * float(item.mix[kind]), "damage_type": str(kind), "chart_element": element if str(kind) == "raw" and element != "" else str(kind)})
+				else:
+					if raw_share > 0.0:
+						entries.append({"amount": amount * raw_share, "damage_type": "raw"})
+					if raw_share < 1.0:
+						entries.append({"amount": amount * (1.0 - raw_share), "damage_type": own_type})
 				for e in elements:
 					entries.append({"amount": amount * float(e.share), "damage_type": str(e.element), "chart_element": str(e.element)})
 				payload.append({"type": "damage", "entries": entries, "element": element if element != "" else "raw", "hit": amount})
@@ -270,7 +275,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		"id": str(def.id), "name": str(def.get("name", def.id)), "element": element, "root": root_name,
 		"parts": parts, "arrangement": arrangement, "release": release, "casts": casts,
 		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle,
-		"quick": bool(opts.get("quick", false))
+		"quick": bool(opts.get("quick", false)), "max_spawns": int(def.get("max_spawns", 48))
 	}
 
 static func _word_for(words: Dictionary, category: String) -> String:

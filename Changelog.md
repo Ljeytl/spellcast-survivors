@@ -1,3 +1,11 @@
+# Unreleased (0.3) — Shipping spells move to the spell engine (doc 18 phase 2)
+
+- **Ember Spear and Meteor Spear run on the generic engine** (`scripts/engine/LegacyBridge.gd`). Same numbers, targeting and hitboxes as before (rank, combination scaling, passives and MEGA still resolve in SpellManager); the old dispatch branch, BuildSpellEffect's spear code and `EmberTrail.gd` are gone.
+- **Keywords work on ported spells**: `double ember spear`, `fiery homing ember spear`, `icy ember spear`. A word that changes nothing cracks and the cast goes on, as on generic spells.
+- They get the new VFX: magma spear, the burning trail as a smouldering line on its true hitbox, meteor blasts. Arena page **Shipping** shows the ported spells with game numbers.
+- Engine: swept projectile hits (fast projectiles cannot skip enemies), per-part `geometry.pad`, projectile `trail` (a line field that grows behind it), per-target field ticks (`timing.per_target`), `limits.cap` (oldest goes out first), typed damage mixes (`mix`) from `data/spell_damage.json`.
+- Perf: VFX draw on a 60 Hz fixed step on ones, grid hysteresis, faster element drawing (heavy arena scene 24.5 -> 5.4 ms per step).
+
 # Unreleased (0.3) — VFX: every element, every shape, test arena
 
 - **Test arena** (`tools/vfx-arena/VfxArena.tscn`, web build via the arena export): the sandbox layout with the real spell engine. Tab cycles element pages (Arcane, Fire, Ice, Water, Plague, Earth, Lightning, Life), 1-9 picks a spell, B grass/dark floor, S slow-mo, P placeholder art, T ones/twos, R reset. `compare.html` runs ones and twos side by side with shared keys.
