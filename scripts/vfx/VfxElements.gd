@@ -33,7 +33,7 @@ var vfx
 var motes: Array = []       # [x, y, vx, vy, cols, age, life, g, sway, ph, big]
 var shards: Array = []      # [x, y, z, vx, vy, vz, ang, spin, len, age, life, pal, bounced]
 var crystals: Array = []    # [x, y, h, tilt, age, life, pal]
-var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch]  jag path, regenerated each step
+var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch, pts]  pts null = regenerate every step
 var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
 
 func _init(owner):
@@ -56,12 +56,18 @@ func crystal(x: float, y: float, h: float, life: float, pal: Array = ICE.body):
 	if crystals.size() < (40 if vfx.reduced_effects else 120):
 		crystals.append([x, y, h, (randf() - 0.5) * 0.6, 0.0, life, pal])
 
-## Jagged arc (sandbox jag + arcs). Regenerated every step while it lives, so
-## it crackles. c = arc palette index; thick doubles it in the darker tone;
-## branch adds a side fork from the midpoint (sky strikes).
-func arc(x0: float, y0: float, x1: float, y1: float, amp: float, life: float, c: int = 1, thick: bool = false, branch: bool = false):
+## Jagged arc (sandbox jag + arcs). The path is fixed for its short life, like
+## the sandbox; only `regen` arcs (sky strikes) re-roll every step and crackle.
+## Re-rolling every arc every frame read as noise on ones. c = arc palette
+## index; thick doubles it in the darker tone; branch forks from the midpoint.
+func arc(x0: float, y0: float, x1: float, y1: float, amp: float, life: float, c: int = 1, thick: bool = false, branch: bool = false, regen: bool = false):
 	if arcs.size() < (80 if vfx.reduced_effects else 300):
-		arcs.append([x0, y0, x1, y1, amp, 0.0, life, c, thick, branch])
+		var pts = null if regen else jag(x0, y0, x1, y1, amp)
+		var fork = null
+		if branch and not regen:
+			var m: Vector2 = pts[pts.size() / 2]
+			fork = jag(m.x, m.y, m.x + (randf() - 0.5) * 16.0, m.y + 6.0 + randf() * 8.0, 3.0)
+		arcs.append([x0, y0, x1, y1, amp, 0.0, life, c, thick, branch, pts, fork])
 
 func hop(x: float, y: float, life: float):
 	if hops.size() < (120 if vfx.reduced_effects else 400):
@@ -212,14 +218,40 @@ func draw_over(buf: PackedByteArray):
 func _block(buf: PackedByteArray, x: int, y: int, c: Color):
 	vfx._put(buf, x, y, c); vfx._put(buf, x + 1, y, c); vfx._put(buf, x, y + 1, c); vfx._put(buf, x + 1, y + 1, c)
 
-## Sandbox line(): one sandbox pixel thick = a 2x2 block every half su.
-func line(buf: PackedByteArray, a: Vector2, b: Vector2, c: Color):
+## Sandbox put(): one sandbox pixel = the cells it covers (1-2 per axis, K ~ 1.67),
+## so lines keep the sandbox's exact pixel staircase.
+func spx(buf: PackedByteArray, X: int, Y: int, c: Color):
 	var K: float = vfx.K
-	var d := b - a
-	var n := maxi(1, ceili(d.length() * 2.0))
-	for i in n + 1:
-		var p := a + d * (float(i) / n)
-		_block(buf, roundi(p.x * K), roundi(p.y * K), c)
+	var x0 := floori(X * K)
+	var x1 := floori((X + 1) * K)
+	var y0 := floori(Y * K)
+	var y1 := floori((Y + 1) * K)
+	for cy in range(y0, maxi(y1, y0 + 1)):
+		for cx in range(x0, maxi(x1, x0 + 1)):
+			vfx._put(buf, cx, cy, c)
+
+## Sandbox line(): Bresenham on the sandbox pixel grid (su), drawn with spx.
+func line(buf: PackedByteArray, a: Vector2, b: Vector2, c: Color):
+	var x0 := roundi(a.x)
+	var y0 := roundi(a.y)
+	var x1 := roundi(b.x)
+	var y1 := roundi(b.y)
+	var dx := absi(x1 - x0)
+	var dy := -absi(y1 - y0)
+	var sx := 1 if x0 < x1 else -1
+	var sy := 1 if y0 < y1 else -1
+	var e := dx + dy
+	for i in 400:
+		spx(buf, x0, y0, c)
+		if x0 == x1 and y0 == y1:
+			break
+		var e2 := 2 * e
+		if e2 >= dy:
+			e += dy
+			x0 += sx
+		if e2 <= dx:
+			e += dx
+			y0 += sy
 
 func path(buf: PackedByteArray, pts: PackedVector2Array, c: Color):
 	for i in range(1, pts.size()):
@@ -228,7 +260,7 @@ func path(buf: PackedByteArray, pts: PackedVector2Array, c: Color):
 func draw_paths(buf: PackedByteArray):
 	var A: Array = LIGHTNING.arc
 	for a in arcs:
-		var pts := jag(a[0], a[1], a[2], a[3], a[4])
+		var pts: PackedVector2Array = a[10] if a[10] != null else jag(a[0], a[1], a[2], a[3], a[4])
 		if a[8]:
 			var sh := PackedVector2Array()
 			for q in pts:
@@ -236,14 +268,16 @@ func draw_paths(buf: PackedByteArray):
 			path(buf, sh, A[2])
 		path(buf, pts, A[a[7]])
 		if a[9]:
-			var m := pts[pts.size() / 2]
-			path(buf, jag(m.x, m.y, m.x + (randf() - 0.5) * 16.0, m.y + 6.0 + randf() * 8.0, 3.0), A[a[7]])
-	var K: float = vfx.K
+			if a[11] != null:
+				path(buf, a[11], A[a[7]])
+			else:
+				var m := pts[pts.size() / 2]
+				path(buf, jag(m.x, m.y, m.x + (randf() - 0.5) * 16.0, m.y + 6.0 + randf() * 8.0, 3.0), A[a[7]])
 	for h in hops:
 		var k: float = h[4] / h[5]
 		var c: Color = A[0] if k < 0.3 else (A[1] if k < 0.6 else A[2])
-		_block(buf, roundi(h[0] * K), roundi(h[1] * K), c)
-		_block(buf, roundi((h[0] - h[2] * 0.012) * K), roundi((h[1] - h[3] * 0.012) * K), A[2])
+		spx(buf, roundi(h[0]), roundi(h[1]), c)
+		spx(buf, roundi(h[0] - h[2] * 0.012), roundi(h[1] - h[3] * 0.012), A[2])
 
 ## Nova front rim (sandbox drawElementTop, enovas): dashed bright band at the
 ## live radius, marching. Radius from the gameplay part, so it is the hitbox.

@@ -121,6 +121,10 @@ static func _kind(part) -> String:
 			if part.geo_type() == "ring" and part._propagation() == "expanding":
 				return "nova"
 		"field", "aura":
+			if part.geo_type() == "disk" and part.def.get("payload", []).is_empty() and part.def.get("events", {}).size() > 0:
+				# no payload: the disk is a range for its events, not a damage area
+				var dur := float(part.def.get("timing", {}).get("duration", 3.0))
+				return "charge" if dur <= 1.0 and part.def.events.has("on_expire") else "zone"
 			if part.geo_type() in ["disk", "line"]:
 				return "field"
 	return ""
@@ -171,6 +175,12 @@ func part_spawned(part) -> void:
 			if not NOVA_RIM.has(look.native):
 				return
 			st.seed = randf() * 6.0
+		"charge", "zone":
+			if look.native != "lightning":
+				return
+			st.off = (randf() - 0.5) * 12.0
+			st.age = 0.0
+			st.life = float(part.def.get("timing", {}).get("duration", 0.45))
 		"field":
 			if look.native == "ice" or look.native == "lightning":
 				var r_su2: float = part.geo("radius", 60.0) / WPS
@@ -272,6 +282,17 @@ func step(dt: float) -> void:
 					_ice_field(st.field, dt)
 				elif st.look.native == "lightning":
 					_lightning_field(st.field, dt)
+			"charge":
+				st.age += dt / vfx.fx_speed      # telegraph runs on game time: it must land with the real strike
+				if randf() < 0.5 * dt * 60.0:
+					var k: float = minf(1.0, st.age / st.life)
+					var a := randf() * TAU
+					var d := 9.0 * (1.0 - k) + 2.0
+					vfx.elements.hop(pos.x + cos(a) * d, pos.y - 3.0 + sin(a) * d * 0.7, 0.12)
+			"zone":
+				if randf() < 0.15 * dt * 60.0:
+					var a2 := randf() * TAU
+					vfx.elements.arc(pos.x, pos.y - 3.0, pos.x + cos(a2) * 6.0, pos.y - 3.0 + sin(a2) * 4.0, 1.5, 0.06, 1)
 			"nova":
 				if st.look.native == "ice":
 					_ice_nova(pos, float(part.front) / WPS, dt)
@@ -521,12 +542,42 @@ func _draw_lightning_body(buf: PackedByteArray, pos: Vector2, dir: Vector2, fami
 		var a := randf() * TAU
 		var r := (4.0 + randf() * 3.0) * reach * sc
 		el.path(buf, el.jag(pos.x, pos.y, pos.x + cos(a) * r, pos.y + sin(a) * r, 1.5), A[1] if i < 2 else A[2])
-	var K: float = vfx.K
-	var cx := roundi(pos.x * K)
-	var cy := roundi(pos.y * K)
-	for oy in range(-2, 2):
-		for ox in range(-2, 2):
-			vfx._put(buf, cx + ox, cy + oy, A[0] if absi(ox * 2 + 1) + absi(oy * 2 + 1) < 5 else A[1])
+	# sandbox: 3x3 sandbox-pixel core, white plus, pale corners
+	for oy in range(-1, 2):
+		for ox in range(-1, 2):
+			el.spx(buf, roundi(pos.x) + ox, roundi(pos.y) + oy, A[0] if absi(ox) + absi(oy) < 2 else A[1])
+
+## Strike telegraph (sandbox drawCharges): a ring closes on the target while a
+## stepped leader reaches down; the strike part lands when the charge ends.
+func _draw_charge(buf: PackedByteArray, c: Vector2, st: Dictionary) -> void:
+	var el = vfx.elements
+	var A: Array = LIT.arc
+	var k: float = minf(1.0, st.age / st.life)
+	var r := 10.0 * (1.0 - k) + 3.0
+	var steps := ceili(TAU * r * 1.3)
+	var frame: int = vfx._steps
+	var blink: int = (frame & 1) if k > 0.6 else ((frame >> 2) & 1)
+	for i in steps:
+		if blink == 0 and (i & 1) == 1:
+			continue
+		var a := TAU * i / steps
+		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r * 0.6), A[0] if k > 0.7 else A[2])
+	if k > 0.6:
+		var t := (k - 0.6) / 0.4
+		var top := c.y - 70.0
+		el.path(buf, el.jag(c.x + st.off, top, c.x + st.off * (1.0 - t), top + (c.y - top) * t, 3.0), A[3])
+
+## Strike range (payload-less aura): a quiet dashed rim, so the zone reads
+## without filling it; the strikes are the show.
+func _draw_zone(buf: PackedByteArray, c: Vector2, r: float) -> void:
+	var el = vfx.elements
+	var steps := ceili(TAU * r * 0.5)
+	var march: int = vfx._steps >> 3
+	for i in steps:
+		if ((i + march) % 4) != 0:
+			continue
+		var a := TAU * i / steps
+		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), LIT.arc[3])
 
 ## Contact (sandbox eContact lightning): flash, hopping sparks, short forks.
 func _zap(x: float, y: float) -> void:
@@ -544,7 +595,7 @@ func _zap(x: float, y: float) -> void:
 func _strike(x: float, y: float, s: float) -> void:
 	var el = vfx.elements
 	var sx := x + (randf() - 0.5) * 10.0
-	el.arc(sx, y - 70.0, x, y, 4.0, 0.13, 0, true, true)
+	el.arc(sx, y - 70.0, x, y, 4.0, 0.13, 0, true, true, true)
 	vfx.flash(x, y, 5.0 * s, 0.05, LIT.arc[0])
 	vfx.star(x, y, 3.5 * s, 0.05, 4, LIT.arc[0])
 	for i in roundi(12 * s):
@@ -556,8 +607,12 @@ func _strike(x: float, y: float, s: float) -> void:
 func _lightning_field(A: Dictionary, dt: float) -> void:
 	var el = vfx.elements
 	var r: float = A.r
-	var scale := maxf(1.0, r * r / 400.0)
-	if randf() < minf(1.0, 0.85 * dt * 60.0 * sqrt(scale)):
+	var scale := clampf(r * r / 400.0, 1.0, 1.5)
+	# expected sandbox frames' worth of spawns this step (a capped probability
+	# under-spawns at low frame rates)
+	var ev := 0.85 * dt * 60.0 * sqrt(scale)
+	var bursts := floori(ev) + (1 if randf() < ev - floorf(ev) else 0)
+	for b in bursts:
 		for i in 2:
 			var q := _in_disk(A.x, A.y, r)
 			var a := randf() * TAU
@@ -585,7 +640,7 @@ func _lightning_nova(c: Vector2, r: float, seed: float, dt: float) -> void:
 	var el = vfx.elements
 	for i in 7:
 		var a := float(i) / 7.0 * TAU + seed + (randf() - 0.5) * 0.3
-		el.arc(c.x, c.y, c.x + cos(a) * r, c.y + sin(a) * r, 3.0, 0.02 * 2.0, i & 1, true)
+		el.arc(c.x, c.y, c.x + cos(a) * r, c.y + sin(a) * r, 3.0, 0.02, i & 1, true)
 	if randf() < 0.5 * dt * 60.0:
 		var a2 := randf() * TAU
 		el.hop(c.x + cos(a2) * r, c.y + sin(a2) * r, 0.2)
@@ -656,6 +711,15 @@ func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, 
 func draw_bodies(buf: PackedByteArray) -> void:
 	var K: float = vfx.K
 	for st in _parts.values():
+		if st.kind == "charge" or st.kind == "zone":
+			var zp = st.part.get_ref()
+			if zp != null and is_instance_valid(zp) and not zp.done:
+				var zc: Vector2 = zp.global_position / WPS
+				if st.kind == "charge":
+					_draw_charge(buf, zc, st)
+				else:
+					_draw_zone(buf, zc, float(zp.geo("radius", 100.0)) / WPS)
+			continue
 		if st.kind == "nova":
 			var np = st.part.get_ref()
 			if np != null and is_instance_valid(np) and not np.done:

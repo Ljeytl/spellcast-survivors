@@ -65,7 +65,10 @@ static func arena_defs() -> Dictionary:
 		"arena_lightning_bolt": {"name": "Lightning Bolt", "incantation": "arena lightning bolt", "element": "storm", "acquire": "data_only", "root": "bolt",
 			"parts": {"bolt": {"delivery": "projectile", "origin": "caster", "geometry": {"type": "body", "radius": 4.5 * WPS},
 				"motion": [{"type": "straight", "speed": 2 * 160 * WPS, "range": 1400}], "payload": [{"type": "damage", "amount": 1}],
-				"limits": {"pierce": 0}, "vfx": {"family": "bolt"}, "events": {"on_hit": {"part": "strike"}}},
+				"limits": {"pierce": 0}, "vfx": {"family": "bolt"}, "events": {"on_hit": {"part": "charge"}}},
+				# sandbox: bolt lands -> 0.45 s charge telegraph on the target -> sky strike
+				"charge": {"delivery": "aura", "origin": "parent", "anchor": "hit_target", "geometry": {"type": "disk", "radius": 10 * WPS},
+				"timing": {"duration": 0.45}, "events": {"on_expire": {"part": "strike"}}},
 				"strike": {"delivery": "volume", "origin": "parent", "geometry": {"type": "disk", "radius": 10 * WPS},
 				"payload": [{"type": "status", "status": "shocked"}]}}},
 		"arena_lightning_spear": {"name": "Lightning Spear", "incantation": "arena lightning spear", "element": "storm", "acquire": "data_only", "root": "spear",
@@ -101,7 +104,7 @@ const PAGES := [
 		["icy spear (keyword accent)", "icy spear", 1.1],
 	]],
 	["Lightning", [
-		["Lightning Bolt (sandbox: Lightning > Bolt)", "arena lightning bolt", 0.6],
+		["Lightning Bolt (sandbox: Lightning > Bolt)", "arena lightning bolt", 1.2],
 		["Lightning Spear (sandbox: Lightning > Spear)", "arena lightning spear", 1.1],
 		["Lightning Field (sandbox: Lightning > Field)", "arena lightning field", 6.6],
 		["Lightning Nova (sandbox: Lightning > Nova)", "arena lightning nova", 2.2],
