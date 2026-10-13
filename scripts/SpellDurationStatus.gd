@@ -31,16 +31,26 @@ static func collect(manager: Node) -> Dictionary:
 	for cast in manager.get_tree().get_nodes_in_group("generic_casts"):
 		if cast.is_queued_for_deletion() or cast.caster != manager.player:
 			continue
-		for part in cast.parts:
-			if not is_instance_valid(part) or part.done or part.depth != 0:
-				continue
-			if part.def.get("payload", []).is_empty() and not part.def.has("heal_rate") and part.delivery != "trap":
-				continue   # marks and telegraphs (Meteor Shower) are not a lasting effect
-			if part.delivery == "trap":
-				add(states, str(cast.plan.id), 0.0, "armed" if part.armed else "arming")
-			elif part.delivery in ["field", "aura", "beam"] or float(part.def.get("limits", {}).get("lifetime", 0.0)) > 0.0:
-				add(states, str(cast.plan.id), maxf(0.0, part.remaining_life()))
-			break   # one entry per cast (Arcane Orbit's sparks are one spell)
+		var id = str(cast.plan.id)
+		var roots: Array = cast.root_parts()
+		if roots.is_empty():
+			# What the cast left on the ground (Fire Walk's patches) once its root is spent.
+			var ground := 0.0
+			for part in cast.parts:
+				if is_instance_valid(part) and not part.done and part.delivery == "field" and not part.def.get("payload", []).is_empty():
+					ground = maxf(ground, part.remaining_life())
+			if ground > 0.0:
+				add(states, id, ground, "ground")
+			continue
+		var part = roots[0]
+		if part.def.has("emit"):
+			add(states, id, maxf(0.0, part.remaining_life()))
+		elif part.def.get("payload", []).is_empty() and not part.def.has("heal_rate") and part.delivery != "trap":
+			continue   # marks and telegraphs (Meteor Shower) are not a lasting effect
+		elif part.delivery == "trap":
+			add(states, id, 0.0, "armed" if part.armed else "arming")
+		elif part.delivery in ["field", "aura", "beam"] or float(part.def.get("limits", {}).get("lifetime", 0.0)) > 0.0:
+			add(states, id, maxf(0.0, part.remaining_life()))
 	for effect in manager.active_healing_effects:
 		if effect.has("spell_id") and effect.remaining_time > 0:
 			add(states, effect.spell_id, effect.remaining_time)

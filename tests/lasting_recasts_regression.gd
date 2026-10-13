@@ -52,29 +52,41 @@ func run():
 	manager.cast_spell_by_type(1)
 	# Extend recasts queue a segment with its own numbers; the earned rank applies when that segment starts.
 	check(not orbit.segments.is_empty() and float(orbit.segments.back().def.payload[0].hit) > prior_damage and manager.ported_casts("arcane_orbit").size() == 1, "Recast applies earned rank without stacking effects")
+	# Fire Walk runs on the generic engine (doc 18 phase 2): an emitter lays patches along the path.
 	manager.cast_spell_by_type(2)
-	var trail = effects("firewalk")[0]
-	trail.set_physics_process(false)
-	trail.advance(2)
-	var patch_age = trail.trail_points[0].age
+	var walk = manager.last_generic_cast
+	walk.manual = true
+	walk.run(2)
+	var emitter = walk.root_parts()[0]
+	var first_patch = walk.parts.filter(func(p): return is_instance_valid(p) and p.part_name == "patch")[0]
+	var patch_age = first_patch.age
 	manager.cast_spell_by_type(2)
-	check(trail.emission_deadline == 10, "Firewalk extends laying fire by five seconds")
-	check(trail.trail_points[0].age == patch_age and is_equal_approx(float(trail.info.patch_duration), float(manager.spell_catalog["firewalk"].patch_duration)), "Existing fire age and linger stay unchanged")
-	trail.advance(7.5)
+	check(is_equal_approx(emitter.total_life(), 10.0), "Firewalk extends laying fire by five seconds")
+	check(first_patch.age == patch_age and is_equal_approx(first_patch.total_life(), float(manager.spell_catalog["firewalk"].patch_duration)), "Existing fire age and linger stay unchanged")
+	walk.run(7.5)
 	game.player.position += Vector2(40, 0)
-	trail.advance(0.1)
+	walk.run(0.1)
 	var old_fire = game.player.global_position
-	trail.advance(0.6)
+	walk.run(0.6)
 	game.player.position += Vector2(1000, 0)
 	check(Status.collect(manager).firewalk.phase == "ground", "Emission expiry distinguishes lingering ground")
 	manager.cast_spell_by_type(2)
-	check(is_equal_approx(trail.emission_deadline - trail.age, 5), "Tail recast restores five seconds of emission")
-	check(trail.last_trail_position == game.player.global_position, "Recast does not bridge travel gap")
+	var walk2 = manager.last_generic_cast
+	walk2.manual = true
+	check(is_equal_approx(walk2.root_parts()[0].remaining_life(), 5), "Tail recast restores five seconds of emission")
+	check(walk2.root_parts()[0].emit_last == game.player.global_position, "Recast does not bridge travel gap")
 	game.player.position += Vector2(40, 0)
-	trail.advance(0.1)
-	check(not trail.trail_contains(old_fire + Vector2(500, 0)), "Resumed trail cannot damage across unburned gap")
-	check(trail.trail_contains(old_fire), "Old patch still burns without extending its lifetime")
-	check(effects("firewalk").size() == 1, "Firewalk remains one emitter")
+	walk2.run(0.1)
+	var burning = func(point: Vector2) -> bool:
+		for c in [walk, walk2]:
+			for p in c.parts:
+				if is_instance_valid(p) and not p.done and p.part_name == "patch" and p.contains(point, 0.0):
+					return true
+		return false
+	check(not burning.call(old_fire + Vector2(500, 0)), "Resumed trail cannot damage across unburned gap")
+	check(burning.call(old_fire), "Old patch still burns without extending its lifetime")
+	var emitters = [walk, walk2].filter(func(c): return not c.root_parts().is_empty())
+	check(emitters.size() == 1, "Firewalk remains one emitter")
 	manager.cast_spell_by_type(3)
 	manager.process_healing_effects(2)
 	manager.add_healing_effect(4, 2)
@@ -115,8 +127,10 @@ func run():
 			DirAccess.make_dir_recursive_absolute("res://builds/duration-evidence")
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://builds/duration-evidence/" + str(geometry.x) + ".png")
-	trail.emission_deadline = trail.age - 1
-	trail.trail_points.clear()
+	for c in [walk, walk2]:
+		for p in c.parts:
+			if is_instance_valid(p):
+				p.finish(true)
 	check(not Status.collect(manager).has("firewalk"), "No ground timer after last patch expires")
 	for part in orbit_cast.root_parts():
 		part.finish(true)

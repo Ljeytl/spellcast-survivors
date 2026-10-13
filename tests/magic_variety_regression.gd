@@ -122,7 +122,7 @@ func run():
 				# Generic-engine cast: a trap waits, everything else runs out.
 				var root = node.root_parts()[0] if not node.root_parts().is_empty() else null
 				var is_trap = root != null and root.delivery == "trap"
-				node.advance(20.0)
+				node.advance(120.0)   # stops early once finished (extended recasts accumulate duration)
 				if is_trap:
 					check(not node.finished and not root.done, "Untriggered trap remains prepared in empty arena")
 				else:

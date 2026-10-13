@@ -73,6 +73,7 @@ const FAMILY := {
 	"spear": {"body": {"t": "diamond", "a": 8.0, "b": 1.4}, "trail": {"rate": 3.0, "per_dist": 0.8, "heat": 1.1, "spread": 0.8, "grip": 0.2, "inh": 0.35, "ember": 0.3}, "impact": 0.35},
 	"orbiter": {"body": {"t": "diamond", "a": 3.5, "b": 2.0}, "trail": {"rate": 1.5, "per_dist": 0.3, "heat": 0.9, "spread": 0.6, "grip": 0.15, "inh": 0.2, "ember": 0.15}, "impact": 0.4},
 	"ball": {"body": {"t": "orb", "r": 3.5}, "trail": {"rate": 6.0, "per_dist": 1.1, "heat": 1.0, "spread": 3.0, "grip": 0.35, "inh": 0.3, "ember": 0.35}, "impact": 1.4},
+	"ghost": {"body": {"t": "orb", "r": 2.0}, "trail": {"rate": 1.0, "per_dist": 0.2, "heat": 0.6, "spread": 0.6, "grip": 0.1, "inh": 0.2, "ember": 0.1}, "impact": 0.4},
 }
 # Fire-native projectiles have no drawn shape: the body is a knot of hot,
 # high-grip flames riding the projectile plus a tiny white core. "r" = knot
@@ -91,6 +92,11 @@ const METEOR_WARN := [Color("#8a3a1a"), Color("#e8603a")]
 const METEOR_WARN_HOT := [Color("#ff9a3a"), Color("#fff1b0")]
 
 const RAINBOW := [Color("#ff5a5a"), Color("#ffb03a"), Color("#ffe85a"), Color("#6ee07a"), Color("#5ac8ff"), Color("#9a7aff")]
+
+# Sandbox death spirit: GHOST sprite ('o' body, 'e' eyes) and its dark mist.
+const GHOST := [".ooo.", "oeoeo", "ooooo", "o.o.o"]
+const GHOST_COL := {"o": Color("#f0f8ff"), "e": Color("#0a0c14")}
+const DEATH_MIST := [Color("#c8dcec"), Color("#93a8c0"), Color("#5a6a80")]
 
 const MAX_BURNING := 24          # burning enemies drawn at once (nearest the camera)
 
@@ -235,7 +241,19 @@ func part_spawned(part) -> void:
 		return
 	var pos: Vector2 = part.global_position / WPS
 	var st := {"part": weakref(part), "kind": kind, "look": look, "last": pos, "acc": 0.0}
-	if str(part.def.get("vfx", {}).get("family", "")) == "meteor":
+	var vfam := str(part.def.get("vfx", {}).get("family", ""))
+	if vfam == "emitter":
+		return   # an invisible emitter (Fire Walk): its patches carry the look
+	if vfam == "firewalk":
+		# Fire Walk patch: low flames and embers while it burns, char on the ground.
+		st.kind = "patch"
+		st.r = float(part.geo("radius", 25.0)) / WPS
+		if randi() % 3 == 0:
+			vfx.scorch(pos.x, pos.y, st.r * 0.9, float(part.total_life()) + 1.0)
+		_parts[part.get_instance_id()] = st
+		_presented[part.get_instance_id()] = weakref(part)
+		return
+	if vfam == "meteor":
 		# A meteor mark: the rock falls from the sky onto the true radius, landing with the real impact.
 		st.kind = "meteor"
 		st.age = 0.0
@@ -458,6 +476,13 @@ func step(dt: float) -> void:
 				_water_wave(part, st, dt)
 			"meteor":
 				_meteor_fall(part, st, pos, dt)
+			"patch":
+				if randf() < 0.12 * dt * 60.0:
+					var a := randf() * TAU
+					var d := sqrt(randf()) * float(st.r) * 0.8
+					vfx.flame(null, pos + Vector2(cos(a), sin(a) * 0.7) * d, {"heat": 0.6, "rise": 10.0 + randf() * 8.0, "life": 0.3 + randf() * 0.3, "small": 1.0 if randf() < 0.5 else 0.0})
+				if randf() < 0.02 * dt * 60.0:
+					vfx.ember(pos.x + (randf() - 0.5) * float(st.r), pos.y, (randf() - 0.5) * 8.0, -(14.0 + randf() * 10.0), 0.8 + randf())
 			"beam":
 				_beam_step(part, st, pos, dt)
 			"charge":
@@ -502,6 +527,9 @@ func step(dt: float) -> void:
 	_poisoned(dt)
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
+	if st.family == "ghost":
+		_ghost_step(st, pos, dt)
+		return
 	var vel: Vector2 = (pos - st.last) / maxf(dt, 0.0001)
 	var dist := pos.distance_to(st.last)
 	var native: String = st.look.native
@@ -970,6 +998,8 @@ func _shocked(dt: float) -> void:
 func accumulate_water() -> void:
 	var t: float = vfx._t
 	for st in _parts.values():
+		if str(st.get("family", "")) == "ghost":
+			continue   # a spirit is mist, not goo
 		if st.look.native == "plague":
 			_plague_goo(st, t)
 			continue
@@ -1858,6 +1888,9 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var pos: Vector2 = part.global_position / WPS
 		var d: Vector2 = pos - st.last
 		var dir: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
+		if st.family == "ghost":
+			_draw_ghost(buf, pos, part)
+			continue
 		var b: Dictionary = FAMILY[st.family].body
 		var sc: float = float(part.size_scale)
 		var pal: Array = BODY[st.look.native]
@@ -1997,3 +2030,26 @@ func _draw_beam(buf: PackedByteArray, part, st: Dictionary) -> void:
 		el.line(buf, a + n * o, b + n * o, c)
 	if not pierce:
 		el.body(buf, b, Vector2.RIGHT, {"t": "orb", "r": 2.5}, BODY.get(st.look.native, BODY.arcane))
+
+## Seeker (sandbox ghosts): a pale spirit trailing dark mist, bobbing as it drifts.
+func _ghost_step(st: Dictionary, pos: Vector2, dt: float) -> void:
+	var vel: Vector2 = (pos - Vector2(st.last)) / maxf(dt, 0.0001)
+	st.acc = float(st.acc) + dt * 30.0
+	while st.acc >= 1.0:
+		st.acc -= 1.0
+		var back: Vector2 = -vel.normalized() * 3.0 if vel.length() > 1.0 else Vector2.ZERO
+		vfx.elements.mist(pos.x + back.x, pos.y + sin(vfx._t * 10.0) * 1.5, -vel.x * 0.1, -1.0, 2.2, 3.0, 0.5, DEATH_MIST)
+
+func _draw_ghost(buf: PackedByteArray, pos: Vector2, part) -> void:
+	var bob := sin(float(part.age) * 6.0) * 1.0
+	var s: float = clampf(float(part.geo("radius", 24.0)) / 24.0, 1.0, 2.0)
+	for j in GHOST.size():
+		var row: String = GHOST[j]
+		for i in row.length():
+			var ch := row[i]
+			if ch == ".":
+				continue
+			var c: Color = GHOST_COL[ch]
+			for sy in roundi(s):
+				for sx in roundi(s):
+					vfx.elements.spx(buf, roundi(pos.x + (i - 2) * s) + sx, roundi(pos.y + bob + (j - 2) * s) + sy, c)

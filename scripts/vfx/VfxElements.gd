@@ -156,9 +156,9 @@ func bubble(x: float, y: float, big: bool):
 		bubbles.append([x, y, -(5.0 + randf() * 7.0), 2.0 if big else 1.2, 0.0, 0.5 + randf() * 0.7])
 
 ## Steam puff (sandbox mist): grows and drifts with the wind, dithered.
-func mist(x: float, y: float, vx: float, vy: float, r: float, grow: float, life: float):
+func mist(x: float, y: float, vx: float, vy: float, r: float, grow: float, life: float, cols: Array = STEAM):
 	if mists.size() < (60 if vfx.reduced_effects else 200):
-		mists.append([x, y, vx, vy, r, grow, 0.0, life])
+		mists.append([x, y, vx, vy, r, grow, 0.0, life, cols])
 
 ## Ring that closes in on a point (pulling); dashed, in the given palette.
 func pull_ring(x: float, y: float, r0: float, life: float, cols: Array):
@@ -583,12 +583,13 @@ func draw_over(buf: PackedByteArray):
 				var v := dens * w * w * 2.2
 				var b: float = vfx._bayer(cx + ox, cy + oy)
 				var L := v + (b - 0.5) * 0.35
+				var mc: Array = m[8]
 				if L > 1.15:
-					vfx._put(buf, cx + ox, cy + oy, STEAM[0])
+					vfx._put(buf, cx + ox, cy + oy, mc[0])
 				elif L > 0.7:
-					vfx._put(buf, cx + ox, cy + oy, STEAM[1])
+					vfx._put(buf, cx + ox, cy + oy, mc[1])
 				elif v > 0.25 and b < v * 1.4:
-					vfx._put(buf, cx + ox, cy + oy, STEAM[2])
+					vfx._put(buf, cx + ox, cy + oy, mc[2])
 	for q in pulls:
 		var kp: float = q[3] / q[4]
 		var r: float = q[2] * (1.0 - kp * kp)

@@ -46,6 +46,8 @@ var segment_end := -1.0
 var beam_end := Vector2.ZERO       # beams: where the beam stops, local to the part (last enemy it reaches)
 var target_ref: WeakRef = null     # beams: the enemy it tracks (other beams avoid it)
 var beam_offset := Vector2.ZERO    # beams: lane offset from the caster
+var emit_last := Vector2.INF        # emitters: where the last patch was laid
+var emit_timer := 0.0
 var _vfx = null               # Vfx autoload: reads this part, never changes it (docs/VFX_EVENTS.md)
 
 func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2) -> void:
@@ -67,6 +69,8 @@ func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2
 	if delivery == "projectile":
 		# Targeting (SpellTargeting.incoming) skips enemies this projectile will already kill.
 		add_to_group("engine_projectiles")
+	if not def.get("motion", []).is_empty() and str(def.motion[0].get("type", "")) == "chase":
+		add_to_group("engine_spirits")
 	if delivery == "beam":
 		# The style meter holds while a beam channels; other beams avoid this one's target.
 		add_to_group("active_spell_channels")
@@ -218,6 +222,14 @@ func _step_projectile(delta: float) -> void:
 				advance = near != null or phase_time >= float(ph.get("hold", 2.5))
 			if advance:
 				_next_phase(true)
+		"chase":
+			# Old Seeker: drift toward the enemy it hunts (the caster when there is none).
+			var prey = _spirit_target(float(ph.get("range", 600.0)))
+			var dest: Vector2 = prey.global_position if prey else cast.caster_position()
+			prev_pos = global_position
+			global_position = global_position.move_toward(dest, float(ph.get("speed", 220.0)) * delta)
+			if global_position != prev_pos:
+				direction = prev_pos.direction_to(global_position)
 		"straight", "guided", "spiral":
 			if str(ph.type) == "guided":
 				var target = assigned if _alive(assigned) else cast.nearest_enemy(global_position, INF, exclude)
@@ -263,6 +275,8 @@ func _collide() -> void:
 		if done:
 			return
 		if exclude.has(enemy.get_instance_id()) or not _swept_contains(enemy):
+			continue
+		if bool(limits.get("visible_only", false)) and not _on_screen(enemy):
 			continue
 		if not _can_hit(enemy, rehit):
 			continue
@@ -351,6 +365,8 @@ func _step_periodic(delta: float) -> void:
 		var near = cast.nearest_enemy(global_position, INF, exclude)
 		if near:
 			global_position = global_position.move_toward(near.global_position, drift_speed * delta)
+	if def.has("emit"):
+		_emit_patches(delta)
 	var timing: Dictionary = def.get("timing", {})
 	var interval = float(timing.get("interval", 0.5))
 	if not def.get("payload", []).is_empty() and bool(timing.get("per_target", false)):
@@ -444,9 +460,59 @@ func _beam_track(reach_len: float):
 	target_ref = weakref(target) if target else null
 	return target
 
+func _on_screen(enemy) -> bool:
+	return enemy.is_visible_in_tree() and get_viewport().get_visible_rect().has_point(enemy.get_global_transform_with_canvas().origin)
+
+## The enemy a spirit hunts: its current one while it qualifies, else the nearest on-screen enemy
+## within range of the caster that no other spirit of this caster is hunting (old select_spirit).
+func _spirit_target(reach: float):
+	var current = target_ref.get_ref() if target_ref else null
+	var reserved: Array = []
+	for other in get_tree().get_nodes_in_group("engine_spirits"):
+		if other == self or other.done or other.cast == null or other.cast.caster != cast.caster:
+			continue
+		var o = other.target_ref.get_ref() if other.target_ref else null
+		if _alive(o):
+			reserved.append(o)
+	var chosen = null
+	var best = INF
+	var origin = cast.caster_position()
+	for enemy in cast.enemies():
+		if not _on_screen(enemy):
+			continue
+		var d = origin.distance_to(enemy.global_position)
+		if d > reach:
+			continue
+		var score = (0.0 if enemy == current else d + 1.0) + (reach + 2.0 if enemy in reserved else 0.0)
+		if score < best:
+			best = score
+			chosen = enemy
+	target_ref = weakref(chosen) if chosen else null
+	return chosen
+
 func is_style_channel_active() -> bool:
 	return delivery == "beam" and not done and cast != null and is_instance_valid(cast.caster) \
 		and (cast.caster.get("health") == null or float(cast.caster.health) > 0.0)
+
+## Old Fire Walk: while the emitter lasts, lay patches along the caster's path (every `every`
+## seconds once it has moved `min_step`, `spacing` apart so the patches overlap into a strip).
+func _emit_patches(delta: float) -> void:
+	var em: Dictionary = def.emit
+	var here: Vector2 = cast.caster_position()
+	if emit_last == Vector2.INF:
+		emit_last = here
+		cast.spawn_event(self, {"part": str(em.part)}, here, null)
+	emit_timer -= delta
+	if emit_timer > 0.000001:
+		return
+	emit_timer = float(em.get("every", 0.1))
+	var dist = emit_last.distance_to(here)
+	if dist < float(em.get("min_step", 24.0)):
+		return
+	var count = maxi(1, ceili(dist / maxf(1.0, float(em.get("spacing", 25.0)))))
+	for i in count:
+		cast.spawn_event(self, {"part": str(em.part)}, emit_last.lerp(here, float(i + 1) / count), null)
+	emit_last = here
 
 ## A trail is a line field from where the projectile was thrown to where it is now.
 func _follow_trail() -> void:

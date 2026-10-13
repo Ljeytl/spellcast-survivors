@@ -579,7 +579,7 @@ func _dispatch_spell(slot: int) -> bool:
 		return true
 	
 	match spell_type:
-		"plague", "spirit", "trail", "returning":
+		"plague", "returning":
 			if not cast_build_spell(slot):
 				return false
 		"heal_over_time":
@@ -1665,7 +1665,7 @@ func ported_target(info: Dictionary, speed_mult: float):
 		"field":
 			var spot = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
 			return spot if _live_spell_target(spot) else null
-		"orbit":
+		"orbit", "spirit", "trail":
 			return null
 		"beam":
 			# nearest within reach, preferring enemies no live beam is already on

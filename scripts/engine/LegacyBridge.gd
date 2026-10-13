@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam"]
+const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam", "spirit", "trail"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -46,6 +46,10 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 			return _life_bolt(info, damage, ctx)
 		"beam":
 			return _beam(info, damage, ctx)
+		"spirit":
+			return _seeker(info, damage, ctx)
+		"trail":
+			return _firewalk(info, damage, ctx)
 	return {}
 
 ## How a recast meets the casts already out (the old recast_behavior / active_limit / extend_at_cap).
@@ -338,4 +342,48 @@ static func _beam(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 	}
 	var def = _shell(info, "beam", {"beam": beam})
 	def.recast = _recast(info)
+	return def
+
+## Seeker: a slow spirit hunts the nearest on-screen enemy no other spirit is on, striking each
+## enemy at most once per hit_interval, for its duration.
+static func _seeker(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var spirit := {
+		"delivery": "projectile", "origin": "caster",
+		"geometry": {"type": "body", "radius": SpellGeometry.SPIRIT_RADIUS * float(info.get("spell_size_multiplier", 1.0)), "pad": 0.0},
+		"motion": [{"type": "chase", "speed": float(info.get("move_speed", 320.0)) * float(ctx.get("speed_mult", 1.0)), "range": 600.0}],
+		"payload": _damage(id, damage),
+		"limits": {"pierce": -1, "rehit": float(info.get("hit_interval", 0.5)), "lifetime": float(info.get("duration", 5.0)), "visible_only": true},
+		"vfx": {"family": "ghost"},
+	}
+	var def = _shell(info, "spirit", {"spirit": spirit})
+	def.recast = _recast(info)
+	return def
+
+## Fire Walk: while it lasts, the caster leaves burning patches along their path. An enemy in the
+## trail burns once per tick however many patches it stands in.
+static func _firewalk(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var radius = float(info.get("trail_radius", 65.0))
+	var emitter := {
+		"delivery": "aura", "origin": "caster", "anchor": "caster",
+		"geometry": {"type": "disk", "radius": 1.0},
+		"timing": {"duration": float(info.get("emission_duration", 5.0)), "interval": 999.0},
+		"emit": {"part": "patch", "every": 0.1, "min_step": 24.0, "spacing": radius},
+		"payload": [],
+		"vfx": {"family": "emitter"},
+	}
+	var interval = float(info.get("tick_interval", 0.5))
+	var patch := {
+		"delivery": "field", "origin": "parent",
+		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
+		"timing": {"interval": interval, "duration": float(info.get("patch_duration", 6.0))},
+		"payload": _damage(id, damage),
+		"limits": {"rehit": interval - 0.001, "rehit_shared": true},
+		"vfx": {"family": "firewalk"},
+	}
+	var def = _shell(info, "emitter", {"emitter": emitter, "patch": patch})
+	def.recast = _recast(info)
+	def.max_spawns = 4000
+	def.max_depth = 2
 	return def
