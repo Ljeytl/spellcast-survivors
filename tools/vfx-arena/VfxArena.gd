@@ -159,7 +159,7 @@ const PAGES := [
 		["Ember Spear rank 1 (ported, game numbers)", "legacy ember spear", 1.6],
 		["Ember Spear rank 8", "legacy rank8 ember spear", 1.6],
 		["Meteor Spear (combination)", "legacy meteor spear", 1.6],
-		["icy ember spear (keyword on a shipping spell)", "legacy icy ember spear", 1.6],
+		["Meteor Shower rank 8", "legacy rank8 meteor shower", 2.6],
 		["Bolt rank 5 (five bolts)", "legacy rank8 bolt", 1.4],
 		["Ice Blast rank 1 / rank 8 ring", "legacy ice blast|legacy rank8 ice blast", 1.6],
 		["Lightning", "legacy lightning", 1.2],
@@ -432,6 +432,12 @@ func cast_legacy(text: String):
 	seed_counter += 1
 	var plan = Planner.plan(def, parsed.bundle, {})
 	var c = GenericCast.new()
+	if str(info.get("type", "")) == "multi_aoe":
+		c.point_picker = func(n: int) -> Array:
+			var pts: Array = []
+			for i in n:
+				pts.append(dummies[(i * 2) % dummies.size()].global_position)
+			return pts
 	add_child(c)
 	c.setup(plan, caster, self, {"spell": plan.id, "cast_clock": t, "cast_id": seed_counter}, false, seed_counter)
 

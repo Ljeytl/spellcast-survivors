@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit"]
+const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -38,6 +38,8 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 			return _orbit(info, damage, ctx)
 		"heal_over_time":
 			return _regeneration(info, ctx)
+		"multi_aoe":
+			return _meteor_shower(info, damage, ctx)
 	return {}
 
 ## How a recast meets the casts already out (the old recast_behavior / active_limit / extend_at_cap).
@@ -230,4 +232,28 @@ static func _regeneration(info: Dictionary, ctx: Dictionary) -> Dictionary:
 	var def = _shell(info, "aura", {"aura": aura})
 	def.element = "life"
 	def.recast = _recast(info)
+	return def
+
+## Meteor Shower: meteors on ground points picked at cast time (the old weighted pick that
+## spreads them over the horde). Every mark shows at once; the first lands after
+## warning_duration, each next one delay_interval later.
+static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var radius = float(info.get("radius", 220.0))
+	var mark := {
+		"delivery": "field", "origin": "caster",
+		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
+		"timing": {"duration": float(info.get("warning_duration", 0.65)), "interval": 999.0},
+		"events": {"on_expire": {"part": "impact"}},
+		"payload": [],
+		"vfx": {"family": "meteor"},
+	}
+	var impact := {
+		"delivery": "volume", "origin": "parent",
+		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
+		"propagation": {"type": "instant"},
+		"payload": _damage(id, damage),
+	}
+	var def = _shell(info, "mark", {"mark": mark, "impact": impact})
+	def.arrangement = {"type": "points", "count": int(info.get("meteor_count", 3)), "stagger_life": float(info.get("delay_interval", 0.3))}
 	return def

@@ -87,6 +87,9 @@ const FIRE_BODY := {
 # Keyword-accent trail (sandbox "Fiery Bolt"): light flames under the native body.
 const ACCENT_TRAIL := {"rate": 1.0, "per_dist": 0.25, "heat": 0.65, "spread": 0.6, "grip": 0.1, "inh": 0.2, "ember": 0.3, "small": 1.0}
 
+const METEOR_WARN := [Color("#8a3a1a"), Color("#e8603a")]
+const METEOR_WARN_HOT := [Color("#ff9a3a"), Color("#fff1b0")]
+
 const MAX_BURNING := 24          # burning enemies drawn at once (nearest the camera)
 
 var vfx                          # the Vfx autoload
@@ -228,6 +231,16 @@ func part_spawned(part) -> void:
 		return
 	var pos: Vector2 = part.global_position / WPS
 	var st := {"part": weakref(part), "kind": kind, "look": look, "last": pos, "acc": 0.0}
+	if str(part.def.get("vfx", {}).get("family", "")) == "meteor":
+		# A meteor mark: the rock falls from the sky onto the true radius, landing with the real impact.
+		st.kind = "meteor"
+		st.age = 0.0
+		st.life = float(part.total_life())
+		st.r = float(part.geo("radius", 60.0)) / WPS
+		st.sky = Vector2(-16.0, -72.0) * clampf(st.r / 8.0, 0.8, 1.6)
+		_parts[part.get_instance_id()] = st
+		_presented[part.get_instance_id()] = weakref(part)
+		return
 	match kind:
 		"projectile":
 			st.family = family_of(part)
@@ -439,6 +452,8 @@ func step(dt: float) -> void:
 				_field_force(part.cast.plan, st.field, st.look.accent if st.look.accent != "" else st.look.native, dt)
 			"wave":
 				_water_wave(part, st, dt)
+			"meteor":
+				_meteor_fall(part, st, pos, dt)
 			"charge":
 				st.age += dt / vfx.fx_speed      # telegraph runs on game time: it must land with the real strike
 				if randf() < 0.5 * dt * 60.0:
@@ -1798,6 +1813,17 @@ func draw_bodies(buf: PackedByteArray) -> void:
 			if wp != null and is_instance_valid(wp) and not wp.done:
 				_draw_wave_rim(buf, wp)
 			continue
+		if st.kind == "meteor":
+			var mp = st.part.get_ref()
+			if mp != null and is_instance_valid(mp) and not mp.done:
+				var mc: Vector2 = mp.global_position / WPS
+				var k: float = _meteor_k(st)
+				# warning: the true radius, dashed and marching, brightening as the rock comes down
+				vfx.elements.draw_nova(buf, mc.x, mc.y, float(st.r), METEOR_WARN if k < 0.7 else METEOR_WARN_HOT)
+				if float(st.age) >= float(st.life) - METEOR_FALL:
+					var rock: Vector2 = mc + st.sky * (1.0 - k)
+					_draw_magma(buf, rock, -Vector2(st.sky).normalized(), 2.6 * clampf(float(st.r) / 8.0, 0.8, 1.5), mp.get_instance_id())
+			continue
 		if st.kind == "charge" or st.kind == "zone":
 			var zp = st.part.get_ref()
 			if zp != null and is_instance_valid(zp) and not zp.done:
@@ -1896,3 +1922,30 @@ func draw_bodies(buf: PackedByteArray) -> void:
 					c = INK
 				if c != null:
 					vfx._put(buf, cx + ox, cy + oy, c)
+
+## Meteor Shower: the rock falls on game time (it must land with the real impact), wrapped in
+## flames with a smoky tail; the volume that follows owns the explosion.
+const METEOR_FALL := 0.65   # seconds the rock is in the air; the mark shows from the cast
+
+func _meteor_fall(part, st: Dictionary, target: Vector2, dt: float) -> void:
+	st.age = float(st.age) + dt / vfx.fx_speed
+	st.life = float(part.total_life())
+	if float(st.age) < float(st.life) - METEOR_FALL:
+		return
+	var k: float = _meteor_k(st)
+	var rock: Vector2 = target + Vector2(st.sky) * (1.0 - k)
+	var vel: Vector2 = -Vector2(st.sky) / METEOR_FALL * vfx.fx_speed
+	var scale := clampf(float(st.r) / 8.0, 0.8, 1.5)
+	st.body_acc = float(st.get("body_acc", 0.0)) + 4.0 * dt * 60.0
+	while st.body_acc >= 1.0:
+		st.body_acc -= 1.0
+		var ang := randf() * TAU
+		var d := sqrt(randf()) * 3.0 * scale
+		vfx.flame(null, rock + Vector2(cos(ang), sin(ang)) * d - vel.normalized() * randf() * 4.0 * scale,
+			{"heat": 0.55, "rise": 6.0 + randf() * 8.0, "life": 0.18 + randf() * 0.2, "round": true, "avx": vel.x * 0.2, "avy": vel.y * 0.2})
+	if randf() < 0.5 * dt * 60.0:
+		vfx.puff(rock.x - vel.normalized().x * 5.0, rock.y - vel.normalized().y * 5.0)
+
+## 0 when the rock leaves the sky, 1 when it lands.
+func _meteor_k(st: Dictionary) -> float:
+	return clampf((float(st.age) - (float(st.life) - METEOR_FALL)) / METEOR_FALL, 0.0, 1.0)

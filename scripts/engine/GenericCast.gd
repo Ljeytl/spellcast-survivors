@@ -25,6 +25,7 @@ var shared_hits: Dictionary = {} # enemy id -> cast clock of the last hit (limit
 var once: Dictionary = {}      # payload items marked once_per_cast: "item@enemy" already applied
 var forced_target = null       # ported spells keep their old targeting: the caller picks the target
 var target_picker: Callable    # or picks it when each copy is released (release.retarget)
+var point_picker: Callable     # arrangement "points": the caller picks the ground points (old Meteor Shower)
 
 func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictionary, p_manual: bool = false, seed_value: int = -1) -> void:
 	plan = p_plan
@@ -138,6 +139,12 @@ func _start_cast(c: Dictionary) -> void:
 	var arrangement: Dictionary = plan.get("arrangement", {"type": "single", "count": 1})
 	var release: Dictionary = plan.get("release", {"type": "together"})
 	var count = maxi(1, int(arrangement.get("count", 1)))
+	var points: Array = []
+	if str(arrangement.get("type", "")) == "points":
+		points = point_picker.call(count) if point_picker.is_valid() else []
+		if points.is_empty():
+			return   # nothing worth bombarding
+		count = points.size()
 	var spread = deg_to_rad(float(arrangement.get("spread", 14.0)))
 	var radius = float(arrangement.get("radius", 80.0))
 	for i in count:
@@ -150,6 +157,9 @@ func _start_cast(c: Dictionary) -> void:
 		var pos = base
 		var orbit_angle = 0.0
 		match str(arrangement.get("type", "single")):
+			"points":
+				pos = points[i]
+				dir = caster_position().direction_to(pos) if caster_position() != pos else aim_dir
 			"fan":
 				if not (plan.flags.has("scattered") and t != null):
 					dir = dir.rotated(spread * (i - (count - 1) * 0.5))
@@ -235,6 +245,9 @@ func _spawn_root(s: Dictionary) -> void:
 	if part == null:
 		return
 	part.orbit_angle = float(s.orbit)
+	if plan.get("arrangement", {}).has("stagger_life"):
+		# Old Meteor Shower: every mark shows at once; each lands one interval after the last.
+		part.life_total = part.total_life() + float(plan.arrangement.stagger_life) * int(s.get("index", 0))
 	if _orbits(plan.parts[root_name]):
 		part.global_position = caster_position() + Vector2.RIGHT.rotated(part.orbit_angle) * float(plan.parts[root_name].motion[0].get("radius", 80.0))
 	if s.held:

@@ -109,5 +109,26 @@ func run():
 	var life_slot = manager.find_spell_slot("life")
 	manager.cast_spell_by_type(life_slot)
 	check(game.player.health > 10.0, "Life heals at once")
+
+	# --- Meteor Shower -------------------------------------------------------------------------
+	# Six slots are full: Meteor Shower takes Rune Trap's.
+	var meteor_slot = manager.find_spell_slot("rune_trap")
+	manager.spells[meteor_slot] = manager.spell_catalog["meteor_shower"].duplicate(true)
+	manager.spells[meteor_slot].level = 1
+	manager.acquired_spells["meteor_shower"] = true
+	foe.queue_free()
+	await process_frame
+	var crowd = [dummy(game, start + Vector2(160, 40)), dummy(game, start + Vector2(260, -40))]
+	check(manager.cast_freeform_spell("meteor shower"), "Meteor Shower casts")
+	var shower = manager.last_generic_cast
+	shower.manual = true
+	var marks = shower.root_parts()
+	check(marks.size() == 3, "All three marks show at once")
+	check(marks.all(func(m): return crowd.any(func(c): return c.global_position == m.global_position)), "Marks sit on enemies")
+	var before_land = crowd.map(func(c): return c.current_health)
+	shower.run(0.6)
+	check(crowd.map(func(c): return c.current_health) == before_land, "Nothing lands before the warning")
+	shower.run(1.0)
+	check(crowd.all(func(c): return c.current_health < 100000.0), "Meteors land on the marks")
 	print("legacy_port_regression: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)

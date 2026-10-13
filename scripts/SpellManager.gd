@@ -590,8 +590,6 @@ func _dispatch_spell(slot: int) -> bool:
 			cast_earthshield_spell(slot)
 		"bouncing_projectile":
 			cast_bouncing_bolt(slot)
-		"multi_aoe":
-			cast_meteor_shower_spell(slot)
 	AudioManager.play_spell_sound(str(spell_info.id))
 	return true
 
@@ -682,24 +680,6 @@ func cast_bouncing_bolt(slot: int):
 	get_parent().add_child(projectile)
 	projectile.set_meta("cast_size_snapshot", maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
 	projectile.setup_homing(player.global_position, target, calculate_spell_damage(info), Color("d8eaff"), "lightning_bolt")
-
-func cast_meteor_shower_spell(slot: int):
-	var info = preload("res://scripts/SpellProgression.gd").resolve(get_spell_info(slot))
-	var damage = calculate_spell_damage(info)
-	var count = int(info["meteor_count"])
-	var radius = float(info.get("radius", 220.0)) * (maxf(0.1, cast_stat("spell_size_multiplier")) * cast_keyword_multiplier)
-	var coverage: Dictionary = {}
-	for index in range(count):
-		var delay = float(info.get("warning_duration", 0.65)) + index * float(info.get("delay_interval", 0.3))
-		var target = Targeting.select_meteor(get_tree(), player.global_position, get_viewport().get_visible_rect(), coverage)
-		if not _live_spell_target(target):
-			break
-		var center = target.global_position
-		for enemy in get_tree().get_nodes_in_group("enemies"):
-			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
-				coverage[enemy.get_instance_id()] = float(coverage.get(enemy.get_instance_id(), 0)) + 1.0
-		create_meteor_warning(center, delay, radius)
-		get_tree().create_timer(delay).timeout.connect(DamageSource.wrap(create_meteor_strike.bind(center, damage, radius, maxf(1.0, cast_stat("spell_duration_multiplier")))))
 
 # Helper functions
 func get_closest_enemy():
@@ -1589,6 +1569,8 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 	var cast = GenericCast.new()
 	cast.name = "GenericCast_" + str(def.id)
 	cast.target_picker = ported_target.bind(scaled, speed_mult)
+	if str(info.get("type", "")) == "multi_aoe":
+		cast.point_picker = meteor_points.bind(float(scaled.get("radius", 220.0)))
 	cast.setup(plan, player, get_parent(), DamageSource.current if not DamageSource.current.is_empty() else DamageSource.make(str(def.id), style_clock()))
 	get_parent().add_child(cast)
 	last_generic_cast = cast
@@ -1661,6 +1643,21 @@ func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
 	if not DamageSource.current.is_empty():
 		cast.source = DamageSource.current   # later hits count toward the newest cast (style meter)
 	spell_extended.emit(str(plan.id), added)
+
+## Old Meteor Shower aim: weighted picks over visible enemies, spread by what earlier meteors cover.
+func meteor_points(count: int, radius: float) -> Array:
+	var coverage: Dictionary = {}
+	var points: Array = []
+	for index in range(count):
+		var target = Targeting.select_meteor(get_tree(), player.global_position, get_viewport().get_visible_rect(), coverage)
+		if not _live_spell_target(target):
+			break
+		var center = target.global_position
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if _live_spell_target(enemy) and center.distance_to(enemy.global_position) <= radius:
+				coverage[enemy.get_instance_id()] = float(coverage.get(enemy.get_instance_id(), 0)) + 1.0
+		points.append(center)
+	return points
 
 ## The target each ported spell aimed at before the port.
 func ported_target(info: Dictionary, speed_mult: float):

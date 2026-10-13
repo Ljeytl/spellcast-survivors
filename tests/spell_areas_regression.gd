@@ -19,7 +19,7 @@ func check(value, message):
 		printerr("FAIL: ", message)
 
 func clear_combat():
-	for group in ["enemies", "build_spell_effects", "lightning_areas", "spell_projectiles"]:
+	for group in ["enemies", "build_spell_effects", "lightning_areas", "spell_projectiles", "generic_casts"]:
 		for node in get_nodes_in_group(group):
 			node.free()
 	game.player.position = origin
@@ -86,16 +86,17 @@ func run():
 	weak_b.current_health = 15
 	game.spell_manager.learn_spell("meteor_shower")
 	check(game.spell_manager.cast_freeform_spell("meteor shower"), "Owned Meteor Shower casts")
-	var warnings = get_nodes_in_group("spell_projectiles").filter(func(node): return node.projectile_type == "warning")
+	# Meteor Shower runs on the generic engine (doc 18 phase 2): each mark is a root part.
+	var warnings = game.spell_manager.last_generic_cast.root_parts()
 	check(warnings.size() == 3, "Meteor creates one telegraph per scheduled impact")
-	check(warnings.all(func(node): return node.position in [weak_a.position, weak_b.position]), "Meteor targets visible enemy positions")
-	check(warnings.all(func(node): return node.lifetime >= 0.65 and is_equal_approx(node.effect_radius, float(game.spell_manager.spell_catalog["meteor_shower"].radius))), "Every meteor retains full warning and data impact geometry")
+	check(warnings.all(func(node): return node.global_position in [weak_a.global_position, weak_b.global_position]), "Meteor targets visible enemy positions")
+	check(warnings.all(func(node): return node.total_life() >= 0.65 and is_equal_approx(node.geo("radius"), float(game.spell_manager.spell_catalog["meteor_shower"].radius))), "Every meteor retains full warning and data impact geometry")
 	check(weak_a.current_health == 15 and weak_b.current_health == 15, "Warnings deal no damage before impact")
 	clear_combat()
 	var durable = enemy(Vector2(200, 0), true)
-	game.spell_manager.cast_meteor_shower_spell(game.spell_manager.find_spell_slot("meteor_shower"))
-	warnings = get_nodes_in_group("spell_projectiles").filter(func(node): return node.projectile_type == "warning")
-	check(warnings.all(func(node): return node.position == durable.position), "Lone healthy boss can receive all meteor impacts")
+	game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("meteor_shower"))
+	warnings = game.spell_manager.last_generic_cast.root_parts()
+	check(warnings.all(func(node): return node.global_position == durable.global_position), "Lone healthy boss can receive all meteor impacts")
 	clear_combat()
 	var orbit_target = enemy(Vector2(145, 0))
 	var orbit_outside = enemy(Vector2(174, 0))

@@ -34,6 +34,8 @@ static func collect(manager: Node) -> Dictionary:
 		for part in cast.parts:
 			if not is_instance_valid(part) or part.done or part.depth != 0:
 				continue
+			if part.def.get("payload", []).is_empty() and not part.def.has("heal_rate") and part.delivery != "trap":
+				continue   # marks and telegraphs (Meteor Shower) are not a lasting effect
 			if part.delivery == "trap":
 				add(states, str(cast.plan.id), 0.0, "armed" if part.armed else "arming")
 			elif part.delivery in ["field", "aura"] or float(part.def.get("limits", {}).get("lifetime", 0.0)) > 0.0:

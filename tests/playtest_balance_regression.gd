@@ -109,16 +109,16 @@ func run():
 	var previous_meteor_damage = 0.0
 	for rank in range(1, 9):
 		spells.spells[meteor_slot].level = rank
-		spells.cast_meteor_shower_spell(meteor_slot)
-		var warnings = get_nodes_in_group("spell_projectiles").filter(func(n): return n.projectile_type == "warning")
+		spells.cast_spell_by_type(meteor_slot)
+		var meteor_cast = spells.last_generic_cast   # generic engine (doc 18 phase 2): one mark per meteor
+		var warnings = meteor_cast.root_parts()
 		check(warnings.size() == counts[rank - 1], "Meteor real cast count at rank %d" % rank)
 		var radius = minf(float(meteor_data.radius) + float(meteor_data.rank_growth.radius.per_rank) * (rank - 1), float(meteor_data.rank_growth.radius.max))
-		check(warnings.all(func(n): return is_equal_approx(n.effect_radius, radius)), "Meteor visible geometry at rank %d" % rank)
+		check(warnings.all(func(n): return is_equal_approx(n.geo("radius"), radius)), "Meteor visible geometry at rank %d" % rank)
 		var meteor_damage = spells.calculate_spell_damage(spells.spells[meteor_slot])
 		check(is_equal_approx(meteor_damage, float(meteor_data.damage) + float(meteor_data.rank_growth.damage.per_rank) * (rank - 1)) and meteor_damage > previous_meteor_damage, "Meteor ranks also increase damage at rank %d" % rank)
 		previous_meteor_damage = meteor_damage
-		for warning in warnings:
-			warning.free()
+		meteor_cast.queue_free()
 	spells.spells[meteor_slot].level = 1
 	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells) == "+damage, +area", "Real upgrade copy describes area rank")
 	spells.spells[meteor_slot].level = 2
