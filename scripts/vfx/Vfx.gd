@@ -766,12 +766,18 @@ func _step_impacts(dt: float):
 
 # ------------------------------------------------------------------ render
 
-## Break up, don't fade, and never strobe: past `start`, each particle drops
-## out for good at its own moment (seed = any per-particle random value). The
-## sandbox blinked old particles every other frame, a shimmer at its 120 Hz
-## that became a 7.5 Hz strobe when stepping on twos.
-static func dissolved(seed: float, k: float, start: float) -> bool:
-	return k > start and fposmod(seed * 7919.371, 1.0) < (k - start) / (1.0 - start)
+## Old particles past `start` (seed = any per-particle random value). The
+## sandbox blinked them every other frame: a shimmer at its 120 Hz, a 7.5 Hz
+## strobe when stepping on twos.
+## On ones (every display frame, like the sandbox) keep the sandbox's blink: at
+## full frame rate it reads as a shimmer. On twos it would strobe, so there
+## each particle drops out for good at its own moment instead.
+func dissolved(seed: float, k: float, start: float) -> bool:
+	if k <= start:
+		return false
+	if not on_twos:
+		return (_steps & 2) != 0
+	return fposmod(seed * 7919.371, 1.0) < (k - start) / (1.0 - start)
 
 func _bayer(x: int, y: int) -> float:
 	return BAYER[((y & 3) << 2) | (x & 3)] / 16.0
