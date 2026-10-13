@@ -235,7 +235,7 @@ func run():
 	var feedback_count = game.particle_manager.get_child_count()
 	check(not manager.cast_freeform_spell("infection"), "Empty host selection reports cast failure")
 	check(game.spells_cast == cast_count and game.particle_manager.get_child_count() == feedback_count, "Failed Plague produces no success count or flash")
-	check(get_nodes_in_group("build_spell_effects").is_empty(), "Failed Plague creates no empty infection effect")
+	check(get_nodes_in_group("generic_casts").is_empty(), "Failed Plague creates no empty infection effect")
 	manager.cancel_typing()
 	manager.queue_spell(plague_slot)
 	manager.start_typing()
@@ -261,14 +261,17 @@ func run():
 	check(manager.get_visible_plague_host(ranged) == visible, "Authored cast range includes its boundary")
 	manager.attempt_freeform_cast()
 	check(not manager.is_typing and game.spells_cast == cast_count + 1, "Same typed cast succeeds when a valid host enters")
-	var infection = get_nodes_in_group("build_spell_effects").back()
-	check(infection.infections.is_empty() and infection.infection_links.size() == 1, "Successful Plague launches a spore before host infection")
+	# Infestation runs on the generic engine (doc 18 phase 2): the plague lives on the cast's part.
+	var infection_cast = manager.last_generic_cast
+	infection_cast.manual = true
+	var infection = infection_cast.root_parts()[0].infection
+	check(infection.hosts.is_empty() and infection.links.size() == 1, "Successful Plague launches a spore before host infection")
 	visible.dying = true
 	check(manager.get_visible_plague_host(plague_info) == farther, "Host acquisition excludes newly dying target")
 	farther.queue_free()
 	check(manager.get_visible_plague_host(plague_info) == null, "Queued host is excluded immediately")
-	var effects_before = get_nodes_in_group("build_spell_effects").size()
-	check(not manager.cast_spell_by_type(plague_slot) and get_nodes_in_group("build_spell_effects").size() == effects_before and not infection.is_queued_for_deletion(), "Failed direct dispatch preserves existing infections")
+	var effects_before = get_nodes_in_group("generic_casts").size()
+	check(not manager.cast_spell_by_type(plague_slot) and get_nodes_in_group("generic_casts").size() == effects_before and not infection_cast.is_queued_for_deletion(), "Failed direct dispatch preserves existing infections")
 	manager.learn_spell("regeneration")
 	manager.learn_spell("soul_bloom")
 	check(not manager.cast_freeform_spell("soul bloom"), "Bonus infection uses the same visible living-host contract")

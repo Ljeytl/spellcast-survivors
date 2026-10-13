@@ -157,20 +157,22 @@ func run():
 	manager.learn_spell("soul_bloom")
 	game.player.health = 20.0
 	manager.cast_freeform_spell("soul bloom")
-	effect = effect_for(game, "soul_bloom")
-	effect.advance(1.25)
+	# Soul Bloom runs on the generic engine (doc 18 phase 2): the plague lives on the cast's part.
+	var bloom_cast = cast_for(game, "soul_bloom")
+	var plague = bloom_cast.root_parts()[0].infection
+	bloom_cast.run(1.25)
 	# Soul Bloom heals through blooms left by infected deaths (CombinationScaling strips lifesteal), not per-hit drain.
 	check(is_equal_approx(game.player.health, 20.0), "Soul Bloom infection damage does not lifesteal")
-	check(effect.infections.size() > 1, "Infection spreads to neighbor")
+	check(plague.hosts_started > 1, "Infection spreads to neighbor")
 	for i in range(15):
 		make_target(game, start + Vector2(70 + i, 0))
 	# Plague grows as a chain (one jump per host), so give it time to pass the old eight-host cap.
 	for i in range(16):
-		effect.advance(0.5)
-	check(effect.hosts_started > 8, "Soul Bloom spreads beyond eight lifetime hosts")
+		bloom_cast.run(0.5)
+	check(plague.hosts_started > 8, "Soul Bloom spreads beyond eight lifetime hosts")
 	a.current_health = 0.0
 	var hp = game.player.health
-	effect.deal_damage(a, 100.0)
+	plague.part.hit(a)
 	check(game.player.health == hp, "Dead targets cannot heal")
 	game.queue_free()
 	await process_frame

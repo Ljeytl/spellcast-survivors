@@ -46,6 +46,7 @@ var segment_end := -1.0
 var beam_end := Vector2.ZERO       # beams: where the beam stops, local to the part (last enemy it reaches)
 var target_ref: WeakRef = null     # beams: the enemy it tracks (other beams avoid it)
 var beam_offset := Vector2.ZERO    # beams: lane offset from the caster
+var infection = null               # "infection" delivery state (scripts/engine/Infection.gd)
 var hit_mult := 1.0                # phase damage share (Cross Blade: x2 on the way back, x0.5 pulses)
 var emit_last := Vector2.INF        # emitters: where the last patch was laid
 var emit_timer := 0.0
@@ -72,6 +73,8 @@ func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2
 		add_to_group("engine_projectiles")
 	if not def.get("motion", []).is_empty() and str(def.motion[0].get("type", "")) == "chase":
 		add_to_group("engine_spirits")
+	if delivery == "infection":
+		infection = preload("res://scripts/engine/Infection.gd").new(self, def.get("infection", {}))
 	if delivery == "beam":
 		# The style meter holds while a beam channels; other beams avoid this one's target.
 		add_to_group("active_spell_channels")
@@ -153,6 +156,8 @@ func _propagation() -> String:
 func total_life() -> float:
 	if life_total >= 0.0:
 		return life_total
+	if delivery == "infection" and infection != null:
+		return infection.end_at
 	if delivery in ["field", "aura", "trap", "beam"]:
 		return float(def.get("timing", {}).get("duration", 3.0 if delivery != "trap" else 8.0))
 	var lifetime = float(def.get("limits", {}).get("lifetime", 0.0))
@@ -188,6 +193,9 @@ func step(delta: float) -> void:
 			_step_trap(delta)
 		"beam":
 			_step_beam(delta)
+		"infection":
+			if infection != null:
+				infection.step(delta)
 		"self":
 			_apply_self()
 			finish(false)

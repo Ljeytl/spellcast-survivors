@@ -166,6 +166,8 @@ static func _kind(part) -> String:
 	match part.delivery:
 		"beam":
 			return "beam"
+		"infection":
+			return "infection"
 		"self":
 			return "self"
 		"projectile":
@@ -488,6 +490,8 @@ func step(dt: float) -> void:
 					vfx.ember(pos.x + (randf() - 0.5) * float(st.r), pos.y, (randf() - 0.5) * 8.0, -(14.0 + randf() * 10.0), 0.8 + randf())
 			"beam":
 				_beam_step(part, st, pos, dt)
+			"infection":
+				_infection_step(part, dt)
 			"charge":
 				st.age += dt / vfx.fx_speed      # telegraph runs on game time: it must land with the real strike
 				if randf() < 0.5 * dt * 60.0:
@@ -1518,6 +1522,20 @@ func _plague_goo(st: Dictionary, t: float) -> void:
 		return
 	var pos: Vector2 = part.global_position / WPS
 	match st.kind:
+		"infection":
+			var inf = part.infection
+			if inf == null:
+				return
+			# spores in flight: a goo droplet with a short tail toward where it came from
+			for l in inf.links:
+				var lp: Vector2 = Vector2(l.position) / WPS
+				var back: Vector2 = (Vector2(l.from) / WPS - lp).normalized()
+				vfx.gsplat(2, lp.x, lp.y - 3.0, 2.4 + sin(t * 13.0) * 0.2)
+				vfx.gsplat(2, lp.x + back.x * 2.5, lp.y - 3.0 + back.y * 2.5, 1.5)
+			# resting spores: a pulsing pocket on the ground
+			for sp in inf.spores:
+				var sq: Vector2 = Vector2(sp.position) / WPS
+				vfx.gsplat(3, sq.x, sq.y, 2.8 + sin(t * 5.0) * 0.35)
 		"projectile":
 			var d: Vector2 = pos - st.last
 			var u: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
@@ -2078,3 +2096,17 @@ func _draw_blade(buf: PackedByteArray, pos: Vector2, part) -> void:
 		el.line(buf, side, tip, BLADE_COL[0])
 		el.line(buf, pos, side, BLADE_COL[3])
 	el.spx(buf, roundi(pos.x), roundi(pos.y), BLADE_COL[3])
+
+## Infestation: infected hosts bubble over their heads; resting spores pop now and then.
+func _infection_step(part, dt: float) -> void:
+	var inf = part.infection
+	if inf == null:
+		return
+	for h in inf.hosts:
+		if randf() < 0.12 * dt * 60.0:
+			var hp: Vector2 = Vector2(h.pos) / WPS
+			vfx.elements.bubble(hp.x + (randf() - 0.5) * 4.0, hp.y - 6.0 - randf() * 2.0, randf() < 0.3)
+	for sp in inf.spores:
+		if randf() < 0.05 * dt * 60.0:
+			var sq: Vector2 = Vector2(sp.position) / WPS
+			vfx.elements.bubble(sq.x + (randf() - 0.5) * 3.0, sq.y - 1.0, false)

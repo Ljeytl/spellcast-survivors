@@ -579,9 +579,6 @@ func _dispatch_spell(slot: int) -> bool:
 		return true
 	
 	match spell_type:
-		"plague":
-			if not cast_build_spell(slot):
-				return false
 		"heal_over_time":
 			cast_life_spell(slot)
 		"shield":
@@ -1490,6 +1487,9 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 		bundle = ported_bundle
 	ported_bundle = {}
 	var info = resolve_cast_info(slot)
+	if str(info.get("type", "")) == "plague" and get_visible_plague_host(info) == null:
+		last_cast_failure = "No target in range"
+		return false
 	var scaled = Geometry.scaled_data(info, player)
 	var speed_mult = float(cast_stat("projectile_speed_multiplier"))
 	var ctx = {"speed_mult": speed_mult}
@@ -1658,6 +1658,8 @@ func ported_target(info: Dictionary, speed_mult: float):
 			return spot if _live_spell_target(spot) else null
 		"orbit", "spirit", "trail":
 			return null
+		"plague":
+			return get_visible_plague_host(info)
 		"returning":
 			return Targeting.select(get_tree(), player.global_position, 600.0)
 		"beam":

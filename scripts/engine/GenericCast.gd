@@ -251,6 +251,8 @@ func _spawn_root(s: Dictionary) -> void:
 	part.orbit_angle = float(s.orbit)
 	if part.delivery == "beam" and s.target != null and is_instance_valid(s.target):
 		part.target_ref = weakref(s.target)
+	if part.delivery == "infection" and part.infection != null:
+		part.infection.start(s.target if s.target != null and is_instance_valid(s.target) else null, caster_position())
 	if plan.get("arrangement", {}).has("stagger_life"):
 		# Old Meteor Shower: every mark shows at once; each lands one interval after the last.
 		part.life_total = part.total_life() + float(plan.arrangement.stagger_life) * int(s.get("index", 0))

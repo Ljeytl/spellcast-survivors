@@ -38,30 +38,33 @@ func run():
 		targets.append(enemy)
 	game.spell_manager.learn_spell("infestation")
 	check(game.spell_manager.cast_freeform_spell("infection"), "Owned typed Plague Seed casts on a real visible enemy")
-	var effect = get_nodes_in_group("build_spell_effects").back()
-	effect.set_physics_process(false)
+	# Infestation runs on the generic engine (doc 18 phase 2): the plague lives on the cast's part.
+	var plague_cast = game.spell_manager.last_generic_cast
+	plague_cast.manual = true
+	var part = plague_cast.root_parts()[0]
+	var plague = part.infection
 	# Lifecycle fixture: pin the full-rank spread so timings test transfer rules, not rank tuning.
-	effect.info.spread_radius = 130.0
-	effect.info.spread_speed = 460.0
-	effect.info.spore_linger = 3.0
-	effect.damage = 9.0
-	effect.infection_duration = 5.0
-	effect.advance(0.25)
+	plague.cfg.spread_radius = 130.0
+	plague.cfg.spread_speed = 460.0
+	plague.cfg.spore_life = 3.0
+	plague.cfg.duration = 5.0
+	part.power_scale = 9.0 / float(part.def.payload[0].hit)
+	part.step(0.25)
 	targets[0].take_damage(1000, game.player.position)
 	await process_frame
 	await process_frame
-	effect.advance(0.75)
+	part.step(0.75)
 	check(targets[1].current_health == 91, "Infection survives external host death before first tick and damages real neighbor")
 	check(targets[2].current_health == 100, "Death transfer respects spread distance")
-	check(effect.hosts_started == 2, "Death transfers only once to a nearby host")
-	check(effect.z_index > 2, "Plague feedback draws above tree canopies")
+	check(plague.hosts_started == 2, "Death transfers only once to a nearby host")
+	check(root.get_node("Vfx")._air_layer.z_index > 2, "Plague feedback draws above tree canopies")
 	var before = targets[1].current_health
-	effect.advance(0.5)
+	part.step(0.5)
 	check(targets[1].current_health < before, "Surviving host receives repeated damage ticks")
-	effect.remaining = 0
+	part.finish(true)
 	targets[1].take_damage(1000, game.player.position)
 	await process_frame
-	check(effect.hosts_started == 2, "Expired infection cannot transfer on death")
+	check(plague.hosts_started == 2, "Expired infection cannot transfer on death")
 	var terrain = game.get_node("Background")
 	var trunk = null
 	for holder in terrain.decorations.values():

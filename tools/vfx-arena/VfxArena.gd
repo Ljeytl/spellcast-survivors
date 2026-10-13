@@ -175,6 +175,7 @@ const PAGES := [
 		["Seeker (a spirit hunts on-screen enemies)", "legacy seeker", 6.0],
 		["Fire Walk (patches along the caster's path)", "legacy fire walk", 6.0],
 		["Cross Blade rank 8 (out, linger, back)", "legacy rank8 cross blade", 3.0],
+		["Infestation rank 8 (a plague that jumps host to host)", "legacy rank8 infection", 4.0],
 	]],
 	["Combos", [
 		["fiery tsunami (water + fire: boiling wall, steam)", "fiery tsunami", 2.6],

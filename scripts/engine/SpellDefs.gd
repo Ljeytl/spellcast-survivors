@@ -2,7 +2,7 @@ extends RefCounted
 ## Loads and validates generic spell definitions (data/generic_spells.json, doc 18 §4).
 
 const DATA_PATH = "res://data/generic_spells.json"
-const DELIVERIES = ["projectile", "volume", "field", "aura", "trap", "self"]
+const DELIVERIES = ["projectile", "volume", "field", "aura", "trap", "self", "beam", "infection"]
 const GEOMETRIES = ["body", "disk", "ring", "cone", "line", "rect"]
 const MOTIONS = ["straight", "guided", "spiral", "orbit", "chase", "hold", "return", "none"]
 const PAYLOADS = ["damage", "status", "impulse", "heal", "slow", "seed"]

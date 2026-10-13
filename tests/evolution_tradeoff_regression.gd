@@ -220,6 +220,7 @@ func compare_soul():
 		var enemy = target(Vector2(100, 0))
 		game.player.health = 50
 		var spell = effect(info, enemy)
+		var plague = spell.root_parts()[0].infection if spell.get("plan") is Dictionary else null
 		spell.advance(1.0)
 		damage.append(10000 - enemy.current_health)
 		check(game.player.health == 50, "Infection never heals remotely")
@@ -229,7 +230,7 @@ func compare_soul():
 			spell.advance(0.5)
 			var blooms = get_nodes_in_group("healing_seeds")
 			check(blooms.size() == 1, "Infected death creates one healing bloom")
-			check(spell.resting_spores.size() == 1, "Infected death preserves separate infectious spore")
+			check((plague.spores if plague != null else spell.resting_spores).size() == 1, "Infected death preserves separate infectious spore")
 			check(game.player.health == 50, "Death bloom still requires physical collection")
 	check(is_equal_approx(damage[0], damage[1]), "Soul Bloom preserves Plague Seed infection damage")
 

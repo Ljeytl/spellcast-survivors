@@ -11,7 +11,7 @@ const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
 
 ## Old spell types that now run on the generic engine.
-const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam", "spirit", "trail", "returning"]
+const PORTED = ["piercing", "projectile", "aoe", "heal", "direct_strike", "chain", "trap", "field", "orbit", "multi_aoe", "bouncing_projectile", "life_bolt", "beam", "spirit", "trail", "returning", "plague"]
 
 static func handles(info: Dictionary) -> bool:
 	return str(info.get("type", "")) in PORTED
@@ -52,6 +52,8 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 			return _firewalk(info, damage, ctx)
 		"returning":
 			return _cross_blade(info, damage, ctx)
+		"plague":
+			return _infestation(info, damage, ctx)
 	return {}
 
 ## How a recast meets the casts already out (the old recast_behavior / active_limit / extend_at_cap).
@@ -426,4 +428,33 @@ static func _cross_blade(info: Dictionary, damage: float, ctx: Dictionary) -> Di
 	var count = maxi(1, int(info.get("blade_count", 3)))
 	def.arrangement = {"type": "ring", "count": count, "radius": 0.0, "aimed": true, "offset": PI / 4.0 if count == 4 else 0.0}
 	def.recast = _recast(info)
+	return def
+
+## Infestation (and Soul Bloom): a spore flies to the target and the plague jumps from host to
+## host (scripts/engine/Infection.gd); Soul Bloom's dead hosts drop healing blooms.
+static func _infestation(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
+	var id = str(info.id)
+	var size = float(info.get("spell_size_multiplier", 1.0))
+	var cfg := {
+		"duration": float(info.get("duration", 3.0)),
+		"interval": float(info.get("tick_interval", 0.5)),
+		"spread_radius": float(info.get("spread_radius", 130.0)) * size,
+		"resting_multiplier": float(info.get("resting_spread_multiplier", 1.3)),
+		"spread_speed": float(info.get("spread_speed", 460.0)) * float(ctx.get("speed_mult", 1.0)),
+		"spore_life": float(info.get("orphan_lifetime", float(info.get("spore_linger", 1.5)) * float(info.get("spell_duration_multiplier", 1.0)))),
+		"cast_range": float(info.get("cast_range", 600.0)),
+	}
+	if float(info.get("healing_bloom_amount", 0.0)) > 0.0:
+		cfg.bloom = {"amount": float(info.healing_bloom_amount), "duration": 2.0, "lifetime": float(info.get("healing_bloom_lifetime", 10.0)),
+			"radius": float(info.get("healing_bloom_radius", 48.0)), "cap": 6}
+	var plague := {
+		"delivery": "infection", "origin": "caster",
+		"geometry": {"type": "disk", "radius": 1.0},
+		"infection": cfg,
+		"payload": _damage(id, damage),
+		"vfx": {"family": "infection"},
+	}
+	var def = _shell(info, "plague", {"plague": plague})
+	def.recast = _recast(info)
+	def.needs_target = true
 	return def
