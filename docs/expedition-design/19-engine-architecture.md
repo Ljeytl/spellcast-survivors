@@ -1,6 +1,6 @@
 # Spell engine architecture: data-driven, expandable, scalable
 
-**Status:** signed off with the §13 decisions · rev 3 · 13 October 2026 · companion: [doc 20, game systems](20-game-systems-architecture.md) · supersedes the "runner" parts of doc 18 §3 and §14 where they differ; doc 18 stays the design source for spells, keywords, statuses and art.
+**Status:** signed off with the §13 decisions · rev 4 (status numbers, shock as a mark, poison cap, end-screen credit, one status channel) · 13 October 2026 · companion: [doc 20, game systems](20-game-systems-architecture.md) · supersedes the "runner" parts of doc 18 §3 and §14 where they differ; doc 18 stays the design source for spells, keywords, statuses and art.
 
 > **Sign-off:** ☑ approved 13 October 2026 with the §13 decisions (proposed defaults accepted)
 
@@ -208,22 +208,41 @@ Each mechanic is one script implementing a small interface and declaring the set
 
 Today `statuses.json` holds numbers but `StatusComponent` holds behaviour in a `match id` (burn, bleed, poison, chilled, shocked) and hand-written reactions in `on_hit`. DoTs and other effects are therefore not built the same way. Target: a status is **data choosing a behaviour pattern**; patterns are modules.
 
-| Pattern | Behaviour | Today's statuses using it | Future ones |
+**Numbers live in `data/statuses.json` and doc 18 §6.1b; the doc never restates them as the truth.** Step 3b ports the current numbers exactly, guarded by `tests/engine_effects_regression.gd` and `tests/element_damage_regression.gd`. Today's values, for orientation:
+
+| Pattern | Behaviour | Today's statuses using it (current numbers) | Future ones |
 |---|---|---|---|
-| `instances` | independent stacks, each with its own clock, cap N, replace weakest (doc 07 status rules) | burn | plague rot |
-| `meter` | builds a meter; at threshold bursts and resets | bleed → hemorrhage | stagger |
-| `ramp` | one instance whose rate grows while refreshed | poison | |
-| `threshold` | stacks to N, then converts to a timed lock with immunity window | chilled → frozen | rooted, stunned |
-| `chain` | on tick or trigger jumps to nearby targets with falloff | shocked | conductive |
-| `lock` | timed hard CC; boss conversion and immunity from doc 07 | frozen | stun, root |
-| `modifier` | pushes a stat modifier (§5.3) while present | slow | vulnerable, haste, weaken |
+| `instances` | every application is its own instance with its own clock; no cap unless data sets one | burn: 15% of the hit over 1.5 s, 0.25 s ticks, no stack cap | plague rot |
+| `meter` | every application is its own stack with its own clock; each hit also fills a meter that bursts at full and resets | bleed: 4 s stacks, 3% of the hit per 0.5 s; meter +20% per hit, decays 10%/s after 2 s; hemorrhage 12% / 6% / 3% max HP (normal / elite / boss) + 3× the bleed | stagger |
+| `ramp` | every application is its own stack with its own clock and its own ramp; a stack's tick is capped at `ramp_max` × its start | poison: 2% of the hit per 1 s for 10 s, +15% per tick, `ramp_max` 4.0, weakens 20% | |
+| `threshold` | stacks to N, then converts to a timed lock with an immunity window | chilled: 6% slow per stack, 4% frostbite per application, 5 stacks freeze, 2 s refreeze immunity | rooted, stunned |
+| `mark` | a timed mark that does nothing on its own; the next hit from a **different** cast is checked against the reactions table, which may consume it | shocked: 3 s mark + 0.2 s move stagger, no damage, no arc | conductive |
+| `lock` | timed hard CC; boss conversion and immunity from doc 07 | frozen, shock_stagger | stun, root |
+| `modifier` | pushes a stat modifier (§5.3) while present | slowed, weakened, vulnerable | haste |
+
+Fixed (13 October): the earlier draft of this table listed burn with a 3-stack cap, chill at 10% per stack and shock as an auto-chaining pattern. Those were the old design; the decided design is above. Poison was a single shared pool whose ramp never reset, so refreshing it compounded without limit; it is now per-application stacks with `ramp_max` (commit `5c8f25d`).
 
 ```json
-"burn":    {"pattern": "instances", "max_stacks": 3, "tick": 0.5, "dps_from_hit": 0.2, "duration": 3, "element": "fire", "damage_type": "fire"},
-"chilled": {"pattern": "threshold", "stacks_to": 5, "becomes": "frozen", "each": {"modifier": "move_mult", "value": -0.1}}
+"burn":    {"pattern": "instances", "tick": 0.25, "duration": 1.5, "share": 0.15, "element": "fire", "damage_type": "fire"},
+"poison":  {"pattern": "ramp", "tick": 1.0, "duration": 10.0, "share_per_tick": 0.02, "ramp": 0.15, "ramp_max": 4.0, "modifier": {"stat": "damage_dealt", "op": "mul", "value": -0.2}},
+"chilled": {"pattern": "threshold", "stacks_to": 5, "becomes": "frozen", "each": {"modifier": {"stat": "move_speed", "op": "mul", "value": -0.06}}, "frostbite_share": 0.04, "refreeze_immunity": 2.0},
+"shocked": {"pattern": "mark", "duration": 3.0, "on_apply": {"status": "shock_stagger"}}
 ```
 
-**Reactions** become a table in `reactions.json`: `{"when": {"has": "chilled", "hit_type": "fire"}, "do": [{"remove": "chilled"}, {"effect": "damage", "type": "water", "share_of_hit": 0.5}], "event": "reaction.steam"}`. Fusion vs reaction by `cast_id` (doc 18 §6.4) is a rule in the table runner, not per-pair code. The status component on any actor (enemy, player, summon) is the same component.
+**Reactions** become a table in `reactions.json`. A row names the status the target has, the element of the incoming hit, and what happens; the runner enforces "different cast only" (fusion vs reaction by `cast_id`, doc 18 §6.4) and the 1 s reaction cooldown, unless a row says it ignores it. Shock's three outcomes are rows, not a pattern that jumps on its own:
+
+```json
+[
+  {"id": "chain",    "when": {"has": "shocked", "hit_element": "storm"}, "consume": true,
+   "do": [{"effect": "damage", "type": "storm", "share_of_hit": 0.4, "targets": {"nearest": 2, "within": 150}},
+          {"status": "shocked", "targets": "same", "carry_cast": true}]},
+  {"id": "conduct",  "when": {"has": "shocked", "hit_element": "water"}, "consume": true,
+   "do": [{"effect": "damage", "type": "storm", "share_of_hit": 0.5, "targets": {"within": 90, "include_target": true}}]},
+  {"id": "grounded", "when": {"has": "shocked", "hit_element": "earth"}, "consume": true, "ignores_cooldown": true, "do": []}
+]
+```
+
+Any other element leaves the mark in place. `carry_cast` gives chained enemies the triggering cast's id, so the same cast cannot chain them again. The status component on any actor (enemy, player, summon) is the same component.
 
 ### 5.3 Caster stats and modifiers
 
@@ -236,6 +255,18 @@ Everything that changes a number is a modifier with a source: passives and level
 One typed bus (`EventBus`) for gameplay facts: `cast_released`, `part_spawned`, `hit`, `damage_dealt`, `status_applied`, `status_expired`, `reaction`, `heal`, `block`, `kill`, `hit_taken`, `pickup`, `level_up`, `upgrade_taken`, `objective_changed`, `run_state_changed`. Each event is a small dictionary with ids (caster id, target id, cast id), never node references held past the frame.
 
 Consumers subscribe: style score, damage-by-spell stats, audio, HUD, VFX, achievements, the debug overlay and, later, the network layer. Producers do not know consumers. This removes today's reach-ins (`Enemy.take_damage` calling `get_first_node_in_group("game").style_session.record_damage`) and the global `DamageSource.current` (the cast id travels in the event and the part instead).
+
+**End-screen credit must survive the move unchanged.** `StyleSession.damage_by_spell` / `damage_by_effect` feed `DamageChart.gd`, and `damage_dealt` carries everything they use today:
+
+| Field | Meaning |
+|---|---|
+| `via` | how the damage was dealt: bleed, hemorrhage, burn, poison, frostbite, overload, toxic flare, thaw, chain, conduct (absent for a direct hit) |
+| `split` | `{spell: fraction}` for shared pools (bleed, poison), split by the active stacks |
+| credit rules | Overload and Toxic Flare are credited to the spell(s) whose damage over time they used up, not the triggering hit; the target's health is read **after** the hit resolves, so reaction damage during resolution is not credited to the triggering hit |
+
+StyleSession consumes these fields as it does now. Guards in `tests/element_damage_regression.gd`: "Shared bleed ticks split 1:3 by contribution", "Overload is credited to Cross Blade", "Bolt is credited only its own hit", "End screen lists bleed under Cross Blade".
+
+**One status-event channel.** `StatusComponent._announce()` calls `/root/Vfx.status_event(enemy, event, data)` today (contract: `docs/VFX_EVENTS.md`, "Status moments"). When statuses move to modules, they emit `status_applied`, `status_expired` and `reaction` on the bus with the same payload fields (status, stacks, reaction name, chain target positions); Vfx subscribes and `_announce` is deleted, so there is one channel.
 
 ### 5.5 Phases and events
 
@@ -308,7 +339,7 @@ The game stays playable at every step; each step lands with the full suite at ba
 | 1b | StatBlock + modifiers on player and enemies; move `apply_upgrade`, ley bonus and elite multipliers onto it | Suite green; same numbers in a stat snapshot test | M |
 | 2 | Registries; split `SpellPart` deliveries/motions and `GenericCast` arrangement/release into modules; SpellWorld + spatial grid; pooled parts | No behaviour change (suite + golden plans); test-only delivery and motion added as one file each; benchmark recorded before/after | L |
 | 3 | Spells as data: params, growth, targeting and recast rules; move all 22 shipping spells, Magic Missile, Regeneration and the combinations; delete `LegacyBridge` and SpellManager per-spell logic | Plan equivalence for every spell/rank/MEGA; no spell id in engine code (grep check in CI) | L |
-| 3b | Statuses and effects as modules: behaviour patterns, reactions table, effect-type modules; same component on player | Suite green; status-pattern tests; `match id` gone from status code | M |
+| 3b | Statuses and effects as modules: behaviour patterns, reactions table, effect-type modules; same component on player; status events on the bus, `_announce` deleted | Current `statuses.json` numbers ported exactly (engine_effects and element_damage tests green unchanged); end-screen credit guards green; status-pattern tests; `match id` gone from status code | M |
 | 4 | Phases + owner/afflicted events + collectible delivery; port Fire Walk, Infestation, Soul Bloom, Earth Shield, Cross Blade, seeds onto them; one heal stream | Suite green; special-case code deleted | M–L |
 | 5 | Keywords as data: bindings (8.4), signatures (8.5), stacking (8.2) | Contract matrix green | M |
 | 6 | Presentation split: shape renderers × look modules, palettes in data | Coverage green; new test look = one file | M |
