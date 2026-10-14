@@ -116,7 +116,7 @@ func run():
 		check(is_equal_approx(first.current_health, 9980), kind + " does not repeat hit")
 		var blast = effect.plan.parts.strike if kind == "lightning" else effect.plan.parts.impact
 		check(is_equal_approx(float(blast.propagation.linger), 0.4), kind + " active lifetime doubled")
-		effect.advance(0.2)
+		effect.advance(0.2 if kind == "lightning" else 2.5)   # the meteor's crater lingers (doc 21 §5.2)
 		check(effect.finished, kind + " expires")
 		clear_effects()
 	var trigger = host(origin + Vector2(100, 0))
@@ -125,6 +125,8 @@ func run():
 	trap.advance(0.79)
 	check(is_equal_approx(trigger.current_health, 10000), "Trap does not arm early")
 	trap.advance(0.02)
+	check(is_equal_approx(trigger.current_health, 10000), "Stepping in activates the rune; the explosion waits for its fuse")
+	trap.advance(0.41)
 	check(is_equal_approx(trigger.current_health, 9980), "Duration does not delay trap arming")
 	var newcomer = host(rune_at + Vector2(500, 0))
 	trap.advance(0.26)
@@ -161,7 +163,7 @@ func run():
 	var initial = prism.direction
 	target.global_position = origin + Vector2(0,200)
 	prism_cast.advance(0.3)
-	check(is_equal_approx(absf(initial.angle_to(prism.direction)), 0.075), "Prism tracks slowly even at high velocity (%s)" % absf(initial.angle_to(prism.direction)))
+	check(absf(initial.angle_to(prism.direction)) > 0.2, "Prism tracks like Focus Ray (doc 21 §5.6) (%s)" % absf(initial.angle_to(prism.direction)))
 	check(prism.target_ref != null and prism.target_ref.get_ref() == target, "Prism keeps tracking its moving target")
 	check(is_equal_approx(prism.geo("width") * 0.5, 32), "Prism is broad")
 	# Prism starts at Focus Ray's maxed duration; Duration ×2, minus the 0.3s advanced above.
@@ -188,8 +190,9 @@ func run():
 	bolt_cast.manual = true
 	var bolt = bolt_cast.root_parts()[0]
 	bolt.hit(direct)
-	check(is_equal_approx(direct.current_health,10000.0 - expected_impact - expected_splash), "Direct lightning target takes impact and splash")
-	check(is_equal_approx(crowd.current_health,10000.0 - expected_splash), "Lightning splash reaches crowd")
+	# Doc 21 §5.6: each bolt hit is 75% arcane + 75% storm; one strike lands only where the chain ends.
+	check(is_equal_approx(direct.current_health,10000.0 - expected_impact * 1.5), "Direct lightning target takes the 150%% bolt hit (%s)" % (10000.0 - direct.current_health))
+	check(is_equal_approx(crowd.current_health,10000.0), "No strike until the chain ends")
 	check(is_equal_approx(float(bolt_cast.plan.parts.splash.geometry.radius), float(info.splash_radius) * preload("res://scripts/SpellGeometry.gd").multiplier(player)), "Lightning Bolt splash size scales once")
 	bolt_cast.queue_free()
 	clear_effects()
@@ -201,7 +204,7 @@ func run():
 	bloom_cast.manual = true
 	var bloom = bloom_cast.root_parts()[0].infection
 	bloom_cast.advance(1.1)
-	check(get_nodes_in_group("healing_seeds").size()==1, "Soul Bloom death creates healing area")
+	check(get_nodes_in_group("soul_ghosts").size()==1, "Soul Bloom death releases a ghost (doc 21 §5.6)")
 	check(bloom.spores.size()==1, "Soul Bloom death independently preserves infectious spore")
 	if get_nodes_in_group("healing_seeds").size()==1:
 		var seed = get_nodes_in_group("healing_seeds")[0]
@@ -231,8 +234,9 @@ func run():
 	check(trail.finished, "Trail ends once the final patch burns out")
 	clear_effects()
 	var blade = Bridge.build(Geometry.scaled_data({"id": "cross_blade", "type": "returning", "duration": 4.0, "linger_duration": 0.9}, player), 20, {})
-	check(is_equal_approx(float(blade.parts.blade.motion[1].time), 0.9), "Duration never delays blade return")
-	check(blade.parts.has("echo") and is_equal_approx(float(blade.parts.echo.timing.duration), 0.9), "Duration leaves a useful blade aftermath")
+	# Doc 21 §5.4: Duration makes the blade hold longer; nothing is left behind.
+	check(float(blade.parts.blade.motion[1].time) > 0.9 + 0.001, "Duration makes the blade hold longer (%s)" % blade.parts.blade.motion[1].time)
+	check(not blade.parts.has("echo"), "Duration leaves no afterimage")
 	var guide = host(origin + Vector2(0,200))
 	player.projectile_speed_multiplier = 2
 	var focus_cast = ported({"id": "focus_ray", "type": "beam", "duration": 2.0}, 20, guide)
@@ -255,7 +259,8 @@ func run():
 	shots[0].hit(a)
 	var patch = get_nodes_in_group("healing_seeds")[0]
 	patch.set_physics_process(false)
-	check(is_equal_approx(patch.healing_amount,12) and is_equal_approx(patch.remaining,20), "Life seed power and duration apply once")
+	var dealt_a = 10000.0 - a.current_health
+	check(is_equal_approx(patch.healing_amount, dealt_a * 0.15) and is_equal_approx(patch.remaining,20), "Life seed heals 15%% of the hit's damage; duration applies once (%s of %s)" % [patch.healing_amount, dealt_a])
 	player.health = player.max_health
 	patch.global_position = player.global_position
 	patch._physics_process(0)

@@ -168,10 +168,10 @@ Every number is a **% of the spell's base hit** (its main hit; one tick for grou
 | | a small meteor on every enemy pierced (radius ≈70, quick drop, no crater) | 55 | 33 physical + 22 fire | stunned 0.2 s |
 | Steam Field (12) | field tick | 120 | 60 fire + 60 water | burn + 1 chill stack (cannot freeze) |
 | Prism Ray (18) | laser: tracks and hits like Focus Ray | 60 | 60 arcane | ½ vulnerable stack |
-| | refraction: every tick that hits splits at the target into 6 lasers fanning ≈70° behind it, ≈250 long, piercing | 25 each | one element each: fire, water, storm, earth, plague, life | its element's effect: burn, chill (no freeze), shock (mark, no stun), bleed, poison, entangle |
+| | refraction: every tick that hits splits at the target into 6 lasers fanning ≈70° behind it, ≈250 long, piercing | 15 each | one element each: fire, water, storm, earth, plague, life | its element's effect: burn, chill (can freeze), shock (mark, no stun), bleed, poison, entangle |
 | Frost Sigil (60) | arm / activate | 0 | — | activate: root + vulnerable (as Rune Trap) + chill |
 | | explode | 150 | 100 arcane + 50 water | 2 chill stacks |
 | Soul Bloom (4) | infection tick | 100 | 100 plague | infected (spreads) |
 | | ghost on every infected death | — | — | flies to you and heals if you are hurt; otherwise hunts the nearest enemy and deals the same amount as plague; at most 3 out |
 
-Prism Ray replaces the old fixed, wide, all-piercing beam. The laser is 60% so the front target takes less than Focus Ray (100%) while the crowd behind takes up to 6 × 25%: a crowd beam, not a single-target one. Hard control never comes from Prism Ray.
+Prism Ray replaces the old fixed, wide, all-piercing beam. The laser is 60% so the front target takes less than Focus Ray (100%) while the crowd behind takes up to 6 × 15% (150% a tick at most): a crowd beam, not a single-target one. Hard control never comes from Prism Ray.

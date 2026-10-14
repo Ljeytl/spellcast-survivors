@@ -198,7 +198,7 @@ func run():
 	manager.learn_spell("steam_field")
 	manager.cast_freeform_spell("steam field")
 	cast_for(game, "steam_field").run(0.5)
-	check(is_equal_approx(b.slow, 0.6), "Steam Field slows damaged nearby target")
+	check(is_equal_approx(b.slow, 0.8), "Steam Field chills a damaged nearby target (doc 21 §5.6: chill is its slow) (%s)" % b.slow)
 	manager.learn_spell("arcane_orbit")
 	manager.cast_freeform_spell("arcane orbit")
 	var orbit_cast = cast_for(game, "arcane_orbit")

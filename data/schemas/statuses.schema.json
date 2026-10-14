@@ -132,7 +132,7 @@
           ]
         }
       },
-      "stagger": {
+      "stun": {
         "type": "number"
       },
       "chain_share": {

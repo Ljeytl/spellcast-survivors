@@ -132,7 +132,9 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 		"shocked":
 			# A mark: the next Lightning hit chains it, Water/Ice conducts it, Earth grounds it (doc 18 §6.1b).
 			_set_timed(id, duration, 1.0, source)
-			_set_timed("shock_stagger", float(d.get("stagger", 0.2)), 1.0, source)
+			# The jolt is a real stun (doc 21 §5.3); Prism Ray's shock is the mark alone.
+			if not bool(params.get("no_stun", false)):
+				apply("stunned", {"duration": float(d.get("stun", 0.2))}, source)
 		_:
 			if str(d.get("kind", "")) == "hard":
 				if (is_boss() or is_elite()) and clock - last_hard_cc < float(rule("hard_cc_window", 4.0)):

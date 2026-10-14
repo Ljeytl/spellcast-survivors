@@ -608,7 +608,7 @@ func receive_damage(amount: float, origin: Vector2 = Vector2.INF, source: Dictio
 ## react, then apply the spell's statuses (data/spell_damage.json: bleed, burn, chill, shock).
 func resolve_untyped_hit(amount: float, source: Dictionary, origin: Vector2) -> float:
 	var spell = str(source.get("spell", ""))
-	var effect = SpellDamage.effect(amount, spell)
+	var effect = SpellDamage.effect(amount, spell, str(source.get("part", "")))
 	var total: float = Effects.resolve_damage(self, effect)[0]
 	if status != null and is_instance_valid(status):
 		total += status.on_hit(effect, source, origin)
@@ -616,7 +616,9 @@ func resolve_untyped_hit(amount: float, source: Dictionary, origin: Vector2) -> 
 		for rule in SpellDamage.statuses_for(spell, str(source.get("part", ""))):
 			var component = Effects.ensure_status(self)
 			if component:
-				component.apply(str(rule.status), {"hit": amount, "strength": float(rule.get("strength", 1.0))}, source)
+				var params = preload("res://scripts/engine/LegacyBridge.gd").status_item(rule)
+				params.hit = amount
+				component.apply(str(rule.status), params, source)
 	return total
 
 func apply_slow(slow_amount: float, duration: float):

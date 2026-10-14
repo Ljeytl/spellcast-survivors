@@ -49,6 +49,8 @@ var target_ref: WeakRef = null     # beams: the enemy it tracks (other beams avo
 var beam_offset := Vector2.ZERO    # beams: lane offset from the caster
 var infection = null               # "infection" delivery state (scripts/engine/Infection.gd)
 var hit_mult := 1.0                # phase damage share (Cross Blade: x2 on the way back, x0.5 pulses)
+var phase_mix: Dictionary = {}     # a phase's own damage mix, multiples of the base hit (doc 21 §5: Cross Blade)
+var phase_status_repeat := 1       # a phase that applies its statuses more than once (Cross Blade's return: 2 bleed)
 var emit_last := Vector2.INF        # emitters: where the last patch was laid
 var emit_timer := 0.0
 var heal_zone_done := false             # healing words: an area impact leaves one healing circle
@@ -277,11 +279,14 @@ func _step_projectile(delta: float) -> void:
 				while float(tick_acc.hold) + 0.000001 >= float(pulse.get("interval", 0.3)) and not done:
 					tick_acc.hold = float(tick_acc.hold) - float(pulse.get("interval", 0.3))
 					var keep = hit_mult
+					var keep_mix = phase_mix
 					hit_mult = float(pulse.get("mult", 0.5))
+					phase_mix = pulse.get("mix", {})
 					for enemy in cast.enemies():
 						if enemy.global_position.distance_to(global_position) <= geo("radius", 12.0) + pad_for(enemy):
 							hit(enemy)
 					hit_mult = keep
+					phase_mix = keep_mix
 			if phase_time + 0.000001 >= float(ph.get("time", 0.9)):
 				_next_phase(false)
 			return
@@ -311,6 +316,8 @@ func _next_phase(retarget: bool) -> void:
 		return
 	var next: Dictionary = phases[phase]
 	hit_mult = float(next.get("mult", 1.0))
+	phase_mix = next.get("mix", {})
+	phase_status_repeat = int(next.get("status_repeat", 1))
 	if bool(next.get("fresh_hits", false)):
 		hits.clear()   # a new leg: every enemy can be hit again once
 	if next.has("on_enter"):
@@ -684,6 +691,10 @@ func hit(enemy) -> void:
 							var s = item.duplicate()
 							s.amount = amount
 							cast.spawn_seed(at, s)
+					elif item.has("share_of_dealt"):
+						var s2 = item.duplicate()
+						s2.amount = dealt * float(item.share_of_dealt)
+						cast.spawn_seed(at, s2)
 					else:
 						cast.spawn_seed(at, item)
 			"heal_zone":
@@ -699,18 +710,35 @@ func hit(enemy) -> void:
 					Effects.apply(enemy, {"type": "slow", "factor": float(item.get("factor", 0.6)), "duration": float(item.get("duration", 2.0))}, cast.source, global_position)
 			"damage":
 				var entries := []
-				for e in item.entries:
+				var source_entries: Array = item.entries
+				if not phase_mix.is_empty():
+					# This phase deals its own mix of the base hit; words' added elements stay.
+					source_entries = item.entries.filter(func(x): return not bool(x.get("base", false)))
+					var el = str(item.get("element", "raw"))
+					for kind in phase_mix:
+						source_entries.append({"amount": float(item.get("hit", 0.0)) * float(phase_mix[kind]), "damage_type": str(kind), "chart_element": el if str(kind) == "raw" and el != "raw" else str(kind)})
+				for e in source_entries:
 					var scaled = e.duplicate()
 					scaled.amount = float(e.amount) * power_scale * hit_mult
 					entries.append(scaled)
-				dealt += Effects.apply(enemy, {"type": "damage", "entries": entries, "element": str(item.get("element", "raw"))}, cast.source, global_position)
+				# Infestation's ticks are its own damage over time, credited as "infection" (doc 21 §5.5).
+				var src = cast.source if delivery != "infection" else preload("res://scripts/engine/StatusComponent.gd").tag(cast.source, "infection")
+				dealt += Effects.apply(enemy, {"type": "damage", "entries": entries, "element": str(item.get("element", "raw"))}, src, global_position)
 			"status":
 				if not _alive(enemy):
 					continue
 				var eff = item.duplicate()
 				eff.type = "status"
 				eff.hit = float(item.get("hit", 0.0)) * power_scale * hit_mult
-				Effects.apply(enemy, eff, cast.source, global_position)
+				if not phase_mix.is_empty():
+					# Sized from the hit that applied it (doc 21 §5): this phase's own share of the base hit.
+					var total := 0.0
+					for kind in phase_mix:
+						total += float(phase_mix[kind])
+					eff.hit *= total
+				for i in phase_status_repeat:
+					if _alive(enemy):
+						Effects.apply(enemy, eff, cast.source, global_position)
 			"impulse":
 				if not _alive(enemy):
 					continue

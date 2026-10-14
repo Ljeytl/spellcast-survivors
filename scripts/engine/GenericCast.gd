@@ -361,6 +361,7 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 	if is_chain:
 		remaining = int(ev.hops) if ev.has("hops") else parent.hops
 		if remaining <= 0:
+			_chain_end(parent, ev, at, victim)
 			return
 	elif parent.depth + 1 > int(plan.get("max_depth", MAX_LINK_DEPTH)):
 		return
@@ -375,8 +376,11 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 		var reach = float(ev.get("range", parent.chain_range))
 		target = nearest_enemy(at, reach, exclude)
 		if target == null:
+			_chain_end(parent, ev, at, victim)
 			return
 		dir = at.direction_to(target.global_position)
+	if ev.has("turn"):
+		dir = dir.rotated(deg_to_rad(float(ev.turn)))   # a fixed angle off the parent (Prism Ray's refraction)
 	for i in copies:
 		var d = dir.rotated(spread * (i - (copies - 1) * 0.5)) if copies > 1 else dir
 		var child = _make_part(child_name, at, d, parent.depth + 1, parent.power_scale, parent.size_scale)
@@ -391,6 +395,14 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 		if str(child.delivery) == "volume":
 			child.step(0.0)   # a burst lands the moment its event fires, not a frame later
 
+## A chain that cannot go on fires its `end` event where it stopped (Lightning Bolt: one strike at
+## the last enemy, doc 21 §5.6).
+func _chain_end(parent, ev: Dictionary, at: Vector2, victim) -> void:
+	if ev.has("end"):
+		var end: Dictionary = ev.end.duplicate()
+		end.erase("chain")
+		spawn_event(parent, end, at, victim)
+
 ## A projectile's trail: a line field that grows from the throw point to the projectile.
 func spawn_trail(parent, ev: Dictionary) -> void:
 	var child = _make_part(str(ev.get("part", "")), parent.global_position, parent.direction.orthogonal(), parent.depth + 1, parent.power_scale, parent.size_scale)
@@ -399,6 +411,18 @@ func spawn_trail(parent, ev: Dictionary) -> void:
 	child.trail_parent = weakref(parent)
 	child.trail_from = parent.global_position
 	child.geo_override.length = 0.0
+
+## Soul Bloom's ghost: heals the caster if hurt, else hunts the nearest enemy for the same amount.
+func spawn_ghost(at: Vector2, amount: float) -> void:
+	if not is_instance_valid(caster) or world == null or amount <= 0.0:
+		return
+	var ghost = preload("res://scripts/SoulGhost.gd").new()
+	ghost.cast_ref = weakref(self)
+	ghost.player_ref = weakref(caster)
+	ghost.amount = amount
+	ghost.source = preload("res://scripts/engine/StatusComponent.gd").tag(source, "ghost")
+	world.add_child(ghost)
+	ghost.global_position = at
 
 ## A collectible healing seed for the caster (Life Bolt).
 func spawn_seed(at: Vector2, item: Dictionary) -> void:

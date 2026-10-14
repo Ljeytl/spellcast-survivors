@@ -124,7 +124,8 @@ func run():
 	blade.advance(0.7)
 	check(is_equal_approx(pass_target.current_health, 10000 - blade_damage), "Cross Blade sweeps a target inside the reduced body once")
 	blade.advance(0.9)
-	check(linger_target.current_health >= 10000 - blade_damage * 2.5 - 0.001 and linger_target.current_health <= 10000 - blade_damage * 2.0 + 0.001, "Linger provides two or three controlled half-damage ticks plus outbound (%s)" % (10000 - linger_target.current_health))
+	# Doc 21 §5.4: the blade holds and pulses at 100% each (50 physical / 50 earth).
+	check(linger_target.current_health >= 10000 - blade_damage * 4.0 - 2.0 and linger_target.current_health <= 10000 - blade_damage * 3.0 + 0.001, "Holding provides two or three full-damage pulses plus outbound (%s)" % (10000 - linger_target.current_health))
 	blade.advance(0.8)
 	check(is_equal_approx(pass_target.current_health, 10000 - blade_damage * 3.0), "Return adds one double-strength enemy hit")
 	check(outside_blade.current_health == 10000, "Reduced blade misses a target inside its former width")
@@ -177,7 +178,7 @@ func run():
 	trap.advance(10)
 	check(not rune.done and rune.armed and not trap.finished, "Visible armed trap persists without an enemy in trigger circle")
 	trigger.position = rune.global_position + Vector2(70, 0)
-	trap.advance(0.05)
+	trap.advance(0.5)   # activate, then the explosion 0.4 s later
 	var trap_damage = float(game.spell_manager.spell_catalog.rune_trap.damage)
 	check(is_equal_approx(trigger.current_health, 10000 - trap_damage), "Real enemy at visible trigger boundary detonates trap once (%s)" % trigger.current_health)
 	trap.advance(1)

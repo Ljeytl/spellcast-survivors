@@ -74,23 +74,17 @@ func run():
 	check(beams.size() == 3 and reserved.size() == 3, "Focus and two Prism casts reserve three distinct targets")
 	var prism = beams[1]
 	pin(prism, enemies[0])
-	var shape = enemies[1].get_node("HurtBox/HurtBoxShape")
-	var half_height = shape.shape.size.y * absf(shape.global_scale.y) * 0.5
-	var beam_radius = prism.geo("width") * 0.5
-	enemies[1].global_position.y += half_height + beam_radius - 1
-	enemies[4].global_position.y += half_height + beam_radius + 1
-	if "--known-bad-contact" in OS.get_cmdline_user_args():
-		shape.disabled = true
+	# Prism Ray (doc 21 §5.6): its laser stops at its target like Focus Ray; the refraction fans out
+	# behind the target and reaches the enemies lined up there.
 	adv(prism, 0.25)
 	var tick = 10000 - enemies[0].current_health
-	check(tick > 0, "Prism first tick lands")
-	for index in range(4):
-		check(is_equal_approx(enemies[index].current_health, 10000 - tick), "Prism first tick reaches target " + str(index))
-	check(is_equal_approx(enemies[4].current_health, 10000), "Outside beam and hurtbox does not take damage")
-	adv(prism, 0.25)
-	for index in range(4):
-		check(is_equal_approx(enemies[index].current_health, 10000 - tick * 2), "Prism second tick reaches target " + str(index))
-	check(is_equal_approx(prism.beam_end.length(), 450), "Prism tip retains full reach")
+	check(tick > 0, "Prism's laser lands on its target")
+	check(prism.beam_end.length() < 120, "Prism's laser stops at its target (%s)" % prism.beam_end.length())
+	var behind = 0
+	for index in range(1, 4):
+		if enemies[index].current_health < 10000:
+			behind += 1
+	check(behind >= 2, "The refraction reaches the enemies lined up behind (%d of 3)" % behind)
 	var focus = beams[0]
 	pin(focus, enemies[0])
 	adv(focus, 0.25)

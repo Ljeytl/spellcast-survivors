@@ -60,10 +60,16 @@ func run():
 		var total = 0.0
 		for entry in effect.entries:
 			total += float(entry.amount)
-		check(near(total, 100.0), "%s damage shares sum to the hit" % id)
+		# Doc 21 §5: a spell's mix is multiples of its base hit; combinations add up past 1.
+		var mix_sum = 0.0
+		for kind in SpellDamage.profile(id).damage:
+			mix_sum += float(SpellDamage.profile(id).damage[kind])
+		check(near(total, 100.0 * mix_sum), "%s damage shares add up to its mix (%.2f)" % [id, mix_sum])
+		check(mix_sum >= 1.0 - 0.001 or id == "prism_ray", "%s deals at least its base hit (Prism Ray's laser is 60%%)" % id)
 		var enemy = fresh()
 		# Chill adds frostbite: 4% of the hit as water damage (data/statuses.json).
-		var expected = 104.0 if id in ["ice_blast", "frost_sigil"] else 100.0
+		var chills = SpellDamage.statuses_for(id, "").any(func(r): return str(r.status) == "chilled")
+		var expected = 100.0 * mix_sum + (4.0 if chills else 0.0)
 		check(near(hit(enemy, 100.0, id), expected), "%s does unchanged direct damage to a neutral Woodland enemy" % id)
 		enemy.queue_free()
 	check(near(hit(fresh(), 50.0, ""), 50.0), "Unknown sources are plain raw damage")
@@ -86,7 +92,7 @@ func run():
 	check(near(frost_hit.call("ice_blast"), 75.0 + 4.0 * 0.75), "Same element resists the whole Ice Blast hit (and its frostbite)")
 	check(near(frost_hit.call("ember_spear"), 100.0), "Fire against Water/Ice is neutral (only Water beats Fire)")
 	check(near(frost_hit.call("bolt"), 100.0), "Arcane is neutral")
-	check(near(frost_hit.call("steam_field"), 50.0 + 37.5), "Steam Field's water share is resisted, fire share neutral")
+	check(near(frost_hit.call("steam_field"), 60.0 + 45.0 + 4.0 * 0.75), "Steam Field's water share (and its chill's frostbite) is resisted, fire share neutral")
 	var stormy = fresh()
 	stormy.element = "storm"
 	check(near(hit(stormy, 100.0, "cross_blade"), 125.0), "Earth/Steel raw share still beats Storm (keyed on spell element)")
@@ -132,7 +138,10 @@ func run():
 		var scorched = fresh()
 		hit(scorched, 10.0, id)
 		check(scorched.status != null and scorched.status.has("burn"), "%s burns" % id)
-	for id in ["meteor_shower", "meteor_spear", "seeker", "bolt", "focus_ray"]:
+	var haunted = fresh()
+	hit(haunted, 10.0, "seeker")
+	check(haunted.status != null and haunted.status.has("poison") and haunted.status.has("weakened"), "Seeker poisons and weakens (doc 21 §5.5)")
+	for id in ["meteor_shower", "meteor_spear", "bolt", "focus_ray"]:
 		var clean = fresh()
 		hit(clean, 10.0, id)
 		check(clean.status == null or (not clean.status.has("burn") and not clean.status.has("bleed") and not clean.status.has("poison")), "%s applies no damage over time" % id)
@@ -260,7 +269,7 @@ func run():
 	await process_frame
 	check(prep.element_line("ember_spear") == "Fire  ·  75% raw  ·  trail burns", "Preparation cards show element, raw share and statuses")
 	check(prep.element_line("bolt") == "Arcane", "Pure-element spells show just the element")
-	check(prep.element_line("cross_blade") == "Earth/Steel  ·  90% raw  ·  bleeds", "Cross Blade card shows its bleed")
+	check(prep.element_line("cross_blade") == "Earth/Steel  ·  75% raw  ·  bleeds", "Cross Blade card shows its bleed")
 	prep.queue_free()
 	print("element_damage_regression: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

@@ -138,10 +138,13 @@ func run():
 	game.player.health = 50
 	seed._physics_process(0.1)
 	check(seed.collected and game.player.health == 50, "Physical collection starts healing without an instant return")
+	# Doc 21 §5.6: a Life Bolt seed heals 15% of the damage its hit dealt, over two seconds.
+	var amount = float(seed.healing_amount)
+	check(amount > 0.0, "The seed carries a share of the hit's damage (%.1f)" % amount)
 	spells.process_healing_effects(1)
-	check(game.player.health == 53, "Collected seed heals three HP in one second")
+	check(absf(game.player.health - (50 + amount * 0.5)) < 0.01, "Collected seed heals half its amount in one second")
 	spells.process_healing_effects(10)
-	check(game.player.health == 56, "Seed HoT cannot exceed six total HP")
+	check(absf(game.player.health - (50 + amount)) < 0.01, "Seed HoT cannot exceed its amount")
 	var pooled = load("res://scenes/SpellProjectile.tscn").instantiate()
 	game.add_child(pooled)
 	pooled.set_meta("healing_seed_amount", 6.0)

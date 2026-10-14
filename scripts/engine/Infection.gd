@@ -130,7 +130,9 @@ func _host_died(h: Dictionary) -> void:
 	death_done[id] = true
 	var at: Vector2 = h.pos
 	if cfg.has("bloom"):
-		part.cast.spawn_seed(at, cfg.bloom)
+		# Soul Bloom (doc 21 §5.6): a ghost leaves the body: it heals you if you are hurt, otherwise it
+		# hunts an enemy for the same amount.
+		part.cast.spawn_ghost(at, float(cfg.bloom.get("amount", 6.0)))
 	if int(death_jumps.get(id, 0)) >= JUMPS_ON_DEATH:
 		return
 	death_jumps[id] = int(death_jumps.get(id, 0)) + 1

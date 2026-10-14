@@ -69,7 +69,7 @@ func run():
 	# Rune Trap runs on the generic engine: it arms, then bursts once on proximity.
 	var trap = spells.spawn_ported(spells.spell_catalog.rune_trap.duplicate(true), float(spells.spell_catalog.rune_trap.damage), {}, enemy)
 	trap.manual = true
-	trap.run(1.0)
+	trap.run(1.5)   # arms 0.8 s, activates, explodes 0.4 s later (doc 21 §5.1)
 	var trap_health = 500.0 - float(spells.spell_catalog.rune_trap.damage)
 	check(is_equal_approx(enemy.current_health, trap_health), "Trap deals its data damage (%s)" % enemy.current_health)
 	trap.run(2.0)

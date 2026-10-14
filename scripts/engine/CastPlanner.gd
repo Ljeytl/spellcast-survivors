@@ -171,7 +171,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 				if item.has("mix"):
 					# Ported spells carry their data/spell_damage.json mix; raw shares read the spell's element.
 					for kind in item.mix:
-						entries.append({"amount": amount * float(item.mix[kind]), "damage_type": str(kind), "chart_element": element if str(kind) == "raw" and element != "" else str(kind)})
+						entries.append({"amount": amount * float(item.mix[kind]), "damage_type": str(kind), "chart_element": element if str(kind) == "raw" and element != "" else str(kind), "base": true})
 				else:
 					if raw_share > 0.0:
 						entries.append({"amount": amount * raw_share, "damage_type": "raw"})

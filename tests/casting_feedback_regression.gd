@@ -59,15 +59,16 @@ func run():
 	check(focus_beams[0].target_ref.get_ref() != focus_beams[1].target_ref.get_ref(), "Recast seeks a second enemy")
 	check(is_equal_approx(focus_beams[0].geo("width"), 24.0), "Focus radius reduced")
 	var prism = prism_casts[0].root_parts()[0]
-	if "--known-bad-prism" in OS.get_cmdline_user_args():
-		prism.def.limits.beam_piercing = false
+	# Prism Ray (doc 21 §5.6): tracks and hits its first enemy like Focus Ray, then refracts there into
+	# six coloured lasers that fan out behind it.
 	prism.beam_offset = Vector2.ZERO
 	prism.direction = Vector2.RIGHT
 	prism.target_ref = weakref(enemies[0])
 	prism.step(0.25)
-	for enemy in enemies:
-		check(enemy.current_health < 1000, "Prism damages every aligned enemy including fourth")
-	check(is_equal_approx(prism.beam_end.length(), 450), "Prism remains full length through targets")
+	check(enemies[0].current_health < 1000, "Prism's laser hits its first enemy")
+	check(prism.beam_end.length() < 200, "Prism's laser stops at its target (%.0f)" % prism.beam_end.length())
+	var refracted = enemies.slice(1).filter(func(e): return e.current_health < 1000).size()
+	check(refracted >= 2, "The refraction hits the enemies lined up behind the target (%d of 3)" % refracted)
 	var focus = focus_beams[0]
 	focus.beam_offset = Vector2.ZERO
 	focus.direction = Vector2.RIGHT
@@ -103,7 +104,8 @@ func run():
 	var before_return = enemies.map(func(e): return e.current_health)
 	blade_cast.run(3.0)
 	for index in range(enemies.size()):
-		check(is_equal_approx(before_return[index] - enemies[index].current_health, 40), "Return pierces and damages each enemy once at double strength (%s)" % (before_return[index] - enemies[index].current_health))
+		var taken = before_return[index] - enemies[index].current_health
+		check(taken >= 40 and taken <= 46, "Return pierces and damages each enemy once at double strength, plus its bleed (%s)" % taken)
 	blade_cast.queue_free()
 	check(spells.spell_catalog.seeker.damage == 15 and spells.spell_catalog.seeker.hit_interval == 1.0, "Seeker hits for 15 at most once per second at rank 1")
 	for id in spells.Synergies.RECIPES:

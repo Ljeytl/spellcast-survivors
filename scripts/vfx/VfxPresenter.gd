@@ -243,6 +243,23 @@ func cast_started(cast) -> void:
 func part_spawned(part) -> void:
 	if not enabled:
 		return
+	var vfam0 := str(part.def.get("vfx", {}).get("family", ""))
+	if vfam0 == "ray":
+		var pos: Vector2 = part.global_position / WPS
+		# Prism Ray's refraction: a brief coloured laser fanning out behind the target (doc 21 §5.6).
+		var key2 := str(part.def.vfx.get("look", "arcane"))
+		var cols: Array = BODY.get(key2, BODY.arcane)
+		var dir2: Vector2 = Vector2(part.direction).normalized()
+		var length_su: float = part.geo("length", 250.0) / WPS
+		var steps := 10
+		for i in steps:
+			var k := float(i + 1) / steps
+			var p2: Vector2 = pos + dir2 * length_su * k
+			vfx.spark(p2.x, p2.y, dir2.x * 6.0, dir2.y * 6.0, 0.12 + 0.05 * randf(), [cols[0], cols[1], cols[2]])
+		var tip: Vector2 = pos + dir2 * length_su
+		vfx.flash(tip.x, tip.y, 1.0, 0.06, cols[1])
+		_presented[part.get_instance_id()] = weakref(part)
+		return
 	var look = look_of(part.cast.plan)
 	var kind := _kind(part)
 	if look.native == "" or kind == "":

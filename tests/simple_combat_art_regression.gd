@@ -90,7 +90,7 @@ func run():
 	trap.advance(60)
 	check(not trap.finished and not rune.done and rune.armed, "Untriggered trap survives beyond old expiry")
 	enemy = target_at(rune.global_position)
-	trap.advance(0.05)
+	trap.advance(0.5)   # activate, then the explosion 0.4 s later
 	check(rune.done and enemy.hits == 1, "Persistent trap still triggers once")
 	trap.advance(1)
 	check(trap.finished and enemy.hits == 1, "Triggered trap ends promptly")

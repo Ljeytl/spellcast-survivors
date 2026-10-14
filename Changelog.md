@@ -22,6 +22,18 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 - **Healing in the shape of the hit:** HEALING and BLOOMING (life) give each cast a healing budget. Projectiles plant seeds where they hit, an area impact leaves a healing circle its size, and fields and trails heal you while you stand in them.
 - **WARDING is built:** a 30-point ward for 6 s that refreshes rather than stacks. **LEECHING** (new): heals 15% of the damage dealt, at most 8% of your max health per cast, so SANGUINE always costs something.
 
+## The spell pass (doc 21 §5)
+
+Every spell and combination now has its damage and effects set part by part, as a share of its base hit; a spell's parts can add up past 100%. Each effect is sized from the hit that applied it.
+
+- **Magic Missile** is all physical (armour resists the auto-attack). **Bolt** and **Arcane Orbit** are plain arcane damage.
+- **Focus Ray** adds half a vulnerable stack per tick. **Rune Trap** has three stages: it arms, an enemy steps in and it *activates* (everyone inside rooted for 0.4 s and marked vulnerable: 0 stacks at rank 1 up to 5 at rank 6+), then it explodes 0.4 s later.
+- **Ember Spear**'s trail ticks 20% fire and burns. **Meteor Shower**: 60 / 40 fire impact with a 0.2 s stun, then a short crater of hot rubble (25% a tick, no burn; Duration extends it).
+- **Ice Blast**: one chill stack per shard, no separate slow. **Lightning**'s shock is a 3 s mark plus a 0.2 s stun (the stagger is gone).
+- **Cross Blade**: out 100% (75 / 25 earth), holding 100% per pulse (50 / 50; Duration holds longer, no afterimage), back 200% (75 / 125) with a double bleed. **Earth Shield**'s eruption is 40 / 60 earth.
+- **Seeker** poisons and weakens. **Infestation**'s ticks are credited as infection.
+- **Combinations:** Lightning Bolt hits 75 arcane + 75 storm per bounce and strikes once (150% storm) where the chain ends. Life Bolt's seed heals 15% of the hit's damage. Meteor Spear drops a small meteor (55%, stuns) on every enemy it pierces. Steam Field: 60 fire + 60 water, burn and chill. Frost Sigil: Rune Trap's stages plus chill; explodes for 100 arcane + 50 water and two chill stacks. **Prism Ray** tracks like Focus Ray at 60% and refracts at its target into six 15% lasers, one per element, each applying its effect. **Soul Bloom**: every infected death releases a ghost that heals you if you are hurt, otherwise hunts an enemy for the same amount (at most three).
+
 ## Balance: bot comparison against 0.2.8
 
 - **Fix: Magic Missile and Lightning Bolt lost about 15–20% damage against moving enemies.** The port steered homing projectiles by a fixed turn rate; 0.2.8 blended toward the target. Restored the blend (`"lerp"` motion); a controlled bot test now matches 0.2.8 within noise.

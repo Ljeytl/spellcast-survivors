@@ -27,39 +27,56 @@ static func _load():
 	for id in spells:
 		_elements[id] = TypeChart.normalize(str(spells[id].get("element", "")))
 
-## {element, damage: {type: share}, statuses: [{status, part?, strength?}]}
-static func profile(spell_id: String) -> Dictionary:
+## {element, damage: {type: share}, statuses: [{status, part?, strength?, stacks?, duration?}]}
+## With a part (doc 21 §5), that part's own row in "parts" wins: its damage is that part's mix as
+## multiples of the spell's base hit (it may add up past 1), its statuses are that part's alone.
+static func profile(spell_id: String, part: String = "") -> Dictionary:
 	_load()
 	var row: Dictionary = _table.get(spell_id, {})
 	var element = TypeChart.normalize(str(row.get("element", _elements.get(spell_id, ""))))
-	var mix: Dictionary = row.get("damage", {})
+	var own: Dictionary = row.get("parts", {}).get(part, {}) if part != "" else {}
+	var mix: Dictionary = own.get("damage", row.get("damage", {}))
 	if mix.is_empty():
 		mix = {"raw": 1.0} if element == "" else {element: 1.0}
-	var statuses: Array = row.get("statuses", [])
-	return {"element": element, "damage": mix, "statuses": statuses}
+	var statuses: Array = own.get("statuses", row.get("statuses", []))
+	return {"element": element, "damage": mix, "statuses": statuses, "own": not own.is_empty()}
 
 ## Statuses a hit of this spell applies; a rule with a part only matches hits tagged with that part.
 static func statuses_for(spell_id: String, part: String) -> Array:
+	var p = profile(spell_id, part)
+	if bool(p.own):
+		return p.statuses
 	var matched: Array = []
-	for rule in profile(spell_id).statuses:
+	for rule in p.statuses:
 		if str(rule.get("part", "")) == "" or str(rule.get("part", "")) == part:
 			matched.append(rule)
 	return matched
 
-const STATUS_WORDS = {"burn": "burns", "bleed": "bleeds", "chilled": "chills", "shocked": "shocks"}
+const STATUS_WORDS = {"burn": "burns", "bleed": "bleeds", "chilled": "chills", "shocked": "shocks", "poison": "poisons",
+	"weakened": "weakens", "vulnerable": "marks vulnerable", "rooted": "roots", "stunned": "stuns", "entangled": "entangles"}
 
-## "bleeds", "trail burns", "chills".
+## "bleeds", "trail burns", "impact stuns": the spell's own statuses, then any a single part adds.
 static func status_line(spell_id: String) -> String:
+	_load()
 	var parts: Array[String] = []
+	var seen := {}
 	for rule in profile(spell_id).statuses:
 		var word = str(STATUS_WORDS.get(str(rule.status), str(rule.status)))
+		seen[str(rule.status)] = true
 		parts.append((str(rule.part) + " " + word) if str(rule.get("part", "")) != "" else word)
+	var own: Dictionary = _table.get(spell_id, {}).get("parts", {})
+	for part in own:
+		for rule in own[part].get("statuses", []):
+			if seen.has(str(rule.status)):
+				continue
+			seen[str(rule.status)] = true
+			parts.append(str(part).replace("_", " ") + " " + str(STATUS_WORDS.get(str(rule.status), str(rule.status))))
 	return ", ".join(parts)
 
 ## Effect for Effects.resolve_damage / apply. Raw shares read the spell's element on the type chart;
 ## elemental shares read their own element (so Steam Field's water share beats fire enemies).
-static func effect(amount: float, spell_id: String) -> Dictionary:
-	var p = profile(spell_id)
+static func effect(amount: float, spell_id: String, part: String = "") -> Dictionary:
+	var p = profile(spell_id, part)
 	var entries: Array = []
 	for kind in p.damage:
 		var type = TypeChart.normalize(str(kind))

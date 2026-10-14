@@ -88,12 +88,22 @@ static func _recast(info: Dictionary) -> Dictionary:
 		r.max_banked = float(info.max_banked_casts)
 	return r
 
+## A part's damage and statuses from data/spell_damage.json. `amount` is the spell's base hit; the
+## part's mix carries its share of it (doc 21 §5: Lightning Bolt's strike is 1.5x the base, in storm).
 static func _damage(spell_id: String, amount: float, part: String = "") -> Array:
-	var p = SpellDamage.profile(spell_id)
+	var p = SpellDamage.profile(spell_id, part)
 	var out: Array = [{"type": "damage", "amount": amount, "mix": p.damage}]
 	for rule in SpellDamage.statuses_for(spell_id, part):
-		out.append({"type": "status", "status": str(rule.status), "strength": float(rule.get("strength", 1.0))})
+		out.append(status_item(rule))
 	return out
+
+## One status rule as a payload item: strength, stacks, duration and flags pass through.
+static func status_item(rule: Dictionary) -> Dictionary:
+	var item := {"type": "status", "status": str(rule.status), "strength": float(rule.get("strength", 1.0))}
+	for k in ["stacks", "duration", "no_freeze", "no_stun"]:
+		if rule.has(k):
+			item[k] = rule[k]
+	return item
 
 static func _shell(info: Dictionary, root: String, parts: Dictionary) -> Dictionary:
 	var id = str(info.id)
@@ -111,7 +121,7 @@ static func _spear(info: Dictionary, damage: float, ctx: Dictionary) -> Dictiona
 		"delivery": "projectile", "origin": "caster",
 		"geometry": {"type": "body", "radius": radius, "pad": 0.0},
 		"motion": [{"type": "straight", "speed": speed, "range": speed * flight}],
-		"payload": _damage(id, damage),
+		"payload": _damage(id, damage, "spear"),
 		"limits": {"pierce": -1},
 		"vfx": {"family": "spear"},
 	}
@@ -122,18 +132,32 @@ static func _spear(info: Dictionary, damage: float, ctx: Dictionary) -> Dictiona
 			"delivery": "field", "origin": "parent",
 			"geometry": {"type": "line", "length": 0.0, "width": radius * 2.0, "pad": 0.0},
 			"timing": {"duration": flight + float(info.get("burn_duration", 1.5)), "interval": float(info.get("burn_tick", 0.5)), "per_target": true},
-			"payload": _damage(id, damage * float(info.get("burn_tick_ratio", 0.12)), "trail"),
+			"payload": _damage(id, damage, "trail"),   # doc 21 §5.2: 20% of the spear hit as fire, + burn
 			"limits": {"cap": 3},
 			"vfx": {"style": "smoulder"},
 		}
 	if bool(info.get("explosive", false)):
-		spear.events = {"on_hit": {"part": "blast", "exclude_hit": true}}
-		parts.blast = {
-			"delivery": "volume", "origin": "parent",
-			"geometry": {"type": "disk", "radius": float(info.get("explosion_radius", 90.0 * float(info.get("spell_size_multiplier", 1.0)))), "pad": 0.0},
-			"payload": _damage(id, float(info.get("explosion_damage", damage * 0.5))),
+		# Meteor Spear (doc 21 §5.6): a small meteor drops on every enemy the spear pierces.
+		var small = 70.0 * float(info.get("spell_size_multiplier", 1.0))
+		spear.events = {"on_hit": {"part": "drop"}}
+		parts.drop = {
+			"delivery": "field", "origin": "parent", "anchor": "hit_target",
+			"geometry": {"type": "disk", "radius": small, "pad": 0.0},
+			"timing": {"duration": 0.25, "interval": 999.0},
+			"events": {"on_expire": {"part": "meteor"}},
+			"payload": [],
+			"vfx": {"family": "meteor"},
 		}
-	return _shell(info, "spear", parts)
+		parts.meteor = {
+			"delivery": "volume", "origin": "parent",
+			"geometry": {"type": "disk", "radius": small, "pad": 0.0},
+			"propagation": {"type": "instant", "linger": 0.1},
+			"payload": _damage(id, damage, "meteor"),
+		}
+	var def = _shell(info, "spear", parts)
+	if bool(info.get("explosive", false)):
+		def.max_depth = 3
+	return def
 
 ## Bolt: one bolt per rank up to five, 0.12 s apart, each aimed when it leaves at the enemy
 ## worth hitting (overkill-aware); a contact hits everything the bolt overlaps, then it is spent.
@@ -165,7 +189,7 @@ static func _ice_blast(info: Dictionary, damage: float, ctx: Dictionary) -> Dict
 	var knockback = float(info.get("knockback", 400)) + (int(info.get("level", 1)) - 1) * 50.0
 	var payload = _damage(id, damage)
 	payload.append({"type": "impulse", "direction": "travel", "force": knockback, "falloff": [2.0, 1.2], "once_per_cast": true})
-	payload.append({"type": "slow", "factor": float(info.get("slow_effect", 0.3)), "duration": float(info.get("slow_duration", 2.0)), "once_per_cast": true})
+	# Chill (1 stack per shard that hits) is Ice Blast's slow now (doc 21 §5.3); no separate slow.
 	var shard := {
 		"delivery": "projectile", "origin": "caster",
 		"geometry": {"type": "body", "radius": 12.0 * size, "pad": "hurtbox"},
@@ -201,38 +225,51 @@ static func _lightning(info: Dictionary, damage: float, _ctx: Dictionary) -> Dic
 	def.needs_target = true
 	return def
 
-## Rune Trap (and Frost Sigil): a rune laid toward the nearest enemy (at most 160 away). It arms,
-## waits for as long as it takes, and bursts when an enemy steps inside its trigger.
+## Rune Trap (and Frost Sigil), doc 21 §5.1: a rune laid toward the nearest enemy (at most 160 away)
+## arms, waits, and when an enemy steps in it ACTIVATES (roots everyone inside briefly and marks them
+## vulnerable, 0 stacks at rank 1 up to 5 at rank 6+), then EXPLODES on the rooted, softened crowd.
 static func _trap(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
 	var id = str(info.id)
-	var blast_payload = _damage(id, damage)
-	if bool(info.get("frost", false)):
-		blast_payload.append({"type": "slow", "factor": 1.0 - float(info.get("slow", 0.4)), "duration": float(info.get("slow_duration", 2.0))})
+	var radius = float(info.get("trap_radius", 130.0))
 	var rune := {
 		"delivery": "trap", "origin": "toward_target", "reach": 160.0,
 		"geometry": {"type": "disk", "radius": float(info.get("trigger_radius", 70.0)), "pad": 0.0},
 		"timing": {"arming": float(info.get("arm_delay", 0.8)), "duration": 1.0e9},
-		"events": {"on_trigger": {"part": "burst"}},
+		"events": {"on_trigger": {"part": "activate"}},
 	}
 	var cap = int(info.get("active_limit", 999))
 	if cap < 999:
 		rune.limits = {"cap": cap}
+	var marks: Array = []
+	for rule in SpellDamage.statuses_for(id, "activate"):
+		marks.append(status_item(rule))
+	var stacks = clampi(int(info.get("level", 1)) - 1, 0, 5)
+	if stacks > 0:
+		marks.append({"type": "status", "status": "vulnerable", "stacks": float(stacks)})
+	var activate := {
+		"delivery": "volume", "origin": "parent",
+		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
+		# live for the fuse: anyone stepping in before it blows is rooted and marked too
+		"propagation": {"type": "instant", "linger": 0.4},
+		"payload": marks,
+		"events": {"on_expire": {"part": "burst"}},
+	}
 	var burst := {
 		"delivery": "volume", "origin": "parent",
-		"geometry": {"type": "disk", "radius": float(info.get("trap_radius", 130.0)), "pad": 0.0},
+		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
 		# old rune: the burst stays live 0.25 s (× Duration) and catches late entrants once
 		"propagation": {"type": "instant", "linger": float(info.get("active_duration", 0.25 * float(info.get("spell_duration_multiplier", 1.0))))},
-		"payload": blast_payload,
+		"payload": _damage(id, damage, "burst"),
 	}
-	return _shell(info, "rune", {"rune": rune, "burst": burst})
+	var def = _shell(info, "rune", {"rune": rune, "activate": activate, "burst": burst})
+	def.max_depth = 3
+	return def
 
 ## Cinder Field (and Steam Field): a burning circle on the group worth hitting (where the caster
 ## stands if there is none). First pulse after one interval, then every interval.
 static func _field(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
 	var id = str(info.id)
-	var payload = _damage(id, damage)
-	if float(info.get("slow", 0.0)) > 0.0:
-		payload.append({"type": "slow", "factor": 1.0 - float(info.slow), "duration": 0.7})
+	var payload = _damage(id, damage)   # Steam Field's slow is its chill now (data/spell_damage.json)
 	var field := {
 		"delivery": "field", "origin": "target_or_caster",
 		"geometry": {"type": "disk", "radius": float(info.get("radius", 150.0)), "pad": 0.0},
@@ -283,7 +320,7 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 		"delivery": "field", "origin": "caster",
 		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
 		"timing": {"duration": float(info.get("warning_duration", 0.65)), "interval": 999.0},
-		"events": {"on_expire": {"part": "impact"}},
+		"events": {"on_expire": {"part": "impact"}, "on_expire#crater": {"part": "crater"}},
 		"payload": [],
 		"vfx": {"family": "meteor"},
 	}
@@ -292,9 +329,17 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
 		# old meteor strike: a 0.2 s (× Duration) blast that still catches late entrants
 		"propagation": {"type": "instant", "linger": 0.2 * float(info.get("spell_duration_multiplier", 1.0))},
-		"payload": _damage(id, damage),
+		"payload": _damage(id, damage, "impact"),
 	}
-	var def = _shell(info, "mark", {"mark": mark, "impact": impact})
+	# Doc 21 §5.2: a short burning crater of hot rubble (25% of the impact a tick, no burn); Duration extends it.
+	var crater := {
+		"delivery": "field", "origin": "parent",
+		"geometry": {"type": "disk", "radius": radius * 0.6, "pad": 0.0},
+		"timing": {"interval": 0.5, "duration": 1.0 * float(info.get("spell_duration_multiplier", 1.0)), "delay_first": true},
+		"payload": _damage(id, damage, "crater"),
+		"vfx": {"style": "smoulder"},
+	}
+	var def = _shell(info, "mark", {"mark": mark, "impact": impact, "crater": crater})
 	def.arrangement = {"type": "points", "count": int(info.get("meteor_count", 3)), "stagger_life": float(info.get("delay_interval", 0.3))}
 	return def
 
@@ -305,12 +350,13 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 	var speed = 550.0 * float(ctx.get("speed_mult", 1.0))
 	var hops = int(info.get("bounce_count", 4))
 	var reach = float(info.get("bounce_range", 240.0))
-	var events = {"on_hit": {"part": "splash"}, "on_hit#bounce": {"part": "bounce", "chain": true, "hops": hops, "range": reach, "exclude_hit": true}}
+	# Doc 21 §5.6: the bolt bounces through up to `hops` more enemies, then ONE strike lands on the last.
+	var events = {"on_hit#bounce": {"part": "bounce", "chain": true, "hops": hops, "range": reach, "exclude_hit": true, "end": {"part": "splash"}}}
 	var bolt := {
 		"delivery": "projectile", "origin": "caster",
 		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
 		"motion": [{"type": "guided", "speed": speed, "lerp": 5.0, "range": maxf(3.0 * speed, (hops + 1) * reach + speed)}],  # old homing_strength 5
-		"payload": _damage(id, damage),
+		"payload": _damage(id, damage, "bolt"),
 		"limits": {"pierce": 0},
 		"events": events,
 		"vfx": {"family": "bolt"},
@@ -318,17 +364,18 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 	var bounce = bolt.duplicate(true)
 	bounce.origin = "parent"
 	bounce.motion = [{"type": "guided", "speed": speed, "lerp": 5.0, "range": reach * 1.5}]
-	bounce.events = {"on_hit": {"part": "splash"}, "on_hit#bounce": {"part": "bounce", "chain": true, "range": reach, "exclude_hit": true}}
+	bounce.payload = _damage(id, damage, "bounce")
+	bounce.events = {"on_hit#bounce": {"part": "bounce", "chain": true, "range": reach, "exclude_hit": true, "end": {"part": "splash"}}}
 	var splash := {
 		"delivery": "volume", "origin": "parent",
 		"geometry": {"type": "disk", "radius": float(info.get("splash_radius", 80.0)) * float(info.get("spell_size_multiplier", 1.0)), "pad": 0.0},
 		"propagation": {"type": "instant", "linger": 0.2},   # old splash: 0.2 s, late entrants still hit once
-		"payload": _damage(id, float(info.get("splash_damage", 0.0))),
+		"payload": _damage(id, damage, "splash"),   # 1.5x the base hit in storm (data/spell_damage.json)
 	}
 	var def = _shell(info, "bolt", {"bolt": bolt, "bounce": bounce, "splash": splash})
 	def.release = {"type": "together", "retarget": true}
 	def.max_spawns = 64
-	def.max_depth = hops + 2       # splashes still land after the last bounce
+	def.max_depth = hops + 2       # the strike still lands after the last bounce
 	def.needs_target = true        # no enemy, no bolt (old behaviour)
 	return def
 
@@ -338,7 +385,8 @@ static func _life_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dict
 	var id = str(info.id)
 	var speed = 400.0 * float(ctx.get("speed_mult", 1.0))
 	var payload = _damage(id, damage)
-	payload.append({"type": "seed", "amount": float(info.get("healing_seed_amount", 6.0)), "duration": float(info.get("healing_seed_duration", 2.0)),
+	# Doc 21 §5.6: the seed heals 15% of the damage the hit dealt.
+	payload.append({"type": "seed", "share_of_dealt": 0.15, "amount": float(info.get("healing_seed_amount", 6.0)), "duration": float(info.get("healing_seed_duration", 2.0)),
 		"lifetime": float(info.get("healing_seed_lifetime", 10.0)) * float(info.get("spell_duration_multiplier", 1.0)),
 		"radius": float(info.get("healing_seed_radius", 28.0)) * float(info.get("spell_size_multiplier", 1.0)), "cap": 6})
 	var bolt := {
@@ -355,7 +403,10 @@ static func _life_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dict
 	return def
 
 ## Focus Ray (and Prism Ray): a beam from the caster that turns toward the enemy it tracks and hits
-## the first enemy along it four times a second; Prism Ray is fixed, wide and pierces everything.
+## the first enemy along it four times a second. Prism Ray (doc 21 §5.6) tracks the same way, and every
+## tick that hits refracts at the target into six piercing lasers fanning out behind it, one per element.
+const PRISM_RAYS = ["ray_fire", "ray_water", "ray_storm", "ray_earth", "ray_plague", "ray_life"]
+const PRISM_LOOKS = {"ray_fire": "fire", "ray_water": "ice", "ray_storm": "lightning", "ray_earth": "earth", "ray_plague": "plague", "ray_life": "life"}
 static func _beam(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
 	var id = str(info.id)
 	var piercing = bool(info.get("beam_piercing", false))
@@ -367,10 +418,27 @@ static func _beam(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 		"geometry": {"type": "line", "length": 450.0, "width": float(info.get("beam_radius", SpellGeometry.BEAM_RADIUS)) * float(info.get("spell_size_multiplier", 1.0)) * 2.0, "pad": "hurtbox"},
 		"aim": {"turn": turn},
 		"timing": {"interval": 0.25, "duration": float(info.get("duration", 2.0))},
-		"payload": _damage(id, damage),
+		"payload": _damage(id, damage, "beam"),
 		"limits": {"targets": int(info.get("beam_targets", 1)), "beam_piercing": piercing},
 	}
-	var def = _shell(info, "beam", {"beam": beam})
+	var parts := {"beam": beam}
+	if bool(info.get("refract", false)):
+		var fan = 70.0
+		beam.events = {}
+		for i in PRISM_RAYS.size():
+			var ray = PRISM_RAYS[i]
+			beam.events["on_hit#" + ray] = {"part": ray, "turn": -fan * 0.5 + fan * i / (PRISM_RAYS.size() - 1), "exclude_hit": true}
+			parts[ray] = {
+				"delivery": "volume", "origin": "parent",
+				"geometry": {"type": "line", "length": 250.0 * float(info.get("spell_size_multiplier", 1.0)), "width": 16.0, "pad": "hurtbox"},
+				"propagation": {"type": "instant", "linger": 0.05},
+				"payload": _damage(id, damage, ray),
+				"vfx": {"family": "ray", "look": PRISM_LOOKS[ray]},
+			}
+	var def = _shell(info, "beam", parts)
+	if bool(info.get("refract", false)):
+		def.max_spawns = 4000
+		def.max_depth = 2
 	def.recast = _recast(info)
 	return def
 
@@ -427,39 +495,35 @@ static func _firewalk(info: Dictionary, damage: float, _ctx: Dictionary) -> Dict
 	def.max_depth = 2
 	return def
 
-## Cross Blade: a ring of spinning blades (one aimed at the target) flies out, lingers pulsing for
-## half damage, then flies back to the caster hitting every enemy again at double damage.
+## Cross Blade (doc 21 §5.4): blades fly out (100%, 75 physical / 25 earth), hold where they stop and
+## pulse every interval (100% each, 50 / 50), then fly back hitting every enemy again (200%: 75 / 125)
+## with a double bleed. Duration makes the blade hold longer; nothing is left behind.
 static func _cross_blade(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
 	var id = str(info.id)
 	var speed = float(info.get("speed", 500.0)) * float(ctx.get("speed_mult", 1.0))
-	var linger = float(info.get("linger_duration", 0.9))
+	var linger = float(info.get("linger_duration", 0.9)) * float(info.get("spell_duration_multiplier", 1.0))
 	var interval = float(info.get("linger_interval", 0.3))
 	var radius = float(info.get("blade_radius", 33.6))
-	var back := {"type": "return", "speed": speed, "catch": 18.0, "mult": float(info.get("return_damage_multiplier", 1.0)), "fresh_hits": true}
-	var parts := {}
-	var extra = linger * (float(info.get("spell_duration_multiplier", 1.0)) - 1.0)
-	if extra > 0.000001:
-		# Longer Duration leaves the lingering pulse behind as the blade turns home.
-		back.on_enter = {"part": "echo"}
-		parts.echo = {
-			"delivery": "field", "origin": "parent",
-			"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
-			"timing": {"interval": interval, "duration": extra, "delay_first": false},
-			"payload": _damage(id, damage * float(info.get("linger_damage_multiplier", 0.5))),
-		}
-	parts.blade = {
+	var hold_mix = SpellDamage.profile(id, "hold").damage
+	var back_part = SpellDamage.profile(id, "return")
+	var back_bleed = 1
+	for rule in back_part.statuses:
+		if str(rule.status) == "bleed":
+			back_bleed = maxi(1, int(rule.get("stacks", 1)))
+	var back := {"type": "return", "speed": speed, "catch": 18.0, "mult": 1.0, "mix": back_part.damage, "status_repeat": back_bleed, "fresh_hits": true}
+	var blade := {
 		"delivery": "projectile", "origin": "caster",
 		"geometry": {"type": "body", "radius": radius, "pad": 0.0},
 		"motion": [
 			{"type": "straight", "speed": speed, "range": float(info.get("travel_distance", 350.0))},
-			{"type": "hold", "time": linger, "pulse": {"interval": interval, "mult": float(info.get("linger_damage_multiplier", 0.5))}},
+			{"type": "hold", "time": linger, "pulse": {"interval": interval, "mult": 1.0, "mix": hold_mix}},
 			back,
 		],
-		"payload": _damage(id, damage),
+		"payload": _damage(id, damage, "blade"),
 		"limits": {"pierce": -1},
 		"vfx": {"family": "blade"},
 	}
-	var def = _shell(info, "blade", parts)
+	var def = _shell(info, "blade", {"blade": blade})
 	var count = maxi(1, int(info.get("blade_count", 3)))
 	def.arrangement = {"type": "ring", "count": count, "radius": 0.0, "aimed": true, "offset": PI / 4.0 if count == 4 else 0.0}
 	def.recast = _recast(info)
