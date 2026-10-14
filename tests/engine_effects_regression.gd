@@ -248,7 +248,7 @@ func chill():
 		Effects.apply(f, {"type": "status", "status": "chilled", "hit": 100}, src(1))
 	check(f.status.chill_stacks() == 4, "Each hit adds a stack of chill")
 	check(near(1000 - f.current_health, 16), "Each chill application deals 4% frostbite")
-	check(near(f.status.move_multiplier(), 1.0 - 0.24), "Slow grows with stacks (6% each)")
+	check(near(f.status.move_multiplier(), 1.0 - 0.80), "Slow grows with stacks (20% each; chill may pass the 70% cap on its way to freeze)")
 	Effects.apply(f, {"type": "status", "status": "chilled", "hit": 100}, src(1))
 	check(f.status.has("frozen") and not f.status.has("chilled"), "Five stacks freeze; chill clears")
 	check(near(f.status.move_multiplier(), 0.0) and f.status.locked("attack"), "Frozen cannot move or attack")
@@ -273,7 +273,7 @@ func slows_and_control():
 	for i in 3:
 		Effects.apply(f, {"type": "status", "status": "chilled", "hit": 0}, src(1))
 	Effects.apply(f, {"type": "status", "status": "slowed", "strength": 0.3}, src(1))
-	check(near(f.status.slow_amount(), 0.3 + 0.18 * 0.1), "Slows: strongest plus 10% of the others")
+	check(near(f.status.slow_amount(), 0.6 + 0.3 * 0.1), "Slows: strongest plus 10% of the others")
 	Effects.apply(f, {"type": "status", "status": "slowed", "strength": 0.95}, src(1))
 	check(near(f.status.slow_amount(), 0.7), "Slows cap at 70%")
 	var e = fake()

@@ -461,8 +461,10 @@ func locked(kind: String) -> bool:
 
 func slow_amount() -> float:
 	var slows: Array = []
+	var chill_slow := 0.0
 	if not chill.is_empty():
-		slows.append(float(def("chilled").slow_per_stack) * int(chill.stacks))
+		chill_slow = float(def("chilled").slow_per_stack) * int(chill.stacks)
+		slows.append(chill_slow)
 	for id in ["slowed", "entangled"]:
 		if timed.has(id):
 			slows.append(float(timed[id].strength))
@@ -473,7 +475,8 @@ func slow_amount() -> float:
 	var total = float(slows[0])
 	for i in range(1, slows.size()):
 		total += float(slows[i]) * float(rule("secondary_slow_share", 0.1))
-	return minf(total, float(rule("slow_cap", 0.7)))
+	# Chill alone may pass the cap: it climbs 20% a stack toward freeze (doc 21 §2).
+	return minf(total, maxf(float(rule("slow_cap", 0.7)), chill_slow))
 
 func move_multiplier() -> float:
 	if locked("move"):
