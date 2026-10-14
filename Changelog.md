@@ -13,6 +13,11 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 
 **Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; bleed has no look yet.
 
+## Balance: bot comparison against 0.2.8
+
+- **Fix: Magic Missile and Lightning Bolt lost about 15–20% damage against moving enemies.** The port steered homing projectiles by a fixed turn rate; 0.2.8 blended toward the target. Restored the blend (`"lerp"` motion); a controlled bot test now matches 0.2.8 within noise.
+- **Fix: Fire Walk stopped laying patches after about six minutes.** Recasts extend one cast, and that cast ran out of its 400-spawn budget. Each recast now adds a fresh budget (`tests/long_recast_regression.gd`).
+
 ## Repository cleanup
 
 - README rewritten for 0.3 (how to play with Space/number casting, keywords, preparation; builds; data, tests, architecture).

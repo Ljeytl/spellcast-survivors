@@ -69,7 +69,7 @@ static func _mana_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dict
 	var missile := {
 		"delivery": "projectile", "origin": "caster",
 		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
-		"motion": [{"type": "guided", "speed": speed, "turn": 6.0, "range": speed * 3.0}],
+		"motion": [{"type": "guided", "speed": speed, "lerp": 6.0, "range": speed * 3.0}],  # old homing_strength 6
 		"payload": _damage(id, damage),
 		"limits": {"pierce": 0, "contact_all": true},
 		"vfx": {"family": "bolt"},
@@ -309,7 +309,7 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 	var bolt := {
 		"delivery": "projectile", "origin": "caster",
 		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
-		"motion": [{"type": "guided", "speed": speed, "turn": 5.0, "range": maxf(3.0 * speed, (hops + 1) * reach + speed)}],
+		"motion": [{"type": "guided", "speed": speed, "lerp": 5.0, "range": maxf(3.0 * speed, (hops + 1) * reach + speed)}],  # old homing_strength 5
 		"payload": _damage(id, damage),
 		"limits": {"pierce": 0},
 		"events": events,
@@ -317,7 +317,7 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 	}
 	var bounce = bolt.duplicate(true)
 	bounce.origin = "parent"
-	bounce.motion = [{"type": "guided", "speed": speed, "turn": 9.0, "range": reach * 1.5}]
+	bounce.motion = [{"type": "guided", "speed": speed, "lerp": 5.0, "range": reach * 1.5}]
 	bounce.events = {"on_hit": {"part": "splash"}, "on_hit#bounce": {"part": "bounce", "chain": true, "range": reach, "exclude_hit": true}}
 	var splash := {
 		"delivery": "volume", "origin": "parent",

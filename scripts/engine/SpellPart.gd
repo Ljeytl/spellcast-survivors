@@ -253,8 +253,13 @@ func _step_projectile(delta: float) -> void:
 				var target = assigned if _alive(assigned) else cast.nearest_enemy(global_position, INF, exclude)
 				if target:
 					var want = global_position.direction_to(target.global_position)
-					var turn = float(ph.get("turn", 6.0)) * delta
-					direction = direction.rotated(clampf(direction.angle_to(want), -turn, turn))
+					if ph.has("lerp"):
+						# Old homing projectiles: blend toward the target each step, so a wide miss turns hard
+						# (no turning circle to orbit in), which is how they always connected.
+						direction = direction.lerp(want, clampf(float(ph.lerp) * delta, 0.0, 1.0)).normalized()
+					else:
+						var turn = float(ph.get("turn", 6.0)) * delta
+						direction = direction.rotated(clampf(direction.angle_to(want), -turn, turn))
 			elif str(ph.type) == "spiral":
 				direction = direction.rotated(float(ph.get("spin", 4.0)) * delta)
 			var move = float(ph.get("speed", 600.0)) * delta

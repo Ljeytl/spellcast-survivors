@@ -1287,6 +1287,9 @@ func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
 		new_root.emit.part = key
 	for part in roots:
 		part.extend_with(new_root, added)
+	# Each recast buys its own spawn budget. Without this a long-extended cast (Fire Walk recast for
+	# minutes) used up its 400 spawns and silently stopped laying patches.
+	cast.plan.max_spawns = int(cast.plan.get("max_spawns", 48)) + int(plan.get("max_spawns", 48))
 	if not DamageSource.current.is_empty():
 		cast.source = DamageSource.current   # later hits count toward the newest cast (style meter)
 	spell_extended.emit(str(plan.id), added)
