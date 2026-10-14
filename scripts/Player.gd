@@ -304,6 +304,12 @@ func toggle_invincibility():
 func gain_xp(amount: float):
 	add_xp(amount)
 
+## WARDING: a ward absorbs damage before health. It refreshes rather than stacks (doc 21 §4.4).
+func add_ward(amount: float, duration: float):
+	overheal = maxf(overheal, amount)
+	overheal_timer = maxf(overheal_timer, duration)
+	health_changed.emit(health, max_health, overheal)
+
 # Add temporary overheal (from earth shield spell)
 func add_overheal(amount: float, duration: float = 16.0):
 	overheal_duration = maxf(0.0, duration)

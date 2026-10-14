@@ -57,6 +57,11 @@
               ],
               "additionalProperties": false
             }
+          },
+          "heal_per_strength": {
+            "type": "number",
+            "minimum": 0,
+            "$comment": "element words with effect healing: healing budget per cast per unit of effect strength"
           }
         },
         "additionalProperties": false,
@@ -251,6 +256,23 @@
             "type": "number",
             "minimum": 1,
             "$comment": "payoff words: pending damage over time lands at this multiple"
+          },
+          "effect": {
+            "type": "string",
+            "enum": [
+              "healing"
+            ],
+            "$comment": "element word whose effect is healing in the shape of the hit (doc 21 \u00a74.3) instead of its element's status"
+          },
+          "share": {
+            "type": "number",
+            "minimum": 0,
+            "$comment": "leeching: share of damage dealt healed"
+          },
+          "cap": {
+            "type": "number",
+            "minimum": 0,
+            "$comment": "leeching: cap per cast, share of max health"
           }
         },
         "required": [

@@ -40,6 +40,7 @@ func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictio
 		rng.seed = seed_value
 	else:
 		rng.randomize()
+	heal_left = float(plan.get("heal_budget", 0.0))
 	for i in plan.get("casts", []).size():
 		var c: Dictionary = plan.casts[i]
 		pending.append({"at": float(c.delay), "power": float(c.power), "size": float(c.size), "first": i == 0})
@@ -116,6 +117,38 @@ func run(seconds: float, dt: float = 1.0 / 60.0, on_step: Callable = Callable())
 func caster_position() -> Vector2:
 	return caster.global_position if is_instance_valid(caster) else global_position
 
+## Healing words: what is left of this cast's healing budget (doc 21 §4.3). Takes up to `amount`.
+var heal_left := 0.0
+func spend_heal(amount: float) -> float:
+	var took = clampf(amount, 0.0, heal_left)
+	heal_left -= took
+	return took
+
+## LEECHING: heal a share of the damage this cast deals, up to a cap per cast (a share of max health,
+## kept below SANGUINE's cost so blood magic always costs something).
+var leech_taken := 0.0
+func leech(dealt: float) -> void:
+	var flags: Dictionary = plan.get("flags", {})
+	if not flags.has("leeching") or dealt <= 0.0 or not is_instance_valid(caster) or caster.get("max_health") == null:
+		return
+	var cap = float(caster.max_health) * float(flags.leeching.get("cap", 0.08))
+	var amount = minf(dealt * float(flags.leeching.get("share", 0.15)), cap - leech_taken)
+	if amount > 0.0:
+		leech_taken += amount
+		heal_caster(amount)
+
+## A healing circle where an area impact landed: heals the caster while they stand in it.
+func spawn_heal_zone(at: Vector2, radius: float, amount: float, duration: float) -> void:
+	if world == null or amount <= 0.0:
+		return
+	var zone = preload("res://scripts/HealingZone.gd").new()
+	zone.player_ref = weakref(caster)
+	zone.radius = radius
+	zone.total = amount
+	zone.duration = duration
+	world.add_child(zone)
+	zone.global_position = at
+
 func heal_caster(amount: float, visual_size: float = 1.0) -> void:
 	if is_instance_valid(caster) and caster.has_method("heal"):
 		var heal: Callable = caster.heal
@@ -135,6 +168,8 @@ func _start_cast(c: Dictionary) -> void:
 				caster.set("last_damage_context", {"kind": "sanguine", "damage": cost})
 			if caster.has_signal("health_changed"):
 				caster.health_changed.emit(float(caster.get("health")), float(caster.get("max_health")), float(caster.get("overheal")) if caster.get("overheal") != null else 0.0)
+		if flags.has("warding") and is_instance_valid(caster) and caster.has_method("add_ward"):
+			caster.add_ward(float(flags.warding.get("absorb", 30.0)), float(flags.warding.get("duration", 6.0)))
 		if flags.has("blinking") and is_instance_valid(caster):
 			var near = nearest_enemy(caster.global_position, INF, {})
 			var away = near.global_position.direction_to(caster.global_position) if near else Vector2.LEFT

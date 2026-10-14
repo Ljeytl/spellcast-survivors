@@ -16,7 +16,7 @@
     "sacrifice": {"name": "Sacrifice", "promise": "Costs health for a big boost.", "order": 13},
     "wild": {"name": "Wild", "promise": "Something random happens.", "order": 14},
     "payoff": {"name": "Payoff", "promise": "Cashes in the damage over time already on the enemy, all at once and multiplied. Longer words pay more.", "order": 16, "exclusive": true},
-    "element": {"name": "Elements", "promise": "Adds an element to any damaging spell. Damage words add that element's damage, effect words add its effect, some add both. Longer words add more.", "order": 15, "tiers": {"damage": {"share_per_letter": 0.05, "effect_per_letter": 0.0}, "both": {"share_per_letter": 0.03, "effect_per_letter": 0.025}, "effect": {"share_per_letter": 0.01, "effect_per_letter": 0.05}}}
+    "element": {"name": "Elements", "promise": "Adds an element to any damaging spell. Damage words add that element's damage, effect words add its effect, some add both. Longer words add more.", "order": 15, "tiers": {"damage": {"share_per_letter": 0.05, "effect_per_letter": 0.0}, "both": {"share_per_letter": 0.03, "effect_per_letter": 0.025}, "effect": {"share_per_letter": 0.01, "effect_per_letter": 0.05}}, "heal_per_strength": 40.0}
   },
   "diminishing": [1.0, 0.5, 0.25, 0.125],
   "element_status": {"arcane": "vulnerable", "fire": "burn", "water": "chilled", "storm": "shocked", "earth": "bleed", "plague": "poison", "life": "entangled"},
@@ -52,7 +52,8 @@
     "repulsing": {"category": "force", "flag": "repulsing", "force": 300.0},
     "hunting": {"category": "target", "flag": "hunting"},
     "scattered": {"category": "target", "flag": "scattered"},
-    "warding": {"category": "self", "flag": "warding", "absorb": 30.0, "planned": true},
+    "warding": {"category": "self", "flag": "warding", "absorb": 30.0, "duration": 6.0},
+    "leeching": {"category": "self", "flag": "leeching", "share": 0.15, "cap": 0.08},
     "blinking": {"category": "self", "flag": "blinking", "distance": 140.0},
     "ringed": {"category": "arrangement", "arrangement": "ring"},
     "lined": {"category": "arrangement", "arrangement": "line"},
@@ -95,7 +96,8 @@
     "living": {"category": "element", "element": "life", "tier": "damage"},
     "verdant": {"category": "element", "element": "life", "tier": "damage"},
     "thorned": {"category": "element", "element": "life", "tier": "effect"},
-    "blooming": {"category": "element", "element": "life", "tier": "effect"},
-    "overgrown": {"category": "element", "element": "life", "tier": "effect"}
+    "blooming": {"category": "element", "element": "life", "tier": "effect", "effect": "healing"},
+    "overgrown": {"category": "element", "element": "life", "tier": "effect"},
+    "healing": {"category": "element", "element": "life", "tier": "effect", "effect": "healing"}
   }
 }

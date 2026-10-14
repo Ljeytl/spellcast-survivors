@@ -51,6 +51,7 @@ var infection = null               # "infection" delivery state (scripts/engine/
 var hit_mult := 1.0                # phase damage share (Cross Blade: x2 on the way back, x0.5 pulses)
 var emit_last := Vector2.INF        # emitters: where the last patch was laid
 var emit_timer := 0.0
+var heal_zone_done := false             # healing words: an area impact leaves one healing circle
 var _vfx = null               # Vfx autoload: reads this part, never changes it (docs/VFX_EVENTS.md)
 
 func setup(p_cast, p_name: String, p_def: Dictionary, pos: Vector2, dir: Vector2) -> void:
@@ -464,6 +465,9 @@ func _step_periodic(delta: float) -> void:
 				victim = pool[cast.rng.randi() % pool.size()]
 				at = victim.global_position
 			cast.spawn_event(self, ev, at, victim)
+	if def.has("heal_ground") and is_instance_valid(cast.caster) and contains(cast.caster_position(), 0.0):
+		# Healing words on a field or trail: the ground heals the caster standing in it.
+		cast.heal_caster(cast.spend_heal(float(def.heal_ground.rate) * delta))
 	if def.has("heal_rate"):
 		# Old Regeneration: healing flows every frame while the aura lasts.
 		cast.heal_caster(float(def.heal_rate) * power_scale * delta, float(def.get("visual_size", 1.0)))
@@ -671,9 +675,22 @@ func hit(enemy) -> void:
 			cast.once[key] = true
 		match str(item.type):
 			"seed":
-				# Old Life Bolt: a hit that dealt damage plants a healing seed to collect.
+				# Old Life Bolt: a hit that dealt damage plants a healing seed to collect. Healing words'
+				# seeds draw on the cast's healing budget and stop when it is spent.
 				if dealt > 0.0:
-					cast.spawn_seed(at, item)
+					if bool(item.get("budget", false)):
+						var amount = cast.spend_heal(float(item.amount))
+						if amount > 0.0:
+							var s = item.duplicate()
+							s.amount = amount
+							cast.spawn_seed(at, s)
+					else:
+						cast.spawn_seed(at, item)
+			"heal_zone":
+				# Healing words on an area impact: one healing circle the size of the impact.
+				if dealt > 0.0 and not heal_zone_done:
+					heal_zone_done = true
+					cast.spawn_heal_zone(global_position, geo("radius", 60.0), cast.spend_heal(float(item.amount)), float(item.get("duration", 3.0)))
 			"overload":
 				if _alive(enemy):
 					Effects.apply(enemy, item, cast.source, global_position)
@@ -717,6 +734,7 @@ func hit(enemy) -> void:
 					var k = clampf(phase_travel / maxf(reach, 1.0), 0.0, 1.0)
 					force *= lerpf(float(item.falloff[0]), float(item.falloff[1]), k)
 				Effects.apply(enemy, {"type": "impulse", "direction": dir, "force": force}, cast.source, global_position)
+	cast.leech(dealt)
 	cast.record_hit(self, enemy)
 	if _vfx:
 		_vfx.part_hit(self, enemy, at)

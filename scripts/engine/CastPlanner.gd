@@ -36,6 +36,8 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 			has_duration = true
 
 	var power = float(bundle.get("power", 1.0)) * float(opts.get("rank_power", 1.0))
+	# Healing words: one budget per cast, spread over whatever the spell makes (doc 21 §4.3).
+	var heal_budget = float(bundle.get("heal", 0.0)) * float(preload("res://scripts/engine/KeywordParser.gd").data().categories.element.get("heal_per_strength", 40.0)) * power
 	var size = float(bundle.get("size", 1.0)) * float(opts.get("size_stat", 1.0))
 	var speed_mult = float(opts.get("speed_stat", 1.0))
 	var duration_mult = float(opts.get("duration_stat", 1.0))
@@ -194,6 +196,18 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 					payload.append(item.duplicate())
 				"heal":
 					payload.append({"type": "heal", "amount": float(item.amount) * part_power, "visual_size": float(item.get("visual_size", 1.0)) * size})
+		if main_hit > 0.0 and heal_budget > 0.0:
+			# The healing takes the shape of the hit: seeds from bodies, a circle from an area impact,
+			# the ground itself from fields and trails.
+			match delivery:
+				"volume":
+					payload.append({"type": "heal_zone", "amount": heal_budget / 3.0, "duration": 3.0})
+				"field", "aura":
+					var lasts = float(p.get("timing", {}).get("duration", 3.0))
+					p.heal_ground = {"rate": heal_budget / maxf(1.0, lasts)}
+				_:
+					var seeds = 6.0 if delivery == "beam" or bool(p.get("limits", {}).get("rehit", 0.0)) else 3.0
+					payload.append({"type": "seed", "budget": true, "amount": heal_budget / seeds, "duration": 2.0, "lifetime": 10.0, "radius": 28.0, "cap": 6})
 		if main_hit > 0.0:
 			for e in elements:
 				var strength = float(e.get("effect", e.share))   # SANGUINE and wild elements: effect follows the share
@@ -281,15 +295,15 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 				if not bound.has(flag):
 					reason = "it deals no damage"
 			"self":
-				if flag == "warding":
-					reason = "warding is not built yet"
+				if flag == "leeching" and not has_damage:
+					reason = "it deals no damage"
 		if reason != "":
 			rejected.append({"word": w, "reason": reason})
 
 	return {
 		"id": str(def.id), "name": str(def.get("name", def.id)), "element": element, "root": root_name,
 		"parts": parts, "arrangement": arrangement, "release": release, "casts": casts,
-		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle,
+		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle, "heal_budget": heal_budget if has_damage else 0.0,
 		"quick": bool(opts.get("quick", false)), "max_spawns": int(def.get("max_spawns", 48)),
 		"needs_target": bool(def.get("needs_target", false)), "max_depth": int(def.get("max_depth", 3)),
 		"legacy": bool(def.get("legacy", false))   # a shipping spell on the bridge (old targeting rules)

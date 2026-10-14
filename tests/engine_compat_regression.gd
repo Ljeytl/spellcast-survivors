@@ -92,7 +92,7 @@ func run():
 	check(manager.cast_freeform_spell("mega mega spear") and cracked.size() == 1 and cracked[0][1] == "used twice", "A duplicate word cracks; the spell still casts")
 	check(abs(float(manager.last_generic_cast.plan.bundle.power) - 1.5) < 0.001, "The cracked duplicate adds nothing")
 	cracked.clear()
-	check(manager.cast_freeform_spell("triple warding spear") and cracked.size() == 1 and cracked[0][0] == "warding", "Unbuilt WARDING cracks, TRIPLE still applies")
+	check(manager.cast_freeform_spell("leeching regeneration") and cracked.size() == 1 and cracked.any(func(c): return c[0] == "leeching"), "A word that does nothing (LEECHING on a heal) cracks; the spell still casts")
 	check(manager.cast_freeform_spell("mega mega regeneration"), "A doubled MEGA on a ported spell still casts: " + manager.last_cast_failure)
 	manager.discard_pending_casts()
 

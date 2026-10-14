@@ -273,7 +273,11 @@ func planner_rejections():
 	check(rejected_words(mk("piercing nova")).has("piercing"), "PIERCING needs a projectile")
 	check(rejected_words(mk("splitting slash")).has("splitting"), "SPLITTING needs a projectile")
 	check(rejected_words(mk("orbiting nova")).has("orbiting"), "ORBITING needs a projectile")
-	check(rejected_words(mk("warding spear")).has("warding"), "WARDING is not built yet")
+	check(not rejected_words(mk("warding spear")).has("warding"), "WARDING is built")
+	check(rejected_words(mk("leeching regrowth")).has("leeching"), "LEECHING needs damage")
+	check(rejected_words(mk("healing regrowth")).has("healing"), "HEALING needs damage (heals come from hits)")
+	var hp = p("healing blooming spear").bundle
+	check(near(hp.heal, 0.40 + 0.35 * 0.5) and hp.elements[0].element == "life" and near(hp.elements[0].effect, 0.0), "Healing words fill the heal budget, not entangle")
 	check(rejected_words(mk("pulling regrowth")).has("pulling"), "Force needs a hit")
 	check(rejected_words(mk("hunting regrowth")).has("hunting"), "Targeting needs a target")
 	check(rejected_words(mk("ringed regrowth")).has("ringed"), "Arrangement needs something to arrange")

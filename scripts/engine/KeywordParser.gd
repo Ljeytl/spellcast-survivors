@@ -112,7 +112,7 @@ static func _parse_quick(rest: Array, spell_names: Array, result: Dictionary) ->
 	return result
 
 static func empty_bundle() -> Dictionary:
-	return {"power": 1.0, "size": 1.0, "charge": 0.0, "copies": 1, "per_copy": 1.0, "flags": {}, "elements": [], "arrangement": "", "words": {}}
+	return {"power": 1.0, "size": 1.0, "charge": 0.0, "copies": 1, "per_copy": 1.0, "flags": {}, "elements": [], "heal": 0.0, "arrangement": "", "words": {}}
 
 static func _weights() -> Array:
 	return data().get("diminishing", [1.0, 0.5, 0.25, 0.125])
@@ -159,14 +159,20 @@ static func build_bundle(by_category: Dictionary) -> Dictionary:
 			b.flags[flag] = defs[w].duplicate()
 	# Element words (doc 21 §4.2): each word's tier sets its damage share and effect strength per
 	# letter; repeats of one element stack with diminishing returns, damage and effect separately.
+	# Healing words (HEALING, BLOOMING) put their effect into a healing budget instead (doc 21 §4.3).
 	var per_element := {}
+	var heals := []
 	for w in by_category.get("element", []):
 		var e = str(defs[w].element)
 		var tier: Dictionary = word_tier(w)
 		if not per_element.has(e):
 			per_element[e] = {"share": [], "effect": []}
 		per_element[e].share.append(float(tier.share_per_letter) * w.length())
-		per_element[e].effect.append(float(tier.effect_per_letter) * w.length())
+		if str(defs[w].get("effect", "")) == "healing":
+			heals.append(float(tier.effect_per_letter) * w.length())
+		else:
+			per_element[e].effect.append(float(tier.effect_per_letter) * w.length())
+	b.heal = _diminished(heals)
 	for e in per_element:
 		b.elements.append({"element": e, "share": _diminished(per_element[e].share), "effect": _diminished(per_element[e].effect),
 			"status": str(data().get("element_status", {}).get(e, ""))})

@@ -72,6 +72,8 @@ static func word_line(word: String) -> String:
 			var e = str(w.element)
 			var tier: Dictionary = KP.word_tier(word)
 			var effect = STATUS_TEXT.get(str(data.get("element_status", {}).get(e, "")), "")
+			if str(w.get("effect", "")) == "healing":
+				effect = "heals you for %d per cast, in the shape of the hit" % int(round(float(tier.effect_per_letter) * n * float(c.get("heal_per_strength", 40.0))))
 			match str(w.get("tier", "damage")):
 				"damage": text = "+%s %s damage" % [pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e)]
 				"both": text = "+%s %s damage, %s (half strength)" % [pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e), effect]
@@ -95,6 +97,8 @@ static func word_line(word: String) -> String:
 				"hunting": text = "aims at the toughest enemy (elites first)"
 				"scattered": text = "copies take different targets"
 				"blinking": text = "short teleport (%d) as you cast" % int(w.distance)
+				"warding": text = "a ward absorbs %d damage for %d s" % [int(w.absorb), int(w.duration)]
+				"leeching": text = "heals you %s of the damage dealt, up to %s of your max health per cast" % [pct(float(w.share)), pct(float(w.cap))]
 				"chaotic": text = "a random element each cast"
 				_: text = ""
 	if str(w.get("arrangement", "")) != "":

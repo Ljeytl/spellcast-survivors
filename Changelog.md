@@ -18,6 +18,8 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 - **Element words now sit on a spectrum: damage, both, or effect.** A word that names what the spell is made of adds that element's damage (FIERY, ICY, IRON: no status); a word that names what it does adds the effect (BURNING, CHILLING, SERRATED, VENOMOUS, RUNIC); some do both at half strength (FLAMING, FROSTY, TOXIC, MYSTIC, ELDRITCH). New words: BURNING, CHILLING. Each word's Necronomicon line says which.
 - **Overload is a keyword, not arcane.** Arcane damage no longer pops damage over time. New Payoff words RUPTURING (×2), DETONATING (×2.5) and OVERLOADING (×3) land all the bleed, poison and burn already on the enemy at once, multiplied, before the hit adds its own.
 - **Vulnerable stacks:** +4% damage taken per stack, up to five (was a flat +15%).
+- **Healing in the shape of the hit:** HEALING and BLOOMING (life) give each cast a healing budget. Projectiles plant seeds where they hit, an area impact leaves a healing circle its size, and fields and trails heal you while you stand in them.
+- **WARDING is built:** a 30-point ward for 6 s that refreshes rather than stacks. **LEECHING** (new): heals 15% of the damage dealt, at most 8% of your max health per cast, so SANGUINE always costs something.
 
 ## Balance: bot comparison against 0.2.8
 
