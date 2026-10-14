@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "spell_damage.json",
+  "type": "object",
+  "properties": {
+    "spells": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "damage": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "propertyNames": {
+              "type": "string",
+              "x-ref": "damage_type"
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "x-ref": "status"
+                },
+                "part": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "element": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "damage"
+        ],
+        "additionalProperties": false
+      },
+      "propertyNames": {
+        "type": "string",
+        "x-ref": "spell"
+      }
+    }
+  },
+  "required": [
+    "spells"
+  ],
+  "additionalProperties": false
+}

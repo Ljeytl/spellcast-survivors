@@ -1,0 +1,1192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "animation_config.json",
+  "$defs": {
+    "animation": {
+      "type": "object",
+      "properties": {
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "frames"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "animation_system": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "asset_paths": {
+          "type": "object",
+          "properties": {
+            "spells": {
+              "type": "string"
+            },
+            "characters": {
+              "type": "string"
+            },
+            "enemies": {
+              "type": "string"
+            },
+            "effects": {
+              "type": "string"
+            },
+            "ui": {
+              "type": "string"
+            },
+            "particles": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "spells",
+            "characters",
+            "enemies",
+            "effects",
+            "ui",
+            "particles"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "version",
+        "description",
+        "asset_paths"
+      ],
+      "additionalProperties": false
+    },
+    "spell_animation_types": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "visual_elements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required_components": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optional_components": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "visual_elements",
+          "required_components",
+          "optional_components"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "character_animation_types": {
+      "type": "object",
+      "properties": {
+        "player_character": {
+          "type": "object",
+          "properties": {
+            "required_animations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optional_animations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "required_effects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optional_effects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "required_animations",
+            "optional_animations",
+            "required_effects",
+            "optional_effects"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "player_character"
+      ],
+      "additionalProperties": false
+    },
+    "enemy_animation_types": {
+      "type": "object",
+      "properties": {
+        "basic_enemy": {
+          "type": "object",
+          "properties": {
+            "required_animations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optional_animations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "required_effects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optional_effects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "required_animations",
+            "optional_animations",
+            "required_effects",
+            "optional_effects"
+          ],
+          "additionalProperties": false
+        },
+        "elite_enemy": {
+          "type": "object",
+          "properties": {
+            "required_animations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optional_animations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "required_effects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optional_effects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "required_animations",
+            "optional_animations",
+            "required_effects",
+            "optional_effects"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "basic_enemy",
+        "elite_enemy"
+      ],
+      "additionalProperties": false
+    },
+    "particle_systems": {
+      "type": "object",
+      "properties": {
+        "spell_particles": {
+          "type": "object",
+          "properties": {
+            "mana_trail": {
+              "type": "object",
+              "properties": {
+                "texture": {
+                  "type": "string"
+                },
+                "emission_rate": {
+                  "type": "number"
+                },
+                "lifetime": {
+                  "type": "number"
+                },
+                "colors": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "scale_curve": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "velocity": {
+                  "type": "object",
+                  "properties": {
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "min",
+                    "max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "texture",
+                "emission_rate",
+                "lifetime",
+                "colors",
+                "scale_curve",
+                "velocity"
+              ],
+              "additionalProperties": false
+            },
+            "lightning_sparks": {
+              "type": "object",
+              "properties": {
+                "texture": {
+                  "type": "string"
+                },
+                "emission_rate": {
+                  "type": "number"
+                },
+                "lifetime": {
+                  "type": "number"
+                },
+                "colors": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "scale_curve": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "velocity": {
+                  "type": "object",
+                  "properties": {
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "min",
+                    "max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "texture",
+                "emission_rate",
+                "lifetime",
+                "colors",
+                "scale_curve",
+                "velocity"
+              ],
+              "additionalProperties": false
+            },
+            "heal_sparkles": {
+              "type": "object",
+              "properties": {
+                "texture": {
+                  "type": "string"
+                },
+                "emission_rate": {
+                  "type": "number"
+                },
+                "lifetime": {
+                  "type": "number"
+                },
+                "colors": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "scale_curve": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "velocity": {
+                  "type": "object",
+                  "properties": {
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "min",
+                    "max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "texture",
+                "emission_rate",
+                "lifetime",
+                "colors",
+                "scale_curve",
+                "velocity"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "mana_trail",
+            "lightning_sparks",
+            "heal_sparkles"
+          ],
+          "additionalProperties": false
+        },
+        "environmental_particles": {
+          "type": "object",
+          "properties": {
+            "dust_motes": {
+              "type": "object",
+              "properties": {
+                "texture": {
+                  "type": "string"
+                },
+                "emission_rate": {
+                  "type": "number"
+                },
+                "lifetime": {
+                  "type": "number"
+                },
+                "colors": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "scale_curve": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "velocity": {
+                  "type": "object",
+                  "properties": {
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "min",
+                    "max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "texture",
+                "emission_rate",
+                "lifetime",
+                "colors",
+                "scale_curve",
+                "velocity"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "dust_motes"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "spell_particles",
+        "environmental_particles"
+      ],
+      "additionalProperties": false
+    },
+    "animation_blending": {
+      "type": "object",
+      "properties": {
+        "character_state_machine": {
+          "type": "object",
+          "properties": {
+            "idle": {
+              "type": "object",
+              "properties": {
+                "transitions": {
+                  "type": "object",
+                  "properties": {
+                    "walking": {
+                      "type": "object",
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "curve": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "duration",
+                        "curve"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "casting": {
+                      "type": "object",
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "curve": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "duration",
+                        "curve"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "typing": {
+                      "type": "object",
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "curve": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "duration",
+                        "curve"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "walking",
+                    "casting",
+                    "typing"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "transitions"
+              ],
+              "additionalProperties": false
+            },
+            "walking": {
+              "type": "object",
+              "properties": {
+                "transitions": {
+                  "type": "object",
+                  "properties": {
+                    "idle": {
+                      "type": "object",
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "curve": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "duration",
+                        "curve"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "casting": {
+                      "type": "object",
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "curve": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "duration",
+                        "curve"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "idle",
+                    "casting"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "transitions"
+              ],
+              "additionalProperties": false
+            },
+            "casting": {
+              "type": "object",
+              "properties": {
+                "transitions": {
+                  "type": "object",
+                  "properties": {
+                    "idle": {
+                      "type": "object",
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "curve": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "duration",
+                        "curve"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "walking": {
+                      "type": "object",
+                      "properties": {
+                        "duration": {
+                          "type": "number"
+                        },
+                        "curve": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "duration",
+                        "curve"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "idle",
+                    "walking"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "transitions"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "idle",
+            "walking",
+            "casting"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "character_state_machine"
+      ],
+      "additionalProperties": false
+    },
+    "ui_animations": {
+      "type": "object",
+      "properties": {
+        "level_up_screen": {
+          "type": "object",
+          "properties": {
+            "card_hover": {
+              "type": "object",
+              "properties": {
+                "scale": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "number"
+                    },
+                    "to": {
+                      "type": "number"
+                    },
+                    "duration": {
+                      "type": "number"
+                    },
+                    "curve": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "duration",
+                    "curve"
+                  ],
+                  "additionalProperties": false
+                },
+                "glow": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "number"
+                    },
+                    "to": {
+                      "type": "number"
+                    },
+                    "duration": {
+                      "type": "number"
+                    },
+                    "curve": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "duration",
+                    "curve"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "scale",
+                "glow"
+              ],
+              "additionalProperties": false
+            },
+            "card_select": {
+              "type": "object",
+              "properties": {
+                "flash": {
+                  "$ref": "#/$defs/animation"
+                },
+                "scale_pulse": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "number"
+                    },
+                    "to": {
+                      "type": "number"
+                    },
+                    "duration": {
+                      "type": "number"
+                    },
+                    "curve": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "duration",
+                    "curve"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "flash",
+                "scale_pulse"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "card_hover",
+            "card_select"
+          ],
+          "additionalProperties": false
+        },
+        "spell_queue": {
+          "type": "object",
+          "properties": {
+            "spell_added": {
+              "type": "object",
+              "properties": {
+                "bounce_in": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "number"
+                    },
+                    "to": {
+                      "type": "number"
+                    },
+                    "duration": {
+                      "type": "number"
+                    },
+                    "curve": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "duration",
+                    "curve"
+                  ],
+                  "additionalProperties": false
+                },
+                "glow_pulse": {
+                  "$ref": "#/$defs/animation"
+                }
+              },
+              "required": [
+                "bounce_in",
+                "glow_pulse"
+              ],
+              "additionalProperties": false
+            },
+            "spell_cast": {
+              "type": "object",
+              "properties": {
+                "scale_out": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "number"
+                    },
+                    "to": {
+                      "type": "number"
+                    },
+                    "duration": {
+                      "type": "number"
+                    },
+                    "curve": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "duration",
+                    "curve"
+                  ],
+                  "additionalProperties": false
+                },
+                "flash_effect": {
+                  "$ref": "#/$defs/animation"
+                }
+              },
+              "required": [
+                "scale_out",
+                "flash_effect"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "spell_added",
+            "spell_cast"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "level_up_screen",
+        "spell_queue"
+      ],
+      "additionalProperties": false
+    },
+    "performance_settings": {
+      "type": "object",
+      "properties": {
+        "quality_levels": {
+          "type": "object",
+          "properties": {
+            "low": {
+              "type": "object",
+              "properties": {
+                "max_particles": {
+                  "type": "number"
+                },
+                "animation_fps_cap": {
+                  "type": "number"
+                },
+                "effect_quality": {
+                  "type": "number"
+                },
+                "disable_trail_effects": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "max_particles",
+                "animation_fps_cap",
+                "effect_quality",
+                "disable_trail_effects"
+              ],
+              "additionalProperties": false
+            },
+            "medium": {
+              "type": "object",
+              "properties": {
+                "max_particles": {
+                  "type": "number"
+                },
+                "animation_fps_cap": {
+                  "type": "number"
+                },
+                "effect_quality": {
+                  "type": "number"
+                },
+                "disable_trail_effects": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "max_particles",
+                "animation_fps_cap",
+                "effect_quality",
+                "disable_trail_effects"
+              ],
+              "additionalProperties": false
+            },
+            "high": {
+              "type": "object",
+              "properties": {
+                "max_particles": {
+                  "type": "number"
+                },
+                "animation_fps_cap": {
+                  "type": "number"
+                },
+                "effect_quality": {
+                  "type": "number"
+                },
+                "disable_trail_effects": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "max_particles",
+                "animation_fps_cap",
+                "effect_quality",
+                "disable_trail_effects"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "additionalProperties": false
+        },
+        "culling": {
+          "type": "object",
+          "properties": {
+            "offscreen_animation_reduction": {
+              "type": "number"
+            },
+            "distant_enemy_simplification": {
+              "type": "boolean"
+            },
+            "particle_count_scaling": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "offscreen_animation_reduction",
+            "distant_enemy_simplification",
+            "particle_count_scaling"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "quality_levels",
+        "culling"
+      ],
+      "additionalProperties": false
+    },
+    "audio_integration": {
+      "type": "object",
+      "properties": {
+        "animation_sound_cues": {
+          "type": "object",
+          "properties": {
+            "spell_casting": {
+              "type": "object",
+              "properties": {
+                "pre_cast": {
+                  "type": "object",
+                  "properties": {
+                    "timing": {
+                      "type": "number"
+                    },
+                    "volume": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "timing",
+                    "volume"
+                  ],
+                  "additionalProperties": false
+                },
+                "cast_complete": {
+                  "type": "object",
+                  "properties": {
+                    "timing": {
+                      "type": "number"
+                    },
+                    "volume": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "timing",
+                    "volume"
+                  ],
+                  "additionalProperties": false
+                },
+                "impact": {
+                  "type": "object",
+                  "properties": {
+                    "timing": {
+                      "type": "number"
+                    },
+                    "volume": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "timing",
+                    "volume"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "pre_cast",
+                "cast_complete",
+                "impact"
+              ],
+              "additionalProperties": false
+            },
+            "character_actions": {
+              "type": "object",
+              "properties": {
+                "footsteps": {
+                  "type": "object",
+                  "properties": {
+                    "timing": {
+                      "type": "string"
+                    },
+                    "frames": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    "volume": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "timing",
+                    "frames",
+                    "volume"
+                  ],
+                  "additionalProperties": false
+                },
+                "typing_clicks": {
+                  "type": "object",
+                  "properties": {
+                    "timing": {
+                      "type": "string"
+                    },
+                    "frames": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    "volume": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "timing",
+                    "frames",
+                    "volume"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "footsteps",
+                "typing_clicks"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "spell_casting",
+            "character_actions"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "animation_sound_cues"
+      ],
+      "additionalProperties": false
+    },
+    "platform_optimizations": {
+      "type": "object",
+      "properties": {
+        "desktop": {
+          "type": "object",
+          "properties": {
+            "enable_advanced_shaders": {
+              "type": "boolean"
+            },
+            "max_animation_layers": {
+              "type": "number"
+            },
+            "particle_precision": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "enable_advanced_shaders",
+            "max_animation_layers",
+            "particle_precision"
+          ],
+          "additionalProperties": false
+        },
+        "mobile": {
+          "type": "object",
+          "properties": {
+            "enable_advanced_shaders": {
+              "type": "boolean"
+            },
+            "max_animation_layers": {
+              "type": "number"
+            },
+            "particle_precision": {
+              "type": "string"
+            },
+            "force_low_quality": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "enable_advanced_shaders",
+            "max_animation_layers",
+            "particle_precision",
+            "force_low_quality"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "desktop",
+        "mobile"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "animation_system",
+    "spell_animation_types",
+    "character_animation_types",
+    "enemy_animation_types",
+    "particle_systems",
+    "animation_blending",
+    "ui_animations",
+    "performance_settings",
+    "audio_integration",
+    "platform_optimizations"
+  ],
+  "additionalProperties": false
+}

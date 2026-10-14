@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "keywords.json",
+  "type": "object",
+  "properties": {
+    "categories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "power_per_letter": {
+            "type": "number"
+          },
+          "size_per_letter": {
+            "type": "number"
+          },
+          "charge_base": {
+            "type": "number"
+          },
+          "charge_per_letter": {
+            "type": "number"
+          },
+          "exclusive": {
+            "type": "boolean"
+          },
+          "share_per_letter": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      },
+      "x-registry": "keyword_category"
+    },
+    "diminishing": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "element_status": {
+      "type": "object",
+      "properties": {
+        "arcane": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "fire": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "water": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "storm": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "earth": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "plague": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "life": {
+          "type": "string",
+          "x-ref": "status"
+        }
+      },
+      "required": [
+        "arcane",
+        "fire",
+        "water",
+        "storm",
+        "earth",
+        "plague",
+        "life"
+      ],
+      "additionalProperties": false,
+      "propertyNames": {
+        "type": "string",
+        "x-ref": "element"
+      }
+    },
+    "quick": {
+      "type": "object",
+      "properties": {
+        "word": {
+          "type": "string"
+        },
+        "power": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "word",
+        "power"
+      ],
+      "additionalProperties": false
+    },
+    "words": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "x-ref": "keyword_category"
+          },
+          "copies": {
+            "type": "number"
+          },
+          "per_copy": {
+            "type": "number"
+          },
+          "delay": {
+            "type": "number"
+          },
+          "power": {
+            "type": "number"
+          },
+          "flag": {
+            "type": "string"
+          },
+          "speed": {
+            "type": "number"
+          },
+          "turn": {
+            "type": "number"
+          },
+          "range": {
+            "type": "number"
+          },
+          "hold": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "size": {
+            "type": "number"
+          },
+          "pierce": {
+            "type": "number"
+          },
+          "hops": {
+            "type": "number"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "force": {
+            "type": "number"
+          },
+          "absorb": {
+            "type": "number"
+          },
+          "distance": {
+            "type": "number"
+          },
+          "arrangement": {
+            "type": "string",
+            "enum": [
+              "line",
+              "ring"
+            ]
+          },
+          "health_cost": {
+            "type": "number"
+          },
+          "element": {
+            "type": "string",
+            "x-ref": "element"
+          }
+        },
+        "required": [
+          "category"
+        ],
+        "additionalProperties": false
+      },
+      "x-registry": "keyword"
+    }
+  },
+  "required": [
+    "categories",
+    "diminishing",
+    "element_status",
+    "quick",
+    "words"
+  ],
+  "additionalProperties": false
+}

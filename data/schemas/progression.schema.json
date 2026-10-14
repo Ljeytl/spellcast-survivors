@@ -1,0 +1,480 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "progression.json",
+  "type": "object",
+  "properties": {
+    "level_rewards": {
+      "type": "object",
+      "properties": {
+        "generic_upgrades": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "effect": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "type",
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              "weight": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "description",
+              "icon",
+              "effect",
+              "weight"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "guaranteed_unlocks": {
+          "type": "object",
+          "properties": {
+            "3": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "5": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "7": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "10": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "15": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "20": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "upgrade": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "upgrade"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "25": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "30": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "upgrade": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "upgrade"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "35": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "40": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "upgrade": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "upgrade"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "50": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "spell": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "spell"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "3",
+            "5",
+            "7",
+            "10",
+            "15",
+            "20",
+            "25",
+            "30",
+            "35",
+            "40",
+            "50"
+          ],
+          "additionalProperties": false
+        },
+        "level_scaling": {
+          "type": "object",
+          "properties": {
+            "xp_formula": {
+              "type": "string"
+            },
+            "enemy_scaling": {
+              "type": "object",
+              "properties": {
+                "health_per_minute": {
+                  "type": "number"
+                },
+                "damage_per_minute": {
+                  "type": "number"
+                },
+                "speed_per_2minutes": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "health_per_minute",
+                "damage_per_minute",
+                "speed_per_2minutes"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "xp_formula",
+            "enemy_scaling"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "generic_upgrades",
+        "guaranteed_unlocks",
+        "level_scaling"
+      ],
+      "additionalProperties": false
+    },
+    "persistent_rewards": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "character": {
+            "type": "string"
+          },
+          "modifier": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "description"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "achievements": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "level": {
+                "type": "number"
+              },
+              "time": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          "reward": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "spell": {
+                "type": "string"
+              },
+              "character": {
+                "type": "string"
+              },
+              "resource": {
+                "type": "string"
+              },
+              "upgrade": {
+                "type": "string"
+              },
+              "modifier": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "condition",
+          "reward"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "upgrade_resources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "base_amount": {
+            "type": "number"
+          },
+          "icon": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "base_amount",
+          "icon"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "game_modifiers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "level_rewards",
+    "persistent_rewards",
+    "achievements",
+    "upgrade_resources",
+    "game_modifiers"
+  ],
+  "additionalProperties": false
+}

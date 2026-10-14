@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "encounters.json",
+  "type": "object",
+  "properties": {
+    "run_duration": {
+      "type": "number"
+    },
+    "tier_duration": {
+      "type": "number"
+    },
+    "ranged_start": {
+      "type": "number"
+    },
+    "scaling": {
+      "type": "object",
+      "properties": {
+        "adaptive_clear_pressure_strength": {
+          "type": "number"
+        },
+        "grace_seconds": {
+          "type": "number"
+        },
+        "health_growth_per_120_seconds": {
+          "type": "number"
+        },
+        "damage_growth_per_second": {
+          "type": "number"
+        },
+        "minimum_spawn_interval": {
+          "type": "number"
+        },
+        "maximum_enemies": {
+          "type": "number"
+        },
+        "opening_spawn_interval": {
+          "type": "number"
+        },
+        "spawn_growth_start_seconds": {
+          "type": "number"
+        },
+        "spawn_phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "number"
+              },
+              "pressure": {
+                "type": "string",
+                "enum": [
+                  "light",
+                  "medium",
+                  "heavy"
+                ]
+              },
+              "interval": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "start",
+              "pressure",
+              "interval"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "spawn_cycle_seconds": {
+          "type": "number"
+        },
+        "day_spawn_phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "number"
+              },
+              "pressure": {
+                "type": "string",
+                "enum": [
+                  "light",
+                  "medium",
+                  "heavy"
+                ]
+              },
+              "interval": {
+                "type": "number"
+              },
+              "floor": {
+                "type": "number"
+              },
+              "growth": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "start",
+              "pressure",
+              "interval",
+              "floor",
+              "growth"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "xp_multiplier": {
+          "type": "number"
+        },
+        "spawn_growth_factor": {
+          "type": "number"
+        },
+        "spawn_difficulty_points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "number"
+              },
+              "multiplier": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "time",
+              "multiplier"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "maximum_spawn_difficulty": {
+          "type": "number"
+        },
+        "spawn_batch_points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "number"
+              },
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "time",
+              "count"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "endless_batch_growth_per_120_seconds": {
+          "type": "number"
+        },
+        "spawn_growth_period_seconds": {
+          "type": "number"
+        },
+        "spawn_batches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "difficulty": {
+                "type": "number"
+              },
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "difficulty",
+              "count"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "adaptive_clear_pressure_strength",
+        "grace_seconds",
+        "health_growth_per_120_seconds",
+        "damage_growth_per_second",
+        "minimum_spawn_interval",
+        "maximum_enemies",
+        "opening_spawn_interval",
+        "spawn_growth_start_seconds",
+        "spawn_phases",
+        "spawn_cycle_seconds",
+        "day_spawn_phases",
+        "xp_multiplier",
+        "spawn_growth_factor",
+        "spawn_difficulty_points",
+        "maximum_spawn_difficulty",
+        "spawn_batch_points",
+        "endless_batch_growth_per_120_seconds",
+        "spawn_growth_period_seconds",
+        "spawn_batches"
+      ],
+      "additionalProperties": false
+    },
+    "bosses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "number"
+          },
+          "variant": {
+            "type": "string",
+            "x-ref": "enemy_variant"
+          },
+          "name": {
+            "type": "string"
+          },
+          "health": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "time",
+          "variant",
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string",
+            "enum": [
+              "grunt",
+              "runner",
+              "brute",
+              "shooter"
+            ]
+          },
+          "unlock_time": {
+            "type": "number"
+          },
+          "health": {
+            "type": "number"
+          },
+          "speed": {
+            "type": "number"
+          },
+          "damage": {
+            "type": "number"
+          },
+          "xp": {
+            "type": "number"
+          },
+          "weight": {
+            "type": "number"
+          },
+          "size": {
+            "type": "number"
+          },
+          "sprite": {
+            "type": "string"
+          },
+          "visual_scale": {
+            "type": "number"
+          },
+          "boss_sprite": {
+            "type": "string"
+          },
+          "boss_visual_scale": {
+            "type": "number"
+          },
+          "boss_charge": {
+            "type": "object",
+            "properties": {
+              "speed_multiplier": {
+                "type": "number"
+              },
+              "speed": {
+                "type": "number"
+              },
+              "duration": {
+                "type": "number"
+              },
+              "trigger_range": {
+                "type": "number"
+              },
+              "warning": {
+                "type": "number"
+              },
+              "cooldown": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "speed_multiplier",
+              "speed",
+              "duration",
+              "trigger_range",
+              "warning",
+              "cooldown"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "family",
+          "unlock_time",
+          "health",
+          "speed",
+          "damage",
+          "xp",
+          "weight",
+          "size",
+          "sprite",
+          "visual_scale"
+        ],
+        "additionalProperties": false
+      },
+      "x-registry": "enemy_variant"
+    },
+    "contact_recoil": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "number"
+        },
+        "speed": {
+          "type": "number"
+        },
+        "heavy_multiplier": {
+          "type": "number"
+        },
+        "boss_multiplier": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "duration",
+        "speed",
+        "heavy_multiplier",
+        "boss_multiplier"
+      ],
+      "additionalProperties": false
+    },
+    "recycling": {
+      "type": "object",
+      "properties": {
+        "entry_margin": {
+          "type": "number"
+        },
+        "distance_beyond_view": {
+          "type": "number"
+        },
+        "maximum_per_check": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "entry_margin",
+        "distance_beyond_view",
+        "maximum_per_check"
+      ],
+      "additionalProperties": false
+    },
+    "wave_spacing": {
+      "type": "number"
+    },
+    "waves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "number"
+          },
+          "variant": {
+            "type": "string",
+            "x-ref": "enemy_variant"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "time",
+          "variant",
+          "count"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "run_duration",
+    "tier_duration",
+    "ranged_start",
+    "scaling",
+    "bosses",
+    "variants",
+    "contact_recoil",
+    "recycling",
+    "wave_spacing",
+    "waves"
+  ],
+  "additionalProperties": false
+}

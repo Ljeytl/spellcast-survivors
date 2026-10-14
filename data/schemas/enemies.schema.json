@@ -1,0 +1,831 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "enemies.json",
+  "$defs": {
+    "animation": {
+      "type": "object",
+      "properties": {
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "frames"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "enemy_classes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "number"
+          },
+          "health": {
+            "type": "number"
+          },
+          "speed": {
+            "type": "number"
+          },
+          "damage": {
+            "type": "number"
+          },
+          "xp_reward": {
+            "type": "number"
+          },
+          "size": {
+            "type": "number"
+          },
+          "spawn_weight": {
+            "type": "number"
+          },
+          "behaviors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resistances": {
+            "type": "object",
+            "properties": {
+              "physical": {
+                "type": "number"
+              },
+              "magic": {
+                "type": "number"
+              },
+              "elemental": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          },
+          "special_abilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "spawn_count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tier",
+          "health",
+          "speed",
+          "damage",
+          "xp_reward",
+          "size",
+          "spawn_weight",
+          "behaviors",
+          "resistances",
+          "special_abilities"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "zones": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level_range": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "theme": {
+            "type": "string"
+          },
+          "background_color": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "enemies": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "sprite": {
+                  "type": "string"
+                },
+                "color": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                "animations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/$defs/animation"
+                  }
+                },
+                "effects": {
+                  "type": "object",
+                  "properties": {
+                    "spawn": {
+                      "$ref": "#/$defs/animation"
+                    },
+                    "death_explosion": {
+                      "$ref": "#/$defs/animation"
+                    }
+                  },
+                  "required": [
+                    "spawn",
+                    "death_explosion"
+                  ],
+                  "additionalProperties": false
+                },
+                "sounds": {
+                  "type": "object",
+                  "properties": {
+                    "spawn": {
+                      "type": "string"
+                    },
+                    "attack": {
+                      "type": "string"
+                    },
+                    "death": {
+                      "type": "string"
+                    },
+                    "hit": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "spawn",
+                    "attack",
+                    "death",
+                    "hit"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "name",
+                "sprite",
+                "color"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "level_range",
+          "theme",
+          "background_color",
+          "enemies"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "enemies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "number"
+          },
+          "health": {
+            "type": "number"
+          },
+          "speed": {
+            "type": "number"
+          },
+          "damage": {
+            "type": "number"
+          },
+          "xp_reward": {
+            "type": "number"
+          },
+          "unlock_time": {
+            "type": "number"
+          },
+          "size": {
+            "type": "number"
+          },
+          "color": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "spawn_weight": {
+            "type": "number"
+          },
+          "behaviors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resistances": {
+            "type": "object",
+            "properties": {
+              "physical": {
+                "type": "number"
+              },
+              "ice": {
+                "type": "number"
+              },
+              "fire": {
+                "type": "number"
+              },
+              "magic": {
+                "type": "number"
+              },
+              "elemental": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          },
+          "special_abilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "spawn_count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "tier",
+          "health",
+          "speed",
+          "damage",
+          "xp_reward",
+          "unlock_time"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "enemy_types": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "scaling": {
+            "type": "object",
+            "properties": {
+              "health": {
+                "type": "number"
+              },
+              "damage": {
+                "type": "number"
+              },
+              "speed": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "health",
+              "damage",
+              "speed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "description",
+          "scaling"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "enemy_behaviors": {
+      "type": "object",
+      "properties": {
+        "chase_player": {
+          "type": "string"
+        },
+        "ranged_attack": {
+          "type": "string"
+        },
+        "swarm_behavior": {
+          "type": "string"
+        },
+        "evasive": {
+          "type": "string"
+        },
+        "heavy_attack": {
+          "type": "string"
+        },
+        "area_attack": {
+          "type": "string"
+        },
+        "regeneration": {
+          "type": "string"
+        },
+        "fire_trail": {
+          "type": "string"
+        },
+        "explode_on_death": {
+          "type": "string"
+        },
+        "ice_attacks": {
+          "type": "string"
+        },
+        "slow_aura": {
+          "type": "string"
+        },
+        "phase_through": {
+          "type": "string"
+        },
+        "teleport_attack": {
+          "type": "string"
+        },
+        "drain_energy": {
+          "type": "string"
+        },
+        "flying": {
+          "type": "string"
+        },
+        "breath_attack": {
+          "type": "string"
+        },
+        "aerial_dive": {
+          "type": "string"
+        },
+        "reality_distort": {
+          "type": "string"
+        },
+        "summon_minions": {
+          "type": "string"
+        },
+        "area_corruption": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chase_player",
+        "ranged_attack",
+        "swarm_behavior",
+        "evasive",
+        "heavy_attack",
+        "area_attack",
+        "regeneration",
+        "fire_trail",
+        "explode_on_death",
+        "ice_attacks",
+        "slow_aura",
+        "phase_through",
+        "teleport_attack",
+        "drain_energy",
+        "flying",
+        "breath_attack",
+        "aerial_dive",
+        "reality_distort",
+        "summon_minions",
+        "area_corruption"
+      ],
+      "additionalProperties": false
+    },
+    "special_abilities": {
+      "type": "object",
+      "properties": {
+        "charge_attack": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "damage_multiplier": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "damage_multiplier"
+          ],
+          "additionalProperties": false
+        },
+        "bone_throw": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "range": {
+              "type": "number"
+            },
+            "damage_multiplier": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "range",
+            "damage_multiplier"
+          ],
+          "additionalProperties": false
+        },
+        "dodge_chance": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "passive": {
+              "type": "boolean"
+            },
+            "dodge_chance": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "passive",
+            "dodge_chance"
+          ],
+          "additionalProperties": false
+        },
+        "ground_slam": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "radius": {
+              "type": "number"
+            },
+            "damage_multiplier": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "radius",
+            "damage_multiplier"
+          ],
+          "additionalProperties": false
+        },
+        "health_regen": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "passive": {
+              "type": "boolean"
+            },
+            "heal_rate": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "passive",
+            "heal_rate"
+          ],
+          "additionalProperties": false
+        },
+        "fire_aura": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "passive": {
+              "type": "boolean"
+            },
+            "radius": {
+              "type": "number"
+            },
+            "dps": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "passive",
+            "radius",
+            "dps"
+          ],
+          "additionalProperties": false
+        },
+        "burning_touch": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "passive": {
+              "type": "boolean"
+            },
+            "burn_damage": {
+              "type": "number"
+            },
+            "burn_duration": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "passive",
+            "burn_damage",
+            "burn_duration"
+          ],
+          "additionalProperties": false
+        },
+        "frost_breath": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "range": {
+              "type": "number"
+            },
+            "slow_effect": {
+              "type": "number"
+            },
+            "slow_duration": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "range",
+            "slow_effect",
+            "slow_duration"
+          ],
+          "additionalProperties": false
+        },
+        "ice_spikes": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "range": {
+              "type": "number"
+            },
+            "spike_count": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "range",
+            "spike_count"
+          ],
+          "additionalProperties": false
+        },
+        "phase_shift": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "duration": {
+              "type": "number"
+            },
+            "damage_reduction": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "duration",
+            "damage_reduction"
+          ],
+          "additionalProperties": false
+        },
+        "energy_drain": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "duration": {
+              "type": "number"
+            },
+            "slow_amount": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "duration",
+            "slow_amount"
+          ],
+          "additionalProperties": false
+        },
+        "shadow_clone": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cooldown": {
+              "type": "number"
+            },
+            "clone_duration": {
+              "type": "number"
+            },
+            "clone_health": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "description",
+            "cooldown",
+            "clone_duration",
+            "clone_health"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "charge_attack",
+        "bone_throw",
+        "dodge_chance",
+        "ground_slam",
+        "health_regen",
+        "fire_aura",
+        "burning_touch",
+        "frost_breath",
+        "ice_spikes",
+        "phase_shift",
+        "energy_drain",
+        "shadow_clone"
+      ],
+      "additionalProperties": false
+    },
+    "spawn_patterns": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "time_range": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "enemies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "spawn_rate_multiplier": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "time_range",
+          "enemies",
+          "spawn_rate_multiplier"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "enemy_classes",
+    "zones",
+    "enemies",
+    "enemy_types",
+    "enemy_behaviors",
+    "special_abilities",
+    "spawn_patterns"
+  ],
+  "additionalProperties": false
+}

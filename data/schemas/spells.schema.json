@@ -1,0 +1,826 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "spells.json",
+  "$defs": {
+    "animation": {
+      "type": "object",
+      "properties": {
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "frames"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "spells": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "element": {
+            "type": "string",
+            "x-ref": [
+              "element",
+              "element_alias"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "damage": {
+            "type": "number"
+          },
+          "cooldown": {
+            "type": "number"
+          },
+          "projectile_count": {
+            "type": "number"
+          },
+          "speed": {
+            "type": "number"
+          },
+          "homing_strength": {
+            "type": "number"
+          },
+          "color": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "unlock_condition": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "x-ref": "unlock_condition"
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          "visual": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string"
+              },
+              "projectile_animation": {
+                "type": "object",
+                "properties": {
+                  "idle": {
+                    "$ref": "#/$defs/animation"
+                  },
+                  "impact": {
+                    "$ref": "#/$defs/animation"
+                  },
+                  "trail": {
+                    "$ref": "#/$defs/animation"
+                  }
+                },
+                "required": [
+                  "idle"
+                ],
+                "additionalProperties": false
+              },
+              "trail_particles": {
+                "type": "string"
+              },
+              "cast_flash": {
+                "$ref": "#/$defs/animation"
+              },
+              "sounds": {
+                "type": "object",
+                "properties": {
+                  "cast": {
+                    "type": "string"
+                  },
+                  "impact": {
+                    "type": "string"
+                  },
+                  "tick": {
+                    "type": "string"
+                  },
+                  "explosion": {
+                    "type": "string"
+                  },
+                  "absorb": {
+                    "type": "string"
+                  },
+                  "break": {
+                    "type": "string"
+                  },
+                  "chain": {
+                    "type": "string"
+                  },
+                  "incoming": {
+                    "type": "string"
+                  },
+                  "channel": {
+                    "type": "string"
+                  },
+                  "end": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "string"
+                  },
+                  "heal": {
+                    "type": "string"
+                  },
+                  "freeze": {
+                    "type": "string"
+                  },
+                  "loop": {
+                    "type": "string"
+                  },
+                  "spawn": {
+                    "type": "string"
+                  },
+                  "creature_attack": {
+                    "type": "string"
+                  },
+                  "creature_death": {
+                    "type": "string"
+                  },
+                  "creature_shoot": {
+                    "type": "string"
+                  },
+                  "projectile_impact": {
+                    "type": "string"
+                  },
+                  "aura_tick": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cast"
+                ],
+                "additionalProperties": false
+              },
+              "aura_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "heal_tick_effect": {
+                "$ref": "#/$defs/animation"
+              },
+              "heal_particles": {
+                "type": "string"
+              },
+              "explosion_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "ground_lingering_effect": {
+                "$ref": "#/$defs/animation"
+              },
+              "warning_indicator": {
+                "$ref": "#/$defs/animation"
+              },
+              "shield_form_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "shield_break_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "shield_pulse": {
+                "$ref": "#/$defs/animation"
+              },
+              "absorption_particles": {
+                "type": "string"
+              },
+              "chain_effect": {
+                "$ref": "#/$defs/animation"
+              },
+              "target_indicators": {
+                "$ref": "#/$defs/animation"
+              },
+              "chain_particles": {
+                "type": "string"
+              },
+              "warning_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "area_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "channel_effect": {
+                "$ref": "#/$defs/animation"
+              },
+              "ground_burn": {
+                "$ref": "#/$defs/animation"
+              },
+              "continuous_particles": {
+                "type": "string"
+              },
+              "activation_effect": {
+                "$ref": "#/$defs/animation"
+              },
+              "duration_indicator": {
+                "$ref": "#/$defs/animation"
+              },
+              "screen_filter": {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string"
+                  },
+                  "intensity": {
+                    "type": "number"
+                  },
+                  "color_tint": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "effect",
+                  "intensity",
+                  "color_tint"
+                ],
+                "additionalProperties": false
+              },
+              "time_particles": {
+                "type": "string"
+              },
+              "chain_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "heal_effect": {
+                "$ref": "#/$defs/animation"
+              },
+              "target_glow": {
+                "$ref": "#/$defs/animation"
+              },
+              "aura_glow": {
+                "$ref": "#/$defs/animation"
+              },
+              "summon_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "spawn_effect": {
+                "$ref": "#/$defs/animation"
+              },
+              "creature_animations": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/animation"
+                }
+              },
+              "summon_circle_buildup": {
+                "$ref": "#/$defs/animation"
+              },
+              "summon_particles": {
+                "type": "string"
+              },
+              "creature_cast_animation": {
+                "$ref": "#/$defs/animation"
+              },
+              "projectile_spawn": {
+                "$ref": "#/$defs/animation"
+              },
+              "creature_aim_indicator": {
+                "$ref": "#/$defs/animation"
+              },
+              "creature_despawn": {
+                "$ref": "#/$defs/animation"
+              }
+            },
+            "required": [
+              "category",
+              "cast_flash",
+              "sounds"
+            ],
+            "additionalProperties": false
+          },
+          "upgrades": {
+            "type": "object",
+            "properties": {
+              "damage_per_level": {
+                "type": "number"
+              },
+              "projectile_count_levels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "max_level": {
+                "type": "number"
+              },
+              "infinite_scaling": {
+                "type": "object",
+                "properties": {
+                  "damage_bonus": {
+                    "type": "number"
+                  },
+                  "speed_bonus": {
+                    "type": "number"
+                  },
+                  "heal_bonus": {
+                    "type": "number"
+                  },
+                  "duration_bonus": {
+                    "type": "number"
+                  },
+                  "radius_bonus": {
+                    "type": "number"
+                  },
+                  "shield_bonus": {
+                    "type": "number"
+                  },
+                  "range_bonus": {
+                    "type": "number"
+                  },
+                  "health_bonus": {
+                    "type": "number"
+                  },
+                  "fire_rate_bonus": {
+                    "type": "number"
+                  },
+                  "aura_damage_bonus": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "heal_per_level": {
+                "type": "number"
+              },
+              "duration_levels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "radius_levels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "shield_per_level": {
+                "type": "number"
+              },
+              "chain_count_levels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "summon_count_levels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "fire_rate_levels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "aura_radius_levels": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "required": [
+              "max_level"
+            ],
+            "additionalProperties": false
+          },
+          "rank_growth": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "per_rank": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                },
+                "integer": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "per_rank"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "role": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "number"
+          },
+          "chars": {
+            "type": "number"
+          },
+          "incantation": {
+            "type": "string"
+          },
+          "heal_amount": {
+            "type": "number"
+          },
+          "recast_behavior": {
+            "type": "string",
+            "enum": [
+              "extend",
+              "stack"
+            ]
+          },
+          "duration": {
+            "type": "number"
+          },
+          "degrees_per_shard": {
+            "type": "number"
+          },
+          "shard_count": {
+            "type": "number"
+          },
+          "cone_degrees": {
+            "type": "number"
+          },
+          "growth_description": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "knockback": {
+            "type": "number"
+          },
+          "slow_effect": {
+            "type": "number"
+          },
+          "slow_duration": {
+            "type": "number"
+          },
+          "retaliation_damage": {
+            "type": "number"
+          },
+          "retaliation_reach": {
+            "type": "number"
+          },
+          "retaliation_angle": {
+            "type": "number"
+          },
+          "retaliation_knockback": {
+            "type": "number"
+          },
+          "retaliation_travel_time": {
+            "type": "number"
+          },
+          "chain_count": {
+            "type": "number"
+          },
+          "chain_range": {
+            "type": "number"
+          },
+          "chain_damage_reduction": {
+            "type": "number"
+          },
+          "active_duration": {
+            "type": "number"
+          },
+          "meteor_count": {
+            "type": "number"
+          },
+          "delay_interval": {
+            "type": "number"
+          },
+          "warning_duration": {
+            "type": "number"
+          },
+          "rank_steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "meteor_count": {
+                  "type": "number"
+                },
+                "blade_count": {
+                  "type": "number"
+                },
+                "blade_radius": {
+                  "type": "number"
+                },
+                "travel_distance": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "description"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "spear_radius": {
+            "type": "number"
+          },
+          "burn_trail": {
+            "type": "boolean"
+          },
+          "burn_tick_ratio": {
+            "type": "number"
+          },
+          "burn_tick": {
+            "type": "number"
+          },
+          "burn_duration": {
+            "type": "number"
+          },
+          "spread_radius": {
+            "type": "number"
+          },
+          "spread_speed": {
+            "type": "number"
+          },
+          "spore_linger": {
+            "type": "number"
+          },
+          "extend_at_cap": {
+            "type": "boolean"
+          },
+          "active_limit": {
+            "type": "number"
+          },
+          "tick_interval": {
+            "type": "number"
+          },
+          "orbit_radius": {
+            "type": "number"
+          },
+          "body_radius": {
+            "type": "number"
+          },
+          "orb_count": {
+            "type": "number"
+          },
+          "angular_speed": {
+            "type": "number"
+          },
+          "tick_rate": {
+            "type": "number"
+          },
+          "effect": {
+            "type": "string"
+          },
+          "time_scale": {
+            "type": "number"
+          },
+          "chain_reduction": {
+            "type": "number"
+          },
+          "freeze_duration": {
+            "type": "number"
+          },
+          "spread_angle": {
+            "type": "number"
+          },
+          "heal_per_second": {
+            "type": "number"
+          },
+          "damage_reduction": {
+            "type": "number"
+          },
+          "summon_count": {
+            "type": "number"
+          },
+          "summon_duration": {
+            "type": "number"
+          },
+          "summon_health": {
+            "type": "number"
+          },
+          "summon_damage": {
+            "type": "number"
+          },
+          "summon_speed": {
+            "type": "number"
+          },
+          "projectile_damage": {
+            "type": "number"
+          },
+          "fire_rate": {
+            "type": "number"
+          },
+          "projectile_range": {
+            "type": "number"
+          },
+          "aura_damage": {
+            "type": "number"
+          },
+          "aura_radius": {
+            "type": "number"
+          },
+          "beam_radius": {
+            "type": "number"
+          },
+          "turn_speed": {
+            "type": "number"
+          },
+          "trigger_radius": {
+            "type": "number"
+          },
+          "trap_radius": {
+            "type": "number"
+          },
+          "hit_interval": {
+            "type": "number"
+          },
+          "move_speed": {
+            "type": "number"
+          },
+          "emission_duration": {
+            "type": "number"
+          },
+          "patch_duration": {
+            "type": "number"
+          },
+          "trail_radius": {
+            "type": "number"
+          },
+          "return_damage_multiplier": {
+            "type": "number"
+          },
+          "blade_radius": {
+            "type": "number"
+          },
+          "travel_distance": {
+            "type": "number"
+          },
+          "linger_duration": {
+            "type": "number"
+          },
+          "linger_interval": {
+            "type": "number"
+          },
+          "linger_damage_multiplier": {
+            "type": "number"
+          },
+          "blade_count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "element",
+          "type",
+          "unlock_condition"
+        ],
+        "additionalProperties": false
+      },
+      "x-registry": "spell",
+      "x-key-field": "id"
+    },
+    "spell_categories": {
+      "type": "object",
+      "properties": {
+        "offensive": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        },
+        "defensive": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        },
+        "utility": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        },
+        "healing": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        },
+        "auto_attack": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        },
+        "summons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        }
+      },
+      "required": [
+        "offensive",
+        "defensive",
+        "utility",
+        "healing",
+        "auto_attack",
+        "summons"
+      ],
+      "additionalProperties": false
+    },
+    "unlock_conditions": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string"
+        },
+        "persistent_xp": {
+          "type": "string"
+        },
+        "achievement": {
+          "type": "string"
+        },
+        "character": {
+          "type": "string"
+        },
+        "spell_mastery": {
+          "type": "string"
+        },
+        "survive_time": {
+          "type": "string"
+        },
+        "enemies_killed": {
+          "type": "string"
+        },
+        "default": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "level",
+        "persistent_xp",
+        "achievement",
+        "character",
+        "spell_mastery",
+        "survive_time",
+        "enemies_killed",
+        "default"
+      ],
+      "additionalProperties": false,
+      "x-registry": "unlock_condition"
+    }
+  },
+  "required": [
+    "spells",
+    "spell_categories",
+    "unlock_conditions"
+  ],
+  "additionalProperties": false
+}

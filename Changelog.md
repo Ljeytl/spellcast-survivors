@@ -1,3 +1,13 @@
+# Unreleased (0.3) — Engine foundations, step 1 (docs 19 and 20)
+
+- **Every data file is validated** against a schema in `data/schemas/` (`scripts/core/DataValidator.gd`). Unknown keys, wrong types, missing fields, out-of-range values and references to ids that do not exist (spells, statuses, elements, damage types, keywords, keyword categories, enemy variants, resistance profiles) are reported with file and path, e.g. `spells.json $.spells.bolt.damgae: unknown key`. Debug builds report problems at load; `tests/data_validation_regression.gd` fails on them. Ids still defined in code (combinations, Atomic) come from `scripts/core/CodeRegistries.gd` until they move to data. New schemas are drafted with `tools/data-schemas/draft_schema.py` and annotated by hand.
+- **`data/damage_types.json`**: damage types, elements, aliases and the element cycle defined once. `TypeChart.gd` still holds its own copy; a test keeps the two identical until it reads the file (doc 20 G2).
+- **Found by the validator, not changed yet:** the Necromancer, Time Mage and Summoner characters start with spells that do not exist (`shadow_bolt`, `drain_life`, `temporal_strike`, `summon_imp`, `spirit_guardian`); left for the character rework (doc 20 G6).
+- **Event bus** (`scripts/core/EventBus.gd`): declared gameplay events with required fields, synchronous delivery in subscription order. No system is moved onto it yet.
+- **Seeded randomness** (`scripts/core/Rng.gd`): a run seed, named streams per system and a generator per cast, stable across platforms. No system is moved onto it yet.
+- **Co-op-ready rules as a ratchet** (`tests/coop_rules_regression.gd`, `tests/coop_rules_allowlist.json`): global player/game lookups (19 files today) and unseeded gameplay randomness (14 files) may not grow; each fix must lower the recorded count.
+- No gameplay change.
+
 # Unreleased (0.3) — Shipping spells move to the spell engine (doc 18 phase 2)
 
 - **Every shipping spell now uses the new spell effects in the game.** Magic Missile and Regeneration moved onto the spell engine (same damage, count by level, homing and overkill-aware targets for the missiles; same healing per second, duration and recast-extend for Regeneration, now a life aura around the wizard). Healing seeds (Life Bolt, Soul Bloom), Earth Shield's stored charges (stones orbiting the wizard), heals and shield blocks are drawn by the VFX layer too. Fire Walk burns as low ground fire and never throws flames over the wizard. Homing shots whose target dies retarget to the nearest enemy still worth hitting, as before.
