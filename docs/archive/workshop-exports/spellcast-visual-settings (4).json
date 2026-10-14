@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "source_revision": "7c03c477cc05549d273b0e5ac1396adedbe42b8a",
+  "purpose": "visual-preview-only",
+  "effect": "bolt",
+  "settings": {
+    "bush": 1,
+    "comparison": false,
+    "effect_settings": {
+      "ice_blast": {
+        "spell_size": 1.2,
+        "projectile": 1,
+        "particle": 1
+      }
+    },
+    "enemy": 1,
+    "enemy_sizes": {},
+    "scenery": true,
+    "tree": 1,
+    "variant": "pursuer",
+    "wizard": 1,
+    "zoom": 1.3875
+  }
+}

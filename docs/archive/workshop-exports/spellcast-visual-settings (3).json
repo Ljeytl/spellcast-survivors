@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "source_revision": "5a7b6aeb3431f298e18317ed81ef692c0477cfd3",
+  "purpose": "visual-preview-only",
+  "effect": "lightning_arc",
+  "settings": {
+    "bush": 1.6,
+    "comparison": true,
+    "enemy": 1.2,
+    "enemy_sizes": {
+      "pursuer": 1.15,
+      "juggernaut": 1.2,
+      "marksman": 1.05,
+      "shieldbearer": 1.3,
+      "swarmer": 1.45,
+      "mortar": 1.2,
+      "slammer": 1.15,
+      "charger": 1.1,
+      "flanker": 1.15,
+      "skirmisher": 1.2
+    },
+    "particle": 1,
+    "projectile": 1,
+    "scenery": true,
+    "spell_size": 0.8,
+    "tree": 1.3,
+    "variant": "skirmisher",
+    "wizard": 1.1,
+    "zoom": 1.3
+  }
+}
