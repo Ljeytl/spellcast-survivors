@@ -103,12 +103,32 @@ func make_word() -> String:
 		return word
 	return "vorthaxil%d" % used_words.size()
 
-## Spell Power multiplier from standing in an attuned circle (SpellManager applies it).
+## Spell Power multiplier from standing in an attuned circle. Applied as a stat modifier on the
+## wizard (source ATTUNED_SOURCE) while they stand in it; see update_attunement().
+const ATTUNED_SOURCE = "ley:attuned"
+
 func power_multiplier() -> float:
 	for site in sites:
 		if site.state == LeySite.State.ATTUNED and site.contains(game.player.global_position):
 			return 1.0 + ATTUNED_POWER_BONUS
 	return 1.0
+
+## Adds or removes the attuned Spell Power modifier as the wizard enters or leaves an attuned circle.
+func update_attunement() -> void:
+	var player = game.player if is_instance_valid(game) else null
+	if not is_instance_valid(player) or player.get("stats") == null:
+		return
+	var inside = power_multiplier() > 1.0
+	var has = player.stats.has_source(ATTUNED_SOURCE)
+	if inside and not has:
+		player.stats.add_modifier("spell_damage_multiplier", "mul", ATTUNED_POWER_BONUS, ATTUNED_SOURCE)
+	elif has and not inside:
+		player.stats.remove_source(ATTUNED_SOURCE)
+
+func _exit_tree():
+	var player = game.player if is_instance_valid(game) else null
+	if is_instance_valid(player) and player.get("stats") != null:
+		player.stats.remove_source(ATTUNED_SOURCE)
 
 ## The awake site whose circle the player is standing in, if any.
 func site_under_player():
@@ -132,6 +152,7 @@ func engaged_site():
 func _process(delta):
 	if game.current_state != game.GameState.PLAYING:
 		return
+	update_attunement()
 	var real = delta / maxf(Engine.time_scale, 0.01)
 	var player_pos = game.player.global_position
 	var monsters = game.get_node_or_null("MonsterManager")

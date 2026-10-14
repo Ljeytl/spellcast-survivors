@@ -349,9 +349,9 @@ func cast_stat(key: String) -> float:
 const SPELL_PROPERTIES = {"spell_damage_multiplier": "power", "spell_size_multiplier": "size", "spell_duration_multiplier": "duration", "projectile_speed_multiplier": "velocity"}
 var property_reads: Dictionary = {}
 
+## The ley attunement bonus is a modifier on the wizard's stats now (LeyLines.update_attunement).
 func spell_property_multiplier(key: String) -> float:
-	var ley = get_tree().get_first_node_in_group("ley_lines") if key == "spell_damage_multiplier" else null
-	return (ley.power_multiplier() if ley else 1.0) * spell_own_multiplier(key)
+	return spell_own_multiplier(key)
 
 func spell_own_multiplier(key: String) -> float:
 	var property = SPELL_PROPERTIES.get(key, "")
