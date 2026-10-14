@@ -153,27 +153,40 @@ static func build_bundle(by_category: Dictionary) -> Dictionary:
 		b.per_copy = float(defs[w].per_copy)
 	for w in by_category.get("arrangement", []):
 		b.arrangement = str(defs[w].arrangement)
-	for cat in ["twin", "motion", "duration", "timing", "contact", "force", "target", "self", "sacrifice", "wild"]:
+	for cat in ["twin", "motion", "duration", "timing", "contact", "force", "target", "self", "sacrifice", "wild", "payoff"]:
 		for w in by_category.get(cat, []):
 			var flag = str(defs[w].get("flag", w))
 			b.flags[flag] = defs[w].duplicate()
-	# Element words: share by letters; repeats of one element stack with diminishing returns.
+	# Element words (doc 21 §4.2): each word's tier sets its damage share and effect strength per
+	# letter; repeats of one element stack with diminishing returns, damage and effect separately.
 	var per_element := {}
 	for w in by_category.get("element", []):
 		var e = str(defs[w].element)
+		var tier: Dictionary = word_tier(w)
 		if not per_element.has(e):
-			per_element[e] = []
-		per_element[e].append(float(cats.element.share_per_letter) * w.length())
-	var w8 = _weights()
+			per_element[e] = {"share": [], "effect": []}
+		per_element[e].share.append(float(tier.share_per_letter) * w.length())
+		per_element[e].effect.append(float(tier.effect_per_letter) * w.length())
 	for e in per_element:
-		var shares: Array = per_element[e]
-		shares.sort()
-		shares.reverse()
-		var share = 0.0
-		for i in shares.size():
-			share += float(shares[i]) * float(w8[mini(i, w8.size() - 1)])
-		b.elements.append({"element": e, "share": share, "status": str(data().get("element_status", {}).get(e, ""))})
+		b.elements.append({"element": e, "share": _diminished(per_element[e].share), "effect": _diminished(per_element[e].effect),
+			"status": str(data().get("element_status", {}).get(e, ""))})
 	for cat in by_category:
 		for w in by_category[cat]:
 			b.words[w] = cat
 	return b
+
+## An element word's tier numbers, {share_per_letter, effect_per_letter} (data/keywords.json).
+static func word_tier(word: String) -> Dictionary:
+	var tiers: Dictionary = data().categories.element.tiers
+	return tiers.get(str(data().words.get(word, {}).get("tier", "damage")), tiers.damage)
+
+## Largest first at full weight, each next one weaker (data/keywords.json "diminishing").
+static func _diminished(values: Array) -> float:
+	var sorted = values.duplicate()
+	sorted.sort()
+	sorted.reverse()
+	var w8 = _weights()
+	var total = 0.0
+	for i in sorted.size():
+		total += float(sorted[i]) * float(w8[mini(i, w8.size() - 1)])
+	return total

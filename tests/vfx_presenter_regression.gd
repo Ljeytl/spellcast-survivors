@@ -131,7 +131,7 @@ func run():
 	# Fiery spear: native arcane body + fire accent; presented, trail flames, cast flash.
 	clear()
 	foe(Vector2(300, 0))
-	var c = cast("fiery spear", 0.0)
+	var c = cast("flaming spear", 0.0)   # FLAMING adds fire damage and burns (FIERY is damage only)
 	var spear = null
 	for p in c.parts:
 		spear = p

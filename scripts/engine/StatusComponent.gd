@@ -123,6 +123,12 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 			if entangle_times.size() >= int(d.root_after):
 				entangle_times.clear()
 				apply("rooted", {"duration": float(d.root_duration)}, source)
+		"vulnerable":
+			# Stacks (doc 21 §2.1): each adds damage taken, up to a cap; a new application refreshes them.
+			# Element words pass their strength (RUNIC 0.25 = 1 stack); a plain application adds one.
+			var add = float(params.get("stacks", float(params.get("word_strength", 0.0)) * float(d.stacks_per_strength) if params.has("word_strength") else 1.0))
+			var now = float(timed.get("vulnerable", {}).get("strength", 0.0))
+			timed["vulnerable"] = {"remaining": duration, "strength": minf(float(d.max_stacks), now + add), "source": source, "cast": cast}
 		"shocked":
 			# A mark: the next Lightning hit chains it, Water/Ice conducts it, Earth grounds it (doc 18 §6.1b).
 			_set_timed(id, duration, 1.0, source)
@@ -225,21 +231,6 @@ func on_hit(effect: Dictionary, source: Dictionary, origin: Vector2) -> float:
 		var poisoners = _shared(poison)
 		poison = {}
 		_burst(remaining * 0.6, "plague", 100.0, poisoners, "toxic flare")
-	elif elements.has("arcane") and (_other(bleed, cast) or _other(poison, cast) or burns.any(func(b): return b.cast == null or b.cast != cast)):
-		fired = "overload"
-		# The DoTs' remaining damage lands now, credited to the spells that applied them.
-		var pending: Array = []
-		if not bleed.is_empty():
-			pending.append([_bleed_remaining(), "bleed", _shared(bleed)])
-		if not poison.is_empty():
-			pending.append([_poison_remaining(), "plague", _shared(poison)])
-		for b in burns:
-			pending.append([float(b.per_tick) * int(b.ticks_left), "fire", b.source])
-		bleed = {}
-		poison = {}
-		burns.clear()
-		for p in pending:
-			_deal(float(p[0]), str(p[1]), p[2], "overload")
 	elif elements.has("life") and (_other(poison, cast) or _other(timed.get("weakened", {}), cast)):
 		fired = "cleanse"
 		extra += _poison_remaining() + (10.0 if timed.has("weakened") else 0.0)
@@ -415,6 +406,7 @@ func _stacks_of(id: String) -> int:
 		"chilled": return int(chill.get("stacks", 0))
 		"bleed": return bleed.get("stacks", []).size()
 		"burn": return burns.size()
+		"vulnerable": return ceili(float(timed.get("vulnerable", {}).get("strength", 0.0)))
 	return 1 if has(id) else 0
 
 ## DoT and status damage. Bleed is its own damage type, so only a bleed resistance reduces it.
@@ -489,7 +481,9 @@ func move_multiplier() -> float:
 	return 1.0 - slow_amount()
 
 func damage_taken_multiplier() -> float:
-	return float(def("vulnerable").damage_taken) if timed.has("vulnerable") else 1.0
+	if not timed.has("vulnerable"):
+		return 1.0
+	return 1.0 + float(def("vulnerable").per_stack) * float(timed.vulnerable.strength)
 
 func damage_dealt_multiplier() -> float:
 	if timed.has("weakened"):
@@ -512,3 +506,28 @@ func _refresh_modifiers() -> void:
 	_applied_dealt = wanted
 	if is_equal_approx(wanted, 1.0):
 		_weaken_base = null
+
+## Overload (doc 21 §3): an elementless payoff word. Every damage over time pending on this entity
+## (bleed, poison, burn: what has built up, not ramp still to come) lands now at `multiplier`, credited
+## to the spells that applied it, and is cleared. Nothing pending: nothing happens. Returns the damage.
+func overload(multiplier: float, source: Dictionary) -> float:
+	var pending: Array = []
+	if not bleed.is_empty():
+		pending.append([_bleed_remaining(), "bleed", _shared(bleed)])
+	if not poison.is_empty():
+		pending.append([_poison_remaining(), "plague", _shared(poison)])
+	for b in burns:
+		pending.append([float(b.per_tick) * int(b.ticks_left), "fire", b.source])
+	if pending.is_empty():
+		return 0.0
+	bleed = {}
+	poison = {}
+	burns.clear()
+	var total := 0.0
+	for p in pending:
+		total += float(p[0]) * multiplier
+		_deal(float(p[0]) * multiplier, str(p[1]), p[2], "overload")
+	reactions_fired.append("overload")
+	_announce("reaction", {"name": "overload"})
+	_refresh_modifiers()
+	return total

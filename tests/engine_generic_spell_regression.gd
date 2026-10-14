@@ -371,7 +371,11 @@ func keywords_runtime():
 	# Element words on a generic spell.
 	a = foe(Vector2(200, 0))
 	cast("icy spear", 1.5)
-	check(a.status != null and a.status.chill_stacks() == 1 and near(a.received[0], 22 + 3.3), "ICY spear adds water damage and one chill")
+	check(near(a.received[0], 22 + 3.3) and (a.status == null or a.status.chill_stacks() == 0), "ICY spear (damage word) adds water damage, no chill")
+	clear()
+	a = foe(Vector2(200, 0))
+	cast("chilling spear", 1.5)
+	check(a.status != null and a.status.chill_stacks() == 1, "CHILLING spear (effect word) chills")
 	clear()
 	a = foe(Vector2(200, 0))
 	a.element = "fire"
@@ -379,8 +383,8 @@ func keywords_runtime():
 	check(near(a.received[0], 22 + 3.3 * 1.25), "ICY share beats a fire enemy on the chart")
 	clear()
 	a = foe(Vector2(200, 0))
-	cast("iron spear", 1.5)
-	check(a.status.bleed_meter > 0.0, "IRON (earth) word bleeds")
+	cast("serrated spear", 1.5)
+	check(a.status.bleed_meter > 0.0, "SERRATED (earth effect word) bleeds")
 	clear()
 	a = foe(Vector2(200, 0))
 	cast("toxic spear", 1.5)
@@ -426,8 +430,8 @@ func caps_and_safety():
 func fusion_and_reactions():
 	# One cast with fire and ice: both statuses coexist, no reaction (fusion).
 	var a = foe(Vector2(200, 0))
-	cast("icy fiery fireball", 1.0)
-	check(a.status.chill_stacks() >= 1 and a.status.has("burn"), "ICY FIERY fireball: burn and chill coexist")
+	cast("chilling burning fireball", 1.0)
+	check(a.status.chill_stacks() >= 1 and a.status.has("burn"), "CHILLING BURNING fireball: burn and chill coexist")
 	check(not a.status.reactions_fired.has("thaw"), "Same cast does not react with itself")
 	# A separate fire cast on the chilled enemy reacts.
 	a.status.reaction_ready_at = 0.0

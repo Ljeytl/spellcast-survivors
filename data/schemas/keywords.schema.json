@@ -35,6 +35,28 @@
           "order": {
             "type": "number",
             "minimum": 0
+          },
+          "tiers": {
+            "type": "object",
+            "$comment": "Element words: per tier, damage share and effect strength per letter.",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "share_per_letter": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "effect_per_letter": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "share_per_letter",
+                "effect_per_letter"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "additionalProperties": false,
@@ -215,6 +237,20 @@
               "share"
             ],
             "additionalProperties": false
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "damage",
+              "both",
+              "effect"
+            ],
+            "$comment": "Element words: damage adds the element's damage, effect adds its status, both adds some of each."
+          },
+          "multiplier": {
+            "type": "number",
+            "minimum": 1,
+            "$comment": "payoff words: pending damage over time lands at this multiple"
           }
         },
         "required": [

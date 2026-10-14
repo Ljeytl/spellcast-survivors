@@ -178,6 +178,10 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 				for e in elements:
 					entries.append({"amount": amount * float(e.share), "damage_type": str(e.element), "chart_element": str(e.element)})
 				payload.append({"type": "damage", "entries": entries, "element": element if element != "" else "raw", "hit": amount})
+		if main_hit > 0.0 and flags.has("overload"):
+			# Payoff words pop what is already pending, before this hit adds its own damage over time.
+			payload.append({"type": "overload", "multiplier": float(flags.overload.multiplier)})
+			bound["overload"] = true
 		for item in p.get("payload", []):
 			match str(item.type):
 				"status":
@@ -192,8 +196,9 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 					payload.append({"type": "heal", "amount": float(item.amount) * part_power, "visual_size": float(item.get("visual_size", 1.0)) * size})
 		if main_hit > 0.0:
 			for e in elements:
-				if str(e.status) != "":
-					payload.append({"type": "status", "status": str(e.status), "hit": main_hit * float(e.share), "no_freeze": periodic, "from_word": true})
+				var strength = float(e.get("effect", e.share))   # SANGUINE and wild elements: effect follows the share
+				if str(e.status) != "" and strength > 0.0:
+					payload.append({"type": "status", "status": str(e.status), "hit": main_hit * strength, "word_strength": strength, "no_freeze": periodic, "from_word": true})
 			if flags.has("pulling"):
 				payload.append({"type": "impulse", "force": float(flags.pulling.force), "direction": "toward"})
 				bound["pulling"] = true
@@ -272,6 +277,9 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 			"target":
 				if root_delivery == "self":
 					reason = "it has no target"
+			"payoff":
+				if not bound.has(flag):
+					reason = "it deals no damage"
 			"self":
 				if flag == "warding":
 					reason = "warding is not built yet"

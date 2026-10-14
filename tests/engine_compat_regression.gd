@@ -105,7 +105,7 @@ func run():
 		enemy.global_position = game.player.global_position + Vector2(0, -200)
 		target.remove_from_group("enemies")
 		var hp = enemy.current_health
-		manager.cast_freeform_spell("iron spear")
+		manager.cast_freeform_spell("serrated spear")
 		for i in 60:
 			await physics_frame
 		check(enemy.current_health < hp, "Generic spell damages a real enemy")

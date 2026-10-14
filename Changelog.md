@@ -13,6 +13,12 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 
 **Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; bleed has no look yet.
 
+## Damage, effects and keywords (doc 21)
+
+- **Element words now sit on a spectrum: damage, both, or effect.** A word that names what the spell is made of adds that element's damage (FIERY, ICY, IRON: no status); a word that names what it does adds the effect (BURNING, CHILLING, SERRATED, VENOMOUS, RUNIC); some do both at half strength (FLAMING, FROSTY, TOXIC, MYSTIC, ELDRITCH). New words: BURNING, CHILLING. Each word's Necronomicon line says which.
+- **Overload is a keyword, not arcane.** Arcane damage no longer pops damage over time. New Payoff words RUPTURING (×2), DETONATING (×2.5) and OVERLOADING (×3) land all the bleed, poison and burn already on the enemy at once, multiplied, before the hit adds its own.
+- **Vulnerable stacks:** +4% damage taken per stack, up to five (was a flat +15%).
+
 ## Balance: bot comparison against 0.2.8
 
 - **Fix: Magic Missile and Lightning Bolt lost about 15–20% damage against moving enemies.** The port steered homing projectiles by a fixed turn rate; 0.2.8 blended toward the target. Restored the blend (`"lerp"` motion); a controlled bot test now matches 0.2.8 within noise.

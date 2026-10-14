@@ -674,6 +674,9 @@ func hit(enemy) -> void:
 				# Old Life Bolt: a hit that dealt damage plants a healing seed to collect.
 				if dealt > 0.0:
 					cast.spawn_seed(at, item)
+			"overload":
+				if _alive(enemy):
+					Effects.apply(enemy, item, cast.source, global_position)
 			"slow":
 				if _alive(enemy):
 					Effects.apply(enemy, {"type": "slow", "factor": float(item.get("factor", 0.6)), "duration": float(item.get("duration", 2.0))}, cast.source, global_position)

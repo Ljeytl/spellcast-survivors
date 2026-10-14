@@ -135,7 +135,13 @@ func damage_resolution():
 	f.resistances = {}
 	Effects.apply(f, {"type": "status", "status": "vulnerable"})
 	f.apply_effect(dmg([{"amount": 100, "damage_type": "raw"}]))
-	check(near(f.received.back(), 115), "Vulnerable increases damage taken")
+	check(near(f.received.back(), 104), "Vulnerable: one stack, +4% damage taken")
+	for i in 6:
+		Effects.apply(f, {"type": "status", "status": "vulnerable"})
+	f.apply_effect(dmg([{"amount": 100, "damage_type": "raw"}]))
+	check(near(f.received.back(), 120), "Vulnerable stacks to five (+20%)")
+	Effects.apply(f, {"type": "status", "status": "vulnerable", "word_strength": 0.15}, {})
+	check(near(f.status.timed.vulnerable.strength, 5.0), "Stacks stay capped")
 	check(f.status != null and f.get_node_or_null("StatusComponent") != null, "Status component is created on first need")
 	clear()
 
@@ -358,10 +364,14 @@ func reactions():
 	var e = fake(Vector2(2000, 0))
 	Effects.apply(e, {"type": "status", "status": "bleed", "hit": 100}, src(8))
 	e.apply_effect(dmg([{"amount": 10, "damage_type": "arcane"}], "arcane"), src(9))
+	check(not ("overload" in e.status.reactions_fired) and e.status.has("bleed"), "Arcane damage no longer overloads (doc 21 §3)")
+	e.received.clear()
+	var popped = Effects.apply(e, {"type": "overload", "multiplier": 3.0}, src(10))
 	var landed = 0.0
 	for amount in e.received:
 		landed += amount
-	check("overload" in e.status.reactions_fired and near(landed, 10 + 24), "Overload lands the remaining bleed at once (as its own hit, credited to the bleed)")
+	check("overload" in e.status.reactions_fired and near(landed, 3.0 * 24) and near(popped, landed) and not e.status.has("bleed"), "Overload lands the pending bleed at 3x and clears it")
+	check(near(Effects.apply(e, {"type": "overload", "multiplier": 3.0}, src(11)), 0.0), "Overload with nothing pending does nothing")
 	# Cleanse
 	var g = fake(Vector2(2500, 0))
 	Effects.apply(g, {"type": "status", "status": "poison", "hit": 100}, src(10))

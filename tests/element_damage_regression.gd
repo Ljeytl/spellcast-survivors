@@ -100,7 +100,11 @@ func run():
 	hit(bled, 100.0, "cross_blade")
 	hp = bled.current_health
 	hit(bled, 10.0, "bolt")
-	check(bled.status.reactions_fired.has("overload") and hp - bled.current_health > 10.0, "Bolt overloads the bleed")
+	check(not bled.status.reactions_fired.has("overload") and bled.status.has("bleed"), "Bolt (arcane) no longer overloads the bleed (doc 21 §3)")
+	hp = bled.current_health
+	next_cast += 1
+	preload("res://scripts/engine/Effects.gd").apply(bled, {"type": "overload", "multiplier": 3.0}, {"spell": "bolt", "cast_clock": 0.0, "cast_id": next_cast})
+	check(bled.status.reactions_fired.has("overload") and hp - bled.current_health > 10.0 and not bled.status.has("bleed"), "The Overload payoff pops the bleed")
 	var shielded = fresh()
 	hit(shielded, 50.0, "earth_shield")
 	check(shielded.status != null and shielded.status.has("bleed"), "Earth Shield eruption applies bleed")
@@ -217,6 +221,8 @@ func run():
 	var popped = fresh()
 	hit(popped, 100.0, "cross_blade")
 	hit(popped, 10.0, "bolt")
+	next_cast += 1
+	preload("res://scripts/engine/Effects.gd").apply(popped, {"type": "overload", "multiplier": 2.0}, {"spell": "bolt", "cast_clock": 0.0, "cast_id": next_cast})
 	check(popped.status.reactions_fired.has("overload"), "Overload fired")
 	check(float(session.damage_by_effect.get("cross_blade", {}).get("overload", 0.0)) > 0.0, "Overload is credited to Cross Blade")
 	check(near(float(session.damage_by_spell.get("bolt", 0.0)), 10.0), "Bolt is credited only its own hit")

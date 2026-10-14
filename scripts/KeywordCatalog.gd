@@ -70,13 +70,19 @@ static func word_line(word: String) -> String:
 				text += ", +%s %s damage%s" % [pct(float(w.adds.share)), str(w.adds.damage_type), (" and " + str(STATUS_TEXT.get(str(w.adds.get("status", "")), ""))) if str(w.adds.get("status", "")) != "" else ""]
 		"element":
 			var e = str(w.element)
-			text = "+%s %s damage, %s" % [pct(float(c.share_per_letter) * n), TYPE_CHART.display_name(e), STATUS_TEXT.get(str(data.get("element_status", {}).get(e, "")), "")]
+			var tier: Dictionary = KP.word_tier(word)
+			var effect = STATUS_TEXT.get(str(data.get("element_status", {}).get(e, "")), "")
+			match str(w.get("tier", "damage")):
+				"damage": text = "+%s %s damage" % [pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e)]
+				"both": text = "+%s %s damage, %s (half strength)" % [pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e), effect]
+				_: text = "%s, +%s %s damage" % [effect, pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e)]
 		_:
 			match str(w.get("flag", word)):
 				"homing": text = "steers toward enemies"
 				"swift": text = "%s faster" % pct(float(w.speed) - 1.0)
 				"orbiting": text = "circles you, then launches at enemies within %d" % int(w.range)
 				"repeating": text = "an echo %.1f s later at %s" % [float(w.delay), pct(float(w.power))]
+				"overload": text = "pops the damage over time already on the enemy, ×%s" % str(w.multiplier)
 				"delayed": text = "waits %.1f s, then hits %s harder" % [float(w.delay), pct(float(w.power) - 1.0)]
 				"charged": text = "%.1f s wind-up, ×%s power" % [float(w.delay), str(w.power)]
 				"piercing": text = "goes through %d more enemies at %s" % [int(w.pierce), pct(float(w.power))]

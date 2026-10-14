@@ -12,7 +12,7 @@
   "stunned":    {"element": "storm",  "kind": "hard",     "duration": 0.8, "locks": ["move", "attack"]},
   "slowed":     {"kind": "control",   "duration": 2.0, "slow": 0.3},
   "weakened":   {"element": "plague", "kind": "modifier", "duration": 4.0, "damage_dealt": 0.8},
-  "vulnerable": {"element": "arcane", "kind": "modifier", "duration": 4.0, "damage_taken": 1.15},
+  "vulnerable": {"element": "arcane", "kind": "modifier", "duration": 4.0, "per_stack": 0.04, "max_stacks": 5, "stacks_per_strength": 4.0},
   "entangled":  {"element": "life",   "kind": "control",  "duration": 3.0, "slow": 0.25, "root_after": 3, "root_window": 3.0, "root_duration": 1.0},
   "_rules":     {"slow_cap": 0.7, "secondary_slow_share": 0.1, "hard_cc_window": 4.0, "hard_cc_repeat_multiplier": 0.5, "reaction_cooldown": 1.0}
 }

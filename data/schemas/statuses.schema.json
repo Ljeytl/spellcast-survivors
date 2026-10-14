@@ -156,9 +156,6 @@
       "damage_dealt": {
         "type": "number"
       },
-      "damage_taken": {
-        "type": "number"
-      },
       "root_after": {
         "type": "number"
       },
@@ -172,6 +169,18 @@
         "type": "number",
         "minimum": 1,
         "$comment": "poison: a stack's tick never exceeds base \u00d7 ramp_max"
+      },
+      "per_stack": {
+        "type": "number",
+        "$comment": "vulnerable: extra damage taken per stack"
+      },
+      "max_stacks": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "stacks_per_strength": {
+        "type": "number",
+        "$comment": "vulnerable: stacks one application adds per unit of word strength (RUNIC 0.25 -> 1 stack)"
       }
     },
     "required": [

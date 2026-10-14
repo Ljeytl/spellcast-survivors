@@ -106,6 +106,9 @@ static func apply_to_entity(entity: Object, effect: Dictionary, source: Dictiona
 		"heal":
 			if entity.has_method("heal"):
 				entity.heal(float(effect.get("amount", 0.0)))
+		"overload":
+			if component:
+				return component.overload(float(effect.get("multiplier", 2.0)), source)
 		"slow":
 			# The old spells' slow (Ice Blast): a speed factor for a time, beside the status system.
 			if entity.has_method("apply_slow"):

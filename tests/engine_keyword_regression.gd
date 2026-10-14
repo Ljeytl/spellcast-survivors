@@ -122,9 +122,14 @@ func bundles():
 	var r = p("triple spear").bundle
 	check(r.copies == 3 and near(r.per_copy, 0.45), "TRIPLE = 3 copies at 45%")
 	r = p("icy spear").bundle
-	check(r.elements.size() == 1 and r.elements[0].element == "water" and near(r.elements[0].share, 0.15) and r.elements[0].status == "chilled", "ICY adds 15% water + chill")
+	check(r.elements.size() == 1 and r.elements[0].element == "water" and near(r.elements[0].share, 0.15) and near(r.elements[0].effect, 0.0), "ICY (damage word) adds 15% water, no chill")
+	r = p("chilling spear").bundle
+	check(near(r.elements[0].share, 0.08) and near(r.elements[0].effect, 0.40) and r.elements[0].status == "chilled", "CHILLING (effect word) adds 8% water and chill at 40%")
+	r = p("frosty spear").bundle
+	check(near(r.elements[0].share, 0.18) and near(r.elements[0].effect, 0.15), "FROSTY (both) adds 18% water and chill at 15%")
 	check(near(p("glacial spear").bundle.elements[0].share, 0.35), "GLACIAL (7 letters) adds 35%")
-	check(near(p("icy frosty spear").bundle.elements[0].share, 0.30 + 0.15 * 0.5), "Same-element words stack with diminishing returns")
+	check(near(p("icy glacial spear").bundle.elements[0].share, 0.35 + 0.15 * 0.5), "Same-element words stack with diminishing returns")
+	check(near(p("burning scorching spear").bundle.elements[0].effect, 0.45 + 0.35 * 0.5), "Effect strength stacks with diminishing returns too")
 	r = p("icy fiery spear").bundle
 	check(r.elements.size() == 2, "Different elements are separate shares")
 	var statuses = {}
@@ -169,7 +174,7 @@ func planner_basics():
 	check(near(total(entries_of(pl)), 60) and near(pl.parts.blast.geometry.radius, 135), "Player stats scale power and size")
 	pl = mk("flame wall")
 	check(status_of(pl, "burn") != null and near(status_of(pl, "burn").hit, 30), "Status payload carries the hit it scales from")
-	pl = mk("icy flame wall")
+	pl = mk("chilling flame wall")
 	check(status_of(pl, "chilled") != null and status_of(pl, "chilled").no_freeze == true, "Chill from a periodic part never freezes")
 	pl = mk("frost nova")
 	check(status_of(pl, "chilled").get("no_freeze", false) == false and int(status_of(pl, "chilled").stacks) == 3, "Frost Nova: 3 chill stacks, can freeze")
@@ -190,7 +195,9 @@ func planner_keywords():
 	pl = mk("icy spear")
 	var e = entries_of(pl)
 	check(e.size() == 2 and e[1].damage_type == "water" and e[1].chart_element == "water" and near(e[1].amount, 3.3), "ICY adds water damage keyed on its own element")
-	check(status_of(pl, "chilled") != null and near(status_of(pl, "chilled").hit, 3.3), "ICY applies chill")
+	check(status_of(pl, "chilled") == null, "ICY applies no chill (damage word)")
+	pl = mk("chilling spear")
+	check(status_of(pl, "chilled") != null and near(status_of(pl, "chilled").hit, 22.0 * 0.40), "CHILLING applies chill at its effect strength")
 	pl = mk("homing spear")
 	var m = pl.parts.spear.motion[0]
 	check(m.type == "guided" and near(m.speed, 900 * 0.85) and near(m.turn, 7.0), "HOMING turns straight motion into guided")
@@ -251,6 +258,16 @@ func planner_keywords():
 func planner_rejections():
 	check(rejected_words(mk("triple regrowth")).has("triple"), "Count on self is rejected")
 	check(rejected_words(mk("icy regrowth")).has("icy"), "Element on a heal is rejected")
+	var pl = mk("overloading spear")
+	var pay: Array = pl.parts.spear.payload
+	var oi = pay.find(pay.filter(func(x): return x.type == "overload").front()) if pay.any(func(x): return x.type == "overload") else -1
+	check(oi > 0 and near(pay[oi].multiplier, 3.0) and pay[oi - 1].type == "damage", "OVERLOADING adds a 3x payoff right after the damage")
+	pl = mk("serrated rupturing spear")
+	var kinds = pl.parts.spear.payload.map(func(x): return str(x.type))
+	check(kinds.find("overload") < kinds.find("status"), "The payoff pops before this hit adds its own bleed")
+	check(rejected_words(mk("overloading regrowth")).has("overloading"), "Payoff on a heal is rejected")
+	var pr = p("rupturing overloading spear")
+	check(pr.rejected.size() == 1 and pr.rejected[0].word == "overloading", "Payoff words are exclusive")
 	check(rejected_words(mk("lasting spear")).has("lasting"), "LASTING on an instant spell is rejected")
 	check(rejected_words(mk("swift field")).has("swift"), "SWIFT on a still field is rejected")
 	check(rejected_words(mk("piercing nova")).has("piercing"), "PIERCING needs a projectile")
