@@ -529,12 +529,12 @@ func step(dt: float) -> void:
 					_plague_nova(pos, float(part.front) / WPS, dt)
 				elif st.look.native == "earth":
 					_earth_nova(pos, float(part.front) / WPS, dt)
+				elif st.look.native == "lightning":
+					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 				if st.look.accent != "":
 					_accent_nova(st.look.accent, pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
 					var na := randf() * TAU
 					_steam_if(st.look, pos + Vector2(cos(na), sin(na)) * float(part.front) / WPS, dt * 3.0)
-				else:
-					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 		st.last = pos
 	_step_props(dt)
 	_step_charges(dt)

@@ -13,6 +13,12 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 
 **Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; bleed has no look yet.
 
+## Release tooling and last fixes
+
+- **Fix: every non-accent nova drew lightning arcs.** The lightning nova sat in the `else` of the accent check, so a plain fire, ice or arcane nova also crackled. Only a lightning-native nova draws arcs now.
+- **`tools/test/run_tests.sh`**: runs the whole headless suite 4 at a time (resumable) and fails only on failures not listed in `tools/test/baseline.txt`, which records the known headless failures of this release. `tools/build/web_release.sh` exports the web build into `builds/<version>-web`. Both take `GODOT=/path/to/godot`.
+- `scripts/vfx/looks/VfxLook.gd`: base class for one element's look, not used yet; the presentation split (doc 19 step 6) moves each look into its own module on it.
+
 ## Engine foundations, step 1 (docs 19 and 20)
 
 - **Every data file is validated** against a schema in `data/schemas/` (`scripts/core/DataValidator.gd`). Unknown keys, wrong types, missing fields, out-of-range values and references to ids that do not exist (spells, statuses, elements, damage types, keywords, keyword categories, enemy variants, resistance profiles) are reported with file and path, e.g. `spells.json $.spells.bolt.damgae: unknown key`. Debug builds report problems at load; `tests/data_validation_regression.gd` fails on them. New schemas are drafted with `tools/data-schemas/draft_schema.py` and annotated by hand.
