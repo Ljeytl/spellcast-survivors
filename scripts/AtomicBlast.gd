@@ -3,9 +3,11 @@ extends Node2D
 func _init():
 	DamageSource.stamp(self)
 
-const WARNING_SECONDS := 0.65
-const AFTERGLOW_SECONDS := 0.85
-const BOSS_HEALTH_FRACTION := 0.60
+const GameData = preload("res://scripts/core/GameData.gd")
+## Numbers from data/abilities.json (atomic).
+static var WARNING_SECONDS: float = float(GameData.file("abilities").abilities.atomic.warning)
+static var AFTERGLOW_SECONDS: float = float(GameData.file("abilities").abilities.atomic.afterglow)
+static var BOSS_HEALTH_FRACTION: float = float(GameData.file("abilities").abilities.atomic.boss_health_fraction)
 
 var footprint := Rect2()
 var game: Node

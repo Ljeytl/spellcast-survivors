@@ -1,6 +1,6 @@
 extends RefCounted
 
-const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
+static var RECIPES: Dictionary = preload("res://scripts/SynergyCatalog.gd").RECIPES  # data/recipes.json
 const ART = "res://assets/typecast/"
 var game
 var tree: SceneTree

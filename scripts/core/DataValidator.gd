@@ -24,11 +24,9 @@ const KEYWORDS = [
 ]
 const TYPES = ["object", "array", "string", "number", "integer", "boolean", "null"]
 
-const CodeRegistries = preload("res://scripts/core/CodeRegistries.gd")
-
 ## Loads every data file and its schema from disk and validates them together.
-## extra_registries defaults to the ids still defined in code (CodeRegistries).
-static func validate_all(data_dir: String = DATA_DIR, schema_dir: String = SCHEMA_DIR, extra_registries = null) -> Array:
+## extra_registries: ids defined outside data, if any (see validate_documents).
+static func validate_all(data_dir: String = DATA_DIR, schema_dir: String = SCHEMA_DIR, extra_registries: Dictionary = {}) -> Array:
 	var errors: Array = []
 	var docs := {}
 	var schemas := {}
@@ -49,7 +47,7 @@ static func validate_all(data_dir: String = DATA_DIR, schema_dir: String = SCHEM
 	for file in DirAccess.get_files_at(schema_dir):
 		if file.ends_with(SCHEMA_SUFFIX) and not FileAccess.file_exists(data_dir.path_join(file.trim_suffix(SCHEMA_SUFFIX) + ".json")):
 			errors.append("%s: schema without a data file" % file)
-	errors.append_array(validate_documents(docs, schemas, CodeRegistries.all() if extra_registries == null else extra_registries))
+	errors.append_array(validate_documents(docs, schemas, extra_registries))
 	return errors
 
 ## Validates parsed documents. docs and schemas are keyed by data file name ("spells.json").

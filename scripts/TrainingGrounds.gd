@@ -4,7 +4,7 @@ extends Node
 ## progression, discoveries or the leaderboard.
 
 const SpellManagerScript = preload("res://scripts/SpellManager.gd")
-const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
+static var RECIPES: Dictionary = preload("res://scripts/SynergyCatalog.gd").RECIPES  # data/recipes.json
 const READABILITY = preload("res://scripts/GameplayReadability.gd")
 const DUMMY_HEALTH = 1.0e12
 const MAX_RANK = 8

@@ -1,0 +1,15 @@
+{
+  "_doc": "Abilities that are not spells in a loadout. Atomic: earned from the style score, clears the screen with pure damage.",
+  "abilities": {
+    "atomic": {
+      "name": "Atomic",
+      "incantation": "atomic",
+      "warning": 0.65,
+      "afterglow": 0.85,
+      "boss_health_fraction": 0.6,
+      "combo_per_charge": 10000,
+      "max_charges": 3,
+      "min_style_rank": 6
+    }
+  }
+}

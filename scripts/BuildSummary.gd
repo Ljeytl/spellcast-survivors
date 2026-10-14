@@ -4,7 +4,7 @@ extends RefCounted
 
 const PROGRESSION = preload("res://scripts/SpellProgression.gd")
 const COMBINATIONS = preload("res://scripts/CombinationScaling.gd")
-const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
+static var RECIPES: Dictionary = preload("res://scripts/SynergyCatalog.gd").RECIPES  # data/recipes.json
 const KEYWORDS = preload("res://scripts/KeywordRules.gd")
 
 const PASSIVE_NAMES = {"spell_damage": "Spell Power", "spell_area": "Spell Size", "spell_duration": "Spell Duration", "projectile_speed": "Velocity", "movement_speed": "Move Speed", "max_health": "Max Health", "xp_range": "Pickup Range", "slowdown_duration": "Focus", "mana_bolt_mastery": "Missile Mastery"}

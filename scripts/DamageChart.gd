@@ -6,7 +6,7 @@ extends VBoxContainer
 
 const SPELL_DAMAGE = preload("res://scripts/engine/SpellDamage.gd")
 const TYPE_CHART = preload("res://scripts/engine/TypeChart.gd")
-const RECIPES = preload("res://scripts/SynergyCatalog.gd").RECIPES
+static var RECIPES: Dictionary = preload("res://scripts/SynergyCatalog.gd").RECIPES  # data/recipes.json
 const PAPER = Color("eee8d8")
 const MUTED = Color("8f9a86")
 const EFFECT_COLORS = {"bleed": Color("d0564e"), "hemorrhage": Color("a83a3a"), "burn": Color("ff9a5a"), "poison": Color("a8c46a"), "frostbite": Color("8ce6ee"), "overload": Color("b58cff"), "thaw": Color("8ce6ee"), "toxic flare": Color("a8c46a"), "shock arc": Color("f4ed96")}

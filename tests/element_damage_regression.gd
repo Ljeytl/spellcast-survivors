@@ -3,7 +3,7 @@ extends SceneTree
 ## damage type (no armour), the type chart on elemental enemies, and on-hit bleed for Cross Blade / Earth Shield.
 
 const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
-const Recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
+static var Recipes: Dictionary = preload("res://scripts/SynergyCatalog.gd").RECIPES  # data/recipes.json
 
 class VfxStub extends Node:
 	var seen: Array = []

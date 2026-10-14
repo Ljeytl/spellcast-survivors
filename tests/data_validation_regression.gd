@@ -3,7 +3,6 @@ extends SceneTree
 ## with a useful message; TypeChart agrees with data/damage_types.json until it reads it (G2).
 
 const DataValidator = preload("res://scripts/core/DataValidator.gd")
-const CodeRegistries = preload("res://scripts/core/CodeRegistries.gd")
 const TypeChart = preload("res://scripts/engine/TypeChart.gd")
 
 var checks: int = 0
@@ -36,7 +35,7 @@ func broken(file: String, mutate: Callable) -> Array:
 	var docs: Dictionary = loaded[0]
 	docs[file] = docs[file].duplicate(true)
 	mutate.call(docs[file])
-	return DataValidator.validate_documents(docs, loaded[1], CodeRegistries.all())
+	return DataValidator.validate_documents(docs, loaded[1])
 
 func has_error(errors: Array, fragment: String) -> bool:
 	for e in errors:
@@ -64,6 +63,7 @@ func run():
 		["resistance out of range", "resistances.json", func(d): d.elite_armored.fire = 1.5, "above the maximum"],
 		["damage share for an unknown spell", "spell_damage.json", func(d): d.spells["bolts"] = {"damage": {"arcane": 1.0}}, "'bolts' is not a known spell"],
 		["keyword in an unknown category", "keywords.json", func(d): d.words.mega.category = "tierr", "'tierr' is not a known keyword_category"],
+		["recipe with an unknown ingredient", "recipes.json", func(d): d.recipes.life_bolt.ingredients[1] = "lif", "'lif' is not a known spell"],
 		["boss names an unknown variant", "encounters.json", func(d): d.bosses[0].variant = "juggernot", "'juggernot' is not a known enemy_variant"],
 		["unknown delivery", "generic_spells.json", func(d): d.spells.spear.parts.spear.delivery = "lazer", "'lazer' is not one of"],
 		["unknown pressure", "encounters.json", func(d): d.scaling.spawn_phases[0].pressure = "extreme", "'extreme' is not one of"],
@@ -81,7 +81,7 @@ func run():
 
 	# 4. Registries are collected across files.
 	var regs = DataValidator.registries_of(loaded[0], loaded[1])
-	for reg in ["spell", "status", "element", "damage_type", "keyword", "keyword_category", "enemy_variant", "resistance_profile"]:
+	for reg in ["spell", "ability", "status", "element", "damage_type", "keyword", "keyword_category", "enemy_variant", "resistance_profile"]:
 		check(regs.has(reg) and not regs[reg].is_empty(), "Registry '%s' is collected" % reg)
 
 	# 5. TypeChart agrees with data/damage_types.json until it reads it directly (doc 20 G2).
@@ -93,6 +93,13 @@ func run():
 		check(TypeChart.NAMES.get(id, "") == types.damage_types[id].name, "Damage type name matches for %s" % id)
 	for id in types.elements:
 		check(TypeChart.COLORS.has(id) and TypeChart.COLORS[id].to_html(false) == types.elements[id].color, "Element colour matches for %s" % id)
+
+	# 6. Combinations and Atomic come from data, not code.
+	var Synergies = load("res://scripts/SynergyCatalog.gd")
+	check(Synergies.RECIPES.has("lightning_bolt") and Synergies.RECIPES.lightning_bolt.ingredients == ["bolt", "lightning"], "Recipes load from data/recipes.json")
+	check(Synergies.RECIPES.reaping_spirit.get("enabled", true) == false, "Disabled recipes stay disabled")
+	var Score = load("res://scripts/StyleScore.gd")
+	check(Score.ATOMIC_COMBO_PER_CHARGE == 10000 and Score.ATOMIC_MAX_CHARGES == 3 and Score.ATOMIC_RANK == 6, "Atomic charge rules load from data/abilities.json")
 
 	print("data_validation_regression: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
