@@ -167,6 +167,11 @@
       },
       "root_duration": {
         "type": "number"
+      },
+      "ramp_max": {
+        "type": "number",
+        "minimum": 1,
+        "$comment": "poison: a stack's tick never exceeds base \u00d7 ramp_max"
       }
     },
     "required": [

@@ -15,7 +15,7 @@ var burns: Array = []        # {per_tick, ticks_left, acc, tick, source, cast}
 var bleed: Dictionary = {}   # {stacks: [{per_tick, remaining, spell}], acc, source, cast, by_spell}
 var bleed_meter := 0.0
 var bleed_since_hit := 999.0
-var poison: Dictionary = {}  # {base, remaining, acc, ticks, source, cast}
+var poison: Dictionary = {}  # {stacks: [{base, remaining, ticks, spell}], acc, source, cast, by_spell}
 var chill: Dictionary = {}   # {stacks, remaining, source, cast}
 var timed: Dictionary = {}   # id -> {remaining, strength, source, cast}
 var freeze_immunity := 0.0
@@ -94,10 +94,11 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 		"poison":
 			var add = float(params.get("base", float(d.share_per_tick) * hit * float(params.get("strength", 1.0))))
 			if poison.is_empty():
-				poison = {"base": 0.0, "remaining": 0.0, "acc": 0.0, "ticks": 0, "source": source, "cast": cast, "by_spell": {}}
-			poison.base += add
-			_contribute(poison, source, add)
-			poison.remaining = maxf(float(poison.remaining), duration)
+				poison = {"stacks": [], "acc": 0.0, "source": source, "cast": cast, "by_spell": {}}
+			# Each application is its own stack with its own clock and its own ramp (like bleed), so
+			# refreshing poison forever cannot compound; each stack's ramp stops at ramp_max.
+			poison.stacks.append({"base": add, "remaining": duration, "ticks": 0, "spell": str(source.get("spell", ""))})
+			_refresh_poison_split()
 			poison.source = source
 			poison.cast = cast
 		"chilled":
@@ -274,10 +275,25 @@ func _poison_remaining() -> float:
 		return 0.0
 	var d = def("poison")
 	var total = 0.0
-	var ticks_left = int(ceil(float(poison.remaining) / float(d.tick)))
-	for i in ticks_left:
-		total += float(poison.base) * pow(1.0 + float(d.ramp), int(poison.ticks) + i)
+	for stack in poison.stacks:
+		var ticks_left = int(ceil(float(stack.remaining) / float(d.tick) - 0.0001))
+		for i in ticks_left:
+			total += _poison_tick(stack, int(stack.ticks) + i)
 	return total
+
+## One poison tick of a stack: base × (1 + ramp)^ticks, capped at base × ramp_max (data/statuses.json).
+func _poison_tick(stack: Dictionary, ticks: int) -> float:
+	var d = def("poison")
+	return float(stack.base) * minf(pow(1.0 + float(d.ramp), ticks), float(d.get("ramp_max", INF)))
+
+## Credit for the next poison tick goes to the spells whose stacks are still active, by what they deal.
+func _refresh_poison_split() -> void:
+	var by_spell := {}
+	for stack in poison.get("stacks", []):
+		var spell = str(stack.spell)
+		if not spell.is_empty():
+			by_spell[spell] = float(by_spell.get(spell, 0.0)) + _poison_tick(stack, int(stack.ticks))
+	poison.by_spell = by_spell
 
 func _bleed_remaining() -> float:
 	if bleed.is_empty():
@@ -363,12 +379,19 @@ func tick(delta: float) -> void:
 	if not poison.is_empty():
 		var d = def("poison")
 		poison.acc = float(poison.acc) + delta
-		while float(poison.acc) >= float(d.tick) - 0.00001 and float(poison.remaining) > 0.0:
+		while float(poison.acc) >= float(d.tick) - 0.00001 and not poison.stacks.is_empty():
 			poison.acc = float(poison.acc) - float(d.tick)
-			poison.remaining = float(poison.remaining) - float(d.tick)
-			_deal(float(poison.base) * pow(1.0 + float(d.ramp), int(poison.ticks)), "plague", _shared(poison), "poison")
-			poison.ticks = int(poison.ticks) + 1
-		if float(poison.remaining) <= 0.00001:
+			var amount = 0.0
+			_refresh_poison_split()
+			for stack in poison.stacks:
+				amount += _poison_tick(stack, int(stack.ticks))
+				stack.ticks = int(stack.ticks) + 1
+				stack.remaining = float(stack.remaining) - float(d.tick)
+			_deal(amount, "plague", _shared(poison), "poison")
+			if poison.is_empty():
+				break  # the tick killed the enemy and cleared its statuses
+			poison.stacks = poison.stacks.filter(func(stack): return float(stack.remaining) > 0.00001)
+		if not poison.is_empty() and poison.stacks.is_empty():
 			poison = {}
 			_announce("expired", {"status": "poison"})
 	_refresh_modifiers()
@@ -400,13 +423,6 @@ func _deal(amount: float, kind: String, source: Dictionary, via: String) -> void
 	if amount <= 0.0 or e == null or bool(e.get("dying")):
 		return
 	preload("res://scripts/engine/Effects.gd").apply(e, {"type": "damage", "entries": [{"amount": amount, "damage_type": kind}], "element": kind, "dot": true}, tag(source, via))
-
-## Shared pools (bleed, poison) remember how much each spell added, so ticks can be split between them.
-static func _contribute(pool: Dictionary, source: Dictionary, amount: float) -> void:
-	var spell = str(source.get("spell", ""))
-	if spell.is_empty() or amount <= 0.0:
-		return
-	pool.by_spell[spell] = float(pool.by_spell.get(spell, 0.0)) + amount
 
 ## The pool's latest source plus "split": {spell: fraction} for damage credit (kills still go to the latest).
 static func _shared(pool: Dictionary) -> Dictionary:

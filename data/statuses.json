@@ -3,7 +3,7 @@
   "bleed":      {"element": "earth",  "kind": "dot",      "damage_type": "bleed",  "tick": 0.5,  "duration": 4.0, "share_per_tick": 0.03,
                  "meter_per_hit": 0.2, "meter_decay": 0.1, "meter_decay_delay": 2.0, "boss_meter_multiplier": 1.5,
                  "hemorrhage": {"max_health": 0.12, "elite_max_health": 0.06, "boss_max_health": 0.03, "bleed_multiplier": 3.0}},
-  "poison":     {"element": "plague", "kind": "dot",      "damage_type": "plague", "tick": 1.0,  "duration": 10.0, "share_per_tick": 0.02, "ramp": 0.15, "weaken": 0.2},
+  "poison":     {"element": "plague", "kind": "dot",      "damage_type": "plague", "tick": 1.0,  "duration": 10.0, "share_per_tick": 0.02, "ramp": 0.15, "ramp_max": 4.0, "weaken": 0.2},
   "chilled":    {"element": "water",  "kind": "control",  "duration": 2.0, "cap": 5, "slow_per_stack": 0.06, "frostbite_share": 0.04, "threshold": "frozen", "refreeze_immunity": 2.0},
   "frozen":     {"element": "water",  "kind": "hard",     "duration": 1.5, "locks": ["move", "attack"]},
   "shocked":    {"element": "storm",  "kind": "control",  "duration": 3.0, "stagger": 0.2, "chain_share": 0.4, "chain_targets": 2, "chain_range": 150.0, "conduct_share": 0.5, "conduct_radius": 90.0},

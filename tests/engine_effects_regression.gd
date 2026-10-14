@@ -209,10 +209,27 @@ func poison():
 	var g = fake()
 	Effects.apply(g, {"type": "status", "status": "poison", "hit": 100}, src(1))
 	run_ticks(g, 5.0)
-	var before = g.status.poison.ticks
+	var first = g.status.poison.stacks[0].duplicate()
 	Effects.apply(g, {"type": "status", "status": "poison", "hit": 100}, src(1))
-	check(g.status.poison.ticks == before and near(g.status.poison.base, 4.0), "New poison adds damage without resetting the ramp")
-	check(near(g.status.poison.remaining, 10.0), "New poison refreshes the duration")
+	check(g.status.poison.stacks.size() == 2, "New poison is its own stack")
+	check(int(g.status.poison.stacks[0].ticks) == int(first.ticks) and near(g.status.poison.stacks[0].remaining, first.remaining), "The older stack keeps its own ramp and clock")
+	check(int(g.status.poison.stacks[1].ticks) == 0 and near(g.status.poison.stacks[1].remaining, 10.0), "The new stack starts its own ramp and 10 s clock")
+	run_ticks(g, 5.0)
+	check(g.status.poison.stacks.size() == 1, "The first stack expires on its own clock")
+	# Refreshing poison forever stays bounded: per-application stacks, each ramp capped at ramp_max.
+	var h = fake()
+	h.max_health = 1e12
+	h.current_health = 1e12
+	var per_second: Array = []
+	for second in 60:
+		var before_hp = h.current_health
+		for half in 2:
+			Effects.apply(h, {"type": "status", "status": "poison", "hit": 100}, src(100 + second * 2 + half))
+			run_ticks(h, 0.5)
+		per_second.append(before_hp - h.current_health)
+	var bound = 20.0 * 2.0 * 4.0  # at most 20 live stacks × base 2 × ramp_max 4
+	check(per_second.max() <= bound + 0.01, "Poison refreshed for 60 s stays bounded (max %.1f/s, bound %.1f)" % [per_second.max(), bound])
+	check(near(per_second[59], per_second[30], 0.5), "Poison reaches a steady state instead of compounding (%.2f at 30 s, %.2f at 60 s)" % [per_second[30], per_second[59]])
 	check(_poison_more_than_bleed(), "Poison deals more total than bleed over its life")
 	clear()
 
