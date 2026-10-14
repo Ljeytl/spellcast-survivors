@@ -13,6 +13,11 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 
 **Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; bleed has no look yet.
 
+## Repository cleanup
+
+- README rewritten for 0.3 (how to play with Space/number casting, keywords, preparation; builds; data, tests, architecture).
+- Old executables in the repository root (`SpellCast Survivors.exe/.dmg/.wasm/.pck/...`) removed from git; prototype notes and unused root files moved to `docs/archive/root/`. Workshop exports archived in `docs/archive/workshop-exports/`. Old stashes kept as `archive/stash-*` branches.
+
 ## Keywords: all of them, documented and tested
 
 - **Every built keyword is in the Necronomicon**, generated from `data/keywords.json` (`scripts/KeywordCatalog.gd`): one card per kind of word (tier, power, size, count, twin cast, motion, duration, timing, on hit, force, target, effect on you, arrangement, sacrifice, wild) and one per element, each word with its numbers ("TRIPLE: 3 copies, 45% each", "SCORCHING: +45% Fire damage, burns"). 69 words; categories carry their name and promise in data, so new words appear on their own.
@@ -24,7 +29,7 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 ## Release tooling and last fixes
 
 - **Fix: every non-accent nova drew lightning arcs.** The lightning nova sat in the `else` of the accent check, so a plain fire, ice or arcane nova also crackled. Only a lightning-native nova draws arcs now.
-- **`tools/test/run_tests.sh`**: runs the whole headless suite 4 at a time (resumable) and fails only on failures not listed in `tools/test/baseline.txt`, which records the known headless failures of this release. `tools/build/web_release.sh` exports the web build into `builds/<version>-web`. Both take `GODOT=/path/to/godot`.
+- **`tools/test/run_tests.sh`**: runs the whole headless suite 4 at a time (resumable) and fails only on failures not listed in `tools/test/baseline.txt`, which records the known headless failures of this release. It takes `GODOT=/path/to/godot`. Builds stay on `tools/export_web.py` (web/itch) and `tools/export_playtest.py` (Windows, macOS).
 - `scripts/vfx/looks/VfxLook.gd`: base class for one element's look, not used yet; the presentation split (doc 19 step 6) moves each look into its own module on it.
 
 ## Engine foundations, step 1 (docs 19 and 20)
