@@ -331,6 +331,8 @@ Guardrail from docs 15 and 16: no compulsory elemental hard counters, no early r
 
 ## 6. Elements
 
+> **14 October:** damage splits, element keywords and Overload are amended by [doc 21](21-damage-effects-keywords.md), which wins where they disagree.
+
 ### 6.1 Element list
 
 The spell's element is its theme (colour, default damage type, art ramp). Element keywords add a second element (6.2).
@@ -430,7 +432,7 @@ Two layers, kept separate:
 | Fire hits **chilled** or **frozen** | **Thaw** | Steam burst around the target; removes chill/frozen |
 | A heavy hit (Earth/Steel) hits **frozen** | **Shatter** | Big bonus damage; ends the freeze |
 | Fire hits **poisoned** | **Toxic Flare** | The poison explodes onto nearby enemies |
-| Arcane hits any DoT | **Overload** | The DoT's remaining damage lands at once |
+| ~~Arcane hits any DoT~~ | ~~Overload~~ | **Superseded 14 Oct ([doc 21](21-damage-effects-keywords.md) §3):** Overload is an elementless keyword, not an arcane reaction |
 | Life hits **poisoned** or **weakened** | **Cleanse** | Vines draw the rot out: removes them; life damage per amount removed |
 
 New reactions are added only when one earns its place in play. Shock's chaining is built into shocked itself, so no "wet" status is needed.
