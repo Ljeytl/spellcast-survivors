@@ -64,7 +64,10 @@ static func word_line(word: String) -> String:
 		"count": text = "%d copies, %s each" % [int(w.copies), pct(float(w.per_copy))]
 		"twin": text = "a second cast %.2f s later at %s" % [float(w.delay), pct(float(w.power))]
 		"duration": text = "lasts %s longer" % pct(float(w.duration) - 1.0)
-		"sacrifice": text = "costs %s of your health, ×%s power" % [pct(float(w.health_cost)), str(w.power)]
+		"sacrifice":
+			text = "costs %s of your max health, ×%s power" % [pct(float(w.health_cost)), str(w.power)]
+			if w.has("adds"):
+				text += ", +%s %s damage%s" % [pct(float(w.adds.share)), str(w.adds.damage_type), (" and " + str(STATUS_TEXT.get(str(w.adds.get("status", "")), ""))) if str(w.adds.get("status", "")) != "" else ""]
 		"element":
 			var e = str(w.element)
 			text = "+%s %s damage, %s" % [pct(float(c.share_per_letter) * n), TYPE_CHART.display_name(e), STATUS_TEXT.get(str(data.get("element_status", {}).get(e, "")), "")]

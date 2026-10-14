@@ -55,7 +55,7 @@
     "blinking": {"category": "self", "flag": "blinking", "distance": 140.0},
     "ringed": {"category": "arrangement", "arrangement": "ring"},
     "lined": {"category": "arrangement", "arrangement": "line"},
-    "sanguine": {"category": "sacrifice", "flag": "sanguine", "health_cost": 0.1, "power": 1.6},
+    "sanguine": {"category": "sacrifice", "flag": "sanguine", "health_cost": 0.1, "power": 2.5, "adds": {"damage_type": "bleed", "share": 0.5, "status": "bleed"}},
     "chaotic": {"category": "wild", "flag": "chaotic"},
     "runic": {"category": "element", "element": "arcane"},
     "mystic": {"category": "element", "element": "arcane"},

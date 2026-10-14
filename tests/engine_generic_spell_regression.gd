@@ -347,7 +347,9 @@ func keywords_runtime():
 	a = foe(Vector2(100, 0))
 	caster.health = 100.0
 	cast("sanguine spear", 1.0)
-	check(near(caster.health, 90.0) and near(a.taken(), 22 * 1.6), "SANGUINE costs 10% health for ×1.6")
+	var took = a.taken()
+	check(near(caster.health, 90.0) and took >= 22 * 2.5 * 1.5 - 0.01 and took < 22 * 2.5 * 1.5 + 5.0, "SANGUINE costs 10%% health for ×2.5 plus 50%% bleed, then bleeds (took %.1f)" % took)
+	check(a.status != null and a.status.has("bleed"), "SANGUINE makes the target bleed")
 	clear()
 	a = foe(Vector2(50, 0))
 	cast("blinking nova", 0.5)

@@ -43,6 +43,10 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		if flags.has(t):
 			power *= float(flags[t].get("power", 1.0))
 			bound[t] = true
+			# A word may add a damage type to every hit (SANGUINE: bleed), shared like an element word.
+			var adds: Dictionary = flags[t].get("adds", {})
+			if not adds.is_empty():
+				elements.append({"element": str(adds.damage_type), "share": float(adds.share), "status": str(adds.get("status", ""))})
 	if flags.has("swift"):
 		speed_mult *= float(flags.swift.speed)
 	if flags.has("lasting"):

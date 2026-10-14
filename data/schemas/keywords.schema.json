@@ -192,6 +192,29 @@
           "planned": {
             "type": "boolean",
             "$comment": "Not built yet: casting cracks the word, and the Necronomicon leaves it out."
+          },
+          "adds": {
+            "type": "object",
+            "$comment": "Extra damage this word adds to every hit, as a share of the hit, and the status it applies.",
+            "properties": {
+              "damage_type": {
+                "type": "string",
+                "x-ref": "damage_type"
+              },
+              "share": {
+                "type": "number",
+                "minimum": 0
+              },
+              "status": {
+                "type": "string",
+                "x-ref": "status"
+              }
+            },
+            "required": [
+              "damage_type",
+              "share"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
