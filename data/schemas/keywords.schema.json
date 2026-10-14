@@ -25,9 +25,24 @@
           },
           "share_per_letter": {
             "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "promise": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number",
+            "minimum": 0
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "promise",
+          "order"
+        ]
       },
       "x-registry": "keyword_category"
     },
@@ -173,6 +188,10 @@
           "element": {
             "type": "string",
             "x-ref": "element"
+          },
+          "planned": {
+            "type": "boolean",
+            "$comment": "Not built yet: casting cracks the word, and the Necronomicon leaves it out."
           }
         },
         "required": [

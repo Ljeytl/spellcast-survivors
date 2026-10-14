@@ -2,7 +2,7 @@ extends Node
 ## In-game VFX showcase (dev tool, not shipped): the real Game scene with every shipping spell cast
 ## in turn by the real SpellManager, so the VFX layer is seen exactly as in play.
 ## Space / Right: next spell · Left: previous · P: pause the cycle · M: MEGA next cast · K: clear enemies.
-## URL ?spell=<id> starts on that spell.
+## URL ?spell=<id> starts on that spell; &words=fiery+double casts with keywords (+ is a space).
 
 const CYCLE := 2.6
 const HORDE := 14
@@ -16,6 +16,7 @@ var timer := 0.0
 var paused := false
 var mega := false
 var locked := false               # ?spell=<id>: keep recasting that one spell
+var words := ""                    # ?words=fiery+double: cast every spell with these keywords
 var label: Label
 var walk_t := 0.0
 var horde := HORDE
@@ -44,6 +45,7 @@ func _ready():
 			index = order.find(wanted)
 			locked = true
 		mega = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('mega') || ''")) != ""
+		words = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('words') || ''")).strip_edges()
 		if str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('empty') || ''")) != "":
 			horde = 0
 		var slow = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('slow') || ''"))
@@ -83,7 +85,7 @@ func _process(delta: float):
 func _label():
 	var current = order[index] if locked else order[(index - 1 + order.size()) % order.size()]
 	label.text = "VFX SHOWCASE (real game)   now: %s%s   next: %s\nSpace/Right next · Left back · P %s · M MEGA next · S slow-mo · K clear enemies" % [
-		current, " (MEGA)" if mega else "", order[index], "resume" if paused else "pause"]
+		current, (" (MEGA)" if mega else "") + ((" [" + words + "]") if words != "" else ""), order[index], "resume" if paused else "pause"]
 
 func _cast(id: String):
 	var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
@@ -98,7 +100,11 @@ func _cast(id: String):
 	var slot = manager.find_spell_slot(id)
 	if slot < 0:
 		return
-	manager.cast_spell_by_type(slot, 1.5 if mega else 1.0)
+	if words != "":
+		manager.last_spell_cast_time = -1e9
+		manager.cast_keyword_spell(words + " " + str(manager.get_spell_info(slot).display_name).to_lower())
+	else:
+		manager.cast_spell_by_type(slot, 1.5 if mega else 1.0)
 	if id == "earth_shield":
 		_block_later()
 

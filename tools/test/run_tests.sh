@@ -7,6 +7,7 @@
 #
 # Resumable: tests already listed in OUT are skipped, so a stopped run continues where it was.
 # Each line of OUT is "<exit code> <test> <first FAIL / SCRIPT ERROR lines>".
+# A test may raise its time limit (default 75 s) with a line "## timeout: <seconds>".
 # Exit codes: 0 pass, 1 checks failed, 2 needs a display/audio (visual tests), 124 timed out (visual tests headless).
 # GODOT: path to a Godot 4.4 binary (default: godot on PATH). JOBS: parallel tests (default 4).
 # BUDGET: stop starting new tests after this many seconds (default: no limit); rerun to continue.
@@ -22,7 +23,8 @@ tests=()
 if [ $# -eq 0 ]; then tests=(tests/*.gd); else for p in "$@"; do tests+=(tests/${p}*.gd); done; fi
 run_one() {
   local r c f
-  r=$(timeout 75 "$GODOT" --headless --path . --script "$1" 2>&1); c=$?
+  local limit; limit=$(grep -m1 -oE '^## timeout: [0-9]+' "$1" | grep -oE '[0-9]+$'); limit=${limit:-75}
+  r=$(timeout "$limit" "$GODOT" --headless --path . --script "$1" 2>&1); c=$?
   f=$(echo "$r" | grep -E "^FAIL|SCRIPT ERROR|Parse Error" | head -3 | tr "\n" "|")
   echo "$c $1 $f" >> "$OUT"
 }

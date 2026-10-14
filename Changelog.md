@@ -13,6 +13,14 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 
 **Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; bleed has no look yet.
 
+## Keywords: all of them, documented and tested
+
+- **Every built keyword is in the Necronomicon**, generated from `data/keywords.json` (`scripts/KeywordCatalog.gd`): one card per kind of word (tier, power, size, count, twin cast, motion, duration, timing, on hit, force, target, effect on you, arrangement, sacrifice, wild) and one per element, each word with its numbers ("TRIPLE: 3 copies, 45% each", "SCORCHING: +45% Fire damage, burns"). 69 words; categories carry their name and promise in data, so new words appear on their own.
+- **Keyword contract test** (`tests/keyword_contract_regression.gd`): every keyword on every shipping spell and enabled combination, cast through the real typed path, either changes the cast or is rejected with a reason (the rune cracks). 1,500 pairs, no word silently does nothing, none fails to cast. `tests/keyword_vfx_regression.gd` casts one word per kind on every spell and checks the VFX layer draws every part.
+- **Fix: Regeneration ignored SUPER, OMEGA, POWERFUL, POTENT and MIGHTY** ("nothing to strengthen") because its healing is a flowing rate, not a heal payload. Power words now strengthen it like MEGA does.
+- **WARDING is marked planned** (`"planned": true`): it was rejected by every spell ("not built yet"). It still cracks if typed and stays out of the Necronomicon until it is built.
+- Showcase: `&words=fiery+double` casts every spell with those keywords (`tools/vfx-showcase`). Tests may raise their time limit with `## timeout: <s>` (run_tests.sh).
+
 ## Release tooling and last fixes
 
 - **Fix: every non-accent nova drew lightning arcs.** The lightning nova sat in the `else` of the accent check, so a plain fire, ice or arcane nova also crackled. Only a lightning-native nova draws arcs now.

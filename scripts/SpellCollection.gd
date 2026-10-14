@@ -7,7 +7,7 @@ const ART = preload("res://scripts/AuthoredInterface.gd")
 const READABILITY = preload("res://scripts/GameplayReadability.gd")
 const PREVIEW = preload("res://scripts/SpellBookPreview.gd")
 static var RECIPES: Dictionary = preload("res://scripts/SynergyCatalog.gd").RECIPES  # data/recipes.json
-const KEYWORDS = preload("res://scripts/KeywordRules.gd")
+const KEYWORD_CATALOG = preload("res://scripts/KeywordCatalog.gd")
 const TYPE_CHART = preload("res://scripts/engine/TypeChart.gd")
 const SPELL_DAMAGE = preload("res://scripts/engine/SpellDamage.gd")
 
@@ -66,12 +66,23 @@ func _ready():
 
 func populate():
 	add_heading("KEYWORDS")
-	for word in KEYWORDS.DEFINITIONS:
-		var rule = KEYWORDS.DEFINITIONS[word]
-		keyword_ids.append(word)
-		add_entry("keyword_" + word, word.to_upper(), "%s + spell name, for example %s bolt" % [word, word],
-			"Say it before any spell or combination you have learned: +%d%% Spell Power and +%d%% Spell Size for that cast." % [int(round((float(rule.power) - 1.0) * 100.0)), int(round((float(rule.size) - 1.0) * 100.0))],
-			"Keyword · always available · no slot\nWorks with numbered and Space casting. Not accepted by Magic Missile or Atomic.", false)
+	add_note("Say keywords before a spell name, in any order: \"fiery double bolt\". Words of different kinds combine; more words of one kind add less each. If a word can't change that spell, its rune cracks and the spell casts without it. Not accepted by Magic Missile or Atomic.")
+	# Generated from data/keywords.json (KeywordCatalog): one card per kind of word, then one per element.
+	for cat in KEYWORD_CATALOG.categories():
+		for word in cat.words:
+			keyword_ids.append(word)
+		var first: String = cat.words[0]
+		var lines: Array = cat.words.map(func(w): return KEYWORD_CATALOG.word_line(w))
+		add_entry("keyword_" + str(cat.id), str(cat.name).to_upper(), "for example %s bolt" % first,
+			str(cat.promise) + "\n" + "\n".join(lines),
+			"Keyword · always available · no slot", false)
+	add_note(KEYWORD_CATALOG.element_promise())
+	for group in KEYWORD_CATALOG.elements():
+		for word in group.words:
+			keyword_ids.append(word)
+		var lines: Array = group.words.map(func(w): return KEYWORD_CATALOG.word_line(w))
+		add_entry("keyword_" + str(group.element), "%s WORDS" % str(group.name).to_upper(), "for example %s bolt" % group.words[0],
+			"\n".join(lines), "Element keyword · always available · no slot", false)
 	add_heading("SPELLS & COMBINATIONS")
 	for id in load("res://scripts/SpellManager.gd").BASE_SPELL_IDS:
 		var data = get_tree().root.get_node("DataManager").get_spell_data(id)

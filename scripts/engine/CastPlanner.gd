@@ -107,6 +107,9 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		var delivery = str(p.delivery)
 		var part_power = power * per_copy * float(p.get("_power", 1.0))
 		var periodic = delivery in ["field", "aura"]
+		# A flowing heal (Regeneration) strengthens with power like a heal payload does.
+		if p.has("heal_rate"):
+			p.heal_rate = float(p.heal_rate) * part_power
 		# Geometry
 		if p.has("geometry"):
 			for k in SIZE_KEYS:
@@ -314,8 +317,11 @@ static func _first_raw_share(part: Dictionary) -> float:
 			return float(item.get("raw_share", 1.0))
 	return 1.0
 
+## Heals as a payload (Life) or as a flowing rate (Regeneration's aura, scaled by power while it lasts).
 static func _has_heal(parts: Dictionary) -> bool:
 	for n in parts:
+		if parts[n].has("heal_rate"):
+			return true
 		for item in parts[n].get("payload", []):
 			if str(item.type) == "heal":
 				return true
