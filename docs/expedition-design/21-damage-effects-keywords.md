@@ -101,16 +101,77 @@ Balance is a **healing budget per cast** (word length × spell power), spread ov
 
 Blood magic is a loop: SANGUINE spends health for damage, LEECHING earns it back, OVERLOADING cashes the bleed.
 
-## 5. Spells
+## 5. Spells, part by part
 
-Decided so far:
+Every number is a **% of the spell's base hit** (its main hit; one tick for ground spells); a spell's parts can add up past 100%. Physical and magical are % of the base hit too (75 + 75 = a 150% part). **Every effect is sized from the hit that applied it.** Rank-1 base hits in brackets. Decided with the user, 14 October 2026.
 
-| Spell | Physical / magical | Effect |
-|---|---|---|
-| Magic Missile | **100 / 0** (balance: the auto-attack is resisted by armour, which pushes typed spells) | none |
-| Bolt | 0 / 100 arcane | none (plain mana bolt) |
-| Infestation | its infection ticks become **poison** stacks | poison, spreading host to host |
+### 5.1 Arcane
 
-Kept from doc 18 §6.1b: burn on Ember Spear's trail, Cinder Field, Fire Walk and Steam Field; bleed on Cross Blade and Earth Shield; chill on Ice Blast (with its old slow); shock on Lightning.
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Magic Missile (15) | dart | 100 | 100 | 0 | — (physical for balance: armour resists the auto-attack) |
+| Bolt (50) | bolt | 100 | 0 | 100 arcane | — |
+| Arcane Orbit (12) | orb hit, each enemy at most every 0.5 s | 100 | 0 | 100 arcane | — (a damage ring) |
+| Focus Ray (24) | beam tick, 4 per second, first enemy | 100 | 0 | 100 arcane | ½ vulnerable stack |
+| Rune Trap (55) | arm (0.8 s) | 0 | — | — | — |
+| | activate (an enemy steps in) | 0 | — | — | everyone inside rooted 0.3–0.5 s + vulnerable stacks: 0 at rank 1 rising to 5 at rank 6+ |
+| | explode (≈0.4 s after activate) | 100 | 0 | 100 arcane | — |
 
-Open, to go through spell by spell: Meteor Shower (big rock with a short stun, or fiery crater), Focus Ray and Rune Trap (build vulnerable?), Seeker (weakened?), Arcane Orbit, and every combination.
+### 5.2 Fire
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Ember Spear (96) | spear hit, pierces | 100 | 75 | 25 fire | — |
+| | trail tick, every 0.5 s for 1.5 s | 20 | 0 | 20 fire (hot rubble) | burn |
+| Meteor Shower (32 × 3) | warning mark (0.65 s) | 0 | — | — | — |
+| | impact (radius 220) | 100 | 60 | 40 fire | stunned 0.2 s |
+| | crater, every 0.5 s for ≈1 s (Duration extends) | 25 | 6 | 19 fire | — |
+| Cinder Field (8) | field tick, every 0.5 s | 100 | 0 | 100 fire | burn |
+| Fire Walk (8) | emitter | 0 | — | — | — |
+| | patch tick, every 0.5 s | 100 | 0 | 100 fire | burn |
+
+### 5.3 Water/Ice and Storm
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Ice Blast (35) | shard | 100 | 60 | 40 water | 1 chill stack per shard that hits; knockback once per cast (no separate slow) |
+| Lightning (60) | strike (area) | 100 | 0 | 100 storm | shock: a 3 s mark + stunned 0.2 s (replaces the stagger) |
+
+### 5.4 Earth/Steel
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Cross Blade (11) | outward pass | 100 | 75 | 25 earth | 1 bleed |
+| | holding, a pulse every 0.3 s (Duration = holds longer; no afterimage) | 100 per pulse | 50 | 50 earth | 1 bleed per pulse |
+| | return pass | 200 | 75 | 125 earth | 2 bleed |
+| Earth Shield (60) | block | 0 | — | — | blocks one hit |
+| | eruption toward the attacker | 100 | 40 | 60 earth | bleed + knockback |
+
+### 5.5 Plague/Death and Life
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Infestation (4) | spore flight | 0 | — | — | infects the first host |
+| | infection tick, every 0.5 s, 3 s per host | 100 | 0 | 100 plague | **infected**: its own spreading damage over time (no ramp, no weaken); counts for Overload; credited as "infection" |
+| Seeker (15) | spirit touch, each enemy every 1 s | 100 | 0 | 100 plague | 1 poison stack + weakened |
+| Life / Regeneration | heal / heal over time | — | — | — | — |
+
+### 5.6 Combinations
+
+| Combination | Part | % of base | Damage | Effect |
+|---|---|---|---|---|
+| Lightning Bolt (40) | bolt hit, then bounces through up to 4 more enemies | 150 each | 75 arcane + 75 storm | shock |
+| | one strike at the last enemy (area, radius 80) | 150 | 150 storm | shock |
+| Life Bolt (40) | bolt hit | 125 | 75 arcane + 50 life | plants a healing seed worth 15% of the damage the hit dealt |
+| Meteor Spear (45) | spear hit, pierces | 100 | 85 physical + 15 fire | — |
+| | trail tick | 20 | 20 fire | burn |
+| | a small meteor on every enemy pierced (radius ≈70, quick drop, no crater) | 55 | 33 physical + 22 fire | stunned 0.2 s |
+| Steam Field (12) | field tick | 120 | 60 fire + 60 water | burn + 1 chill stack (cannot freeze) |
+| Prism Ray (18) | laser: exactly like Focus Ray | 100 | 100 arcane | ½ vulnerable stack |
+| | refraction: every tick that hits splits at the target into 6 lasers fanning ≈70° behind it, ≈250 long, piercing | 25 each | one element each: fire, water, storm, earth, plague, life | its element's effect: burn, chill (no freeze), shock (mark, no stun), bleed, poison, entangle |
+| Frost Sigil (60) | arm / activate | 0 | — | activate: root + vulnerable (as Rune Trap) + chill |
+| | explode | 150 | 100 arcane + 50 water | 2 chill stacks |
+| Soul Bloom (4) | infection tick | 100 | 100 plague | infected (spreads) |
+| | ghost on every infected death | — | — | flies to you and heals if you are hurt; otherwise hunts the nearest enemy and deals the same amount as plague; at most 3 out |
+
+Prism Ray replaces the old fixed, wide, all-piercing beam. Hard control never comes from Prism Ray.
