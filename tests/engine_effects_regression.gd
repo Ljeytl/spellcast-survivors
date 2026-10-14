@@ -135,11 +135,11 @@ func damage_resolution():
 	f.resistances = {}
 	Effects.apply(f, {"type": "status", "status": "vulnerable"})
 	f.apply_effect(dmg([{"amount": 100, "damage_type": "raw"}]))
-	check(near(f.received.back(), 104), "Vulnerable: one stack, +4% damage taken")
+	check(near(f.received.back(), 105), "Vulnerable: one stack, +5% damage taken")
 	for i in 6:
 		Effects.apply(f, {"type": "status", "status": "vulnerable"})
 	f.apply_effect(dmg([{"amount": 100, "damage_type": "raw"}]))
-	check(near(f.received.back(), 120), "Vulnerable stacks to five (+20%)")
+	check(near(f.received.back(), 125), "Vulnerable stacks to five (+25%)")
 	Effects.apply(f, {"type": "status", "status": "vulnerable", "word_strength": 0.15}, {})
 	check(near(f.status.timed.vulnerable.strength, 5.0), "Stacks stay capped")
 	check(f.status != null and f.get_node_or_null("StatusComponent") != null, "Status component is created on first need")

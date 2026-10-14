@@ -33,7 +33,7 @@ Element reactions stay elemental: Thaw (fire on chill), Shatter (earth on frozen
 
 ### 2.1 Arcane: vulnerable stacks
 
-Arcane's one effect is **vulnerable**, built in stacks like chill: each stack +4% damage taken (proposed), up to 5, fading when not refreshed. Arcane is otherwise neutral on the type chart and partly pierces armour.
+Arcane's one effect is **vulnerable**, built in stacks like chill: each stack +5% damage taken, up to 5 (+25%), lasting 4 s and refreshed by each new stack. Arcane is otherwise neutral on the type chart and partly pierces armour.
 
 ## 3. Overload is a keyword, not arcane
 
