@@ -1,7 +1,9 @@
 # Documentation consolidation — 14 October 2026
 
+- Record approval of the release table: 0.3.0 foundations, 0.3.1 combat feel, 0.4.x full catalog, 0.5.0 enemies/tutorial, 0.6.0 first expedition, 0.7.0 onward expansion, and 1.0.0 launch. Keep completion evidence beside each goal.
+
 - Consolidate the complete expedition spell catalog into doc 3, including later designs, paused spears, historical/reserved ideas and rejected examples. Apply the latest circular Flame Wall, rank-added Arcane Slash, enemy-aimed Scorching Ray and unified Shillelagh decisions directly to their entries.
-- Put release planning and expedition sequencing in doc 15; version assignments remain proposals. Preserve the full catalog rather than selecting a smaller pack. Leave new combination recipes for a later discussion.
+- Put release planning and expedition sequencing in doc 15; release goals and version assignments are now agreed with Aditya. Preserve the full catalog rather than selecting a smaller pack. Leave new combination recipes for a later discussion.
 - Replace duplicate active catalogs and outdated roadmaps with owner links; retain the prior package as dated history. Keep architecture and current damage/effect rules in docs 19–21, and presentation/dependency review in doc 18.
 - Update documentation validation to check the current roster and preserved catalog instead of enforcing the obsolete 36-row campaign and 14-keyword proposal. No gameplay/version change in this documentation merge.
 

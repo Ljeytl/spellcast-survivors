@@ -7,7 +7,7 @@ Updated 14 October 2026 for **0.3.0**. Start with the complete spell catalog and
 | Document | Owns |
 |---|---|
 | [Full spell catalog](03-spells.md) | Every implemented, authored, paused, open, reserved and rejected identity; aliases and deferred new combination themes. |
-| [Release plan and expedition roadmap](15-development-order.md) | Proposed release numbers, combat-feel work, the full catalog implementation track, enemies/tutorial, expedition loop, dependencies and open product decisions. |
+| [Release plan and expedition roadmap](15-development-order.md) | Agreed release goals and version numbers, combat-feel work, the full catalog implementation track, enemies/tutorial, expedition loop, dependencies and open product decisions. |
 | [Presentation and shared mechanics](18-spell-system-rewrite.md) | Timing, motion, impact, readability, audio, quality evidence and capabilities to verify before new spells. |
 | [Spell engine architecture](19-engine-architecture.md) | Signed-off engine construction, data ownership and reusable behavior. |
 | [Game systems architecture](20-game-systems-architecture.md) | Signed-off actor/enemy/boss, level/objective, save/progression and run-flow design. |
@@ -17,7 +17,7 @@ Updated 14 October 2026 for **0.3.0**. Start with the complete spell catalog and
 
 The full catalog is preserved; no smaller spell pack has been selected. New combinations will be discussed later. Existing seven combinations remain playable. Ice/Glacial Spear and Lightning Spear/Rod are paused. The catalog directly incorporates the latest Flame Wall, Arcane Slash, Scorching Ray and Shillelagh decisions.
 
-Implementation status and design approval are different. Runtime and data own shipped behavior; the [changelog](../../Changelog.md) records changes. Architecture approval does not mean every subsystem is implemented. Proposed release numbers do not create releases, select spell batches or settle open mechanics. Good existing visuals remain open to timing and feel improvements.
+Implementation status and design approval are different. Runtime and data own shipped behavior; the [changelog](../../Changelog.md) records changes. Architecture approval does not mean every subsystem is implemented. The release goals and version assignments are agreed; they do not mean a release has shipped, select a smaller spell catalog or settle open mechanics. Good existing visuals remain open to timing and feel improvements.
 
 When a decision changes, update its owning document and the changelog. Other pages link to that owner instead of copying its table. Damage/effect rules in doc 21 supersede older numbers; catalog identities in doc 3 supersede old spell descriptions. Do not use an archived campaign roster or inactive JSON as a current shipping requirement.
 

@@ -95,7 +95,7 @@ class DocumentationChecks(unittest.TestCase):
             self.assertIn('not a second active specification', path.read_text())
             self.assertTrue((ARCHIVE / path.name).exists())
         plan = content('15-development-order.md')
-        self.assertIn('working proposal for review', plan)
+        self.assertIn('Release goals agreed with Aditya on 14 October 2026', plan)
         self.assertIn('No subset or fixed spell count', plan)
         self.assertIn('Level 1 starts with normal slimes', plan)
 

@@ -1,14 +1,14 @@
 # Release plan and expedition roadmap
 
-Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](03-spells.md). No assistant-selected small spell pack replaces it. New combinations will be decided later. The version assignments below are a working proposal for review, not already-cut releases or approval of unresolved mechanics.
+Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](03-spells.md). No assistant-selected small spell pack replaces it. New combinations will be decided later. **Release goals agreed with Aditya on 14 October 2026.** The version assignments below are the working release plan. Approval establishes the goals and sequence; it does not mean those releases are already shipped or resolve the explicitly open spell mechanics.
 
 ## Version numbers
 
 The game currently identifies itself as **0.3.0**. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
-## Release sequence
+## Agreed release goals
 
-| Version | Scope | Completion evidence |
+| Version | Goal and scope | Completion evidence |
 |---|---|---|
 | 0.3.0 | Current foundation: shared spell engine, existing roster, keywords, statuses, preparation and VFX; finish the current playtest fixes and establish the release baseline. | Exact source/build recorded; checks and playable export verified. The changelog already identifies 0.3.0; this plan does not claim a new tag or upload. |
 | 0.3.1 | Whole-roster combat feel: casting response, windup, travel, contact, sound, hit reaction, shake, persistence, expiry, readability and keyword feedback. | Compare actual moving combat across the roster, crowded encounters, reduced effects and supported displays; visual size matches hits. Existing effects are open to improvement, not exempt because they exist. |
@@ -18,7 +18,7 @@ The game currently identifies itself as **0.3.0**. Use separate whole-number com
 | 0.7.0 onward | Expand the tested expedition loop with later realms, enemies, rewards and the remaining content dependencies. Discuss combinations separately, then schedule selected recipes. | Distinct routes and loadouts matter, with balanced rewards and complete realm journeys. |
 | 1.0.0 | Agreed launch campaign, onboarding, accessibility, performance, balance, art/audio and supported packages. | Operated release builds and player evidence across complete journeys. |
 
-This sequence is a release-planning proposal, not a dependency override. Summons, destructible walls, corpse targeting and advanced enemy interactions may require parts of the enemy work before their catalog entries can ship. Track those prerequisites alongside each spell; do not rebuild an existing system or silently drop a spell to fit a release number. Exact batches, estimates and later release boundaries are not yet selected.
+Use these agreed goals to organize implementation and measure release readiness. Dependencies still determine the order of individual changes. Summons, destructible walls, corpse targeting and advanced enemy interactions may require parts of the enemy work before their catalog entries can ship. Track those prerequisites alongside each spell; do not rebuild an existing system or silently drop a spell to fit a release number. Exact batches, estimates and release boundaries beyond 0.7 remain to be selected.
 
 ## What 0.3.0 already supplies
 
