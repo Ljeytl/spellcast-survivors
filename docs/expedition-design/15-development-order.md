@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.6**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The latest release is **0.3.1** (15 October 2026), the first combat-feel slice built from 0.3.1-dev.1 to dev.5. It does not complete the whole-roster feel goal below; later builds continue it; development after it is **0.3.2-dev.1** (the release was cut before the dev.6 Steam particles, spirit and meteor work, which ships next). Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 

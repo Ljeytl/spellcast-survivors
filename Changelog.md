@@ -1,9 +1,18 @@
-# 0.3.1-dev.6 — Particle-driven Steam, spirits and meteor weight (15 October 2026)
+# 0.3.2-dev.1 (labelled 0.3.1-dev.6 before the 0.3.1 cut) — Particle-driven Steam, spirits and meteor weight (15 October 2026)
 
 - Revisit Steam → Field in the local VFX sandbox. Its particles accumulate into a shared density surface; the old port painted independent puffs and the previous prototype scrolled noise through a fixed mask. Steam now uses bounded rising, expanding, swirling particles to shape one connected cloud, with blue-grey shadow bands and ivory dense folds. Reduced effects lowers the particle budget while retaining volume.
 - Soul Bloom ghosts gain a spirit silhouette, eyes, directional wake and healing/hunting colors. The healing spirit carries a cross cue; targeting, speed, lifetime, healing and damage remain unchanged. An idle spirit sheds its stale wake.
 - Meteor Shower and Meteor Spear descent now reads actual spell age, including when VFX steps were skipped during impact hitstop. Descent accelerates toward the landing instead of moving at constant speed, with matching trail velocity.
 - Validate cloud budgets and lifecycle, meteor timing with skipped VFX steps, and spirit intent/arrival mechanics. Inspect native moving/LARGE/reduced Steam, three-cloud rendering overlap, both meteor spells and both spirit modes. GPU stress profiling, spell sound and full-roster feel qualification remain open.
+# 0.3.1 — First combat-feel release (15 October 2026)
+
+Ships the combat-feel work so far (0.3.1-dev.1 to dev.5 below) as a player build. This is the first slice of the agreed whole-roster feel pass, not its completion: full-roster sound, impact timing, crowded-combat readability and size-to-hitbox review continue in the next builds.
+
+- **Steam Field** is a connected, rolling vapor cloud fed by vents (shader surface), instead of puffs over a painted pool.
+- **Enemy hits** still flash red at once but fade sooner, so the enemy and its status marks read again quickly. Chill snowflakes are smaller and rarer.
+- **Frost Sigil** draws its own six-branched ice glyph; Rune Trap keeps its arcane rune.
+- **Effect timing** no longer depends on frame rate (landing rings and Prism Ray afterimages age with the game), and **Arcane Orbit** and **Seeker** draw at their real size, including size words.
+- **Reduced effects** now reaches the spell renderer from Options and persists across restarts.
 
 # 0.3.1-dev.5 — Steam volume prototype (15 October 2026)
 
