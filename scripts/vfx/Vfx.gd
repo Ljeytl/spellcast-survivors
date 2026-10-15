@@ -177,6 +177,7 @@ static func _make_disks() -> Array:
 	return out
 
 func _ready():
+	reduced_effects = preload("res://scripts/EffectPreferences.gd").reduced()
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	presenter = PRESENTER.new(self)
 	elements = ELEMENTS.new(self)

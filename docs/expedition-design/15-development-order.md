@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The game currently identifies itself as **0.3.0**. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The integrated release baseline is **0.3.0**; combat-feel development starts at **0.3.1-dev.1**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 
@@ -34,6 +34,10 @@ These are implementation facts from the release source and changelog, not claims
 Review each spell's input response, anticipation, targeting, travel, contact, payoff, sustained phase and expiry. Compare ordinary and modified casts, rank changes, combinations and overlapping statuses. Tune audio alignment, enemy reaction and shake together with visuals. A spell with an identifiable silhouette may still have poor timing.
 
 The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/Frost Sigil distinction, size-to-hitbox agreement, combined keyword/status cues, status-reaction feedback and reduced-effects propagation. Reproduce against the latest candidate before fixing: parallel playtest work may already have changed a finding. Source/test existence never substitutes for operated visual and auditory judgment.
+
+### 0.3.1 development checkpoint — 15 October 2026
+
+`0.3.1-dev.1` connects Reduced effects to the spell renderer, including restart, and reduces Steam Field mist obstruction. Targeted settings and VFX regressions plus desktop/narrow native captures cover this first change. Full moving-combat, audio, status-overlap and whole-roster qualification remain open; this is not a release-complete claim.
 
 ## Expedition direction
 

@@ -35,6 +35,7 @@ func run():
 			check(DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED, "Actual window mode restored")
 			check(DisplayServer.window_get_vsync_mode() == DisplayServer.VSYNC_DISABLED, "Actual vsync restored")
 		check(preload("res://scripts/EffectPreferences.gd").reduced(), "Reduced effects persists")
+		check(root.get_node("Vfx").reduced_effects, "Fresh process applies reduced effects to spell renderer before gameplay")
 		var options = load("res://scenes/Options.tscn").instantiate()
 		root.add_child(options)
 		for row in ["MasterVolumeContainer/MasterSlider", "SFXContainer/SFXSlider", "MusicContainer/MusicSlider"]:

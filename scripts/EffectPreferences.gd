@@ -15,7 +15,12 @@ static func save_reduced(value: bool) -> Error:
 	return config.save(PATH)
 
 static func apply(game: Node, value: bool):
-	if not is_instance_valid(game) or not game.has_method("setup_particle_manager"):
+	if not is_instance_valid(game):
+		return
+	var vfx = game.get_node_or_null("/root/Vfx")
+	if vfx:
+		vfx.reduced_effects = value
+	if not game.has_method("setup_particle_manager"):
 		return
 	game.particle_manager.reduced_effects = value
 	game.camera_shake.reduced_effects = value
