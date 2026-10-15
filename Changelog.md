@@ -1,7 +1,10 @@
-# 0.3.1-dev.4 — Steam Field grey footprint (15 October 2026)
+# 0.3.1-dev.4 — Steam Field billowing vapor (15 October 2026)
 
-- Steam Field gains a dedicated ash-grey circular floor and pale condensation rim at its damage radius, distinct from Water pools and Cinder Field. Sparse rising mist remains visible above it in normal and reduced-effects modes.
-- Inspected native normal, reduced, LARGE moving-crowd, narrow-window and Cinder captures; 130 capture checks and 84 VFX regression checks passed. Other spell-family sizing, audio and whole-roster combat-feel qualification remain open.
+- Steam Field opens as a bank of vapor, then sustains overlapping rising plumes from shifting vents. Clouds expand, drift and dissipate instead of reading as scattered sparks over a pool. Reduced effects retains the cloud identity with fewer vents and a slower emission cadence.
+- A subdued translucent grey footprint supports the vapor instead of dominating it. Cinder and Water retain their own palettes.
+- Spell identity governs the full game-feel pass: investigate existing choices against fantasy and intent, then keep, reshape or replace them. Technical correctness alone does not establish successful design.
+- Mist drawing clips offscreen pixels and caches palette/Bayer access while preserving raster output. Native eight-second lifecycle captures passed 135 checks; VFX regressions passed 84 checks, documentation 10, and original-versus-optimized raster comparisons 24. Sampled VFX drawing p95 was 7.1 ms normal, 3.6 ms reduced and 13.5 ms LARGE on this Mac; this is not whole-game performance qualification.
+- Full-roster sound, impact and moving-combat qualification remain open; Steam audio and crowded burn feedback need further review.
 
 # 0.3.1-dev.3 — Effect timing and readable spell size (15 October 2026)
 

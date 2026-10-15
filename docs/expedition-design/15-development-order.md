@@ -31,6 +31,8 @@ These are implementation facts from the release source and changelog, not claims
 
 ## Combat feel work
 
+Treat existing implementations as hypotheses, not design authority. Start from each spell's fantasy and intended experience; investigate why current choices exist and keep, reshape or replace them based on that purpose. Readability, performance and technical correctness support the experience rather than substitute for it. Apply this across all visuals, animation, sound, camera and feedback systems.
+
 Review each spell's input response, anticipation, targeting, travel, contact, payoff, sustained phase and expiry. Compare ordinary and modified casts, rank changes, combinations and overlapping statuses. Tune audio alignment, enemy reaction and shake together with visuals. A spell with an identifiable silhouette may still have poor timing.
 
 The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/Frost Sigil distinction, size-to-hitbox agreement, combined keyword/status cues, status-reaction feedback and reduced-effects propagation. Reproduce against the latest candidate before fixing: parallel playtest work may already have changed a finding. Source/test existence never substitutes for operated visual and auditory judgment.
@@ -42,6 +44,16 @@ The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/
 `0.3.1-dev.2` fades enemy hit flashes after their initial red cue, lowers the cold-status flake density and gives Frost Sigil a distinct ice glyph. Targeted moving Steam fixtures and trap arming/trigger captures support this increment; full playthrough and audio qualification remain open.
 
 `0.3.1-dev.3` corrects redraw-dependent landing/ray lifetimes, clears those effects on reset, matches Arcane Orbit sphere size to geometry and removes Seeker scaling gaps/clamps. Other projectile-family sizing and trails remain under review.
+
+`0.3.1-dev.4` replaces scattered Steam particles with overlapping rising vapor plumes and subdues the ground footprint. Reduced effects keeps the same identity with fewer vents. Steam sound and dense burn feedback remain open.
+
+### Next identity investigations
+
+- Meteor Shower and Meteor Spear: inspect descent against authoritative impact timing during repeated hitstop, then judge warning, weight, sound and camera response together. Source review found separate gameplay and VFX clocks; reproduce in native combat before claiming a visible defect fixed.
+- Prism Ray: inspect overlapping contact fans and afterimages in moving crowds. Reconcile doc 21's older angle/length with the current playtest-tuned bridge before changing mechanics.
+- Soul Bloom: inspect whether its travelling orb communicates a ghost and distinguishes healing from hunting, then improve departure, travel and arrival as one sequence.
+
+These are source-grounded priorities, not completed visual or auditory qualification.
 
 ## Expedition direction
 

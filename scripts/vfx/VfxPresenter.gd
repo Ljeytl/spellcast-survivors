@@ -398,9 +398,8 @@ func part_spawned(part) -> void:
 				# Pale rim follows the damage radius beneath the vapor.
 				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.0, "look": vfx.field_look("steam")})
 				st.steam = true
-				for i in (3 if vfx.reduced_effects else 6):
-					var q := _in_disk(pos.x, pos.y, sr)
-					vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -6.0 - randf() * 6.0, 2.6, 4.0, 0.7 + randf() * 0.3)
+				st.steam_acc = 0.0
+				_steam_cloud(st.field, true)
 			elif str(part.def.get("vfx", {}).get("style", "")) == "rubble":
 				# Meteor crater: cracked, charred ground with low fire, rocks kicked up while it burns.
 				var cr: float = part.geo("radius", 60.0) / WPS
@@ -560,17 +559,11 @@ func step(dt: float) -> void:
 				if st.get("rubble", false):
 					_rubble(st.field, dt)
 				if st.get("steam", false):
-					var f: Dictionary = st.field
-					var nm := (0.22 if vfx.reduced_effects else 0.45) * dt * 60.0 * maxf(1.0, float(f.r) / 18.0)
-					while nm > 0.0:
-						if nm < 1.0 and randf() > nm:
-							break
-						nm -= 1.0
-						var q := _in_disk(float(f.x), float(f.y), float(f.r))
-						vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -7.0 - randf() * 8.0, 2.2 + randf(), 4.0, 0.65 + randf() * 0.3)
-					if randf() < 0.12 * dt * 60.0:
-						var q2 := _in_disk(float(f.x), float(f.y), float(f.r) * 0.9)
-						vfx.elements.droplet(q2.x, q2.y, (randf() - 0.5) * 10.0, (randf() - 0.5) * 6.0, 15.0 + randf() * 15.0)
+					st.steam_acc += dt
+					var interval := 0.60 if vfx.reduced_effects else 0.40
+					if st.steam_acc >= interval:
+						st.steam_acc = fmod(st.steam_acc, interval)
+						_steam_cloud(st.field, false)
 			"wave":
 				_water_wave(part, st, dt)
 			"meteor":
@@ -1020,6 +1013,17 @@ func _ice_contact(x: float, y: float) -> void:
 	for i in 6:
 		el.mote(x, y, (randf() - 0.5) * 30.0, (randf() - 0.5) * 20.0, ICE.mote, 0.5, 6.0, 3.0)
 	vfx.flash(x, y, 1.5, 0.04, ICE.body[0])
+
+func _steam_cloud(field: Dictionary, initial: bool) -> void:
+	var center := Vector2(field.x, field.y)
+	var radius: float = field.r
+	var count := 3 if vfx.reduced_effects else 5
+	for i in count:
+		var angle := TAU * float(i) / float(count - 1)
+		var vent := center if i == count - 1 else center + Vector2(cos(angle), sin(angle)) * radius * 0.52
+		vent += Vector2(sin(vfx._t * 2.0 + i), cos(vfx._t * 1.5 + i)) * radius * 0.08
+		var size := radius * (0.44 if initial else 0.34)
+		vfx.elements.mist(vent.x, vent.y, sin(vfx._t + i) * 5.0, -22.0 - float(i % 3) * 5.0, size, radius * 0.4, 1.35 + randf() * 0.15)
 
 ## Rime field: crystals snap up and shatter, motes drift.
 func _ice_field(A: Dictionary, dt: float) -> void:
