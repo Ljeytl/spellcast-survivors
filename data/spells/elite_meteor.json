@@ -1,0 +1,111 @@
+{
+  "id": "elite_meteor",
+  "order": 9010,
+  "shape": {
+    "root": "mark",
+    "max_depth": 2,
+    "cast_rules": {
+      "targeting": {
+        "rule": "none"
+      }
+    },
+    "parts": {
+      "mark": {
+        "delivery": "field",
+        "origin": "target",
+        "geometry": {
+          "type": "disk",
+          "radius": 80.0,
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": 1.1,
+          "interval": 999.0
+        },
+        "events": {
+          "on_expire": {
+            "part": "impact"
+          },
+          "on_expire#ground": {
+            "part": "ground"
+          }
+        },
+        "payload": [],
+        "vfx": {
+          "family": "meteor"
+        }
+      },
+      "impact": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": 80.0,
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.1
+        },
+        "payload": [
+          {
+            "$damage": "impact"
+          }
+        ],
+        "vfx": {
+          "heavy": 0.9
+        }
+      },
+      "ground": {
+        "delivery": "field",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": 70.0,
+          "pad": 0.0
+        },
+        "timing": {
+          "interval": 0.5,
+          "duration": 2.5,
+          "delay_first": true
+        },
+        "payload": [
+          {
+            "$damage": "ground"
+          }
+        ],
+        "vfx": {
+          "style": "rubble"
+        }
+      }
+    }
+  },
+  "damage": {
+    "element": "fire",
+    "damage": {
+      "fire": 1.0
+    },
+    "parts": {
+      "impact": {
+        "damage": {
+          "fire": 1.0
+        },
+        "statuses": [
+          {
+            "status": "burn"
+          }
+        ]
+      },
+      "ground": {
+        "damage": {
+          "fire": 0.15
+        },
+        "statuses": [
+          {
+            "status": "burn"
+          }
+        ]
+      }
+    }
+  }
+}
