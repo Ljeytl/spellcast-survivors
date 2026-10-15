@@ -58,6 +58,12 @@ Ships the combat-feel work so far (0.3.1-dev.1 to dev.5 below) as a player build
 - Validate Options through keyboard input from the menu and paused gameplay, both directions, resume, two window sizes, and separate save/restart processes. Check actual renderer particle limits as well as settings flags.
 - This starts the agreed 0.3.1 work; it is not the completed whole-roster release. Remaining work includes status overlap/flash readability, cast and impact timing, trap identities, size-to-hitbox agreement, audiovisual review and full moving-combat journeys.
 
+# 0.3.2 (in progress) — Spells defined as data
+
+Goal: every spell's shape, ranks, recast rules, targeting and preparation are data, so new catalog spells (0.4) are data files plus tests. Built on branch `feat/0.3.2-data-spells`; behavior must not change (doc 19 P8).
+
+- **Spell shapes are data.** The parts every shipped spell and combination is made of moved from code (`LegacyBridge.gd`'s 19 builders) to `data/spell_shapes.json`, read by `scripts/engine/SpellTemplate.gd` (expressions, conditions, inheritance; see its header). `tests/spell_shape_equivalence_regression.gd` proves the data shapes build exactly what 0.3.0 built — every key, value and type, for all 25 spells and combinations over ranks 1–12 and four size/duration/speed variants (1,200 recorded cases); a deliberate one-number change fails it. Full headless suite: no new failures.
+
 # Documentation consolidation — 14 October 2026
 
 - Record approval of the release table: 0.3.0 foundations, 0.3.1 combat feel, 0.4.x full catalog, 0.5.0 enemies/tutorial, 0.6.0 first expedition, 0.7.0 onward expansion, and 1.0.0 launch. Keep completion evidence beside each goal.
