@@ -232,6 +232,8 @@ func _set_visible(v: bool):
 
 ## Removes every effect. Called when the world changes (scene switch).
 func clear():
+	if presenter:
+		presenter.clear_transients()
 	_fd.resize(0)
 	_f_anchor.clear()
 	_f_count = 0

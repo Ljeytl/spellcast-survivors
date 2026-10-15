@@ -1,3 +1,11 @@
+# 0.3.1-dev.3 — Effect timing and readable spell size (15 October 2026)
+
+- Landing rings and Prism Ray afterimages now age in the VFX simulation instead of during drawing. Camera redraws and display cadence no longer shorten or stretch their lifetime; clearing effects also clears those transients.
+- Arcane Orbit spheres draw from their actual body radius, including size words, passives and child scaling, instead of a fixed undersized preset.
+- Seeker uses continuous nearest-neighbor ghost sampling at fractional sizes and follows geometry below 1× and above 2×, without the old gaps and clamp.
+- Check redraw-independent expiry at 30/60/120 Hz, transient cleanup, rendered orb bounds and ghost continuity at multiple scales. Compare native baseline/LARGE captures and Prism Ray at 30/120 FPS caps.
+- Remaining size work includes other projectile families and their elemental trails; full timing, audio, crowded-combat and playthrough qualification remain open.
+
 # 0.3.1-dev.2 — Enemy feedback and trap identities (15 October 2026)
 
 - Enemy damage still flashes red immediately on every hit and damage-over-time tick, then fades during the existing flash window so the enemy silhouette and status cues reappear sooner. Player damage feedback retains its previous intensity and duration.
