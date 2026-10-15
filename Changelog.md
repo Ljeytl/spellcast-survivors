@@ -1,4 +1,4 @@
-# 0.3.0 — The spell engine, chunky-magic VFX, pick and prepare, elements and statuses (13 October 2026)
+# 0.3.0 — The spell engine, chunky-magic VFX, pick and prepare, elements and statuses (14 October 2026)
 
 The biggest release so far. Every spell now runs on one data-driven engine and is drawn by a new VFX layer; you prepare your spells before a run; elements, resistances and statuses make damage types matter; and the foundations for the next milestones (data validation, stats with modifiers, event bus, seeded randomness, co-op-ready rules) are in. Architecture: `docs/expedition-design/19-engine-architecture.md` and `20-game-systems-architecture.md` (signed off).
 
@@ -11,7 +11,7 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 - **Fix: poison no longer compounds without limit.**
 - **Foundations:** every data file validated against a schema; combinations and Atomic are data; stats with modifiers; event bus; seeded randomness; co-op-ready rule checks. No gameplay change from these.
 
-**Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; HUNTING and SCATTERED barely show against a horde of identical enemies.
+**Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; HUNTING and SCATTERED barely show against a horde of identical enemies; effects layer on top of each other untidily (an effect-layering pass is planned for 0.3.1).
 
 ## Playtest fixes (14 October)
 
@@ -24,6 +24,7 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 - **Necronomicon pages:** spells, shape words, flight & hit words, element words, special words, element chart (left / right to flip).
 - **The tower** remembers which doorway faced north.
 - **Second pass:** landings telegraph — a blue ring over the true area, an inner ring closing on it, then the blast (Lightning, Lightning Bolt's strike, Rune Trap and Frost Sigil's fuse; Meteor Spear's meteor follows each pierced enemy a beat later). Every projectile hit punches (star, hit-pause, shake for heavy bodies). Lightning is one bolt; Lightning Bolt travels slower. Prism Ray refracts into six thick, slowly swaying lasers, each with its own element look. Arcane Orbit is a glowing sphere; Steam Field billows steam. Quieter Ice Blast, Cross Blade and poison; snowflakes for chill. Damage-over-time ticks flash red. QUICK + slot number ("quick 3"). Keycaps light every keyword gold and rejected words red; accepted and cracked words float over the wizard. FREEZING is a new water word (damage + chill).
+- **Last pass:** area circles take the spell's element colours (halves for two-element spells; red stays for fire and enemies); Lightning sounds once, on the strike; Steam Field stands on a wet floor; Seeker's ghost is bigger and its strike reads; Lightning Bolt's bounces travel slowly after a fast first bolt.
 
 ## Damage, effects and keywords (doc 21)
 
