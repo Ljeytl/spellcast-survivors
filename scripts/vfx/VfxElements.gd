@@ -569,6 +569,9 @@ func draw_over(buf: PackedByteArray):
 	for sl in slashes:
 		_draw_slash(buf, sl)
 	# steam: dithered puffs (sandbox drawSoft, per puff): dense core light, edges thin out
+	var grid_size: Vector2i = vfx._size
+	var grid_origin: Vector2i = vfx._origin
+	var bayer_values: Array = vfx.BAYER
 	for m in mists:
 		var km: float = m[6] / m[7]
 		var dens: float = 1.05 * pow(1.0 - km, 0.8)
@@ -576,22 +579,29 @@ func draw_over(buf: PackedByteArray):
 		var R := ceili(rc)
 		var cx := roundi(m[0] * K)
 		var cy := roundi(m[1] * K)
-		for oy in range(-R, R + 1):
-			for ox in range(-R, R + 1):
+		var mc: Array = m[8]
+		var colors := PackedByteArray()
+		for color: Color in mc:
+			colors.append_array(PackedByteArray([color.r8, color.g8, color.b8]))
+		for oy in range(maxi(-R, grid_origin.y - cy), mini(R + 1, grid_origin.y + grid_size.y - cy)):
+			var row_offset := ((cy + oy - grid_origin.y) * grid_size.x + cx - grid_origin.x) * 4
+			var bayer_row := ((cy + oy) & 3) << 2
+			for ox in range(maxi(-R, grid_origin.x - cx), mini(R + 1, grid_origin.x + grid_size.x - cx)):
 				var d := sqrt(float(ox * ox + oy * oy))
 				if d >= rc:
 					continue
 				var w := 1.0 - d / rc
 				var v := dens * w * w * 2.2
-				var b: float = vfx._bayer(cx + ox, cy + oy)
+				var b: float = float(bayer_values[bayer_row | ((cx + ox) & 3)]) / 16.0
 				var L := v + (b - 0.5) * 0.35
-				var mc: Array = m[8]
-				if L > 1.15:
-					vfx._put(buf, cx + ox, cy + oy, mc[0])
-				elif L > 0.7:
-					vfx._put(buf, cx + ox, cy + oy, mc[1])
-				elif v > 0.25 and b < v * 1.4:
-					vfx._put(buf, cx + ox, cy + oy, mc[2])
+				var color_index := 0 if L > 1.15 else (3 if L > 0.7 else 6)
+				if L <= 0.7 and not (v > 0.25 and b < v * 1.4):
+					continue
+				var pixel := row_offset + ox * 4
+				buf[pixel] = colors[color_index]
+				buf[pixel + 1] = colors[color_index + 1]
+				buf[pixel + 2] = colors[color_index + 2]
+				buf[pixel + 3] = 255
 	for q in pulls:
 		var kp: float = q[3] / q[4]
 		var r: float = q[2] * (1.0 - kp * kp)
