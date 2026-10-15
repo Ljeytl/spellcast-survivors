@@ -33,7 +33,7 @@ const INPUTS = ["damage", "speed", "level", "BOLT_RADIUS", "SPEAR_RADIUS", "BEAM
 
 static var _shapes: Dictionary = {}
 static var _by_type: Dictionary = {}
-const SKIP = "\u0000skip"
+const SKIP = "<<$skip>>"   # a $choose with no matching option: the key is left out
 static var _loaded := false
 static var _parsed: Dictionary = {}
 
