@@ -73,9 +73,10 @@ def main():
     if not runs:
         sys.exit("No telemetry logs found")
     names = {}
-    catalog = Path("data/spells.json")
-    if catalog.exists():
-        names = {k: v.get("name", k) for k, v in json.loads(catalog.read_text()).get("spells", {}).items()}
+    if Path("data/spells").is_dir():
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import spell_library  # noqa: E402  spell data lives in data/spells/<id>.json
+        names = {k: v.get("name", k) for k, v in spell_library.document("spells").get("spells", {}).items()}
     names["mana_bolt"] = "Magic Missile"
     dps, cumulative, kills, enemies, ranks = [], [], [], [], []
     xp_series, ttk_series, flow_series = [], [], []

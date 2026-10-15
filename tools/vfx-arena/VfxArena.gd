@@ -408,7 +408,7 @@ func cast_legacy(text: String):
 	if words.begins_with("rank8 "):
 		rank = 8
 		words = words.trim_prefix("rank8 ")
-	var spells: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells
+	var spells: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells
 	var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
 	var names := {}
 	for id in spells:

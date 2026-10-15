@@ -1,0 +1,152 @@
+{
+  "id": "earth_shield",
+  "order": 60,
+  "spell": {
+    "role": "Stack a one-hit block that erupts toward the attacker.",
+    "id": "earth_shield",
+    "presentation": {
+      "shows_status": true,
+      "shows_lasting": true,
+      "summary": "Block one hit and erupt toward the attacker; recasts add charges.",
+      "sound": "SPELL_EARTHSHIELD",
+      "icon": "stone",
+      "preview": {
+        "glyph": "rocks",
+        "color": "bc8fff"
+      }
+    },
+    "rank_card_power": "+damage",
+    "preparable": true,
+    "opens_kit": false,
+    "recast_behavior": "stack",
+    "name": "Earth Shield",
+    "element": "earth",
+    "slot": 4,
+    "chars": 12,
+    "retaliation_damage": 60,
+    "retaliation_reach": 160,
+    "retaliation_angle": 100,
+    "retaliation_knockback": 500,
+    "retaliation_travel_time": 0.22,
+    "duration": 16,
+    "color": [
+      0.8,
+      0.6,
+      0.3,
+      1
+    ],
+    "unlock_condition": {
+      "type": "level",
+      "value": 7
+    },
+    "visual": {
+      "category": "shield",
+      "shield_form_animation": {
+        "frames": [
+          "earth_shield_form_01.png",
+          "earth_shield_form_02.png",
+          "earth_shield_form_03.png"
+        ],
+        "fps": 18,
+        "loop": false
+      },
+      "shield_break_animation": {
+        "frames": [
+          "earth_shield_break_01.png",
+          "earth_shield_break_02.png",
+          "earth_shield_break_03.png",
+          "earth_shield_break_04.png"
+        ],
+        "fps": 24,
+        "loop": false
+      },
+      "shield_pulse": {
+        "frames": [
+          "earth_shield_pulse_01.png",
+          "earth_shield_pulse_02.png"
+        ],
+        "fps": 4,
+        "loop": true
+      },
+      "absorption_particles": "earth_debris",
+      "cast_flash": {
+        "frames": [
+          "earth_cast_01.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "earth_shield_cast.ogg",
+        "absorb": "earth_shield_absorb.ogg",
+        "break": "earth_shield_break.ogg"
+      }
+    },
+    "upgrades": {
+      "shield_per_level": 0.15,
+      "duration_levels": [
+        2,
+        4
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "shield_bonus": 0.04,
+        "duration_bonus": 0.03
+      }
+    }
+  },
+  "shape": {
+    "root": "eruption",
+    "parts": {
+      "eruption": {
+        "delivery": "volume",
+        "origin": "caster",
+        "geometry": {
+          "type": "cone",
+          "radius": "=float(c(\"reach\", 160.0))",
+          "angle": "=rad_to_deg(float(c(\"half_angle\", deg_to_rad(50.0)))) * 2.0",
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "expanding",
+          "speed": "=float(c(\"reach\", 160.0)) / maxf(0.01, float(c(\"travel_time\", 0.22)))"
+        },
+        "payload": [
+          {
+            "$damage": "",
+            "amount": "=float(c(\"damage\", 60.0))"
+          },
+          {
+            "type": "impulse",
+            "direction": "away",
+            "force": "=float(c(\"knockback\", 500.0))"
+          }
+        ]
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "nearest"
+      },
+      "cast": "shield_charge",
+      "context": {
+        "damage": "=float(v(\"retaliation_damage\", 60.0)) * (1.0 + 0.15 * (level - 1)) * float(c(\"power\", 1.0))",
+        "reach": "=float(v(\"retaliation_reach\", 160.0)) * float(c(\"size_stat\", 1.0))",
+        "half_angle": "=deg_to_rad(float(v(\"retaliation_angle\", 100.0)) * 0.5)",
+        "knockback": "=float(v(\"retaliation_knockback\", 500.0))",
+        "travel_time": "=float(v(\"retaliation_travel_time\", 0.22))"
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "raw": 0.4,
+      "earth": 0.6
+    },
+    "statuses": [
+      {
+        "status": "bleed"
+      }
+    ]
+  }
+}

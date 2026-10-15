@@ -1,0 +1,241 @@
+{
+  "id": "meteor_shower",
+  "order": 80,
+  "spell": {
+    "rank_growth": {
+      "damage": {
+        "per_rank": 9.1429
+      },
+      "radius": {
+        "per_rank": 4.7143,
+        "max": 78
+      }
+    },
+    "role": "Bombard enemies with delayed area attacks.",
+    "id": "meteor_shower",
+    "presentation": {
+      "summary": "Rain explosive meteors onto nearby enemies.",
+      "sound": "SPELL_METEOR",
+      "icon": "meteor",
+      "preview": {
+        "glyph": "meteors",
+        "color": "ffa66b"
+      }
+    },
+    "preparable": true,
+    "name": "Meteor Shower",
+    "element": "fire",
+    "slot": 6,
+    "chars": 13,
+    "damage": 32,
+    "meteor_count": 3,
+    "delay_interval": 0.3,
+    "radius": 45,
+    "color": [
+      1,
+      0.3,
+      0,
+      1
+    ],
+    "unlock_condition": {
+      "type": "level",
+      "value": 15
+    },
+    "visual": {
+      "category": "multi_aoe",
+      "projectile_animation": {
+        "idle": {
+          "frames": [
+            "meteor_01.png",
+            "meteor_02.png",
+            "meteor_03.png"
+          ],
+          "fps": 20,
+          "loop": true
+        },
+        "trail": {
+          "frames": [
+            "meteor_trail_01.png",
+            "meteor_trail_02.png"
+          ],
+          "fps": 30,
+          "loop": true
+        }
+      },
+      "explosion_animation": {
+        "frames": [
+          "meteor_explosion_01.png",
+          "meteor_explosion_02.png",
+          "meteor_explosion_03.png",
+          "meteor_explosion_04.png"
+        ],
+        "fps": 30,
+        "loop": false
+      },
+      "warning_animation": {
+        "frames": [
+          "meteor_warning_01.png",
+          "meteor_warning_02.png"
+        ],
+        "fps": 4,
+        "loop": true,
+        "duration": 1.0
+      },
+      "cast_flash": {
+        "frames": [
+          "meteor_cast_01.png"
+        ],
+        "fps": 15,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "meteor_cast.ogg",
+        "incoming": "meteor_incoming.ogg",
+        "impact": "meteor_impact.ogg"
+      }
+    },
+    "upgrades": {
+      "max_level": 8
+    },
+    "warning_duration": 0.65,
+    "rank_steps": [
+      {
+        "description": "Heavier, wider meteors."
+      },
+      {
+        "meteor_count": 4,
+        "description": "Drop one extra meteor."
+      },
+      {
+        "description": "Heavier, wider meteors."
+      },
+      {
+        "meteor_count": 5,
+        "description": "Drop one extra meteor."
+      },
+      {
+        "description": "Heavier, wider meteors."
+      },
+      {
+        "meteor_count": 6,
+        "description": "Drop one extra meteor."
+      },
+      {
+        "description": "Heavier, wider meteors."
+      }
+    ]
+  },
+  "shape": {
+    "root": "mark",
+    "parts": {
+      "mark": {
+        "delivery": "field",
+        "origin": "caster",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"radius\", 220.0))",
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": "=float(v(\"warning_duration\", 0.65))",
+          "interval": 999.0
+        },
+        "events": {
+          "on_expire": {
+            "part": "impact"
+          },
+          "on_expire#crater": {
+            "part": "crater"
+          }
+        },
+        "payload": [],
+        "vfx": {
+          "family": "meteor"
+        }
+      },
+      "impact": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"radius\", 220.0))",
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": "=0.2 * float(v(\"spell_duration_multiplier\", 1.0))"
+        },
+        "payload": [
+          {
+            "$damage": "impact"
+          }
+        ],
+        "vfx": {
+          "heavy": 1.2
+        }
+      },
+      "crater": {
+        "delivery": "field",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"radius\", 220.0)) * 0.6",
+          "pad": 0.0
+        },
+        "timing": {
+          "interval": 0.5,
+          "duration": "=1.0 * float(v(\"spell_duration_multiplier\", 1.0))",
+          "delay_first": true
+        },
+        "payload": [
+          {
+            "$damage": "crater"
+          }
+        ],
+        "vfx": {
+          "style": "rubble"
+        }
+      }
+    },
+    "arrangement": {
+      "type": "points",
+      "count": "=int(v(\"meteor_count\", 3))",
+      "stagger_life": "=float(v(\"delay_interval\", 0.3))"
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "nearest"
+      },
+      "points": {
+        "radius": "=float(v(\"radius\", 220.0))"
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "raw": 0.6,
+      "fire": 0.4
+    },
+    "parts": {
+      "impact": {
+        "damage": {
+          "raw": 0.6,
+          "fire": 0.4
+        },
+        "statuses": [
+          {
+            "status": "stunned",
+            "duration": 0.2
+          }
+        ]
+      },
+      "crater": {
+        "damage": {
+          "raw": 0.06,
+          "fire": 0.19
+        },
+        "statuses": []
+      }
+    }
+  }
+}

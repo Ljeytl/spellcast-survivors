@@ -1,0 +1,56 @@
+{
+  "id": "steam_field",
+  "order": 310,
+  "recipe": {
+    "presentation": {
+      "shows_status": true,
+      "shows_lasting": true,
+      "summary": "Scald and slow enemies in a lingering steam field.",
+      "sound": "SPELL_IMPACT_FIRE",
+      "icon": "steam",
+      "preview": {
+        "glyph": "ring",
+        "color": "8ce6ee"
+      }
+    },
+    "name": "Steam Field",
+    "incantation": "steam field",
+    "ingredients": [
+      "cinder_field",
+      "ice_blast"
+    ],
+    "requirements": "Reach rank 8 in Cinder Field and Ice Blast, then choose Steam Field. Both ingredients stay equipped.",
+    "description": "A lasting damaging field slows enemies. Cinder Field strengthens damage; Ice Blast strengthens slowing.",
+    "card_description": "Burning steam damages and slows enemies.",
+    "overrides": {
+      "slow": 0.4,
+      "duration": 5.0
+    },
+    "scaling": {
+      "damage": "=dmg(\"cinder_field\", 12.0)",
+      "slow": "=minf(0.75, 0.4 + 0.025 * bonus(\"ice_blast\"))",
+      "radius": "=150.0 * (1.0 + 0.1 * own)",
+      "duration": "=5.0 * (1.0 + 0.1 * own)"
+    },
+    "rank_note": "=\"+area, +duration\""
+  },
+  "shape": {
+    "$extends": "cinder_field"
+  },
+  "damage": {
+    "element": "fire",
+    "damage": {
+      "fire": 0.6,
+      "water": 0.6
+    },
+    "statuses": [
+      {
+        "status": "burn"
+      },
+      {
+        "status": "chilled",
+        "no_freeze": true
+      }
+    ]
+  }
+}

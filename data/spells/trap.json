@@ -1,0 +1,47 @@
+{
+  "id": "trap",
+  "order": 400,
+  "generic_order": 50,
+  "generic": {
+    "name": "Trap",
+    "incantation": "trap",
+    "element": "",
+    "acquire": "bare",
+    "matrix_column": "trap",
+    "root": "glyph",
+    "parts": {
+      "glyph": {
+        "delivery": "trap",
+        "origin": "target",
+        "geometry": {
+          "type": "disk",
+          "radius": 45
+        },
+        "timing": {
+          "arming": 0.4,
+          "duration": 8.0
+        },
+        "events": {
+          "on_trigger": {
+            "part": "burst"
+          }
+        }
+      },
+      "burst": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": 85
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 18,
+            "raw_share": 1.0
+          }
+        ]
+      }
+    }
+  }
+}

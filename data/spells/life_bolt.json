@@ -1,0 +1,97 @@
+{
+  "id": "life_bolt",
+  "order": 280,
+  "recipe": {
+    "presentation": {
+      "summary": "Hits plant a healing seed you can collect.",
+      "sound": "SPELL_LIFE",
+      "icon": "heal",
+      "preview": {
+        "glyph": "bolt",
+        "color": "91de83"
+      },
+      "projectile_scale": 0.8
+    },
+    "name": "Life Bolt",
+    "incantation": "life bolt",
+    "ingredients": [
+      "bolt",
+      "life"
+    ],
+    "requirements": "Reach rank 8 in Bolt and Life, then choose Life Bolt. Both ingredients stay equipped.",
+    "description": "Hits plant healing areas. Bolt levels increase impact damage; Life levels increase healing. Own ranks alternate extra bolts and larger healing areas.",
+    "card_description": "Hits plant healing areas you can collect.",
+    "overrides": {},
+    "scaling": {
+      "damage": "=dmg(\"bolt\", 40.0)",
+      "healing_seed_amount": "=6.0 * (1.0 + 0.15 * bonus(\"life\"))",
+      "projectile_count": "=1 + int(ceil(own / 2.0))",
+      "healing_seed_radius": "=44.0 * (1.0 + 0.2 * int(own / 2))",
+      "healing_seed_duration": "=2.0",
+      "healing_seed_lifetime": "=10.0"
+    },
+    "rank_note": "=pick(rank % 2 == 1, \"+1 projectile\", \"+healing area\")"
+  },
+  "shape": {
+    "root": "bolt",
+    "release": {
+      "type": "together",
+      "retarget": true
+    },
+    "arrangement": {
+      "type": "single",
+      "count": "=maxi(1, int(v(\"projectile_count\", 1)))"
+    },
+    "parts": {
+      "bolt": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=BOLT_RADIUS * float(v(\"projectile_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": "=400.0 * speed",
+            "range": "=400.0 * speed * 3.0"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": ""
+          },
+          {
+            "type": "seed",
+            "share_of_dealt": 0.15,
+            "amount": "=float(v(\"healing_seed_amount\", 6.0))",
+            "duration": "=float(v(\"healing_seed_duration\", 2.0))",
+            "lifetime": "=float(v(\"healing_seed_lifetime\", 10.0)) * float(v(\"spell_duration_multiplier\", 1.0))",
+            "radius": "=float(v(\"healing_seed_radius\", 28.0)) * float(v(\"spell_size_multiplier\", 1.0))",
+            "cap": 6
+          }
+        ],
+        "limits": {
+          "pierce": 0,
+          "contact_all": true
+        },
+        "vfx": {
+          "family": "bolt"
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "spread"
+      }
+    }
+  },
+  "damage": {
+    "element": "life",
+    "damage": {
+      "arcane": 0.75,
+      "life": 0.5
+    }
+  }
+}

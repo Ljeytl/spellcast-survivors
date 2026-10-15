@@ -1,0 +1,77 @@
+{
+  "id": "chain_heal",
+  "order": 150,
+  "spell": {
+    "id": "chain_heal",
+    "name": "Chain Heal",
+    "element": "holy",
+    "slot": 9,
+    "chars": 10,
+    "heal_amount": 40,
+    "chain_count": 2,
+    "chain_reduction": 0.7,
+    "color": [
+      0.3,
+      1,
+      0.3,
+      1
+    ],
+    "unlock_condition": {
+      "type": "character",
+      "value": "healer"
+    },
+    "visual": {
+      "category": "chain_heal",
+      "chain_animation": {
+        "frames": [
+          "heal_chain_01.png",
+          "heal_chain_02.png",
+          "heal_chain_03.png"
+        ],
+        "fps": 18,
+        "loop": false
+      },
+      "heal_effect": {
+        "frames": [
+          "chain_heal_pulse_01.png",
+          "chain_heal_pulse_02.png"
+        ],
+        "fps": 15,
+        "loop": false
+      },
+      "target_glow": {
+        "frames": [
+          "heal_target_01.png",
+          "heal_target_02.png"
+        ],
+        "fps": 10,
+        "loop": true,
+        "duration": 1.5
+      },
+      "chain_particles": "heal_chain_sparkles",
+      "cast_flash": {
+        "frames": [
+          "chain_heal_cast_01.png"
+        ],
+        "fps": 22,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "chain_heal_cast.ogg",
+        "chain": "heal_chain.ogg",
+        "heal": "heal_received.ogg"
+      }
+    },
+    "upgrades": {
+      "heal_per_level": 0.15,
+      "chain_count_levels": [
+        3,
+        6
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "heal_bonus": 0.035
+      }
+    }
+  }
+}

@@ -1,10 +1,13 @@
 from pathlib import Path
 import json
+import sys
 import re
 import unittest
 
 ROOT = Path(__file__).parent
 REPO = ROOT.parent.parent
+sys.path.insert(0, str(REPO / 'tools'))
+import spell_library  # noqa: E402  spell documents come from data/spells/<id>.json
 ARCHIVE = ROOT / 'archive/2026-10-14'
 OWNERS = {'03-spells.md', '15-development-order.md', '18-spell-system-rewrite.md',
           '19-engine-architecture.md', '20-game-systems-architecture.md',
@@ -35,7 +38,7 @@ def validate_catalog(text):
 
 class DocumentationChecks(unittest.TestCase):
     def test_live_bases(self):
-        spells = json.loads((REPO / 'data/spells.json').read_text())['spells']
+        spells = spell_library.document('spells', REPO)['spells']   # data/spells/<id>.json
         ids = [key for key, spell in spells.items() if spell.get('preparable')]   # 0.3.2: the list is data
         table = content('03-spells.md').split('### Existing combinations')[0]
         for key in ids:
@@ -43,7 +46,7 @@ class DocumentationChecks(unittest.TestCase):
         self.assertEqual(len(re.findall(r'Implemented manual base', table)), len(ids))
 
     def test_enabled_recipes(self):
-        recipes = json.loads((REPO / 'data/recipes.json').read_text())['recipes']
+        recipes = spell_library.document('recipes', REPO)['recipes']
         table = content('03-spells.md').split('### Existing combinations')[1].split('## Full authored')[0]
         enabled = [key for key, row in recipes.items() if row.get('enabled', True)]
         self.assertEqual(len(re.findall(r'^\| `', table, re.M)), len(enabled))

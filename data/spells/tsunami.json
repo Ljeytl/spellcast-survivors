@@ -1,0 +1,41 @@
+{
+  "id": "tsunami",
+  "order": 430,
+  "generic_order": 90,
+  "generic": {
+    "name": "Tsunami",
+    "incantation": "tsunami",
+    "element": "water",
+    "acquire": "data_only",
+    "matrix_column": "blast",
+    "root": "wave",
+    "parts": {
+      "wave": {
+        "delivery": "volume",
+        "origin": "behind_caster",
+        "geometry": {
+          "type": "rect",
+          "width": 900,
+          "length": 60,
+          "reach": 700
+        },
+        "propagation": {
+          "type": "travelling",
+          "speed": 450
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 80,
+            "raw_share": 0.4
+          },
+          {
+            "type": "impulse",
+            "force": 600,
+            "direction": "travel"
+          }
+        ]
+      }
+    }
+  }
+}

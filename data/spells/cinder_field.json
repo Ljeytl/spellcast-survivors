@@ -1,0 +1,90 @@
+{
+  "id": "cinder_field",
+  "order": 110,
+  "spell": {
+    "extend_at_cap": true,
+    "active_limit": 3,
+    "id": "cinder_field",
+    "presentation": {
+      "shows_status": true,
+      "shows_lasting": true,
+      "summary": "Burn enemies inside a lingering fire field.",
+      "sound": "SPELL_IMPACT_FIRE",
+      "icon": "flame",
+      "preview": {
+        "glyph": "ring",
+        "color": "ffa66b"
+      }
+    },
+    "preparable": true,
+    "growth_description": "larger field",
+    "rank_growth": {
+      "radius": {
+        "per_rank": 7.143,
+        "max": 150
+      },
+      "damage": {
+        "per_rank": 2.2857
+      }
+    },
+    "recast_behavior": "stack",
+    "name": "Cinder Field",
+    "element": "fire",
+    "damage": 8,
+    "duration": 5.0,
+    "role": "Burn a stationary area for 5 seconds.",
+    "unlock_condition": {
+      "type": "default"
+    },
+    "radius": 100,
+    "tick_interval": 0.5
+  },
+  "shape": {
+    "root": "field",
+    "$recast": true,
+    "parts": {
+      "field": {
+        "delivery": "field",
+        "origin": "target_or_caster",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"radius\", 150.0))",
+          "pad": 0.0
+        },
+        "timing": {
+          "interval": "=float(v(\"tick_interval\", 0.5))",
+          "duration": "=float(v(\"duration\", 5.0))",
+          "delay_first": true
+        },
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "vfx": {
+          "$when": "is_id(\"steam_field\")",
+          "style": "steam"
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "area",
+        "radius": "=float(v(\"radius\", 150))"
+      },
+      "info_defaults": {
+        "radius": 150.0
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "fire": 1.0
+    },
+    "statuses": [
+      {
+        "status": "burn"
+      }
+    ]
+  }
+}

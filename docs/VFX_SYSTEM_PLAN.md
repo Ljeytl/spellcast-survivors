@@ -2,7 +2,7 @@
 
 Status: proposed plan, 9 October 2026. Documentation only. It changes no spell rules, numbers, or runtime until a build phase below is approved.
 
-Sources: `data/spells.json`, `docs/expedition-design/03-spells.md`, `04-composition.md`, `08-art-feedback.md`, `16-element-family-matrix.md`, `17-element-spell-ideas.md`. Spell statuses follow those documents: listing a proposed spell here specifies how it would look if selected. It does not approve the spell.
+Sources: `data/spells/` (one file per spell), `docs/expedition-design/03-spells.md`, `04-composition.md`, `08-art-feedback.md`, `16-element-family-matrix.md`, `17-element-spell-ideas.md`. Spell statuses follow those documents: listing a proposed spell here specifies how it would look if selected. It does not approve the spell.
 
 Reference implementation: `tools/vfx-reference/spell_vfx_sandbox.html`, a browser demo of every element look, the emissive density field, attach points, and wind. It is a behavior and tuning reference, not engine code.
 

@@ -20,7 +20,7 @@ static var SPELL_DAMAGE_MULTIPLIER: float = float(MANA_BOLT.get("rank_damage_pct
 static var MANA_BOLT_COOLDOWN: float = float(MANA_BOLT.get("cooldown", 1.5))
 
 static func _mana_bolt_data() -> Dictionary:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+	var parsed = preload("res://scripts/core/GameData.gd").file("spells")
 	return parsed.spells.get("mana_bolt", {}) if parsed is Dictionary else {}
 const CHAIN_LIGHTNING_RANGE = 200.0
 const PLAYER_TRANSPARENCY_TYPING = 1.0
@@ -61,7 +61,7 @@ var slot_limit: int = MAX_EQUIPPED_SPELLS
 static var BASE_SPELL_IDS: Array = _preparable_ids()
 
 static func _preparable_ids() -> Array:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+	var parsed = preload("res://scripts/core/GameData.gd").file("spells")
 	var out: Array = []
 	if parsed is Dictionary:
 		for id in parsed.get("spells", {}):

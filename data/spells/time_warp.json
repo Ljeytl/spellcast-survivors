@@ -1,0 +1,78 @@
+{
+  "id": "time_warp",
+  "order": 140,
+  "spell": {
+    "id": "time_warp",
+    "name": "Time Warp",
+    "element": "arcane",
+    "slot": 8,
+    "chars": 9,
+    "effect": "slow_time",
+    "time_scale": 0.3,
+    "duration": 5,
+    "color": [
+      0.7,
+      0.3,
+      1,
+      1
+    ],
+    "unlock_condition": {
+      "type": "achievement",
+      "value": "survive_30_minutes"
+    },
+    "visual": {
+      "category": "utility",
+      "activation_effect": {
+        "frames": [
+          "time_activation_01.png",
+          "time_activation_02.png",
+          "time_activation_03.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "duration_indicator": {
+        "frames": [
+          "time_indicator_01.png",
+          "time_indicator_02.png"
+        ],
+        "fps": 6,
+        "loop": true
+      },
+      "screen_filter": {
+        "effect": "time_distortion",
+        "intensity": 0.3,
+        "color_tint": [
+          0.7,
+          0.3,
+          1,
+          0.2
+        ]
+      },
+      "time_particles": "chronoton_field",
+      "cast_flash": {
+        "frames": [
+          "time_cast_01.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "time_warp_cast.ogg",
+        "active": "time_warp_loop.ogg",
+        "end": "time_warp_end.ogg"
+      }
+    },
+    "upgrades": {
+      "duration_levels": [
+        2,
+        4,
+        6
+      ],
+      "max_level": 6,
+      "infinite_scaling": {
+        "duration_bonus": 0.04
+      }
+    }
+  }
+}

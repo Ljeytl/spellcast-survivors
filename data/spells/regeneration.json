@@ -1,0 +1,117 @@
+{
+  "id": "regeneration",
+  "order": 40,
+  "spell": {
+    "role": "Restore health over time.",
+    "id": "regeneration",
+    "presentation": {
+      "shows_lasting": true,
+      "summary": "Restore health over time.",
+      "sound": "SPELL_LIFE",
+      "icon": "heal",
+      "preview": {
+        "glyph": "cross",
+        "color": "91de83"
+      }
+    },
+    "rank_card_power": "+healing",
+    "preparable": true,
+    "opens_kit": false,
+    "recast_behavior": "extend",
+    "name": "Regeneration",
+    "element": "holy",
+    "slot": 2,
+    "chars": 4,
+    "heal_amount": 3,
+    "duration": 5,
+    "color": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "unlock_condition": {
+      "type": "default"
+    },
+    "visual": {
+      "category": "heal_over_time",
+      "aura_animation": {
+        "frames": [
+          "heal_aura_01.png",
+          "heal_aura_02.png",
+          "heal_aura_03.png",
+          "heal_aura_04.png"
+        ],
+        "fps": 8,
+        "loop": true
+      },
+      "heal_tick_effect": {
+        "frames": [
+          "heal_pulse_01.png",
+          "heal_pulse_02.png"
+        ],
+        "fps": 12,
+        "loop": false
+      },
+      "heal_particles": "heal_sparkles",
+      "cast_flash": {
+        "frames": [
+          "heal_cast_01.png"
+        ],
+        "fps": 18,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "heal_cast.ogg",
+        "tick": "heal_tick.ogg"
+      }
+    },
+    "upgrades": {
+      "heal_per_level": 0.15,
+      "duration_levels": [
+        2,
+        4
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "heal_bonus": 0.04,
+        "duration_bonus": 0.02
+      }
+    },
+    "incantation": "regeneration"
+  },
+  "shape": {
+    "root": "aura",
+    "element": "life",
+    "$recast": true,
+    "parts": {
+      "aura": {
+        "delivery": "aura",
+        "origin": "caster",
+        "anchor": "caster",
+        "geometry": {
+          "type": "disk",
+          "radius": "=34.0 * float(v(\"keyword_size_multiplier\", 1.0))"
+        },
+        "timing": {
+          "duration": "=float(c(\"duration\", v(\"duration\", 5.0)))"
+        },
+        "heal_rate": "=float(c(\"heal_rate\", 0.0))",
+        "visual_size": "=float(v(\"keyword_size_multiplier\", 1.0))",
+        "payload": [],
+        "vfx": {
+          "family": "none"
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "nearest"
+      },
+      "context": {
+        "heal_rate": "=float(v(\"heal_amount\", 0.0)) * (1.0 + 0.15 * (level - 1)) * float(c(\"power\", 1.0))",
+        "duration": "=float(v(\"duration\", 0.0)) * float(c(\"duration_stat\", 1.0))"
+      }
+    }
+  }
+}

@@ -8,7 +8,7 @@ Updated 14 October 2026 against release source `6ed65b3` (0.3.0). This is the co
 
 ## Current playable inventory
 
-All 16 manual bases use the shared engine. Their existence does not certify timing, animation, audio, balance or game feel. `data/spells.json`, `data/spell_damage.json`, `data/recipes.json` and the runtime are authoritative for implemented numbers. The runtime ID `infestation` currently displays as Infection; Infestation and Plague Seed are earlier design names for that same existing identity; Firewalk and Fire Walk refer to one spell.
+All 16 manual bases use the shared engine. Their existence does not certify timing, animation, audio, balance or game feel. The spell files in `data/spells/` (one per spell: numbers, shape, damage, recipe) and the runtime are authoritative for implemented numbers. The runtime ID `infestation` currently displays as Infection; Infestation and Plague Seed are earlier design names for that same existing identity; Firewalk and Fire Walk refer to one spell.
 
 | Runtime ID | Public name | Status |
 |---|---|---|

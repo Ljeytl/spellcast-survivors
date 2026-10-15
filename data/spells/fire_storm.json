@@ -1,0 +1,85 @@
+{
+  "id": "fire_storm",
+  "order": 130,
+  "spell": {
+    "id": "fire_storm",
+    "name": "Fire Storm",
+    "element": "fire",
+    "slot": 7,
+    "chars": 10,
+    "damage": 15,
+    "duration": 4,
+    "radius": 350,
+    "tick_rate": 0.2,
+    "color": [
+      1,
+      0.5,
+      0,
+      1
+    ],
+    "unlock_condition": {
+      "type": "persistent_xp",
+      "value": 500
+    },
+    "visual": {
+      "category": "channeled_aoe",
+      "area_animation": {
+        "frames": [
+          "fire_storm_01.png",
+          "fire_storm_02.png",
+          "fire_storm_03.png",
+          "fire_storm_04.png"
+        ],
+        "fps": 12,
+        "loop": true
+      },
+      "channel_effect": {
+        "frames": [
+          "fire_channel_01.png",
+          "fire_channel_02.png",
+          "fire_channel_03.png"
+        ],
+        "fps": 15,
+        "loop": true
+      },
+      "ground_burn": {
+        "frames": [
+          "fire_ground_01.png",
+          "fire_ground_02.png"
+        ],
+        "fps": 8,
+        "loop": true
+      },
+      "continuous_particles": "fire_embers",
+      "cast_flash": {
+        "frames": [
+          "fire_cast_01.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "fire_storm_cast.ogg",
+        "channel": "fire_storm_loop.ogg",
+        "end": "fire_storm_end.ogg"
+      }
+    },
+    "upgrades": {
+      "damage_per_level": 0.15,
+      "duration_levels": [
+        2,
+        4
+      ],
+      "radius_levels": [
+        3,
+        6
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.02,
+        "duration_bonus": 0.03,
+        "radius_bonus": 0.025
+      }
+    }
+  }
+}

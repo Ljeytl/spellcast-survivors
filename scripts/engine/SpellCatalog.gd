@@ -15,9 +15,9 @@ static var _recipes: Dictionary = {}
 
 static func _load():
 	if _spells.is_empty():
-		var s = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+		var s = preload("res://scripts/core/GameData.gd").file("spells")
 		_spells = s.get("spells", {}) if s is Dictionary else {}
-		var r = JSON.parse_string(FileAccess.get_file_as_string("res://data/recipes.json"))
+		var r = preload("res://scripts/core/GameData.gd").file("recipes")
 		_recipes = r.get("recipes", {}) if r is Dictionary else {}
 
 ## The spell's own data entry (a combination's is its recipe), or {}.

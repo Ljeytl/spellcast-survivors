@@ -1,0 +1,219 @@
+{
+  "id": "lightning_bolt",
+  "order": 270,
+  "recipe": {
+    "presentation": {
+      "summary": "Bounce lightning between enemies with a blast on every hit.",
+      "sound": "SPELL_LIGHTNING",
+      "icon": "lightning",
+      "preview": {
+        "glyph": "zigzag",
+        "color": "f4ed96"
+      },
+      "projectile_scale": 0.75
+    },
+    "name": "Lightning Bolt",
+    "incantation": "lightning bolt",
+    "ingredients": [
+      "bolt",
+      "lightning"
+    ],
+    "requirements": "Reach rank 8 in Bolt and Lightning, then choose Lightning Bolt. Both ingredients stay equipped.",
+    "description": "Bounces between enemies, striking a small lightning area at every impact. Bolt strengthens impact; Lightning strengthens the splash.",
+    "card_description": "A bouncing bolt strikes a lightning area at each hit.",
+    "overrides": {
+      "damage": 40,
+      "bounce_count": 4,
+      "bounce_range": 240.0
+    },
+    "scaling": {
+      "damage": "=dmg(\"bolt\", 40.0)",
+      "splash_damage": "=dmg(\"lightning\", 80.0)",
+      "splash_radius": "=80.0 * (1.0 + 0.05 * bonus(\"lightning\"))",
+      "splash_duration": "=0.2",
+      "bounce_count": "=4 + own"
+    },
+    "rank_note": "=\"+1 bounce\""
+  },
+  "shape": {
+    "root": "bolt",
+    "max_spawns": 64,
+    "max_depth": "=int(v(\"bounce_count\", 4)) + 3",
+    "needs_target": true,
+    "release": {
+      "type": "together",
+      "retarget": true
+    },
+    "parts": {
+      "bolt": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=BOLT_RADIUS * float(v(\"projectile_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "motion": [
+          {
+            "type": "guided",
+            "speed": "=550.0 * speed",
+            "lerp": 5.0,
+            "range": "=maxf(3.0 * (550.0 * speed), (int(v(\"bounce_count\", 4)) + 1) * float(v(\"bounce_range\", 240.0)) + 550.0 * speed)"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": "bolt"
+          }
+        ],
+        "limits": {
+          "pierce": 0
+        },
+        "events": {
+          "on_hit#bounce": {
+            "part": "bounce",
+            "chain": true,
+            "hops": "=int(v(\"bounce_count\", 4))",
+            "range": "=float(v(\"bounce_range\", 240.0))",
+            "exclude_hit": true,
+            "end": {
+              "part": "splash_warn"
+            }
+          }
+        },
+        "vfx": {
+          "family": "bolt"
+        }
+      },
+      "bounce": {
+        "delivery": "projectile",
+        "origin": "parent",
+        "geometry": {
+          "type": "body",
+          "radius": "=BOLT_RADIUS * float(v(\"projectile_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "motion": [
+          {
+            "type": "guided",
+            "speed": "=260.0 * speed",
+            "lerp": 5.0,
+            "range": "=float(v(\"bounce_range\", 240.0)) * 1.5"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": "bounce"
+          }
+        ],
+        "limits": {
+          "pierce": 0
+        },
+        "events": {
+          "on_hit#bounce": {
+            "part": "bounce",
+            "chain": true,
+            "range": "=float(v(\"bounce_range\", 240.0))",
+            "exclude_hit": true,
+            "end": {
+              "part": "splash_warn"
+            }
+          }
+        },
+        "vfx": {
+          "family": "bolt"
+        }
+      },
+      "splash_warn": {
+        "delivery": "field",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"splash_radius\", 80.0)) * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": 0.32,
+          "interval": 999.0
+        },
+        "events": {
+          "on_expire": {
+            "part": "splash"
+          }
+        },
+        "payload": [],
+        "vfx": {
+          "warn": true
+        }
+      },
+      "splash": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"splash_radius\", 80.0)) * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.2
+        },
+        "payload": [
+          {
+            "$damage": "splash"
+          }
+        ],
+        "vfx": {
+          "heavy": 0.8
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "select",
+        "live": true
+      }
+    }
+  },
+  "damage": {
+    "element": "storm",
+    "damage": {
+      "arcane": 0.75,
+      "storm": 0.75
+    },
+    "parts": {
+      "bolt": {
+        "damage": {
+          "arcane": 0.75,
+          "storm": 0.75
+        },
+        "statuses": [
+          {
+            "status": "shocked"
+          }
+        ]
+      },
+      "bounce": {
+        "damage": {
+          "arcane": 0.75,
+          "storm": 0.75
+        },
+        "statuses": [
+          {
+            "status": "shocked"
+          }
+        ]
+      },
+      "splash": {
+        "damage": {
+          "storm": 1.5
+        },
+        "statuses": [
+          {
+            "status": "shocked"
+          }
+        ]
+      }
+    }
+  }
+}

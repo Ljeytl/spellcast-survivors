@@ -14,7 +14,7 @@ static var NON_ATTACK: Array = _data.spells.keys().filter(func(id): return _data
 static var DEFAULT_SLOTS: Array = _data.preparation.get("default_kit", [])
 
 static func _load() -> Dictionary:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+	var parsed = preload("res://scripts/core/GameData.gd").file("spells")
 	if not parsed is Dictionary:
 		return {"spells": {}, "preparation": {}}
 	return {"spells": parsed.get("spells", {}), "preparation": parsed.get("preparation", {})}

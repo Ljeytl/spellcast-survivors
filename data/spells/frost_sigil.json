@@ -1,0 +1,75 @@
+{
+  "id": "frost_sigil",
+  "order": 330,
+  "recipe": {
+    "presentation": {
+      "shows_status": true,
+      "summary": "Place a persistent frost rune that bursts and slows enemies.",
+      "sound": "SPELL_ICE_BLAST",
+      "icon": "ice",
+      "preview": {
+        "glyph": "ring",
+        "color": "8ce6ee"
+      }
+    },
+    "name": "Frost Sigil",
+    "incantation": "frost sigil",
+    "ingredients": [
+      "rune_trap",
+      "ice_blast"
+    ],
+    "requirements": "Reach rank 8 in Rune Trap and Ice Blast, then choose Frost Sigil. Both ingredients stay equipped.",
+    "description": "A persistent frost trap bursts and slows enemies. Ingredients improve damage, radius and slowing; own ranks reduce arming time.",
+    "card_description": "A large frost trap explodes and slows survivors.",
+    "overrides": {
+      "trap_radius": 170,
+      "max_rank": 9,
+      "frost": true,
+      "arm_delay": 1.2
+    },
+    "scaling": {
+      "damage": "=dmg(\"rune_trap\", 48.0) * 1.25",
+      "trap_radius": "=170.0 * (1.0 + 0.05 * (bonus(\"rune_trap\") + bonus(\"ice_blast\")))",
+      "slow": "=minf(0.75, 0.4 + 0.025 * bonus(\"ice_blast\"))",
+      "slow_duration": "=2.0",
+      "arm_delay": "=maxf(0.4, 1.2 - 0.1 * own)"
+    },
+    "rank_note": "=pick(rank < 9, \"Arms faster\", \"Fastest arming reached\")"
+  },
+  "shape": {
+    "$extends": "rune_trap"
+  },
+  "damage": {
+    "element": "arcane",
+    "damage": {
+      "arcane": 1.0,
+      "water": 0.5
+    },
+    "parts": {
+      "activate": {
+        "damage": {},
+        "statuses": [
+          {
+            "status": "rooted",
+            "duration": 0.4
+          },
+          {
+            "status": "chilled"
+          }
+        ]
+      },
+      "burst": {
+        "damage": {
+          "arcane": 1.0,
+          "water": 0.5
+        },
+        "statuses": [
+          {
+            "status": "chilled",
+            "stacks": 2
+          }
+        ]
+      }
+    }
+  }
+}

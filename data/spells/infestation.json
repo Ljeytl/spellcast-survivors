@@ -1,0 +1,104 @@
+{
+  "id": "infestation",
+  "order": 100,
+  "spell": {
+    "incantation": "infection",
+    "id": "infestation",
+    "presentation": {
+      "shows_status": true,
+      "shows_lasting": true,
+      "summary": "Infect a nearby enemy with lingering damage.",
+      "sound": "SPELL_LIFE",
+      "icon": "rune",
+      "preview": {
+        "glyph": "bolt",
+        "color": "91de83"
+      }
+    },
+    "preparable": true,
+    "recast_behavior": "stack",
+    "name": "Infection",
+    "element": "plague",
+    "damage": 4,
+    "duration": 3.0,
+    "role": "Infect a target for 3 to 5 seconds; spread to nearby enemies.",
+    "spread_radius": 60.0,
+    "spread_speed": 300.0,
+    "spore_linger": 1.5,
+    "rank_growth": {
+      "spread_radius": {
+        "per_rank": 7.1429,
+        "max": 110.0
+      },
+      "spread_speed": {
+        "per_rank": 22.8571,
+        "max": 460.0
+      },
+      "spore_linger": {
+        "per_rank": 0.1429,
+        "max": 2.5
+      },
+      "duration": {
+        "per_rank": 0.1429,
+        "max": 4.0
+      },
+      "damage": {
+        "per_rank": 1.1429
+      }
+    },
+    "unlock_condition": {
+      "type": "default"
+    }
+  },
+  "shape": {
+    "root": "plague",
+    "$recast": true,
+    "needs_target": true,
+    "parts": {
+      "plague": {
+        "delivery": "infection",
+        "origin": "caster",
+        "geometry": {
+          "type": "disk",
+          "radius": 1.0
+        },
+        "infection": {
+          "duration": "=float(v(\"duration\", 3.0))",
+          "interval": "=float(v(\"tick_interval\", 0.5))",
+          "spread_radius": "=float(v(\"spread_radius\", 130.0)) * float(v(\"spell_size_multiplier\", 1.0))",
+          "resting_multiplier": "=float(v(\"resting_spread_multiplier\", 1.3))",
+          "spread_speed": "=float(v(\"spread_speed\", 460.0)) * speed",
+          "spore_life": "=float(v(\"orphan_lifetime\", float(v(\"spore_linger\", 1.5)) * float(v(\"spell_duration_multiplier\", 1.0))))",
+          "cast_range": "=float(v(\"cast_range\", 600.0))",
+          "bloom": {
+            "$when": "float(v(\"healing_bloom_amount\", 0.0)) > 0.0",
+            "amount": "=float(v(\"healing_bloom_amount\", 0.0))",
+            "duration": 2.0,
+            "lifetime": "=float(v(\"healing_bloom_lifetime\", 10.0))",
+            "radius": "=float(v(\"healing_bloom_radius\", 48.0))",
+            "cap": 6
+          }
+        },
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "vfx": {
+          "family": "infection"
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "visible_host",
+        "required": true
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "plague": 1.0
+    }
+  }
+}

@@ -1,6 +1,6 @@
 extends RefCounted
-## Spell shapes as data (doc 19 §4.1, P1): data/spell_shapes.json holds, per spell id, the parts a
-## cast is made of. A template is the generic definition CastPlanner reads, with these additions:
+## Spell shapes as data (doc 19 §4.1, P1): each spell file's "shape" section (data/spells/<id>.json)
+## holds the parts a cast is made of. A template is the generic definition CastPlanner reads, with these additions:
 ##
 ##   "=<expression>"            a value computed when the spell is cast (Godot Expression syntax).
 ##                              Inputs: damage, speed (projectile speed stat), level, and the helpers
@@ -25,7 +25,6 @@ extends RefCounted
 
 const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
 const SpellGeometry = preload("res://scripts/SpellGeometry.gd")
-const DATA_PATH = "res://data/spell_shapes.json"
 const INT_KEYS = ["pierce", "cap", "count", "max_depth", "max_spawns", "hops", "targets", "status_repeat"]
 const INPUTS = ["damage", "speed", "level", "BOLT_RADIUS", "SPEAR_RADIUS", "BEAM_RADIUS", "SPIRIT_RADIUS"]
 
@@ -37,7 +36,7 @@ static var _parsed: Dictionary = {}
 static func shapes() -> Dictionary:
 	if not _loaded:
 		_loaded = true
-		var doc = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
+		var doc = preload("res://scripts/core/GameData.gd").file("spell_shapes").duplicate(true)
 		_shapes = doc.get("shapes", {}) if doc is Dictionary else {}
 	return _shapes
 

@@ -9,14 +9,14 @@ static var _parsed: Dictionary = {}
 
 static func _recipe(id: String) -> Dictionary:
 	if _recipes.is_empty():
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/recipes.json"))
+		var parsed = preload("res://scripts/core/GameData.gd").file("recipes")
 		_recipes = parsed.get("recipes", {}) if parsed is Dictionary else {}
 	return _recipes.get(id, {})
 
 ## Damage an ingredient deals at a rank, following its own curve (rank_growth or +15% per rank).
 static func ingredient_damage(id: String, rank: int, fallback: float) -> float:
 	if _spells.is_empty():
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+		var parsed = preload("res://scripts/core/GameData.gd").file("spells")
 		_spells = parsed.get("spells", {}) if parsed is Dictionary else {}
 	var data = _spells.get(id, {})
 	if data.is_empty():

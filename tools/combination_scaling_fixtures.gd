@@ -12,7 +12,7 @@ func _initialize():
 	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
 		quit(2)
 		return
-	var spells = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells
+	var spells = preload("res://scripts/core/GameData.gd").file("spells").spells
 	var cases: Array = []
 	for id in Synergies.RECIPES:
 		var recipe = Synergies.RECIPES[id]
