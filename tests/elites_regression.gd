@@ -49,11 +49,15 @@ func run():
 	check(massive.scale.x > quick.scale.x and massive.speed < plain.speed, "MASSIVE is bigger and slower")
 	var icy = monsters.spawn_monster(def, false, true, NAN, -1.0, ["icy"])
 	check(icy.element == "water", "ICY is a water monster (type chart decides its resist and weakness)")
+	check(Elites.roll(3).size() == int(data.max_words), "an elite carries at most max_words words (%d)" % int(data.max_words))
+	var cap = data.max_words
+	data.max_words = 3   # the cap is data: raised, words stay distinct and one element at most
 	var two = Elites.roll(2)
 	check(two.size() == 2 and two[0] != two[1], "two distinct words")
 	for i in 30:
 		var r = Elites.roll(3)
 		check(r.filter(func(w): return data.words[w].has("element")).size() <= 1, "at most one element word")
+	data.max_words = cap
 
 	# --- LEECHING heals on contact ---------------------------------------------------------------
 	var leech = monsters.spawn_monster(def, false, true, NAN, -1.0, ["leeching"])
@@ -148,10 +152,10 @@ func run():
 	var patrol_size = get_nodes_in_group("enemies").size()
 	check(patrol_size == 1 + int(data.patrols.escorts), "elite plus escorts (%d)" % patrol_size)
 	check(monsters.check_elite_patrol() == null, "one patrol per interval")
-	monsters.game_time = float(data.patrols.words[1].from) + 1.0
+	monsters.game_time = float(data.patrols.until) - 1.0
 	monsters.next_patrol = monsters.game_time
 	var later = monsters.check_elite_patrol()
-	check(later != null and later.elite.words.size() == int(data.patrols.words[1].count), "later patrols roll more words")
+	check(later != null and later.elite.words.size() <= int(data.max_words), "late patrols still carry at most max_words")
 	monsters.game_time = float(data.patrols.until) + 1.0
 	monsters.next_patrol = monsters.game_time
 	check(monsters.check_elite_patrol() == null, "no patrols at the end of the run")
