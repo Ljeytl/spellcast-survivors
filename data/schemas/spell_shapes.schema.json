@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "spell_shapes.json",
+  "type": "object",
+  "properties": {
+    "_doc": {
+      "type": "string"
+    },
+    "shapes": {
+      "type": "object",
+      "$comment": "Spell id -> shape template (scripts/engine/SpellTemplate.gd). Part contents follow the generic definition (doc 18 \u00a74).",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "$extends": {
+            "type": "string"
+          },
+          "$recast": {
+            "type": "boolean"
+          },
+          "root": {
+            "type": "string"
+          },
+          "element": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "object"
+          },
+          "arrangement": {
+            "type": "object"
+          },
+          "release": {
+            "type": "object"
+          },
+          "max_depth": {
+            "type": [
+              "number",
+              "string",
+              "object"
+            ]
+          },
+          "max_spawns": {
+            "type": [
+              "number",
+              "string",
+              "object"
+            ]
+          },
+          "needs_target": {
+            "type": "boolean"
+          },
+          "cast_rules": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "shapes"
+  ],
+  "additionalProperties": false
+}

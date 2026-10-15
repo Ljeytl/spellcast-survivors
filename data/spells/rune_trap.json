@@ -1,0 +1,157 @@
+{
+  "id": "rune_trap",
+  "order": 230,
+  "spell": {
+    "id": "rune_trap",
+    "presentation": {
+      "shows_status": true,
+      "summary": "Place an explosive trap ahead of you.",
+      "sound": "SPELL_EARTHSHIELD",
+      "icon": "rune",
+      "preview": {
+        "glyph": "ring",
+        "color": "bc8fff"
+      }
+    },
+    "preparable": true,
+    "growth_description": "larger blast and trigger",
+    "rank_growth": {
+      "trap_radius": {
+        "per_rank": 17.1429,
+        "max": 240
+      },
+      "trigger_radius": {
+        "per_rank": 4.2857,
+        "max": 90
+      },
+      "damage": {
+        "per_rank": 15.7143
+      }
+    },
+    "recast_behavior": "stack",
+    "name": "Rune Trap",
+    "element": "arcane",
+    "damage": 55,
+    "duration": 6.0,
+    "active_limit": 999,
+    "role": "Place a trap that waits until triggered; up to three traps, oldest replaced.",
+    "unlock_condition": {
+      "type": "default"
+    },
+    "trigger_radius": 60,
+    "trap_radius": 120
+  },
+  "shape": {
+    "root": "rune",
+    "max_depth": 3,
+    "parts": {
+      "rune": {
+        "delivery": "trap",
+        "origin": "toward_target",
+        "reach": 160.0,
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"trigger_radius\", 70.0))",
+          "pad": 0.0
+        },
+        "timing": {
+          "arming": "=float(v(\"arm_delay\", 0.8))",
+          "duration": 1000000000.0
+        },
+        "events": {
+          "on_trigger": {
+            "part": "activate"
+          }
+        },
+        "limits": {
+          "$when": "int(v(\"active_limit\", 999)) < 999",
+          "cap": "=int(v(\"active_limit\", 999))"
+        }
+      },
+      "activate": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"trap_radius\", 130.0))",
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.4
+        },
+        "payload": [
+          {
+            "$statuses": "activate"
+          },
+          {
+            "$when": "clampi(level - 1, 0, 5) > 0",
+            "type": "status",
+            "status": "vulnerable",
+            "stacks": "=float(clampi(level - 1, 0, 5))"
+          }
+        ],
+        "events": {
+          "on_expire": {
+            "part": "burst"
+          }
+        },
+        "vfx": {
+          "warn": true
+        }
+      },
+      "burst": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"trap_radius\", 130.0))",
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": "=float(v(\"active_duration\", 0.25 * float(v(\"spell_duration_multiplier\", 1.0))))"
+        },
+        "payload": [
+          {
+            "$damage": "burst"
+          }
+        ],
+        "vfx": {
+          "heavy": 0.8
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "nearest"
+      },
+      "info_defaults": {
+        "trap_radius": 130.0,
+        "trigger_radius": 70.0
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "arcane": 1.0
+    },
+    "parts": {
+      "activate": {
+        "damage": {},
+        "statuses": [
+          {
+            "status": "rooted",
+            "duration": 0.4
+          }
+        ]
+      },
+      "burst": {
+        "damage": {
+          "arcane": 1.0
+        },
+        "statuses": []
+      }
+    }
+  }
+}

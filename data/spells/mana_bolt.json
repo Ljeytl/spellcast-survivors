@@ -1,0 +1,140 @@
+{
+  "id": "mana_bolt",
+  "order": 10,
+  "spell": {
+    "id": "mana_bolt",
+    "presentation": {
+      "summary": "",
+      "sound": "SPELL_MANA_BOLT",
+      "icon": "bolt",
+      "preview": {
+        "glyph": "bolt",
+        "color": "bc8fff"
+      },
+      "projectile_scale": 0.8
+    },
+    "projectile_ranks": [
+      3,
+      6,
+      10
+    ],
+    "rank_damage_pct": 0.15,
+    "name": "Magic Missile",
+    "element": "arcane",
+    "damage": 15,
+    "cooldown": 1.5,
+    "projectile_count": 1,
+    "speed": 450,
+    "homing_strength": 6.0,
+    "color": [
+      0,
+      1,
+      1,
+      1
+    ],
+    "unlock_condition": {
+      "type": "default"
+    },
+    "visual": {
+      "category": "auto_attack",
+      "projectile_animation": {
+        "idle": {
+          "frames": [
+            "mana_bolt_01.png",
+            "mana_bolt_02.png",
+            "mana_bolt_03.png"
+          ],
+          "fps": 12,
+          "loop": true
+        },
+        "impact": {
+          "frames": [
+            "mana_impact_01.png",
+            "mana_impact_02.png"
+          ],
+          "fps": 24,
+          "loop": false
+        }
+      },
+      "trail_particles": "mana_trail",
+      "cast_flash": {
+        "frames": [
+          "mana_cast_flash.png"
+        ],
+        "fps": 30,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "mana_cast.ogg",
+        "impact": "mana_impact.ogg"
+      }
+    },
+    "upgrades": {
+      "damage_per_level": 0.15,
+      "projectile_count_levels": [
+        3,
+        6,
+        10
+      ],
+      "max_level": 10,
+      "infinite_scaling": {
+        "damage_bonus": 0.03,
+        "speed_bonus": 0.02
+      }
+    }
+  },
+  "shape": {
+    "root": "missile",
+    "parts": {
+      "missile": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=BOLT_RADIUS * float(v(\"projectile_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "motion": [
+          {
+            "type": "guided",
+            "speed": "=float(v(\"speed\", 450.0)) * speed",
+            "lerp": "=float(v(\"homing_strength\", 6.0))",
+            "range": "=float(v(\"speed\", 450.0)) * speed * 3.0"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "limits": {
+          "pierce": 0,
+          "contact_all": true
+        },
+        "vfx": {
+          "family": "dart"
+        }
+      }
+    },
+    "arrangement": {
+      "type": "single",
+      "count": "=maxi(1, int(v(\"projectile_count\", 1)))"
+    },
+    "release": {
+      "type": "staggered",
+      "interval": 0.05,
+      "retarget": true
+    },
+    "needs_target": true,
+    "cast_rules": {
+      "targeting": {
+        "rule": "select"
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "raw": 1.0
+    }
+  }
+}

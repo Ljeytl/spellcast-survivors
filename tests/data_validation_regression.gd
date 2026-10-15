@@ -27,6 +27,10 @@ func load_all() -> Array:
 		if file.ends_with(".json"):
 			docs[file] = load_json("res://data/" + file)
 			schemas[file] = load_json("res://data/schemas/" + file.get_basename() + ".schema.json")
+	var library = load("res://scripts/core/SpellLibrary.gd")   # spell documents come from data/spells/
+	for name in library.names():
+		docs[name + ".json"] = library.document(name)
+		schemas[name + ".json"] = load_json("res://data/schemas/" + name + ".schema.json")
 	return [docs, schemas]
 
 ## Validates the real data with one file replaced by a mutated copy; returns the errors.

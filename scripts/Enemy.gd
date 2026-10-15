@@ -616,7 +616,7 @@ func resolve_untyped_hit(amount: float, source: Dictionary, origin: Vector2) -> 
 		for rule in SpellDamage.statuses_for(spell, str(source.get("part", ""))):
 			var component = Effects.ensure_status(self)
 			if component:
-				var params = preload("res://scripts/engine/LegacyBridge.gd").status_item(rule)
+				var params = preload("res://scripts/engine/SpellTemplate.gd").status_item(rule)
 				params.hit = amount
 				component.apply(str(rule.status), params, source)
 	return total

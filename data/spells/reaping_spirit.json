@@ -1,0 +1,33 @@
+{
+  "id": "reaping_spirit",
+  "order": 340,
+  "recipe": {
+    "presentation": {
+      "shows_lasting": true,
+      "summary": "Summon a hunter with explosive kills and 25% less contact damage.",
+      "sound": "SPELL_BOLT",
+      "icon": "spirit",
+      "preview": {
+        "glyph": "bolt",
+        "color": "bc8fff"
+      }
+    },
+    "enabled": false,
+    "name": "Reaping Spirit",
+    "incantation": "reaping spirit",
+    "ingredients": [
+      "seeker",
+      "infestation"
+    ],
+    "requirements": "Reach rank 8 in Seeking Spirit and Plague Seed, then choose Reaping Spirit. Both ingredients stay equipped.",
+    "description": "Gain: contact kills burst for half damage within 100, without chaining. Cost: 25% less contact damage than Seeking Spirit. Strikes every 0.5 seconds for 5 seconds; up to 3 spirits. Keeps both ingredients and starts at rank 1 without using an active slot.",
+    "card_description": "Gain: contact kills burst for half damage nearby. Cost: 25% less contact damage; bursts cannot chain.",
+    "overrides": {
+      "reaping": true,
+      "damage_multiplier": 0.75
+    }
+  },
+  "shape": {
+    "$extends": "seeker"
+  }
+}

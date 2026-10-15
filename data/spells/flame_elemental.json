@@ -1,0 +1,158 @@
+{
+  "id": "flame_elemental",
+  "order": 210,
+  "spell": {
+    "id": "flame_elemental",
+    "name": "Flame Elemental",
+    "element": "fire",
+    "slot": 15,
+    "chars": 15,
+    "summon_count": 1,
+    "summon_duration": 25,
+    "summon_health": 120,
+    "summon_damage": 20,
+    "summon_speed": 75,
+    "aura_damage": 8,
+    "aura_radius": 100,
+    "color": [
+      1,
+      0.4,
+      0,
+      1
+    ],
+    "unlock_condition": {
+      "type": "spell_mastery",
+      "value": "fire_storm"
+    },
+    "visual": {
+      "category": "summon",
+      "summon_animation": {
+        "frames": [
+          "flame_summon_01.png",
+          "flame_summon_02.png",
+          "flame_summon_03.png",
+          "flame_summon_04.png",
+          "flame_summon_05.png"
+        ],
+        "fps": 20,
+        "loop": false,
+        "duration": 2.5
+      },
+      "spawn_effect": {
+        "frames": [
+          "flame_spawn_01.png",
+          "flame_spawn_02.png",
+          "flame_spawn_03.png",
+          "flame_spawn_04.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "creature_animations": {
+        "idle": {
+          "frames": [
+            "elemental_idle_01.png",
+            "elemental_idle_02.png",
+            "elemental_idle_03.png",
+            "elemental_idle_04.png"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "walking": {
+          "frames": [
+            "elemental_walk_01.png",
+            "elemental_walk_02.png",
+            "elemental_walk_03.png",
+            "elemental_walk_04.png"
+          ],
+          "fps": 12,
+          "loop": true
+        },
+        "attacking": {
+          "frames": [
+            "elemental_attack_01.png",
+            "elemental_attack_02.png",
+            "elemental_attack_03.png"
+          ],
+          "fps": 18,
+          "loop": false
+        },
+        "aura_pulse": {
+          "frames": [
+            "elemental_aura_01.png",
+            "elemental_aura_02.png",
+            "elemental_aura_03.png"
+          ],
+          "fps": 6,
+          "loop": true
+        },
+        "death": {
+          "frames": [
+            "elemental_death_01.png",
+            "elemental_death_02.png",
+            "elemental_death_03.png",
+            "elemental_death_04.png"
+          ],
+          "fps": 15,
+          "loop": false
+        }
+      },
+      "summon_circle_buildup": {
+        "frames": [
+          "fire_circle_01.png",
+          "fire_circle_02.png",
+          "fire_circle_03.png",
+          "fire_circle_04.png"
+        ],
+        "fps": 12,
+        "loop": true,
+        "duration": 2.0
+      },
+      "summon_particles": "flame_essence",
+      "creature_despawn": {
+        "frames": [
+          "elemental_despawn_01.png",
+          "elemental_despawn_02.png",
+          "elemental_despawn_03.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "cast_flash": {
+        "frames": [
+          "flame_cast_01.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "flame_elemental_cast.ogg",
+        "spawn": "elemental_spawn.ogg",
+        "creature_attack": "elemental_attack.ogg",
+        "aura_tick": "fire_aura_damage.ogg",
+        "creature_death": "elemental_death.ogg"
+      }
+    },
+    "upgrades": {
+      "summon_count_levels": [
+        2,
+        4
+      ],
+      "duration_levels": [
+        3,
+        6
+      ],
+      "aura_radius_levels": [
+        2,
+        5
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.04,
+        "aura_damage_bonus": 0.03,
+        "health_bonus": 0.05
+      }
+    }
+  }
+}

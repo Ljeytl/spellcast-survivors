@@ -1,11 +1,9 @@
 extends RefCounted
 ## Typed damage for the shipping spells (doc 18 §6.1). A spell hit arrives as one number; this splits it
-## into damage-type entries from data/spell_damage.json and names the spell's element for the type chart.
+## into damage-type entries from each spell file's "damage" section and names the spell's element for the type chart.
 ## Unknown sources (enemy contact, props) are plain raw damage.
 
 const TypeChart = preload("res://scripts/engine/TypeChart.gd")
-const TABLE_PATH = "res://data/spell_damage.json"
-const SPELLS_PATH = "res://data/spells.json"
 const RESISTANCES_PATH = "res://data/resistances.json"
 
 static var _table: Dictionary = {}
@@ -22,8 +20,8 @@ static func _read(path: String) -> Dictionary:
 static func _load():
 	if not _table.is_empty():
 		return
-	_table = _read(TABLE_PATH).get("spells", {})
-	var spells: Dictionary = _read(SPELLS_PATH).get("spells", {})
+	_table = preload("res://scripts/core/GameData.gd").file("spell_damage").get("spells", {})
+	var spells: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").get("spells", {})
 	for id in spells:
 		_elements[id] = TypeChart.normalize(str(spells[id].get("element", "")))
 

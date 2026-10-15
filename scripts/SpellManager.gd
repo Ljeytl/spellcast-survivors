@@ -13,8 +13,15 @@ signal spell_locked_error(spell_name: String, required_level: int, current_level
 
 # Constants for spell system
 const TIME_SCALE_DURING_TYPING = 0.2
-const SPELL_DAMAGE_MULTIPLIER = 0.15
-const MANA_BOLT_COOLDOWN = 1.5
+## Magic Missile's numbers are data (data/spells.json mana_bolt: damage, cooldown, rank_damage_pct,
+## projectile_ranks, speed, homing_strength).
+static var MANA_BOLT: Dictionary = _mana_bolt_data()
+static var SPELL_DAMAGE_MULTIPLIER: float = float(MANA_BOLT.get("rank_damage_pct", 0.15))
+static var MANA_BOLT_COOLDOWN: float = float(MANA_BOLT.get("cooldown", 1.5))
+
+static func _mana_bolt_data() -> Dictionary:
+	var parsed = preload("res://scripts/core/GameData.gd").file("spells")
+	return parsed.spells.get("mana_bolt", {}) if parsed is Dictionary else {}
 const CHAIN_LIGHTNING_RANGE = 200.0
 const PLAYER_TRANSPARENCY_TYPING = 1.0
 const METEOR_DELAY_INTERVAL = 0.5
@@ -50,7 +57,17 @@ var last_cast_failure: String = ""
 const MAX_EQUIPPED_SPELLS = 6
 ## How many base spells learn_spell accepts. Training Grounds raises it to equip everything.
 var slot_limit: int = MAX_EQUIPPED_SPELLS
-const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning", "meteor_shower", "ember_spear", "infestation", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeker", "firewalk", "cross_blade"]
+## The preparable base spells, in catalog order (data/spells.json "preparable").
+static var BASE_SPELL_IDS: Array = _preparable_ids()
+
+static func _preparable_ids() -> Array:
+	var parsed = preload("res://scripts/core/GameData.gd").file("spells")
+	var out: Array = []
+	if parsed is Dictionary:
+		for id in parsed.get("spells", {}):
+			if bool(parsed.spells[id].get("preparable", false)):
+				out.append(str(id))
+	return out
 var spell_catalog: Dictionary = {}
 var evolved_ingredients: Dictionary = {}
 var bonus_spells: Dictionary = {}
@@ -73,7 +90,7 @@ var spells = {}
 var freeform_spells: Dictionary = {}
 
 # Magic Missile is the auto-attack spell
-var mana_bolt_damage = 15.0
+var mana_bolt_damage = float(MANA_BOLT.get("damage", 15.0))
 var mana_bolt_level = 1
 var mana_bolt_cooldown = MANA_BOLT_COOLDOWN
 var mana_bolt_timer = 0.0
@@ -308,7 +325,7 @@ func cast_spell() -> bool:
 		if not is_spell_unlocked(slot):
 			return false
 		var info = get_spell_info(slot)
-		if info.type == "plague" and get_visible_plague_host(info) == null:
+		if _required_target_missing(info):
 			last_cast_failure = "No target in range"
 			game_manager.update_typing_display(current_typing_text + " · " + last_cast_failure)
 			return false
@@ -457,23 +474,20 @@ func handle_auto_attack(delta):
 		var adjusted_cooldown = mana_bolt_cooldown / cast_speed_bonus
 		mana_bolt_timer = adjusted_cooldown
 
-## Magic Missile on the generic engine (scripts/engine/LegacyBridge.gd _mana_bolt): same damage,
+## Magic Missile on the generic engine (its shape is data/spell_shapes.json mana_bolt): same damage,
 ## count by level, homing and overkill-aware targets; the VFX layer draws it.
 func fire_mana_bolt():
 	if not player or not is_inside_tree() or get_tree().get_nodes_in_group("enemies").is_empty():
 		return
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
 	var damage = mana_bolt_damage * level_multiplier * cast_stat("spell_damage_multiplier")
-	var count = 1
-	if mana_bolt_level >= 3:
-		count = 2
-	if mana_bolt_level >= 6:
-		count = 3
-	if mana_bolt_level >= 10:
-		count = 4
+	# One more missile at each rank in data/spells.json mana_bolt.projectile_ranks.
+	var count = 1 + MANA_BOLT.get("projectile_ranks", []).filter(func(r): return mana_bolt_level >= int(r)).size()
 	if Targeting.select(get_tree(), player.global_position) == null:
 		return
-	var info = {"id": "mana_bolt", "type": "mana_bolt", "name": "Magic Missile", "projectile_count": count}
+	var info = MANA_BOLT.duplicate(true)
+	info.id = "mana_bolt"
+	info.projectile_count = count
 	if spawn_ported(info, damage) == null:
 		return
 	if AudioManager:
@@ -501,14 +515,13 @@ func _dispatch_spell(slot: int) -> bool:
 		return false
 	
 	var spell_info = get_spell_info(slot)
-	var spell_type = spell_info["type"]
-	if LegacyBridge.handles(spell_info):
+	if SpellTemplate.shape_id(spell_info) != "":
 		if not cast_ported(slot):
 			return false
 		AudioManager.play_spell_sound(str(spell_info.id))
 		return true
 	
-	last_cast_failure = "%s has no cast" % str(spell_info.get("name", spell_type))
+	last_cast_failure = "%s has no cast" % str(spell_info.get("name", spell_info.get("id", "")))
 	return false
 
 
@@ -780,7 +793,7 @@ const KeywordParser = preload("res://scripts/engine/KeywordParser.gd")
 const SpellDefs = preload("res://scripts/engine/SpellDefs.gd")
 const CastPlanner = preload("res://scripts/engine/CastPlanner.gd")
 const GenericCast = preload("res://scripts/engine/GenericCast.gd")
-const LegacyBridge = preload("res://scripts/engine/LegacyBridge.gd")
+const SpellTemplate = preload("res://scripts/engine/SpellTemplate.gd")
 var learned_generic_spells: Array = []
 var last_generic_cast = null
 var last_parse: Dictionary = {}
@@ -869,11 +882,11 @@ func _cast_keyword_spell(text: String) -> bool:
 	if legacy.has(parsed.spell):
 		var slot = int(legacy[parsed.spell])
 		var spell_label = str(get_spell_info(slot).name)
-		if parsed.quick and not LegacyBridge.handles(get_spell_info(slot)):
+		if parsed.quick and SpellTemplate.shape_id(get_spell_info(slot)) == "":
 			last_cast_failure = "Quick cast doesn't work on %s yet" % spell_label
 			return false
 		var words: Array = parsed.keywords.filter(func(w): return w != "mega")
-		if LegacyBridge.handles(get_spell_info(slot)) and (parsed.quick or not words.is_empty() or not parsed.rejected.is_empty()):
+		if SpellTemplate.shape_id(get_spell_info(slot)) != "" and (parsed.quick or not words.is_empty() or not parsed.rejected.is_empty()):
 			# Ported spells take every keyword (doc 18 phase 2); rejected words crack and the cast goes on.
 			ported_bundle = parsed.bundle
 			for r in parsed.rejected:
@@ -1165,8 +1178,9 @@ func rank_change_summary(spell_id: String) -> String:
 	now_info = preload("res://scripts/SpellProgression.gd").resolve(now_info)
 	next_info = preload("res://scripts/SpellProgression.gd").resolve(next_info)
 	var parts: Array = []
-	var extra_projectiles = {"bolt": [3, 6], "mana_bolt": [3, 6, 10]}
-	if extra_projectiles.has(spell_id) and rank + 1 in extra_projectiles[spell_id]:
+	var card: Dictionary = DataManager.get_all_spells().get(spell_id, {})
+	var projectile_ranks: Array = card.get("rank_card_projectile_ranks", card.get("projectile_ranks", []))
+	if projectile_ranks.any(func(r): return int(r) == rank + 1):
 		parts.append("+1 projectile")
 	for key in RANK_COUNT_WORDS:
 		var gained = int(next_info.get(key, 0)) - int(now_info.get(key, 0))
@@ -1174,23 +1188,19 @@ func rank_change_summary(spell_id: String) -> String:
 			parts.append("+%d %s%s" % [gained, RANK_COUNT_WORDS[key], "s" if gained > 1 else ""])
 	if int(next_info.get("active_limit", 0)) > int(now_info.get("active_limit", 0)):
 		parts.append("+1 at once")
-	match spell_id:
-		"life", "regeneration":
-			parts.append("+healing")
-		"earth_shield":
-			parts.append("+damage")
-		_:
-			if float(next_info.get("damage", 0.0)) > float(now_info.get("damage", 0.0)) or not (raw.has("rank_steps") or raw.get("rank_growth", {}).has("damage")):
-				parts.append("+damage")
+	if card.has("rank_card_power"):
+		parts.append(str(card.rank_card_power))
+	elif float(next_info.get("damage", 0.0)) > float(now_info.get("damage", 0.0)) or not (raw.has("rank_steps") or raw.get("rank_growth", {}).has("damage")):
+		parts.append("+damage")
 	if RANK_AREA_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
 		parts.append("+area")
 	if RANK_DURATION_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
 		parts.append("+duration")
-	if spell_id == "ice_blast":
-		parts.append("+push")
+	for line in card.get("rank_card_extra", []):
+		parts.append(str(line))
 	return ", ".join(parts) if not parts.is_empty() else "+damage"
 
-## Doc 18 phase 2: a shipping spell rebuilt on the generic engine (scripts/engine/LegacyBridge.gd).
+## A spell cast on the generic engine: its shape, targeting and cast context are data (data/spell_shapes.json).
 ## Same numbers and targeting as before; the generic runner moves and hits, and the VFX present it.
 var ported_bundle: Dictionary = {}
 
@@ -1199,9 +1209,9 @@ func cast_ported(slot: int, bundle: Dictionary = {}) -> bool:
 		bundle = ported_bundle
 	ported_bundle = {}
 	var info = resolve_cast_info(slot)
-	if str(info.get("type", "")) == "shield":
+	if str(SpellTemplate.rules(info).get("cast", "")) == "shield_charge":
 		return _cast_earth_shield(info, bundle if not bundle.is_empty() else ported_bundle)
-	if str(info.get("type", "")) == "plague" and get_visible_plague_host(info) == null:
+	if _required_target_missing(info):
 		last_cast_failure = "No target in range"
 		return false
 	return spawn_ported(info, calculate_spell_damage(info), bundle) != null
@@ -1213,13 +1223,10 @@ func spawn_ported(info: Dictionary, damage: float, bundle: Dictionary = {}, forc
 	var scaled = Geometry.scaled_data(info, player)
 	var speed_mult = float(cast_stat("projectile_speed_multiplier"))
 	var ctx = {"speed_mult": speed_mult}
-	if str(info.get("type", "")) == "heal":
-		ctx.heal = float(info.heal_amount) * (1.0 + 0.15 * (int(info.level) - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
-	if str(info.get("type", "")) == "heal_over_time":
-		# Old Regeneration: heal per second grows 15% a rank; Duration only ever lengthens it.
-		ctx.heal_rate = float(info.heal_amount) * (1.0 + 0.15 * (int(info.level) - 1)) * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier)
-		ctx.duration = float(info.duration) * maxf(1.0, cast_stat("spell_duration_multiplier"))
-	var def = LegacyBridge.build(scaled, damage, ctx)
+	# Values the shape needs from the caster's stats (data: cast_rules.context, read on the unscaled info).
+	ctx.merge(SpellTemplate.rules(info, cast_context(speed_mult)).get("context", {}), true)
+	var rules = SpellTemplate.rules(scaled, {"speed_mult": speed_mult})
+	var def = SpellTemplate.build(scaled, damage, ctx)
 	if def.is_empty():
 		return null
 	var plan = CastPlanner.plan(def, bundle, {})
@@ -1233,21 +1240,21 @@ func spawn_ported(info: Dictionary, damage: float, bundle: Dictionary = {}, forc
 	cast.name = "GenericCast_" + str(def.id)
 	if forced_target == null:
 		cast.target_picker = ported_target.bind(scaled, speed_mult)
-		if str(info.get("type", "")) == "life_bolt":
+		if str(rules.get("targeting", {}).get("rule", "")) == "spread":
 			cast.target_picker = life_bolt_picker()
-	if str(info.get("type", "")) == "multi_aoe":
-		cast.point_picker = meteor_points.bind(float(scaled.get("radius", 220.0)))
+	if rules.has("points"):
+		cast.point_picker = meteor_points.bind(float(rules.points.get("radius", 220.0)))
 	cast.setup(plan, player, get_parent(), DamageSource.current if not DamageSource.current.is_empty() else DamageSource.make(str(def.id), style_clock()))
 	get_parent().add_child(cast)
 	last_generic_cast = cast
 	# Old spells left the caster the moment they were cast; so do ported ones (and targeting sees them).
 	cast.step(0.0)
-	if str(info.get("type", "")) == "beam":
-		_beam_lane(cast)
+	if rules.has("lanes"):
+		_beam_lane(cast, float(rules.lanes.get("spacing", 18.0)))
 	return cast
 
 ## Old Focus Ray lanes: up to three beams sit side by side (18 px apart) instead of on top of each other.
-func _beam_lane(cast) -> void:
+func _beam_lane(cast, spacing: float = 18.0) -> void:
 	var roots: Array = cast.root_parts()
 	if roots.is_empty():
 		return
@@ -1259,7 +1266,7 @@ func _beam_lane(cast) -> void:
 		if lane not in taken:
 			cast.set_meta("beam_lane", lane)
 			for part in roots:
-				part.beam_offset = part.direction.orthogonal() * float(lane) * 18.0
+				part.beam_offset = part.direction.orthogonal() * float(lane) * spacing
 				part.global_position = cast.caster_position() + part.beam_offset
 			return
 
@@ -1344,15 +1351,8 @@ func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
 ## released by EarthShield.block toward the attacker.
 func _cast_earth_shield(info: Dictionary, bundle: Dictionary) -> bool:
 	ported_bundle = {}
-	var rank_multiplier = 1.0 + 0.15 * (int(info.get("level", 1)) - 1)
-	var ctx = {
-		"damage": float(info.get("retaliation_damage", 60.0)) * rank_multiplier * (maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier),
-		"reach": float(info.get("retaliation_reach", 160.0)) * (float(cast_stat("spell_size_multiplier")) * cast_keyword_multiplier),
-		"half_angle": deg_to_rad(float(info.get("retaliation_angle", 100.0)) * 0.5),
-		"knockback": float(info.get("retaliation_knockback", 500.0)),
-		"travel_time": float(info.get("retaliation_travel_time", 0.22)),
-	}
-	var plan = CastPlanner.plan(LegacyBridge.build(info, 0.0, ctx), bundle, {})
+	var ctx: Dictionary = SpellTemplate.rules(info, cast_context(1.0)).get("context", {})
+	var plan = CastPlanner.plan(SpellTemplate.build(info, 0.0, ctx), bundle, {})
 	last_cracked = plan.rejected
 	for r in plan.rejected:
 		keyword_cracked.emit(str(r.word), str(r.reason))
@@ -1399,32 +1399,50 @@ func meteor_points(count: int, radius: float) -> Array:
 
 ## The target each ported spell aimed at before the port.
 func ported_target(info: Dictionary, speed_mult: float):
-	match str(info.get("type", "")):
-		"piercing":
-			var reach = 700.0 * 1.5 * speed_mult
-			var line_target = Targeting.select_line(get_tree(), player.global_position, float(info.get("spear_radius", 24.0)), reach, get_viewport().get_visible_rect())
+	return pick_target(SpellTemplate.rules(info, {"speed_mult": speed_mult}).get("targeting", {}), info)
+
+## Caster stats a spell's cast context may read (data: cast_rules.context).
+func cast_context(speed_mult: float) -> Dictionary:
+	return {"speed_mult": speed_mult,
+		"power": maxf(0.0, cast_stat("spell_damage_multiplier")) * cast_keyword_multiplier,
+		"duration_stat": maxf(1.0, cast_stat("spell_duration_multiplier")),
+		"size_stat": float(cast_stat("spell_size_multiplier")) * cast_keyword_multiplier}
+
+## True when the spell's targeting rule is required and finds nothing (e.g. Infection's visible host).
+func _required_target_missing(info: Dictionary) -> bool:
+	var rule: Dictionary = SpellTemplate.rules(info).get("targeting", {})
+	return bool(rule.get("required", false)) and pick_target(rule, info) == null
+
+## Targeting rules, named by spell data (cast_rules.targeting.rule):
+##  line         the enemy whose line holds the most others within reach (spears), else the nearest
+##  select       the enemy worth hitting (overkill-aware), optionally within range / only if alive
+##  area         the group worth striking within radius, only if alive
+##  visible_host the nearest on-screen enemy within cast_range (Infection)
+##  free_beam    the nearest within reach that no live beam is already on
+##  none         no target (self, orbit, spirit, trail)
+##  nearest      the closest live enemy (default; spread uses it for recasts)
+func pick_target(rule: Dictionary, info: Dictionary):
+	match str(rule.get("rule", "nearest")):
+		"line":
+			var line_target = Targeting.select_line(get_tree(), player.global_position, float(rule.get("radius", 24.0)), float(rule.get("reach", 1050.0)), get_viewport().get_visible_rect())
 			return line_target if line_target != null else get_closest_enemy()
-		"projectile", "mana_bolt":
-			return Targeting.select(get_tree(), player.global_position) if is_instance_valid(player) else null
-		"bouncing_projectile":
-			var first = Targeting.select(get_tree(), player.global_position) if is_instance_valid(player) else null
-			return first if _live_spell_target(first) else null
-		"direct_strike", "chain":
-			var area = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 160)), INF, {}, get_viewport().get_visible_rect())
+		"select":
+			if not is_instance_valid(player):
+				return null
+			var picked = Targeting.select(get_tree(), player.global_position, float(rule.range)) if rule.has("range") else Targeting.select(get_tree(), player.global_position)
+			if bool(rule.get("live", false)):
+				return picked if _live_spell_target(picked) else null
+			return picked
+		"area":
+			var area = Targeting.select_area(get_tree(), player.global_position, float(rule.get("radius", 160.0)), INF, {}, get_viewport().get_visible_rect())
 			return area if _live_spell_target(area) else null
-		"heal":
+		"none":
 			return null
-		"field":
-			var spot = Targeting.select_area(get_tree(), player.global_position, float(info.get("radius", 150)), INF, {}, get_viewport().get_visible_rect())
-			return spot if _live_spell_target(spot) else null
-		"orbit", "spirit", "trail":
-			return null
-		"plague":
+		"visible_host":
 			return get_visible_plague_host(info)
-		"returning":
-			return Targeting.select(get_tree(), player.global_position, 600.0)
-		"beam":
+		"free_beam":
 			# nearest within reach, preferring enemies no live beam is already on
+			var reach = float(rule.get("reach", 450.0))
 			var occupied: Array = []
 			for beam in get_tree().get_nodes_in_group("active_spell_channels"):
 				if beam.has_method("is_style_channel_active") and beam.is_style_channel_active() and beam.get("target_ref") and is_instance_valid(beam.target_ref.get_ref()):
@@ -1432,7 +1450,7 @@ func ported_target(info: Dictionary, speed_mult: float):
 			var best = null
 			var distance = INF
 			for enemy in get_tree().get_nodes_in_group("enemies"):
-				if not _live_spell_target(enemy) or player.global_position.distance_to(enemy.global_position) > 450.0:
+				if not _live_spell_target(enemy) or player.global_position.distance_to(enemy.global_position) > reach:
 					continue
 				var score = player.global_position.distance_squared_to(enemy.global_position) + (1000000.0 if enemy in occupied else 0.0)
 				if score < distance:

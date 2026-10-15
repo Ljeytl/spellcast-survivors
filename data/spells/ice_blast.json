@@ -1,0 +1,192 @@
+{
+  "id": "ice_blast",
+  "order": 50,
+  "spell": {
+    "degrees_per_shard": 6,
+    "role": "Push nearby enemies back and slow them.",
+    "id": "ice_blast",
+    "presentation": {
+      "summary": "Blast a cone of enemies with ice and push them back.",
+      "sound": "SPELL_ICE_BLAST",
+      "icon": "ice",
+      "preview": {
+        "glyph": "cone",
+        "color": "8ce6ee"
+      }
+    },
+    "rank_card_extra": [
+      "+push"
+    ],
+    "preparable": true,
+    "shard_count": 3,
+    "cone_degrees": 45,
+    "growth_description": "more shards, wider and longer cone",
+    "rank_growth": {
+      "radius": {
+        "per_rank": 35.7143,
+        "max": 500
+      },
+      "damage": {
+        "per_rank": 10.7143
+      },
+      "slow_duration": {
+        "per_rank": 0.2857,
+        "max": 4.0
+      },
+      "slow_effect": {
+        "per_rank": -0.0286
+      },
+      "cone_degrees": {
+        "per_rank": 45,
+        "max": 360
+      }
+    },
+    "name": "Ice Blast",
+    "element": "ice",
+    "slot": 3,
+    "chars": 9,
+    "damage": 35,
+    "radius": 250,
+    "knockback": 550,
+    "slow_effect": 0.35,
+    "slow_duration": 2.0,
+    "color": [
+      0.5,
+      0.8,
+      1,
+      1
+    ],
+    "unlock_condition": {
+      "type": "level",
+      "value": 5
+    },
+    "visual": {
+      "category": "aoe",
+      "explosion_animation": {
+        "frames": [
+          "ice_explosion_01.png",
+          "ice_explosion_02.png",
+          "ice_explosion_03.png",
+          "ice_explosion_04.png"
+        ],
+        "fps": 24,
+        "loop": false
+      },
+      "ground_lingering_effect": {
+        "frames": [
+          "ice_ground_01.png",
+          "ice_ground_02.png"
+        ],
+        "fps": 6,
+        "loop": true,
+        "duration": 3.0
+      },
+      "warning_indicator": {
+        "frames": [
+          "ice_warning_01.png"
+        ],
+        "fps": 4,
+        "loop": true,
+        "duration": 0.5
+      },
+      "cast_flash": {
+        "frames": [
+          "ice_cast_01.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "ice_cast.ogg",
+        "explosion": "ice_explosion.ogg"
+      }
+    },
+    "upgrades": {
+      "damage_per_level": 0.15,
+      "radius_levels": [
+        2,
+        4,
+        6
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.025,
+        "radius_bonus": 0.02
+      }
+    }
+  },
+  "shape": {
+    "root": "shard",
+    "parts": {
+      "shard": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=12.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": "=620.0 * speed",
+            "range": "=float(v(\"radius\", 400.0))"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": ""
+          },
+          {
+            "type": "impulse",
+            "direction": "travel",
+            "force": "=float(v(\"knockback\", 400)) + (level - 1) * 50.0",
+            "falloff": [
+              2.0,
+              1.2
+            ],
+            "once_per_cast": true
+          }
+        ],
+        "limits": {
+          "pierce": "=int(v(\"shard_pierce\", 0))"
+        },
+        "vfx": {
+          "family": "shard",
+          "look": "ice"
+        }
+      }
+    },
+    "arrangement": {
+      "$choose": [
+        {
+          "$when": "float(v(\"cone_degrees\", 90.0)) >= 359.0",
+          "type": "ring",
+          "count": "=maxi(1, pick(has(\"degrees_per_shard\"), int(round(float(v(\"cone_degrees\", 90.0)) / float(v(\"degrees_per_shard\", 1.0)))), int(v(\"shard_count\", 13))))",
+          "radius": 0.0
+        },
+        {
+          "type": "fan",
+          "count": "=maxi(1, pick(has(\"degrees_per_shard\"), int(round(float(v(\"cone_degrees\", 90.0)) / float(v(\"degrees_per_shard\", 1.0)))), int(v(\"shard_count\", 13))))",
+          "spread": "=float(v(\"cone_degrees\", 90.0)) / maxf(1.0, maxi(1, pick(has(\"degrees_per_shard\"), int(round(float(v(\"cone_degrees\", 90.0)) / float(v(\"degrees_per_shard\", 1.0)))), int(v(\"shard_count\", 13)))) - 1.0)"
+        }
+      ]
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "nearest"
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "raw": 0.6,
+      "water": 0.4
+    },
+    "statuses": [
+      {
+        "status": "chilled"
+      }
+    ]
+  }
+}

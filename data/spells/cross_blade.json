@@ -1,0 +1,191 @@
+{
+  "id": "cross_blade",
+  "order": 260,
+  "spell": {
+    "rank_growth": {
+      "damage": {
+        "per_rank": 3.0
+      }
+    },
+    "id": "cross_blade",
+    "presentation": {
+      "summary": "Throw spinning blades around you that return to strike again.",
+      "sound": "SPELL_BOLT",
+      "icon": "blade",
+      "preview": {
+        "glyph": "arc",
+        "color": "bc8fff"
+      }
+    },
+    "preparable": true,
+    "name": "Cross Blade",
+    "element": "steel",
+    "damage": 11,
+    "return_damage_multiplier": 2.0,
+    "duration": 4.0,
+    "active_limit": 3,
+    "role": "Send a ring of spinning blades outward, then back to you.",
+    "unlock_condition": {
+      "type": "default"
+    },
+    "incantation": "cross blade",
+    "blade_radius": 20,
+    "travel_distance": 350,
+    "linger_duration": 0.9,
+    "linger_interval": 0.3,
+    "linger_damage_multiplier": 0.5,
+    "speed": 500,
+    "blade_count": 1,
+    "rank_steps": [
+      {
+        "blade_count": 2,
+        "description": "Throw two blades."
+      },
+      {
+        "blade_count": 3,
+        "description": "Throw three blades in a triangle."
+      },
+      {
+        "blade_count": 4,
+        "blade_radius": 27,
+        "travel_distance": 400,
+        "description": "Throw four larger blades in an X that travel 50 farther."
+      },
+      {
+        "blade_count": 5,
+        "description": "Throw five blades."
+      },
+      {
+        "blade_radius": 33,
+        "description": "Larger blades."
+      },
+      {
+        "blade_count": 6,
+        "travel_distance": 460,
+        "description": "Throw six blades in a hexagon that travel 60 farther."
+      },
+      {
+        "blade_radius": 40,
+        "description": "Larger blades."
+      }
+    ],
+    "upgrades": {
+      "max_level": 8
+    }
+  },
+  "shape": {
+    "root": "blade",
+    "$recast": true,
+    "parts": {
+      "blade": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=float(v(\"blade_radius\", 33.6))",
+          "pad": 0.0
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": "=float(v(\"speed\", 500.0)) * speed",
+            "range": "=float(v(\"travel_distance\", 350.0))"
+          },
+          {
+            "type": "hold",
+            "time": "=float(v(\"linger_duration\", 0.9)) * float(v(\"spell_duration_multiplier\", 1.0))",
+            "pulse": {
+              "interval": "=float(v(\"linger_interval\", 0.3))",
+              "mult": 1.0,
+              "mix": "=mix(\"hold\")"
+            }
+          },
+          {
+            "type": "return",
+            "speed": "=float(v(\"speed\", 500.0)) * speed",
+            "catch": 18.0,
+            "mult": 1.0,
+            "mix": "=mix(\"return\")",
+            "status_repeat": "=stacks(\"return\", \"bleed\")",
+            "fresh_hits": true
+          }
+        ],
+        "payload": [
+          {
+            "$damage": "blade"
+          }
+        ],
+        "limits": {
+          "pierce": -1
+        },
+        "vfx": {
+          "family": "blade"
+        }
+      }
+    },
+    "arrangement": {
+      "type": "ring",
+      "count": "=maxi(1, int(v(\"blade_count\", 3)))",
+      "radius": 0.0,
+      "aimed": true,
+      "offset": "=pick(maxi(1, int(v(\"blade_count\", 3))) == 4, PI / 4.0, 0.0)"
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "select",
+        "range": 600.0
+      },
+      "info_defaults": {
+        "blade_radius": 33.6
+      },
+      "fixed_duration": true
+    }
+  },
+  "damage": {
+    "damage": {
+      "raw": 0.75,
+      "earth": 0.25
+    },
+    "statuses": [
+      {
+        "status": "bleed"
+      }
+    ],
+    "parts": {
+      "blade": {
+        "damage": {
+          "raw": 0.75,
+          "earth": 0.25
+        },
+        "statuses": [
+          {
+            "status": "bleed"
+          }
+        ]
+      },
+      "hold": {
+        "damage": {
+          "raw": 0.5,
+          "earth": 0.5
+        },
+        "statuses": [
+          {
+            "status": "bleed"
+          }
+        ]
+      },
+      "return": {
+        "damage": {
+          "raw": 0.75,
+          "earth": 1.25
+        },
+        "statuses": [
+          {
+            "status": "bleed",
+            "stacks": 2
+          }
+        ]
+      }
+    }
+  }
+}

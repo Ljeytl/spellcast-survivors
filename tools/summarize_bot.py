@@ -11,7 +11,10 @@ root = Path(sys.argv[1] if len(sys.argv) > 1 else "builds/balance")
 runs = [json.loads(p.read_text()) for p in sorted(root.rglob("*.json")) if p.stem.isdigit()]
 if not runs:
     sys.exit(f"No bot reports under {root}")
-catalog = json.loads(Path("data/spells.json").read_text()).get("spells", {})
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import spell_library  # noqa: E402
+catalog = spell_library.document("spells").get("spells", {})
 names = {sid: info.get("name", sid) for sid, info in catalog.items()}
 rows = defaultdict(lambda: defaultdict(list))  # (build, spell) -> metric lists
 builds = defaultdict(list)

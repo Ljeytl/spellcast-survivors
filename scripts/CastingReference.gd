@@ -133,4 +133,4 @@ func upcoming_spells() -> Array:
 	return upcoming
 
 static func shows_status(info: Dictionary) -> bool:
-	return info.get("recast_behavior", "") == "extend" or info.get("type", "") in ["shield", "trap", "field", "plague"]
+	return info.get("recast_behavior", "") == "extend" or bool(preload("res://scripts/engine/SpellCatalog.gd").presentation(str(info.get("id", ""))).get("shows_status", false))

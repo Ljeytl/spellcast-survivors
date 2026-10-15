@@ -1,0 +1,102 @@
+{
+  "id": "arcane_orbit",
+  "order": 120,
+  "spell": {
+    "id": "arcane_orbit",
+    "presentation": {
+      "shows_lasting": true,
+      "summary": "Surround yourself with damaging orbiting magic.",
+      "sound": "SPELL_LIFE",
+      "icon": "orbit",
+      "preview": {
+        "glyph": "ring",
+        "color": "bc8fff"
+      }
+    },
+    "preparable": true,
+    "growth_description": "wider orbit, extra spark at ranks 5 and 8",
+    "rank_growth": {
+      "orbit_radius": {
+        "per_rank": 4.286,
+        "max": 130
+      },
+      "orb_count": {
+        "per_rank": 0.2857,
+        "max": 4,
+        "integer": true
+      },
+      "damage": {
+        "per_rank": 3.5714
+      }
+    },
+    "recast_behavior": "extend",
+    "name": "Arcane Orbit",
+    "element": "arcane",
+    "damage": 12,
+    "duration": 6.0,
+    "role": "Large arcane sparks circle you for 6 seconds.",
+    "unlock_condition": {
+      "type": "default"
+    },
+    "orbit_radius": 100,
+    "body_radius": 42,
+    "orb_count": 2,
+    "angular_speed": 4,
+    "tick_interval": 0.5
+  },
+  "shape": {
+    "root": "orb",
+    "$recast": true,
+    "parts": {
+      "orb": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=float(v(\"body_radius\", 42.0))",
+          "pad": 0.0
+        },
+        "motion": [
+          {
+            "type": "orbit",
+            "speed": "=float(v(\"angular_speed\", 4.0)) * speed",
+            "radius": "=float(v(\"orbit_radius\", 130.0))"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "limits": {
+          "pierce": -1,
+          "rehit": "=float(v(\"tick_interval\", 0.5))",
+          "rehit_shared": true,
+          "lifetime": "=float(v(\"duration\", 6.0))"
+        },
+        "vfx": {
+          "family": "sphere"
+        }
+      }
+    },
+    "arrangement": {
+      "type": "ring",
+      "count": "=maxi(1, int(v(\"orb_count\", 3)))",
+      "radius": "=float(v(\"orbit_radius\", 130.0))"
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "none"
+      },
+      "info_defaults": {
+        "body_radius": 42.0,
+        "orbit_radius": 130.0
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "arcane": 1.0
+    }
+  }
+}

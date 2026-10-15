@@ -1,0 +1,77 @@
+{
+  "id": "meteor_spear",
+  "order": 290,
+  "recipe": {
+    "presentation": {
+      "summary": "Pierce enemies with explosive meteor hits.",
+      "sound": "SPELL_METEOR",
+      "icon": "spear",
+      "preview": {
+        "glyph": "beam",
+        "color": "ffa66b"
+      },
+      "projectile_scale": 0.85
+    },
+    "name": "Meteor Spear",
+    "incantation": "meteor spear",
+    "ingredients": [
+      "ember_spear",
+      "meteor_shower"
+    ],
+    "requirements": "Reach rank 8 in Ember Spear and Meteor Shower, then choose Meteor Spear. Both ingredients stay equipped.",
+    "description": "A piercing spear detonates meteor impacts. Ember Spear strengthens direct hits; Meteor Shower strengthens explosions.",
+    "card_description": "A piercing spear explodes through crowds.",
+    "overrides": {
+      "explosive": true
+    },
+    "scaling": {
+      "damage": "=dmg(\"ember_spear\", 45.0) * (1.0 + 0.1 * own)",
+      "explosion_damage": "=dmg(\"meteor_shower\", 30.0) * 0.8 * (1.0 + 0.1 * own)",
+      "explosion_radius": "=90.0 * (1.0 + 0.05 * bonus(\"meteor_shower\") + 0.1 * own)",
+      "explosion_duration": "=0.2",
+      "body_size_multiplier": "=1.0 + 0.1 * own"
+    },
+    "rank_note": "=\"+damage, +area\""
+  },
+  "shape": {
+    "$extends": "ember_spear"
+  },
+  "damage": {
+    "element": "fire",
+    "damage": {
+      "raw": 0.85,
+      "fire": 0.15
+    },
+    "parts": {
+      "spear": {
+        "damage": {
+          "raw": 0.85,
+          "fire": 0.15
+        },
+        "statuses": []
+      },
+      "trail": {
+        "damage": {
+          "fire": 0.2
+        },
+        "statuses": [
+          {
+            "status": "burn"
+          }
+        ]
+      },
+      "meteor": {
+        "damage": {
+          "raw": 0.33,
+          "fire": 0.22
+        },
+        "statuses": [
+          {
+            "status": "stunned",
+            "duration": 0.2
+          }
+        ]
+      }
+    }
+  }
+}

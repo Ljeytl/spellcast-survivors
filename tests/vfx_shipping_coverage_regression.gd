@@ -40,7 +40,6 @@ func run():
 		if recipes[id].get("enabled", true):
 			ids.append(id)
 	var seen: Dictionary = {}
-	var ported_types = preload("res://scripts/engine/LegacyBridge.gd").PORTED
 	for id in ids + ["mana_bolt"]:
 		for e in get_nodes_in_group("enemies"):
 			e.free()
@@ -68,7 +67,7 @@ func run():
 			if slot < 0:
 				check(false, "Learn " + id)
 				continue
-			check(ported_types.has(str(manager.resolve_cast_info(slot).get("type", ""))), id + " runs on the generic engine")
+			check(preload("res://scripts/engine/SpellTemplate.gd").has_shape(id), id + " runs on the generic engine (has a data shape)")
 			ok = manager.cast_spell_by_type(slot)
 			check(ok, "Cast " + id + ": " + manager.last_cast_failure)
 		var placeholders: Array = []

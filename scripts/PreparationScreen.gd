@@ -135,7 +135,7 @@ func build_catalog() -> Control:
 		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		text.add_theme_font_size_override("font_size", 17)
 		text.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		text.text = "%s\n%s\n%s" % [spell_name(id), COPY.SPELLS.get(id, ""), element_line(id)]
+		text.text = "%s\n%s\n%s" % [spell_name(id), COPY.summary(id), element_line(id)]
 		row.add_child(text)
 		text.resized.connect(fit_cards.call_deferred)
 		grid.add_child(button)
@@ -237,7 +237,7 @@ func refresh():
 		for state in ["normal", "hover", "focus", "pressed"]:
 			spell_buttons[id].add_theme_stylebox_override(state, READABILITY.panel_style(accent.lightened(0.25) if state in ["hover", "focus"] else accent))
 		var copy = spell_buttons[id].find_child("Copy", true, false) as Label
-		copy.text = "%s%s\n%s\n%s" % [spell_name(id), "   · slot %d" % (at + 1) if at >= 0 else "", COPY.SPELLS.get(id, ""), element_line(id)]
+		copy.text = "%s%s\n%s\n%s" % [spell_name(id), "   · slot %d" % (at + 1) if at >= 0 else "", COPY.summary(id), element_line(id)]
 	fit_cards.call_deferred()
 	hint.text = "Choose a spell for %s. Picking a spell that's already prepared swaps it." % ("slot 1 (must attack)" if selected_slot == 0 else "slot %d" % (selected_slot + 1))
 

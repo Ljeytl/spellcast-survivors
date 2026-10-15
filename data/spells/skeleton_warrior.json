@@ -1,0 +1,128 @@
+{
+  "id": "skeleton_warrior",
+  "order": 190,
+  "spell": {
+    "id": "skeleton_warrior",
+    "name": "Skeleton Warrior",
+    "element": "death",
+    "slot": 13,
+    "chars": 16,
+    "summon_count": 1,
+    "summon_duration": 30,
+    "summon_health": 80,
+    "summon_damage": 15,
+    "summon_speed": 90,
+    "color": [
+      0.9,
+      0.9,
+      0.8,
+      1
+    ],
+    "unlock_condition": {
+      "type": "character",
+      "value": "necromancer"
+    },
+    "visual": {
+      "category": "summon",
+      "summon_animation": {
+        "frames": [
+          "summon_circle_01.png",
+          "summon_circle_02.png",
+          "summon_circle_03.png",
+          "summon_circle_04.png"
+        ],
+        "fps": 15,
+        "loop": false,
+        "duration": 2.0
+      },
+      "spawn_effect": {
+        "frames": [
+          "skeleton_spawn_01.png",
+          "skeleton_spawn_02.png",
+          "skeleton_spawn_03.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "creature_animations": {
+        "idle": {
+          "frames": [
+            "skeleton_idle_01.png",
+            "skeleton_idle_02.png",
+            "skeleton_idle_03.png"
+          ],
+          "fps": 6,
+          "loop": true
+        },
+        "walking": {
+          "frames": [
+            "skeleton_walk_01.png",
+            "skeleton_walk_02.png",
+            "skeleton_walk_03.png",
+            "skeleton_walk_04.png"
+          ],
+          "fps": 10,
+          "loop": true
+        },
+        "attacking": {
+          "frames": [
+            "skeleton_attack_01.png",
+            "skeleton_attack_02.png",
+            "skeleton_attack_03.png"
+          ],
+          "fps": 15,
+          "loop": false
+        },
+        "death": {
+          "frames": [
+            "skeleton_death_01.png",
+            "skeleton_death_02.png",
+            "skeleton_death_03.png"
+          ],
+          "fps": 12,
+          "loop": false
+        }
+      },
+      "summon_circle_buildup": {
+        "frames": [
+          "necro_circle_01.png",
+          "necro_circle_02.png",
+          "necro_circle_03.png"
+        ],
+        "fps": 8,
+        "loop": true,
+        "duration": 1.5
+      },
+      "summon_particles": "bone_dust",
+      "cast_flash": {
+        "frames": [
+          "necro_cast_01.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "skeleton_summon_cast.ogg",
+        "spawn": "skeleton_spawn.ogg",
+        "creature_attack": "skeleton_attack.ogg",
+        "creature_death": "skeleton_death.ogg"
+      }
+    },
+    "upgrades": {
+      "summon_count_levels": [
+        2,
+        4,
+        6
+      ],
+      "duration_levels": [
+        2,
+        4
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.04,
+        "health_bonus": 0.05
+      }
+    }
+  }
+}

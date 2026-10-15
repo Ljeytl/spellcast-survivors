@@ -1,0 +1,182 @@
+{
+  "id": "lightning",
+  "order": 70,
+  "spell": {
+    "role": "Strike a group with a brief circle of lightning.",
+    "id": "lightning",
+    "presentation": {
+      "summary": "Strike nearby enemies with an area of lightning.",
+      "sound": "SPELL_LIGHTNING",
+      "sound_on_cast": false,
+      "icon": "lightning",
+      "preview": {
+        "glyph": "zigzag",
+        "color": "f4ed96"
+      }
+    },
+    "preparable": true,
+    "growth_description": "wider strike",
+    "rank_growth": {
+      "radius": {
+        "per_rank": 10.7143,
+        "max": 175
+      },
+      "damage": {
+        "per_rank": 17.1429
+      }
+    },
+    "name": "Lightning",
+    "element": "storm",
+    "slot": 5,
+    "chars": 13,
+    "damage": 60,
+    "chain_count": 2,
+    "chain_range": 200,
+    "chain_damage_reduction": 0.8,
+    "color": [
+      1,
+      1,
+      0.5,
+      1
+    ],
+    "unlock_condition": {
+      "type": "level",
+      "value": 10
+    },
+    "visual": {
+      "category": "chain",
+      "projectile_animation": {
+        "idle": {
+          "frames": [
+            "lightning_arc_01.png",
+            "lightning_arc_02.png",
+            "lightning_arc_03.png"
+          ],
+          "fps": 20,
+          "loop": true
+        },
+        "impact": {
+          "frames": [
+            "lightning_arc_impact_01.png",
+            "lightning_arc_impact_02.png"
+          ],
+          "fps": 30,
+          "loop": false
+        }
+      },
+      "chain_effect": {
+        "frames": [
+          "chain_lightning_01.png",
+          "chain_lightning_02.png",
+          "chain_lightning_03.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "target_indicators": {
+        "frames": [
+          "chain_target_01.png",
+          "chain_target_02.png"
+        ],
+        "fps": 8,
+        "loop": true,
+        "duration": 0.3
+      },
+      "chain_particles": "electric_arcs",
+      "cast_flash": {
+        "frames": [
+          "lightning_arc_cast_01.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "lightning_arc_cast.ogg",
+        "chain": "lightning_arc_chain.ogg",
+        "impact": "lightning_arc_impact.ogg"
+      }
+    },
+    "upgrades": {
+      "damage_per_level": 0.15,
+      "chain_count_levels": [
+        2,
+        4,
+        6
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.03,
+        "range_bonus": 0.02
+      }
+    },
+    "incantation": "lightning",
+    "radius": 100,
+    "active_duration": 0.2
+  },
+  "shape": {
+    "root": "mark",
+    "max_depth": 2,
+    "needs_target": true,
+    "parts": {
+      "mark": {
+        "delivery": "field",
+        "origin": "target",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"radius\", 160.0))",
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": 0.32,
+          "interval": 999.0
+        },
+        "events": {
+          "on_expire": {
+            "part": "strike"
+          }
+        },
+        "payload": [],
+        "vfx": {
+          "warn": true
+        }
+      },
+      "strike": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"radius\", 160.0))",
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": "=float(v(\"active_duration\", 0.2 * float(v(\"spell_duration_multiplier\", 1.0))))"
+        },
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "vfx": {
+          "heavy": 1.0
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "area",
+        "radius": "=float(v(\"radius\", 160))"
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "storm": 1.0
+    },
+    "statuses": [
+      {
+        "status": "shocked"
+      }
+    ]
+  }
+}

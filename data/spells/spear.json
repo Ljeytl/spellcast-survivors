@@ -1,0 +1,40 @@
+{
+  "id": "spear",
+  "order": 360,
+  "generic_order": 10,
+  "generic": {
+    "name": "Spear",
+    "incantation": "spear",
+    "element": "",
+    "acquire": "bare",
+    "matrix_column": "spear",
+    "root": "spear",
+    "parts": {
+      "spear": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": 12
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": 900,
+            "range": 800
+          }
+        ],
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 22,
+            "raw_share": 1.0
+          }
+        ],
+        "limits": {
+          "pierce": -1
+        }
+      }
+    }
+  }
+}

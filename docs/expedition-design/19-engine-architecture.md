@@ -182,7 +182,7 @@ The planner applies, in this resolution order: mechanic defaults → spell → k
 
 ### 4.3 Statuses, elements, reactions, looks
 
-Numbers are already data (`statuses.json`, `spell_damage.json`, `resistances.json`, type chart). Behaviour is not: see §5.2. Remaining code-held rules move into data: reaction table ([current effects contract](21-damage-effects-keywords.md)), element → status map, per-look palettes and particle choices (today constants in `VfxPresenter.gd`). Damage types and resistances are defined once for the whole game in doc 20 §2.
+Numbers are already data (`statuses.json`, each spell file's `damage` section, `resistances.json`, type chart). Behaviour is not: see §5.2. Remaining code-held rules move into data: reaction table ([current effects contract](21-damage-effects-keywords.md)), element → status map, per-look palettes and particle choices (today constants in `VfxPresenter.gd`). Damage types and resistances are defined once for the whole game in doc 20 §2.
 
 ## 5. Mechanics and registries
 
@@ -342,7 +342,7 @@ Order rationale: validator, bus, RNG and stats first because every later step an
 
 | Add | Touch | Never touch |
 |---|---|---|
-| A spell from existing mechanics | `data/spells/<school>.json` | code |
+| A spell from existing mechanics | `data/spells/<id>.json` (see §11.1) | code |
 | A balance change, including rank curve | the spell's `params` / `growth` | code |
 | A keyword word in an existing category | `data/keywords.json` | code |
 | A keyword with new behaviour | data + one mechanic module if no existing mechanic expresses it | planner, other mechanics |
@@ -353,6 +353,23 @@ Order rationale: validator, bus, RNG and stats first because every later step an
 | A status with a new behaviour | one pattern module + `statuses.json` entry | other statuses, Effects |
 | A passive or upgrade | modifier entries in data (doc 20 §5) | Player.gd |
 | A new listener (achievement, stat, sound) | subscribe to the event bus | the system producing the event |
+
+### 11.1 Adding a spell (as built in 0.3.2)
+
+One file, `data/spells/<id>.json`, named after the spell id. Its sections:
+
+| Section | Holds | Read by |
+|---|---|---|
+| `order` | Catalog position (spellbook and preparation order); pick an unused number | SpellLibrary |
+| `spell` | `id`, `name`, `incantation`, `element`, base numbers (`damage`, `radius`, `duration`…), `rank_growth` / `rank_steps`, `recast_behavior` / `active_limit`, `preparable`, `opens_kit`, rank-card lines, `presentation` | SpellManager, Preparation, SpellCatalog |
+| `shape` | `root`, `parts`, `arrangement`, `release`, `$recast`, `cast_rules` (`targeting`, `context`, `points`, `lanes`, `info_defaults`, `fixed_duration`, `cast`) | SpellTemplate |
+| `damage` | damage-type mix and statuses, per part where parts differ (doc 21) | SpellDamage |
+| `recipe` | combinations only: `ingredients`, `overrides`, `scaling`, `rank_note`, `presentation` | SynergyCatalog, CombinationScaling |
+| `generic` | bare or draft definitions for the generic caster | SpellDefs |
+
+Shape values may be expressions (`"=float(v(\"radius\", 150.0)) * 0.6"`) reading the resolved spell numbers (`v`), cast context (`c`), `damage`, `speed` and `level`; `$damage` / `$statuses` items pull the part's damage entry; `$when` and `$choose` make parts conditional; `$extends` reuses another spell's shape. The header of `scripts/engine/SpellTemplate.gd` is the reference. Presentation fields left out fall back by element and shape (`scripts/engine/SpellCatalog.gd`), so a spell plays, sounds and shows without code.
+
+Acceptance for a new spell: the data validator passes (`tests/data_validation_regression.gd`), the spell builds and casts in a test like `tests/data_only_spell_regression.gd`, every keyword either changes it or is rejected, and its open gameplay choices from [doc 3](03-spells.md) are decided before it ships. A new reusable mechanic (delivery, motion, targeting rule) is one module plus its registry entry, never a spell-specific branch.
 
 ## 12. Risks
 

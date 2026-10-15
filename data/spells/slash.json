@@ -1,0 +1,34 @@
+{
+  "id": "slash",
+  "order": 410,
+  "generic_order": 60,
+  "generic": {
+    "name": "Slash",
+    "incantation": "slash",
+    "element": "",
+    "acquire": "bare",
+    "matrix_column": "slice",
+    "root": "cut",
+    "parts": {
+      "cut": {
+        "delivery": "volume",
+        "origin": "caster",
+        "geometry": {
+          "type": "cone",
+          "radius": 120,
+          "angle": 100
+        },
+        "aim": {
+          "type": "nearest"
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 16,
+            "raw_share": 1.0
+          }
+        ]
+      }
+    }
+  }
+}

@@ -276,7 +276,7 @@ func run():
 		var temporary_caster = Node2D.new()
 		game.add_child(temporary_caster)
 		var data = manager.spell_catalog[id]
-		var def = load("res://scripts/engine/LegacyBridge.gd").build(load("res://scripts/SpellGeometry.gd").scaled_data(data, game.player), 1.0, {})
+		var def = load("res://scripts/engine/SpellTemplate.gd").build(load("res://scripts/SpellGeometry.gd").scaled_data(data, game.player), 1.0, {})
 		var cast = load("res://scripts/engine/GenericCast.gd").new()
 		cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), temporary_caster, game, {"spell": id}, true)
 		game.add_child(cast)

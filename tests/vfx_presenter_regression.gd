@@ -128,18 +128,18 @@ func run():
 		check(on == off, "VFX never change gameplay: " + text + " " + str(on) + " vs " + str(off))
 	vfx.presenter.enabled = true
 
-	var cinder_info: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells.cinder_field
+	var cinder_info: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells.cinder_field.duplicate(true)
 	cinder_info.incantation = "cinder field"
-	Defs.register(preload("res://scripts/engine/LegacyBridge.gd").build(cinder_info, 8.0, {}))
+	Defs.register(preload("res://scripts/engine/SpellTemplate.gd").build(cinder_info, 8.0, {}))
 	for item in [["cinder field", "cinder"], ["flame wall", "default"]]:
 		clear()
 		foe(Vector2(150, 0))
 		cast(item[0], 0.1)
 		check(vfx._fields.any(func(field): return field.get("profile", "default") == item[1]), "Fire presentation routed by spell: " + item[0])
 	clear()
-	var seeker_info: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells.seeker
+	var seeker_info: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells.seeker.duplicate(true)
 	seeker_info.incantation = "seeker"
-	Defs.register(preload("res://scripts/engine/LegacyBridge.gd").build(seeker_info, 8.0, {}))
+	Defs.register(preload("res://scripts/engine/SpellTemplate.gd").build(seeker_info, 8.0, {}))
 	foe(Vector2(150, 0))
 	var seeker_cast = cast("seeker", 0.1)
 	var spirit_visual = seeker_cast.parts[0].get_child(0)

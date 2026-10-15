@@ -1,0 +1,43 @@
+{
+  "id": "flame_wall",
+  "order": 440,
+  "generic_order": 100,
+  "generic": {
+    "name": "Flame Wall",
+    "incantation": "flame wall",
+    "element": "fire",
+    "acquire": "data_only",
+    "matrix_column": "wall",
+    "root": "wall",
+    "parts": {
+      "wall": {
+        "delivery": "field",
+        "origin": "target",
+        "geometry": {
+          "type": "line",
+          "length": 260,
+          "width": 30
+        },
+        "timing": {
+          "type": "periodic",
+          "interval": 0.25,
+          "duration": 6.0
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 30,
+            "raw_share": 0.0
+          },
+          {
+            "type": "status",
+            "status": "burn"
+          }
+        ],
+        "limits": {
+          "rehit": 1.0
+        }
+      }
+    }
+  }
+}

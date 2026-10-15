@@ -1,0 +1,123 @@
+{
+  "id": "seeker",
+  "order": 240,
+  "spell": {
+    "id": "seeker",
+    "presentation": {
+      "shows_lasting": true,
+      "summary": "Summon a hunter that pursues nearby enemies.",
+      "sound": "SPELL_LIFE",
+      "icon": "spirit",
+      "preview": {
+        "glyph": "bolt",
+        "color": "bc8fff"
+      }
+    },
+    "preparable": true,
+    "growth_description": "longer-lasting spirits, third spirit at rank 8",
+    "rank_growth": {
+      "active_limit": {
+        "per_rank": 0.1429,
+        "max": 3,
+        "integer": true
+      },
+      "duration": {
+        "per_rank": 1.7143,
+        "max": 24.0
+      },
+      "damage": {
+        "per_rank": 3.5714
+      }
+    },
+    "recast_behavior": "stack",
+    "name": "Seeker",
+    "element": "spirit",
+    "damage": 15,
+    "hit_interval": 1.0,
+    "move_speed": 220,
+    "duration": 12.0,
+    "active_limit": 2,
+    "role": "A slow spirit pursues nearby enemies for 8 to 10 seconds, striking each enemy at most once per second. Up to 2 spirits, 3 at rank 8.",
+    "unlock_condition": {
+      "type": "default"
+    },
+    "incantation": "seeker"
+  },
+  "shape": {
+    "root": "spirit",
+    "$recast": true,
+    "parts": {
+      "spirit": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=SPIRIT_RADIUS * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": 0.0
+        },
+        "motion": [
+          {
+            "type": "chase",
+            "speed": "=float(v(\"move_speed\", 320.0)) * speed",
+            "range": 600.0
+          }
+        ],
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "limits": {
+          "pierce": -1,
+          "rehit": "=float(v(\"hit_interval\", 0.5))",
+          "lifetime": "=float(v(\"duration\", 5.0))",
+          "visible_only": true
+        },
+        "vfx": {
+          "family": "ghost"
+        },
+        "events": {
+          "$when": "bool(v(\"reaping\", false))",
+          "on_kill": {
+            "part": "reap",
+            "exclude_hit": true
+          }
+        }
+      },
+      "reap": {
+        "$when": "bool(v(\"reaping\", false))",
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=100.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": 0.0
+        },
+        "payload": [
+          {
+            "$damage": "",
+            "amount": "=damage * 0.5"
+          }
+        ]
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "none"
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "plague": 1.0
+    },
+    "statuses": [
+      {
+        "status": "poison"
+      },
+      {
+        "status": "weakened"
+      }
+    ]
+  }
+}

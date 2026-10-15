@@ -120,7 +120,7 @@ func add_spell_rows(spells: Dictionary):
 		entries.add_child(button)
 		button.resized.connect(func(): ART.fit_words(button, button.size.x - 24))
 		spell_buttons[slot] = button
-		var description = COPY.EVOLUTIONS.get(info.id, COPY.SPELLS.get(info.id, ""))
+		var description = COPY.summary(str(info.id))
 		var now = SUMMARY.spell_now(game.spell_manager, game.player, info)
 		text_row("Type: %s · Rank %d\n%s" % [info.display_name, game.spell_manager.get_spell_rank(info.id), description])
 		if not now.is_empty():

@@ -35,7 +35,7 @@ One-off status moments are announced. `StatusComponent` calls `/root/Vfx.status_
 | `reaction` | `name`, `targets` | a reaction fires: `chain` (`targets` = positions it arced to), `conduct`, `thaw`, `shatter`, `toxic_flare`, `overload`, `cleanse`, `hemorrhage`, `grounded` |
 | `expired` | `status` | a status ends on its own (timer), not when a reaction consumes it |
 
-Which spells apply what is in doc 18 §6.1b and `data/spell_damage.json`. Looks still missing: **bleed** (persistent, no poll yet; `has("bleed")`, `bleed.stacks.size()`, `bleed_meter` 0–1 toward hemorrhage), and the reaction moments above. Shock is now a 3 s mark (+0.2 s stagger), so `has("shocked")` lasts long enough to read as a mark.
+Which spells apply what is in doc 18 §6.1b and each spell file's `damage` section (`data/spells/<id>.json`). Looks still missing: **bleed** (persistent, no poll yet; `has("bleed")`, `bleed.stacks.size()`, `bleed_meter` 0–1 toward hemorrhage), and the reaction moments above. Shock is now a 3 s mark (+0.2 s stagger), so `has("shocked")` lasts long enough to read as a mark.
 
 ## What a handler may read
 
@@ -45,7 +45,7 @@ Which spells apply what is in doc 18 §6.1b and `data/spell_damage.json`. Looks 
 | `part` | `global_position`, `direction`, `delivery`, `def` (`geometry`, `motion`, `limits`, `events`, `timing`, optional `vfx`), `geo(key)`, `geo_type()`, `_propagation()`, `size_scale`, `power_scale`, `front` (expanding/travelling), `armed` (traps), `phase` |
 | `enemy` | `global_position`, `status` (read-only queries) |
 
-Optional per-part hint in `data/generic_spells.json`: `"vfx": {"family": "spear"}` overrides the family guess (bolt / spear / ball from pierce and radius).
+Optional per-part hint in a spell's shape (`data/spells/<id>.json`): `"vfx": {"family": "spear"}` overrides the family guess (bolt / spear / ball from pierce and radius).
 
 ## Look resolution
 

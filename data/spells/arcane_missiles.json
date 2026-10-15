@@ -1,0 +1,74 @@
+{
+  "id": "arcane_missiles",
+  "order": 170,
+  "spell": {
+    "id": "arcane_missiles",
+    "name": "Arcane Missiles",
+    "element": "arcane",
+    "slot": 11,
+    "chars": 15,
+    "damage": 18,
+    "projectile_count": 5,
+    "spread_angle": 30,
+    "speed": 400,
+    "color": [
+      0.8,
+      0.4,
+      1,
+      1
+    ],
+    "unlock_condition": {
+      "type": "persistent_xp",
+      "value": 1000
+    },
+    "visual": {
+      "category": "projectile",
+      "projectile_animation": {
+        "idle": {
+          "frames": [
+            "arcane_missile_01.png",
+            "arcane_missile_02.png",
+            "arcane_missile_03.png"
+          ],
+          "fps": 15,
+          "loop": true
+        },
+        "impact": {
+          "frames": [
+            "arcane_impact_01.png",
+            "arcane_impact_02.png",
+            "arcane_impact_03.png"
+          ],
+          "fps": 24,
+          "loop": false
+        }
+      },
+      "trail_particles": "arcane_sparkles",
+      "cast_flash": {
+        "frames": [
+          "arcane_cast_01.png",
+          "arcane_cast_02.png"
+        ],
+        "fps": 20,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "arcane_missiles_cast.ogg",
+        "impact": "arcane_impact.ogg"
+      }
+    },
+    "upgrades": {
+      "damage_per_level": 0.15,
+      "projectile_count_levels": [
+        3,
+        6,
+        10
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.03,
+        "speed_bonus": 0.02
+      }
+    }
+  }
+}

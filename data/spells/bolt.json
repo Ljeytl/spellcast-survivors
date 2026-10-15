@@ -1,0 +1,146 @@
+{
+  "id": "bolt",
+  "order": 20,
+  "spell": {
+    "rank_growth": {
+      "damage": {
+        "per_rank": 21.4286
+      }
+    },
+    "role": "Fire a straight bolt toward the nearest enemy.",
+    "id": "bolt",
+    "presentation": {
+      "summary": "Fire a bolt at a nearby enemy.",
+      "sound": "SPELL_BOLT",
+      "icon": "mana",
+      "preview": {
+        "glyph": "bolt",
+        "color": "bc8fff"
+      },
+      "projectile_scale": 0.75
+    },
+    "rank_card_projectile_ranks": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "preparable": true,
+    "name": "Bolt",
+    "element": "arcane",
+    "slot": 1,
+    "chars": 4,
+    "damage": 50,
+    "speed": 600,
+    "color": [
+      1,
+      1,
+      0,
+      1
+    ],
+    "unlock_condition": {
+      "type": "default"
+    },
+    "visual": {
+      "category": "projectile",
+      "projectile_animation": {
+        "idle": {
+          "frames": [
+            "lightning_bolt_01.png",
+            "lightning_bolt_02.png",
+            "lightning_bolt_03.png"
+          ],
+          "fps": 15,
+          "loop": true
+        },
+        "impact": {
+          "frames": [
+            "lightning_impact_01.png",
+            "lightning_impact_02.png",
+            "lightning_impact_03.png"
+          ],
+          "fps": 30,
+          "loop": false
+        }
+      },
+      "trail_particles": "lightning_sparks",
+      "cast_flash": {
+        "frames": [
+          "lightning_cast_01.png",
+          "lightning_cast_02.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "lightning_cast.ogg",
+        "impact": "lightning_impact.ogg"
+      }
+    },
+    "upgrades": {
+      "damage_per_level": 0.15,
+      "projectile_count_levels": [
+        3,
+        6
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.03,
+        "speed_bonus": 0.02
+      }
+    },
+    "incantation": "bolt"
+  },
+  "shape": {
+    "root": "bolt",
+    "parts": {
+      "bolt": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=BOLT_RADIUS * float(v(\"projectile_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": "=500.0 * speed",
+            "range": "=500.0 * speed * 3.0"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "limits": {
+          "pierce": 0,
+          "contact_all": true
+        },
+        "vfx": {
+          "family": "bolt"
+        }
+      }
+    },
+    "arrangement": {
+      "type": "single",
+      "count": "=mini(5, maxi(1, int(v(\"level\", 1))))"
+    },
+    "release": {
+      "type": "staggered",
+      "interval": 0.12,
+      "retarget": true
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "select"
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "arcane": 1.0
+    }
+  }
+}

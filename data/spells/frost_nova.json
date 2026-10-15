@@ -1,0 +1,113 @@
+{
+  "id": "frost_nova",
+  "order": 160,
+  "generic_order": 80,
+  "spell": {
+    "id": "frost_nova",
+    "name": "Frost Nova",
+    "element": "ice",
+    "slot": 10,
+    "chars": 10,
+    "damage": 25,
+    "radius": 300,
+    "freeze_duration": 2.0,
+    "color": [
+      0.6,
+      0.9,
+      1,
+      1
+    ],
+    "unlock_condition": {
+      "type": "spell_mastery",
+      "value": "ice_blast"
+    },
+    "visual": {
+      "category": "aoe",
+      "explosion_animation": {
+        "frames": [
+          "frost_nova_01.png",
+          "frost_nova_02.png",
+          "frost_nova_03.png",
+          "frost_nova_04.png",
+          "frost_nova_05.png"
+        ],
+        "fps": 30,
+        "loop": false
+      },
+      "ground_lingering_effect": {
+        "frames": [
+          "frost_field_01.png",
+          "frost_field_02.png"
+        ],
+        "fps": 4,
+        "loop": true,
+        "duration": 2.0
+      },
+      "cast_flash": {
+        "frames": [
+          "frost_cast_01.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "frost_nova_cast.ogg",
+        "explosion": "frost_nova_explosion.ogg",
+        "freeze": "freeze_effect.ogg"
+      }
+    },
+    "upgrades": {
+      "damage_per_level": 0.15,
+      "radius_levels": [
+        2,
+        5,
+        8
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.025,
+        "radius_bonus": 0.02
+      }
+    }
+  },
+  "generic": {
+    "name": "Frost Nova",
+    "incantation": "frost nova",
+    "element": "water",
+    "acquire": "data_only",
+    "matrix_column": "nova",
+    "root": "ring",
+    "parts": {
+      "ring": {
+        "delivery": "volume",
+        "origin": "caster",
+        "geometry": {
+          "type": "ring",
+          "radius": 260,
+          "thickness": 40
+        },
+        "propagation": {
+          "type": "expanding",
+          "speed": 900
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 50,
+            "raw_share": 0.3
+          },
+          {
+            "type": "status",
+            "status": "chilled",
+            "stacks": 3
+          },
+          {
+            "type": "impulse",
+            "force": 300,
+            "direction": "away"
+          }
+        ]
+      }
+    }
+  }
+}
