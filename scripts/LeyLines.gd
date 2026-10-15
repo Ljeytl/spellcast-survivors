@@ -210,6 +210,8 @@ func summon_wave(site):
 		var monster = monsters.spawn_monster({}, false, true, offset + i * TAU / count, -1.0, words)
 		if monster:
 			site.wave_members.append(monster)
+	if lead and monsters.has_method("tag_elite_group"):
+		monsters.tag_elite_group(site.wave_members)   # clearing the whole wave drops the group reward
 
 ## True when the site will take its next word: no wave waiting and the last one mostly down.
 func site_ready(site) -> bool:

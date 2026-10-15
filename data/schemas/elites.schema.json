@@ -82,6 +82,19 @@
     "max_words": {
       "type": "number",
       "$comment": "cap on words per rolled elite"
+    },
+    "group_reward": {
+      "type": "object",
+      "properties": {
+        "health_potions": {
+          "type": "number"
+        },
+        "style_runes": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "$comment": "dropped when an elite group's last monster dies"
     }
   },
   "required": [

@@ -1,3 +1,14 @@
+# 0.3.3 — Elites (15 October 2026)
+
+Ships everything since 0.3.1: elites, the spells-as-data rebuild (0.3.2) and the particle/spirit work (0.3.2-dev.1 to dev.5). Details for each are in the entries below.
+
+- **Elites are here.** Every so often a monster you know shows up with a word on it, Diablo-style: QUICK, MASSIVE, IRON, LEECHING, or one of the element words, FIERY, ICY and SHOCKING, which actually cast at you. FIERY drops a meteor and leaves burning ground, SHOCKING calls lightning where you stand, ICY throws a fan of ice shards. Their touch burns, chills or shocks you.
+- **You always get warned.** Elite spells are small versions of yours: the monster charges up in its colour, the warning circle draws itself around where it will land, fills in, then flashes right before it hits. Hostile warnings use loud colours so they never look like your own spells.
+- **Patrols and ley lines.** From 4:00, an elite leads a pack of its own kind in every four minutes. At ley lines, every wave after the first is led by an elite. Kill the whole group and the last one drops a health potion.
+- **One word each, for now.** Every elite carries a single word so you can read what it does at a glance.
+- **Spells are data now.** Under the hood, every spell is one file (shape, ranks, targeting, look and sound), so new spells are much faster to add. Nothing should feel different, except Bolt's level-up card now tells the truth about its extra bolts.
+- **Prettier spells.** Steam is a rolling cloud, Soul Bloom and Seeker spirits got a glow-up, meteors fall with real weight, Cinder Field reads as a hot ember bed.
+
 # Design audit — Spell feel baseline (15 October 2026)
 
 - Record provisional visual scorecards and fantasy-led improvement ideas for all 31 current player spell/form/special sequences in doc 18, with a machine-readable snapshot. Preserve simple Magic Missile and the stronger meteor, steam and burning-spear identities.
@@ -20,7 +31,7 @@
 - Preserve ghost/wisp comparison, Steam particle volume, showcase improvements and elite integration.
 - Future spell presentation work follows the preferred particle-system approach. The painted spirit approval does not imply approval of that treatment across other spell families.
 
-# 0.3.3 (in progress) — Elites
+# 0.3.3 details — Elites
 
 - **Every elite spell winds up and draws itself.** FIERY, ICY and SHOCKING now charge visibly (a glow on the monster in its own colour) before casting, and their warnings last longer: the rim is drawn around the area like a spell being inscribed, a ring swells from the centre to the edge, and the rim doubles and flashes just before the blast. Meteor warning 1.6s, lightning 1.4s, plus about 0.6s of charge (`cast.windup`).
 - **Elite spells are small, loud versions of yours.** Their telegraphs are drawn in saturated hostile colours (FIERY red-orange, SHOCKING electric yellow, ICY cyan) with a denser rim and a pip on the exact centre, so a monster's spell never reads as one of yours. The meteor and lightning are about a third the size of the wizard's. **ICY no longer bursts a full ring**: it winds up (a visible charge glow) and throws a small fan of five ice shards at you that you can sidestep. Each elite's words are now drawn in its element's colour, so you know what it will throw before it throws it; elites keep their own colours with only a slight darkening (no more maroon slimes). Colours and windup are data (`data/elites.json` `color`, `cast.windup`).
@@ -28,6 +39,7 @@
 - **Monsters cast through your spell engine.** Elite spells are ordinary spell files (`data/spells/elite_meteor.json`, `elite_lightning.json`, `elite_frost_burst.json`): the monster is the caster and you are the target, so every future monster attack can be a data file. You can now be burning (damage over time), chilled or shocked (slowed); numbers in `data/elites.json` `player_statuses`.
 - **Elites are in.** An elite is a monster you already know plus one or more words from your own keyword vocabulary, Diablo-style: **QUICK** (much faster), **MASSIVE** (bigger, tankier, slower), **FIERY / ICY / SHOCKING / IRON** (that element, so the type chart decides what it resists and what hurts it) and **LEECHING** (heals each time it hits you). Every elite is bigger, tougher, worth more XP, drawn in a darker shade and shows its words above its health bar; it keeps its own behaviour (an ICY Charger still charges).
 - **Patrols:** from 4:00, every 4 minutes until 19:00, an elite leads four of its own kind in from one side ("Elite patrol · ICY Charger"). Every elite carries **one word** (`max_words` in `data/elites.json`), so each does one readable thing and two casting words never stack on one monster. Patrols wait while a boss is out. **Ley lines:** every wave after a site's first is led by an elite.
+- **Clearing an elite group pays out.** A patrol (elite plus escorts) or an elite-led ley wave is one group; the last of it to die drops `group_reward` (a health potion for now).
 - Everything is data (`data/elites.json`): words, numbers, patrol times, word tiers, ley leaders. Rolls use the run's seeded random streams. Console: `elite <monster> [words]`, `elite patrol`.
 - Later (doc 15): more cast words (EXPLODING, SHOOTING), a third word for ley guardians, and learning a word from an elite that carries it.
 
@@ -48,7 +60,7 @@
 - Showcase K defeats enemies through their real damage/death path so infected hosts release Soul Bloom. Showcase exit restores comparison form and slow-motion state.
 - Validate both forms using background browser rendering and headless regression checks; do not open visible Godot windows for this workflow. Continue testing mixed-spell crowd readability, sound and performance, and explore painterly treatments for other spells after the spirit comparison.
 
-# 0.3.2 (in progress) — Spells defined as data
+# 0.3.2 details — Spells defined as data (shipped in 0.3.3)
 
 Goal: every spell's shape, ranks, recast rules, targeting and preparation are data, so new catalog spells (0.4) are data files plus tests. Built on branch `feat/0.3.2-data-spells`; behavior must not change (doc 19 P8).
 

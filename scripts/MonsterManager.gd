@@ -36,6 +36,11 @@ const Elites = preload("res://scripts/Elites.gd")
 ## Next elite patrol time (data/elites.json patrols); INF when patrols are over.
 var next_patrol: float = -1.0
 var patrols_spawned: int = 0
+## Elite groups (a patrol, an elite-led ley wave): id -> members still alive. Killing the last one
+## drops the group reward (data/elites.json "group_reward") where it fell.
+var elite_groups: Dictionary = {}
+var _next_group := 1
+signal elite_group_cleared(at: Vector2)
 signal elite_patrol(name: String)
 @onready var player: CharacterBody2D = get_parent().get_node("Player")
 
@@ -312,8 +317,39 @@ func get_current_difficulty_level() -> int:
 func get_monster_count() -> int:
 	return monsters_alive
 
+## Marks these monsters as one elite group; the last to die drops the group reward.
+func tag_elite_group(members: Array) -> int:
+	var live := members.filter(func(m): return m != null and is_instance_valid(m))
+	if live.is_empty():
+		return 0
+	var id := _next_group
+	_next_group += 1
+	elite_groups[id] = live.size()
+	for m in live:
+		m.set_meta("elite_group", id)
+	return id
+
+func _elite_group_member_died(monster) -> void:
+	var id := int(monster.get_meta("elite_group"))
+	monster.remove_meta("elite_group")
+	if not elite_groups.has(id):
+		return
+	elite_groups[id] = int(elite_groups[id]) - 1
+	if int(elite_groups[id]) > 0:
+		return
+	elite_groups.erase(id)
+	var at: Vector2 = monster.global_position
+	var reward: Dictionary = Elites.data().get("group_reward", {})
+	for i in int(reward.get("health_potions", 0)):
+		preload("res://scripts/HealthPotion.gd").try_drop(get_parent(), at + Vector2(0, 28 * i), -1.0, true)
+	for i in int(reward.get("style_runes", 0)):
+		preload("res://scripts/StylePickup.gd").try_drop(get_parent(), at + Vector2(32, 0).rotated(TAU * i / maxf(1.0, float(reward.style_runes))), -1.0, true)
+	elite_group_cleared.emit(at)
+
 func _on_monster_died(monster: CharacterBody2D):
 	monsters_alive = maxi(0, monsters_alive - 1)
+	if monster.has_meta("elite_group"):
+		_elite_group_member_died(monster)
 	if not monster.boss:
 		spawn_pressure.record_kill()
 	if get_parent().has_method("increment_enemies_killed"):
@@ -393,8 +429,10 @@ func spawn_patrol(word_count: int, definition: Dictionary = {}):
 	var leader = spawn_monster(definition, false, true, angle, -1.0, Elites.roll(word_count))
 	if leader == null:
 		return null
+	var group := [leader]
 	for i in int(Elites.data().patrols.get("escorts", 4)):
-		spawn_monster(definition, false, true, angle + (i + 1) * 0.08 * (1 if i % 2 == 0 else -1))
+		group.append(spawn_monster(definition, false, true, angle + (i + 1) * 0.08 * (1 if i % 2 == 0 else -1)))
+	tag_elite_group(group)
 	patrols_spawned += 1
 	elite_patrol.emit(leader.encounter_name)
 	var game = get_parent()

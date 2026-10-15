@@ -1,7 +1,7 @@
 extends SceneTree
 ## 0.3.3 elites: a monster plus words from data/elites.json. Each word changes what it says; patrols
 ## arrive on schedule with escorts and roll more words later; ley waves after the first are led by an
-## elite; LEECHING heals on contact; the elite shows its words and keeps its own behaviour.
+## elite; killing the last of an elite group drops its reward; LEECHING heals on contact; the elite shows its words and keeps its own behaviour.
 
 const Elites = preload("res://scripts/Elites.gd")
 
@@ -158,6 +158,18 @@ func run():
 	var patrol_size = get_nodes_in_group("enemies").size()
 	check(patrol_size == 1 + int(data.patrols.escorts), "elite plus escorts (%d)" % patrol_size)
 	check(monsters.check_elite_patrol() == null, "one patrol per interval")
+	# Clearing the whole patrol drops the group reward, once, where the last one fell.
+	var group: Array = get_nodes_in_group("enemies").filter(func(e): return e.has_meta("elite_group"))
+	check(group.size() == patrol_size, "the whole patrol is one group")
+	var potions_before = get_nodes_in_group("health_potions").size()
+	for m in group.slice(0, group.size() - 1):
+		monsters._on_monster_died(m)
+	await process_frame
+	check(get_nodes_in_group("health_potions").size() == potions_before, "no reward while any of the group stands")
+	monsters._on_monster_died(group[-1])
+	await process_frame
+	check(get_nodes_in_group("health_potions").size() == potions_before + int(data.group_reward.health_potions), "killing the last of the group drops its reward")
+	check(monsters.elite_groups.is_empty(), "the group is done")
 	monsters.game_time = float(data.patrols.until) - 1.0
 	monsters.next_patrol = monsters.game_time
 	var later = monsters.check_elite_patrol()
@@ -174,6 +186,7 @@ func run():
 		check(not site.wave_members.any(func(m): return is_instance_valid(m) and m.is_in_group("elites")), "the opening ley wave has no elite")
 		ley.summon_wave(site)
 		check(site.wave_members.size() > 0 and site.wave_members[0].is_in_group("elites"), "later ley waves are led by an elite")
+		check(site.wave_members.all(func(m): return m.has_meta("elite_group")), "an elite-led ley wave is one group (cleared together)")
 	else:
 		check(true, "no ley sites in this scene (skipped)")
 	print("elites: %d checks, %d failures" % [checks, failures])
