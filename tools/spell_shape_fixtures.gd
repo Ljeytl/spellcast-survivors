@@ -4,7 +4,7 @@ extends SceneTree
 ## data/spell_shapes.json can be proved identical (tests/spell_shape_equivalence_regression.gd).
 ## Ran once against the 0.3.0 code builders (since deleted); kept as the record of how the fixture was made.
 
-const OUT = "res://tests/fixtures/spell_shapes_0_3_0.txt"
+const OUT = "res://tests/fixtures/spell_shapes_0_3_0.bin"   # binary: exact floats
 const Bridge = preload("res://scripts/engine/LegacyBridge.gd")
 const Progression = preload("res://scripts/SpellProgression.gd")
 const CombinationScaling = preload("res://scripts/CombinationScaling.gd")
@@ -66,6 +66,7 @@ func run():
 					info = CombinationScaling.resolve(info, ranks)
 				info.keyword_size_multiplier = v[3]
 				info.keyword_stats = {"spell_size_multiplier": v[0], "spell_duration_multiplier": v[1]}
+				var pre = info.duplicate(true)
 				var scaled = Geometry.scaled_data(info, player)
 				var damage = 37.5 * level * v[0]
 				var ctx = {"speed_mult": v[2]}
@@ -81,9 +82,9 @@ func run():
 				if t != "mana_bolt" and not Bridge.handles(scaled):
 					printerr("not ported: ", id, " ", t)
 					continue
-				cases.append({"id": id, "info": scaled, "damage": damage, "ctx": ctx, "expected": Bridge.build(scaled, damage, ctx)})
+				cases.append({"id": id, "pre": pre, "info": scaled, "damage": damage, "ctx": ctx, "expected": Bridge.build(scaled, damage, ctx)})
 	var f = FileAccess.open(OUT, FileAccess.WRITE)
-	f.store_string(var_to_str(cases))
+	f.store_var(cases)
 	f.close()
 	print("wrote %d cases for %d spells" % [cases.size(), bases.size()])
 	quit(0)

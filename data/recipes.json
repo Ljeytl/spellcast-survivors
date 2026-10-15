@@ -1,5 +1,5 @@
 {
-  "_doc": "Combination spells (doc 03). A recipe joins two ingredient spells; overrides are merged over the spell info when cast. Moves into spell data proper with doc 19 step 3.",
+  "_doc": "Combination spells (doc 03). A recipe joins two ingredient spells; overrides are merged over the spell info when cast. scaling: how the combination grows, one expression per spell-info field ('=' prefix): own = its own rank - 1, bonus(id) = an ingredient's rank - 1, dmg(id, fallback) = an ingredient's damage at its rank (its own rank curve). rank_note: the next rank's level-up line (rank = current rank).",
   "recipes": {
     "lightning_bolt": {
       "name": "Lightning Bolt",
@@ -16,7 +16,15 @@
         "damage": 40,
         "bounce_count": 4,
         "bounce_range": 240.0
-      }
+      },
+      "scaling": {
+        "damage": "=dmg(\"bolt\", 40.0)",
+        "splash_damage": "=dmg(\"lightning\", 80.0)",
+        "splash_radius": "=80.0 * (1.0 + 0.05 * bonus(\"lightning\"))",
+        "splash_duration": "=0.2",
+        "bounce_count": "=4 + own"
+      },
+      "rank_note": "=\"+1 bounce\""
     },
     "life_bolt": {
       "name": "Life Bolt",
@@ -30,7 +38,16 @@
       "card_description": "Hits plant healing areas you can collect.",
       "overrides": {
         "type": "life_bolt"
-      }
+      },
+      "scaling": {
+        "damage": "=dmg(\"bolt\", 40.0)",
+        "healing_seed_amount": "=6.0 * (1.0 + 0.15 * bonus(\"life\"))",
+        "projectile_count": "=1 + int(ceil(own / 2.0))",
+        "healing_seed_radius": "=44.0 * (1.0 + 0.2 * int(own / 2))",
+        "healing_seed_duration": "=2.0",
+        "healing_seed_lifetime": "=10.0"
+      },
+      "rank_note": "=pick(rank % 2 == 1, \"+1 projectile\", \"+healing area\")"
     },
     "meteor_spear": {
       "name": "Meteor Spear",
@@ -44,7 +61,15 @@
       "card_description": "A piercing spear explodes through crowds.",
       "overrides": {
         "explosive": true
-      }
+      },
+      "scaling": {
+        "damage": "=dmg(\"ember_spear\", 45.0) * (1.0 + 0.1 * own)",
+        "explosion_damage": "=dmg(\"meteor_shower\", 30.0) * 0.8 * (1.0 + 0.1 * own)",
+        "explosion_radius": "=90.0 * (1.0 + 0.05 * bonus(\"meteor_shower\") + 0.1 * own)",
+        "explosion_duration": "=0.2",
+        "body_size_multiplier": "=1.0 + 0.1 * own"
+      },
+      "rank_note": "=\"+damage, +area\""
     },
     "soul_bloom": {
       "name": "Soul Bloom",
@@ -56,7 +81,16 @@
       "requirements": "Reach rank 8 in Plague Seed and Regeneration, then choose Soul Bloom. Both ingredients stay equipped.",
       "description": "Infected deaths leave healing blooms and lingering spores. Plague Seed strengthens infection; Regeneration increases available healing.",
       "card_description": "Infected deaths leave healing blooms and infectious spores.",
-      "overrides": {}
+      "overrides": {},
+      "scaling": {
+        "damage": "=dmg(\"infestation\", 9.0)",
+        "healing_bloom_amount": "=6.0 * (1.0 + 0.15 * bonus(\"regeneration\"))",
+        "healing_bloom_radius": "=60.0",
+        "healing_bloom_lifetime": "=10.0 * (1.0 + 0.1 * own)",
+        "duration": "=5.0 * (1.0 + 0.1 * own)",
+        "orphan_lifetime": "=5.0 * (1.0 + 0.1 * own)"
+      },
+      "rank_note": "=\"+duration\""
     },
     "steam_field": {
       "name": "Steam Field",
@@ -71,7 +105,14 @@
       "overrides": {
         "slow": 0.4,
         "duration": 5.0
-      }
+      },
+      "scaling": {
+        "damage": "=dmg(\"cinder_field\", 12.0)",
+        "slow": "=minf(0.75, 0.4 + 0.025 * bonus(\"ice_blast\"))",
+        "radius": "=150.0 * (1.0 + 0.1 * own)",
+        "duration": "=5.0 * (1.0 + 0.1 * own)"
+      },
+      "rank_note": "=\"+area, +duration\""
     },
     "prism_ray": {
       "name": "Prism Ray",
@@ -86,7 +127,13 @@
       "overrides": {
         "refract": true,
         "active_limit": 3
-      }
+      },
+      "scaling": {
+        "damage": "=dmg(\"focus_ray\", 13.0) * 1.4 * (1.0 + 0.05 * bonus(\"ember_spear\") + 0.1 * own)",
+        "beam_radius": "=32.0",
+        "beam_turn_speed": "=0.25"
+      },
+      "rank_note": "=\"+damage\""
     },
     "frost_sigil": {
       "name": "Frost Sigil",
@@ -102,7 +149,15 @@
         "trap_radius": 170,
         "frost": true,
         "arm_delay": 1.2
-      }
+      },
+      "scaling": {
+        "damage": "=dmg(\"rune_trap\", 48.0) * 1.25",
+        "trap_radius": "=170.0 * (1.0 + 0.05 * (bonus(\"rune_trap\") + bonus(\"ice_blast\")))",
+        "slow": "=minf(0.75, 0.4 + 0.025 * bonus(\"ice_blast\"))",
+        "slow_duration": "=2.0",
+        "arm_delay": "=maxf(0.4, 1.2 - 0.1 * own)"
+      },
+      "rank_note": "=pick(rank < 9, \"Arms faster\", \"Fastest arming reached\")"
     },
     "reaping_spirit": {
       "enabled": false,

@@ -1,11 +1,12 @@
 extends SceneTree
 ## Spell shapes moved from code (0.3.0 LegacyBridge builders) to data/spell_shapes.json must build
 ## exactly the same generic definitions: same keys, same values, same types. The fixture holds the
-## 0.3.0 builders' output for every shipped spell and combination over ranks 1-12 and four size /
+## 0.3.0 builders' output (and SpellGeometry.scaled_data's sizing) for every shipped spell and combination over ranks 1-12 and four size /
 ## duration / speed / keyword-size variants (tools/spell_shape_fixtures.gd).
 
 const SpellTemplate = preload("res://scripts/engine/SpellTemplate.gd")
-const FIXTURE = "res://tests/fixtures/spell_shapes_0_3_0.txt"
+const FIXTURE = "res://tests/fixtures/spell_shapes_0_3_0.bin"
+const Geometry = preload("res://scripts/SpellGeometry.gd")
 
 var checks = 0
 var failures = 0
@@ -46,11 +47,15 @@ func diff(a, b, at: String = "$") -> String:
 				return d
 		return ""
 	if a is float:
-		return "" if a == b or is_equal_approx(a, b) else "%s: %s vs %s" % [at, a, b]
+		return "" if a == b else "%s: %s vs %s (diff %s)" % [at, a, b, a - b]
 	return "" if a == b else "%s: %s vs %s" % [at, a, b]
 
 func run():
-	var cases = str_to_var(FileAccess.get_file_as_string(FIXTURE))
+	var file = FileAccess.open(FIXTURE, FileAccess.READ)
+	var cases = file.get_var()
+	file.close()
+	var caster = Node2D.new()   # no size or duration stats of its own: the fixture's keyword_stats decide
+	root.add_child(caster)
 	check(cases is Array and cases.size() >= 1200, "fixture loads (%s cases)" % (cases.size() if cases is Array else -1))
 	var ids := {}
 	var failed_ids := {}
@@ -59,6 +64,8 @@ func run():
 		check(SpellTemplate.has_shape(case.id), "%s has a data shape" % case.id)
 		var built = SpellTemplate.build(case.info, case.damage, case.ctx)
 		var d = diff(case.expected, built)
+		if d == "":
+			d = diff(case.info, Geometry.scaled_data(case.pre, caster), "scaled_data")
 		if d != "" and not failed_ids.has(case.id):
 			failed_ids[case.id] = true
 			check(false, "%s rank %s: %s" % [case.id, case.info.get("level", "?"), d])

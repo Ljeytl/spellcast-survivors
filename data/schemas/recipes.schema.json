@@ -44,6 +44,16 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "scaling": {
+            "type": "object",
+            "$comment": "Spell-info field -> expression (see _doc).",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "rank_note": {
+            "type": "string"
           }
         },
         "required": [
