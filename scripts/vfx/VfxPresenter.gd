@@ -518,6 +518,7 @@ func part_finished(part, natural: bool) -> void:
 # ------------------------------------------------------------------ per step
 
 func step(dt: float) -> void:
+	_advance_transients(dt / maxf(vfx.fx_speed, 0.001))
 	for id in _presented.keys():
 		if _presented[id].get_ref() == null:
 			_presented.erase(id)
@@ -1543,23 +1544,25 @@ func _entangled(dt: float) -> void:
 
 var _wrapped: Array = []
 
+func _advance_transients(dt: float) -> void:
+	for ring in _hit_rings:
+		ring[3] += dt
+	_hit_rings = _hit_rings.filter(func(ring): return ring[3] < ring[4])
+	for ray in _lasers:
+		ray[4] += dt
+	_lasers = _lasers.filter(func(ray): return ray[4] < ray[5])
+
+func clear_transients() -> void:
+	_hit_rings.clear()
+	_lasers.clear()
+
 func draw_statuses(buf: PackedByteArray) -> void:
 	var el = vfx.elements
 	var t: float = vfx._t
-	var keep := []
 	for hr in _hit_rings:
-		hr[3] += 1.0 / 60.0
-		if hr[3] < hr[4]:
-			keep.append(hr)
-			var hk: float = hr[3] / hr[4]
-			_split_ring(buf, Vector2(hr[0], hr[1]), hr[2], hr[5], hk < 0.5)   # the spell's own colours (halves for two)
-	_hit_rings = keep
-	var keep_l := []
+		var hk: float = hr[3] / hr[4]
+		_split_ring(buf, Vector2(hr[0], hr[1]), hr[2], hr[5], hk < 0.5)
 	for L in _lasers:
-		L[4] += 1.0 / 60.0
-		if L[4] >= L[5]:
-			continue
-		keep_l.append(L)
 		var lk: float = L[4] / L[5]
 		var a0: Vector2 = L[0]
 		var d0: Vector2 = L[1]
@@ -1573,7 +1576,6 @@ func draw_statuses(buf: PackedByteArray) -> void:
 		for o in range(-hw, hw + 1):
 			var c: Color = lc[0] if o == 0 else (lc[1] if absi(o) < hw else lc[mini(3, lc.size() - 1)])
 			el.line(buf, a0 + nrm * o, b0 + nrm * o, c)
-	_lasers = keep_l
 	# Stunned: three little stars circling the top of the body.
 	for q in _dazed:
 		var c: Vector2 = q[0]
@@ -2272,6 +2274,8 @@ func draw_bodies(buf: PackedByteArray) -> void:
 			continue
 		var b: Dictionary = FAMILY[st.family].body
 		var sc: float = float(part.size_scale)
+		if st.family == "sphere":
+			sc = float(part.geo("radius", 42.0)) / (WPS * float(b.r))
 		var pal: Array = BODY[st.look.native]
 		if st.look.native == "lightning":
 			_draw_lightning_body(buf, pos, dir, st.family, sc, st)
@@ -2418,30 +2422,24 @@ func _ghost_step(st: Dictionary, pos: Vector2, dt: float) -> void:
 		var back: Vector2 = -vel.normalized() * 3.0 if vel.length() > 1.0 else Vector2.ZERO
 		vfx.elements.mist(pos.x + back.x, pos.y + sin(vfx._t * 10.0) * 1.5, -vel.x * 0.1, -1.0, 2.2, 3.0, 0.5, DEATH_MIST)
 
+func _ghost_pixel(x: int, y: int, scale: float) -> String:
+	var column := floori(float(x) / scale + 3.5)
+	var row := floori(float(y) / scale + 3.5)
+	if row < 0 or row >= GHOST.size() or column < 0 or column >= GHOST[row].length():
+		return "."
+	return GHOST[row][column]
+
 func _draw_ghost(buf: PackedByteArray, pos: Vector2, part) -> void:
-	var bob := sin(float(part.age) * 6.0) * 1.0
-	var s: float = clampf(float(part.geo("radius", 24.0)) / 24.0, 1.0, 2.0)
-	# pale rim one pixel out, so the ghost stands off the grass and the horde
-	for j in GHOST.size():
-		var rrow: String = GHOST[j]
-		for i in rrow.length():
-			if rrow[i] == ".":
-				continue
-			for o in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1)]:
-				var ni: int = i + o.x
-				var nj: int = j + o.y
-				if nj < 0 or ni < 0 or ni >= rrow.length() or GHOST[nj][ni] == ".":
-					vfx.elements.spx(buf, roundi(pos.x + (ni - 3) * s), roundi(pos.y + bob + (nj - 3) * s), GHOST_COL.r)
-	for j in GHOST.size():
-		var row: String = GHOST[j]
-		for i in row.length():
-			var ch := row[i]
-			if ch == ".":
-				continue
-			var c: Color = GHOST_COL[ch]
-			for sy in roundi(s):
-				for sx in roundi(s):
-					vfx.elements.spx(buf, roundi(pos.x + (i - 3) * s) + sx, roundi(pos.y + bob + (j - 3) * s) + sy, c)
+	var bob := sin(float(part.age) * 6.0)
+	var scale := maxf(0.05, float(part.geo("radius", 24.0)) / 24.0)
+	var half := ceili(3.5 * scale) + 1
+	for y in range(-half, half + 1):
+		for x in range(-half, half + 1):
+			var pixel := _ghost_pixel(x, y, scale)
+			if pixel != ".":
+				vfx.elements.spx(buf, roundi(pos.x) + x, roundi(pos.y + bob) + y, GHOST_COL[pixel])
+			elif _ghost_pixel(x - 1, y, scale) != "." or _ghost_pixel(x + 1, y, scale) != "." or _ghost_pixel(x, y + 1, scale) != ".":
+				vfx.elements.spx(buf, roundi(pos.x) + x, roundi(pos.y + bob) + y, GHOST_COL.r)
 
 ## Cross Blade: a four-armed blade spinning at the true radius, steel with a bright edge.
 func _draw_blade(buf: PackedByteArray, pos: Vector2, part) -> void:
