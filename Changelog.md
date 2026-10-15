@@ -1,3 +1,10 @@
+# 0.3.1-dev.6 — Particle-driven Steam, spirits and meteor weight (15 October 2026)
+
+- Revisit Steam → Field in the local VFX sandbox. Its particles accumulate into a shared density surface; the old port painted independent puffs and the previous prototype scrolled noise through a fixed mask. Steam now uses bounded rising, expanding, swirling particles to shape one connected cloud, with blue-grey shadow bands and ivory dense folds. Reduced effects lowers the particle budget while retaining volume.
+- Soul Bloom ghosts gain a spirit silhouette, eyes, directional wake and healing/hunting colors. The healing spirit carries a cross cue; targeting, speed, lifetime, healing and damage remain unchanged. An idle spirit sheds its stale wake.
+- Meteor Shower and Meteor Spear descent now reads actual spell age, including when VFX steps were skipped during impact hitstop. Descent accelerates toward the landing instead of moving at constant speed, with matching trail velocity.
+- Validate cloud budgets and lifecycle, meteor timing with skipped VFX steps, and spirit intent/arrival mechanics. Inspect native moving/LARGE/reduced Steam, three-cloud rendering overlap, both meteor spells and both spirit modes. GPU stress profiling, spell sound and full-roster feel qualification remain open.
+
 # 0.3.1-dev.5 — Steam volume prototype (15 October 2026)
 
 - Replace Steam's repeated circular puffs and painted floor with a connected vapor surface: uneven initial vents, rolling grey-white folds, density openings and thinning upward dispersal. The cloud uses game time so sustained vapor continues through impact hitstop and expires with the spell.
