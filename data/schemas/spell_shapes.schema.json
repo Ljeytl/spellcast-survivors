@@ -55,7 +55,8 @@
           }
         },
         "additionalProperties": false
-      }
+      },
+      "x-registry": "spell"
     }
   },
   "required": [

@@ -1,0 +1,46 @@
+{
+  "id": "elite_frost_burst",
+  "order": 9030,
+  "shape": {
+    "root": "ring",
+    "cast_rules": {
+      "targeting": {
+        "rule": "none"
+      }
+    },
+    "parts": {
+      "ring": {
+        "delivery": "volume",
+        "origin": "caster",
+        "geometry": {
+          "type": "ring",
+          "radius": 170.0,
+          "thickness": 30.0
+        },
+        "propagation": {
+          "type": "expanding",
+          "speed": 420.0
+        },
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "vfx": {
+          "look": "ice"
+        }
+      }
+    }
+  },
+  "damage": {
+    "element": "water",
+    "damage": {
+      "water": 1.0
+    },
+    "statuses": [
+      {
+        "status": "chilled"
+      }
+    ]
+  }
+}

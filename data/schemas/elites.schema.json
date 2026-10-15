@@ -3,32 +3,161 @@
   "title": "elites.json",
   "type": "object",
   "properties": {
-    "_doc": {"type": "string"},
-    "base": {"$ref": "#/$defs/mods"},
-    "words": {"type": "object", "additionalProperties": {"$ref": "#/$defs/mods"}},
+    "_doc": {
+      "type": "string"
+    },
+    "base": {
+      "$ref": "#/$defs/mods"
+    },
+    "words": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/mods"
+      }
+    },
     "patrols": {
       "type": "object",
       "properties": {
-        "first": {"type": "number"}, "every": {"type": "number"}, "until": {"type": "number"}, "escorts": {"type": "number"},
-        "words": {"type": "array", "items": {"type": "object", "properties": {"from": {"type": "number"}, "count": {"type": "number"}}, "required": ["from", "count"], "additionalProperties": false}}
+        "first": {
+          "type": "number"
+        },
+        "every": {
+          "type": "number"
+        },
+        "until": {
+          "type": "number"
+        },
+        "escorts": {
+          "type": "number"
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "number"
+              },
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "from",
+              "count"
+            ],
+            "additionalProperties": false
+          }
+        }
       },
-      "required": ["first", "every", "until", "escorts", "words"],
+      "required": [
+        "first",
+        "every",
+        "until",
+        "escorts",
+        "words"
+      ],
       "additionalProperties": false
     },
-    "ley_waves": {"type": "object", "properties": {"from_wave": {"type": "number"}, "words": {"type": "number"}}, "required": ["from_wave", "words"], "additionalProperties": false}
+    "ley_waves": {
+      "type": "object",
+      "properties": {
+        "from_wave": {
+          "type": "number"
+        },
+        "words": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "from_wave",
+        "words"
+      ],
+      "additionalProperties": false
+    },
+    "player_statuses": {
+      "type": "object",
+      "additionalProperties": {}
+    }
   },
-  "required": ["base", "words", "patrols", "ley_waves"],
+  "required": [
+    "base",
+    "words",
+    "patrols",
+    "ley_waves"
+  ],
   "additionalProperties": false,
   "$defs": {
     "mods": {
       "type": "object",
       "properties": {
-        "word": {"type": "string"},
-        "health_mult": {"type": "number"}, "damage_mult": {"type": "number"}, "size_mult": {"type": "number"},
-        "speed_mult": {"type": "number"}, "xp_mult": {"type": "number"},
-        "tint": {"type": "array", "items": {"type": "number"}},
-        "element": {"type": "string", "x-ref": ["element", "element_alias"]},
-        "heal_per_hit": {"type": "number", "$comment": "fraction of max health healed each time its contact damage lands"}
+        "word": {
+          "type": "string"
+        },
+        "health_mult": {
+          "type": "number"
+        },
+        "damage_mult": {
+          "type": "number"
+        },
+        "size_mult": {
+          "type": "number"
+        },
+        "speed_mult": {
+          "type": "number"
+        },
+        "xp_mult": {
+          "type": "number"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "element": {
+          "type": "string",
+          "x-ref": [
+            "element",
+            "element_alias"
+          ]
+        },
+        "heal_per_hit": {
+          "type": "number",
+          "$comment": "fraction of max health healed each time its contact damage lands"
+        },
+        "contact_status": {
+          "type": "string",
+          "$comment": "status its touch puts on the player (player_statuses)"
+        },
+        "resist_profile": {
+          "type": "string",
+          "$comment": "named profile in data/resistances.json"
+        },
+        "cast": {
+          "type": "object",
+          "properties": {
+            "spell": {
+              "type": "string",
+              "x-ref": "spell"
+            },
+            "every": {
+              "type": "number"
+            },
+            "range": {
+              "type": "number"
+            },
+            "damage_mult": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "spell",
+            "every",
+            "range"
+          ],
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     }

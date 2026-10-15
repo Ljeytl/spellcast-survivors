@@ -16,16 +16,24 @@ func run():
 	monsters.set_process(false)
 	var at = game.player.global_position
 	var i = 0
-	for spec in [["charger", ["icy"]], ["juggernaut", ["massive", "fiery"]], ["pursuer", ["quick", "leeching"]], ["pursuer", []]]:
+	game.player.is_invincible = true
+	for spec in [["charger", ["icy"]], ["marksman", ["fiery"]], ["pursuer", ["shocking"]], ["juggernaut", ["massive", "iron"]]]:
 		var def = monsters.encounter_config.variants[spec[0]].duplicate(true)
 		def.id = spec[0]
 		var m = monsters.spawn_monster(def, false, true, NAN, -1.0, spec[1])
 		if m:
-			m.global_position = at + Vector2(-180 + i * 120, -60 + (i % 2) * 50)
-			m.set_physics_process(false)
+			m.global_position = at + Vector2(-260 + i * 170, -120 + (i % 2) * 60)
+			m.speed = 0.0   # stand still but keep casting
 		i += 1
-	for f in 20:
-		await process_frame
+	# Optional second argument: physics seconds to wait; a third: also save a frame every N physics frames.
+	var seconds = float(OS.get_cmdline_user_args()[1]) if OS.get_cmdline_user_args().size() > 1 else 0.3
+	var every = int(OS.get_cmdline_user_args()[2]) if OS.get_cmdline_user_args().size() > 2 else 0
+	var frames = int(seconds * 60.0)
+	for f in frames:
+		await physics_frame
+		if every > 0 and f % every == 0 and f > frames / 2:
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(out.replace(".png", "-%03d.png" % f))
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out)
 	print("saved ", out)

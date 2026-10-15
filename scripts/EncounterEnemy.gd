@@ -24,6 +24,7 @@ var normal_collision_mask = 34
 var training_anchor := Vector2.INF
 ## Elite words and traits (scripts/Elites.gd, data/elites.json); empty for a normal monster.
 var elite: Dictionary = {}
+var cast_timers: Array = []
 const TRAINING_PULL = 6.0
 const TRAINING_MAX_SPEED = 260.0
 
@@ -42,6 +43,11 @@ func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false,
 		encounter_name = str(elite.get("name", encounter_name))
 		if str(elite.get("element", "")) != "":
 			element = str(elite.element)   # the type chart gives it its resistance and weakness
+		if str(elite.get("resist_profile", "")) != "":
+			resistances = preload("res://scripts/engine/SpellDamage.gd").resistance_profile(str(elite.resist_profile))
+		cast_timers.clear()
+		for c in elite.get("casts", []):
+			cast_timers.append(float(c.get("every", 4.0)) * 0.5)   # first cast comes sooner
 	set_monster_stats(stats)
 	scale = Vector2.ONE * definition.get("size", 1.0) * (1.7 if boss else 1.0) * float(elite.get("size_mult", 1.0))
 	enemy_type = {"grunt": EnemyType.CHASER, "runner": EnemyType.SWARM, "brute": EnemyType.TANK, "shooter": EnemyType.SHOOTER}[family]
@@ -132,6 +138,8 @@ func _physics_process(delta):
 		"marksman", "fan_caster", "mortar":
 			update_ranged(delta, toward, offset.length())
 	charging_this_step = charging_this_step or charge_remaining > 0.0
+	if not elite.is_empty():
+		update_elite_casts(delta, offset.length())
 	update_crowd_collision(charging_this_step)
 	var terrain = get_parent().get_node_or_null("Background")
 	if terrain and terrain.has_method("steer") and not charging_this_step:
@@ -248,8 +256,22 @@ func _draw():
 			reach = float(settings.get("speed", speed * float(settings.get("speed_multiplier", 2.5)))) * float(settings.get("duration", 0.65)) * slow_multiplier / scale.x
 		draw_line(Vector2.ZERO, line_direction * reach, Color(1, 0.2, 0.1, 0.8), 4.0)
 
+## Elite word spells (FIERY fireball, ICY frost burst, SHOCKING strike): each on its own timer, cast
+## when the player is within its range.
+func update_elite_casts(delta: float, distance: float):
+	var casts: Array = elite.get("casts", [])
+	for i in casts.size():
+		cast_timers[i] = float(cast_timers[i]) - delta
+		if cast_timers[i] <= 0.0 and distance <= float(casts[i].get("range", 500.0)):
+			cast_timers[i] = float(casts[i].get("every", 4.0))
+			preload("res://scripts/Elites.gd").cast(self, casts[i], player)
+
 ## LEECHING: its contact damage heals it (a fraction of its max health per hit that lands).
+## Element words: its touch puts their status on the player.
 func on_dealt_contact(_amount: float):
+	for status in elite.get("contact_statuses", []):
+		if is_instance_valid(player) and player.has_method("apply_status"):
+			player.apply_status(str(status))
 	var heal = float(elite.get("heal_per_hit", 0.0))
 	if heal > 0.0 and not dying:
 		current_health = minf(max_health, current_health + max_health * heal)
