@@ -398,9 +398,9 @@ func part_spawned(part) -> void:
 				# wet grey-blue floor with a pale rim (the water look), steam over it, not Cinder Field's red ground
 				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.0, "look": vfx.field_look("water")})
 				st.steam = true
-				for i in 10:
+				for i in (3 if vfx.reduced_effects else 6):
 					var q := _in_disk(pos.x, pos.y, sr)
-					vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -6.0 - randf() * 6.0, 2.6, 7.0, 1.0 + randf() * 0.6)
+					vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -6.0 - randf() * 6.0, 2.6, 4.0, 0.7 + randf() * 0.3)
 			elif str(part.def.get("vfx", {}).get("style", "")) == "rubble":
 				# Meteor crater: cracked, charred ground with low fire, rocks kicked up while it burns.
 				var cr: float = part.geo("radius", 60.0) / WPS
@@ -560,13 +560,13 @@ func step(dt: float) -> void:
 					_rubble(st.field, dt)
 				if st.get("steam", false):
 					var f: Dictionary = st.field
-					var nm := 1.1 * dt * 60.0 * maxf(1.0, float(f.r) / 18.0)
+					var nm := (0.22 if vfx.reduced_effects else 0.45) * dt * 60.0 * maxf(1.0, float(f.r) / 18.0)
 					while nm > 0.0:
 						if nm < 1.0 and randf() > nm:
 							break
 						nm -= 1.0
 						var q := _in_disk(float(f.x), float(f.y), float(f.r))
-						vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -7.0 - randf() * 8.0, 2.2 + randf(), 6.5, 0.9 + randf() * 0.6)
+						vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -7.0 - randf() * 8.0, 2.2 + randf(), 4.0, 0.65 + randf() * 0.3)
 					if randf() < 0.12 * dt * 60.0:
 						var q2 := _in_disk(float(f.x), float(f.y), float(f.r) * 0.9)
 						vfx.elements.droplet(q2.x, q2.y, (randf() - 0.5) * 10.0, (randf() - 0.5) * 6.0, 15.0 + randf() * 15.0)

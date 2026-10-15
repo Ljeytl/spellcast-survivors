@@ -1,3 +1,10 @@
+# 0.3.1-dev.1 — Combat feel work in progress (15 October 2026)
+
+- Reduced effects now reaches the spell renderer when toggled from Options and loads before gameplay on restart. Camera shake and legacy particles keep the same preference.
+- Steam Field keeps its blue wet floor and true-area rim, with fewer, shorter-lived, slower-growing puffs so enemies remain more visible. Reduced effects also lowers its initial and sustained mist emission.
+- Validate Options through keyboard input from the menu and paused gameplay, both directions, resume, two window sizes, and separate save/restart processes. Check actual renderer particle limits as well as settings flags.
+- This starts the agreed 0.3.1 work; it is not the completed whole-roster release. Remaining work includes status overlap/flash readability, cast and impact timing, trap identities, size-to-hitbox agreement, audiovisual review and full moving-combat journeys.
+
 # Documentation consolidation — 14 October 2026
 
 - Record approval of the release table: 0.3.0 foundations, 0.3.1 combat feel, 0.4.x full catalog, 0.5.0 enemies/tutorial, 0.6.0 first expedition, 0.7.0 onward expansion, and 1.0.0 launch. Keep completion evidence beside each goal.
