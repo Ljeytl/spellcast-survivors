@@ -1,0 +1,35 @@
+{
+  "id": "field",
+  "order": 380,
+  "generic_order": 30,
+  "generic": {
+    "name": "Field",
+    "incantation": "field",
+    "element": "",
+    "acquire": "bare",
+    "matrix_column": "field",
+    "root": "patch",
+    "parts": {
+      "patch": {
+        "delivery": "field",
+        "origin": "target",
+        "geometry": {
+          "type": "disk",
+          "radius": 70
+        },
+        "timing": {
+          "type": "periodic",
+          "interval": 0.5,
+          "duration": 3.0
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 3,
+            "raw_share": 1.0
+          }
+        ]
+      }
+    }
+  }
+}

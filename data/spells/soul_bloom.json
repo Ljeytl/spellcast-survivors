@@ -1,0 +1,45 @@
+{
+  "id": "soul_bloom",
+  "order": 300,
+  "recipe": {
+    "presentation": {
+      "shows_status": true,
+      "shows_lasting": true,
+      "summary": "Infect enemies; their deaths leave healing blooms.",
+      "sound": "SPELL_LIFE",
+      "icon": "heal",
+      "preview": {
+        "glyph": "bolt",
+        "color": "91de83"
+      }
+    },
+    "name": "Soul Bloom",
+    "incantation": "soul bloom",
+    "ingredients": [
+      "infestation",
+      "regeneration"
+    ],
+    "requirements": "Reach rank 8 in Plague Seed and Regeneration, then choose Soul Bloom. Both ingredients stay equipped.",
+    "description": "Infected deaths leave healing blooms and lingering spores. Plague Seed strengthens infection; Regeneration increases available healing.",
+    "card_description": "Infected deaths leave healing blooms and infectious spores.",
+    "overrides": {},
+    "scaling": {
+      "damage": "=dmg(\"infestation\", 9.0)",
+      "healing_bloom_amount": "=6.0 * (1.0 + 0.15 * bonus(\"regeneration\"))",
+      "healing_bloom_radius": "=60.0",
+      "healing_bloom_lifetime": "=10.0 * (1.0 + 0.1 * own)",
+      "duration": "=5.0 * (1.0 + 0.1 * own)",
+      "orphan_lifetime": "=5.0 * (1.0 + 0.1 * own)"
+    },
+    "rank_note": "=\"+duration\""
+  },
+  "shape": {
+    "$extends": "infestation"
+  },
+  "damage": {
+    "element": "plague",
+    "damage": {
+      "plague": 1.0
+    }
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "id": "arcane_turret",
+  "order": 200,
+  "spell": {
+    "id": "arcane_turret",
+    "name": "Arcane Turret",
+    "element": "arcane",
+    "slot": 14,
+    "chars": 13,
+    "summon_count": 1,
+    "summon_duration": 20,
+    "summon_health": 40,
+    "projectile_damage": 25,
+    "fire_rate": 2.0,
+    "projectile_range": 400,
+    "color": [
+      0.6,
+      0.4,
+      1,
+      1
+    ],
+    "unlock_condition": {
+      "type": "spell_mastery",
+      "value": "arcane_missiles"
+    },
+    "visual": {
+      "category": "summon_projectile",
+      "summon_animation": {
+        "frames": [
+          "turret_summon_01.png",
+          "turret_summon_02.png",
+          "turret_summon_03.png"
+        ],
+        "fps": 18,
+        "loop": false
+      },
+      "spawn_effect": {
+        "frames": [
+          "turret_spawn_01.png",
+          "turret_spawn_02.png"
+        ],
+        "fps": 25,
+        "loop": false
+      },
+      "creature_animations": {
+        "idle": {
+          "frames": [
+            "turret_idle_01.png",
+            "turret_idle_02.png"
+          ],
+          "fps": 4,
+          "loop": true
+        },
+        "targeting": {
+          "frames": [
+            "turret_aim_01.png",
+            "turret_aim_02.png"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "shooting": {
+          "frames": [
+            "turret_shoot_01.png",
+            "turret_shoot_02.png",
+            "turret_shoot_03.png"
+          ],
+          "fps": 20,
+          "loop": false
+        },
+        "death": {
+          "frames": [
+            "turret_death_01.png",
+            "turret_death_02.png",
+            "turret_death_03.png"
+          ],
+          "fps": 15,
+          "loop": false
+        }
+      },
+      "creature_cast_animation": {
+        "frames": [
+          "turret_charge_01.png",
+          "turret_charge_02.png"
+        ],
+        "fps": 12,
+        "loop": false
+      },
+      "projectile_spawn": {
+        "frames": [
+          "arcane_projectile_spawn_01.png"
+        ],
+        "fps": 30,
+        "loop": false
+      },
+      "projectile_animation": {
+        "idle": {
+          "frames": [
+            "arcane_projectile_01.png",
+            "arcane_projectile_02.png"
+          ],
+          "fps": 15,
+          "loop": true
+        },
+        "impact": {
+          "frames": [
+            "arcane_projectile_impact_01.png",
+            "arcane_projectile_impact_02.png"
+          ],
+          "fps": 24,
+          "loop": false
+        }
+      },
+      "creature_aim_indicator": {
+        "frames": [
+          "turret_targeting_01.png"
+        ],
+        "fps": 6,
+        "loop": true
+      },
+      "cast_flash": {
+        "frames": [
+          "turret_cast_01.png"
+        ],
+        "fps": 22,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "turret_summon.ogg",
+        "spawn": "turret_deploy.ogg",
+        "creature_shoot": "turret_fire.ogg",
+        "projectile_impact": "arcane_hit.ogg"
+      }
+    },
+    "upgrades": {
+      "summon_count_levels": [
+        2,
+        4
+      ],
+      "fire_rate_levels": [
+        3,
+        6
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "damage_bonus": 0.035,
+        "fire_rate_bonus": 0.02
+      }
+    }
+  }
+}

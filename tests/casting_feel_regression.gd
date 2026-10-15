@@ -140,7 +140,7 @@ func run():
 	var bolt_plan: Dictionary = game.spell_manager.last_generic_cast.plan if game.spell_manager.last_generic_cast else {}
 	var bolt_part: Dictionary = bolt_plan.get("parts", {}).get("bolt", {})
 	check(not bolt_part.is_empty() and is_equal_approx(float(bolt_part.payload[0].hit), float(game.spell_manager.spell_catalog.bolt.damage)*original_damage*1.5),"emitted projectile uses committed power and rank")
-	check(not bolt_part.is_empty() and is_equal_approx(float(bolt_part.geometry.radius), preload("res://scripts/SpellGeometry.gd").BOLT_RADIUS*1.5*float(preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get("bolt", 1.0))),"emitted projectile keeps committed size")
+	check(not bolt_part.is_empty() and is_equal_approx(float(bolt_part.geometry.radius), preload("res://scripts/SpellGeometry.gd").BOLT_RADIUS*1.5*preload("res://scripts/engine/SpellCatalog.gd").projectile_scale("bolt")),"emitted projectile keeps committed size")
 	check(game.hud.get_node("StyleHUD").keyword_stamp.text=="MEGA ×1.1","separate MEGA style stamp")
 	await capture("charge-release")
 	var awarded = session.score.run_score

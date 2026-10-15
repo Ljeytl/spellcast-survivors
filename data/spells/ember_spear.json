@@ -1,0 +1,197 @@
+{
+  "id": "ember_spear",
+  "order": 90,
+  "spell": {
+    "spear_radius": 24.0,
+    "rank_growth": {
+      "damage": {
+        "per_rank": 39.4286
+      },
+      "spear_radius": {
+        "per_rank": 5.1429,
+        "max": 60.0
+      }
+    },
+    "id": "ember_spear",
+    "presentation": {
+      "summary": "Pierce a line of enemies with fire.",
+      "sound": "SPELL_IMPACT_FIRE",
+      "icon": "spear",
+      "preview": {
+        "glyph": "beam",
+        "color": "ffa66b"
+      },
+      "projectile_scale": 0.7
+    },
+    "preparable": true,
+    "name": "Ember Spear",
+    "incantation": "ember spear",
+    "element": "fire",
+    "damage": 96,
+    "burn_trail": true,
+    "burn_tick_ratio": 0.12,
+    "burn_tick": 0.5,
+    "burn_duration": 1.5,
+    "duration": 5.0,
+    "role": "Pierce a line of enemies with a thrown spear.",
+    "unlock_condition": {
+      "type": "default"
+    }
+  },
+  "shape": {
+    "root": "spear",
+    "parts": {
+      "spear": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": "=float(v(\"spear_radius\", SPEAR_RADIUS)) * float(v(\"projectile_size_multiplier\", 1.0))",
+          "pad": 0.0
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": "=700.0 * speed",
+            "range": "=700.0 * speed * 1.5"
+          }
+        ],
+        "payload": [
+          {
+            "$damage": "spear"
+          }
+        ],
+        "limits": {
+          "pierce": -1
+        },
+        "vfx": {
+          "family": "spear"
+        },
+        "trail": {
+          "$when": "bool(v(\"burn_trail\", false))",
+          "part": "trail"
+        },
+        "events": {
+          "$when": "bool(v(\"explosive\", false))",
+          "on_hit": {
+            "part": "drop"
+          }
+        }
+      },
+      "trail": {
+        "$when": "bool(v(\"burn_trail\", false))",
+        "delivery": "field",
+        "origin": "parent",
+        "geometry": {
+          "type": "line",
+          "length": 0.0,
+          "width": "=float(v(\"spear_radius\", SPEAR_RADIUS)) * float(v(\"projectile_size_multiplier\", 1.0)) * 2.0",
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": "=1.5 + float(v(\"burn_duration\", 1.5))",
+          "interval": "=float(v(\"burn_tick\", 0.5))",
+          "per_target": true
+        },
+        "payload": [
+          {
+            "$damage": "trail"
+          }
+        ],
+        "limits": {
+          "cap": 3
+        },
+        "vfx": {
+          "style": "smoulder"
+        }
+      },
+      "drop": {
+        "$when": "bool(v(\"explosive\", false))",
+        "delivery": "field",
+        "origin": "parent",
+        "anchor": "hit_target",
+        "geometry": {
+          "type": "disk",
+          "radius": "=48.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": 1.0,
+          "interval": 999.0
+        },
+        "events": {
+          "on_expire": {
+            "part": "meteor"
+          }
+        },
+        "payload": [],
+        "vfx": {
+          "family": "meteor"
+        }
+      },
+      "meteor": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=48.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": 0.0
+        },
+        "$when": "bool(v(\"explosive\", false))",
+        "propagation": {
+          "type": "instant",
+          "linger": 0.1
+        },
+        "payload": [
+          {
+            "$damage": "meteor"
+          }
+        ],
+        "vfx": {
+          "heavy": 0.6
+        }
+      }
+    },
+    "max_depth": {
+      "$choose": [
+        {
+          "$when": "bool(v(\"explosive\", false))",
+          "value": 3
+        }
+      ]
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "line",
+        "reach": "=700.0 * 1.5 * speed",
+        "radius": "=float(v(\"spear_radius\", 24.0))"
+      },
+      "fixed_duration": true
+    }
+  },
+  "damage": {
+    "damage": {
+      "raw": 0.75,
+      "fire": 0.25
+    },
+    "parts": {
+      "spear": {
+        "damage": {
+          "raw": 0.75,
+          "fire": 0.25
+        },
+        "statuses": []
+      },
+      "trail": {
+        "damage": {
+          "fire": 0.2
+        },
+        "statuses": [
+          {
+            "status": "burn"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -42,9 +42,9 @@ func run():
 	check(not game.get_node("GameplayReadability").focus_label.visible, "Slowdown telemetry hidden outside typing")
 	check(game.spell_slots.filter(func(slot): return slot.visible).size() == manager.spells.size(), "Only equipped spell cards shown")
 	for id in manager.spell_catalog:
-		check(COPY.SPELLS.has(id), "Every learnable base spell has authored short copy: " + id)
+		check(preload("res://scripts/engine/SpellCatalog.gd").presentation(id).has("summary"), "Every learnable base spell has authored short copy: " + id)
 		check(minimal(COPY.description({"effect": {"type": "learn_spell", "spell": id}}, manager)), "Base spell copy is concise: " + id)
-	for id in COPY.EVOLUTIONS:
+	for id in preload("res://scripts/SynergyCatalog.gd").RECIPES:
 		var text = COPY.description({"effect": {"type": "learn_spell", "spell": id}}, manager)
 		check(minimal(text) and not "Replace " in text, "Bonus describes its effect without replacing ingredients: " + id)
 	for geometry in [Vector2i(1280, 720), Vector2i(960, 540)]:
@@ -75,7 +75,7 @@ func run():
 	check(not minimal("PASSIVE UPGRADE\n+10% (Currently: +20%)"), "Known-bad verbose card fails concise invariant")
 	check(COPY.description({"effect": {"type": "spell_damage", "value": 0.05}}, manager) == "Gain 5% spell power.", "Exact percentage comes from actual effect value")
 	check(COPY.description({"effect": {"type": "movement_speed", "value": 0.08}}, manager) == "Gain 8% movement speed.", "No percentage ranges")
-	check(COPY.rank_description("bolt", manager) == "+damage", "Rank card at rank 1 describes only the damage increment")
+	check(COPY.rank_description("bolt", manager) == "+1 projectile, +damage", "Rank card at rank 1 describes what rank 2 adds (Bolt fires a second bolt; fixed in 0.3.2)")
 	manager.upgrade_spell("bolt")
 	check(COPY.rank_description("bolt", manager) == "+1 projectile, +damage", "Rank card describes actual damage increment and additional projectile")
 	var report = game.interface_debug_report()

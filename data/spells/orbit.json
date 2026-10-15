@@ -1,0 +1,46 @@
+{
+  "id": "orbit",
+  "order": 390,
+  "generic_order": 40,
+  "generic": {
+    "name": "Orbit",
+    "incantation": "orbit",
+    "element": "",
+    "acquire": "bare",
+    "matrix_column": "orbit",
+    "root": "body",
+    "arrangement": {
+      "type": "ring",
+      "count": 1
+    },
+    "parts": {
+      "body": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": 16
+        },
+        "motion": [
+          {
+            "type": "orbit",
+            "speed": 3.5,
+            "radius": 90
+          }
+        ],
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 6,
+            "raw_share": 1.0
+          }
+        ],
+        "limits": {
+          "pierce": -1,
+          "lifetime": 4.0,
+          "rehit": 0.5
+        }
+      }
+    }
+  }
+}

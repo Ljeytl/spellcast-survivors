@@ -1,0 +1,118 @@
+{
+  "id": "prism_ray",
+  "order": 320,
+  "recipe": {
+    "presentation": {
+      "shows_lasting": true,
+      "summary": "Carve through a line with a broad, slowly tracking laser.",
+      "sound": "SPELL_LIGHTNING",
+      "icon": "prism",
+      "preview": {
+        "glyph": "beam",
+        "color": "bc8fff"
+      }
+    },
+    "name": "Prism Ray",
+    "incantation": "prism ray",
+    "ingredients": [
+      "focus_ray",
+      "ember_spear"
+    ],
+    "requirements": "Reach rank 8 in Focus Ray and Ember Spear, then choose Prism Ray. Both ingredients stay equipped.",
+    "description": "A tracking laser that refracts at its target into six coloured lasers fanning out behind it, each dealing its own element and applying its effect. Both ingredients and its own ranks increase damage.",
+    "card_description": "A tracking laser that splits at its target into six coloured lasers, each with its own element and effect.",
+    "overrides": {
+      "refract": true,
+      "active_limit": 3
+    },
+    "scaling": {
+      "damage": "=dmg(\"focus_ray\", 13.0) * 1.4 * (1.0 + 0.05 * bonus(\"ember_spear\") + 0.1 * own)",
+      "beam_radius": "=32.0",
+      "beam_turn_speed": "=0.25"
+    },
+    "rank_note": "=\"+damage\""
+  },
+  "shape": {
+    "$extends": "focus_ray"
+  },
+  "damage": {
+    "element": "arcane",
+    "damage": {
+      "arcane": 0.6
+    },
+    "parts": {
+      "beam": {
+        "damage": {
+          "arcane": 0.6
+        },
+        "statuses": [
+          {
+            "status": "vulnerable",
+            "stacks": 0.5
+          }
+        ]
+      },
+      "ray_fire": {
+        "damage": {
+          "fire": 0.15
+        },
+        "statuses": [
+          {
+            "status": "burn"
+          }
+        ]
+      },
+      "ray_water": {
+        "damage": {
+          "water": 0.15
+        },
+        "statuses": [
+          {
+            "status": "chilled"
+          }
+        ]
+      },
+      "ray_storm": {
+        "damage": {
+          "storm": 0.15
+        },
+        "statuses": [
+          {
+            "status": "shocked",
+            "no_stun": true
+          }
+        ]
+      },
+      "ray_earth": {
+        "damage": {
+          "earth": 0.15
+        },
+        "statuses": [
+          {
+            "status": "bleed"
+          }
+        ]
+      },
+      "ray_plague": {
+        "damage": {
+          "plague": 0.15
+        },
+        "statuses": [
+          {
+            "status": "poison"
+          }
+        ]
+      },
+      "ray_life": {
+        "damage": {
+          "life": 0.15
+        },
+        "statuses": [
+          {
+            "status": "entangled"
+          }
+        ]
+      }
+    }
+  }
+}

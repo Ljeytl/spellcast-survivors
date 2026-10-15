@@ -1,0 +1,63 @@
+{
+  "id": "fireball",
+  "order": 420,
+  "generic_order": 70,
+  "generic": {
+    "name": "Fireball",
+    "incantation": "fireball",
+    "element": "fire",
+    "acquire": "data_only",
+    "matrix_column": "ball",
+    "root": "orb",
+    "parts": {
+      "orb": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": 18
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": 650,
+            "range": 700
+          }
+        ],
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 30,
+            "raw_share": 0.5
+          }
+        ],
+        "limits": {
+          "pierce": 0
+        },
+        "events": {
+          "on_hit": {
+            "part": "blast"
+          },
+          "on_expire": {
+            "part": "blast"
+          }
+        }
+      },
+      "blast": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": 90
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 60,
+            "raw_share": 0.2
+          }
+        ]
+      }
+    }
+  }
+}

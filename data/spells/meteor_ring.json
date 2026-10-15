@@ -1,0 +1,79 @@
+{
+  "id": "meteor_ring",
+  "order": 460,
+  "generic_order": 120,
+  "generic": {
+    "name": "Meteor Ring",
+    "incantation": "meteor ring",
+    "element": "fire",
+    "acquire": "data_only",
+    "matrix_column": "shower",
+    "root": "meteor",
+    "arrangement": {
+      "type": "ring",
+      "count": 8,
+      "radius": 90
+    },
+    "release": {
+      "type": "triggered",
+      "range": 450,
+      "one_at_a_time": true,
+      "interval": 0.15
+    },
+    "parts": {
+      "meteor": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": 14
+        },
+        "motion": [
+          {
+            "type": "orbit",
+            "speed": 0.6,
+            "radius": 90,
+            "until": "released"
+          },
+          {
+            "type": "guided",
+            "speed": 900,
+            "turn": 9.0,
+            "range": 900
+          }
+        ],
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 20,
+            "raw_share": 0.7
+          }
+        ],
+        "limits": {
+          "pierce": 0,
+          "lifetime": 20.0
+        },
+        "events": {
+          "on_hit": {
+            "part": "impact"
+          }
+        }
+      },
+      "impact": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": 70
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 40,
+            "raw_share": 0.5
+          }
+        ]
+      }
+    }
+  }
+}

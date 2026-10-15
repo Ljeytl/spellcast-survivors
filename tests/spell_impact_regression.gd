@@ -47,7 +47,7 @@ func clear():
 
 ## Ice Blast and Infestation run on the generic engine (doc 18 phase 2): build the cast from data.
 func generic(info: Dictionary, damage: float, aim):
-	var def = load("res://scripts/engine/LegacyBridge.gd").build(load("res://scripts/SpellGeometry.gd").scaled_data(info, player), damage, {})
+	var def = load("res://scripts/engine/SpellTemplate.gd").build(load("res://scripts/SpellGeometry.gd").scaled_data(info, player), damage, {})
 	var cast = load("res://scripts/engine/GenericCast.gd").new()
 	cast.forced_target = aim
 	cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), player, arena, {"spell": str(info.id)}, true)

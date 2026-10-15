@@ -1,0 +1,86 @@
+{
+  "id": "lightning_rod",
+  "order": 450,
+  "generic_order": 110,
+  "generic": {
+    "name": "Lightning Rod",
+    "incantation": "lightning rod",
+    "element": "storm",
+    "acquire": "data_only",
+    "matrix_column": "spear",
+    "root": "spear",
+    "parts": {
+      "spear": {
+        "delivery": "projectile",
+        "origin": "caster",
+        "geometry": {
+          "type": "body",
+          "radius": 12
+        },
+        "motion": [
+          {
+            "type": "straight",
+            "speed": 1000,
+            "range": 750
+          }
+        ],
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 60,
+            "raw_share": 0.25
+          }
+        ],
+        "limits": {
+          "pierce": 0
+        },
+        "events": {
+          "on_hit": {
+            "part": "rod"
+          },
+          "on_expire": {
+            "part": "rod"
+          }
+        }
+      },
+      "rod": {
+        "delivery": "aura",
+        "origin": "parent",
+        "anchor": "hit_target",
+        "geometry": {
+          "type": "disk",
+          "radius": 220
+        },
+        "timing": {
+          "duration": 4.0
+        },
+        "events": {
+          "on_tick": {
+            "part": "strike",
+            "interval": 0.5,
+            "at": "random_enemy_in_range"
+          }
+        }
+      },
+      "strike": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": 50
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 30,
+            "raw_share": 0.0
+          },
+          {
+            "type": "status",
+            "status": "shocked"
+          }
+        ]
+      }
+    }
+  }
+}

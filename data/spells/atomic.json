@@ -1,0 +1,10 @@
+{
+  "id": "atomic",
+  "order": 350,
+  "damage": {
+    "element": "",
+    "damage": {
+      "pure": 1.0
+    }
+  }
+}

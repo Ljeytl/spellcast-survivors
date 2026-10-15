@@ -1,7 +1,6 @@
 extends RefCounted
-## Loads and validates generic spell definitions (data/generic_spells.json, doc 18 §4).
+## Loads and validates generic spell definitions (the "generic" sections of data/spells/<id>.json, doc 18 §4).
 
-const DATA_PATH = "res://data/generic_spells.json"
 const DELIVERIES = ["projectile", "volume", "field", "aura", "trap", "self", "beam", "infection"]
 const GEOMETRIES = ["body", "disk", "ring", "cone", "line", "rect"]
 const MOTIONS = ["straight", "guided", "spiral", "orbit", "chase", "hold", "return", "none"]
@@ -16,14 +15,11 @@ static var _extra: Dictionary = {}
 
 static func all() -> Dictionary:
 	if _spells.is_empty():
-		var file = FileAccess.open(DATA_PATH, FileAccess.READ)
-		if file:
-			var parsed = JSON.parse_string(file.get_as_text())
-			if parsed is Dictionary:
-				for id in parsed.get("spells", {}):
-					var d: Dictionary = parsed.spells[id]
-					d["id"] = id
-					_spells[id] = d
+		var parsed: Dictionary = preload("res://scripts/core/GameData.gd").file("generic_spells").duplicate(true)
+		for id in parsed.get("spells", {}):
+			var d: Dictionary = parsed.spells[id]
+			d["id"] = id
+			_spells[id] = d
 	var merged = _spells.duplicate()
 	merged.merge(_extra, true)
 	return merged

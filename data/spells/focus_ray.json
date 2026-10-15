@@ -1,0 +1,315 @@
+{
+  "id": "focus_ray",
+  "order": 220,
+  "spell": {
+    "id": "focus_ray",
+    "presentation": {
+      "shows_lasting": true,
+      "summary": "Track a nearby enemy with a damaging beam.",
+      "sound": "SPELL_LIGHTNING",
+      "icon": "beam",
+      "preview": {
+        "glyph": "beam",
+        "color": "bc8fff"
+      }
+    },
+    "preparable": true,
+    "growth_description": "third beam at rank 8",
+    "rank_growth": {
+      "active_limit": {
+        "per_rank": 0.1429,
+        "max": 3,
+        "integer": true
+      },
+      "damage": {
+        "per_rank": 3.4286
+      },
+      "duration": {
+        "per_rank": 0.1429,
+        "max": 3.0
+      },
+      "beam_radius": {
+        "per_rank": 1.7143,
+        "max": 24.0
+      }
+    },
+    "recast_behavior": "stack",
+    "name": "Focus Ray",
+    "element": "arcane",
+    "damage": 24,
+    "duration": 2.0,
+    "active_limit": 2,
+    "beam_radius": 12.0,
+    "turn_speed": 4.0,
+    "role": "Track one enemy with a focused beam; recast to sustain up to three beams.",
+    "unlock_condition": {
+      "type": "default"
+    }
+  },
+  "shape": {
+    "root": "beam",
+    "$recast": true,
+    "parts": {
+      "beam": {
+        "delivery": "beam",
+        "origin": "caster",
+        "geometry": {
+          "type": "line",
+          "length": 450.0,
+          "width": "=float(v(\"beam_radius\", BEAM_RADIUS)) * float(v(\"spell_size_multiplier\", 1.0)) * 2.0",
+          "pad": "hurtbox"
+        },
+        "aim": {
+          "turn": "=pick(bool(v(\"beam_piercing\", false)), float(v(\"beam_turn_speed\", v(\"turn_speed\", 4.0))), float(v(\"beam_turn_speed\", v(\"turn_speed\", 4.0))) * speed)"
+        },
+        "timing": {
+          "interval": 0.25,
+          "duration": "=float(v(\"duration\", 2.0))"
+        },
+        "payload": [
+          {
+            "$damage": "beam"
+          }
+        ],
+        "limits": {
+          "targets": "=int(v(\"beam_targets\", 1))",
+          "beam_piercing": "=bool(v(\"beam_piercing\", false))"
+        },
+        "events": {
+          "$when": "bool(v(\"refract\", false))",
+          "on_hit#ray_fire": {
+            "part": "ray_fire",
+            "turn": -75.0,
+            "exclude_hit": true,
+            "sway": 14.0,
+            "sway_speed": 0.35,
+            "sway_phase": 0.0
+          },
+          "on_hit#ray_water": {
+            "part": "ray_water",
+            "turn": -45.0,
+            "exclude_hit": true,
+            "sway": 14.0,
+            "sway_speed": 0.35,
+            "sway_phase": 1.0
+          },
+          "on_hit#ray_storm": {
+            "part": "ray_storm",
+            "turn": -15.0,
+            "exclude_hit": true,
+            "sway": 14.0,
+            "sway_speed": 0.35,
+            "sway_phase": 2.0
+          },
+          "on_hit#ray_earth": {
+            "part": "ray_earth",
+            "turn": 15.0,
+            "exclude_hit": true,
+            "sway": 14.0,
+            "sway_speed": 0.35,
+            "sway_phase": 3.0
+          },
+          "on_hit#ray_plague": {
+            "part": "ray_plague",
+            "turn": 45.0,
+            "exclude_hit": true,
+            "sway": 14.0,
+            "sway_speed": 0.35,
+            "sway_phase": 4.0
+          },
+          "on_hit#ray_life": {
+            "part": "ray_life",
+            "turn": 75.0,
+            "exclude_hit": true,
+            "sway": 14.0,
+            "sway_speed": 0.35,
+            "sway_phase": 5.0
+          }
+        }
+      },
+      "ray_fire": {
+        "$when": "bool(v(\"refract\", false))",
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "line",
+          "length": "=420.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "width": "=28.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.05
+        },
+        "payload": [
+          {
+            "$damage": "ray_fire"
+          }
+        ],
+        "vfx": {
+          "family": "ray",
+          "look": "fire"
+        }
+      },
+      "ray_water": {
+        "$when": "bool(v(\"refract\", false))",
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "line",
+          "length": "=420.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "width": "=28.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.05
+        },
+        "payload": [
+          {
+            "$damage": "ray_water"
+          }
+        ],
+        "vfx": {
+          "family": "ray",
+          "look": "ice"
+        }
+      },
+      "ray_storm": {
+        "$when": "bool(v(\"refract\", false))",
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "line",
+          "length": "=420.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "width": "=28.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.05
+        },
+        "payload": [
+          {
+            "$damage": "ray_storm"
+          }
+        ],
+        "vfx": {
+          "family": "ray",
+          "look": "lightning"
+        }
+      },
+      "ray_earth": {
+        "$when": "bool(v(\"refract\", false))",
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "line",
+          "length": "=420.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "width": "=28.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.05
+        },
+        "payload": [
+          {
+            "$damage": "ray_earth"
+          }
+        ],
+        "vfx": {
+          "family": "ray",
+          "look": "earth"
+        }
+      },
+      "ray_plague": {
+        "$when": "bool(v(\"refract\", false))",
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "line",
+          "length": "=420.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "width": "=28.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.05
+        },
+        "payload": [
+          {
+            "$damage": "ray_plague"
+          }
+        ],
+        "vfx": {
+          "family": "ray",
+          "look": "plague"
+        }
+      },
+      "ray_life": {
+        "$when": "bool(v(\"refract\", false))",
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "line",
+          "length": "=420.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "width": "=28.0 * float(v(\"spell_size_multiplier\", 1.0))",
+          "pad": "hurtbox"
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.05
+        },
+        "payload": [
+          {
+            "$damage": "ray_life"
+          }
+        ],
+        "vfx": {
+          "family": "ray",
+          "look": "life"
+        }
+      }
+    },
+    "max_spawns": {
+      "$choose": [
+        {
+          "$when": "bool(v(\"refract\", false))",
+          "value": 4000
+        },
+        {
+          "value": 400
+        }
+      ]
+    },
+    "max_depth": {
+      "$choose": [
+        {
+          "$when": "bool(v(\"refract\", false))",
+          "value": 2
+        }
+      ]
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "free_beam",
+        "reach": 450.0
+      },
+      "lanes": {
+        "spacing": 18.0
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "arcane": 1.0
+    },
+    "statuses": [
+      {
+        "status": "vulnerable",
+        "stacks": 0.5
+      }
+    ]
+  }
+}

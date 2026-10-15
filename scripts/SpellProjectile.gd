@@ -54,7 +54,7 @@ func refresh_geometry():
 	var hostile = is_in_group("enemy_projectiles")
 	spell_size = 1.0 if hostile else float(get_meta("cast_size_snapshot", Geometry.multiplier(get_tree().get_first_node_in_group("player"))))
 	if not hostile:
-		spell_size *= preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get(projectile_type, 1.0)
+		spell_size *= preload("res://scripts/engine/SpellCatalog.gd").projectile_scale(str(projectile_type))
 	var collision = get_node_or_null("CollisionShape2D")
 	if collision and collision.shape is CircleShape2D:
 		collision.shape = collision.shape.duplicate()

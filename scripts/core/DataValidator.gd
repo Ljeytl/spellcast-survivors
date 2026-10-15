@@ -1,7 +1,9 @@
 extends RefCounted
 ## Validates every data file against its schema (doc 19 P3 and §8; doc 20 §9).
 ##
-## Convention: data/<name>.json is described by data/schemas/<name>.schema.json.
+## Convention: data/<name>.json is described by data/schemas/<name>.schema.json. The five spell
+## documents (spells, recipes, spell_shapes, spell_damage, generic_spells) are assembled from
+## data/spells/<id>.json by SpellLibrary and use the same schemas.
 ## Schemas use a subset of JSON Schema (draft 2020-12) plus three extensions:
 ##   "x-registry": "<name>"  on an object: its keys (except "_" keys) are ids of that registry
 ##   "x-ref": "<name>" or ["<a>", "<b>"]  on a string (or in propertyNames): the value must be an id in that registry
@@ -44,8 +46,17 @@ static func validate_all(data_dir: String = DATA_DIR, schema_dir: String = SCHEM
 			continue
 		docs[file] = doc
 		schemas[file] = schema
+	# The spell documents are assembled from data/spells/<id>.json (SpellLibrary) and validated
+	# against the same schemas the single files had.
+	var library = preload("res://scripts/core/SpellLibrary.gd")
+	if data_dir == DATA_DIR:
+		for name in library.names():
+			var schema = _load_json(schema_dir.path_join(name + SCHEMA_SUFFIX), errors)
+			if schema != null:
+				docs[name + ".json"] = library.document(name)
+				schemas[name + ".json"] = schema
 	for file in DirAccess.get_files_at(schema_dir):
-		if file.ends_with(SCHEMA_SUFFIX) and not FileAccess.file_exists(data_dir.path_join(file.trim_suffix(SCHEMA_SUFFIX) + ".json")):
+		if file.ends_with(SCHEMA_SUFFIX) and not FileAccess.file_exists(data_dir.path_join(file.trim_suffix(SCHEMA_SUFFIX) + ".json")) and not (data_dir == DATA_DIR and file.trim_suffix(SCHEMA_SUFFIX) in library.names()):
 			errors.append("%s: schema without a data file" % file)
 	errors.append_array(validate_documents(docs, schemas, extra_registries))
 	return errors

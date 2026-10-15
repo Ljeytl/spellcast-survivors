@@ -1,0 +1,117 @@
+{
+  "id": "firewalk",
+  "order": 250,
+  "spell": {
+    "id": "firewalk",
+    "presentation": {
+      "shows_lasting": true,
+      "summary": "Leave burning tracks as you move.",
+      "sound": "SPELL_IMPACT_FIRE",
+      "icon": "ember",
+      "preview": {
+        "glyph": "meteors",
+        "color": "ffa66b"
+      }
+    },
+    "preparable": true,
+    "recast_behavior": "extend",
+    "name": "Fire Walk",
+    "element": "fire",
+    "damage": 8,
+    "duration": 10.0,
+    "active_limit": 3,
+    "role": "Leave a wide burning trail that lasts long enough to catch pursuers.",
+    "unlock_condition": {
+      "type": "default"
+    },
+    "incantation": "fire walk",
+    "emission_duration": 5.0,
+    "patch_duration": 5.0,
+    "trail_radius": 25,
+    "rank_growth": {
+      "trail_radius": {
+        "per_rank": 3.5714,
+        "max": 50.0
+      },
+      "damage": {
+        "per_rank": 2.2857
+      }
+    },
+    "tick_interval": 0.5
+  },
+  "shape": {
+    "root": "emitter",
+    "$recast": true,
+    "max_spawns": 4000,
+    "max_depth": 2,
+    "parts": {
+      "emitter": {
+        "delivery": "aura",
+        "origin": "caster",
+        "anchor": "caster",
+        "geometry": {
+          "type": "disk",
+          "radius": 1.0
+        },
+        "timing": {
+          "duration": "=float(v(\"emission_duration\", 5.0))",
+          "interval": 999.0
+        },
+        "emit": {
+          "part": "patch",
+          "every": 0.1,
+          "min_step": 24.0,
+          "spacing": "=float(v(\"trail_radius\", 65.0))"
+        },
+        "payload": [],
+        "vfx": {
+          "family": "emitter"
+        }
+      },
+      "patch": {
+        "delivery": "field",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": "=float(v(\"trail_radius\", 65.0))",
+          "pad": 0.0
+        },
+        "timing": {
+          "interval": "=float(v(\"tick_interval\", 0.5))",
+          "duration": "=float(v(\"patch_duration\", 6.0))",
+          "shared_clock": true
+        },
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "limits": {
+          "rehit": "=float(v(\"tick_interval\", 0.5)) - 0.001",
+          "rehit_shared": true
+        },
+        "vfx": {
+          "family": "firewalk"
+        }
+      }
+    },
+    "cast_rules": {
+      "targeting": {
+        "rule": "none"
+      },
+      "info_defaults": {
+        "trail_radius": 65.0
+      }
+    }
+  },
+  "damage": {
+    "damage": {
+      "fire": 1.0
+    },
+    "statuses": [
+      {
+        "status": "burn"
+      }
+    ]
+  }
+}

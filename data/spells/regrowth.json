@@ -1,0 +1,24 @@
+{
+  "id": "regrowth",
+  "order": 470,
+  "generic_order": 130,
+  "generic": {
+    "name": "Regrowth",
+    "incantation": "regrowth",
+    "element": "life",
+    "acquire": "data_only",
+    "matrix_column": "restoration",
+    "root": "heal",
+    "parts": {
+      "heal": {
+        "delivery": "self",
+        "payload": [
+          {
+            "type": "heal",
+            "amount": 12
+          }
+        ]
+      }
+    }
+  }
+}

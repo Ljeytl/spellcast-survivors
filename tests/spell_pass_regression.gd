@@ -5,7 +5,7 @@ extends SceneTree
 ## Cross Blade's held pulses, shock's stun) behave as decided.
 
 const SpellDamage = preload("res://scripts/engine/SpellDamage.gd")
-const Bridge = preload("res://scripts/engine/LegacyBridge.gd")
+const Bridge = preload("res://scripts/engine/SpellTemplate.gd")
 const Effects = preload("res://scripts/engine/Effects.gd")
 
 var checks = 0

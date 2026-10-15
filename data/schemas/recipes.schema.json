@@ -44,6 +44,71 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "scaling": {
+            "type": "object",
+            "$comment": "Spell-info field -> expression (see _doc).",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "rank_note": {
+            "type": "string"
+          },
+          "presentation": {
+            "type": "object",
+            "$comment": "How the spell is shown and heard; never read by gameplay except projectile_scale (hit and look size). Missing fields fall back by element and delivery (scripts/engine/SpellCatalog.gd).",
+            "properties": {
+              "summary": {
+                "type": "string"
+              },
+              "sound": {
+                "type": "string",
+                "$comment": "AudioManager.SoundType name"
+              },
+              "sound_on_cast": {
+                "type": "boolean"
+              },
+              "icon": {
+                "type": "string",
+                "$comment": "EffectArt motif, or beam"
+              },
+              "preview": {
+                "type": "object",
+                "properties": {
+                  "glyph": {
+                    "type": "string",
+                    "enum": [
+                      "bolt",
+                      "cross",
+                      "cone",
+                      "zigzag",
+                      "ring",
+                      "rocks",
+                      "beam",
+                      "meteors",
+                      "arc"
+                    ]
+                  },
+                  "color": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "projectile_scale": {
+                "type": "number"
+              },
+              "shows_status": {
+                "type": "boolean",
+                "$comment": "HUD shows its live status/charges (CastingReference)."
+              },
+              "shows_lasting": {
+                "type": "boolean",
+                "$comment": "Build summary shows how long it lasts."
+              }
+            },
+            "additionalProperties": false
           }
         },
         "required": [

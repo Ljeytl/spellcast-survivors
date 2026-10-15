@@ -1,0 +1,79 @@
+{
+  "id": "divine_aura",
+  "order": 180,
+  "spell": {
+    "id": "divine_aura",
+    "name": "Divine Aura",
+    "element": "holy",
+    "slot": 12,
+    "chars": 11,
+    "heal_per_second": 5,
+    "damage_reduction": 0.2,
+    "duration": 15,
+    "radius": 200,
+    "color": [
+      1,
+      0.9,
+      0.6,
+      1
+    ],
+    "unlock_condition": {
+      "type": "character",
+      "value": "healer"
+    },
+    "visual": {
+      "category": "heal_over_time",
+      "aura_animation": {
+        "frames": [
+          "divine_aura_01.png",
+          "divine_aura_02.png",
+          "divine_aura_03.png",
+          "divine_aura_04.png"
+        ],
+        "fps": 6,
+        "loop": true
+      },
+      "heal_tick_effect": {
+        "frames": [
+          "divine_heal_pulse_01.png",
+          "divine_heal_pulse_02.png"
+        ],
+        "fps": 10,
+        "loop": false
+      },
+      "heal_particles": "divine_sparkles",
+      "aura_glow": {
+        "frames": [
+          "divine_glow_01.png",
+          "divine_glow_02.png"
+        ],
+        "fps": 4,
+        "loop": true
+      },
+      "cast_flash": {
+        "frames": [
+          "divine_cast_01.png"
+        ],
+        "fps": 15,
+        "loop": false
+      },
+      "sounds": {
+        "cast": "divine_aura_cast.ogg",
+        "loop": "divine_aura_loop.ogg",
+        "heal": "divine_heal.ogg"
+      }
+    },
+    "upgrades": {
+      "heal_per_level": 0.15,
+      "duration_levels": [
+        3,
+        6
+      ],
+      "max_level": 8,
+      "infinite_scaling": {
+        "heal_bonus": 0.04,
+        "duration_bonus": 0.02
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "_doc": "Spell data that is not about one spell. Each spell lives in data/spells/<id>.json (sections: spell = identity, numbers, ranks, presentation; recipe = combination; shape = parts and cast rules; damage = damage types and statuses per part; generic = bare/draft definition). Reassembled by scripts/core/SpellLibrary.gd.",
+  "docs": {
+    "recipes": "Combination spells (doc 03). A recipe joins two ingredient spells; overrides are merged over the spell info when cast. scaling: how the combination grows, one expression per spell-info field ('=' prefix): own = its own rank - 1, bonus(id) = an ingredient's rank - 1, dmg(id, fallback) = an ingredient's damage at its rank (its own rank curve). rank_note: the next rank's level-up line (rank = current rank).",
+    "spell_shapes": "Spell shapes as data (doc 19 §4.1): the parts each shipped spell and combination is made of, keyed by spell id. Expressions start with '='; see scripts/engine/SpellTemplate.gd for the template rules. Numbers live in spells.json, recipes.json and spell_damage.json.",
+    "spell_damage": "Typed damage for shipping spells (doc 21 §5). damage = each damage type as a multiple of the spell's base hit (may add up past 1); raw shares use the spell's element on the type chart. element defaults to spells.json. statuses are applied on hit: {status, strength?, stacks?, duration?, no_freeze?, no_stun?}. parts: per part (named as in scripts/engine/LegacyBridge.gd), that part's own damage and statuses, which replace the spell's. pure is untyped damage no resistance reduces.",
+    "generic_spells": "Generic spells built from parts (doc 18 §4). acquire: bare = always castable bare forms (deliberately weak); data_only = defined for the engine and tests, not acquirable yet."
+  },
+  "spell_categories": {
+    "offensive": [
+      "bolt",
+      "ice_blast",
+      "lightning",
+      "meteor_shower",
+      "fire_storm",
+      "frost_nova",
+      "arcane_missiles"
+    ],
+    "defensive": [
+      "earth_shield",
+      "chain_heal",
+      "divine_aura"
+    ],
+    "utility": [
+      "time_warp"
+    ],
+    "healing": [
+      "life",
+      "regeneration",
+      "chain_heal",
+      "divine_aura"
+    ],
+    "auto_attack": [
+      "mana_bolt"
+    ],
+    "summons": [
+      "skeleton_warrior",
+      "arcane_turret",
+      "flame_elemental"
+    ]
+  },
+  "unlock_conditions": {
+    "level": "Player must reach specified level",
+    "persistent_xp": "Player must have accumulated specified persistent XP",
+    "achievement": "Player must have earned specified achievement",
+    "character": "Player must have unlocked specified character",
+    "spell_mastery": "Player must have mastered specified spell",
+    "survive_time": "Player must survive specified time in a single run",
+    "enemies_killed": "Player must kill specified number of enemies",
+    "default": "Always available"
+  },
+  "preparation": {
+    "_doc": "The pre-run spellbook (scripts/Preparation.gd): ordered slots, the level each slot opens at, and the kit a new profile starts with. Spells marked preparable can be prepared; opens_kit false keeps a spell out of slot 1 (it cannot kill things on its own).",
+    "slots": 6,
+    "activation_levels": [
+      1,
+      2,
+      4,
+      7,
+      11,
+      16
+    ],
+    "default_kit": [
+      "bolt",
+      "ice_blast",
+      "lightning",
+      "life",
+      "meteor_shower",
+      "ember_spear"
+    ]
+  }
+}

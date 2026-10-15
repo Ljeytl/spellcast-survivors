@@ -408,7 +408,7 @@ func cast_legacy(text: String):
 	if words.begins_with("rank8 "):
 		rank = 8
 		words = words.trim_prefix("rank8 ")
-	var spells: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells
+	var spells: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells
 	var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
 	var names := {}
 	for id in spells:
@@ -434,16 +434,16 @@ func cast_legacy(text: String):
 	info = preload("res://scripts/SpellGeometry.gd").scaled_data(info, caster)
 	var damage := float(info.get("damage", 0.0)) * (1.0 if info.get("rank_growth", {}).has("damage") else 1.0 + 0.15 * (rank - 1))
 	var ctx := {"speed_mult": 1.0}
-	if str(info.get("type", "")) == "heal":
-		ctx.heal = float(info.heal_amount) * (1.0 + 0.15 * (rank - 1))
-	var def = preload("res://scripts/engine/LegacyBridge.gd").build(info, damage, ctx)
+	var Template = preload("res://scripts/engine/SpellTemplate.gd")
+	ctx.merge(Template.rules(info, {"power": 1.0, "duration_stat": 1.0, "size_stat": 1.0}).get("context", {}), true)
+	var def = preload("res://scripts/engine/SpellTemplate.gd").build(info, damage, ctx)
 	if def.is_empty():
 		push_warning("arena: not ported yet: " + id)
 		return
 	seed_counter += 1
 	var plan = Planner.plan(def, parsed.bundle, {})
 	var c = GenericCast.new()
-	if str(info.get("type", "")) == "multi_aoe":
+	if Template.rules(info).has("points"):
 		c.point_picker = func(n: int) -> Array:
 			var pts: Array = []
 			for i in n:

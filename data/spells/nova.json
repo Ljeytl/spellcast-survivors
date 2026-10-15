@@ -1,0 +1,40 @@
+{
+  "id": "nova",
+  "order": 370,
+  "generic_order": 20,
+  "generic": {
+    "name": "Nova",
+    "incantation": "nova",
+    "element": "",
+    "acquire": "bare",
+    "matrix_column": "nova",
+    "root": "ring",
+    "parts": {
+      "ring": {
+        "delivery": "volume",
+        "origin": "caster",
+        "geometry": {
+          "type": "ring",
+          "radius": 170,
+          "thickness": 30
+        },
+        "propagation": {
+          "type": "expanding",
+          "speed": 700
+        },
+        "payload": [
+          {
+            "type": "damage",
+            "amount": 14,
+            "raw_share": 1.0
+          },
+          {
+            "type": "impulse",
+            "force": 160,
+            "direction": "away"
+          }
+        ]
+      }
+    }
+  }
+}

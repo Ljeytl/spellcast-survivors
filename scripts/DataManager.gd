@@ -22,7 +22,7 @@ func load_all_data():
 	print("DataManager: Loading game data...")
 	
 	# Load all data files
-	spells_data = load_json_file("res://data/spells.json")
+	spells_data = preload("res://scripts/core/GameData.gd").file("spells").duplicate(true)   # data/spells/<id>.json
 	characters_data = load_json_file("res://data/characters.json")
 	enemies_data = load_json_file("res://data/enemies.json")
 	progression_data = load_json_file("res://data/progression.json")

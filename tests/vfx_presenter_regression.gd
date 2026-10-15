@@ -128,9 +128,9 @@ func run():
 		check(on == off, "VFX never change gameplay: " + text + " " + str(on) + " vs " + str(off))
 	vfx.presenter.enabled = true
 
-	var cinder_info: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells.cinder_field
+	var cinder_info: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells.cinder_field.duplicate(true)
 	cinder_info.incantation = "cinder field"
-	Defs.register(preload("res://scripts/engine/LegacyBridge.gd").build(cinder_info, 8.0, {}))
+	Defs.register(preload("res://scripts/engine/SpellTemplate.gd").build(cinder_info, 8.0, {}))
 	for item in [["cinder field", "cinder"], ["flame wall", "default"]]:
 		clear()
 		foe(Vector2(150, 0))

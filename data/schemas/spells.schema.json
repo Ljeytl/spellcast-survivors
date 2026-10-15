@@ -49,9 +49,6 @@
               "element_alias"
             ]
           },
-          "type": {
-            "type": "string"
-          },
           "damage": {
             "type": "number"
           },
@@ -705,13 +702,104 @@
           },
           "blade_count": {
             "type": "number"
+          },
+          "preparable": {
+            "type": "boolean",
+            "$comment": "Can be prepared in the pre-run spellbook (Preparation.gd)."
+          },
+          "opens_kit": {
+            "type": "boolean",
+            "$comment": "false: cannot sit in slot 1 (not an attack)."
+          },
+          "projectile_ranks": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "$comment": "Magic Missile: ranks at which it fires one more missile."
+          },
+          "rank_card_projectile_ranks": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "$comment": "Rank-up card: ranks that say +1 projectile."
+          },
+          "rank_card_power": {
+            "type": "string",
+            "$comment": "Rank-up card: the word for its power growth instead of the damage check (e.g. +healing)."
+          },
+          "rank_card_extra": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "$comment": "Rank-up card: lines every rank adds (e.g. +push)."
+          },
+          "presentation": {
+            "type": "object",
+            "$comment": "How the spell is shown and heard; never read by gameplay except projectile_scale (hit and look size). Missing fields fall back by element and delivery (scripts/engine/SpellCatalog.gd).",
+            "properties": {
+              "summary": {
+                "type": "string"
+              },
+              "sound": {
+                "type": "string",
+                "$comment": "AudioManager.SoundType name"
+              },
+              "sound_on_cast": {
+                "type": "boolean"
+              },
+              "icon": {
+                "type": "string",
+                "$comment": "EffectArt motif, or beam"
+              },
+              "preview": {
+                "type": "object",
+                "properties": {
+                  "glyph": {
+                    "type": "string",
+                    "enum": [
+                      "bolt",
+                      "cross",
+                      "cone",
+                      "zigzag",
+                      "ring",
+                      "rocks",
+                      "beam",
+                      "meteors",
+                      "arc"
+                    ]
+                  },
+                  "color": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "projectile_scale": {
+                "type": "number"
+              },
+              "shows_status": {
+                "type": "boolean",
+                "$comment": "HUD shows its live status/charges (CastingReference)."
+              },
+              "shows_lasting": {
+                "type": "boolean",
+                "$comment": "Build summary shows how long it lasts."
+              }
+            },
+            "additionalProperties": false
+          },
+          "rank_damage_pct": {
+            "type": "number",
+            "$comment": "Magic Missile: damage gained per rank as a fraction of its base."
           }
         },
         "required": [
           "id",
           "name",
           "element",
-          "type",
           "unlock_condition"
         ],
         "additionalProperties": false
@@ -815,6 +903,36 @@
       ],
       "additionalProperties": false,
       "x-registry": "unlock_condition"
+    },
+    "preparation": {
+      "type": "object",
+      "properties": {
+        "_doc": {
+          "type": "string"
+        },
+        "slots": {
+          "type": "number"
+        },
+        "activation_levels": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "default_kit": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        }
+      },
+      "required": [
+        "slots",
+        "activation_levels",
+        "default_kit"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

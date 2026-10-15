@@ -21,17 +21,12 @@ func _draw():
 	if passive:
 		draw_circle(size / 2, minf(12, size.x / 2 - 1), Color("dfbd76"), false, 2)
 		return
-	if item_id == "focus_ray":
+	var kind: String = preload("res://scripts/engine/SpellCatalog.gd").icon(item_id)   # data: presentation.icon
+	if kind == "beam":
 		var center = size / 2
 		draw_line(Vector2(3, center.y), Vector2(size.x - 3, center.y), Color("202334"), 10)
 		draw_line(Vector2(3, center.y), Vector2(size.x - 3, center.y), Color("69c5ce"), 6)
 		draw_line(Vector2(3, center.y), Vector2(size.x - 3, center.y), Color("efffff"), 2)
 		draw_rect(Rect2(center - Vector2(3, 7), Vector2(6, 14)), Color("69c5ce"), false, 2)
 		return
-	var kind = "rune"
-	for entry in [["cinder", "flame"], ["soul", "heal"], ["meteor", "meteor"], ["lightning", "lightning"], ["prism", "prism"], ["focus", "mana"], ["blade", "blade"], ["bolt", "bolt"], ["life", "heal"], ["regeneration", "heal"], ["health", "heal"], ["ice", "ice"], ["frost", "ice"], ["fire", "flame"], ["ember", "spear"], ["plague", "plague"], ["spirit", "spirit"], ["seeker", "spirit"], ["shield", "stone"], ["orbit", "orbit"], ["steam", "steam"]]:
-		if entry[0] in item_id:
-			kind = entry[1]
-			break
-	kind = {"bolt": "mana", "firewalk": "ember", "life_bolt": "heal", "lightning_bolt": "lightning", "meteor_spear": "spear"}.get(item_id, kind)
 	preload("res://scripts/EffectArt.gd").stamp(self, kind, size / 2, Vector2.ONE * minf(27, size.x))
