@@ -20,6 +20,9 @@ var release_opacity := 1.0
 var delivered := false
 var destination := Vector2.ZERO
 var release_origin := Vector2.ZERO
+var wake_samples: Array = []
+var wake_origin := Vector2.ZERO
+var wake_initialized := false
 
 func _ready() -> void:
 	z_index = 6
@@ -94,6 +97,7 @@ func _process(dt: float) -> void:
 		wake.modulate = tint
 		wake.direction = -direction
 		wake.global_rotation = 0.0
+		_update_wake(dt, reduced)
 	sprite.modulate = Color(tint, lerpf(0.65, 1.0, emergence) * fade)
 	sprite.material.set_shader_parameter("phase", clock)
 	sprite.material.set_shader_parameter("flow_amount", 0.005 if reduced else 0.018)
@@ -145,3 +149,35 @@ func finish(arrived: bool, at: Vector2) -> void:
 	wake.emitting = false
 	reparent(host.get_parent())
 	add_to_group("spirit_remnants")
+
+func _update_wake(dt: float, reduced: bool) -> void:
+	if not wake_initialized:
+		wake_origin = global_position
+		wake_initialized = true
+		return
+	for sample in wake_samples:
+		sample[1] += dt
+	wake_samples = wake_samples.filter(func(sample): return sample[1] < 0.5)
+	if not released:
+		var distance := wake_origin.distance_to(global_position)
+		var steps := mini(48, int(distance / (10.0 if reduced else 5.0)))
+		for i in range(steps):
+			var fraction := float(i + 1) / float(steps)
+			wake_samples.append([wake_origin.lerp(global_position, fraction), dt * (1.0 - fraction), Vector2.from_angle(facing + PI / 2.0)])
+		if steps > 0:
+			wake_origin = global_position
+	while wake_samples.size() > 64:
+		wake_samples.pop_front()
+	queue_redraw()
+
+func _draw() -> void:
+	if not soul or wake == null:
+		return
+	for sample in wake_samples:
+		var t: float = clampf(sample[1] / 0.5, 0.0, 1.0)
+		var drift: Vector2 = sample[2] * sin(t * PI) * 5.0
+		var center := to_local(sample[0] + drift)
+		var size := lerpf(18.0, 30.0, t)
+		var tint := Color(0.87, 1.0, 0.88) if healing else Color(1.0, 0.85, 1.0)
+		tint.a = sin(t * PI) * 0.55
+		draw_texture_rect(wake.texture, Rect2(center - Vector2.ONE * size * 0.5, Vector2.ONE * size), false, tint)
