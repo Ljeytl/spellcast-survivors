@@ -5,6 +5,7 @@ Updated 15 October 2026. The rewrite foundations and existing spell migration ar
 ## Reading guide
 
 - [Shared sequence and material language](#spell-feel-design-brief)
+- [Current audit and provisional grades](#current-spell-audit--15-october-2026)
 - [Current manual spells](#current-manual-spell-sequences)
 - [Existing combinations](#existing-combination-sequences)
 - [Automatic and special attacks](#automatic-and-special-attack-sequences)
@@ -793,7 +794,9 @@ This order covers the current roster before promoting the future catalog into im
 
 ### A B requires evidence in play
 
-For each current spell, record separate assessments of **casting responsiveness**, **fantasy and motion**, **contact and enemy response**, **sound/camera**, **state and boundary readability**, and **ending/cleanup**. Mark each B-or-better, below B, or untested, with a short reason. A spell does not reach the B floor while a material dimension is below B or untested. This is a working review rubric, not an objective universal scoring scale.
+For each current spell, grade six columns: **fantasy**, **visual quality**, **motion and behavior**, **casting and impact**, **sound and camera**, and **readability**. Ending/cleanup belongs in motion and readability; enemy response belongs in casting/impact. Every column must be in the C band or higher (C− is acceptable), and the arithmetic mean must reach B (3.0). Use A+=4.3, A=4.0, A−=3.7, B+=3.3, B=3.0, B−=2.7, C+=2.3, C=2.0, C−=1.7, D+=1.3, D=1.0, D−=0.7 and F=0. A missing observation is untested, never zero or an invented grade. An incomplete row cannot pass; a mean of observed columns may be shown only as a clearly labeled partial mean. These are working artistic judgments, not objective measurements.
+
+**Fantasy leads the recommendations.** Preserve an exceptional identity even when its readability is merely C−; improve comprehension around the essential effect instead of stripping away its character. For example, an Ember Spear with A+ fantasy and C− readability is not automatically a redesign candidate. The average remains unweighted as requested; fantasy priority governs what to preserve and which improvements to pursue. Simplicity can earn an A.
 
 Capture the complete candidate in motion with sound and a real moving enemy, then a crowded encounter with another player spell and an enemy threat. Compare normal size, meaningful rank/copy upgrades, rapid recasts, target death, expiry, pause, reduced effects and narrow geometry. Observe miss, block/resist, heal-at-full-health and cancellation when applicable. Use the actual release/damage events to verify alignment. A tiny fast spell should be sampled well enough that its full life is not skipped between screenshots.
 
@@ -805,6 +808,209 @@ Show each artistic batch for judgment before treating it as accepted or integrat
 
 Keep a short decision record for target ownership/retargeting, damaging geometry versus decorative trails, attack cadence, lifetime, recast/cap rules, rank changes and compatible modifiers. For spirit alternatives, explicitly choose orbit-host damage versus collision damage and one-pass versus persistent attacks. For Lightning, decide whether ground charge is harmless residue or a new payload. For Flame Wall, settle placement/movement and contact cadence. Paused spear families remain paused; undefined catalog cells remain undefined. Sound assets and their licenses must be tracked when assets are selected; no specific external sound or paid acquisition is mandated here.
 
+
+## Current spell audit — 15 October 2026
+
+**Status: provisional visual audit; full spell-feel gate INCOMPLETE.** Candidate `a96ddd56c42e8759371ef7918dc564d016cbdbf0`. All 31 current player spell/form/special sequences were captured in a background Chromium Web build using the real Game scene and spell engine. This is a dated assessment, not an approval of the current effects or a claim that the game meets the target. Future catalog spells have no running implementation to grade here; their design scripts remain proposals.
+
+The six-column rubric above applies. **U means untested.** The final six-column average is withheld for every row because sound was not audibly reviewed. The numeric partial mean uses the five observed columns only; B corresponds to 3.00. Do not treat it as a passing overall grade. All visible grades are provisional judgments from recorded frame sequences: casting/impact describes the observed release and contact, not a certified typing-response test, and motion describes path/material changes, not a frame-time benchmark. Fantasy remains the priority when choosing what to preserve or improve.
+
+### Evidence and coverage
+
+The preserved evidence bundle is located at `/Users/ljeytl/.codex/visualizations/2026/10/15/spell-feel-audit-a96ddd5/index.html`. Its absolute location, case count and manifest checksum are recorded in the [audit data](spell-feel-audit-2026-10-15.json); the bundle manifest inventories fixture and recording hashes. It contains per-spell WebM recordings, full frames, chronological frame sheets, console logs, test results and the fixture overlays/runners. Base captures use 1280×800 geometry, fourteen slowly moving enemies, an invincible wizard following the showcase path, and two to five repeated casts. Automatic Magic Missile is disabled in other cases so it cannot be mistaken for the reviewed spell; its own case invokes its actual firing method at showcase cadence. Atomic uses its actual blast directly, bypassing acquisition. Earth Shield's block is deliberately triggered by the showcase. These fixture differences limit the verdict.
+
+| Obligation | Observed evidence and disposition |
+|---|---|
+| Current roster and combinations | 31 base recordings; real spell engine and game scene. Visual sequences reviewed, including dense opening samples for fast attacks. Provisional artistic grades below. |
+| Material, movement, contact and ending | Recorded sequences plus source audit. Short shots need dense samples; four-frame-per-second summary sheets alone are insufficient. No native performance certification. |
+| Sound and camera as a complete experience | Recordings have no audio track. Source mappings inspected; camera effects remain enabled. Audible mix, fatigue, synchronization and full combined feel are UNTESTED; column U. |
+| Player typing, responsiveness and cancellation | Showcase invokes casts. Full manual input, cancellation and recovery journeys are UNTESTED; release/contact observations do not discharge them. |
+| Spirit comparison | Seeker ghost and wisp; Soul Bloom normal and quarter-speed cases, including full-health and explicitly wounded fixtures. Slow motion reveals appearance but does not establish normal-speed feel. |
+| Expiry and quiet waiting | Corrected empty-enemy fixtures: Steam clears after the cast stops; Rune Trap remains visibly armed; bare Trap disappears after its finite lifetime. Initial empty cases retained one setup enemy and are superseded by `_verified` cases. |
+| Recasts, size and modifiers | Repeated base casts across roster; larger Steam at 640×800; FIERY DOUBLE Bolt. Complete rank progression and modifier combinations remain UNTESTED. |
+| Crowded combat | Fourteen moving enemies expose overlap, but they are slow and the caster is invincible. Mixed late-run enemy attacks, multiple simultaneous spell families and survival-pressure response remain UNTESTED. |
+| Narrow layout | Larger Steam reviewed at 640×800. Cloud retains its identity; the bottom active-spell text overlaps the minimap area. Layout issue OPEN, separate from the cloud's artistic grade. Other narrow spell/layout cases UNTESTED. |
+| Reduced effects and pause | Reduced Lightning captured. Showcase-cycle pause used to observe expiry; it is not game pause. Full reduced-effects sibling sweep, actual pause/resume, save/reopen and lifecycle interruption remain UNTESTED. |
+| Misses, blocks and recipient states | Empty cases and synthetic shield block observed; wounded healing fixtures log health=30 at cast. Full resist/immunity, blocked-damage and all healing-at-full-health cases remain UNTESTED. |
+| Review controls | Runtime error collector deliberately challenged by a known error; grading controls reject a D despite a high average, reject B− average, accept a C− floor with a high enough average, and keep U incomplete. These controls validate the mechanism, not aesthetic quality. |
+
+No runtime/art changes were made during this audit. The working showcase copy uses an isolated save identity and compatibility renderer, with explicit fixture controls for the above cases. Normal-speed captures and slow-motion diagnostic captures are separate. Apparent capture stalls must not be reported as a measured game-performance defect.
+
+### Provisional scorecard
+
+Columns are fantasy, visuals, motion/behavior, casting/impact, sound/camera and readability. The last numeric column is **partial**, not the requested final average. Every final verdict is INCOMPLETE until the missing evidence is reviewed. Cross Blade and Atomic additionally have observed columns below the allowed C band.
+
+| Runtime | Spell | Fantasy | Visuals | Motion | Cast/impact | Sound/camera | Readability | Partial mean / 4.3 |
+|---|---|---|---|---|---|---|---|---|
+| `bolt` | Bolt | B- | B- | B | C+ | U | B | 2.74 |
+| `life` | Life | C+ | C+ | C+ | C | U | B- | 2.32 |
+| `regeneration` | Regeneration | C | C+ | C | C | U | C+ | 2.12 |
+| `ice_blast` | Ice Blast | B- | C+ | B- | C+ | U | B- | 2.54 |
+| `earth_shield` | Earth Shield | B- | B- | B- | B | U | C+ | 2.68 |
+| `lightning` | Lightning | B | B- | B- | B | U | B | 2.88 |
+| `meteor_shower` | Meteor Shower | B+ | B | B+ | B+ | U | B- | 3.12 |
+| `ember_spear` | Ember Spear | B+ | B- | B | B | U | C+ | 2.86 |
+| `infestation` | Infestation | C+ | C | C+ | C | U | C+ | 2.18 |
+| `cinder_field` | Cinder Field | B- | B- | C+ | C+ | U | B- | 2.54 |
+| `arcane_orbit` | Arcane Orbit | C+ | C | B- | C+ | U | B | 2.46 |
+| `focus_ray` | Focus Ray | B- | C+ | B- | C+ | U | B | 2.60 |
+| `rune_trap` | Rune Trap | B | B- | B- | B | U | C+ | 2.74 |
+| `seeker` | Seeker | B- | B | C+ | C | U | C+ | 2.46 |
+| `firewalk` | Fire Walk | B- | C+ | B- | C | U | C+ | 2.40 |
+| `cross_blade` | Cross Blade | C- | D+ | C+ | D+ | U | C- | 1.66 |
+| `lightning_bolt` | Lightning Bolt | B | C+ | B | B | U | C+ | 2.72 |
+| `life_bolt` | Life Bolt | C+ | C+ | B- | C | U | C- | 2.20 |
+| `meteor_spear` | Meteor Spear | B+ | B- | B | B+ | U | C | 2.86 |
+| `soul_bloom` | Soul Bloom | C+ | B- | C | C | U | C- | 2.14 |
+| `steam_field` | Steam Field | B+ | B+ | B | C+ | U | C+ | 2.84 |
+| `prism_ray` | Prism Ray | B | C+ | B- | C+ | U | C- | 2.40 |
+| `frost_sigil` | Frost Sigil | C+ | C+ | B- | B | U | C+ | 2.52 |
+| `mana_bolt` | Magic Missile | B | B | B | C+ | U | B | 2.86 |
+| `spear` | Bare Spear | B- | B- | B | C+ | U | B- | 2.68 |
+| `slash` | Bare Slash | C+ | C | C+ | C+ | U | C+ | 2.24 |
+| `nova` | Bare Nova | B- | B- | B | C+ | U | B | 2.74 |
+| `field` | Bare Field | C+ | C+ | C+ | C | U | C+ | 2.24 |
+| `orbit` | Bare Orbit | B- | B- | B | C+ | U | B | 2.74 |
+| `trap` | Bare Trap | C+ | C+ | C+ | C+ | U | C+ | 2.30 |
+| `atomic` | Atomic | D+ | C- | C | C+ | U | B- | 2.00 |
+
+### Findings and strongest improvement per spell
+
+Each proposal below is OPEN. It describes a direction for a prototype, not permission to change damage, timing, targeting or acquisition. Preserve the strong identity before polishing its weaker dimensions.
+
+**Bolt — observed:** A compact white-purple head and short trail communicate a quick directed shot. The contact is much less memorable than the launch; the staff does not visibly author a distinct flick.
+
+**Strongest idea:** Preserve the fast minimal projectile. Tighten the staff-tip release and give the real contact one clean directional spark rather than a larger explosion.
+
+**Life — observed:** The green-gold cross ring clearly signals healing, but floats around the caster like a buff badge rather than a decisive breath of recovery.
+
+**Strongest idea:** Pull a compact pulse into the body on the actual heal, then let a few warm motes rise. Keep it instant and distinguish it from the sustained Regeneration ring.
+
+**Regeneration — observed:** The sustained yellow-green crosses and ring remain visible, but look very similar to Life. Continuous decoration communicates an active buff more than living repair.
+
+**Strongest idea:** Make a quiet breathing rhythm with sparse leaves gathering inward on recovery. Preserve a low steady aura and avoid repeated full Life bursts.
+
+**Ice Blast — observed:** The cold fan, scattered chips and icy contact read as frost. Large outlined shards and scattered white marks dominate the release without a particularly brittle material transition.
+
+**Strongest idea:** Preserve the fan. Give the advancing shards a crisp edge and make contacts fracture into smaller directional chips, with fewer persistent white marks around the caster.
+
+**Earth Shield — observed:** The triggered eruption has recognizable stone chunks and a convincing outward breakup. The brief protection and its consumption are less explicit than the eruption itself; this fixture triggers the block directly.
+
+**Strongest idea:** Make one protective stone shell assemble, visibly take the incoming hit, then break into the existing eruption. The single charge should look spent afterward.
+
+**Lightning — observed:** A blue warning ring, descending white bolt, bright impact and dark residue form a recognizable strike. The caster stays visually detached and the aftermath is mostly a ring/scorch rather than branching charge.
+
+**Strongest idea:** Build the staff gather/slam connection, then let a few ground arcs spread from the actual strike and die away. Preserve the strong bolt; do not add new damage or casting delay by implication.
+
+**Meteor Shower — observed:** Separate hot arrivals, bright contacts and cooling patches give this a strong repeated-impact identity. The fire has weight and color; the coarse dark residue is less convincing than the arrivals.
+
+**Strongest idea:** Keep the stagger and repeated impacts. Refine descending trails and crater cooling so each arrival becomes hot debris and spent ground without synchronizing the shower.
+
+**Ember Spear — observed:** The long hot lance and persistent fiery route strongly communicate burning penetration. The straight black strip with orange outline looks mechanically drawn compared with the lively flames above it.
+
+**Strongest idea:** Preserve heat, reach and force. Break up the strip into an irregular scorched path with moving low flame, keeping the spear head distinct from its damaging wake.
+
+**Infestation — observed:** Green black-outlined blobs travel and collect around enemies. They suggest poison, but host infection and transmission look like similar loose particles rather than a sickness taking hold.
+
+**Strongest idea:** Anchor a compact crawling/pulsing growth to the infected host, then let a visibly released spore travel to the next host. Give application and spread different motion.
+
+**Cinder Field — observed:** Orange fire over dark ground convincingly occupies an area. A hard circular border and repeated tall flames read more as a generic fire patch than a bed of cinders.
+
+**Strongest idea:** Keep the heat and saturated color. Emphasize glowing coal pockets, low licking flame and hot ash stirred at real damage contacts; let the edge cool unevenly.
+
+**Arcane Orbit — observed:** Two large purple-white bodies visibly orbit and touch enemies, but their solid outlined, simply shaded surfaces resemble physical balls more than controlled magical energy.
+
+**Strongest idea:** Keep two clear bodies and their orbit. Let light circulate within each shell and leave a short curved particle wake; concentrate the contact accent on the leading edge.
+
+**Focus Ray — observed:** A clear white-purple beam connects caster and target, tracks and stops. Its uniform striped body and modest endpoint response communicate a line better than sustained pressure.
+
+**Strongest idea:** Keep the clean beam. Add subtle forward flow and a concentrated contact point that responds to real ticks, plus a brief narrowing shutdown rather than extra screen effects.
+
+**Rune Trap — observed:** The glyph circle and triggered burst communicate authored magic. Similar rings in the armed, warning and aftermath phases make the state transition less distinct than it could be.
+
+**Strongest idea:** Keep the runic geometry. Draw the inscription once, wait quietly, then snap its symbols inward during the actual trigger warning before the blast opens outward.
+
+**Seeker — observed:** The painted ghost is a clear centerpiece and turns while pursuing. Close pursuit tends to stack bodies over the victim, with weak separation between gliding, touching and dealing damage.
+
+**Strongest idea:** Preserve the body. Add a genuinely lagging trail and a distinct real-contact contraction/release. Compare deliberate passing attacks only as a separately approved behavior prototype.
+
+**Fire Walk — observed:** A low fiery wake visibly follows the caster path. Small isolated flame clumps and checker-like scorch make the trail feel intermittent rather than a continuous hot wake.
+
+**Strongest idea:** Keep the ground-hugging scale. Connect neighboring flames through short-lived heat and embers, show ignition directly behind each step, and let older patches cool in path order.
+
+**Cross Blade — observed:** At gameplay scale the blade is a thin dark rotating cross accompanied by white flecks. Its body and contacts have too little presence for a substantial spinning cutter, and the stronger return is not visually obvious.
+
+**Strongest idea:** Give the existing blade a solid readable edge and short curved cutting wake without expanding its hitbox. Accent the reversal and actual return contacts; keep the three-phase behavior.
+
+**Lightning Bolt — observed:** Repeated local lightning impacts and expanding rings give a strong electrical payoff. The traveling cause is easily lost among the later bright blasts and dark residue.
+
+**Strongest idea:** Make each projectile contact leave a compact electrical mark that visibly becomes its delayed sky strike. Preserve the cascade while shortening distracting spent-ring emphasis.
+
+**Life Bolt — observed:** A shot is followed by green-gold rings and crosses among enemies and around the wizard. The shared healing motif makes the enemy hit, available recovery and received healing difficult to distinguish.
+
+**Strongest idea:** Use a small planted sprout for available recovery and reserve the inward warm pulse for actual healing. Preserve the offensive projectile; do not make damaging contact look like healing the enemy.
+
+**Meteor Spear — observed:** The burning line followed by separate falling fireballs gives the combination a substantial escalating payoff. Hard trail rectangles and overlapping contact bursts make its causal sequence less elegant than its force.
+
+**Strongest idea:** Keep penetration and staggered follow-up impacts. Mark the pierced contacts briefly, then make each descending meteor visibly answer a mark; refine the same artificial trail edge as Ember Spear.
+
+**Soul Bloom — observed:** The slow-motion wisp comparison reveals an appealing luminous soul traveling toward the wizard. At normal speed, infection particles and arrival flashes dominate; short nearby deliveries do not consistently establish the spirit as the centerpiece. The full-health ghost delivery is especially brief.
+
+**Strongest idea:** Keep the approved spirit body and immediate gameplay delivery. Let a visible emergence and absorption remnant complete independently, and render an actual path-following trail. Do not slow healing or add orbit behavior without a separate decision.
+
+**Steam Field — observed:** Soft blue-white connected vapor has volume and shifting lobes; it is unmistakably different from Cinder Field. It convincingly obscures the occupied area, but local scalding consequences are less tangible than the cloud itself.
+
+**Strongest idea:** Preserve the obscuring cloud and color depth. Give its base a few directional vent streams and let genuine scald contacts briefly disturb the vapor locally; do not replace it with a transparent circle.
+
+**Prism Ray — observed:** A broad central ray fans into many colored beams, strongly communicating a combination spectacle. Similar-strength branches and a busy intersection weaken the sense of one ray being refracted at a deliberate focal point.
+
+**Strongest idea:** Make a bright compact refraction knot at the real split, maintain a confident primary ray and give branches lighter material tails. Keep the rainbow fan rather than sanitizing away the fantasy.
+
+**Frost Sigil — observed:** The cold glyph distinguishes the waiting trap, but its large white detonation and dark checker-like aftermath resemble the generic explosion family more than a cold fracture.
+
+**Strongest idea:** Preserve the forceful trigger. Make frost race along the inscription and burst into brittle fragments; fade into cold rime rather than a burnt-looking patch.
+
+**Magic Missile — observed:** Dense opening frames show a small guided dart, sparse wake and compact contact. It stays subordinate to the fight, as a passive cast should; its endpoint could be a little more tactile.
+
+**Strongest idea:** Keep the current scale and simplicity. Refine the tiny contact accent and evaluate repeated sound fatigue at the real automatic cadence; do not add a charge sequence.
+
+**Bare Spear — observed:** A narrow pointed white-purple body establishes a direct thrust and piercing line. The general casting ring is more conspicuous than the spear in some frames.
+
+**Strongest idea:** Keep one sharp point, short wake and local puncture. Reduce competing generic cast decoration before adding anything to the projectile.
+
+**Bare Slash — observed:** A short white-purple filled sector appears at the caster. It conveys affected direction but reads more as a flashing wedge than an edge carving through space.
+
+**Strongest idea:** Keep the quick cone. Concentrate light at an advancing curved edge and taper the tail, with clipped contact particles; do not reintroduce the rejected painted treatment.
+
+**Bare Nova — observed:** An expanding bright rim and sparse runes communicate outward force with a clear ending. The generic cast ring overlaps its identity and weakens the sense of one meaningful front.
+
+**Strongest idea:** Let the damaging front own the release, with a compact central compression and localized edge contacts. Keep the inside quiet after the wave passes.
+
+**Bare Field — observed:** A dark purple disk filled with bright moving glyphs clearly marks active magic, but resembles a decorated bubble more than a low persistent influence on the ground.
+
+**Strongest idea:** Preserve the compact rune field. Ground the glyphs and let real ticks produce a restrained outward pulse instead of constant equally bright decoration.
+
+**Bare Orbit — observed:** Small white-purple moving bodies and curved wakes make the orbit legible with less bulk than Arcane Orbit. Contacts are light and the pattern does not demand the whole screen.
+
+**Strongest idea:** Keep this restrained scale and readable orbit. Give actual contacts a tiny leading-edge spark and retire each wake naturally when its body expires.
+
+**Bare Trap — observed:** A quiet broken ring waits, then becomes a compact runic burst. It is serviceable but the arming and waiting distinction is subtle, and nearby cast-circle decoration competes with the trap.
+
+**Strongest idea:** Use one short closing inscription to signal armed, a quiet waiting state, and one snap on trigger. Empty expiry should erase it without a blast.
+
+**Atomic — observed:** The effect clears enemies after expanding gold lines and a screen tint, but the thin rectangular frame and pale overlay feel like a screen treatment rather than an overwhelming magical release. The fixture directly triggers the blast, not its earning/input flow.
+
+**Strongest idea:** Give the release one strong central collapse-and-expansion and a coherent dissipating shock front. Preserve a brief readable recovery; build exceptional weight through contrast instead of a longer opaque flash.
+
+### Shared findings and next review priorities
+
+1. **Restore missing identity where it matters most.** Cross Blade needs a tangible cutting body/contact; Atomic needs an exceptional release rather than a frame overlay; Soul Bloom needs its spirit to remain perceptible through delivery. These are stronger fantasy gains than adding another generic burst to every spell.
+2. **Connect the caster selectively.** [OrbitingStaff](../../scripts/OrbitingStaff.gd) currently follows targets and hovers; [VfxPresenter](../../scripts/vfx/VfxPresenter.gd) supplies a shared cast flash. Lightning is a good first authored gesture; Magic Missile should remain tiny and automatic.
+3. **Separate healing, sickness and spirit events.** Life/Regeneration/Life Bolt share much of their visible vocabulary. Infestation's launch, host attachment and spread need clearer organic behavior. [AudioManager](../../scripts/AudioManager.gd) also shares samples among life, spirit and plague; listening is required before selecting replacements.
+4. **Preserve the strongest material fantasies.** Meteor Shower's stagger, Ember Spear's burning penetration and Steam's connected obscuring vapor deserve refinement, not normalization. Correct artificial ground edges and weak contact consequences while retaining their presence.
+5. **Finish the untested experience before any passing verdict.** Review sound with real automatic cadence, typed casting and cancellation, mixed hostile combat, ranks, reduced effects and actual pause/resume. Regrade against the same columns and compute the complete mean only then.
+
+A concrete Soul Bloom lifecycle issue supports priority 1: [SoulGhost](../../scripts/SoulGhost.gd) moves immediately at 320px/s and delivers inside 24px; [SpiritVisual](../../scripts/vfx/SpiritVisual.gd) takes 0.18s to emerge. A stationary recipient 60px away can consume it in roughly 0.11s. SoulGhost stores trail positions, but that path is not drawn by its body renderer. A visual arrival remnant and independently fading trail could improve the fantasy without delaying healing. Changing travel speed or adding orbit/pass damage remains a separate design decision.
 
 ## Shared mechanics dependency checklist
 
