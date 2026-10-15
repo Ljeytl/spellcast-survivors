@@ -11,7 +11,18 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 - **Fix: poison no longer compounds without limit.**
 - **Foundations:** every data file validated against a schema; combinations and Atomic are data; stats with modifiers; event bus; seeded randomness; co-op-ready rule checks. No gameplay change from these.
 
-**Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; bleed has no look yet.
+**Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; HUNTING and SCATTERED barely show against a horde of identical enemies.
+
+## Playtest fixes (14 October)
+
+- **Landings with weight.** Meteor Shower, Lightning, Rune Trap's blast, Meteor Spear's meteors and Lightning Bolt's strike land with a white flash, shockwave rings, rocks thrown up, a scorch, a hit-pause, camera shake and an impact sound. Meteor Shower's crater is cracked rubble with rocks popping up. Stunned enemies show circling stars.
+- **Statuses read on the enemy, quietly.** Status marks sit on the body (they floated up to 70 px above it), are smaller and see-through: burn is a few embers (no flames), poison small bubbles, bleed red drops (it was earth dust), infection bubbles on the host. Enemies flash red on hits for 0.14 s, not on damage-over-time ticks.
+- **Spell looks.** Magic Missile is a thin force dart, Ice Blast throws long ice shards, Earth Shield's charges are small pebbles orbiting you, Regeneration has no ring, Life centres on the wizard and Life Bolt uses the life look. The old bolt-sprite cast bursts no longer draw over the new VFX.
+- **Keywords.** QUICK works on every spell (initials, or word starts when two spells share them: QUICK EM S, QUICK LIG). Common misspellings are accepted (ICEY, FIREY…) and unknown words suggest one ("fire — try FIERY"). Size words ramp per letter: BIG +21%, LARGE +42%, MASSIVE +67%, GIGANTIC +81%. REPULSING shoves about five times as far, PULLING about three. ORBITING circles you at least once before it flies.
+- **Casting circle.** Every keyword and QUICK builds its own rune circle (only MEGA did); combinations and learned spells build runes too.
+- **Clearer progress.** A new spell or rank shows a big banner, a chime and the slot flashing gold.
+- **Necronomicon pages:** spells, shape words, flight & hit words, element words, special words, element chart (left / right to flip).
+- **The tower** remembers which doorway faced north.
 
 ## Damage, effects and keywords (doc 21)
 
