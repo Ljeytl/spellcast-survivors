@@ -77,9 +77,11 @@ func run():
 	var ball = Elites.cast(fiery, data.words.fiery.cast, player)
 	check(ball != null and ball.target_group == "player", "a monster's spell targets the player")
 	ball.manual = true
+	ball.step(0.8)
+	check(is_equal_approx(player.health, before), "the meteor's warning comes before it lands")
 	for i in 120:
 		ball.step(1.0 / 60.0)
-	check(player.health < before, "FIERY's fireball hits you (%s -> %s)" % [before, player.health])
+	check(player.health < before, "FIERY's meteor lands on you (%s -> %s)" % [before, player.health])
 	check(player.has_status("burn"), "and sets you on fire")
 	var burning = player.health
 	player.process_statuses(1.0)
