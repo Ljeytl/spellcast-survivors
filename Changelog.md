@@ -1,3 +1,10 @@
+# 0.3.2-dev.3 — Spirits become the centerpiece (15 October 2026)
+
+- Replace Seeker’s tiny raster ghost and Soul Bloom’s small polygon with a shared full-resolution spectral body: rounded luminous head, layered translucent mantle, flowing tapered wakes and directional expression. The spirit carries the effect; auxiliary mist no longer substitutes for its body.
+- Seeker’s mantle scales with spell geometry and turns smoothly into pursuit. Soul Bloom unfolds on emergence, switches between mint/ivory healing and violet/chartreuse hunting, and retains its arrival cue. Gameplay targeting, travel, hitboxes, damage and healing are unchanged.
+- Reduced effects removes the extra halo and emergence ring while keeping the spirit. Visual children follow host despawn, scene reset and pause; Seeker honors presenter visibility. Replace obsolete raster-size checks with continuous spirit geometry and lifecycle checks.
+- Continue reviewing sound, dense mixed-spell overlap and performance; visual identity remains subject to playtest judgment, not automatic acceptance from passing tests.
+
 # 0.3.2-dev.2 — Cinder heat and flowing souls (15 October 2026)
 
 - Give Cinder Field shorter, lower flames so it reads as a hot ember bed. Other fire fields keep their existing particle profile; damage and timing are unchanged.

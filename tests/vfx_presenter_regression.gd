@@ -137,6 +137,25 @@ func run():
 		cast(item[0], 0.1)
 		check(vfx._fields.any(func(field): return field.get("profile", "default") == item[1]), "Fire presentation routed by spell: " + item[0])
 	clear()
+	var seeker_info: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells.seeker
+	seeker_info.incantation = "seeker"
+	Defs.register(preload("res://scripts/engine/LegacyBridge.gd").build(seeker_info, 8.0, {}))
+	foe(Vector2(150, 0))
+	var seeker_cast = cast("seeker", 0.1)
+	var spirit_visual = seeker_cast.parts[0].get_child(0)
+	spirit_visual._process(0.1)
+	check(spirit_visual.is_in_group("spirit_visuals") and spirit_visual.visible, "Live Seeker owns its full-resolution spirit")
+	seeker_cast.parts[0].def.geometry.radius = 48.0
+	spirit_visual._process(0.1)
+	check(is_equal_approx(spirit_visual.radius, 48.0), "Seeker body follows changed spell geometry")
+	vfx.presenter.enabled = false
+	spirit_visual._process(0.1)
+	check(not spirit_visual.visible, "Disabling presenter hides Seeker body")
+	vfx.presenter.enabled = true
+	spirit_visual._process(0.1)
+	check(spirit_visual.visible, "Re-enabling presenter restores Seeker body")
+	clear()
+	check(get_nodes_in_group("spirit_visuals").is_empty(), "Freeing Seeker casts removes all spirit children")
 	var neutral_field = vfx.field(0, 0, 8, 1)
 	check(neutral_field.profile == "default", "Unspecified fire fields preserve their existing profile")
 

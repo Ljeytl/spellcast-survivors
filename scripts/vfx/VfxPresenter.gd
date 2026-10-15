@@ -103,10 +103,6 @@ const METEOR_WARN_HOT := [Color("#ff9a3a"), Color("#fff1b0")]
 
 const RAINBOW := [Color("#ff5a5a"), Color("#ffb03a"), Color("#ffe85a"), Color("#6ee07a"), Color("#5ac8ff"), Color("#9a7aff")]
 
-# Sandbox death spirit: GHOST sprite ('o' body, 'e' eyes) and its dark mist.
-# Seeker: a bigger ghost with a pale outline so it reads as a spirit, not a blob (playtest).
-const GHOST := ["..ooo..", ".ooooo.", "ooeoeoo", "ooooooo", "ooooooo", "oo.o.oo", "o..o..o"]
-const GHOST_COL := {"o": Color("#f0f8ff"), "e": Color("#0a0c14"), "r": Color("#9fb8d8")}
 const DEATH_MIST := [Color("#c8dcec"), Color("#93a8c0"), Color("#5a6a80")]
 
 const BLADE_COL := [Color("#ffffff"), Color("#e8eef6"), Color("#a9b4c2"), Color("#5c6675")]
@@ -314,6 +310,9 @@ func part_spawned(part) -> void:
 	match kind:
 		"projectile":
 			st.family = family_of(part)
+			if st.family == "ghost":
+				var spirit = preload("res://scripts/vfx/SpiritVisual.gd").new()
+				part.add_child(spirit)
 		"burst":
 			var r_su: float = part.geo("radius", 90.0) / WPS
 			# the accent owns the impact (plan 5.1); an arcane base adds its glyph flourish
@@ -641,7 +640,6 @@ func step(dt: float) -> void:
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	if st.family == "ghost":
-		_ghost_step(st, pos, dt)
 		return
 	if st.family == "blade":
 		if randf() < 0.25 * dt * 60.0:
@@ -2262,7 +2260,6 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var d: Vector2 = pos - st.last
 		var dir: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
 		if st.family == "ghost":
-			_draw_ghost(buf, pos, part)
 			continue
 		if st.family == "blade":
 			_draw_blade(buf, pos, part)
@@ -2408,34 +2405,6 @@ func _draw_beam(buf: PackedByteArray, part, st: Dictionary) -> void:
 			c = pal[0] if o == 0 else (pal[1] if absi(o) < hw else pal[3])
 		el.line(buf, a + n * o, b + n * o, c)
 	# (no orb at the tip: playtest called it "the dumb pixel thing"; the tip sparks carry the contact)
-
-## Seeker (sandbox ghosts): a pale spirit trailing dark mist, bobbing as it drifts.
-func _ghost_step(st: Dictionary, pos: Vector2, dt: float) -> void:
-	var vel: Vector2 = (pos - Vector2(st.last)) / maxf(dt, 0.0001)
-	st.acc = float(st.acc) + dt * 30.0
-	while st.acc >= 1.0:
-		st.acc -= 1.0
-		var back: Vector2 = -vel.normalized() * 3.0 if vel.length() > 1.0 else Vector2.ZERO
-		vfx.elements.mist(pos.x + back.x, pos.y + sin(vfx._t * 10.0) * 1.5, -vel.x * 0.1, -1.0, 2.2, 3.0, 0.5, DEATH_MIST)
-
-func _ghost_pixel(x: int, y: int, scale: float) -> String:
-	var column := floori(float(x) / scale + 3.5)
-	var row := floori(float(y) / scale + 3.5)
-	if row < 0 or row >= GHOST.size() or column < 0 or column >= GHOST[row].length():
-		return "."
-	return GHOST[row][column]
-
-func _draw_ghost(buf: PackedByteArray, pos: Vector2, part) -> void:
-	var bob := sin(float(part.age) * 6.0)
-	var scale := maxf(0.05, float(part.geo("radius", 24.0)) / 24.0)
-	var half := ceili(3.5 * scale) + 1
-	for y in range(-half, half + 1):
-		for x in range(-half, half + 1):
-			var pixel := _ghost_pixel(x, y, scale)
-			if pixel != ".":
-				vfx.elements.spx(buf, roundi(pos.x) + x, roundi(pos.y + bob) + y, GHOST_COL[pixel])
-			elif _ghost_pixel(x - 1, y, scale) != "." or _ghost_pixel(x + 1, y, scale) != "." or _ghost_pixel(x, y + 1, scale) != ".":
-				vfx.elements.spx(buf, roundi(pos.x) + x, roundi(pos.y + bob) + y, GHOST_COL.r)
 
 ## Cross Blade: a four-armed blade spinning at the true radius, steel with a bright edge.
 func _draw_blade(buf: PackedByteArray, pos: Vector2, part) -> void:
