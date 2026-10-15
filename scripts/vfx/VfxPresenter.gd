@@ -103,7 +103,6 @@ const METEOR_WARN_HOT := [Color("#ff9a3a"), Color("#fff1b0")]
 
 const RAINBOW := [Color("#ff5a5a"), Color("#ffb03a"), Color("#ffe85a"), Color("#6ee07a"), Color("#5ac8ff"), Color("#9a7aff")]
 
-const DEATH_MIST := [Color("#c8dcec"), Color("#93a8c0"), Color("#5a6a80")]
 
 const BLADE_COL := [Color("#ffffff"), Color("#e8eef6"), Color("#a9b4c2"), Color("#5c6675")]
 
@@ -313,6 +312,7 @@ func part_spawned(part) -> void:
 			if st.family == "ghost":
 				var spirit = preload("res://scripts/vfx/SpiritVisual.gd").new()
 				part.add_child(spirit)
+				st.spirit = spirit
 		"burst":
 			var r_su: float = part.geo("radius", 90.0) / WPS
 			# the accent owns the impact (plan 5.1); an arcane base adds its glyph flourish
@@ -435,12 +435,9 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 		_zap(p.x, p.y)
 		return
 	if st.family == "ghost":
-		# Seeker's strike: the spirit lunges through: a pale wail ring and a burst of spirit mist.
-		vfx.ring(p.x, p.y, 7.0, 0.22, [Color("#ffffff"), Color("#c8dcec"), Color("#93a8c0")])
-		for i in 6:
-			var ga := randf() * TAU
-			vfx.elements.mist(p.x, p.y, cos(ga) * 14.0, sin(ga) * 10.0 - 4.0, 1.8, 4.0, 0.45, DEATH_MIST)
-		_plague_contact(p.x, p.y)
+		vfx.ring(p.x, p.y, 3.5, 0.16, [Color("#ffffff"), Color("#c8dcec"), Color("#93a8c0")])
+		if is_instance_valid(st.get("spirit")):
+			st.spirit.pulse()
 		return
 	var many: bool = st.family in ["blade", "shard"]   # many hits a cast: keep each one small (playtest)
 	if impact_look == "earth" and many:

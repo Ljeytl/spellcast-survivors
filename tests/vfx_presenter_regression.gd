@@ -145,9 +145,16 @@ func run():
 	var spirit_visual = seeker_cast.parts[0].get_child(0)
 	spirit_visual._process(0.1)
 	check(spirit_visual.is_in_group("spirit_visuals") and spirit_visual.visible, "Live Seeker owns its full-resolution spirit")
-	seeker_cast.parts[0].def.geometry.radius = 48.0
-	spirit_visual._process(0.1)
-	check(is_equal_approx(spirit_visual.radius, 48.0), "Seeker body follows changed spell geometry")
+	for chosen in ["ghost", "wisp"]:
+		vfx.spirit_form_override = chosen
+		seeker_cast.parts[0].def.geometry.radius = 24.0
+		spirit_visual._process(0.0)
+		var original_scale: float = spirit_visual.sprite.scale.x
+		seeker_cast.parts[0].def.geometry.radius = 48.0
+		spirit_visual._process(0.0)
+		check(is_equal_approx(spirit_visual.sprite.scale.x, original_scale * 2.0), "Painted " + chosen + " doubles visible extent when geometry doubles")
+		check(spirit_visual.form == chosen, "Seeker switches to " + chosen + " without recasting")
+	vfx.spirit_form_override = "auto"
 	vfx.presenter.enabled = false
 	spirit_visual._process(0.1)
 	check(not spirit_visual.visible, "Disabling presenter hides Seeker body")

@@ -1,9 +1,10 @@
-# 0.3.2-dev.3 — Spirits become the centerpiece (15 October 2026)
+# 0.3.2-dev.3 — Painted ghost and soul-wisp comparison (15 October 2026)
 
-- Replace Seeker’s tiny raster ghost and Soul Bloom’s small polygon with a shared full-resolution spectral body: rounded luminous head, layered translucent mantle, flowing tapered wakes and directional expression. The spirit carries the effect; auxiliary mist no longer substitutes for its body.
-- Seeker’s mantle scales with spell geometry and turns smoothly into pursuit. Soul Bloom unfolds on emergence, switches between mint/ivory healing and violet/chartreuse hunting, and retains its arrival cue. Gameplay targeting, travel, hitboxes, damage and healing are unchanged.
-- Reduced effects removes the extra halo and emergence ring while keeping the spirit. Visual children follow host despawn, scene reset and pause; Seeker honors presenter visibility. Replace obsolete raster-size checks with continuous spirit geometry and lifecycle checks.
-- Continue reviewing sound, dense mixed-spell overlap and performance; visual identity remains subject to playtest judgment, not automatic acceptance from passing tests.
+- Bring both approved spirit concepts into the game as painted transparent assets: a rounded expressive ghost and a faceless luminous wisp. Gentle veil motion preserves the brushwork instead of replacing it with geometric outlines.
+- Both forms work on Seeker and Soul Bloom, including live switching. Use `vfx spirit ghost|wisp|auto` in the console, or G in the spell showcase. Auto provisionally pairs ghost with Seeker and wisp with Soul Bloom; this is not a settled necrotic/life visual-language rule.
+- Preserve gameplay targeting, travel, hitboxes, damage, healing and caps. Spirit size follows effective spell geometry; Soul Bloom keeps healing/hunting tint and arrival cues. Reduced effects softens veil movement; pause and despawn follow the gameplay host.
+- Showcase K defeats enemies through their real damage/death path so infected hosts release Soul Bloom. Showcase exit restores comparison form and slow-motion state.
+- Validate both forms using background browser rendering and headless regression checks; do not open visible Godot windows for this workflow. Continue testing mixed-spell crowd readability, sound and performance, and explore painterly treatments for other spells after the spirit comparison.
 
 # 0.3.2-dev.2 — Cinder heat and flowing souls (15 October 2026)
 

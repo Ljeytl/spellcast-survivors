@@ -53,13 +53,14 @@ The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/
 
 `0.3.2-dev.2` lowers Cinder flames toward an ember-bed silhouette and gives Soul Bloom flowing twin trails, a directional luminous core and a small arrival cue. Preserve staggered meteor falls and repeated shakes as an explicitly enjoyed part of the fantasy. Damage balance is unchanged.
 
-`0.3.2-dev.3` makes Seeker and Soul Bloom spirits the visual centerpiece: a full-resolution luminous head and flowing mantle replace the tiny raster sprite and flat polygon. There is no assumed pixel-art restriction. Movement, scale, emergence and mode colors carry identity; sound and crowded combinations remain open.
+`0.3.2-dev.3` implements both approved painted spirit concepts: the expressive ghost and faceless soul wisp. Both can be compared on Seeker and Soul Bloom via showcase G or `vfx spirit ghost|wisp|auto`. Preserve the brushwork and soft translucency. Auto pairing is provisional; ghost/necrotic and wisp/life remain hypotheses, not established elemental rules.
 
 ### Next identity investigations
 
 - Meteor Shower and Meteor Spear: inspect descent against authoritative impact timing during repeated hitstop, then judge warning, weight, sound and camera response together. The dev.6 timing fix has regression coverage and native captures; the broader audio/camera sequence still needs judgment.
 - Prism Ray: inspect overlapping contact fans and afterimages in moving crowds. Reconcile doc 21's older angle/length with the current playtest-tuned bridge before changing mechanics.
-- Seeker and Soul Bloom: dev.3 establishes substantial spectral bodies and native emergence/pursuit checks. Continue judging mixed-spell crowd readability, impact sound and performance as a full sequence.
+- Seeker and Soul Bloom: compare both painted forms on both spells before choosing their visual language. Continue judging mixed-spell crowd readability, impact sound and performance as a full sequence.
+- Broader art direction: explore the approved paintbrush quality on other effects while keeping each spell’s simple defining shape. No roster-wide restyle is implied by this comparison.
 - Flame Wall: develop the catalog’s surrounding burning ring and its visuals together; do not polish the current straight line into an assumed final design. Intended damage identity is low direct contact damage and strong damage over time; balance changes belong in a separate implementation pass.
 
 These are source-grounded priorities, not completed visual or auditory qualification.

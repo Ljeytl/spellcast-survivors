@@ -45,6 +45,12 @@ func run():
 	ghost._physics_process(0.05)
 	var visual = ghost.get_child(0)
 	visual._process(0.05)
+	check(visual.form == "wisp", "Soul defaults to a faceless painted wisp")
+	vfx.spirit_form_override = "ghost"
+	visual._process(0.0)
+	check(visual.form == "ghost", "Soul can use the painted ghost without recasting")
+	vfx.spirit_form_override = "auto"
+	visual._process(0.0)
 	check(visual.soul and visual.healing and visual.radius == 22.0, "Soul has a substantial healing spirit renderer")
 	check(ghost.healing and ghost.heading.x < 0, "Hurt caster gets healing intent and return direction")
 	check(ghost.trail.size() == 1, "Moving spirit records its wake")

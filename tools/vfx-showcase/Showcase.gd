@@ -21,8 +21,12 @@ var label: Label
 var walk_t := 0.0
 var horde := HORDE
 var home := Vector2.ZERO
+var previous_spirit_form := "auto"
+var previous_time_scale := 1.0
 
 func _ready():
+	previous_time_scale = Engine.time_scale
+	previous_spirit_form = get_node("/root/Vfx").spirit_form_override
 	game = load("res://scenes/Game.tscn").instantiate()
 	get_tree().root.add_child.call_deferred(game)
 	await get_tree().process_frame
@@ -40,6 +44,9 @@ func _ready():
 		if preload("res://scripts/SynergyCatalog.gd").RECIPES[id].get("enabled", true):
 			order.append(id)
 	if OS.has_feature("web"):
+		var form = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('form') || 'auto'"))
+		if form in ["auto", "ghost", "wisp"]:
+			get_node("/root/Vfx").spirit_form_override = form
 		var wanted = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('spell') || ''"))
 		if order.has(wanted):
 			index = order.find(wanted)
@@ -84,8 +91,8 @@ func _process(delta: float):
 
 func _label():
 	var current = order[index] if locked else order[(index - 1 + order.size()) % order.size()]
-	label.text = "VFX SHOWCASE (real game)   now: %s%s   next: %s\nSpace/Right next · Left back · P %s · M MEGA next · S slow-mo · K clear enemies" % [
-		current, (" (MEGA)" if mega else "") + ((" [" + words + "]") if words != "" else ""), order[index], "resume" if paused else "pause"]
+	label.text = "VFX SHOWCASE (real game)   now: %s%s   next: %s\nSpace/Right next · Left back · P %s · M MEGA next · S slow-mo · K defeat enemies\nG spirit form: %s (applies to Seeker and Soul Bloom)" % [
+		current, (" (MEGA)" if mega else "") + ((" [" + words + "]") if words != "" else ""), order[index], "resume" if paused else "pause", get_node("/root/Vfx").spirit_form_override]
 
 func _cast(id: String):
 	var recipes = preload("res://scripts/SynergyCatalog.gd").RECIPES
@@ -145,6 +152,17 @@ func _unhandled_input(event):
 			mega = not mega
 		KEY_S:
 			Engine.time_scale = 0.25 if Engine.time_scale > 0.5 else 1.0
+		KEY_G:
+			var forms := ["auto", "ghost", "wisp"]
+			var vfx = get_node("/root/Vfx")
+			vfx.spirit_form_override = forms[(forms.find(vfx.spirit_form_override) + 1) % forms.size()]
 		KEY_K:
 			for e in get_tree().get_nodes_in_group("enemies"):
-				e.queue_free()
+				if not e.dying:
+					e.take_damage(e.current_health + 1.0, game.player.global_position, {"spell": "showcase", "cast_id": 0})
+
+func _exit_tree():
+	Engine.time_scale = previous_time_scale
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx != null:
+		vfx.spirit_form_override = previous_spirit_form

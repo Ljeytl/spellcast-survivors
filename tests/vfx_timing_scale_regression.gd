@@ -67,7 +67,6 @@ func run():
 	var part = Part.new()
 	root.add_child(part)
 	p._parts[part.get_instance_id()] = {"kind": "projectile", "family": "sphere", "look": {"native": "arcane", "accent": ""}, "part": weakref(part), "last": Vector2.ZERO}
-	var previous_width := 0.0
 	for scale in [0.75, 1.0, 1.42, 2.4]:
 		part.def = {"geometry": {"type": "body", "radius": 42.0 * scale}}
 		var pixels = buffer()
@@ -75,16 +74,6 @@ func run():
 		var span = row_span(pixels)
 		var visible_radius: float = (span.y - span.x + 1) * vfx.CELL * 0.5
 		check(span.x >= 0 and absf(visible_radius - part.geo("radius")) <= vfx.CELL * 2, "Arcane orb drawn radius matches geometry at %.2fx" % scale)
-		var spirit = preload("res://scripts/vfx/SpiritVisual.gd").new()
-		var contour = spirit.body_contour(24.0 * scale, 0.3)
-		var bounds := Rect2(contour[0], Vector2.ZERO)
-		for point in contour:
-			bounds = bounds.expand(point)
-		check(Geometry2D.triangulate_polygon(contour).size() > 0, "Spirit silhouette triangulates at fractional scale %.2fx" % scale)
-		check(bounds.size.x > 24.0 * scale * 2.0, "Spirit mantle extends behind its physical body")
-		check(bounds.size.x > previous_width, "Every geometry increase enlarges the spirit")
-		previous_width = bounds.size.x
-		spirit.free()
 	part.life_total = 2.0
 	part.age = 1.675
 	var meteor := {"kind": "meteor", "part": weakref(part), "age": 0.0, "life": 2.0, "r": 8.0, "sky": Vector2(-30, -70)}
