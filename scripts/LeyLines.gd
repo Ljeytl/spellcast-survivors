@@ -200,8 +200,14 @@ func summon_wave(site):
 	var count = mini(WAVE_MAX, WAVE_BASE + int(game.game_time / 120.0))
 	var offset = rng.randf() * TAU
 	site.wave_members.clear()
+	# Waves after the opening one are led by an elite (data/elites.json "ley_waves").
+	var wave_number = int(site.get_meta("waves_summoned", 0)) + 1
+	site.set_meta("waves_summoned", wave_number)
+	var ley: Dictionary = preload("res://scripts/Elites.gd").data().get("ley_waves", {})
+	var lead = not ley.is_empty() and wave_number >= int(ley.get("from_wave", 2))
 	for i in count:
-		var monster = monsters.spawn_monster({}, false, true, offset + i * TAU / count)
+		var words: Array = preload("res://scripts/Elites.gd").roll(int(ley.get("words", 1))) if lead and i == 0 else []
+		var monster = monsters.spawn_monster({}, false, true, offset + i * TAU / count, -1.0, words)
 		if monster:
 			site.wave_members.append(monster)
 

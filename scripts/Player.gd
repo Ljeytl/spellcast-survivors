@@ -379,6 +379,8 @@ func process_enemy_contact_damage(delta: float):
 						for enemy in unblocked_enemies:
 							if is_instance_valid(enemy) and enemy.has_method("recoil_from_contact"):
 								enemy.recoil_from_contact(global_position)
+							if is_instance_valid(enemy) and enemy.has_method("on_dealt_contact"):
+								enemy.on_dealt_contact(float(enemy.base_damage))   # LEECHING elites
 				damage_timer = DAMAGE_INTERVAL  # Reset timer
 
 # Calculate movement slowdown based on number of touching enemies

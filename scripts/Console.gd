@@ -51,6 +51,10 @@ var commands: Dictionary = {
 		"description": "Spawn a specific enemy type",
 		"usage": "spawn_enemy <type> [count]"
 	},
+	"elite": {
+		"description": "Spawn an elite: a monster with words (data/elites.json); 'patrol' spawns a full patrol",
+		"usage": "elite <type|patrol> [word ...]"
+	},
 	"difficulty": {
 		"description": "Advance to minute or add seconds (no rewind)",
 		"usage": "difficulty <minute/+seconds>"
@@ -403,6 +407,8 @@ func execute_command(command_text: String):
 			heal_player(args)
 		"spawn_enemy":
 			spawn_enemy(args)
+		"elite":
+			spawn_elite(args)
 		"difficulty":
 			change_difficulty(args)
 		"day":
@@ -706,6 +712,30 @@ func spawn_enemy(args: Array):
 		if manager.spawn_monster(definition, false, true):
 			spawned += 1
 	add_output("Spawned %d/%d enemies (normal population cap applies)" % [spawned, count])
+
+func spawn_elite(args: Array):
+	var manager = game_node.get_node("MonsterManager")
+	var Elites = preload("res://scripts/Elites.gd")
+	if args.is_empty() or (args[0] != "patrol" and not manager.encounter_config.variants.has(args[0])):
+		add_output("Usage: elite <type|patrol> [word ...]. Types: %s. Words: %s" % [", ".join(manager.encounter_config.variants.keys()), ", ".join(Elites.words())])
+		return
+	if args[0] == "patrol":
+		var leader = manager.spawn_patrol(Elites.patrol_word_count(manager.game_time))
+		add_output("Patrol: " + (leader.encounter_name if leader else "none (cap reached)"))
+		return
+	var words: Array = []
+	for w in args.slice(1):
+		if str(w).to_lower() in Elites.words():
+			words.append(str(w).to_lower())
+		else:
+			add_output("Unknown elite word: %s" % w)
+			return
+	if words.is_empty():
+		words = Elites.roll(1)
+	var definition = manager.encounter_config.variants[args[0]].duplicate(true)
+	definition.id = args[0]
+	var elite = manager.spawn_monster(definition, false, true, NAN, -1.0, words)
+	add_output("Spawned " + (elite.encounter_name if elite else "nothing (cap reached)"))
 
 func toggle_noclip(args: Array):
 	var player = living_player()

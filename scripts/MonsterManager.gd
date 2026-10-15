@@ -32,6 +32,11 @@ var cap_rejections = 0
 var encounter_director
 var spawn_batch_fraction := 0.0
 var spawn_pressure = preload("res://scripts/SpawnPressure.gd").new()
+const Elites = preload("res://scripts/Elites.gd")
+## Next elite patrol time (data/elites.json patrols); INF when patrols are over.
+var next_patrol: float = -1.0
+var patrols_spawned: int = 0
+signal elite_patrol(name: String)
 @onready var player: CharacterBody2D = get_parent().get_node("Player")
 
 func _ready():
@@ -112,7 +117,7 @@ func _on_spawn_timer_timeout():
 		spawn_monster()
 	spawn_timer.wait_time = calculate_spawn_interval()
 
-func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN, entry_margin: float = -1.0) -> Node2D:
+func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: bool = false, entry_angle: float = NAN, entry_margin: float = -1.0, elite_words: Array = []) -> Node2D:
 	if run_finished or awaiting_extraction:
 		return null
 	spawn_attempts += 1
@@ -124,7 +129,7 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 		definition = select_monster()
 	if definition.is_empty():
 		return null
-	var count = 3 if definition.id == "swarmer" and not is_boss and not single else 1
+	var count = 3 if definition.id == "swarmer" and not is_boss and not single and elite_words.is_empty() else 1
 	var first: Node2D = null
 	var angle = randf() * TAU if is_nan(entry_angle) else entry_angle
 	for index in range(count):
@@ -136,7 +141,7 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 			stats.health = float(definition.get("boss_health", stats.health * 12.0))
 			stats.damage *= 1.5
 			stats.xp *= 12.0
-		monster.configure(definition, stats, is_boss)
+		monster.configure(definition, stats, is_boss, Elites.build(elite_words, str(definition.name)) if not elite_words.is_empty() else {})
 		var point = encounter_director.entry_position(angle + index * 0.06, 29.0 * monster.scale.x, entry_margin)
 		if not point.is_finite():
 			monster.free()
@@ -357,6 +362,42 @@ func advance_time(delta: float):
 	last_phase_interval = phase_interval
 	if not day_cycle_driven:
 		check_boss_milestones()
+	check_elite_patrol()
 	encounter_director.update(delta)
 	if not spawn_timer.is_stopped():
 		replenish_population(delta)
+
+
+## Elite patrols (data/elites.json "patrols"): from `first`, every `every` seconds until `until`, one
+## elite with rolled words leads `escorts` of its own kind in from one side. A patrol waits while a
+## boss is out. Returns the elite when a patrol spawns.
+func check_elite_patrol():
+	var patrols: Dictionary = Elites.data().get("patrols", {})
+	if patrols.is_empty() or run_finished or awaiting_extraction:
+		return null
+	if next_patrol < 0.0:
+		next_patrol = float(patrols.first)
+	if game_time < next_patrol or next_patrol >= float(patrols.until):
+		return null
+	if not get_tree().get_nodes_in_group("bosses").is_empty():
+		return null
+	next_patrol += float(patrols.every)
+	return spawn_patrol(Elites.patrol_word_count(game_time))
+
+func spawn_patrol(word_count: int, definition: Dictionary = {}):
+	if definition.is_empty():
+		definition = select_monster()
+	if definition.is_empty():
+		return null
+	var angle = Elites.Rng.stream("elites").randf() * TAU
+	var leader = spawn_monster(definition, false, true, angle, -1.0, Elites.roll(word_count))
+	if leader == null:
+		return null
+	for i in int(Elites.data().patrols.get("escorts", 4)):
+		spawn_monster(definition, false, true, angle + (i + 1) * 0.08 * (1 if i % 2 == 0 else -1))
+	patrols_spawned += 1
+	elite_patrol.emit(leader.encounter_name)
+	var game = get_parent()
+	if game and game.has_method("show_gameplay_feedback"):
+		game.show_gameplay_feedback("Elite patrol · %s" % leader.encounter_name)
+	return leader
