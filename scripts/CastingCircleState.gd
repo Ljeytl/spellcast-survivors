@@ -8,6 +8,15 @@ const RUNES_PER_RING = 3
 
 ## spells: Array of {"incantation": String, "element": String}
 ## power_words: Array of String (e.g. ["mega"])
+## A word that also starts a spell name ("arcane" in Arcane Orbit) stays part of the spell
+## while the text still fits that spell.
+static func _spell_continues(rest: String, spells: Array) -> bool:
+	for spell in spells:
+		var inc := str(spell.incantation)
+		if inc.contains(" ") and (inc.begins_with(rest) or rest.begins_with(inc)):
+			return true
+	return false
+
 static func analyze(text: String, spells: Array, power_words: Array) -> Dictionary:
 	var rest = text.to_lower().replace("_", " ")
 	rest = rest.lstrip(" ")
@@ -16,7 +25,7 @@ static func analyze(text: String, spells: Array, power_words: Array) -> Dictiona
 	while progressed:
 		progressed = false
 		for word in power_words:
-			if rest.begins_with(str(word) + " "):
+			if rest.begins_with(str(word) + " ") and not _spell_continues(rest, spells):
 				mods.append(str(word))
 				rest = rest.substr(str(word).length() + 1).lstrip(" ")
 				progressed = true

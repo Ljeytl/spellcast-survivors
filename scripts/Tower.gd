@@ -13,6 +13,7 @@ var arches: Array[Node2D] = []
 var selected = 0
 var angle = 0.0
 var target_angle = 0.0
+static var remembered_angle := 0.0   # which doorway faced north, kept across visits to the menu
 var orb_active = false
 var transitioning = false
 var archive: Control
@@ -91,6 +92,8 @@ func _ready():
 	preload("res://scripts/BuildVersion.gd").attach(ui)
 	get_viewport().size_changed.connect(fit_camera)
 	fit_camera()
+	angle = remembered_angle
+	target_angle = remembered_angle
 	update_ring()
 	update_prompt()
 	AudioManager.play_music(AudioManager.SoundType.MUSIC_MENU, true, 1.0)
@@ -201,6 +204,7 @@ func settled() -> bool:
 func turn(direction: int):
 	if orb_active and settled():
 		target_angle += direction * STEP
+		remembered_angle = target_angle
 
 func interact():
 	if transitioning or is_instance_valid(archive):

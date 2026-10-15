@@ -151,9 +151,9 @@ func gblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stic
 		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick, 2])
 
 ## Bubble: rises and wobbles, swells, pops into a few motes (sandbox bubble).
-func bubble(x: float, y: float, big: bool):
+func bubble(x: float, y: float, big: bool, life_scale: float = 1.0):
 	if bubbles.size() < (80 if vfx.reduced_effects else 240):
-		bubbles.append([x, y, -(5.0 + randf() * 7.0), 2.0 if big else 1.2, 0.0, 0.5 + randf() * 0.7])
+		bubbles.append([x, y, -(5.0 + randf() * 7.0) * life_scale, 2.0 if big else 1.2, 0.0, (0.5 + randf() * 0.7) * life_scale])
 
 ## Steam puff (sandbox mist): grows and drifts with the wind, dithered.
 func mist(x: float, y: float, vx: float, vy: float, r: float, grow: float, life: float, cols: Array = STEAM):

@@ -107,7 +107,11 @@ func on_manual_release(_family: String, canonical: String, typed: String):
 	if not manager.is_typing or not completed_mega:
 		complete_incantation()
 	var game = manager.game_manager
-	if is_instance_valid(game) and is_instance_valid(game.particle_manager):
+	# The VFX layer draws its own cast flash at the staff; the old burst of bolt stamps on top of it
+	# read as stray bolts flying off every cast (playtest 14 Oct). Keep it only without the VFX layer.
+	var vfx = get_node_or_null("/root/Vfx")
+	var vfx_on = vfx != null and bool(vfx.get("_active")) and vfx.presenter != null and vfx.presenter.enabled
+	if is_instance_valid(game) and is_instance_valid(game.particle_manager) and not vfx_on:
 		var effect = game.particle_manager.create_spell_cast_effect(manager.player.global_position)
 		if is_instance_valid(effect):
 			effect.modulate = Color("ffe49b") if completed_mega else Color("79d9e8")

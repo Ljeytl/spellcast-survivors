@@ -244,6 +244,9 @@ func part_spawned(part) -> void:
 	if not enabled:
 		return
 	var vfam0 := str(part.def.get("vfx", {}).get("family", ""))
+	if vfam0 == "none":
+		_presented[part.get_instance_id()] = weakref(part)   # drawn by nothing (Regeneration's aura)
+		return
 	if vfam0 == "ray":
 		var pos: Vector2 = part.global_position / WPS
 		# Prism Ray's refraction: a brief coloured laser fanning out behind the target (doc 21 §5.6).
@@ -327,7 +330,8 @@ func part_spawned(part) -> void:
 		"self":
 			if look.native != "life":
 				return
-			_life_bloom(_staff_su(part.cast.caster) + Vector2(-1.5, 5.0) if is_instance_valid(part.cast.caster) else pos)
+			# Centred on the wizard, not the staff (playtest 14 Oct).
+			_life_bloom(part.cast.caster.global_position / WPS if is_instance_valid(part.cast.caster) else pos)
 		"charge", "zone":
 			if look.native != "lightning":
 				return
@@ -637,6 +641,16 @@ func _emit_trail(part, st: Dictionary, key: String, t: Dictionary, pos: Vector2,
 
 ## Burning status: small flames gripping each burning enemy (sandbox updateEnemies).
 ## Reads StatusComponent state; never touches it.
+## An enemy's body in su: centre and half-height, so status effects sit ON it, not above it.
+func _body(e) -> Array:
+	var p: Vector2 = e.global_position / WPS
+	var h := 3.0
+	var spr = e.get_node_or_null("Sprite2D")
+	if spr is Sprite2D and spr.texture != null:
+		h = clampf(spr.texture.get_height() * absf(spr.global_scale.y) * 0.5 / WPS, 2.0, 8.0)
+		p = spr.global_position / WPS
+	return [p, h]
+
 func _burning(dt: float) -> void:
 	var tree = vfx.get_tree()
 	if tree == null:
@@ -653,13 +667,16 @@ func _burning(dt: float) -> void:
 		burning.sort_custom(func(a, b): return a.global_position.distance_squared_to(center) < b.global_position.distance_squared_to(center))
 		burning.resize(MAX_BURNING)
 	for e in burning:
-		var p: Vector2 = e.global_position / WPS
+		var b := _body(e)
+		var p: Vector2 = b[0]
+		var h: float = b[1]
+		# Small licks of flame over the body itself (doc 21 playtest: DoTs sat above enemies and read too big).
 		for i in 2:
-			if randf() < 0.6 * dt * 60.0:
-				vfx.flame(e, p, {"lx": (randf() - 0.5) * 6.0, "ly": -2.0 - randf() * 4.0, "inh": 0.1, "grip": 0.9,
-					"heat": 1.05, "rise": 18.0 + randf() * 10.0, "life": 0.3 + randf() * 0.3, "small": 1.0 if randf() < 0.5 else 0.0})
+			if randf() < 0.7 * dt * 60.0:
+				vfx.flame(e, p, {"lx": (randf() - 0.5) * h * 1.2, "ly": (randf() - 0.3) * h, "inh": 0.1, "grip": 0.9,
+					"heat": 1.2, "rise": 6.0 + randf() * 4.0, "life": 0.18 + randf() * 0.14, "small": 1.0})
 		if randf() < 0.03 * dt * 60.0:
-			vfx.ember(p.x, p.y - 5.0, (randf() - 0.5) * 8.0, -(14.0 + randf() * 10.0), 0.7)
+			vfx.ember(p.x, p.y - h * 0.5, (randf() - 0.5) * 6.0, -(8.0 + randf() * 6.0), 0.4)
 
 # ------------------------------------------------------------------ components
 
@@ -847,9 +864,9 @@ func _chilled(dt: float) -> void:
 		if not s.has_method("has") or not (s.has("chilled") or s.has("frozen")):
 			continue
 		n += 1
-		var p: Vector2 = e.global_position / WPS
+		var p: Vector2 = _body(e)[0]
 		if randf() < 0.2 * dt * 60.0:
-			vfx.elements.mote(p.x + (randf() - 0.5) * 7.0, p.y - 6.0 + randf() * 3.0, (randf() - 0.5) * 3.0, 3.0 + randf() * 4.0, ICE.mote, 0.6, 3.0, 4.0)
+			vfx.elements.mote(p.x + (randf() - 0.5) * 5.0, p.y - 2.0 + randf() * 4.0, (randf() - 0.5) * 2.0, 2.0 + randf() * 2.0, ICE.mote, 0.35, 3.0, 4.0)
 		if randf() < 0.03 * dt * 60.0:
 			vfx.elements.flake(p.x + (randf() - 0.5) * 6.0, p.y - 8.0, (randf() - 0.5) * 3.0, 2.0, 0.8, 0, 3.0)
 
@@ -1027,9 +1044,9 @@ func _shocked(dt: float) -> void:
 		if not s.has_method("has") or not s.has("shocked"):
 			continue
 		n += 1
-		var p: Vector2 = e.global_position / WPS
+		var p: Vector2 = _body(e)[0]
 		if randf() < 0.08 * dt * 60.0:
-			vfx.elements.hop(p.x + (randf() - 0.5) * 6.0, p.y - 3.0, 0.12)
+			vfx.elements.hop(p.x + (randf() - 0.5) * 5.0, p.y + (randf() - 0.5) * 4.0, 0.12)
 		if randf() < LIGHTNING_RATE.status * dt / vfx.fx_speed:
 			vfx.elements.arc(p.x - 3.0, p.y - 5.0 + randf() * 3.0, p.x + 3.0, p.y - 2.0 - randf() * 3.0, 2.0, 0.1, 1)
 
@@ -1292,10 +1309,10 @@ func _entangled(dt: float) -> void:
 		if not s.has_method("has") or not (s.has("entangled") or s.has("rooted")):
 			continue
 		n += 1
-		list.append(e.global_position / WPS)
+		list.append(_body(e)[0])
 		if randf() < 0.03 * dt * 60.0:
-			var p: Vector2 = e.global_position / WPS
-			vfx.elements.leaf(p.x, p.y - 5.0, (randf() - 0.5) * 8.0, -6.0, LIFE.leaf, 0.8)
+			var p: Vector2 = _body(e)[0]
+			vfx.elements.leaf(p.x, p.y + 1.0, (randf() - 0.5) * 5.0, -3.0, LIFE.leaf, 0.45)
 	_wrapped = list
 
 var _wrapped: Array = []
@@ -1305,7 +1322,7 @@ func draw_statuses(buf: PackedByteArray) -> void:
 	var t: float = vfx._t
 	if (vfx._steps >> 3) & 1:
 		for p in _marked:
-			el.draw_glyph(buf, p.x, p.y - 11.0, 0, ARC.spark[2])
+			el.draw_glyph(buf, p.x, p.y - 1.0, 0, ARC.spark[2])   # on the body, not floating above it
 	for p in _wrapped:
 		for i in 18:
 			var a := float(i) / 18.0 * TAU
@@ -1535,10 +1552,10 @@ func _vulnerable(dt: float) -> void:
 			continue
 		var s = e.status
 		if s.has_method("has") and s.has("vulnerable"):
-			var p: Vector2 = e.global_position / WPS
+			var p: Vector2 = _body(e)[0]
 			list.append(p)
 			if randf() < 0.08 * dt * 60.0:
-				vfx.spark(p.x + (randf() - 0.5) * 6.0, p.y - 4.0, 0.0, -10.0, 0.4, SPARK.arcane)
+				vfx.spark(p.x + (randf() - 0.5) * 5.0, p.y + (randf() - 0.5) * 4.0, 0.0, -5.0, 0.3, SPARK.arcane)
 	_marked = list
 
 var _marked: Array = []
@@ -1645,12 +1662,16 @@ func _poisoned(dt: float) -> void:
 		var s = e.status
 		if s.has_method("has") and s.has("poison"):
 			n += 1
-			var p: Vector2 = e.global_position / WPS
-			if randf() < 0.3 * dt * 60.0:
-				vfx.elements.bubble(p.x + (randf() - 0.5) * 7.0, p.y - 3.0 - randf() * 4.0, randf() < 0.15)
-		elif s.has_method("has") and s.has("bleed") and randf() < 0.1 * dt * 60.0:
-			var p2: Vector2 = e.global_position / WPS
-			vfx.elements.dust(p2.x + (randf() - 0.5) * 5.0, p2.y, (randf() - 0.5) * 6.0, -3.0)
+			var b := _body(e)
+			var p: Vector2 = b[0]
+			var h: float = b[1]
+			# Small bubbles popping on the body, short-lived so they never float off above it.
+			if randf() < 0.5 * dt * 60.0:
+				vfx.elements.bubble(p.x + (randf() - 0.5) * h * 1.4, p.y + (randf() - 0.3) * h, false, 0.35)
+		elif s.has_method("has") and s.has("bleed") and randf() < 0.15 * dt * 60.0:
+			var p2: Vector2 = _body(e)[0]
+			# Bleed is blood, not earth: dark red drops falling off the body.
+			vfx.spark(p2.x + (randf() - 0.5) * 5.0, p2.y - 2.0 - randf() * 3.0, (randf() - 0.5) * 2.0, 5.0 + randf() * 3.0, 0.25 + 0.1 * randf(), [Color("e0443a"), Color("a82828"), Color("5a1010")])
 
 # ------------------------------------------------------------------ earth (sandbox FX.earth, rigid)
 

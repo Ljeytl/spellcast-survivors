@@ -304,6 +304,7 @@ static func _regeneration(info: Dictionary, ctx: Dictionary) -> Dictionary:
 		"heal_rate": float(ctx.get("heal_rate", 0.0)),
 		"visual_size": float(info.get("keyword_size_multiplier", 1.0)),
 		"payload": [],
+		"vfx": {"family": "none"},   # no ring: the heal sparkles are the look
 	}
 	var def = _shell(info, "aura", {"aura": aura})
 	def.element = "life"
