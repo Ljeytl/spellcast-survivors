@@ -1,6 +1,6 @@
 # Damage, effects and keywords
 
-**Status:** decided with the user, 14 October 2026 · rev 1 · amends [doc 18](18-spell-system-rewrite.md) §6.1–6.4 and the keyword tables in §9. Where this doc and doc 18 disagree, this doc wins. Engine and data ownership stay as in [doc 19](19-engine-architecture.md) and [doc 20](20-game-systems-architecture.md).
+**Status:** decided with the user, 14 October 2026, rev 1. This page owns current damage/effect/keyword rules and supersedes older spell-rewrite numbers. [Doc 3](03-spells.md) owns identities; engine/data ownership remains in [doc 19](19-engine-architecture.md) and [doc 20](20-game-systems-architecture.md).
 
 ## 1. Every hit has three parts
 

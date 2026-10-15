@@ -8,7 +8,7 @@
 
 Same goals as doc 19 (data is the source of truth, one module per behaviour, validated, scalable, co-op-ready not co-op), applied to everything around the spells.
 
-What the code does today (inspected 13 October 2026, HEAD `fe037047`):
+Historical architecture baseline (inspected 13 October 2026, HEAD `fe037047`; not a current missing-work checklist):
 
 | Area | Today | Problem |
 |---|---|---|
@@ -17,7 +17,7 @@ What the code does today (inspected 13 October 2026, HEAD `fe037047`):
 | Enemy data | **Two sets.** Live: `encounters.json` variants (12, families grunt/runner/brute/shooter). Legacy: `enemies.json` (zones, classes with `physical`/`magic` resistances, 20 behaviour names, special abilities) read only by `DataManager`, `Enemy.gd` and `EnemyManager` | Legacy keys clash with the damage types; two truths |
 | Enemy code | `EncounterEnemy` (223 lines, `match variant`) extends `Enemy` (952 lines, `match enemy_type`, `match elite_type`). `EnemyManager` (285 lines) has no caller in `scripts/` outside legacy code (scenes and tests checked in G1). Elite types (armored, regenerator, splitter, frost, explosive) are never spawned by `MonsterManager` | Behaviour by variant name; dead code; elites unreachable in play |
 | Spawning and difficulty | `MonsterManager` (362 lines) reads `encounters.json` scaling (interval phases, difficulty points, batch points, cap 160); `EncounterDirector` for waves; `DayCycle` (328 lines) drives day/night | Two boss tables: `encounters.json` bosses (1200/1800 HP) for timeline mode, `DayCycle.BOSSES` const (1000/5000/9000/18000) for day mode |
-| Ley lines | `LeyLines.gd`: ~25 tuning constants (3 sites, 4 words, wave sizes, +20% attuned power, guardian 450 HP + 150/min) | Balance in code; doc 05/06 says four sites |
+| Ley lines | `LeyLines.gd`: ~25 tuning constants (3 sites, 4 words, wave sizes, +20% attuned power, guardian 450 HP + 150/min) | Balance in code; the expedition target says four sites |
 | Upgrades | `LevelUpScreen` (740 lines) builds cards, "Recovery" defined inline; `Player.apply_upgrade` matches effect type; `SUPPORTED_PASSIVES` const | Adding an upgrade touches UI and player code |
 | Preparation | `Preparation.gd`: 6 slots, activation levels `[1,2,4,7,11,16]`, defaults as consts; `user://preparation.cfg` | Numbers in code; own save format |
 | Saves | Five stores: `CharacterManager` slot files, `Preparation` ConfigFile, `StyleScoreStore`, `UserSettings`, `EffectPreferences` | No shared versioning, migration or atomic write |
@@ -30,17 +30,17 @@ Checked against docs 05, 06, 07, 10, 15 and 18. The structure carries every rule
 
 | Point | Design docs | Code today | This doc |
 |---|---|---|---|
-| Enemy resistance profile | doc 18 §5.5: per damage type, per status, control (hard-CC reduction, diminishing returns), weight | damage per type only; weight is a formula | full profile (§2.1) |
-| Resistance ranges | doc 18 §9.4: ordinary ±25%, elite ±50%, boss ≤ 50% in one type; no compulsory elemental hard counters (docs 15/16) | not enforced | validator enforces ranges by tier |
-| Enemy capabilities | doc 18 §7 list | partly done | every row mapped to a module and a step (§3.8) |
-| Guardians | doc 06: telegraphed patterns A/B/C, recovery, 50% phase, capped adds, no new immunity, realm-fixed stats, one reward | timed big variants with health override | boss definition schema (§3.7) |
-| Elites | doc 07: generic modifier + silhouette, not tint; doc 06: patrol elites at 4/8/12/16 min with 4 escorts | five enum types never spawned | modifier sets + patrols as data (§3.6) |
-| Bulwark / shieldbearer front armour | doc 07: visual only in v0.1, no hidden reduction | 35% reduction from the front | **Decided: keep 35%** as `guard_front` data; doc 07 to be amended |
-| Director | doc 07 threat budget, ambient cap 90 | interval phases, cap 160 | both as pacing modules (§4.2); cap is level data |
+| Enemy resistance profile | Per damage type, per status, control (hard-CC reduction, diminishing returns), weight | damage per type only; weight is a formula | full profile (§2.1) |
+| Resistance ranges | Ordinary ±25%, elite ±50%, boss ≤ 50% in one type; no compulsory elemental hard counters (docs 15/16) | not enforced | validator enforces ranges by tier |
+| Enemy capabilities | Capabilities listed in §3.8 | partly done | every row mapped to a module and a step (§3.8) |
+| Guardians | the expedition target: telegraphed patterns A/B/C, recovery, 50% phase, capped adds, no new immunity, realm-fixed stats, one reward | timed big variants with health override | boss definition schema (§3.7) |
+| Elites | the earlier encounter proposal: generic modifier + silhouette, not tint; the expedition target: patrol elites at 4/8/12/16 min with 4 escorts | five enum types never spawned | modifier sets + patrols as data (§3.6) |
+| Bulwark / shieldbearer front armour | the earlier encounter proposal: visual only in v0.1, no hidden reduction | 35% reduction from the front | **Decided: keep 35%** as `guard_front` data; the earlier visual-only proposal superseded |
+| Director | the earlier encounter proposal threat budget, ambient cap 90 | interval phases, cap 160 | both as pacing modules (§4.2); cap is level data |
 | Ley sites | docs 05/06: four sites | three (`LeyLines` const) | count is level data |
 | First level | docs 06/15: normal slimes, King Slime guardian | timeline/day bosses on old variants | King Slime is the first boss authored in the §3.7 schema |
 | Persistence | doc 10: versioned, atomic, idempotent events, unknown ids kept | five unversioned stores | SaveService (§6) matches doc 10 |
-| Exit/loss | doc 05 state machine, death wins ties | implicit in `Game.gd` | `RunController` (§7) |
+| Exit/loss | the expedition target state machine, death wins ties | implicit in `Game.gd` | `RunController` (§7) |
 | **Build order** | **doc 15: "no M0 rebuild gate"; adapt the minimum before M1** | — | **Conflict.** Docs 19/20 put the validator, stats, damage and enemy work (G1–G3) before M1. That follows your call to get the foundation right first; doc 15 gets amended to say so once you sign off (§13 decision 9) |
 
 ```mermaid
@@ -78,7 +78,7 @@ flowchart TB
 
 ## 2. Damage and resistance model (one for the whole game)
 
-**Damage types** (doc 18 §5.5), defined once in `data/damage_types.json`: `raw, arcane, fire, water, storm, earth, plague, life, bleed, pure`. The legacy `physical`/`magic` keys are retired; the validator rejects them.
+**Damage types**, defined once in `data/damage_types.json`: `raw, arcane, fire, water, storm, earth, plague, life, bleed, pure`. The legacy `physical`/`magic` keys are retired; the validator rejects them.
 
 **Every hit, in every direction, goes through `Effects.apply`** (doc 19 P6), including enemy contact, enemy projectiles, hazards, reactions and the player's own spells hitting summons. Fixed order:
 
@@ -90,10 +90,10 @@ flowchart TB
 | 4 | Guards: directional or conditional reduction (shieldbearer front 35%, Earth Shield charge blocks the whole hit) | behaviour data, see §3 |
 | 5 | Status reactions on hit (`reactions.json`) | doc 19 §5.2 |
 | 6 | Vulnerable / barrier / damage-taken modifiers | StatBlock |
-| 7 | Apply to health, settle deaths per doc 07 event ordering | — |
+| 7 | Apply to health, settle deaths with explicit event ordering | — |
 | 8 | Emit `damage_dealt {source_actor, cast_id, target, per_type, total, killed}` | bus |
 
-### 2.1 Resistance profiles (doc 18 §5.5)
+### 2.1 Resistance profiles
 
 A profile has four parts, all of them stats on the target's StatBlock:
 
@@ -113,10 +113,10 @@ A profile has four parts, all of them stats on the target's StatBlock:
 
 - **Damage:** `amount × (1 − r)`, `pure` ignores it.
 - **Status:** reduces duration or strength per status, or `immune`.
-- **Control:** hard-CC reduction and a diminishing-returns rule (doc 07: 1 s hard-CC immunity after a lock; bosses convert locks to 0.8 move and keep their attack timeline).
+- **Control:** hard-CC reduction and a diminishing-returns rule (the earlier encounter proposal: 1 s hard-CC immunity after a lock; bosses convert locks to 0.8 move and keep their attack timeline).
 - **Weight:** divides knockback, pull and force (replaces the hard-coded knockback formula; the ≥ 30% knockback floor stays as a rule).
 
-Profiles are **modifier sets**, so they stack from any source: an enemy lists its profiles, elite "armored" adds one, "vulnerable" adds a negative one, a future player passive adds one. The validator checks the stacked result against the doc 18 §9.4 range for the actor's tier (`ordinary`, `elite`, `boss`).
+Profiles are **modifier sets**, so they stack from any source: an enemy lists its profiles, elite "armored" adds one, "vulnerable" adds a negative one, a future player passive adds one. The validator checks the stacked result against the resistance range specified in the reconciliation table above for the actor's tier (`ordinary`, `elite`, `boss`).
 
 **The player is an actor** with health, StatBlock (resistances default 0), status component and guards. Earth Shield becomes a guard on the player actor (the charge-and-retaliate contract from 0.1.36 is kept exactly).
 
@@ -159,7 +159,7 @@ Profiles are **modifier sets**, so they stack from any source: an enemy lists it
 | `guard_front` | shieldbearer `match` (35% from the front, kept) | Bulwark can reuse it with its own value |
 | `on_death_spawn` | splitter elite | Brood releases 3 swarmers (0 mana) |
 | `explode_on_death`, `regenerate` | explosive, regenerator elites | — |
-| Later, one module each | — | doc 18 §7: corpses, barrier avoidance, transform, enemy casting via the spell engine |
+| Later, one module each | — | the actor capability contract: corpses, barrier avoidance, transform, enemy casting via the spell engine |
 
 **Templates.** `"extends"` pulls in another definition (a family base or another enemy) and overrides fields, so a new variant is usually five lines. Resolved at load; the validator reports the flattened result.
 
@@ -167,7 +167,7 @@ Profiles are **modifier sets**, so they stack from any source: an enemy lists it
 
 **Tags** (`slime`, `ground`, `flying`, `undead`, `construct`…) are free data labels that spells, statuses, keywords, targeting rules and reactions can query ("chain only to constructs", "immune to bleed if construct"). Nothing in code switches on an enemy id.
 
-**Drops** name a table in `data/drops.json` (mana, XP, crystals, chances, pickup type). **Spawn groups** say how the director places them (doc 07: swarmers in groups of 3–6, formations later).
+**Drops** name a table in `data/drops.json` (mana, XP, crystals, chances, pickup type). **Spawn groups** say how the director places them (the earlier encounter proposal: swarmers in groups of 3–6, formations later).
 
 ### 3.3 How behaviours compose (the extension point)
 
@@ -184,10 +184,10 @@ Every behaviour implements the same small contract and declares its settings sch
 The actor's **brain** (one generic script, not per enemy) each tick:
 
 1. Sums steering intents by weight, then applies speed, slows, locks and forces (weight).
-2. If no action is running, starts the highest-priority proposed action whose cooldown and the director's attack-slot limit allow it (doc 07: max 3–4 simultaneous caster attacks).
-3. Runs the current action through one shared lifecycle: **windup (telegraph) → active → recovery**. Locks (freeze, stun) interrupt windup; bosses keep their timeline per doc 07.
+2. If no action is running, starts the highest-priority proposed action whose cooldown and the director's attack-slot limit allow it (the earlier encounter proposal: max 3–4 simultaneous caster attacks).
+3. Runs the current action through one shared lifecycle: **windup (telegraph) → active → recovery**. Locks (freeze, stun) interrupt windup; bosses keep their timeline per the earlier encounter proposal.
 
-Actions are data: `{"cast": "<engine spell>", "warning": 0.8, "recovery": 1.8, "cooldown": 3, "range": [0, 200], "requires_visible": true}` or a move action (`dash`, `leap`) or a spawn. Telegraphs, warnings and the "no attack starts offscreen" rule (doc 07) live in the shared lifecycle, so every enemy and boss gets them for free.
+Actions are data: `{"cast": "<engine spell>", "warning": 0.8, "recovery": 1.8, "cooldown": 3, "range": [0, 200], "requires_visible": true}` or a move action (`dash`, `leap`) or a spawn. Telegraphs, warnings and the "no attack starts offscreen" rule (the earlier encounter proposal) live in the shared lifecycle, so every enemy and boss gets them for free.
 
 **Bosses use the same brain.** Their `patterns` are actions and their `phases` are a `sequencer` behaviour that proposes the next pattern in order. A boss is not a different kind of object.
 
@@ -211,7 +211,7 @@ Same benchmark scene as doc 19, with the bestiary spawning crowds.
 
 ### 3.5 Enemy presentation
 
-Enemies get a `look` like spells: sprite or animation set, anchors, hit flash, death effect, telegraph style per action, elite visual layers, boss intro. Presentation reads actor state and bus events only (doc 19 P5). Doc 07's readability rules (silhouette per family, elite crown not tint, visible warnings) are checked by the bestiary coverage pass the same way spell looks are.
+Enemies get a `look` like spells: sprite or animation set, anchors, hit flash, death effect, telegraph style per action, elite visual layers, boss intro. Presentation reads actor state and bus events only (doc 19 P5). The retained encounter design’s readability rules (silhouette per family, elite crown not tint, visible warnings) are checked by the bestiary coverage pass the same way spell looks are.
 
 ### 3.6 Elites (typed, data)
 
@@ -230,10 +230,10 @@ An elite is **any enemy + one or more elite sets**. No enum, no elite-only code.
 }
 ```
 
-- `base` is doc 07's generic elite (HP × 2.0, damage × 1.25, speed × 1.05, scale × 1.20, mana × 3); every elite gets it. Doc 07's silhouette rule is a `visual` layer, never a tint.
+- `base` is the earlier encounter proposal's generic elite (HP × 2.0, damage × 1.25, speed × 1.05, scale × 1.20, mana × 3); every elite gets it. The retained encounter design’s silhouette rule is a `visual` layer, never a tint.
 - Sets can **add** element, resistances, statuses on hit, behaviours, attacks (as casts), drops and visuals. So an elite is typed: frost is a water-element enemy with water resistance from the type chart and a chill on contact.
 - How many sets an elite can roll, and which are allowed per level and minute, is level data (`elite_pool`). One set per elite to start; stacking two is a data change.
-- **Patrols** (doc 06: 4/8/12/16 min, one elite + 4 escorts, deferred during rituals or bosses, dropped after 19:00) are a director event in level data.
+- **Patrols** (the expedition target: 4/8/12/16 min, one elite + 4 escorts, deferred during rituals or bosses, dropped after 19:00) are a director event in level data.
 
 ### 3.7 Bosses and guardians (typed, data)
 
@@ -264,17 +264,17 @@ A boss is an enemy definition with `"tier": "boss"`, a **pattern list** (actions
 | Field | Carries doc rule |
 |---|---|
 | `patterns` | each attack is a spell-engine cast (telegraph, shape, damage type) or a spawn; warning and recovery are data |
-| `phases` | health thresholds, sequence, speed-ups, on-enter events; doc 06 "below 50% alternate faster" |
+| `phases` | health thresholds, sequence, speed-ups, on-enter events; the expedition target "below 50% alternate faster" |
 | `rules` | never overlap attacks, no new phase immunity, guaranteed escape lanes (validator + runtime check) |
-| `scaling: authored` | doc 06: guardian stats are realm-fixed, no time HP |
-| `resist_profiles: boss_default` | doc 07/18: CC converts to 0.8 move, diminishing control, high weight |
+| `scaling: authored` | the expedition target: guardian stats are realm-fixed, no time HP |
+| `resist_profiles: boss_default` | the control design: CC converts to 0.8 move, diminishing control, high weight |
 | `reward`, `arena`, `intro` | reward table id, arena layout, title/music keys |
 
 The day-cycle bosses and the timeline bosses today become boss definitions too, with their old numbers, so nothing changes in play until you retune.
 
-**Bosses that twist the rules** (The Disruptor, doc 06: scrambled incantations) use one more hook: a pattern can apply a modifier to the **player's `CastInput`** (scramble, hide letters, swap words) through the same modifier system. That keeps "the boss messes with typing" a data entry plus one input-modifier module, not code inside the boss.
+**Bosses that twist the rules** (The Disruptor, the expedition target: scrambled incantations) use one more hook: a pattern can apply a modifier to the **player's `CastInput`** (scramble, hide letters, swap words) through the same modifier system. That keeps "the boss messes with typing" a data entry plus one input-modifier module, not code inside the boss.
 
-### 3.8 Enemy capabilities from doc 18 §7
+### 3.8 Enemy capabilities
 
 | Capability | Lands as | Step |
 |---|---|---|
@@ -305,11 +305,11 @@ One file per level under `data/levels/`. Everything that is a constant today mov
 |---|---|
 | `clock`: run length, day length, days, dusk, sunrise, grace | `encounters.json`, `DayCycle` consts |
 | `pacing`: model id + its settings | `encounters.json` scaling |
-| `pool`: enemy ids, unlock times, weights, variant-gate substitutions (doc 06) | `encounters.json` variants, doc 06 |
+| `pool`: enemy ids, unlock times, weights, variant-gate substitutions (the expedition target) | `encounters.json` variants, the expedition target |
 | `waves`: authored waves | `encounters.json` waves |
 | `bosses`: one list per clock mode | `DayCycle.BOSSES` (day mode, default) and `encounters.json` bosses (timeline mode, preserved) |
 | `ley_sites`: count, placement, words, waves, guardian, attuned bonus (as a modifier) | `LeyLines` consts |
-| `patrols`: elite patrol times and escorts (doc 06) | new |
+| `patrols`: elite patrol times and escorts (the expedition target) | new |
 | `rewards`: reward table ids per objective | `BossReward`, ley rewards |
 
 **Clock modes.** A level picks `"clock": {"mode": "day_cycle"}` (default: days, dusk, nightfall boss, camp, wake; today's `DayCycle`) or `"mode": "timeline"` (bosses at fixed run times; today's `encounters.json` path). Both stay working, each with its own boss list and a golden test, so if day/night doesn't playtest well, switching back is one line of level data. The debug console can override the mode per run for side-by-side playtests.
@@ -336,7 +336,7 @@ Both emit the same `spawn_request {enemy_id, elite_set?, socket, reason}`; the d
 "players": {"1": {}, "2": {"director.budget_mul": 0.6, "enemy.health_mul": 0.25}}
 ```
 
-Final enemy stats = definition base × time × realm × setting × player-count, all as modifiers with sources, visible in the debug overlay. Doc 07's rule (realm factor not applied to damage twice, no hidden player-level scaling) is enforced by which stats each profile may touch, checked by the validator. Guardians use authored values and opt out of time scaling (doc 06).
+Final enemy stats = definition base × time × realm × setting × player-count, all as modifiers with sources, visible in the debug overlay. The retained encounter design’s rule (realm factor not applied to damage twice, no hidden player-level scaling) is enforced by which stats each profile may touch, checked by the validator. Guardians use authored values and opt out of time scaling (the expedition target).
 
 ### 4.4 Objectives and the tutorial
 
@@ -346,15 +346,15 @@ Ley sites, guardian summons, patrols and the tutorial are all **objectives**: sm
 |---|---|
 | `reach` (area), `dwell` (stand for N s) | ley sites, tutorial movement |
 | `type_word` (generated or listed words), `cast` (spell or keyword, optionally on a target) | ley rituals, tutorial "cast Bolt", "cast MEGA Bolt" |
-| `wave` (enemies from sockets, wait until cleared + delay) | ley challenges (doc 06: next wave after prior wave + 3 s) |
+| `wave` (enemies from sockets, wait until cleared + delay) | ley challenges (the expedition target: next wave after prior wave + 3 s) |
 | `defeat` (actor or boss), `survive` (time) | guardian, tutorial dummy |
 | `grant` (reward table), `show` (prompt text key), `pause_until_ack` | rewards, tutorial lessons |
 
-The tutorial (M1's next deliverable, doc 06 Broken Observatory) is then a level file whose objective is a list of lessons. Changing a lesson's order, text or enemy is a data edit. This is why objectives belong in G4 rather than later.
+The tutorial (the earlier Broken Observatory lesson proposal) is then a level file whose objective is a list of lessons. Changing a lesson's order, text or enemy is a data edit. This is why objectives belong in G4 rather than later.
 
 ### 4.5 Pickups
 
-XP gems, mana crystals (doc 05 crystal rules), style pickups and chests are **pickup actors** from `drops.json`: pooled, owned by whoever collects them, pulled by a `magnet` stat (so vacuum, magnet upgrades and co-op ownership are one mechanism), and granted through the progression service as events.
+XP gems, mana crystals (the expedition target crystal rules), style pickups and chests are **pickup actors** from `drops.json`: pooled, owned by whoever collects them, pulled by a `magnet` stat (so vacuum, magnet upgrades and co-op ownership are one mechanism), and granted through the progression service as events.
 
 ## 5. Progression, upgrades and rewards
 
@@ -390,7 +390,7 @@ Rules: write temp → flush → rename, keep last good backup; migrations are or
 
 | New piece | Owns |
 |---|---|
-| `RunController` | explicit state machine: `preparing → entering → running → (boss) → extracting / dead → summary`; terminal precedence from doc 05 (death wins a tie); emits `run_state_changed` |
+| `RunController` | explicit state machine: `preparing → entering → running → (boss) → extracting / dead → summary`; terminal precedence from the expedition target (death wins a tie); emits `run_state_changed` |
 | `SimClock` | fixed-tick simulation time, time dilation, pause reasons (level-up, menu, tutorial) as a set, so overlays stack correctly; presentation time separate |
 | `Overlays` | level-up, reward, pause: request/release pause reasons on the clock |
 | HUD views | one script per widget, subscribing to the bus; no reaching into systems |
@@ -431,6 +431,8 @@ Doc 19 §6.1 rules apply here too. What each system must keep true so co-op late
 
 ## 10. Migration order, tied to milestones
 
+The G steps below are the signed-off dependency sequence. Reconcile them against the 0.3.0 changelog before scheduling: foundations such as validation already landed. Current release sequencing lives in [doc 15](15-development-order.md).
+
 Interleaves with doc 19 §10. Each step: game playable, suite at baseline, no behaviour change unless the step says so.
 
 | # | Step | Before milestone | Size |
@@ -443,7 +445,7 @@ Interleaves with doc 19 §10. Each step: game playable, suite at baseline, no be
 | G5 | `SaveService` + migrations of the five stores | M2 (persistent knowledge starts here) | M |
 | G6 | Progression service: upgrades, rewards, knowledge, preparation as data; style constants to data and bus; string table | M2–M3 | M |
 | G7 | `RunController`, `SimClock`, overlays; split `Game.gd` and HUD views; replay recording | M4 (extraction/death loop) | L |
-| G8 | `threat_budget` pacing model, patrols, doc 18 §7 enemy capabilities | M5, as content needs | per item |
+| G8 | `threat_budget` pacing model, patrols, the actor capability contract enemy capabilities | M5, as content needs | per item |
 
 G1–G3 and the objective part of G4 come before M1 because the tutorial and the normal-slime Level 1 are configured on enemies, damage and objectives; doing them later means configuring that content twice.
 
@@ -479,14 +481,14 @@ G1–G3 and the objective part of G4 come before M1 because the tutorial and the
 
 ## 13. Decisions
 
-1. **Elites:** *Decided.* Port the five elite types to typed data sets on top of doc 07's generic `base` set (§3.6), delete `enemies.json`, `EnemyManager` and the enum code.
-2. **Pacing model:** *Decided.* Today's `interval_phases` is the default; doc 07's `threat_budget` comes later as a second module.
+1. **Elites:** *Decided.* Port the five elite types to typed data sets on top of the earlier encounter proposal's generic `base` set (§3.6), delete `enemies.json`, `EnemyManager` and the enum code.
+2. **Pacing model:** *Decided.* Today's `interval_phases` is the default; the earlier encounter proposal's `threat_budget` comes later as a second module.
 3. **Bosses:** *Decided.* Day/night cycle is the default clock mode with `DayCycle.BOSSES` numbers; timeline mode with `encounters.json` bosses is preserved as a selectable mode (§4.1).
 4. **Enemy attacks as spell-engine casts** *Decided.*
 5. **Player as a full actor** *Decided.* Resistances, statuses and guards; default resistances 0 so nothing changes in play.
 6. **Saves:** *Decided.* One `SaveService`, several versioned files.
 7. **Difficulty settings and player-count scaling** *Decided.* Profiles exist from the start, empty for now.
-8. **Shieldbearer front guard:** *Decided.* Keep today's 35% reduction, as `guard_front` data. Doc 07's "visual only" line gets amended.
+8. **Shieldbearer front guard:** *Decided.* Keep today's 35% reduction, as `guard_front` data. The retained encounter design’s "visual only" line gets amended.
 9. **Amend doc 15:** *Decided.* Record that the foundation steps (doc 19 steps 1–1b, G1–G3) come before M1, replacing "no M0 rebuild gate".
 10. **Bosses as typed data** *Decided.* Patterns, phases, rules and rewards (§3.7), including an input-modifier hook for rule-twisting bosses.
 

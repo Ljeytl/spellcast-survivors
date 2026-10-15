@@ -228,13 +228,13 @@ These rows point into existing detailed plans/results. They are not all known cu
 |---|---|---|---|
 | I01 | Wizard fantasy: language expresses complex magic; readable ancient inscriptions replace keycap branding | Decision recorded | [Art](expedition-design/08-art-feedback.md), [UX](expedition-design/09-ui-accessibility.md); implementation later |
 | I02 | Permanent keywords modifying shared spell properties; prepared spellbook and activation order | Deferred | [Component reference](expedition-design/14-spell-system-reference.md); preserve current roguelike loop now |
-| I03 | Circular tower room, rotary dial, stained-glass destinations, top portal, tower exit and huge deck-like preparation book | Deferred | [Tower concept](expedition-design/09-ui-accessibility.md#wizard-tower-rotary-destination-chamber); book position/capacity and 3D treatment open |
-| I04 | Automatic recall to tower; 20-minute default, potential per-level duration/curves; 25-minute idea deferred | Deferred | [Tower concept](expedition-design/09-ui-accessibility.md#wizard-tower-rotary-destination-chamber) |
+| I03 | Circular tower room, rotary dial, stained-glass destinations, top portal, tower exit and huge deck-like preparation book | Deferred | [Tower concept](expedition-design/archive/2026-10-14/09-ui-accessibility.md#wizard-tower-rotary-destination-chamber); book position/capacity and 3D treatment open |
+| I04 | Automatic recall to tower; 20-minute default, potential per-level duration/curves; 25-minute idea deferred | Deferred | [Tower concept](expedition-design/archive/2026-10-14/09-ui-accessibility.md#wizard-tower-rotary-destination-chamber) |
 | I05 | Ley-line challenges unlock magic; long ritual words; optional guardian after four sites | Deferred | [Levels](expedition-design/06-levels.md), [decision/idea register](expedition-design/02-decisions.md) |
 | I06 | Simple floor-color/layout sketch, paths, rocks; possible 3D room blockout | Deferred | Await art/layout exploration; no full rendering migration selected |
 | I07 | Slime animation frames/interpolation, shaders, typed menu navigation, alternate characters | Deferred | [Roadmap](../ROGUELITE_ROADMAP.md); later polish/experiments |
 | I08 | Spell ideas, paired Ice/Glacial Spear, elemental Wall synonyms, Charged/Delayed/Repeating versus Duplicating | Deferred | [Spell catalog](expedition-design/03-spells.md), [component reference](expedition-design/14-spell-system-reference.md); preserve individual idea entries |
-| I09 | Soul Bloom healing carrier, Big infection/AoE, Meteor Spear alternatives, smooth Focus Ray, rotating laser, arcane crit | Deferred | [Open decisions](expedition-design/13-review-record.md#alignment-review--28-september-2026); alternatives are not implemented promises |
+| I09 | Soul Bloom healing carrier, Big infection/AoE, Meteor Spear alternatives, smooth Focus Ray, rotating laser, arcane crit | Deferred | [Open decisions](expedition-design/archive/2026-10-14/13-review-record.md#alignment-review--28-september-2026); alternatives are not implemented promises |
 | I10 | Siege/tower defense/alchemist format and mouse final boss | Deferred | [Idea register](expedition-design/02-decisions.md); separate ideas, no pivot approved |
 | I11 | Eventual generated-art/music replacement; existing assets can remain for current testing | Deferred | [Art direction](expedition-design/08-art-feedback.md); no immediate bulk replacement |
 | I12 | Cross Blade should have a stronger return hit that rewards positioning; tentative double-return damage or base damage −25% with return +50% | Deferred | [Return-hit idea](../ROGUELITE_ROADMAP.md#deferred--cross-blade-return-hit-identity-2026-09-28), recorded 2026-09-28; alternatives and percentage reference unresolved; no gameplay change authorized |
@@ -243,21 +243,21 @@ These rows point into existing detailed plans/results. They are not all known cu
 
 | ID | Idea | Status | Record |
 |---|---|---|---|
-| I13 | Personal lightning aura with per-enemy 1–1.5-second exposure before an individual direct strike; long incantation appropriate to utility | Deferred design | [Mechanics, names and open decisions](expedition-design/03-spells.md#storm-aura-roots-and-wizard-movement--2026-09-28-ideas); fixed lifetime per cast; level-ups extend duration, kills do not |
+| I13 | Personal lightning aura with per-enemy 1–1.5-second exposure before an individual direct strike; long incantation appropriate to utility | Deferred design | [Mechanics, names and open decisions](expedition-design/archive/2026-10-14/03-spells.md#storm-aura-roots-and-wizard-movement--2026-09-28-ideas); fixed lifetime per cast; level-ups extend duration, kills do not |
 | I14 | **Shillelagh** as the confirmed name for a moving directional wave of tree roots | Deferred design | Same spell-idea table; physical/nature fantasy, damage timing and trail behavior undecided |
 | I15 | Dash immediately on casting versus a stored dash charge | Deferred design | Same table; separate controls discussion, neither behavior selected |
 | I16 | Swiftness temporary movement-speed spell | Deferred design | Same table; magnitude, duration and stacking open |
-| I17 | Mana represents accumulated unspent magical power that unlocks progression thresholds, rather than a casting fuel pool | Design direction | [Accumulated mana](expedition-design/03-spells.md#accumulated-mana-as-progression); current gameplay unchanged, naming and run persistence open |
+| I17 | Mana represents accumulated unspent magical power that unlocks progression thresholds, rather than a casting fuel pool | Design direction | [Accumulated mana](expedition-design/archive/2026-10-14/03-spells.md#accumulated-mana-as-progression); current gameplay unchanged, naming and run persistence open |
 
 ## Naming, local play and Disruptor follow-up — 2026-09-28
 
-- **I18 — The Disruptor (deferred):** boss scrambles/randomizes spell letters while preserving incantation length. Once, periodically or after each cast are alternatives, not a chosen cadence. [Full boss idea and open decisions](expedition-design/06-levels.md#deferred-boss-idea--the-disruptor-2026-09-28).
-- **Decision:** prefer evocative magical player-facing names. Functional labels belong in internal documentation; preserve the intended mystical name rather than replacing it with Root Wave; Shillelagh is now confirmed by the user. [Naming rule](expedition-design/03-spells.md#player-facing-spell-naming-rule--2026-09-28).
+- **I18 — The Disruptor (deferred):** boss scrambles/randomizes spell letters while preserving incantation length. Once, periodically or after each cast are alternatives, not a chosen cadence. [Full boss idea and open decisions](expedition-design/archive/2026-10-14/06-levels.md#deferred-boss-idea--the-disruptor-2026-09-28).
+- **Decision:** prefer evocative magical player-facing names. Functional labels belong in internal documentation; preserve the intended mystical name rather than replacing it with Root Wave; Shillelagh is now confirmed by the user. [Naming rule](expedition-design/archive/2026-10-14/03-spells.md#player-facing-spell-naming-rule--2026-09-28).
 - **Workflow preference:** prioritize updating the local playable game. Shareable DMG/ZIP packaging is optional, not a gate for ordinary local iteration; build it when requested or useful and inexpensive, rather than routinely delaying delivery.
 
 ## Mystical naming and relic follow-up — 2026-09-28
 
-- **I19 — Boots of Hermes (deferred):** an item/relic unlocks the short Dash action. Relics may grant abilities; slot rules, cooldown/charges, acquisition and persistence are not selected. [Full proposal](expedition-design/03-spells.md#mystical-vocabulary-and-relic-granted-abilities--follow-up).
+- **I19 — Boots of Hermes (deferred):** an item/relic unlocks the short Dash action. Relics may grant abilities; slot rules, cooldown/charges, acquisition and persistence are not selected. [Full proposal](expedition-design/archive/2026-10-14/03-spells.md#mystical-vocabulary-and-relic-granted-abilities--follow-up).
 - **Naming preference:** choose evocative magical vocabulary across the roster, potentially drawing on mythology or familiar media. Fast reaction words such as Dash may stay short. Meteor Shower could receive a cooler name later; no replacement selected.
 - **Yggdrasil / World Tree:** reaffirm the existing ultimate-healing-tree idea and mystical spelling as part of its appeal. This does not approve the old provisional numeric defaults.
 - **Reference confirmed:** the user confirmed Shillelagh. Draw names from mythology, folklore or popular fantasy media; trace older origins where possible while retaining our own mechanics.

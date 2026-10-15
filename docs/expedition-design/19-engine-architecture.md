@@ -1,6 +1,6 @@
 # Spell engine architecture: data-driven, expandable, scalable
 
-**Status:** signed off with the §13 decisions · rev 4 (status numbers, shock as a mark, poison cap, end-screen credit, one status channel) · 13 October 2026 · companion: [doc 20, game systems](20-game-systems-architecture.md) · supersedes the "runner" parts of doc 18 §3 and §14 where they differ; doc 18 stays the design source for spells, keywords, statuses and art.
+**Status:** signed off 13 October 2026, rev 4. Engine architecture remains authoritative here. [Doc 3](03-spells.md) owns spell identities, [doc 21](21-damage-effects-keywords.md) owns current damage/status/keyword rules, and [doc 18](18-spell-system-rewrite.md) owns presentation and dependency review. Historical migration steps are not a current completion checklist; see [the release plan](15-development-order.md).
 
 > **Sign-off:** ☑ approved 13 October 2026 with the §13 decisions (proposed defaults accepted)
 
@@ -10,7 +10,7 @@
 2. **Expandable.** New behaviour (a delivery, a motion, a targeting rule, a status, a look) is one new module registered by id. Nothing else changes.
 3. **Scalable.** The engine holds frame budget at horde scale: hundreds of enemies, hundreds of live spell parts, thousands of particles, on a mid-range laptop and in the web build.
 4. **Well architected.** Clear layers, one direction of dependency, one way to do each thing, everything validated, everything tested by the same harness.
-5. **Ready for the roadmap.** Summons, barriers, spell references, phases, owner/afflicted events, lob/fall motion, forces, global delivery (doc 18 Appendix B) all fit without restructuring.
+5. **Ready for the roadmap.** Summons, barriers, spell references, phases, owner/afflicted events, lob/fall motion, forces, global delivery ([shared mechanics checklist](18-spell-system-rewrite.md#shared-mechanics-dependency-checklist)) all fit without restructuring.
 
 **Casters.** The player, summons and allies cast through this system; enemies may later.
 
@@ -30,7 +30,7 @@
 | P6 | Every hit goes through `Effects.apply`. | Elements, statuses, resistances, reactions and style credit work for everything |
 | P7 | Hard budgets on every cast (depth, spawns, hits) and globally (live parts, particles). | No combination breaks a frame |
 | P8 | Restructuring commits never change behaviour; behaviour changes never ride along with restructuring. | Regressions are attributable |
-| P9 | Custom code is an escape hatch with a contract (doc 18 §10). Two custom spells sharing behaviour → that behaviour becomes a module. | The library of mechanics grows instead of special cases |
+| P9 | Custom code is an escape hatch with a contract ([construction contract](#14-retained-construction-contract)). Two custom spells sharing behaviour → that behaviour becomes a module. | The library of mechanics grows instead of special cases |
 | P10 | Systems talk through the gameplay event bus (§5.4) and the caster interface; nothing reaches for "the player" or "the game" by group lookup. | Summons, allies and a second player are just more casters |
 
 ## 3. Architecture
@@ -84,7 +84,7 @@ flowchart TB
 
 A summon has a `Loadout` and a `CasterBridge` but no `CastInput`; its brain (doc 20 §3.3, the same behaviour library enemies use) picks the spell. A second player would have all three.
 
-`CastInput` accepts **input modifiers** through the modifier system (scramble letters, hide a word, swap words), so rule-twisting bosses such as The Disruptor (doc 06) and future curses are data plus one module (doc 20 §3.7).
+`CastInput` accepts **input modifiers** through the modifier system (scramble letters, hide a word, swap words), so rule-twisting bosses such as The Disruptor ([expedition direction](15-development-order.md)) and future curses are data plus one module (doc 20 §3.7).
 
 ### 3.2 Directory layout (target)
 
@@ -109,7 +109,7 @@ tests/engine/                    validator, plan-equivalence, contract matrix, m
 
 ### 4.1 A spell
 
-A spell is the doc 18 §4 format plus three things that today live in code: **params** (every tunable number, named), **growth** (how params change with rank, combination ingredients and passives) and **rules** (targeting, recast, signatures). Parts reference params by name, so a number is written once.
+A spell is the [construction contract](#14-retained-construction-contract) format plus three things that today live in code: **params** (every tunable number, named), **growth** (how params change with rank, combination ingredients and passives) and **rules** (targeting, recast, signatures). Parts reference params by name, so a number is written once.
 
 ```json
 {
@@ -157,7 +157,7 @@ A spell is the doc 18 §4 format plus three things that today live in code: **pa
 | `targeting` | Id of a targeting rule + its settings | the rule's declared schema |
 | `recast` | `max_active`, `at_cap` (`replace_oldest`, `extend`, `refuse`, `extend_covering`), banking limits | recast rule schema |
 | `parts.*` | Doc 18 axes; every value is an id in a registry; every number may be `"$param"` | each mechanic's declared schema |
-| `bindings` | Which params the keyword categories touch (doc 18 §4.6); defaults come from the delivery | binding schema |
+| `bindings` | Which params the keyword categories touch ([construction contract](#14-retained-construction-contract)); defaults come from the delivery | binding schema |
 | `look` | Presentation hints only (family, trail style); never read by gameplay | look schema |
 | `audio`, `copy` | Sound ids and text keys. Replaces the per-spell lists in `AudioManager`, `UpgradeCopy` and `BuildSummary` | id exists in the sound bank / string table |
 
@@ -165,7 +165,7 @@ A spell is the doc 18 §4 format plus three things that today live in code: **pa
 
 ### 4.2 Keywords
 
-`keywords.json` keeps today's words and categories and gains the doc 18 §8.4 table as data:
+`keywords.json` keeps the current words and categories, with bindings represented as data:
 
 ```json
 "bindings": {
@@ -178,11 +178,11 @@ A spell is the doc 18 §4 format plus three things that today live in code: **pa
 }
 ```
 
-The planner applies, in doc 18's resolution order: mechanic defaults → spell → keyword bindings per axis value → signatures → caster stats → limits. A word with no binding and no rejection for a part's axis value is a **validator error**, so the spell × keyword contract (every word changes something or is rejected) is enforced at load, not discovered in play.
+The planner applies, in this resolution order: mechanic defaults → spell → keyword bindings per axis value → signatures → caster stats → limits. A word with no binding and no rejection for a part's axis value is a **validator error**, so the spell × keyword contract (every word changes something or is rejected) is enforced at load, not discovered in play.
 
 ### 4.3 Statuses, elements, reactions, looks
 
-Numbers are already data (`statuses.json`, `spell_damage.json`, `resistances.json`, type chart). Behaviour is not: see §5.2. Remaining code-held rules move into data: reaction table (doc 18 §6.4), element → status map, per-look palettes and particle choices (today constants in `VfxPresenter.gd`). Damage types and resistances are defined once for the whole game in doc 20 §2.
+Numbers are already data (`statuses.json`, `spell_damage.json`, `resistances.json`, type chart). Behaviour is not: see §5.2. Remaining code-held rules move into data: reaction table ([current effects contract](21-damage-effects-keywords.md)), element → status map, per-look palettes and particle choices (today constants in `VfxPresenter.gd`). Damage types and resistances are defined once for the whole game in doc 20 §2.
 
 ## 5. Mechanics and registries
 
@@ -208,28 +208,19 @@ Each mechanic is one script implementing a small interface and declaring the set
 
 Today `statuses.json` holds numbers but `StatusComponent` holds behaviour in a `match id` (burn, bleed, poison, chilled, shocked) and hand-written reactions in `on_hit`. DoTs and other effects are therefore not built the same way. Target: a status is **data choosing a behaviour pattern**; patterns are modules.
 
-**Numbers live in `data/statuses.json` and doc 18 §6.1b; the doc never restates them as the truth.** Step 3b ports the current numbers exactly, guarded by `tests/engine_effects_regression.gd` and `tests/element_damage_regression.gd`. Today's values, for orientation:
+**Current numbers live in `data/statuses.json`; current semantics are in [doc 21](21-damage-effects-keywords.md).** The architecture maps status behavior to patterns without maintaining another tuning table. Port existing behavior under regression tests before changing balance.
 
-| Pattern | Behaviour | Today's statuses using it (current numbers) | Future ones |
-|---|---|---|---|
-| `instances` | every application is its own instance with its own clock; no cap unless data sets one | burn: 15% of the hit over 1.5 s, 0.25 s ticks, no stack cap | plague rot |
-| `meter` | every application is its own stack with its own clock; each hit also fills a meter that bursts at full and resets | bleed: 4 s stacks, 3% of the hit per 0.5 s; meter +20% per hit, decays 10%/s after 2 s; hemorrhage 12% / 6% / 3% max HP (normal / elite / boss) + 3× the bleed | stagger |
-| `ramp` | every application is its own stack with its own clock and its own ramp; a stack's tick is capped at `ramp_max` × its start | poison: 2% of the hit per 1 s for 10 s, +15% per tick, `ramp_max` 4.0, weakens 20% | |
-| `threshold` | stacks to N, then converts to a timed lock with an immunity window | chilled: 6% slow per stack, 4% frostbite per application, 5 stacks freeze, 2 s refreeze immunity | rooted, stunned |
-| `mark` | a timed mark that does nothing on its own; the next hit from a **different** cast is checked against the reactions table, which may consume it | shocked: 3 s mark + 0.2 s move stagger, no damage, no arc | conductive |
-| `lock` | timed hard CC; boss conversion and immunity from doc 07 | frozen, shock_stagger | stun, root |
-| `modifier` | pushes a stat modifier (§5.3) while present | slowed, weakened, vulnerable | haste |
+| Pattern | Responsibility | Status examples |
+|---|---|---|
+| `instances` | Independent application clocks and damage | burn |
+| `meter` | Timed stacks and buildup payoff | bleed, hemorrhage |
+| `ramp` | Per-application ramp bounded by data | poison |
+| `threshold` | Stack to a timed lock with immunity handling | chilled to frozen |
+| `mark` | Evaluate a later qualifying hit against reaction rules | shocked |
+| `lock` | Timed control with tier-specific conversion/immunity | frozen, stun, root |
+| `modifier` | Source-owned temporary stat modifiers | slowed, weakened, vulnerable |
 
-Fixed (13 October): the earlier draft of this table listed burn with a 3-stack cap, chill at 10% per stack and shock as an auto-chaining pattern. Those were the old design; the decided design is above. Poison was a single shared pool whose ramp never reset, so refreshing it compounded without limit; it is now per-application stacks with `ramp_max` (commit `5c8f25d`).
-
-```json
-"burn":    {"pattern": "instances", "tick": 0.25, "duration": 1.5, "share": 0.15, "element": "fire", "damage_type": "fire"},
-"poison":  {"pattern": "ramp", "tick": 1.0, "duration": 10.0, "share_per_tick": 0.02, "ramp": 0.15, "ramp_max": 4.0, "modifier": {"stat": "damage_dealt", "op": "mul", "value": -0.2}},
-"chilled": {"pattern": "threshold", "stacks_to": 5, "becomes": "frozen", "each": {"modifier": {"stat": "move_speed", "op": "mul", "value": -0.06}}, "frostbite_share": 0.04, "refreeze_immunity": 2.0},
-"shocked": {"pattern": "mark", "duration": 3.0, "on_apply": {"status": "shock_stagger"}}
-```
-
-**Reactions** become a table in `reactions.json`. A row names the status the target has, the element of the incoming hit, and what happens; the runner enforces "different cast only" (fusion vs reaction by `cast_id`, doc 18 §6.4) and the 1 s reaction cooldown, unless a row says it ignores it. Shock's three outcomes are rows, not a pattern that jumps on its own:
+**Reactions** become a table in `reactions.json`. A row names the status the target has, the element of the incoming hit, and what happens; the runner enforces "different cast only" (fusion vs reaction by `cast_id`; current reaction semantics are in [doc 21](21-damage-effects-keywords.md)) and the 1 s reaction cooldown, unless a row says it ignores it. Shock's three outcomes are rows, not a pattern that jumps on its own:
 
 ```json
 [
@@ -246,7 +237,7 @@ Any other element leaves the mark in place. `carry_cast` gives chained enemies t
 
 ### 5.3 Caster stats and modifiers
 
-Player stats are mutable fields today (`Player.gd` fields read via `cast_stat`; `apply_upgrade` matches on effect type). Target: every actor that casts or takes damage has a **StatBlock**: base values from data plus a list of modifiers `{stat, op: add|mul|override, value, source, duration?, stacks?}`. Final value = (base + Σadd) × Π(1+mul), override wins, then clamps from data.
+The original baseline used mutable player fields. 0.3.0 has player StatBlock/modifier foundations; complete coverage must be checked against the runtime. Target: every actor that casts or takes damage has a **StatBlock**: base values from data plus a list of modifiers `{stat, op: add|mul|override, value, source, duration?, stacks?}`. Final value = (base + Σadd) × Π(1+mul), override wins, then clamps from data.
 
 Everything that changes a number is a modifier with a source: passives and level-up cards, ley attunement (+20% power today as a constant), elite modifiers, slow/haste statuses, keywords at plan time. Removing a source removes its modifiers. The planner reads stats from the caster's StatBlock only (rule 3 of §6.1 freezes them into the cast message). Same component on enemies, so "vulnerable" or "elite armored" is one modifier, not a field.
 
@@ -266,13 +257,13 @@ Consumers subscribe: style score, damage-by-spell stats, audio, HUD, VFX, achiev
 
 StyleSession consumes these fields as it does now. Guards in `tests/element_damage_regression.gd`: "Shared bleed ticks split 1:3 by contribution", "Overload is credited to Cross Blade", "Bolt is credited only its own hit", "End screen lists bleed under Cross Blade".
 
-**One status-event channel.** `StatusComponent._announce()` calls `/root/Vfx.status_event(enemy, event, data)` today (contract: `docs/VFX_EVENTS.md`, "Status moments"). When statuses move to modules, they emit `status_applied`, `status_expired` and `reaction` on the bus with the same payload fields (status, stacks, reaction name, chain target positions); Vfx subscribes and `_announce` is deleted, so there is one channel.
+**One status-event channel.** `StatusComponent._announce()` conditionally calls `/root/Vfx.status_event(enemy, event, data)` when that receiver exists; its presence and presentation must be verified (contract: `docs/VFX_EVENTS.md`, "Status moments"). When statuses move to modules, they emit `status_applied`, `status_expired` and `reaction` on the bus with the same payload fields (status, stacks, reaction name, chain target positions); Vfx subscribes and `_announce` is deleted, so there is one channel.
 
 ### 5.5 Phases and events
 
-**Phases** (doc 18 gap A) are the general form of today's motion phases and recast segments: a part has an ordered list of phases, each may set motion, aim, timing, payload scale and active events, and ends on an `until` condition. Cross Blade, Earth Shield charges, seeds and the meteor ring all use it; today's `segments` become a recast rule that appends phases.
+**Phases** ([construction contract](#14-retained-construction-contract) phase lifecycle) are the general form of today's motion phases and recast segments: a part has an ordered list of phases, each may set motion, aim, timing, payload scale and active events, and ends on an `until` condition. Cross Blade, Earth Shield charges, seeds and the meteor ring all use it; today's `segments` become a recast rule that appends phases.
 
-**Events** have four sources (doc 18 §4.3): part, owner (caster hit / block / travel / cast), afflicted (status carrier ticks / dies), reaction. This replaces today's special cases: Fire Walk's emitter (`on_caster_travel`), the infection-only delivery (`on_afflicted_tick` / `on_afflicted_death`), Earth Shield's hand wiring (`on_block`).
+**Events** have four sources ([construction contract](#14-retained-construction-contract)): part, owner (caster hit / block / travel / cast), afflicted (status carrier ticks / dies), reaction. This replaces today's special cases: Fire Walk's emitter (`on_caster_travel`), the infection-only delivery (`on_afflicted_tick` / `on_afflicted_death`), Earth Shield's hand wiring (`on_block`).
 
 **Caster** is an interface (stable `actor_id`, position, facing, team, StatBlock, status component, hurtbox, loadout), implemented by the player, summons and (later) enemies. Recipients (`enemies`, `self`, `allies`, `pickups`, `corpses`) are resolved by team, so a summon's Ember Spear hits the player's enemies with no code change.
 
@@ -282,7 +273,7 @@ StyleSession consumes these fields as it does now. Guards in `tests/element_dama
 |---|---|
 | Stepping | One `SpellWorld` steps every cast and part on the fixed physics tick, in a stable order. Parts are pooled lightweight objects, not one scene node each; presentation draws them from the VFX layer (it already does). |
 | Enemy queries | One spatial grid rebuilt (or incrementally updated) per tick; every "who is inside / nearest / along this line" query goes through it. No per-part scans of the `enemies` group. |
-| Budgets | Per cast: depth 3, spawns 48 (doc 18 §4.5), hits per target per `hit_scope`. Global: live parts, live casts, particles, status overlays; over budget = oldest/lowest-priority work dropped deterministically and logged in debug. |
+| Budgets | Per cast: configured depth/spawn limits and hits per target per `hit_scope`; use current runtime/data values. Global: live parts, live casts, particles, status overlays; over budget = oldest/lowest-priority work dropped deterministically and logged in debug. |
 | Determinism | Seeded RNG per cast; fixed step; stable iteration order. Same inputs → same plan and same hits (tests and replays). |
 | Hot paths | Payload application batched per tick; status ticks run in the status component on its own clock; no allocation in per-frame stepping (pools). |
 | Measurement | A benchmark scene (the showcase in stress mode) records frame time, parts, enemies and particles; a budget test fails if the reference scenario exceeds its frame budget. |
@@ -313,14 +304,14 @@ Mirrors the engine: **shape renderers** (one per delivery/geometry shape: projec
 |---|---|---|
 | Schema validator | Every data file (spells, keywords, statuses, reactions, modifiers, and doc 20's enemies, encounters, progression) well-formed; every id resolves; every keyword × part binding is defined or rejected | Load (debug builds) and CI |
 | Co-op rules | Rule 2 and 5 greps; plans rebuilt from cast messages match | CI |
-| Status patterns | Each pattern against a fake actor; reaction table cases from doc 18 §6.4 | CI |
+| Status patterns | Each pattern against a fake actor; reaction cases from [doc 21](21-damage-effects-keywords.md) and current status data | CI |
 | Plan equivalence (golden) | Moving a spell to data changed no number: plans for every spell at ranks 1–8, MEGA on/off, each combination | CI during migration, then as regression |
-| Contract matrix | Every spell × every word: measurable change or rejection with a reason (doc 18 §14 phase 4) | CI |
+| Contract matrix | Every spell × every word: measurable change or rejection with a reason | CI |
 | Mechanic unit tests | Each module in isolation against a fake world | CI |
 | Coverage | Every spell × look drawn without placeholder | CI |
 | Budget | Reference scenario within frame budget | CI (headless timing) + manual web check |
 | Behaviour suite | Existing regression tests | CI |
-| Balance | Bot runs per doc 18 §15 | On request |
+| Balance | Seeded bot comparisons across loadouts, encounter densities, ranks and durations; inspect useful outcomes, not just equal DPS | On request |
 
 ## 9. Tooling
 
@@ -338,14 +329,14 @@ The game stays playable at every step; each step lands with the full suite at ba
 | 1 | Validator + schemas for current data (all data files, shared with doc 20); `EventBus`; seeded `Rng`; CI greps for rules 2 and 5 (allow-list of current violations that must shrink) | All current data passes; a deliberately broken file fails; allow-lists recorded | M |
 | 1b | StatBlock + modifiers on player and enemies; move `apply_upgrade`, ley bonus and elite multipliers onto it | Suite green; same numbers in a stat snapshot test | M |
 | 2 | Registries; split `SpellPart` deliveries/motions and `GenericCast` arrangement/release into modules; SpellWorld + spatial grid; pooled parts | No behaviour change (suite + golden plans); test-only delivery and motion added as one file each; benchmark recorded before/after | L |
-| 3 | Spells as data: params, growth, targeting and recast rules; move all 22 shipping spells, Magic Missile, Regeneration and the combinations; delete `LegacyBridge` and SpellManager per-spell logic | Plan equivalence for every spell/rank/MEGA; no spell id in engine code (grep check in CI) | L |
+| 3 | Spells as data: params, growth, targeting and recast rules; move the full current inventory in doc 3; delete `LegacyBridge` and SpellManager per-spell logic | Plan equivalence for every spell/rank/MEGA; no spell id in engine code (grep check in CI) | L |
 | 3b | Statuses and effects as modules: behaviour patterns, reactions table, effect-type modules; same component on player; status events on the bus, `_announce` deleted | Current `statuses.json` numbers ported exactly (engine_effects and element_damage tests green unchanged); end-screen credit guards green; status-pattern tests; `match id` gone from status code | M |
 | 4 | Phases + owner/afflicted events + collectible delivery; port Fire Walk, Infestation, Soul Bloom, Earth Shield, Cross Blade, seeds onto them; one heal stream | Suite green; special-case code deleted | M–L |
-| 5 | Keywords as data: bindings (8.4), signatures (8.5), stacking (8.2) | Contract matrix green | M |
+| 5 | Keywords as data: bindings, signatures and stacking from current keyword data and doc 21 | Contract matrix green | M |
 | 6 | Presentation split: shape renderers × look modules, palettes in data | Coverage green; new test look = one file | M |
-| 7 | Roadmap mechanics as content needs them: summon, barrier, spell references, lob/fall/wander, forces, global, links, per-copy variation; enemy-side capabilities (doc 18 §7) | Each with its first spell and a behaviour test | per item |
+| 7 | Roadmap mechanics as content needs them: summon, barrier, spell references, lob/fall/wander, forces, global, links, per-copy variation; enemy-side capabilities ([construction contract](#14-retained-construction-contract)) | Each with its first spell and a behaviour test | per item |
 
-Order rationale: validator, bus, RNG and stats first because every later step and doc 20 build on them;; engine modules before spells-as-data so the data format targets the final module ids; golden plans guard both; keywords after deliveries are modules because bindings key on them; presentation is independent and can move earlier if art is waiting.
+Order rationale: validator, bus, RNG and stats first because every later step and doc 20 build on them; engine modules before spells-as-data so the data format targets the final module ids; golden plans guard both; keywords after deliveries are modules because bindings key on them; presentation is independent and can move earlier if art is waiting.
 
 ## 11. How to add things (acceptance)
 
@@ -370,7 +361,7 @@ Order rationale: validator, bus, RNG and stats first because every later step an
 | Numbers drift while moving to data | Golden plan equivalence before any old path is deleted |
 | Engine restructure regressions (where this session's port bugs came from) | One module per commit, suite + golden plans each time, no behaviour changes mixed in |
 | Pooled parts break code that expects nodes | Part host keeps the same API; tests that reach into nodes are updated in the same step |
-| Schema too rigid for experiments | `custom` escape hatch with the doc 18 §10 contract; promotion rule P9 |
+| Schema too rigid for experiments | `custom` escape hatch with the [construction contract](#14-retained-construction-contract); promotion rule P9 |
 | Performance target unknown | Measure first in step 2; budgets become tests |
 | Co-op rules ignored over time | CI greps with shrinking allow-lists; cast-message plan test |
 | Event bus becomes a hidden global with ordering bugs | Typed event list in one file; synchronous dispatch in emit order; gameplay may not depend on a listener's side effects |
@@ -385,6 +376,92 @@ Order rationale: validator, bus, RNG and stats first because every later step an
 6. **Status patterns:** *Decided.* §5.2 as the status model (seven patterns; new ones added as modules).
 7. **StatBlock with modifiers:** *Decided.* For player, summons and enemies, replacing mutable stat fields.
 
-## 14. Out of scope
+## Out of scope
 
-Networking code, lobbies, prediction; a spell editor UI; final art pipeline (doc 18 §13); new spells and keywords beyond what tests need (they follow in step 7 and content batches); balance changes (bot runs after step 3).
+Networking code, lobbies, prediction; a spell editor UI; final art pipeline ([presentation direction](18-spell-system-rewrite.md)); new spells and keywords beyond what tests need (they follow in step 7 and content batches); balance changes (bot runs after step 3).
+
+## 14. Retained construction contract
+
+This retains the approved construction vocabulary from the former rewrite specification, so the active architecture does not depend on archived requirements. It is a target capability contract, not evidence that every axis value is registered in the current runtime. Data schemas and modules determine what currently runs. Example numbers are illustrative; current spell and status tuning lives in data and doc 21.
+
+### 14.1 Axes
+
+
+| Axis | Question | Values | Settings |
+|---|---|---|---|
+| Origin | Where does it start? | `caster`, `target`, `ground_point`, `behind_caster`, `parent` | offset, lock on release |
+| Delivery | What exists in the world? | `projectile`, `volume`, `beam`, `field`, `aura`, `trap`, `summon`, `barrier`, `collectible`, `self`, `global` | per delivery, below |
+| Arrangement | Where do the copies sit? | `single`, `fan`, `ring`, `line`, `grid`, `scatter` | count, spread angle, spacing, radius |
+| Release | When do they go? | `together`, `staggered`, `triggered`, `on_recast` | interval, trigger condition, range |
+| Geometry | What shape hits? | `body`, `disk`, `cone`, `line`, `rect`, `ring`, `arc`, `trail` | radius, angle, length, width, thickness |
+| Aim | Where does it face? | `release_direction`, `nearest`, `track_target`, `sweep`, `caster_facing`, `fixed` | turn rate, sweep arc and speed, target assignment across copies (`same`, `distinct`, `nearest_each`) |
+| Motion | How does it move? | `none`, `straight`, `guided`, `spiral`, `orbit`, `return`, `follow`, `lob`, `fall`, `wander`, `anchored` | speed, range, turn rate, acquisition range, orbit radius |
+| Propagation | How does an area switch on? | `instant`, `expanding`, `sweep`, `travelling` | front speed, thickness |
+| Timing | When does it apply payload? | `once`, `periodic`, `pulses`, `channel`, `on_enter` | duration, tick interval, pulse count, per-target rehit interval |
+| Payload | What happens to each target? | list of effects (doc 21) | per effect |
+| Recipients | Who is affected? | `enemies`, `self`, `allies`, `summons`, `pickups`, `corpses` | per payload entry |
+| Events | What does it create? | `on_hit`, `on_first_hit`, `on_kill`, `on_travel`, `on_tick`, `on_expire`, `on_land`, `on_block`, `on_reaction`, owner and afflicted events (14.3) | child part or spell reference, inherited power |
+| Phases | How does it change over time? | ordered list (14.4) | per phase |
+| Limits | How much can exist? | | max active, at-cap rule, pierce, chain, hit scope, lifetime |
+
+Delivery-specific settings:
+
+| Delivery | Required settings |
+|---|---|
+| projectile | body radius, contact policy (stop / pierce N / unlimited), rehit interval if it survives contact |
+| volume | geometry, propagation, active window |
+| beam | length, half-width, occlusion policy, max targets per sample |
+| field | geometry, duration, tick interval, anchor (ground) |
+| aura | geometry, duration, tick interval, anchor entity, lost-anchor policy |
+| trap | trigger shape, arming time, trigger filter, charges |
+| summon | health, body, movement, perception range, behaviour preset (`chase`, `guard`, `turret`, `decoy`, `taunt`), attack (child part or spell reference), lifetime |
+| barrier | shape, health, collision (`blocks_enemies`, `blocks_projectiles`, `passable`), destructible, reflect fraction |
+| collectible | body, pickup filter, expiry, attraction |
+| self | applies payload to the caster instantly |
+| global | applies payload to every eligible recipient on screen |
+
+### 14.2 Arrangement and copies
+
+Copies made by arrangement or count keywords may vary by index: colour, element, angle offset, delay (`per_copy`). This is how Prism Ray’s refracted rays each get a colour. Copies share the cast's hit record unless the part says otherwise.
+
+### 14.3 Event sources
+
+Most events come from the part itself. Three other sources are needed:
+
+| Source | Events | Used by |
+|---|---|---|
+| Part | `on_hit`, `on_first_hit`, `on_kill`, `on_travel`, `on_tick`, `on_expire`, `on_land` | most spells |
+| Owner (the caster) | `on_caster_hit`, `on_block`, `on_caster_travel`, `on_cast` | Earth Shield, Fire Shield, Firewalk, Muck, flower trail |
+| Afflicted (an enemy carrying this cast's status) | `on_afflicted_tick`, `on_afflicted_death`, `on_afflicted_hit` | Infestation, Soul Bloom, Raise Dead, Lightning rod |
+| Reaction | `on_reaction` (doc 21) | element reactions |
+
+Children inherit the parent's position, direction, target, generation number, cast id (for the hit record) and a share of its power (`power`, default 1.0).
+
+**Spell references:** a part or summon attack may cast a whole spell by id, including one from the player's kit at the player's rank (`"cast": "ember_spear"`).
+
+### 14.4 Phases
+
+A part can move through phases. Each phase may set motion, aim, payload multiplier, active events and visuals, and ends when its `until` condition is met: a time, `released`, `enemy_in_range`, `hit`, `host_died`, `recast`, `landed`.
+
+```json
+{
+  "phases": [
+    { "name": "out", "motion": { "type": "straight", "speed": 500 }, "until": { "distance": 350 } },
+    { "name": "linger", "motion": { "type": "none" }, "payload_scale": 0.5, "timing": { "type": "periodic", "interval": 0.3 }, "until": { "time": 0.9 } },
+    { "name": "return", "motion": { "type": "guided", "target": "caster", "speed": 650 }, "payload_scale": 2.0, "until": "caught" }
+  ]
+}
+```
+
+That is Cross Blade.
+
+`matrix_column` in spell data is a browsing label for docs and the spellbook only. Nothing in the engine reads it.
+
+
+### 14.5 Budgets and keyword bindings
+
+Every cast has bounded generation depth, total spawns, active parts, lifetime and per-target hits, with explicit at-cap behavior. Read actual limits from current schemas/data/runtime rather than restoring the old 48-part draft. Arrangement counts, power, size, speed, duration and targeting bind by supported axis values; a word must change a meaningful property or be rejected. Current vocabulary and semantics live in keywords data and doc 21; the archived 14-word matrix is not the binding contract.
+
+### 14.6 Custom spell escape hatch
+
+Custom code is allowed when authored behavior cannot be represented by shared parts. It must honor the same caster, keyword, effect/status, hit-record, attribution, lifetime, cleanup and budget contracts. If two spells need the same custom behavior, promote it into a shared module. Do not select a custom implementation simply because an old fit-check listed a gap.

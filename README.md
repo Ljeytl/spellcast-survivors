@@ -1,6 +1,6 @@
 # Shoulda Joined a Party
 
-**Version 0.3.0** · [changelog](Changelog.md) · [design and roadmap](docs/expedition-design/README.md)
+**Version 0.3.0** · [changelog](Changelog.md) · [design index](docs/expedition-design/README.md) · [full spell catalog](docs/expedition-design/03-spells.md) · [release plan](docs/expedition-design/15-development-order.md)
 
 A wizard horde-survivor where you cast by typing. Spells are words; keywords change them: `fiery double bolt`, `mega meteor shower`, `homing toxic ember spear`. Built in Godot 4.4 (GDScript). Working title formerly SpellCast Survivors.
 
