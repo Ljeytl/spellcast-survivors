@@ -60,7 +60,7 @@ static func word_line(word: String) -> String:
 	match str(w.category):
 		"tier": text = "+%s power and size, %.2f s wind-up" % [pct(float(c.power_per_letter) * n), float(c.charge_base) + float(c.charge_per_letter) * maxi(0, n - 4)]
 		"power": text = "+%s power" % pct(float(c.power_per_letter) * n)
-		"size": text = "+%s size" % pct(float(c.size_per_letter) * n)
+		"size": text = "+%s size" % pct(KP.size_bonus(n))
 		"count": text = "%d copies, %s each" % [int(w.copies), pct(float(w.per_copy))]
 		"twin": text = "a second cast %.2f s later at %s" % [float(w.delay), pct(float(w.power))]
 		"duration": text = "lasts %s longer" % pct(float(w.duration) - 1.0)

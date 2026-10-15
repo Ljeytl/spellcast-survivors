@@ -144,13 +144,13 @@ func run():
 	c.run(1.0, DT, tick_all)
 	check(vfx._flashes.size() + vfx._stars.size() + vfx._debris.size() > 0 or vfx._f_count > 20, "Pierce contact makes a fire burst")
 
-	# Burning status shows flames gripping the burning enemy.
+	# Burning status shows faint embers on the enemy, never flames (playtest: statuses stay subtle).
 	var burning = 0
-	for i in vfx._f_count:
-		var a = vfx._f_anchor[i]
-		if a is Foe:
+	for sp in vfx._sparks:
+		var pal: Array = sp[6]
+		if not pal.is_empty() and pal[0].a < 0.99:
 			burning += 1
-	check(burning > 0, "Burning enemy gets gripping flames")
+	check(burning > 0, "Burning enemy gets see-through embers")
 
 	# Fireball: orb (ball family) -> blast volume -> big impact with ring, debris, scorch, VFX-only hit-stop.
 	clear()

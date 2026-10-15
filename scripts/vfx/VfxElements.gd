@@ -151,9 +151,9 @@ func gblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stic
 		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick, 2])
 
 ## Bubble: rises and wobbles, swells, pops into a few motes (sandbox bubble).
-func bubble(x: float, y: float, big: bool, life_scale: float = 1.0):
+func bubble(x: float, y: float, big: bool, life_scale: float = 1.0, alpha: float = 1.0):
 	if bubbles.size() < (80 if vfx.reduced_effects else 240):
-		bubbles.append([x, y, -(5.0 + randf() * 7.0) * life_scale, 2.0 if big else 1.2, 0.0, (0.5 + randf() * 0.7) * life_scale])
+		bubbles.append([x, y, -(5.0 + randf() * 7.0) * life_scale, 2.0 if big else 1.2, 0.0, (0.5 + randf() * 0.7) * life_scale, alpha])
 
 ## Steam puff (sandbox mist): grows and drifts with the wind, dithered.
 func mist(x: float, y: float, vx: float, vy: float, r: float, grow: float, life: float, cols: Array = STEAM):
@@ -358,6 +358,8 @@ func step(dt: float):
 		q[1] += q[2] * dt
 		q[0] += sin(q[4] * 9.0 + q[1]) * 3.0 * dt
 		if q[4] > q[5]:
+			if q.size() > 6 and q[6] < 1.0:
+				continue   # a status bubble just vanishes: no pop spray on a crowded enemy
 			for i in 3:
 				var a := randf() * TAU
 				mote(q[0], q[1], cos(a) * 14.0, sin(a) * 14.0, [PLAGUE.hi, PLAGUE.light], 0.15)
@@ -606,9 +608,10 @@ func draw_over(buf: PackedByteArray):
 		var r: float = q[3] + (0.6 if kb > 0.75 else 0.0)
 		var X0 := roundi(q[0])
 		var Y0 := roundi(q[1])
+		var al: float = q[6] if q.size() > 6 else 1.0
 		for e in _bubble_px(r):
-			spx(buf, X0 + e[0], Y0 + e[1], PLAGUE.outline if e[2] else PLAGUE.light)
-		spx(buf, X0 - roundi(r * 0.5), Y0 - roundi(r * 0.5), PLAGUE.hi)
+			spx(buf, X0 + e[0], Y0 + e[1], Color(PLAGUE.outline if e[2] else PLAGUE.light, al))
+		spx(buf, X0 - roundi(r * 0.5), Y0 - roundi(r * 0.5), Color(PLAGUE.hi, al))
 	for q in rays:
 		var k: float = q[4] / q[5]
 		var len: float = q[3] * (k / 0.3 if k < 0.3 else 1.0)
@@ -694,6 +697,19 @@ func _rect(buf: PackedByteArray, x0: int, y0: int, x1: int, y1: int, c: Color):
 	var r := c.r8
 	var g := c.g8
 	var b := c.b8
+	if c.a < 0.99:
+		# See-through pixel (status marks on enemies): blend over what is drawn, keep the stronger alpha.
+		var a8 := c.a8
+		var k := c.a
+		for y in range(y0, y1):
+			var i := (y * sz.x + x0) * 4
+			for x in range(x0, x1):
+				if buf[i + 3] == 0:
+					buf[i] = r; buf[i + 1] = g; buf[i + 2] = b; buf[i + 3] = a8
+				else:
+					buf[i] = roundi(lerpf(buf[i], r, k)); buf[i + 1] = roundi(lerpf(buf[i + 1], g, k)); buf[i + 2] = roundi(lerpf(buf[i + 2], b, k))
+				i += 4
+		return
 	for y in range(y0, y1):
 		var i := (y * sz.x + x0) * 4
 		for x in range(x0, x1):

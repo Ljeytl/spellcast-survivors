@@ -14,6 +14,13 @@
           "size_per_letter": {
             "type": "number"
           },
+          "size_ramp": {
+            "type": "number"
+          },
+          "ramp_after": {
+            "type": "integer",
+            "minimum": 0
+          },
           "charge_base": {
             "type": "number"
           },

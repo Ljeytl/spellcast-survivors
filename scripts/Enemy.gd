@@ -471,7 +471,9 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF, 
 	
 	# Flash red visual feedback when hit
 	if current_health < previous_health:
-		flash_damage()
+		# Hits flash red; damage-over-time ticks don't, or every burning enemy would glow red (playtest).
+		if not str(source.get("via", "")) in ["burn", "bleed", "poison", "infection"]:
+			flash_damage()
 		if current_health > 0:
 			AudioManager.play_sound(AudioManager.SoundType.ENEMY_HIT)
 	
@@ -490,7 +492,7 @@ func update_health_bar():
 func flash_damage():
 	var visual = $Sprite2D
 	if visual:
-		preload("res://scripts/DamageFlash.gd").trigger(visual)
+		preload("res://scripts/DamageFlash.gd").trigger(visual, 0.14)
 
 func die():
 	if dying:

@@ -127,6 +127,19 @@ static func _stack(values: Array) -> float:
 		total *= 1.0 + (float(values[i]) - 1.0) * float(w[mini(i, w.size() - 1)])
 	return total
 
+## A size word's bonus: size_per_letter for the first `ramp_after` letters, then every further
+## letter adds `size_ramp` more than the one before (BIG +21%, LARGE +42%, MASSIVE +67%, GIGANTIC +81%),
+## so each extra letter feels like a jump.
+static func size_bonus(n: int) -> float:
+	var c: Dictionary = data().get("categories", {}).get("size", {})
+	var per := float(c.get("size_per_letter", 0.07))
+	var ramp := float(c.get("size_ramp", 0.0))
+	var after := int(c.get("ramp_after", 3))
+	var total := 0.0
+	for k in range(1, n + 1):
+		total += per + (ramp * (k - 1) if k > after else 0.0)
+	return total
+
 static func build_bundle(by_category: Dictionary) -> Dictionary:
 	var b = empty_bundle()
 	var defs: Dictionary = data().get("words", {})
@@ -145,7 +158,7 @@ static func build_bundle(by_category: Dictionary) -> Dictionary:
 		p_only.append(1.0 + float(cats.power.power_per_letter) * w.length())
 	var s_only := []
 	for w in by_category.get("size", []):
-		s_only.append(1.0 + float(cats.size.size_per_letter) * w.length())
+		s_only.append(1.0 + size_bonus(w.length()))
 	b.power = tier_power * _stack(p_only)
 	b.size = tier_size * _stack(s_only)
 	for w in by_category.get("count", []):
