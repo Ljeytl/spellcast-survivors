@@ -13,7 +13,6 @@
       "description": "Bounces between enemies, striking a small lightning area at every impact. Bolt strengthens impact; Lightning strengthens the splash.",
       "card_description": "A bouncing bolt strikes a lightning area at each hit.",
       "overrides": {
-        "type": "bouncing_projectile",
         "damage": 40,
         "bounce_count": 4,
         "bounce_range": 240.0
@@ -38,9 +37,7 @@
       "requirements": "Reach rank 8 in Bolt and Life, then choose Life Bolt. Both ingredients stay equipped.",
       "description": "Hits plant healing areas. Bolt levels increase impact damage; Life levels increase healing. Own ranks alternate extra bolts and larger healing areas.",
       "card_description": "Hits plant healing areas you can collect.",
-      "overrides": {
-        "type": "life_bolt"
-      },
+      "overrides": {},
       "scaling": {
         "damage": "=dmg(\"bolt\", 40.0)",
         "healing_seed_amount": "=6.0 * (1.0 + 0.15 * bonus(\"life\"))",
@@ -75,7 +72,7 @@
       "rank_note": "=\"+damage, +area\""
     },
     "soul_bloom": {
-      "presentation": {"summary": "Infect enemies; their deaths leave healing blooms.", "sound": "SPELL_LIFE", "icon": "heal", "preview": {"glyph": "bolt", "color": "91de83"}},
+      "presentation": {"shows_status": true, "shows_lasting": true, "summary": "Infect enemies; their deaths leave healing blooms.", "sound": "SPELL_LIFE", "icon": "heal", "preview": {"glyph": "bolt", "color": "91de83"}},
       "name": "Soul Bloom",
       "incantation": "soul bloom",
       "ingredients": [
@@ -97,7 +94,7 @@
       "rank_note": "=\"+duration\""
     },
     "steam_field": {
-      "presentation": {"summary": "Scald and slow enemies in a lingering steam field.", "sound": "SPELL_IMPACT_FIRE", "icon": "steam", "preview": {"glyph": "ring", "color": "8ce6ee"}},
+      "presentation": {"shows_status": true, "shows_lasting": true, "summary": "Scald and slow enemies in a lingering steam field.", "sound": "SPELL_IMPACT_FIRE", "icon": "steam", "preview": {"glyph": "ring", "color": "8ce6ee"}},
       "name": "Steam Field",
       "incantation": "steam field",
       "ingredients": [
@@ -120,7 +117,7 @@
       "rank_note": "=\"+area, +duration\""
     },
     "prism_ray": {
-      "presentation": {"summary": "Carve through a line with a broad, slowly tracking laser.", "sound": "SPELL_LIGHTNING", "icon": "prism", "preview": {"glyph": "beam", "color": "bc8fff"}},
+      "presentation": {"shows_lasting": true, "summary": "Carve through a line with a broad, slowly tracking laser.", "sound": "SPELL_LIGHTNING", "icon": "prism", "preview": {"glyph": "beam", "color": "bc8fff"}},
       "name": "Prism Ray",
       "incantation": "prism ray",
       "ingredients": [
@@ -142,7 +139,7 @@
       "rank_note": "=\"+damage\""
     },
     "frost_sigil": {
-      "presentation": {"summary": "Place a persistent frost rune that bursts and slows enemies.", "sound": "SPELL_ICE_BLAST", "icon": "ice", "preview": {"glyph": "ring", "color": "8ce6ee"}},
+      "presentation": {"shows_status": true, "summary": "Place a persistent frost rune that bursts and slows enemies.", "sound": "SPELL_ICE_BLAST", "icon": "ice", "preview": {"glyph": "ring", "color": "8ce6ee"}},
       "name": "Frost Sigil",
       "incantation": "frost sigil",
       "ingredients": [
@@ -168,7 +165,7 @@
       "rank_note": "=pick(rank < 9, \"Arms faster\", \"Fastest arming reached\")"
     },
     "reaping_spirit": {
-      "presentation": {"summary": "Summon a hunter with explosive kills and 25% less contact damage.", "sound": "SPELL_BOLT", "icon": "spirit", "preview": {"glyph": "bolt", "color": "bc8fff"}},
+      "presentation": {"shows_lasting": true, "summary": "Summon a hunter with explosive kills and 25% less contact damage.", "sound": "SPELL_BOLT", "icon": "spirit", "preview": {"glyph": "bolt", "color": "bc8fff"}},
       "enabled": false,
       "name": "Reaping Spirit",
       "incantation": "reaping spirit",

@@ -98,6 +98,14 @@
               },
               "projectile_scale": {
                 "type": "number"
+              },
+              "shows_status": {
+                "type": "boolean",
+                "$comment": "HUD shows its live status/charges (CastingReference)."
+              },
+              "shows_lasting": {
+                "type": "boolean",
+                "$comment": "Build summary shows how long it lasts."
               }
             },
             "additionalProperties": false

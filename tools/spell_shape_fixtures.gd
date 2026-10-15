@@ -5,7 +5,7 @@ extends SceneTree
 ## Ran once against the 0.3.0 code builders (since deleted); kept as the record of how the fixture was made.
 
 const OUT = "res://tests/fixtures/spell_shapes_0_3_0.bin"   # binary: exact floats
-const Bridge = preload("res://scripts/engine/LegacyBridge.gd")
+const Bridge = preload("res://scripts/engine/SpellTemplate.gd")
 const Progression = preload("res://scripts/SpellProgression.gd")
 const CombinationScaling = preload("res://scripts/CombinationScaling.gd")
 const Geometry = preload("res://scripts/SpellGeometry.gd")
@@ -79,7 +79,7 @@ func run():
 				if t == "shield":
 					ctx = {"damage": 60.0 * level, "reach": 160.0 * v[0], "half_angle": deg_to_rad(50.0 * v[3]), "knockback": 500.0, "travel_time": 0.22 * v[1]}
 					damage = 0.0
-				if t != "mana_bolt" and not Bridge.handles(scaled):
+				if not Bridge.has_shape(id):
 					printerr("not ported: ", id, " ", t)
 					continue
 				cases.append({"id": id, "pre": pre, "info": scaled, "damage": damage, "ctx": ctx, "expected": Bridge.build(scaled, damage, ctx)})

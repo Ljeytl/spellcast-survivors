@@ -67,7 +67,7 @@ func target(offset: Vector2):
 
 ## Ported spells (doc 18 phase 2) run on the generic engine; the cast has advance() like the old nodes.
 func effect(info: Dictionary, aim):
-	var Bridge = load("res://scripts/engine/LegacyBridge.gd")
+	var Bridge = load("res://scripts/engine/SpellTemplate.gd")
 	if Bridge.handles(info):
 		var scaled = load("res://scripts/SpellGeometry.gd").scaled_data(info, game.player)
 		var def = Bridge.build(scaled, manager.calculate_spell_damage(info), {"speed_mult": float(game.player.projectile_speed_multiplier)})

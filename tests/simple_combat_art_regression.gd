@@ -47,7 +47,7 @@ func target_at(point):
 ## Ported spells run on the generic engine (doc 18 phase 2): build a cast from data, driven by hand.
 func effect(data: Dictionary, target = null, speed := 1.0):
 	var scaled = load("res://scripts/SpellGeometry.gd").scaled_data(data, player)
-	var def = load("res://scripts/engine/LegacyBridge.gd").build(scaled, 20, {"speed_mult": speed})
+	var def = load("res://scripts/engine/SpellTemplate.gd").build(scaled, 20, {"speed_mult": speed})
 	var cast = load("res://scripts/engine/GenericCast.gd").new()
 	cast.forced_target = target
 	cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), player, stage, {"spell": str(data.id)}, true)

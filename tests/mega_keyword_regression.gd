@@ -74,7 +74,7 @@ func run():
 	var plain_missile = preload("res://scripts/SpellGeometry.gd").BOLT_RADIUS * preload("res://scripts/SpellGeometry.gd").multiplier(game.player) * 0.8
 	check(is_equal_approx(float(automatic.geometry.radius), plain_missile), "Magic Missile unaffected (%s vs %s)" % [automatic.geometry.radius, plain_missile])
 	# Fields run on the generic engine (doc 18 phase 2): an extend recast queues a segment.
-	var field_data = {"id": "test", "type": "field", "duration": 1.0, "radius": 100, "tick_interval": 0.5, "recast_behavior": "extend"}
+	var field_data = {"id": "cinder_field", "duration": 1.0, "radius": 100, "tick_interval": 0.5, "recast_behavior": "extend"}
 	var boosted_field = field_data.duplicate(true)
 	boosted_field.keyword_size_multiplier = 1.5
 	var before_health = target.current_health

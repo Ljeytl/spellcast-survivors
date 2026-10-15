@@ -104,7 +104,7 @@ func run():
 	check(manager.cast_freeform_spell("life bolt"), "Owned bonus can be cast")
 	check(manager.learn_spell("lightning_bolt"), "Bolt plus Lightning unlocks distinct bonus")
 	check(manager.find_cast_spell_slot("lightning") != manager.find_cast_spell_slot("lightning bolt"), "Lightning and Lightning Bolt resolve separately")
-	check(manager.get_spell_info(manager.find_spell_slot("lightning_bolt")).type == "bouncing_projectile", "Bonus dispatches bouncing projectile contract")
+	check(preload("res://scripts/engine/SpellTemplate.gd").template("lightning_bolt").parts.has("bounce"), "Bonus dispatches its own bouncing shape (data)")
 	var chain_slot = manager.find_spell_slot("lightning_bolt")
 	check(manager.resolve_cast_info(chain_slot).bounce_count == 4, "Lightning Bolt starts with four additional bounces")
 	manager.upgrade_spell("lightning_bolt")

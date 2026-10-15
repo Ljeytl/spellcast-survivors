@@ -1,7 +1,7 @@
 extends SceneTree
 
 const Geometry = preload("res://scripts/SpellGeometry.gd")
-const Bridge = preload("res://scripts/engine/LegacyBridge.gd")
+const Bridge = preload("res://scripts/engine/SpellTemplate.gd")
 var checks = 0
 var failures = 0
 var game
@@ -138,7 +138,7 @@ func run():
 	check(is_equal_approx(trigger.current_health, 9980), "Trap no repeat hit")
 	clear_effects()
 	player.spell_size_multiplier = 2
-	var orbit = Geometry.scaled_data({"type":"orbit", "duration":6}, player)
+	var orbit = Geometry.scaled_data({"id": "arcane_orbit", "duration": 6}, player)   # size defaults come from its data
 	check(is_equal_approx(orbit.body_radius, 84) and is_equal_approx(orbit.orbit_radius, 260), "Size grows orbit and bodies")
 	var icy = Bridge.build(Geometry.scaled_data({"id": "ice_blast", "type": "aoe", "radius": 400}, player), 10, {"speed_mult": 2.0})
 	var shard = icy.parts.shard

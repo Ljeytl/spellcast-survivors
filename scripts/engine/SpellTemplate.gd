@@ -14,8 +14,6 @@ extends RefCounted
 ##   {"$choose": [ ... ]}       the first option whose "$when" holds (or that has none); an option
 ##                              {"value": x} gives a plain value. No match: the key is left out.
 ##   "$extends": "<spell id>"   at the top of a template: deep-merges this template over that one.
-##   "by_type" (file level)     the shape for an info whose id has no entry, by its old spell type
-##                              (ad-hoc infos in tests and tools; goes away with spell types).
 ##   "cast_rules"               how the spell is cast rather than what it is made of: "targeting"
 ##                              {rule, ...settings}, "context" (values computed from the caster's
 ##                              stats: power, duration_stat, size_stat), "points", "lanes", "picker",
@@ -32,7 +30,6 @@ const INT_KEYS = ["pierce", "cap", "count", "max_depth", "max_spawns", "hops", "
 const INPUTS = ["damage", "speed", "level", "BOLT_RADIUS", "SPEAR_RADIUS", "BEAM_RADIUS", "SPIRIT_RADIUS"]
 
 static var _shapes: Dictionary = {}
-static var _by_type: Dictionary = {}
 const SKIP = "<<$skip>>"   # a $choose with no matching option: the key is left out
 static var _loaded := false
 static var _parsed: Dictionary = {}
@@ -42,18 +39,15 @@ static func shapes() -> Dictionary:
 		_loaded = true
 		var doc = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
 		_shapes = doc.get("shapes", {}) if doc is Dictionary else {}
-		_by_type = doc.get("by_type", {}) if doc is Dictionary else {}
 	return _shapes
 
 static func has_shape(id: String) -> bool:
 	return shapes().has(id)
 
-## The shape entry an info builds from: its own id, else its old spell type's.
+## The shape entry an info builds from: its own id ("" when the spell has no shape).
 static func shape_id(info: Dictionary) -> String:
 	var id = str(info.get("id", ""))
-	if shapes().has(id):
-		return id
-	return str(_by_type.get(str(info.get("type", "")), ""))
+	return id if shapes().has(id) else ""
 
 ## The template for a spell id with "$extends" resolved.
 static func template(id: String) -> Dictionary:

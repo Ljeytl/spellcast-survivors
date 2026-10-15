@@ -49,7 +49,7 @@ func clear():
 ## Every shipping spell runs on the generic engine (doc 18 phase 2): build a cast from data.
 func generic(info: Dictionary, damage: float, aim = null):
 	var scaled = load("res://scripts/SpellGeometry.gd").scaled_data(info, caster)
-	var def = load("res://scripts/engine/LegacyBridge.gd").build(scaled, damage, {})
+	var def = load("res://scripts/engine/SpellTemplate.gd").build(scaled, damage, {})
 	var cast = load("res://scripts/engine/GenericCast.gd").new()
 	cast.forced_target = aim
 	cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), caster, root, {"spell": str(info.id)}, true)
@@ -76,7 +76,7 @@ func run():
 		caster.spell_size_multiplier = 1.0 if "--known-bad-size" in OS.get_cmdline_user_args() else scale
 		# Ember Spear runs on the generic engine (doc 18 phase 2); same hitbox as its old body.
 		var spear_r = 24.0 * scale
-		var Bridge = load("res://scripts/engine/LegacyBridge.gd")
+		var Bridge = load("res://scripts/engine/SpellTemplate.gd")
 		var spear_def = Bridge.build({"id": "ember_spear", "type": "piercing", "spear_radius": 24.0, "projectile_size_multiplier": scale}, 10.0, {})
 		var spear_cast = load("res://scripts/engine/GenericCast.gd").new()
 		spear_cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(spear_def, {}, {}), caster, root, {"spell": "ember_spear"}, true)

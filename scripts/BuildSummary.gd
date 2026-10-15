@@ -10,7 +10,6 @@ const KEYWORDS = preload("res://scripts/KeywordRules.gd")
 const PASSIVE_NAMES = {"spell_damage": "Spell Power", "spell_area": "Spell Size", "spell_duration": "Spell Duration", "projectile_speed": "Velocity", "movement_speed": "Move Speed", "max_health": "Max Health", "xp_range": "Pickup Range", "slowdown_duration": "Focus", "mana_bolt_mastery": "Missile Mastery"}
 const PASSIVE_SHORT_NAMES = {"spell_damage": "Power", "spell_area": "Size", "spell_duration": "Duration", "projectile_speed": "Velocity", "movement_speed": "Speed", "max_health": "HP", "xp_range": "Pickup", "slowdown_duration": "Focus", "mana_bolt_mastery": "Missile"}
 const PASSIVE_EFFECTS = {"spell_damage": "damage, healing and protection", "spell_area": "spell size", "spell_duration": "active spell duration", "projectile_speed": "spell travel and turning speed", "movement_speed": "movement speed", "max_health": "maximum health", "xp_range": "pickup range", "slowdown_duration": "slowed time per cast"}
-const LASTING_TYPES = ["field", "orbit", "trail", "plague", "heal_over_time", "shield", "beam", "spirit"]
 const COUNTS = {"projectile_count": "projectiles", "meteor_count": "meteors", "blade_count": "blades", "bounce_count": "bounces", "orb_count": "sparks"}
 
 static func passive_name(family: String) -> String:
@@ -84,7 +83,7 @@ static func spell_now(manager: Node, player: Node, raw: Dictionary) -> String:
 	for key in COUNTS:
 		if int(info.get(key, 0)) > 1:
 			parts.append("%d %s" % [int(info[key]), COUNTS[key]])
-	if str(info.get("type", "")) in LASTING_TYPES and float(info.get("duration", 0)) > 0:
+	if bool(preload("res://scripts/engine/SpellCatalog.gd").presentation(str(info.get("id", ""))).get("shows_lasting", false)) and float(info.get("duration", 0)) > 0:
 		parts.append("lasts %ss" % number(float(info.duration) * maxf(1.0, float(player.spell_duration_multiplier))))
 	return " · ".join(parts)
 

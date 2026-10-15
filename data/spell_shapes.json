@@ -1,5 +1,5 @@
 {
- "_doc": "Spell shapes as data (doc 19 \u00a74.1): the parts each shipped spell and combination is made of, keyed by spell id. Expressions start with '='; see scripts/engine/SpellTemplate.gd for the template rules. by_type: the shape for an info without its own entry (old spell types; goes away when spell types do). Numbers live in spells.json, recipes.json and spell_damage.json.",
+ "_doc": "Spell shapes as data (doc 19 \u00a74.1): the parts each shipped spell and combination is made of, keyed by spell id. Expressions start with '='; see scripts/engine/SpellTemplate.gd for the template rules. Numbers live in spells.json, recipes.json and spell_damage.json.",
  "shapes": {
   "mana_bolt": {
    "root": "missile",
@@ -1425,27 +1425,5 @@
     }
    }
   }
- },
- "by_type": {
-  "mana_bolt": "mana_bolt",
-  "piercing": "ember_spear",
-  "projectile": "bolt",
-  "aoe": "ice_blast",
-  "heal": "life",
-  "direct_strike": "lightning",
-  "chain": "lightning",
-  "trap": "rune_trap",
-  "field": "cinder_field",
-  "orbit": "arcane_orbit",
-  "heal_over_time": "regeneration",
-  "multi_aoe": "meteor_shower",
-  "bouncing_projectile": "lightning_bolt",
-  "life_bolt": "life_bolt",
-  "beam": "focus_ray",
-  "spirit": "seeker",
-  "trail": "firewalk",
-  "returning": "cross_blade",
-  "plague": "infestation",
-  "shield": "earth_shield"
  }
 }

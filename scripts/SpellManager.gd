@@ -474,7 +474,7 @@ func handle_auto_attack(delta):
 		var adjusted_cooldown = mana_bolt_cooldown / cast_speed_bonus
 		mana_bolt_timer = adjusted_cooldown
 
-## Magic Missile on the generic engine (scripts/engine/LegacyBridge.gd _mana_bolt): same damage,
+## Magic Missile on the generic engine (its shape is data/spell_shapes.json mana_bolt): same damage,
 ## count by level, homing and overkill-aware targets; the VFX layer draws it.
 func fire_mana_bolt():
 	if not player or not is_inside_tree() or get_tree().get_nodes_in_group("enemies").is_empty():
@@ -793,7 +793,6 @@ const KeywordParser = preload("res://scripts/engine/KeywordParser.gd")
 const SpellDefs = preload("res://scripts/engine/SpellDefs.gd")
 const CastPlanner = preload("res://scripts/engine/CastPlanner.gd")
 const GenericCast = preload("res://scripts/engine/GenericCast.gd")
-const LegacyBridge = preload("res://scripts/engine/LegacyBridge.gd")
 const SpellTemplate = preload("res://scripts/engine/SpellTemplate.gd")
 var learned_generic_spells: Array = []
 var last_generic_cast = null
@@ -1201,7 +1200,7 @@ func rank_change_summary(spell_id: String) -> String:
 		parts.append(str(line))
 	return ", ".join(parts) if not parts.is_empty() else "+damage"
 
-## Doc 18 phase 2: a shipping spell rebuilt on the generic engine (scripts/engine/LegacyBridge.gd).
+## A spell cast on the generic engine: its shape, targeting and cast context are data (data/spell_shapes.json).
 ## Same numbers and targeting as before; the generic runner moves and hits, and the VFX present it.
 var ported_bundle: Dictionary = {}
 
@@ -1227,7 +1226,7 @@ func spawn_ported(info: Dictionary, damage: float, bundle: Dictionary = {}, forc
 	# Values the shape needs from the caster's stats (data: cast_rules.context, read on the unscaled info).
 	ctx.merge(SpellTemplate.rules(info, cast_context(speed_mult)).get("context", {}), true)
 	var rules = SpellTemplate.rules(scaled, {"speed_mult": speed_mult})
-	var def = LegacyBridge.build(scaled, damage, ctx)
+	var def = SpellTemplate.build(scaled, damage, ctx)
 	if def.is_empty():
 		return null
 	var plan = CastPlanner.plan(def, bundle, {})
@@ -1353,7 +1352,7 @@ func _extend_ported(cast, plan: Dictionary, rule: Dictionary) -> void:
 func _cast_earth_shield(info: Dictionary, bundle: Dictionary) -> bool:
 	ported_bundle = {}
 	var ctx: Dictionary = SpellTemplate.rules(info, cast_context(1.0)).get("context", {})
-	var plan = CastPlanner.plan(LegacyBridge.build(info, 0.0, ctx), bundle, {})
+	var plan = CastPlanner.plan(SpellTemplate.build(info, 0.0, ctx), bundle, {})
 	last_cracked = plan.rejected
 	for r in plan.rejected:
 		keyword_cracked.emit(str(r.word), str(r.reason))
