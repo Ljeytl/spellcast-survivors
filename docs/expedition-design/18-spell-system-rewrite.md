@@ -41,9 +41,19 @@ Draft for design review, 15 October 2026. This is the canonical sequence specifi
 
 ### How to read and use these scripts
 
-Read the full sequence aloud before choosing an emitter, sprite or shader. Prototype the connected sequence, then compare it with the intended experience. The [particle sandbox](../../tools/vfx-reference/spell_vfx_sandbox.html) is a strong motion/material reference, not a perfect target or a replacement for combat review. Preserve its successful flow, density, trailing motion and release of energy where they serve the spell. Particle systems are the preferred approach. The rejected painted Bolt and Slash treatments must not return as the default. The ghost and wisp art remains a separate approved visual experiment whose movement still needs work.
+Read the full sequence aloud before choosing an emitter, sprite or shader. Prototype the connected sequence, then compare it with the intended experience. The [particle sandbox](../../tools/vfx-reference/spell_vfx_sandbox.html) is a strong motion/material reference, not a perfect target or a replacement for combat review. Preserve its successful flow, density, trailing motion and release of energy where they serve the spell. Particle systems are the preferred approach. The rejected painted Bolt and Slash treatments must not return as the default. The ghost and wisp art is an approved appearance reference; moving or deforming the complete illustration was rejected as the implementation.
 
 Each current-spell script covers intention, caster/staff, release and motion, contact, sound/camera, ending/readability, and any gameplay decision. Future scripts inherit the shared rules below and explicitly leave unresolved mechanics open. No phase has to be lengthy: a quick bolt can gather, release and recover in one compact gesture. A lasting field needs a sustained phase; an instant slash does not need a forced travel phase.
+
+### Spell images are references, not the implementation
+
+**Build the living spell.** A reference image depicts a desirable moment of the finished effect. Implement the behavior and material that can produce such a moment: formation, internal flow, acceleration, contact and dispersal. This applies across the roster. Textures may supply material detail, but translating or morphing a complete spell illustration does not fulfill the spell's fantasy.
+
+Even a concentrated core is animated: it pulses, changes internally, compresses and stretches. Surrounding material produces the body, tail, curls and folds. That material responds to movement and continues evolving when the spell hovers. Core, body and ending should read as one connected effect. Preserve simplicity where it serves the spell; this principle does not mandate a large or complicated effect.
+
+The spirit iterations exposed a reasoning failure: adding a trail, then bending the same illustration, changed technique without changing the rejected assumption. Passing code tests did not establish artistic success. Both approaches were rejected. Future iterations start from a written, testable motion hypothesis and are compared with the reference in motion before gameplay integration or reuse. Stop polishing an approach when the evidence rejects its foundation.
+
+For the next wisp: prove an animated core and advecting surrounding material through hover, acceleration, a turn, stopping and arrival in an isolated in-engine study. The reference art remains a target appearance. Keep rejected gameplay changes out of the candidate, and record subjective judgment separately from mechanical checks.
 
 ### Simplicity and contrast
 
@@ -809,11 +819,9 @@ Show each artistic batch for judgment before treating it as accepted or integrat
 Keep a short decision record for target ownership/retargeting, damaging geometry versus decorative trails, attack cadence, lifetime, recast/cap rules, rank changes and compatible modifiers. For spirit alternatives, explicitly choose orbit-host damage versus collision damage and one-pass versus persistent attacks. For Lightning, decide whether ground charge is harmless residue or a new payload. For Flame Wall, settle placement/movement and contact cadence. Paused spear families remain paused; undefined catalog cells remain undefined. Sound assets and their licenses must be tracked when assets are selected; no specific external sound or paid acquisition is mandated here.
 
 
-### Soul Bloom delivery prototype — 0.3.2-dev.6
+### Wisp core-and-flow prototype — review pending
 
-The first audit follow-up preserves the approved ghost/wisp bodies and gives Soul Bloom a world-space particle wake. Gameplay delivery remains immediate; a separate, non-damaging visual remnant finishes the approach and dissolves over 0.42 seconds, with remaining wake particles cleared by 0.8 seconds. Cap retirement and expiry do not fake a successful arrival. Reduced effects lowers wake density and sway, and remnants respect pause and world reset.
-
-The first candidate was rejected: the body still read as a PNG with an attached tail. Keep it unmerged. The revised direction preserves the approved character and uses a damped physical backbone to deform the whole body: the front leads, folds lag, bend and settle, and shed material drifts and curls. Generated dynamic poses are the artistic reference, not proof of an existing physics simulation. This is not a new passing grade. Review near and far delivery, both forms, full-health hunting, reduced effects and narrow geometry in the captured build. Audio, mixed-combat judgment and the complete spell-feel gate remain open. The dated baseline below is preserved unchanged.
+The PNG-plus-tail and physically deformed image candidates were both rejected. Their code remains recoverable in branch history, but they are superseded as implementation approaches. The isolated `tools/wisp-study/Study.tscn` implements an animated core and continuous advected material, with a scripted hover/acceleration/turn/settle/arrival cycle. Space pauses and R resets; the inspection view is uniformly magnified 2×. The first density-field attempt was too blob-like, the next split into a bead and scattered wake, and connecting independently perturbed particles produced an electrical zigzag. The current study uses coherent neighboring flow and tapered material. No gameplay integration or passing feel grade is implied. The dated baseline below remains historical evidence.
 
 ## Current spell audit — 15 October 2026
 

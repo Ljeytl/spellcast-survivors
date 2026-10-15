@@ -1,11 +1,10 @@
-# 0.3.2-dev.6 — Soul Bloom delivery and wake candidate (15 October 2026)
+# Spell-feel prototype — Animated core and material flow (15 October 2026)
 
-- Visual feedback rejected the first candidate as a PNG with an attached tail. Keep the batch unmerged; revise both spirit bodies using a damped physical backbone and deforming mesh, with independently advecting shed material. The generated pose references guide the movement; no rigid sprite is rendered in this candidate.
-
-- Give Soul Bloom a world-space particle wake and a brief visual arrival that survives its gameplay delivery. Preserve healing, damage, speed, targeting and the three-active-soul cap; remnants cannot deliver another hit. Both ghost and wisp forms retain their painted bodies.
-- Fade retired souls without a false arrival flash; clear remaining visuals on world reset. Reduced effects lowers wake density and body sway.
-- Clarify the spell-feel gate: every column C− or better, arithmetic average B− (2.7) or better. Fantasy remains the design priority; the historical audit remains provisional.
-- Next: Cross Blade silhouette/contact and Atomic blast identity, followed by audible and mixed-combat review.
+- Record the roster-wide rule: spell references depict outcomes; build the moving material system. Even the concentrated core must animate. Textures may provide material detail, but a moving or morphing full-spell illustration is not the implementation.
+- Record rejection of both spirit-image approaches and the reasoning failure behind repeated revisions. Keep them unmerged and superseded; prove hover, acceleration, turns, stopping and arrival before gameplay integration.
+- Clarify the gate: C− minimum per column and B− arithmetic average (2.7); fantasy leads design choices. Historical audit verdicts remain incomplete.
+- Add an isolated `tools/wisp-study/Study.tscn` with a changing core, continuous advected material, hover/acceleration/turn/settle/arrival cycle, reduced-motion variant, pause and reset. It uses no spell illustration and does not change gameplay. Add 14 simulation/lifecycle checks.
+- Visual review remains pending before connecting to Soul Bloom. Cross Blade, Atomic, audio and mixed-combat review remain outstanding.
 
 # Design audit — Spell feel baseline (15 October 2026)
 
