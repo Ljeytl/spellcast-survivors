@@ -1,3 +1,9 @@
+# Design update — Spell feel specification (15 October 2026)
+
+- Expand canonical doc 18 with complete spell sequences for the current roster, combinations, automatic and bare attacks, future catalog, signature concepts and enemy casts. Describe staff gestures, material motion, contact, sound, camera and aftermath together.
+- Record the particle-first direction, staggered meteor impacts, lightning staff-to-ground sequence and open spirit movement choices. Separate presentation proposals from current gameplay and unapproved mechanics.
+- Define a B-quality review target and prototype batches with motion, sound, crowded combat and accessibility evidence. Runtime behavior and release version are unchanged.
+
 # 0.3.2-dev.5 — Restore particle spell presentation (15 October 2026)
 
 - Revert the rejected painted Flaming Bolt and Arcane Slash treatments to the previous particle flame bodies/trails and raster slash sweep with edge particles. Remove their unused stroke renderer and shader.
