@@ -1,7 +1,7 @@
 extends Node2D
 
-const GHOST_TEXTURE = preload("res://assets/vfx/spirits/ghost.png")
-const WISP_TEXTURE = preload("res://assets/vfx/spirits/wisp.png")
+const GHOST_TEXTURE := "res://assets/vfx/spirits/ghost.png"
+const WISP_TEXTURE := "res://assets/vfx/spirits/wisp.png"
 const FLOW_SHADER = preload("res://shaders/spirit_flow.gdshader")
 
 var soul := false
@@ -52,7 +52,7 @@ func _process(dt: float) -> void:
 		desired = vfx.spirit_form_override
 	if form != desired:
 		form = desired
-		sprite.texture = WISP_TEXTURE if form == "wisp" else GHOST_TEXTURE
+		sprite.texture = load(WISP_TEXTURE if form == "wisp" else GHOST_TEXTURE)
 		sprite.offset = Vector2(-sprite.texture.get_width() * 0.18, 0.0)
 	var reduced: bool = vfx != null and vfx.reduced_effects
 	var emergence := smoothstep(0.0, 0.18, clock)
