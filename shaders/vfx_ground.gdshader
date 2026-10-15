@@ -13,8 +13,8 @@ uniform int field_count;
 uniform vec4 fields[32];               // center x, y (cells), radius / half-width (cells), fade-in/out vis
 uniform vec2 field_goo[32];            // x: 0 none, 1 water pool, 2 plague pockets; y: field age (s)
 uniform vec4 field_axis[32];           // line fields: half-length axis x, y (cells), zero for disks; z = look index; w = floor style
-uniform vec4 floor_cols[27];           // 3 per look
-uniform vec4 rim_cols[18];             // 2 per look
+uniform vec4 floor_cols[24];           // 3 per look
+uniform vec4 rim_cols[16];             // 2 per look
 uniform sampler2D light_tex : filter_nearest;
 uniform vec2 light_origin;             // light texel (0,0) in light cells
 uniform float light_cell;              // cells per light texel

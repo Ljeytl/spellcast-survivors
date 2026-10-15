@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.4**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.5**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 
@@ -46,6 +46,8 @@ The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/
 `0.3.1-dev.3` corrects redraw-dependent landing/ray lifetimes, clears those effects on reset, matches Arcane Orbit sphere size to geometry and removes Seeker scaling gaps/clamps. Other projectile-family sizing and trails remain under review.
 
 `0.3.1-dev.4` replaces scattered Steam particles with overlapping rising vapor plumes and subdues the ground footprint. Reduced effects keeps the same identity with fewer vents. Steam sound and dense burn feedback remain open.
+
+`0.3.1-dev.5` tests a different Steam hypothesis: connected rolling vapor fed by pressure vents, with partial occlusion and gradual breakup. It replaces individual puff stamps and the ground disk with a shader surface. HOMING movement, live reduced-effects changes, pause, reset and expiry are explicit lifecycle checks. Audio remains unfinished; visual success must be judged in motion.
 
 ### Next identity investigations
 

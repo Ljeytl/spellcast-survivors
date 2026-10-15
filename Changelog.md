@@ -1,3 +1,9 @@
+# 0.3.1-dev.5 — Steam volume prototype (15 October 2026)
+
+- Replace Steam's repeated circular puffs and painted floor with a connected vapor surface: uneven initial vents, rolling grey-white folds, density openings and thinning upward dispersal. The cloud uses game time so sustained vapor continues through impact hitstop and expires with the spell.
+- Move Steam's main cloud rendering to a bounded shader surface rather than CPU particle overdraw. Homing follows the damage field; reduced effects slows and calms existing cloud motion without restarting its phase. Pause and world reset control the cloud lifetime.
+- Native combat, LARGE, HOMING, reduced and narrow lifecycle captures passed 286 checks; lifecycle tests passed 15 checks, existing VFX suites 84, documentation 10. A broken-expiry control failed as expected. Motion previews cover combat and an isolated cloud. Treat visual quality as an iteration to judge in motion, not something proven by automated checks. Steam audio, enemy burn dominance and whole-roster identity review remain open.
+
 # 0.3.1-dev.4 — Steam Field billowing vapor (15 October 2026)
 
 - Steam Field opens as a bank of vapor, then sustains overlapping rising plumes from shifting vents. Clouds expand, drift and dissipate instead of reading as scattered sparks over a pool. Reduced effects retains the cloud identity with fewer vents and a slower emission cadence.

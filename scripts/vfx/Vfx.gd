@@ -72,7 +72,6 @@ const FIELD_LOOKS := [
 	{"name": "arcane", "style": 1, "floor": ["#1a1830", "#201d3e", "#2a2656"], "rim": ["#8fa8f5", "#e2f6ff"]},
 	{"name": "plague", "style": 1, "floor": ["#17201a", "#1d2c1f", "#25402a"], "rim": ["#6fd04a", "#c4f383"]},
 	{"name": "earth", "style": 1, "floor": ["#1e1a18", "#262019", "#30281c"], "rim": ["#c9a46a", "#e8dcc0"]},
-	{"name": "steam", "style": 1, "floor": ["#41494b66", "#4c545766", "#59626566"], "rim": ["#78868a88", "#9aa6a888"]},
 ]
 static func field_look(name: String) -> int:
 	for i in FIELD_LOOKS.size():
@@ -191,8 +190,8 @@ func _ready():
 			fc.append(Color(h))
 		for h in look.rim:
 			rc.append(Color(h))
-	fc.resize(27)
-	rc.resize(18)
+	fc.resize(24)
+	rc.resize(16)
 	gmat.set_shader_parameter("floor_cols", fc)
 	gmat.set_shader_parameter("rim_cols", rc)
 	gmat.set_shader_parameter("lit1", FIRE_LIT[0])
@@ -233,6 +232,9 @@ func _set_visible(v: bool):
 
 ## Removes every effect. Called when the world changes (scene switch).
 func clear():
+	for child in get_children():
+		if child.is_in_group("steam_clouds"):
+			child.queue_free()
 	if presenter:
 		presenter.clear_transients()
 	_fd.resize(0)
