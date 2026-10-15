@@ -43,7 +43,12 @@
     "interval": 0.05,
     "retarget": true
    },
-   "needs_target": true
+   "needs_target": true,
+   "cast_rules": {
+    "targeting": {
+     "rule": "select"
+    }
+   }
   },
   "ember_spear": {
    "root": "spear",
@@ -166,6 +171,14 @@
       "value": 3
      }
     ]
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "line",
+     "reach": "=700.0 * 1.5 * speed",
+     "radius": "=float(v(\"spear_radius\", 24.0))"
+    },
+    "fixed_duration": true
    }
   },
   "meteor_spear": {
@@ -211,6 +224,11 @@
     "type": "staggered",
     "interval": 0.12,
     "retarget": true
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "select"
+    }
    }
   },
   "ice_blast": {
@@ -269,6 +287,11 @@
       "spread": "=float(v(\"cone_degrees\", 90.0)) / maxf(1.0, maxi(1, pick(has(\"degrees_per_shard\"), int(round(float(v(\"cone_degrees\", 90.0)) / float(v(\"degrees_per_shard\", 1.0)))), int(v(\"shard_count\", 13)))) - 1.0)"
      }
     ]
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "nearest"
+    }
    }
   },
   "life": {
@@ -285,6 +308,14 @@
        "visual_size": "=float(v(\"keyword_size_multiplier\", 1.0))"
       }
      ]
+    }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "none"
+    },
+    "context": {
+     "heal": "=float(v(\"heal_amount\", 0.0)) * (1.0 + 0.15 * (level - 1)) * float(c(\"power\", 1.0))"
     }
    }
   },
@@ -335,6 +366,12 @@
      "vfx": {
       "heavy": 1.0
      }
+    }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "area",
+     "radius": "=float(v(\"radius\", 160))"
     }
    }
   },
@@ -418,6 +455,15 @@
       "heavy": 0.8
      }
     }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "nearest"
+    },
+    "info_defaults": {
+     "trap_radius": 130.0,
+     "trigger_radius": 70.0
+    }
    }
   },
   "frost_sigil": {
@@ -449,6 +495,15 @@
       "$when": "is_id(\"steam_field\")",
       "style": "steam"
      }
+    }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "area",
+     "radius": "=float(v(\"radius\", 150))"
+    },
+    "info_defaults": {
+     "radius": 150.0
     }
    }
   },
@@ -494,6 +549,15 @@
     "type": "ring",
     "count": "=maxi(1, int(v(\"orb_count\", 3)))",
     "radius": "=float(v(\"orbit_radius\", 130.0))"
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "none"
+    },
+    "info_defaults": {
+     "body_radius": 42.0,
+     "orbit_radius": 130.0
+    }
    }
   },
   "regeneration": {
@@ -518,6 +582,15 @@
      "vfx": {
       "family": "none"
      }
+    }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "nearest"
+    },
+    "context": {
+     "heal_rate": "=float(v(\"heal_amount\", 0.0)) * (1.0 + 0.15 * (level - 1)) * float(c(\"power\", 1.0))",
+     "duration": "=float(v(\"duration\", 0.0)) * float(c(\"duration_stat\", 1.0))"
     }
    }
   },
@@ -597,6 +670,14 @@
     "type": "points",
     "count": "=int(v(\"meteor_count\", 3))",
     "stagger_life": "=float(v(\"delay_interval\", 0.3))"
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "nearest"
+    },
+    "points": {
+     "radius": "=float(v(\"radius\", 220.0))"
+    }
    }
   },
   "lightning_bolt": {
@@ -731,6 +812,12 @@
       "heavy": 0.8
      }
     }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "select",
+     "live": true
+    }
    }
   },
   "life_bolt": {
@@ -780,6 +867,11 @@
      "vfx": {
       "family": "bolt"
      }
+    }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "spread"
     }
    }
   },
@@ -1027,6 +1119,15 @@
       "value": 2
      }
     ]
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "free_beam",
+     "reach": 450.0
+    },
+    "lanes": {
+     "spacing": 18.0
+    }
    }
   },
   "prism_ray": {
@@ -1089,6 +1190,11 @@
       }
      ]
     }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "none"
+    }
    }
   },
   "reaping_spirit": {
@@ -1149,6 +1255,14 @@
       "family": "firewalk"
      }
     }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "none"
+    },
+    "info_defaults": {
+     "trail_radius": 65.0
+    }
    }
   },
   "cross_blade": {
@@ -1207,6 +1321,16 @@
     "radius": 0.0,
     "aimed": true,
     "offset": "=pick(maxi(1, int(v(\"blade_count\", 3))) == 4, PI / 4.0, 0.0)"
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "select",
+     "range": 600.0
+    },
+    "info_defaults": {
+     "blade_radius": 33.6
+    },
+    "fixed_duration": true
    }
   },
   "infestation": {
@@ -1247,6 +1371,12 @@
       "family": "infection"
      }
     }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "visible_host",
+     "required": true
+    }
    }
   },
   "soul_bloom": {
@@ -1279,6 +1409,19 @@
        "force": "=float(c(\"knockback\", 500.0))"
       }
      ]
+    }
+   },
+   "cast_rules": {
+    "targeting": {
+     "rule": "nearest"
+    },
+    "cast": "shield_charge",
+    "context": {
+     "damage": "=float(v(\"retaliation_damage\", 60.0)) * (1.0 + 0.15 * (level - 1)) * float(c(\"power\", 1.0))",
+     "reach": "=float(v(\"retaliation_reach\", 160.0)) * float(c(\"size_stat\", 1.0))",
+     "half_angle": "=deg_to_rad(float(v(\"retaliation_angle\", 100.0)) * 0.5)",
+     "knockback": "=float(v(\"retaliation_knockback\", 500.0))",
+     "travel_time": "=float(v(\"retaliation_travel_time\", 0.22))"
     }
    }
   }

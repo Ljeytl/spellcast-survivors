@@ -16,6 +16,10 @@ extends RefCounted
 ##   "$extends": "<spell id>"   at the top of a template: deep-merges this template over that one.
 ##   "by_type" (file level)     the shape for an info whose id has no entry, by its old spell type
 ##                              (ad-hoc infos in tests and tools; goes away with spell types).
+##   "cast_rules"               how the spell is cast rather than what it is made of: "targeting"
+##                              {rule, ...settings}, "context" (values computed from the caster's
+##                              stats: power, duration_stat, size_stat), "points", "lanes", "picker",
+##                              "cast" (a custom cast handler). Read with rules(); not part of the shape.
 ##   "$recast": true            at the top: the recast rule from the spell info (recast_behavior,
 ##                              active_limit, extend_at_cap, max_banked_casts).
 ##
@@ -76,6 +80,7 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 	var t = template(shape)
 	var recast = bool(t.get("$recast", false))
 	t.erase("$recast")
+	t.erase("cast_rules")
 	var def: Dictionary = _eval(t, env, "")
 	var shell := {"id": id, "name": str(info.get("name", id)), "incantation": str(info.get("incantation", id)),
 		"element": SpellDamage.profile(id).element, "legacy": true, "max_spawns": 400}
@@ -83,6 +88,20 @@ static func build(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 	if recast:
 		shell.recast = recast_rule(info)
 	return shell
+
+## The spell's cast rules (targeting, context, pickers), evaluated for this info and context.
+static func rules(info: Dictionary, ctx: Dictionary = {}) -> Dictionary:
+	var shape = shape_id(info)
+	if shape == "":
+		return {}
+	var r = template(shape).get("cast_rules", {})
+	if r.is_empty():
+		return {}
+	var env = Env.new(info, ctx, str(info.get("id", "")))
+	env.inputs = [0.0, float(ctx.get("speed_mult", 1.0)), int(info.get("level", 1)),
+		SpellGeometry.BOLT_RADIUS, SpellGeometry.SPEAR_RADIUS, SpellGeometry.BEAM_RADIUS, SpellGeometry.SPIRIT_RADIUS]
+	env.cache = _parsed
+	return _eval(r, env, "")
 
 ## How a recast meets the casts already out (recast_behavior / active_limit / extend_at_cap).
 static func recast_rule(info: Dictionary) -> Dictionary:

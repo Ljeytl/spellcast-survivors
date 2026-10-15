@@ -63,6 +63,7 @@ Ships the combat-feel work so far (0.3.1-dev.1 to dev.5 below) as a player build
 Goal: every spell's shape, ranks, recast rules, targeting and preparation are data, so new catalog spells (0.4) are data files plus tests. Built on branch `feat/0.3.2-data-spells`; behavior must not change (doc 19 P8).
 
 - **Spell shapes are data.** The parts every shipped spell and combination is made of moved from code (`LegacyBridge.gd`'s 19 builders) to `data/spell_shapes.json`, read by `scripts/engine/SpellTemplate.gd` (expressions, conditions, inheritance; see its header). `tests/spell_shape_equivalence_regression.gd` proves the data shapes build exactly what 0.3.0 built — every key, value and type, for all 25 spells and combinations over ranks 1–12 and four size/duration/speed variants (1,200 recorded cases); a deliberate one-number change fails it. Full headless suite: no new failures.
+- **Targeting and cast setup are data.** Each spell's `cast_rules` names its targeting rule (`line`, `select`, `area`, `visible_host`, `free_beam`, `none`, `nearest`, `spread`) with its settings, the values it computes from caster stats (Life and Regeneration healing, Earth Shield's eruption), Meteor Shower's point picking, Focus Ray's lanes, size defaults and which spells keep a fixed duration. `SpellManager` and `SpellGeometry` no longer switch on the old spell type. Earth Shield's charge stays a named custom cast (`shield_charge`).
 
 # Documentation consolidation — 14 October 2026
 

@@ -65,5 +65,10 @@ func run():
 		else:
 			checks += 1
 	check(ids.size() == 25, "all 25 shipped spells and combinations covered (%d)" % ids.size())
+	# Every shipped spell names a targeting rule SpellManager.pick_target knows (cast_rules, data).
+	var known = ["line", "select", "area", "visible_host", "free_beam", "none", "nearest", "spread"]
+	for id in ids:
+		var rule = str(SpellTemplate.rules({"id": id}).get("targeting", {}).get("rule", ""))
+		check(rule in known, "%s has a known targeting rule (%s)" % [id, rule])
 	print("spell_shape_equivalence: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)

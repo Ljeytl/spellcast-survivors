@@ -20,7 +20,8 @@
           "release": {"type": "object"},
           "max_depth": {"type": ["number", "string", "object"]},
           "max_spawns": {"type": ["number", "string", "object"]},
-          "needs_target": {"type": "boolean"}
+          "needs_target": {"type": "boolean"},
+          "cast_rules": {"type": "object"}
         },
         "additionalProperties": false
       }
