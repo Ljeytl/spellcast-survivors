@@ -1,5 +1,5 @@
 {
-  "_doc": "Elites (0.3.3): an existing monster plus one or more words, Diablo-style, using the player's own keyword vocabulary. The monster keeps its own behaviour; each word adds one trait. base applies to every elite. patrols and ley_waves say when they appear and how many words they roll. Numbers are first-pass, deliberately large; tune freely. Element words do something: FIERY throws fireballs, ICY bursts frost when you are close, SHOCKING calls a warned lightning strike on you, IRON is armoured; each touch also puts its status on you (player_statuses). Their spells are data/spells/elite_*.json, cast through the same spell engine as yours. Ley guardians, bosses, more cast words and learning a word from a defeated elite are later work (doc 15).",
+  "_doc": "Elites (0.3.3): an existing monster plus one or more words, Diablo-style, using the player's own keyword vocabulary. The monster keeps its own behaviour; each word adds one trait. base applies to every elite. patrols and ley_waves say when they appear and how many words they roll. Numbers are first-pass, deliberately large; tune freely. Element words do something: FIERY calls down a meteor on you (warning, impact, burning ground), ICY bursts frost when you are close, SHOCKING calls a warned lightning strike on you, IRON is armoured; each touch also puts its status on you (player_statuses). Their spells are data/spells/elite_*.json, cast through the same spell engine as yours. Ley guardians, bosses, more cast words and learning a word from a defeated elite are later work (doc 15).",
   "base": {
     "health_mult": 2.5,
     "damage_mult": 1.25,
@@ -27,9 +27,9 @@
       "element": "fire",
       "contact_status": "burn",
       "cast": {
-        "spell": "elite_fireball",
-        "every": 4.0,
-        "range": 520.0,
+        "spell": "elite_meteor",
+        "every": 5.0,
+        "range": 560.0,
         "damage_mult": 1.0
       }
     },

@@ -77,9 +77,11 @@ func run():
 	var ball = Elites.cast(fiery, data.words.fiery.cast, player)
 	check(ball != null and ball.target_group == "player", "a monster's spell targets the player")
 	ball.manual = true
+	ball.step(0.8)
+	check(is_equal_approx(player.health, before), "the meteor's warning comes before it lands")
 	for i in 120:
 		ball.step(1.0 / 60.0)
-	check(player.health < before, "FIERY's fireball hits you (%s -> %s)" % [before, player.health])
+	check(player.health < before, "FIERY's meteor lands on you (%s -> %s)" % [before, player.health])
 	check(player.has_status("burn"), "and sets you on fire")
 	var burning = player.health
 	player.process_statuses(1.0)
@@ -94,6 +96,17 @@ func run():
 	for i in 60:
 		strike.step(1.0 / 60.0)
 	check(player.health < before and player.has_status("shocked"), "then the strike lands and shocks you")
+	player.statuses.clear()
+	var frosty = monsters.spawn_monster(def, false, true, NAN, -1.0, ["icy"])
+	frosty.global_position = player.global_position + Vector2(90, 0)
+	before = player.health
+	var burst = Elites.cast(frosty, data.words.icy.cast, player)
+	burst.manual = true
+	burst.step(0.5)
+	check(is_equal_approx(player.health, before), "ICY warns before its frost bursts")
+	for i in 60:
+		burst.step(1.0 / 60.0)
+	check(player.health < before and player.has_status("chilled"), "then the frost ring hits and chills you")
 	var elites_casts = Elites.build(["fiery", "quick"], "Charger")
 	check(elites_casts.casts.size() == 1 and elites_casts.contact_statuses == ["burn"], "words carry their casts and contact statuses")
 	player.statuses.clear()
