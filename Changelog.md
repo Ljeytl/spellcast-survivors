@@ -3,6 +3,7 @@
 - Bring both approved spirit concepts into the game as painted transparent assets: a rounded expressive ghost and a faceless luminous wisp. Gentle veil motion preserves the brushwork instead of replacing it with geometric outlines.
 - Both forms work on Seeker and Soul Bloom, including live switching. Use `vfx spirit ghost|wisp|auto` in the console, or G in the spell showcase. Auto provisionally pairs ghost with Seeker and wisp with Soul Bloom; this is not a settled necrotic/life visual-language rule.
 - Preserve gameplay targeting, travel, hitboxes, damage, healing and caps. Spirit size follows effective spell geometry; Soul Bloom keeps healing/hunting tint and arrival cues. Reduced effects softens veil movement; pause and despawn follow the gameplay host.
+- Seeker contact uses a small ring and a brief body pulse instead of an obscuring goo/mist burst.
 - Showcase K defeats enemies through their real damage/death path so infected hosts release Soul Bloom. Showcase exit restores comparison form and slow-motion state.
 - Validate both forms using background browser rendering and headless regression checks; do not open visible Godot windows for this workflow. Continue testing mixed-spell crowd readability, sound and performance, and explore painterly treatments for other spells after the spirit comparison.
 

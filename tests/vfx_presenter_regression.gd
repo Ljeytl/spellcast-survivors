@@ -140,6 +140,12 @@ func run():
 	var seeker_info: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells.seeker.duplicate(true)
 	seeker_info.incantation = "seeker"
 	Defs.register(preload("res://scripts/engine/SpellTemplate.gd").build(seeker_info, 8.0, {}))
+	var seeker_on := damage_profile("seeker", true)
+	var seeker_off := damage_profile("seeker", false)
+	check(seeker_on.any(func(value): return value > 0.0), "Seeker comparison fixture lands actual damage")
+	check(seeker_on == seeker_off, "Painted Seeker and contact pulse do not change damage")
+	vfx.presenter.enabled = true
+	clear()
 	foe(Vector2(150, 0))
 	var seeker_cast = cast("seeker", 0.1)
 	var spirit_visual = seeker_cast.parts[0].get_child(0)
