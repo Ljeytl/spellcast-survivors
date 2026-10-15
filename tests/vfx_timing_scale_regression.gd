@@ -87,6 +87,16 @@ func run():
 		check(absf(width - (7.0 * scale + 2.0) * Presenter.WPS) <= Presenter.WPS * 2.0, "Ghost scales above and below its base size")
 		check(width > previous_width, "Every geometry increase enlarges the ghost")
 		previous_width = width
+	part.life_total = 2.0
+	part.age = 1.675
+	var meteor := {"kind": "meteor", "part": weakref(part), "age": 0.0, "life": 2.0, "r": 8.0, "sky": Vector2(-30, -70)}
+	p._parts[part.get_instance_id()] = meteor
+	p.draw_bodies(buffer())
+	check(is_equal_approx(meteor.age, part.age), "Meteor drawing catches up to gameplay without a VFX step")
+	check(is_equal_approx(p._meteor_k(meteor), 0.25), "Meteor accelerates: halfway through descent covers a quarter of its distance")
+	part.age = 2.0
+	p._meteor_fall(part, meteor, Vector2.ZERO, 0.0)
+	check(is_equal_approx(p._meteor_k(meteor), 1.0), "Meteor reaches impact when gameplay reaches impact despite skipped VFX time")
 	part.free()
 	print("VFX timing/scale: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

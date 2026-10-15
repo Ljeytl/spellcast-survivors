@@ -2228,6 +2228,8 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		if st.kind == "meteor":
 			var mp = st.part.get_ref()
 			if mp != null and is_instance_valid(mp) and not mp.done:
+				st.age = float(mp.age)
+				st.life = float(mp.total_life())
 				var mc: Vector2 = mp.global_position / WPS
 				var k: float = _meteor_k(st)
 				# warning: the true radius, dashed and marching, brightening as the rock comes down
@@ -2348,13 +2350,13 @@ func draw_bodies(buf: PackedByteArray) -> void:
 const METEOR_FALL := 0.65   # seconds the rock is in the air; the mark shows from the cast
 
 func _meteor_fall(part, st: Dictionary, target: Vector2, dt: float) -> void:
-	st.age = float(st.age) + dt / vfx.fx_speed
+	st.age = float(part.age)
 	st.life = float(part.total_life())
 	if float(st.age) < float(st.life) - METEOR_FALL:
 		return
 	var k: float = _meteor_k(st)
 	var rock: Vector2 = target + Vector2(st.sky) * (1.0 - k)
-	var vel: Vector2 = -Vector2(st.sky) / METEOR_FALL * vfx.fx_speed
+	var vel: Vector2 = -Vector2(st.sky) / METEOR_FALL * vfx.fx_speed * maxf(0.1, 2.0 * sqrt(k))
 	var scale := clampf(float(st.r) / 8.0, 0.8, 1.5)
 	st.body_acc = float(st.get("body_acc", 0.0)) + 4.0 * dt * 60.0
 	while st.body_acc >= 1.0:
@@ -2368,7 +2370,8 @@ func _meteor_fall(part, st: Dictionary, target: Vector2, dt: float) -> void:
 
 ## 0 when the rock leaves the sky, 1 when it lands.
 func _meteor_k(st: Dictionary) -> float:
-	return clampf((float(st.age) - (float(st.life) - METEOR_FALL)) / METEOR_FALL, 0.0, 1.0)
+	var progress := clampf((float(st.age) - (float(st.life) - METEOR_FALL)) / METEOR_FALL, 0.0, 1.0)
+	return progress * progress
 
 ## Beams (sandbox drawBeams): bands across the true width; arcane is a white core in blue with an
 ## orb where it stops, a piercing (prism) beam is rainbow bands that shift along.

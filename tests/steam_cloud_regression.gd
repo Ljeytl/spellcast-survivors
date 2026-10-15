@@ -40,6 +40,23 @@ func run():
 		cloud._process(0.71)
 		check(cloud.is_queued_for_deletion(), "Repeated finish cannot extend vapor lifetime")
 		await process_frame
+	var volume = CLOUD.new()
+	volume.setup(100.0, 100.0, false)
+	vfx.add_child(volume)
+	volume.set_process(false)
+	vfx.reduced_effects = false
+	var initial_position: Vector2 = volume.particles[0].p
+	volume._process(0.1)
+	check(volume.particles[0].p.y < initial_position.y, "Vapor particles physically rise")
+	for i in 100:
+		volume._process(0.05)
+	check(volume.particles.size() > 0 and volume.particles.size() <= 48, "Sustained volume has bounded particle density")
+	vfx.reduced_effects = true
+	for i in 50:
+		volume._process(0.05)
+	check(volume.particles.size() <= 28, "Live reduced mode converges to its lower particle budget")
+	volume.queue_free()
+	await process_frame
 	var cloud = CLOUD.new()
 	cloud.setup(80.0, 1.0, false)
 	vfx.add_child(cloud)
