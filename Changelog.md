@@ -1,4 +1,6 @@
-# 0.3.2-dev.6 — Soul Bloom delivery and wake (15 October 2026)
+# 0.3.2-dev.6 — Soul Bloom delivery and wake candidate (15 October 2026)
+
+- Visual feedback rejected the first candidate as a PNG with an attached tail. Keep the batch unmerged; revise both spirit bodies using a damped physical backbone and deforming mesh, with independently advecting shed material. The generated pose references guide the movement; no rigid sprite is rendered in this candidate.
 
 - Give Soul Bloom a world-space particle wake and a brief visual arrival that survives its gameplay delivery. Preserve healing, damage, speed, targeting and the three-active-soul cap; remnants cannot deliver another hit. Both ghost and wisp forms retain their painted bodies.
 - Fade retired souls without a false arrival flash; clear remaining visuals on world reset. Reduced effects lowers wake density and body sway.

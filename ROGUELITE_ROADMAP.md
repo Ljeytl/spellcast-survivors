@@ -8,4 +8,4 @@ Spell-feel work starts from the [written sequence specification](docs/expedition
 
 The [15 October spell audit](docs/expedition-design/18-spell-system-rewrite.md#current-spell-audit--15-october-2026) supplies provisional grades and fantasy-led prototype priorities. Complete the untested sound and play-response evidence before declaring any spell at the C−-minimum/B−-average target; preserve strong identities while repairing weak phases.
 
-Soul Bloom’s first presentation pass adds a world-space wake and bounded delivery remnant while preserving gameplay timing. Review both forms in motion before accepting the treatment; Cross Blade and Atomic remain the next identity priorities.
+The first Soul Bloom preview was rejected as a rigid PNG with a static tail. The revised candidate uses a damped physical backbone for both spirit forms and advects shed material, while preserving gameplay timing and bounded delivery remnants. Review hover, turns, reversals and delivery before accepting the treatment; Cross Blade and Atomic remain the next identity priorities.

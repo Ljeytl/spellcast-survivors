@@ -813,7 +813,7 @@ Keep a short decision record for target ownership/retargeting, damaging geometry
 
 The first audit follow-up preserves the approved ghost/wisp bodies and gives Soul Bloom a world-space particle wake. Gameplay delivery remains immediate; a separate, non-damaging visual remnant finishes the approach and dissolves over 0.42 seconds, with remaining wake particles cleared by 0.8 seconds. Cap retirement and expiry do not fake a successful arrival. Reduced effects lowers wake density and sway, and remnants respect pause and world reset.
 
-This is a presentation candidate awaiting artistic review, not a new passing grade. Review near and far delivery, both forms, full-health hunting, reduced effects and narrow geometry in the captured build. Audio, mixed-combat judgment and the complete spell-feel gate remain open. The dated baseline below is preserved unchanged.
+The first candidate was rejected: the body still read as a PNG with an attached tail. Keep it unmerged. The revised direction preserves the approved character and uses a damped physical backbone to deform the whole body: the front leads, folds lag, bend and settle, and shed material drifts and curls. Generated dynamic poses are the artistic reference, not proof of an existing physics simulation. This is not a new passing grade. Review near and far delivery, both forms, full-health hunting, reduced effects and narrow geometry in the captured build. Audio, mixed-combat judgment and the complete spell-feel gate remain open. The dated baseline below is preserved unchanged.
 
 ## Current spell audit — 15 October 2026
 

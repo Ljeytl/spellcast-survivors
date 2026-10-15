@@ -53,7 +53,7 @@ func run():
 	visual._process(0.0)
 	check(visual.soul and visual.healing and visual.radius == 22.0, "Soul has a substantial healing spirit renderer")
 	check(ghost.healing and ghost.heading.x < 0, "Hurt caster gets healing intent and return direction")
-	check(visual.wake.emitting and not visual.wake.local_coords, "Moving spirit emits a world-space wake")
+	check(visual.body.mesh != null and visual.body.points.size() == 11, "Spirit body uses a deforming mesh instead of a rigid sprite")
 	check(visual.wake_samples.is_empty(), "Production spawn order never leaves a wake from world origin")
 	ghost.position += Vector2(20, 0)
 	visual._process(0.01)
@@ -61,7 +61,7 @@ func run():
 	var wake_point = visual.wake_samples[0][0]
 	ghost.position += Vector2(20, 0)
 	visual._process(0.01)
-	check(visual.wake_samples[0][0] == wake_point, "Old wake samples stay in world space while the soul moves")
+	check(visual.wake_samples[0][0].distance_to(wake_point) > 0.0 and visual.wake_samples[0][0].distance_to(wake_point) < 2.0, "Shed material drifts independently instead of following the host or remaining static")
 	check(visual.wake_samples.size() <= 64, "Wake samples have a bounded particle budget")
 	player.health = 100
 	ghost._physics_process(0.05)
@@ -72,7 +72,9 @@ func run():
 	ghost._physics_process(0.01)
 	check(enemy.current_health == 94.0 and ghost.is_queued_for_deletion(), "Hunting arrival still delivers one six-damage hit")
 	check(visual.released and visual.get_parent() == root, "Arrival preserves its visual after gameplay host retires")
-	check(not visual.wake.emitting, "Arrival stops creating wake particles")
+	var samples_at_arrival = visual.wake_samples.size()
+	visual._process(0.01)
+	check(visual.wake_samples.size() <= samples_at_arrival, "Arrival stops creating wake particles")
 	check(vfx._rings.size() == 1 and vfx._stars.size() == 1, "Hunting arrival emits one ring and one core flash")
 	await process_frame
 	player.health = 50
@@ -85,7 +87,7 @@ func run():
 	check(player.health == 56.0 and ghost.is_queued_for_deletion(), "Healing arrival still delivers six health")
 	var healing_visual = get_nodes_in_group("spirit_remnants").back()
 	healing_visual._process(0.2)
-	check(healing_visual.sprite.modulate.a > 0.0, "Short-distance soul remains visible after immediate heal")
+	check(healing_visual.body.modulate.a > 0.0, "Short-distance soul remains visible after immediate heal")
 	check(player.health == 56.0, "Visual continuation cannot heal again")
 	healing_visual._process(0.7)
 	check(healing_visual.is_queued_for_deletion(), "Remnant expires after its bounded lifetime")
@@ -98,7 +100,7 @@ func run():
 	var expired_visual = ghost.get_child(0)
 	ghost._physics_process(4.0)
 	expired_visual._process(0.01)
-	check(expired_visual.sprite.modulate.a == 0.0, "Expired soul cannot reappear when the visual detaches")
+	check(expired_visual.body.modulate.a == 0.0, "Expired soul cannot reappear when the visual detaches")
 	check(vfx._rings.size() == 2 and vfx._stars.size() == 2, "Natural spirit expiry does not imitate a successful arrival")
 	await process_frame
 	vfx.clear()
