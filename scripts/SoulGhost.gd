@@ -48,6 +48,7 @@ func _physics_process(delta):
 				player.heal(amount)
 		else:
 			preload("res://scripts/engine/Effects.gd").apply(target, {"type": "damage", "entries": [{"amount": amount, "damage_type": "plague"}], "element": "plague"}, source, global_position)
+		_arrival(target.global_position)
 		queue_free()
 		return
 	queue_redraw()
@@ -64,25 +65,39 @@ func _nearest_enemy():
 			best = e
 	return best
 
+func _arrival(at: Vector2) -> void:
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx == null:
+		return
+	var point := at / (1280.0 / 192.0)
+	var colors := [Color("#fff5ce"), Color("#a5f5d2"), Color("#4a98a8")] if healing else [Color("#e0f3a3"), Color("#9d80c9"), Color("#51416d")]
+	vfx.ring(point.x, point.y, 4.2, 0.24, colors)
+	vfx.star(point.x, point.y, 2.0, 0.14, 4 if healing else 6, colors[0])
+
 func _draw():
-	var a := clampf(1.0 - age / LIFE, 0.3, 1.0)
-	var body := Color("#c8fff0") if healing else Color("#b4d978")
-	var edge := Color("#539eaf") if healing else Color("#664d8a")
-	for i in range(trail.size() - 1, -1, -1):
-		var k := 1.0 - float(i) / float(trail.size())
-		var offset := to_local(trail[i]) + heading.orthogonal() * sin(age * 12.0 - i * 0.65) * (1.0 - k) * 8.0
-		draw_circle(offset, 2.0 + k * 5.0, Color(edge, k * 0.45 * a))
-	var bob := Vector2(0, sin(age * 9.0) * 2.0)
-	var shape := PackedVector2Array([Vector2(-9, 4), Vector2(-9, -5), Vector2(-5, -11), Vector2(3, -12), Vector2(9, -6), Vector2(10, 3), Vector2(7, 10), Vector2(3, 6), Vector2(0, 12), Vector2(-4, 7), Vector2(-8, 10)])
+	var fade := clampf(1.0 - age / LIFE, 0.3, 1.0)
+	var body := Color("#8be0c9") if healing else Color("#9d80c9")
+	var edge := Color("#357e99") if healing else Color("#4c356f")
+	var core := Color("#fff5ce") if healing else Color("#ddf5a0")
+	var normal := heading.orthogonal()
+	for ribbon in [-1.0, 1.0]:
+		var previous := Vector2.ZERO
+		for i in trail.size():
+			var k := float(i + 1) / float(trail.size() + 1)
+			var wave := sin(age * 10.0 - k * 5.0 + ribbon) * (3.0 + k * 9.0)
+			var point: Vector2 = to_local(trail[i]) + normal * (wave + ribbon * 3.0) * k
+			draw_line(previous, point, Color(edge, (1.0 - k) * fade * 0.35), (1.0 - k) * 9.0 + 1.0)
+			draw_line(previous, point, Color(body, (1.0 - k) * fade * 0.8), (1.0 - k) * 3.0 + 1.0)
+			previous = point
+	var shape := PackedVector2Array([Vector2(15, 0), Vector2(7, -7), Vector2(-2, -8), Vector2(-10, -5), Vector2(-25, -8), Vector2(-18, 0), Vector2(-29, 7), Vector2(-10, 4), Vector2(-3, 9), Vector2(7, 7)])
 	for i in shape.size():
-		shape[i] += bob
-	draw_colored_polygon(shape, Color(body, a))
+		var point := shape[i]
+		if point.x < 0:
+			point.y += sin(age * 11.0 + point.x * 0.15) * absf(point.x) * 0.14
+		shape[i] = heading * point.x + normal * point.y
+	draw_colored_polygon(shape, Color(body, fade * 0.86))
 	var outline := shape.duplicate()
 	outline.append(shape[0])
-	draw_polyline(outline, Color(edge, a), 2.0)
-	var gaze := heading * 1.5 + bob
-	draw_rect(Rect2(Vector2(-4, -5) + gaze, Vector2(2, 4)), Color("#263a46"))
-	draw_rect(Rect2(Vector2(3, -5) + gaze, Vector2(2, 4)), Color("#263a46"))
-	if healing:
-		draw_line(Vector2(-3, 2) + bob, Vector2(3, 2) + bob, Color.WHITE, 2.0)
-		draw_line(Vector2(0, -1) + bob, Vector2(0, 5) + bob, Color.WHITE, 2.0)
+	draw_polyline(outline, Color(edge, fade), 2.0)
+	var heart := PackedVector2Array([heading * 11.0, heading * 2.0 - normal * 3.0, -heading * 10.0, heading * 2.0 + normal * 3.0])
+	draw_colored_polygon(heart, Color(core, fade))

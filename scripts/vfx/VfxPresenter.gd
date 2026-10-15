@@ -409,7 +409,7 @@ func part_spawned(part) -> void:
 				vfx.crack_decal(pos.x, pos.y, 7, cr * 0.9, life + 1.0)
 				vfx.scorch(pos.x, pos.y, cr * 0.8, life + 1.0)
 			else:
-				st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5)
+				st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5, {"profile": "cinder" if str(part.cast.plan.get("id", "")) == "cinder_field" else "default"})
 	_parts[part.get_instance_id()] = st
 	_presented[part.get_instance_id()] = weakref(part)
 
