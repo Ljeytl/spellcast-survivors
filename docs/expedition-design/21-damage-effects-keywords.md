@@ -152,7 +152,7 @@ Every number is a **% of the spell's base hit** (its main hit; one tick for grou
 | Spell | Part | % of base | Physical | Magical | Effect |
 |---|---|---|---|---|---|
 | Infestation (4) | spore flight | 0 | — | — | infects the first host |
-| | infection tick, every 0.5 s, 3 s per host | 100 | 0 | 100 plague | **infected**: its own spreading damage over time (no ramp, no weaken); counts for Overload; credited as "infection" |
+| | infection tick, every 0.5 s, 3 s per host | 100 | 0 | 100 plague | **infected**: its own spreading damage over time (no ramp, no weaken); Overload does not touch it (its value is the spread); credited as "infection" |
 | Seeker (15) | spirit touch, each enemy every 1 s | 100 | 0 | 100 plague | 1 poison stack + weakened |
 | Life / Regeneration | heal / heal over time | — | — | — | — |
 
