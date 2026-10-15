@@ -1,5 +1,5 @@
 extends SceneTree
-## Spell shapes moved from code (0.3.0 LegacyBridge builders) to data/spell_shapes.json must build
+## Spell shapes moved from code (0.3.0 LegacyBridge builders) to data (the "shape" section of data/spells/<id>.json) must build
 ## exactly the same generic definitions: same keys, same values, same types. The fixture holds the
 ## 0.3.0 builders' output (and SpellGeometry.scaled_data's sizing) for every shipped spell and combination over ranks 1-12 and four size /
 ## duration / speed / keyword-size variants (tools/spell_shape_fixtures.gd).
