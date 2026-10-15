@@ -738,6 +738,53 @@
               "type": "string"
             },
             "$comment": "Rank-up card: lines every rank adds (e.g. +push)."
+          },
+          "presentation": {
+            "type": "object",
+            "$comment": "How the spell is shown and heard; never read by gameplay except projectile_scale (hit and look size). Missing fields fall back by element and delivery (scripts/engine/SpellCatalog.gd).",
+            "properties": {
+              "summary": {
+                "type": "string"
+              },
+              "sound": {
+                "type": "string",
+                "$comment": "AudioManager.SoundType name"
+              },
+              "sound_on_cast": {
+                "type": "boolean"
+              },
+              "icon": {
+                "type": "string",
+                "$comment": "EffectArt motif, or beam"
+              },
+              "preview": {
+                "type": "object",
+                "properties": {
+                  "glyph": {
+                    "type": "string",
+                    "enum": [
+                      "bolt",
+                      "cross",
+                      "cone",
+                      "zigzag",
+                      "ring",
+                      "rocks",
+                      "beam",
+                      "meteors",
+                      "arc"
+                    ]
+                  },
+                  "color": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "projectile_scale": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
           }
         },
         "required": [

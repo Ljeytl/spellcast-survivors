@@ -49,7 +49,7 @@ static func scaled_data(data: Dictionary, player: Node) -> Dictionary:
 			result[key] = float(result[key]) * duration_factor
 	result.spell_duration_multiplier = duration_factor
 	result.spell_size_multiplier = factor
-	result.projectile_size_multiplier = factor * float(result.get("body_size_multiplier", 1.0)) * float(preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get(str(result.get("id", "")), 1.0))
+	result.projectile_size_multiplier = factor * float(result.get("body_size_multiplier", 1.0)) * load("res://scripts/engine/SpellCatalog.gd").projectile_scale(str(result.get("id", "")))
 	return result
 
 static func stamp_dimensions(kind: String, radius: float) -> Vector2:

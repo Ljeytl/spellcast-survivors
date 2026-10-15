@@ -318,44 +318,16 @@ func set_music_volume(volume: float):
 
 # SPELL-SPECIFIC FUNCTIONS
 
+## A spell's cast sound is data (presentation.sound / sound_on_cast); new spells default by element.
 func spell_sound_type(spell_name: String) -> SoundType:
-	match spell_name.to_lower().replace(" ", "_"):
-		"mana_bolt": return SoundType.SPELL_MANA_BOLT
-		"life", "regeneration", "life_bolt", "soul_bloom": return SoundType.SPELL_LIFE
-		"ice_blast", "frost_sigil": return SoundType.SPELL_ICE_BLAST
-		"earth_shield", "earthshield", "rune_trap": return SoundType.SPELL_EARTHSHIELD
-		"lightning", "lightning_bolt", "focus_ray", "prism_ray": return SoundType.SPELL_LIGHTNING
-		"meteor_shower", "meteor_spear": return SoundType.SPELL_METEOR
-		"ember_spear", "firewalk", "cinder_field", "steam_field": return SoundType.SPELL_IMPACT_FIRE
-		"infestation", "seeker", "arcane_orbit": return SoundType.SPELL_LIFE
-		_: return SoundType.SPELL_BOLT
+	var id = spell_name.to_lower().replace(" ", "_")
+	return SoundType.get(preload("res://scripts/engine/SpellCatalog.gd").sound(id), SoundType.SPELL_BOLT)
 
 func play_spell_sound(spell_name: String, _level: int = 1):
-	# Lightning's sound belongs to the strike, which lands after its warning ring (the VFX layer
-	# plays it); playing it at the cast too sounded twice (playtest).
-	if spell_name.to_lower().replace(" ", "_") == "lightning":
+	# Some casts sound later (Lightning sounds on its strike, which the VFX layer plays).
+	if not preload("res://scripts/engine/SpellCatalog.gd").sound_on_cast(spell_name.to_lower().replace(" ", "_")):
 		return
 	play_sound(spell_sound_type(spell_name))
-
-func play_spell_impact_sound(spell_name: String, level: int = 1):
-	"""Play impact sound when spells hit enemies"""
-	var volume_variation = 0.8 + min(level - 1, 4) * 0.1  # Slightly quieter but still level-based
-	var pitch_variation = 0.9 + randf() * 0.3  # More random pitch for impacts
-	
-	match spell_name.to_lower():
-		"bolt", "mana_bolt":
-			play_sound(SoundType.SPELL_IMPACT_FIRE, volume_variation, pitch_variation)
-		"ice blast":
-			play_sound(SoundType.SPELL_IMPACT_ICE, volume_variation, max(0.7, pitch_variation - 0.2))
-		"lightning arc", "lightning":
-			play_sound(SoundType.SPELL_IMPACT_LIGHTNING, volume_variation, min(1.4, pitch_variation + 0.3))
-		"earth shield":
-			play_sound(SoundType.SPELL_IMPACT_EARTH, volume_variation, max(0.6, pitch_variation - 0.3))
-		"meteor shower":
-			play_sound(SoundType.SPELL_IMPACT_FIRE, volume_variation * 1.2, max(0.8, pitch_variation - 0.1))
-		"life":
-			# Life spell doesn't have impact sound (it's healing)
-			pass
 
 func play_spell_charging_sound():
 	"""Play charging sound when player starts typing a spell"""

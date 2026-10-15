@@ -116,7 +116,7 @@ func populate():
 	add_heading("SPELLS & COMBINATIONS")
 	for id in load("res://scripts/SpellManager.gd").BASE_SPELL_IDS:
 		var data = get_tree().root.get_node("DataManager").get_spell_data(id)
-		add_entry(id, data.name, data.get("incantation", id.replace("_", " ")), with_element(id, COPY.SPELLS.get(id, "")), "Default starter · prepare it in the Woodland doorway" if id == "bolt" else "Prepare it in the Woodland doorway")
+		add_entry(id, data.name, data.get("incantation", id.replace("_", " ")), with_element(id, COPY.summary(id)), "Default starter · prepare it in the Woodland doorway" if id == "bolt" else "Prepare it in the Woodland doorway")
 	add_entry("mana_bolt", "Magic Missile", "", with_element("mana_bolt", "Automatically fires at nearby enemies."), "Automatic · no active slot")
 	var discoveries = get_tree().root.get_node("CharacterManager").discovered_synergies
 	for id in RECIPES:
@@ -127,7 +127,7 @@ func populate():
 		for ingredient in recipe.ingredients:
 			ingredients.append(ingredient_name(ingredient))
 		var status = "Discovered" if id in discoveries else "Undiscovered"
-		add_entry(id, recipe.name, recipe.incantation, with_element(id, COPY.EVOLUTIONS.get(id, "")), "%s · Bonus spell · no active slot\n%s\nReach rank 8 in both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
+		add_entry(id, recipe.name, recipe.incantation, with_element(id, COPY.summary(id)), "%s · Bonus spell · no active slot\n%s\nReach rank 8 in both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
 	_page = "chart"
 	add_element_chart()
 	# The page notes: one line on each keyword page so it reads on its own.
