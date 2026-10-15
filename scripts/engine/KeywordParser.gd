@@ -16,6 +16,32 @@ static func data() -> Dictionary:
 				_data = parsed
 	return _data
 
+## The keyword to suggest for an unknown word: a listed noun ("fire" -> fiery), else the closest
+## keyword within two letters of it.
+static func suggestion(word: String) -> String:
+	var listed: Dictionary = data().get("suggest", {})
+	if listed.has(word):
+		return str(listed[word])
+	var best := ""
+	var best_d := 3
+	for w in data().get("words", {}):
+		var d := _distance(word, str(w))
+		if d < best_d:
+			best_d = d
+			best = str(w)
+	return best
+
+static func _distance(a: String, b: String) -> int:
+	if absi(a.length() - b.length()) > 2:
+		return 99
+	var prev: Array = range(b.length() + 1)
+	for i in a.length():
+		var cur: Array = [i + 1]
+		for j in b.length():
+			cur.append(mini(mini(cur[j] + 1, prev[j + 1] + 1), prev[j] + (0 if a[i] == b[j] else 1)))
+		prev = cur
+	return prev[b.length()]
+
 static func is_keyword(word: String) -> bool:
 	return data().get("words", {}).has(word.to_lower())
 
@@ -31,8 +57,9 @@ static func words_in(category: String) -> Array:
 static func parse(text: String, spell_names: Array) -> Dictionary:
 	var result := {"ok": false, "spell": "", "quick": false, "keywords": [], "unknown": [], "rejected": [], "bundle": empty_bundle(), "error": ""}
 	var words: Array = []
+	var aliases: Dictionary = data().get("aliases", {})
 	for w in text.strip_edges().to_lower().split(" ", false):
-		words.append(w)
+		words.append(str(aliases.get(w, w)))
 	if words.is_empty():
 		result.error = "empty"
 		return result
@@ -91,16 +118,32 @@ static func parse(text: String, spell_names: Array) -> Dictionary:
 	result.ok = result.unknown.is_empty()
 	if not result.ok:
 		result.error = "unknown word: " + str(result.unknown[0])
+		var hint := suggestion(str(result.unknown[0]))
+		if hint != "":
+			result.error += " - try " + hint.to_upper()
 	return result
 
+## QUICK: the spell by its initials ("quick es") or by word starts ("quick em s", "quick lig")
+## when initials are shared (Ember Spear / Earth Shield, Life / Lightning).
+static func quick_match(rest: Array, name: String) -> bool:
+	var parts = name.to_lower().split(" ", false)
+	if rest.size() == 1:
+		var key := ""
+		for part in parts:
+			key += part.substr(0, 1)
+		if key == str(rest[0]):
+			return true
+	if rest.size() != parts.size():
+		return false
+	for k in parts.size():
+		if not str(parts[k]).begins_with(str(rest[k])):
+			return false
+	return true
+
 static func _parse_quick(rest: Array, spell_names: Array, result: Dictionary) -> Dictionary:
-	var initials = "".join(rest)
 	var matches := []
 	for name in spell_names:
-		var key = ""
-		for part in str(name).to_lower().split(" ", false):
-			key += part.substr(0, 1)
-		if key == initials:
+		if quick_match(rest, str(name)) and not matches.has(str(name).to_lower()):
 			matches.append(str(name).to_lower())
 	result.quick = true
 	if matches.size() == 1:
@@ -108,7 +151,7 @@ static func _parse_quick(rest: Array, spell_names: Array, result: Dictionary) ->
 		result.spell = matches[0]
 		result.bundle.power = float(data().get("quick", {}).get("power", 0.35))
 	else:
-		result.error = "no spell has those initials" if matches.is_empty() else "initials match more than one spell"
+		result.error = "no spell has those initials" if matches.is_empty() else "initials match more than one spell - type more letters"
 	return result
 
 static func empty_bundle() -> Dictionary:

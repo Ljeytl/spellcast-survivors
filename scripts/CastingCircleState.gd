@@ -17,6 +17,29 @@ static func _spell_continues(rest: String, spells: Array) -> bool:
 			return true
 	return false
 
+const KP = preload("res://scripts/engine/KeywordParser.gd")
+
+## While QUICK is typed: could the text still become this spell (initials or word starts)?
+static func quick_fits(body: String, incantation: String) -> bool:
+	var tokens: Array = Array(body.split(" ", false))
+	if tokens.is_empty():
+		return true
+	var parts: Array = Array(incantation.split(" ", false))
+	if tokens.size() == 1 and initials(incantation).begins_with(str(tokens[0])):
+		return true
+	if tokens.size() > parts.size():
+		return false
+	for k in tokens.size():
+		if not str(parts[k]).begins_with(str(tokens[k])):
+			return false
+	return true
+
+static func initials(incantation: String) -> String:
+	var key := ""
+	for part in incantation.split(" ", false):
+		key += part.substr(0, 1)
+	return key
+
 static func analyze(text: String, spells: Array, power_words: Array) -> Dictionary:
 	var rest = text.to_lower().replace("_", " ")
 	rest = rest.lstrip(" ")
@@ -31,12 +54,14 @@ static func analyze(text: String, spells: Array, power_words: Array) -> Dictiona
 				progressed = true
 				break
 	var body = rest
+	# QUICK: the rest is the spell's initials ("quick e s" = Ember Spear).
+	var quick: bool = mods.has("quick")
 	var spell_candidates: Array = []
 	for spell in spells:
-		if str(spell.incantation).begins_with(body):
+		if (quick and quick_fits(body, str(spell.incantation))) or (not quick and str(spell.incantation).begins_with(body)):
 			spell_candidates.append(spell)
 	var power_candidates: Array = []
-	if not body.is_empty():
+	if not body.is_empty() and not quick:
 		for word in power_words:
 			if (str(word) + " ").begins_with(body):
 				power_candidates.append(str(word))
@@ -50,7 +75,7 @@ static func analyze(text: String, spells: Array, power_words: Array) -> Dictiona
 	if not body.is_empty() and power_candidates.is_empty() and spell_candidates.size() == 1:
 		locked = spell_candidates[0]
 	var runes = body.rstrip(" ")
-	var total = str(locked.incantation).length() if not locked.is_empty() else runes.length()
+	var total = (initials(str(locked.incantation)).length() if quick else str(locked.incantation).length()) if not locked.is_empty() else runes.length()
 	return {
 		"power_words": mods,
 		"runes": runes,
@@ -65,7 +90,7 @@ static func analyze(text: String, spells: Array, power_words: Array) -> Dictiona
 		"full_rings": runes.length() / RUNES_PER_RING,
 		"partial": runes.length() % RUNES_PER_RING,
 		"ring_count": ceili(float(total) / RUNES_PER_RING),
-		"complete": not locked.is_empty() and runes == str(locked.incantation),
+		"complete": not locked.is_empty() and ((quick and KP.quick_match(Array(body.split(" ", false)), str(locked.incantation))) or runes == str(locked.incantation)),
 		"candidates": spell_candidates.map(func(s): return str(s.incantation)),
 	}
 

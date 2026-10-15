@@ -89,6 +89,11 @@ func run():
 	check(int(twin.plan.arrangement.count) == 2, "DOUBLE throws two spears")
 	check(manager.cast_keyword_spell("fiery homing ember spear"), "Element and motion words cast on Ember Spear")
 	check(manager.last_cracked.is_empty(), "No word cracks on a damaging projectile")
+	# QUICK works on shipping spells: initials, or word starts when initials are shared.
+	var before_quick = casts_of(game, "ember_spear").size()
+	check(manager.cast_keyword_spell("quick em s"), "QUICK casts Ember Spear by word starts (" + manager.last_cast_failure + ")")
+	check(casts_of(game, "ember_spear").size() == before_quick + 1, "QUICK threw a spear")
+	check(not manager.parse_incantation("quick es").ok or manager.parse_incantation("quick es").spell == "ember spear", "Shared initials need more letters or pick the one unlocked")
 
 	# --- Bolt, Ice Blast, Life, Lightning, Rune Trap ------------------------------------------
 	root.size = Vector2i(1280, 720)

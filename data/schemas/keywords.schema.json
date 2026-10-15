@@ -133,6 +133,16 @@
         "x-ref": "element"
       }
     },
+    "aliases": {
+      "type": "object",
+      "description": "Misspellings accepted silently as the real word.",
+      "additionalProperties": {"type": "string"}
+    },
+    "suggest": {
+      "type": "object",
+      "description": "Unknown word -> the keyword the error message suggests.",
+      "additionalProperties": {"type": "string"}
+    },
     "quick": {
       "type": "object",
       "properties": {

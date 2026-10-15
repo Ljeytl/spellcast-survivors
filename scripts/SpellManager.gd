@@ -816,18 +816,21 @@ func cast_keyword_spell(text: String) -> bool:
 			last_cast_failure = ""
 		elif not parsed.unknown.is_empty():
 			last_cast_failure = "Unknown word: " + str(parsed.unknown[0])
+			var hint = KeywordParser.suggestion(str(parsed.unknown[0]))
+			if hint != "":
+				last_cast_failure += " - try " + str(hint).to_upper()
 		else:
-			last_cast_failure = str(parsed.error).capitalize()
+			last_cast_failure = str(parsed.error).left(1).to_upper() + str(parsed.error).substr(1)   # keeps "try FIERY" readable
 		return false
 	var legacy = legacy_incantations()
 	if legacy.has(parsed.spell):
 		var slot = int(legacy[parsed.spell])
 		var spell_label = str(get_spell_info(slot).name)
-		if parsed.quick:
+		if parsed.quick and not LegacyBridge.handles(get_spell_info(slot)):
 			last_cast_failure = "Quick cast doesn't work on %s yet" % spell_label
 			return false
 		var words: Array = parsed.keywords.filter(func(w): return w != "mega")
-		if LegacyBridge.handles(get_spell_info(slot)) and (not words.is_empty() or not parsed.rejected.is_empty()):
+		if LegacyBridge.handles(get_spell_info(slot)) and (parsed.quick or not words.is_empty() or not parsed.rejected.is_empty()):
 			# Ported spells take every keyword (doc 18 phase 2); rejected words crack and the cast goes on.
 			ported_bundle = parsed.bundle
 			for r in parsed.rejected:

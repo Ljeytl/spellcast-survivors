@@ -215,6 +215,17 @@ func spell_table() -> Array:
 		var alias = str(info.name).to_lower().replace("_", " ")
 		if alias != str(info.display_name).to_lower():
 			table.append({"incantation": alias, "element": element})
+	# Data-defined spells (combinations, learned generic spells) build runes too, not only the old slots.
+	if manager.has_method("castable_generic_spells"):
+		var generic: Dictionary = manager.castable_generic_spells()
+		for inc in generic:
+			var known := false
+			for row in table:
+				if str(row.incantation) == str(inc):
+					known = true
+					break
+			if not known:
+				table.append({"incantation": str(inc).to_lower(), "element": str(generic[inc].get("element", "arcane"))})
 	var session = manager.game_manager.style_session if manager.game_manager and "style_session" in manager.game_manager else null
 	if is_instance_valid(session) and session.atomic_available():
 		table.append({"incantation": "atomic", "element": "void"})
@@ -230,6 +241,9 @@ func power_words() -> Array:
 		for w in KEYWORDS.DEFINITIONS:
 			if not _power_words.has(w):
 				_power_words.append(w)
+		_power_words.append(str(KP.data().get("quick", {}).get("word", "quick")))
+		for a in KP.data().get("aliases", {}):
+			_power_words.append(str(a))
 	return _power_words
 
 var _power_words: Array = []
@@ -240,7 +254,7 @@ const WORD_COLORS = {"arcane": Color("8fb6f5"), "fire": Color("ff8a1f"), "water"
 func word_color(word: String) -> Color:
 	if KEYWORDS.DEFINITIONS.has(word):
 		return KEYWORDS.cast_color(KEYWORDS.DEFINITIONS[word])
-	var info: Dictionary = KP.data().get("words", {}).get(word, {})
+	var info: Dictionary = KP.data().get("words", {}).get(str(KP.data().get("aliases", {}).get(word, word)), {})
 	var el := str(info.get("element", ""))
 	if WORD_COLORS.has(el):
 		return WORD_COLORS[el].lerp(Color.WHITE, 0.25)
