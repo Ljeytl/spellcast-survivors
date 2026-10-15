@@ -12,8 +12,10 @@ static func data() -> Dictionary:
 static func words() -> Array:
 	return data().get("words", {}).keys()
 
-## `count` distinct random word ids. Elemental words exclude each other (one element per monster).
+## `count` distinct random word ids, at most `max_words` (data). Elemental words exclude each other
+## (one element per monster).
 static func roll(count: int, rng: RandomNumberGenerator = null) -> Array:
+	count = mini(count, int(data().get("max_words", count)))
 	var pool: Array = words()
 	var out: Array = []
 	var has_element = false

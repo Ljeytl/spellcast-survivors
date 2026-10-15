@@ -17,7 +17,7 @@ func run():
 	var at = game.player.global_position
 	var i = 0
 	game.player.is_invincible = true
-	for spec in [["charger", ["icy"], Vector2(-150, -40)], ["marksman", ["fiery"], Vector2(-90, -180)], ["pursuer", ["shocking"], Vector2(150, -150)], ["juggernaut", ["massive", "iron"], Vector2(250, 40)]]:
+	for spec in [["charger", ["icy"], Vector2(-150, -40)], ["marksman", ["fiery"], Vector2(-90, -180)], ["pursuer", ["shocking"], Vector2(150, -150)], ["juggernaut", ["iron"], Vector2(250, 40)]]:
 		var def = monsters.encounter_config.variants[spec[0]].duplicate(true)
 		def.id = spec[0]
 		var m = monsters.spawn_monster(def, false, true, NAN, -1.0, spec[1])

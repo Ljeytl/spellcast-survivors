@@ -78,6 +78,10 @@
     "player_statuses": {
       "type": "object",
       "additionalProperties": {}
+    },
+    "max_words": {
+      "type": "number",
+      "$comment": "cap on words per rolled elite"
     }
   },
   "required": [
