@@ -117,17 +117,25 @@ func run():
 		hurtbox.name = "HurtBox"
 		target.add_child(hurtbox)
 		chain_targets.append(target)
-	manager.cast_bouncing_bolt(chain_slot)
-	var chain
-	for candidate in get_nodes_in_group("spell_projectiles"):
-		if candidate.projectile_type == "lightning_bolt":
-			chain = candidate
-	check(is_instance_valid(chain), "Upgraded Lightning Bolt spawns an actual traveling chain")
+	# Lightning Bolt runs on the generic engine (doc 18 phase 2): each bounce is a new part aimed at the next enemy.
+	manager.cast_spell_by_type(chain_slot)
+	var chain_cast = manager.last_generic_cast
+	chain_cast.manual = true
+	var chain = chain_cast.root_parts()[0] if not chain_cast.root_parts().is_empty() else null
+	check(chain != null, "Upgraded Lightning Bolt spawns an actual traveling chain")
+	var struck: Dictionary = {}
 	for i in 6:
-		var victim = chain.target
+		if chain == null:
+			break
+		var victim = chain.assigned
+		struck[victim.get_instance_id()] = true
 		chain.global_position = victim.global_position
-		chain._on_area_entered(victim.get_node("HurtBox"))
-	check(chain.hit_ids.size() == 6 and chain.despawning, "Five bounces damage six distinct enemies and terminate")
+		chain.hit(victim)
+		chain.finish(false)
+		var next = chain_cast.parts.filter(func(p): return is_instance_valid(p) and not p.done and p.part_name == "bounce")
+		chain = next.back() if not next.is_empty() else null
+	check(struck.size() == 6 and chain == null, "Five bounces damage six distinct enemies and terminate")
+	chain_cast.advance(0.4)   # the strike lands after its warning ring (playtest)
 	check(chain_targets.all(func(target): return target.current_health < 1000.0), "Impact splash can hit the seventh enemy without another direct bounce")
 	for target in chain_targets:
 		target.free()
@@ -157,8 +165,10 @@ func run():
 	manager.cast_spell_by_type(manager.find_spell_slot("life"))
 	check(game.player.health == 44 and manager.active_healing_effects.is_empty(), "Life heals4HP immediately")
 	manager.cast_spell_by_type(manager.find_spell_slot("regeneration"))
-	manager.process_healing_effects(5)
-	check(game.player.health == 59, "Regeneration provides distinct15HP over5seconds")
+	var regen = manager.ported_casts("regeneration")[0]   # generic life aura
+	regen.manual = true
+	regen.run(5.0)
+	check(is_equal_approx(game.player.health, 59), "Regeneration provides distinct15HP over5seconds")
 	game.player.health = 40
 	game.player.start_healing_over_time(6,2)
 	manager.process_healing_effects(0.5)
@@ -188,8 +198,7 @@ func run():
 	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 2
 	manager.cast_freeform_spell("ice blast")
 	check(front.current_health == 1000 and inside.current_health == 1000, "Ice shards do not damage before arrival")
-	var ice = get_nodes_in_group("ice_blasts").back()
-	ice.set_physics_process(false)
+	var ice = manager.last_generic_cast   # Ice Blast runs on the generic engine (doc 18 phase 2)
 	ice.advance(1.0)
 	check(front.current_health < 1000 and inside.current_health < 1000 and boundary.current_health == 1000, "Ice shards hit their paths and the leading enemy blocks its shard")
 	check(behind.current_health == 1000 and side.current_health == 1000 and beyond.current_health == 1000, "Ice cone excludes behind, outside angle and beyond reach")
@@ -201,18 +210,18 @@ func run():
 	root.size = Vector2i(1280, 720)
 	await process_frame
 	manager.cast_freeform_spell("lightning")
+	manager.last_generic_cast.advance(0.4)   # the strike lands after its warning ring (playtest)
 	check(front.current_health < before_lightning and side.current_health < 1000 and inside.current_health == neighbor_health, "Lightning strikes nearby group and excludes enemies beyond circle")
 	if is_instance_valid(ice):
 		ice.queue_free()
 	manager.get_spell_info(manager.find_spell_slot("ice_blast")).level = 8
 	manager.cast_freeform_spell("ice blast")
-	var ring = get_nodes_in_group("ice_blasts").back()
-	ring.set_physics_process(false)
+	var ring = manager.last_generic_cast
 	ring.advance(1.0)
 	check(behind.current_health < 1000 and behind.slowed, "Rank 8 Ice Blast is a full ring that reaches behind")
 	manager.cast_freeform_spell("bolt")
-	var bolts = game.get_children().filter(func(node): return node is Area2D and node.get("is_homing") != null and not node.is_queued_for_deletion())
-	check(bolts.any(func(node): return not node.is_homing and node.get("damage") > 0), "Typed Bolt travels straight")
+	var bolt_plan: Dictionary = manager.last_generic_cast.plan if manager.last_generic_cast else {}
+	check(bolt_plan.get("id", "") == "bolt" and str(bolt_plan.parts.bolt.motion[0].type) == "straight" and float(bolt_plan.parts.bolt.payload[0].hit) > 0, "Typed Bolt travels straight")
 	fresh()
 	root.size = Vector2i(1280, 720)
 	game.get_node("Camera2D").global_position = game.player.global_position
@@ -230,7 +239,7 @@ func run():
 	var feedback_count = game.particle_manager.get_child_count()
 	check(not manager.cast_freeform_spell("infection"), "Empty host selection reports cast failure")
 	check(game.spells_cast == cast_count and game.particle_manager.get_child_count() == feedback_count, "Failed Plague produces no success count or flash")
-	check(get_nodes_in_group("build_spell_effects").is_empty(), "Failed Plague creates no empty infection effect")
+	check(get_nodes_in_group("generic_casts").is_empty(), "Failed Plague creates no empty infection effect")
 	manager.cancel_typing()
 	manager.queue_spell(plague_slot)
 	manager.start_typing()
@@ -256,14 +265,17 @@ func run():
 	check(manager.get_visible_plague_host(ranged) == visible, "Authored cast range includes its boundary")
 	manager.attempt_freeform_cast()
 	check(not manager.is_typing and game.spells_cast == cast_count + 1, "Same typed cast succeeds when a valid host enters")
-	var infection = get_nodes_in_group("build_spell_effects").back()
-	check(infection.infections.is_empty() and infection.infection_links.size() == 1, "Successful Plague launches a spore before host infection")
+	# Infestation runs on the generic engine (doc 18 phase 2): the plague lives on the cast's part.
+	var infection_cast = manager.last_generic_cast
+	infection_cast.manual = true
+	var infection = infection_cast.root_parts()[0].infection
+	check(infection.hosts.is_empty() and infection.links.size() == 1, "Successful Plague launches a spore before host infection")
 	visible.dying = true
 	check(manager.get_visible_plague_host(plague_info) == farther, "Host acquisition excludes newly dying target")
 	farther.queue_free()
 	check(manager.get_visible_plague_host(plague_info) == null, "Queued host is excluded immediately")
-	var effects_before = get_nodes_in_group("build_spell_effects").size()
-	check(not manager.cast_spell_by_type(plague_slot) and get_nodes_in_group("build_spell_effects").size() == effects_before and not infection.is_queued_for_deletion(), "Failed direct dispatch preserves existing infections")
+	var effects_before = get_nodes_in_group("generic_casts").size()
+	check(not manager.cast_spell_by_type(plague_slot) and get_nodes_in_group("generic_casts").size() == effects_before and not infection_cast.is_queued_for_deletion(), "Failed direct dispatch preserves existing infections")
 	manager.learn_spell("regeneration")
 	manager.learn_spell("soul_bloom")
 	check(not manager.cast_freeform_spell("soul bloom"), "Bonus infection uses the same visible living-host contract")

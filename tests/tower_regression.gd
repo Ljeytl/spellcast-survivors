@@ -76,6 +76,8 @@ func run():
 	check(tower.wizard.position.x < 48 and is_equal_approx(tower.wizard.position.y,-270), "Exit corridor blocks sideways without snapping south")
 	tower.wizard.position = Vector2(0,-301)
 	tower._physics_process(0)
+	check(is_instance_valid(tower.archive) and tower.archive.has_method("begin_run"), "Walking into Woodland opens preparation")
+	if is_instance_valid(current_scene.get("archive")) and current_scene.archive.has_method("begin_run"): current_scene.archive.begin_run()  # Woodland opens preparation first
 	await settle()
 	check(current_scene.scene_file_path.ends_with("Game.tscn"), "Walking through top Woodland starts run")
 	var game = current_scene
@@ -94,6 +96,7 @@ func run():
 	check(current_scene.scene_file_path.ends_with("Tower.tscn") and not paused and Engine.time_scale == 1, "Death results return home unpaused")
 	check(progression.persistent_xp == xp_after, "Home preserves awarded progression")
 	current_scene.depart()
+	if is_instance_valid(current_scene.get("archive")) and current_scene.archive.has_method("begin_run"): current_scene.archive.begin_run()  # Woodland opens preparation first
 	await settle()
 	game = current_scene
 	check(game.game_time < 2 and game.player.health == game.player.max_health, "Second run resets clock and health")

@@ -1,0 +1,40 @@
+{
+ "_doc": "Co-op rule violations that exist today (doc 19 \u00a76.1). Counts may only go down: tests/coop_rules_regression.gd fails on any increase, and on any decrease until the number here is lowered.",
+ "no_global_player_lookup": {
+  "scripts/BossReward.gd": 2,
+  "scripts/Chest.gd": 1,
+  "scripts/ChestManager.gd": 3,
+  "scripts/Console.gd": 5,
+  "scripts/EncounterEnemy.gd": 1,
+  "scripts/Enemy.gd": 6,
+  "scripts/EnemyProjectile.gd": 1,
+  "scripts/GameOverScreen.gd": 1,
+  "scripts/HealthPotion.gd": 2,
+  "scripts/LevelUpScreen.gd": 8,
+  "scripts/LeySite.gd": 1,
+  "scripts/Options.gd": 1,
+  "scripts/Player.gd": 1,
+  "scripts/SpellGeometry.gd": 1,
+  "scripts/SpellManager.gd": 1,
+  "scripts/SpellProjectile.gd": 2,
+  "scripts/StylePickup.gd": 3,
+  "scripts/XPConsolidation.gd": 1,
+  "scripts/XPOrb.gd": 2
+ },
+ "no_unseeded_random": {
+  "scripts/Chest.gd": 1,
+  "scripts/ChestManager.gd": 5,
+  "scripts/Console.gd": 1,
+  "scripts/DataManager.gd": 1,
+  "scripts/EncounterDirector.gd": 3,
+  "scripts/Enemy.gd": 6,
+  "scripts/EnemyManager.gd": 3,
+  "scripts/HealthPotion.gd": 1,
+  "scripts/LevelUpScreen.gd": 5,
+  "scripts/LeyLines.gd": 1,
+  "scripts/MonsterManager.gd": 3,
+  "scripts/SpellTargeting.gd": 1,
+  "scripts/StylePickup.gd": 1,
+  "scripts/engine/GenericCast.gd": 1
+ }
+}

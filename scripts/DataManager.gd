@@ -5,6 +5,8 @@ extends Node
 
 signal data_loaded
 
+const DataValidator = preload("res://scripts/core/DataValidator.gd")
+
 var spells_data: Dictionary = {}
 var characters_data: Dictionary = {}
 var enemies_data: Dictionary = {}
@@ -25,6 +27,7 @@ func load_all_data():
 	enemies_data = load_json_file("res://data/enemies.json")
 	progression_data = load_json_file("res://data/progression.json")
 	animation_config = load_json_file("res://data/animation_config.json")
+	report_schema_errors()
 	
 	# Validate data integrity
 	if validate_data():
@@ -34,6 +37,13 @@ func load_all_data():
 		print_data_summary()
 	else:
 		print("ERROR: DataManager failed to load data")
+
+## Every data file against its schema (doc 19 P3). Debug builds only; reports, never blocks.
+func report_schema_errors() -> void:
+	if not OS.is_debug_build():
+		return
+	for error in DataValidator.validate_all():
+		push_error("Data: " + str(error))
 
 func load_json_file(file_path: String) -> Dictionary:
 	var file = FileAccess.open(file_path, FileAccess.READ)

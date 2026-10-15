@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "recipes.json",
+  "type": "object",
+  "properties": {
+    "recipes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "incantation": {
+            "type": "string"
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "x-ref": "spell"
+            },
+            "minItems": 2
+          },
+          "requirements": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "card_description": {
+            "type": "string"
+          },
+          "overrides": {
+            "type": "object",
+            "$comment": "Any spell-info field to override when cast; values are plain numbers, text or flags.",
+            "additionalProperties": {
+              "type": [
+                "number",
+                "string",
+                "boolean"
+              ]
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "incantation",
+          "ingredients",
+          "requirements",
+          "description",
+          "card_description",
+          "overrides"
+        ],
+        "additionalProperties": false
+      },
+      "x-registry": "spell"
+    }
+  },
+  "required": [
+    "recipes"
+  ],
+  "additionalProperties": false
+}

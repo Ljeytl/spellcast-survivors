@@ -6,6 +6,7 @@ extends Node2D
 
 const STATE = preload("res://scripts/CastingCircleState.gd")
 const KEYWORDS = preload("res://scripts/KeywordRules.gd")
+const KP = preload("res://scripts/engine/KeywordParser.gd")
 const SETTINGS = preload("res://scripts/EffectPreferences.gd")
 const RING_RADII = [40.0, 51.0, 62.0, 73.0, 84.0]
 const RUNE_SIZE = 5.0
@@ -47,6 +48,10 @@ var error = 0.0
 var glow = 0.0
 var fade = 0.0
 var burst = 0.0
+# Satellite spin is integrated, not clock x speed: with clock x speed every change in glow (each
+# letter typed) jumped every satellite to a new angle and fast typing made it spin wildly (playtest).
+var sat_phase := 0.0
+var rune_phase := 0.0
 var burst_mult = 1.0
 var sealed = false
 var awaiting_release = 0.0   # power-word casts charge briefly after typing ends; hold the circle
@@ -214,13 +219,50 @@ func spell_table() -> Array:
 		var alias = str(info.name).to_lower().replace("_", " ")
 		if alias != str(info.display_name).to_lower():
 			table.append({"incantation": alias, "element": element})
+	# Data-defined spells (combinations, learned generic spells) build runes too, not only the old slots.
+	if manager.has_method("castable_generic_spells"):
+		var generic: Dictionary = manager.castable_generic_spells()
+		for inc in generic:
+			var known := false
+			for row in table:
+				if str(row.incantation) == str(inc):
+					known = true
+					break
+			if not known:
+				table.append({"incantation": str(inc).to_lower(), "element": str(generic[inc].get("element", "arcane"))})
 	var session = manager.game_manager.style_session if manager.game_manager and "style_session" in manager.game_manager else null
 	if is_instance_valid(session) and session.atomic_available():
 		table.append({"incantation": "atomic", "element": "void"})
 	return table
 
+## Every live keyword builds its own little circle, not just MEGA (doc 21 playtest).
 func power_words() -> Array:
-	return KEYWORDS.DEFINITIONS.keys()
+	if _power_words.is_empty():
+		var words: Dictionary = KP.data().get("words", {})
+		for w in words:
+			if not bool(words[w].get("planned", false)):
+				_power_words.append(str(w))
+		for w in KEYWORDS.DEFINITIONS:
+			if not _power_words.has(w):
+				_power_words.append(w)
+		_power_words.append(str(KP.data().get("quick", {}).get("word", "quick")))
+		for a in KP.data().get("aliases", {}):
+			_power_words.append(str(a))
+	return _power_words
+
+var _power_words: Array = []
+const WORD_COLORS = {"arcane": Color("8fb6f5"), "fire": Color("ff8a1f"), "water": Color("8ce6ee"), "storm": Color("f4ed96"),
+	"earth": Color("c9a36a"), "plague": Color("a8c46a"), "life": Color("7fdc7f")}
+
+## A keyword's circle colour: its element's colour, gold for every other word.
+func word_color(word: String) -> Color:
+	if KEYWORDS.DEFINITIONS.has(word):
+		return KEYWORDS.cast_color(KEYWORDS.DEFINITIONS[word])
+	var info: Dictionary = KP.data().get("words", {}).get(str(KP.data().get("aliases", {}).get(word, word)), {})
+	var el := str(info.get("element", ""))
+	if WORD_COLORS.has(el):
+		return WORD_COLORS[el].lerp(Color.WHITE, 0.25)
+	return KEYWORDS.cast_color({})
 
 func refresh(text: String):
 	var previous = state
@@ -260,7 +302,7 @@ func refresh(text: String):
 		var sat_runes: Array = []
 		for ch in letters_of(word):
 			sat_runes.append({"ch": ch, "pop": 0.6})
-		satellites.append({"word": word, "runes": sat_runes, "flash": 1.0, "seal": 1.0, "travel": 0.0, "color": KEYWORDS.cast_color(KEYWORDS.DEFINITIONS.get(word, {}))})
+		satellites.append({"word": word, "runes": sat_runes, "flash": 1.0, "seal": 1.0, "travel": 0.0, "color": word_color(word)})
 		forming = {}
 		runes.clear()
 	while satellites.size() > words.size():
@@ -327,10 +369,10 @@ func _on_released(_family: String, canonical: String, _typed: String):
 func satellite_center(i: int, n: int) -> Vector2:
 	var travel = float(satellites[i].travel) if i < satellites.size() else float(forming.get("travel", 0.0))
 	var orbit = lerpf(SATELLITE_TRAVEL_FROM, SATELLITE_ORBIT, ease(clampf(travel, 0.0, 1.0), 0.4))
-	return Vector2.from_angle(clock * (0.7 + glow * 0.5) + i * TAU / maxf(1.0, n)) * orbit
+	return Vector2.from_angle(sat_phase + i * TAU / maxf(1.0, n)) * orbit
 
 func satellite_rune_angle(j: int, n: int) -> float:
-	return clock * (1.6 + glow * 1.5 + burst * 6.0) + j * TAU / maxf(4.0, n)
+	return rune_phase + j * TAU / maxf(4.0, n)
 
 func _process(_delta):
 	var now = Time.get_ticks_usec()
@@ -389,6 +431,8 @@ func _process(_delta):
 	element_flash = maxf(0.0, element_flash - dt * 2.0)
 	for i in ring_flash.size():
 		ring_flash[i] = maxf(0.0, ring_flash[i] - dt * 3.0)
+	sat_phase = fmod(sat_phase + dt * (0.7 + minf(glow, 1.0) * 0.4), TAU)
+	rune_phase = fmod(rune_phase + dt * (1.6 + minf(glow, 1.0) * 1.0 + burst * 4.0), TAU)
 	var spin = 1.0 + glow * 2.0 + burst * 10.0
 	var full = good_runes / STATE.RUNES_PER_RING
 	for r in ring_rot.size():
@@ -589,7 +633,7 @@ func _draw_front():
 		var letters: Array = sat.runes
 		var word = str(sat.get("word", ""))
 		# Keyword gold for the runes; the ring picks up the spell's element once it is known.
-		var gold: Color = sat.color if not is_forming else KEYWORDS.cast_color(KEYWORDS.DEFINITIONS.get(word, {}))
+		var gold: Color = sat.color if not is_forming else word_color(word)
 		var ring_color = gold.lerp(color_b, 0.5) if str(state.get("element", "")) != "" else gold
 		var flash = float(sat.get("flash", 0.0))
 		var seal = float(sat.get("seal", 0.0))

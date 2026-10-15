@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "characters.json",
+  "$defs": {
+    "animation": {
+      "type": "object",
+      "properties": {
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "frames"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "characters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "starting_spells": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "$comment": "Not checked against the spell registry yet: necromancer, time_mage and summoner list spells that do not exist (shadow_bolt, drain_life, temporal_strike, summon_imp, spirit_guardian). Resolve when characters move to modifier sets (doc 20 G6), then add x-ref spell."
+            }
+          },
+          "unlock_condition": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          "icon": {
+            "type": "string"
+          },
+          "color": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "spell_damage_multiplier": {
+                "type": "number"
+              },
+              "cast_speed_multiplier": {
+                "type": "number"
+              },
+              "movement_speed_multiplier": {
+                "type": "number"
+              },
+              "max_health": {
+                "type": "number"
+              },
+              "xp_range_multiplier": {
+                "type": "number"
+              },
+              "healing_multiplier": {
+                "type": "number"
+              },
+              "lifesteal": {
+                "type": "number"
+              },
+              "elemental_damage_bonus": {
+                "type": "number"
+              },
+              "time_dilation_bonus": {
+                "type": "number"
+              },
+              "minion_damage_bonus": {
+                "type": "number"
+              },
+              "max_minions": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "spell_damage_multiplier",
+              "cast_speed_multiplier",
+              "movement_speed_multiplier",
+              "max_health",
+              "xp_range_multiplier"
+            ],
+            "additionalProperties": false
+          },
+          "passives": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "x-ref": "character_passive"
+            }
+          },
+          "visual": {
+            "type": "object",
+            "properties": {
+              "portrait": {
+                "type": "string"
+              },
+              "character_animations": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/animation"
+                }
+              },
+              "character_effects": {
+                "type": "object",
+                "properties": {
+                  "level_up": {
+                    "$ref": "#/$defs/animation"
+                  },
+                  "typing_aura": {
+                    "$ref": "#/$defs/animation"
+                  }
+                },
+                "required": [
+                  "level_up",
+                  "typing_aura"
+                ],
+                "additionalProperties": false
+              },
+              "ui_elements": {
+                "type": "object",
+                "properties": {
+                  "character_icon": {
+                    "type": "string"
+                  },
+                  "character_thumbnail": {
+                    "type": "string"
+                  },
+                  "selection_highlight": {
+                    "$ref": "#/$defs/animation"
+                  }
+                },
+                "required": [
+                  "character_icon",
+                  "character_thumbnail",
+                  "selection_highlight"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "portrait",
+              "character_animations",
+              "character_effects",
+              "ui_elements"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "starting_spells",
+          "unlock_condition",
+          "icon",
+          "color",
+          "stats",
+          "passives"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "character_passives": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "additionalProperties": false
+      },
+      "x-registry": "character_passive"
+    },
+    "unlock_conditions": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string"
+        },
+        "survive_time": {
+          "type": "string"
+        },
+        "persistent_xp": {
+          "type": "string"
+        },
+        "spells_unlocked": {
+          "type": "string"
+        },
+        "elements_mastered": {
+          "type": "string"
+        },
+        "minions_summoned": {
+          "type": "string"
+        },
+        "achievement": {
+          "type": "string"
+        },
+        "default": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "level",
+        "survive_time",
+        "persistent_xp",
+        "spells_unlocked",
+        "elements_mastered",
+        "minions_summoned",
+        "achievement",
+        "default"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "characters",
+    "character_passives",
+    "unlock_conditions"
+  ],
+  "additionalProperties": false
+}

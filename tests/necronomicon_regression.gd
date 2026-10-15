@@ -45,7 +45,16 @@ func run():
 		await settle()
 		check(book.catalog_ids.size() == 24, "All 16 implemented actives, Magic Missile and seven enabled combinations")
 		check(not book.catalog_ids.has("reaping_spirit"), "Disabled combination excluded")
-		check(book.keyword_ids.has("mega") and book.find_child("Entry_keyword_mega", true, false) != null, "MEGA keyword is documented in the archive")
+		check(book.keyword_ids.has("mega") and book.find_child("Entry_keyword_tier", true, false) != null, "MEGA keyword is documented in the archive")
+		var catalog = preload("res://scripts/KeywordCatalog.gd")
+		var live: Array = []
+		for cat in preload("res://scripts/engine/KeywordParser.gd").data().categories:
+			live.append_array(catalog.live_words(cat))
+		check(live.size() >= 60 and live.all(func(w): return book.keyword_ids.has(w)), "Every built keyword is in the archive (%d)" % live.size())
+		var planned = preload("res://scripts/engine/KeywordParser.gd").data().words.keys().filter(func(w): return bool(preload("res://scripts/engine/KeywordParser.gd").data().words[w].get("planned", false)))
+		check(planned.all(func(w): return not book.keyword_ids.has(w)), "Planned keywords stay out of the archive")
+		check(book.keyword_ids.has("warding") and book.keyword_ids.has("overloading") and book.keyword_ids.has("healing"), "New keywords are in the archive")
+		check(book.find_child("Entry_keyword_fire", true, false) != null and book.find_child("Entry_keyword_count", true, false) != null, "Keyword cards per kind and per element")
 		check(book.catalog_ids.has("meteor_shower"), "Unlearned active visible")
 		check(book.catalog_ids.has("life_bolt"), "Undiscovered recipe visible")
 		check(manager.acquired_spells == original, "Browsing does not grant spells")

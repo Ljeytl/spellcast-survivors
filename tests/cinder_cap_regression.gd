@@ -23,8 +23,13 @@ func check(value, message):
 		failures += 1
 		printerr("FAIL: ", message)
 
+## Cinder Field runs on the generic engine (doc 18 phase 2): one field part per live cast.
 func fields() -> Array:
-	return get_nodes_in_group("build_spell_effects").filter(func(e): return e.info.id == "cinder_field" and not e.is_queued_for_deletion())
+	var out: Array = []
+	for c in get_nodes_in_group("generic_casts"):
+		if str(c.plan.get("id", "")) == "cinder_field" and not c.is_queued_for_deletion():
+			out.append_array(c.root_parts())
+	return out
 
 func run():
 	var game = load("res://scenes/Game.tscn").instantiate()
@@ -60,7 +65,7 @@ func run():
 	await process_frame
 	var covered = false
 	for f in fields():
-		if f.global_position.distance_to(away) <= float(f.info.get("radius", 150.0)):
+		if f.global_position.distance_to(away) <= f.geo("radius", 150.0):
 			covered = true
 	check(fields().size() == 3, "Still three fields after moving one")
 	check(covered, "Recast moves an empty field onto the horde instead of extending it in place")

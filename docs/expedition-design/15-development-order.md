@@ -1,79 +1,79 @@
-## Implemented keyword increment
+# Release plan and expedition roadmap
 
-MEGA is now the first keyword: +50% Spell Power and +50% Spell Size for owned manual spells, immediately available in numbered/Space casting. It is explained in the run spellbook. The next step is playtesting its visible impact, then tutorial discovery; additional keywords and permanent unlocks remain future work. See [current composition contract](04-composition.md#current-prototype-mega).
+Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](03-spells.md). No assistant-selected small spell pack replaces it. New combinations will be decided later. **Release goals agreed with Aditya on 14 October 2026.** The version assignments below are the working release plan. Approval establishes the goals and sequence; it does not mean those releases are already shipped or resolve the explicitly open spell mechanics.
 
-# Development order: evolve the game we have
+## Version numbers
 
-> **Current development slate:** preserve the playable roguelike and style system. Earth Shield 0.1.36 is implemented and merged. Next build a tutorial introducing meaningful, visibly multiplicative keywords, then preparation/tower/ley-line expeditions. MEGA is implemented as described above; further keyword selection and stacking remain proposals. Keep the friend’s art; 2D, 3D and hybrid art direction are a later exploration.
+The game currently identifies itself as **0.3.0**. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
-**28 September 2026 · documentation only · current direction**
+## Agreed release goals
 
-The existing game is fun according to the user's playtest. Preserve that foundation and expand it toward **Should Have Joined a Party**: a wizard expressing complex magic through language. It is not a schedule for when a player unlocks vocabulary. Milestones describe changes to the current game, not a fresh build or a requirement to reimplement every spell.
-
-## Current baseline and required change
-
-Source inspected at gameplay baseline `5955a876059af06e571c3861f306072afb881d16`; documentation branch descends from `edc34dcc`. These are implementation observations, not a new operated gameplay pass.
-
-| System today | Evidence | Disposition and next change |
+| Version | Goal and scope | Completion evidence |
 |---|---|---|
-| Movement, combat, death and run flow | scripts/Player.gd, scripts/Game.gd | Keep; verify they remain enjoyable after each increment |
-| Typed casting and finite per-cast assistance | scripts/SpellManager.gd | Adapt parser to vocabulary and resolved properties; retain input and assistance behavior until an explicit change is tested |
-| 16 learnable manual spells and seven enabled combinations | 03-spells.md baseline audit; SpellManager and effect scripts | Keep available in the comparison/current game; migrate shared properties incrementally, not recreate spell content |
-| Projectiles, Ice Blast, lightning areas, fields, spirits and infection | scripts/SpellProjectile.gd, scripts/IceBlast.gd, scripts/LightningArea.gd, scripts/BuildSpellEffect.gd | Reuse behavior; expose shared geometry/payload parameters and authoritative events as needed |
-| Encounters, enemies and boss rewards | scripts/EncounterDirector.gd, scripts/EncounterEnemy.gd, scripts/BossReward.gd | Configure normal-slime Level 1; adapt guardian trigger/reward when objectives arrive |
-| XP, upgrades and run spellbook | scripts/LevelUpScreen.gd, scripts/RunSpellbook.gd | Transition to preparation and vocabulary; progression policy must be reconciled before replacing existing upgrades |
-| Collection and interface tooling | scripts/SpellCollection.gd; docs/VISUAL_WORKSHOP.md | Reuse inventory/workshop paths where suitable; inspect persistence before extending permanent knowledge |
-| Keycap presentation, existing forest and effects | docs/UI_UX_PASS.md; docs/ART_AND_FEEDBACK_PLAN.md | Replace keyboard-themed presentation with readable inscriptions; retain useful art and effects while direction is explored |
-| Tests, bot and exports | tests/; docs/BASELINE_BOT.md | Reuse regression evidence and tooling, rerun relevant checks on each exact candidate; existence is not a current pass |
-| General modifier composition, prepared expeditions and ley-line progression | Proposed contracts in this package | New/adapted capabilities; not claimed implemented by these documents |
+| 0.3.0 | Current foundation: shared spell engine, existing roster, keywords, statuses, preparation and VFX; finish the current playtest fixes and establish the release baseline. | Exact source/build recorded; checks and playable export verified. The changelog already identifies 0.3.0; this plan does not claim a new tag or upload. |
+| 0.3.1 | Whole-roster combat feel: casting response, windup, travel, contact, sound, hit reaction, shake, persistence, expiry, readability and keyword feedback. | Compare actual moving combat across the roster, crowded encounters, reduced effects and supported displays; visual size matches hits. Existing effects are open to improvement, not exempt because they exist. |
+| 0.4.0 and follow-up 0.4.x builds | Implement the full authored catalog as reviewable increments, tracking each identity and its dependencies. Paused spells remain paused; open mechanics are resolved before their implementation. | Every completed spell has its fantasy, progression, keyword behavior, effects, timing and balance verified. No subset or fixed spell count is selected by this roadmap. New combination recipes remain deferred. |
+| 0.5.0 | Enemy and encounter foundations plus tutorial: remaining actor/damage work, shared enemy behaviors, elites, boss definitions, normal-slime encounters and King Slime, objective runner and lessons. | Different threats reward different spell choices; attacks and boss phases are readable; tutorial is operated end to end. Reuse completed 0.3 foundations. |
+| 0.6.0 | First complete expedition: prepare, explore four ley-line sites, earn knowledge, guardian, recall/death, save, return and reenter. | A complete persistent journey, including failed objectives, duplicate grants, interruption/reload and death under the selected retention policy. |
+| 0.7.0 onward | Expand the tested expedition loop with later realms, enemies, rewards and the remaining content dependencies. Discuss combinations separately, then schedule selected recipes. | Distinct routes and loadouts matter, with balanced rewards and complete realm journeys. |
+| 1.0.0 | Agreed launch campaign, onboarding, accessibility, performance, balance, art/audio and supported packages. | Operated release builds and player evidence across complete journeys. |
 
-## Ordered playable increments
+Use these agreed goals to organize implementation and measure release readiness. Dependencies still determine the order of individual changes. Summons, destructible walls, corpse targeting and advanced enemy interactions may require parts of the enemy work before their catalog entries can ship. Track those prerequisites alongside each spell; do not rebuild an existing system or silently drop a spell to fit a release number. Exact batches, estimates and release boundaries beyond 0.7 remain to be selected.
 
-| Milestone | Change from today | Concrete scope | Completion evidence |
-|---|---|---|---|
-| Complete — Earth Shield 0.1.36 | Replace overheal with an active defensive decision | Stack one-hit stone charges; blocked hit preserves combo and sends damaging knockback toward the attacker | Source-aware melee/projectile hits, one charge per hit, visible collision, no combo loss |
-| M1 — tutorial and keywords in the current game | Add expression to existing combat | MEGA is implemented across owned manual spells at 1.5× power and size. Next add the short tutorial; Bolt, Ice Blast and Meteor Shower exercise projectile, fan and multi-impact geometry. Existing spells remain available; unsupported words fail clearly | Play current encounters with modified and ordinary casts; size matches collision, no unavailable casts, short spells retain utility, workshop agrees |
-| M2 — prepare your spellbook | Add selection/order before entry and activation during a run | Use the existing spell catalog; persistent known vocabulary, prepared bases and derived spells; settle capacity and XP/mana/upgrade roles before replacing old progression | Prepare → enter → activate → cast → return; locked/inactive spells reject; existing combat remains playable |
-| M3 — exploration earns knowledge | Add purpose to the existing world | Four ley-line sites with readable challenges and spell/keyword rewards; reuse terrain, enemies and encounter machinery; authored anchors with restrained variation | Travel, attempt, fail/retry, complete, grant once; readable threats and worthwhile rewards |
-| M4 — connected expeditions | Connect progression into a complete loop | Permanent knowledge, return to preparation, guardian after four sites, 20-minute extraction, death and save handling | Discover → extract or die under selected retention policy → reopen → prepare new vocabulary → reenter; reward and save integrity |
-| M5 — levels and vocabulary expansion | Shape and expand the working loop | Normal-slime first level; introduce later enemy patterns and compatible keywords in tested batches; add genuinely new spells separately from migrating existing ones | Distinct preparations and spell choices matter; no compulsory elemental hard counter; complete level journeys |
-| M6 — production and release | Polish a proven expanding game | Accessibility, performance, readable art/audio, packaging and provenance work; add content justified by playtests | Operated packages and representative player evidence, not document/test counts alone |
+## What 0.3.0 already supplies
 
-Earth Shield 0.1.36 is complete. M1 is next with a short playable introduction that teaches Bolt, spell choice and a visibly stronger modified cast. There is no M0 rebuild gate. Inspect relevant existing code as part of M1, then adapt the minimum shared behavior needed. A complete compiler/scheduler/module hierarchy is not a prerequisite to trying Mega Bolt in the actual game. Architecture names in document 10 describe responsibilities, not mandatory new files.
+- Six prepared slots, ordered activation and saved preparation; tower entry flow already exists.
+- Sixteen manual bases, seven enabled combinations, automatic Magic Missile and the Atomic reward.
+- Shared spell construction, keyword processing, elements, statuses and a VFX layer.
+- Data validation, stats modifiers, gameplay events and seeded randomness foundations.
 
-## First level and retained content
+These are implementation facts from the release source and changelog, not claims that their feel or all dependent systems are finished. Do not repeat the older “MEGA only, preparation next” roadmap. Current damage/status rules live in [doc 21](21-damage-effects-keywords.md); runtime numbers live in data and code.
 
-**Level 1 starts with normal slimes.** Configure existing grunt and fragile runner behaviors first, then normal bruisers and King Slime as the objective loop arrives. No early fire slimes, elemental resistance puzzle or ranged barrage. This constrains encounters, not the entire development spell inventory.
+## Combat feel work
 
-The small M1 modifier test set is not the shipping starting loadout and does not delete current spells. Existing bases: Bolt, Life, Regeneration, Ice Blast, Earth Shield, Lightning, Meteor Shower, Ember Spear, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade. Existing enabled combinations: Lightning Bolt, Life Bolt, Meteor Spear, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. Exact current behavior and proposed changes remain separate in document 3.
+Review each spell's input response, anticipation, targeting, travel, contact, payoff, sustained phase and expiry. Compare ordinary and modified casts, rank changes, combinations and overlapping statuses. Tune audio alignment, enemy reaction and shake together with visuals. A spell with an identifiable silhouette may still have poor timing.
 
-## Vocabulary expansion and dependencies
+The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/Frost Sigil distinction, size-to-hitbox agreement, combined keyword/status cues, status-reaction feedback and reduced-effects propagation. Reproduce against the latest candidate before fixing: parallel playtest work may already have changed a finding. Source/test existence never substitutes for operated visual and auditory judgment.
 
-| Batch | Candidate words/content | Dependency |
-|---|---|---|
-| First playable composition | MEGA implemented | Playtest 1.5× power and size, then teach it in the tutorial; further words remain proposals |
-| Duration, force and movement | Lasting, Repulsing, Swift, Seeking | Explicit compatible properties; reuse existing duration, knockback and targeting rather than claim they are absent |
-| Release structure | Delayed, Charged, Repeating, Duplicating | Clock, cancellation, output ownership and retargeting contracts; duplicating differs from a delayed smaller echo |
-| Elements | Fiery, Icy, Venomous, Earthen | Damage type versus status distinction, readable conversion, no useless accepted words |
-| New content | Water Jet, Wave, Frost Nova, Thunderwave, Frost Ray, Fire Bolt, Firestorm, Earthquake, Grasping Hand, Moonfall, Mana Storm, Summon Golem (castable word Golem), Yggdrasil | Introduce by play value and compatible components after the loop works; do not delay existing infection or Seeker until these are built |
-| Later experiments | Ice Spear/Glacial Spear paired family, base Wall plus elemental synonyms, Super/Omega beyond MEGA, Orbiting/Rotating, Wide/Piercing, Quick Cast, numeric Delay, Earth Wall, Reaping Spirit, alternate characters | Preserve ideas; none is a requirement for the next playable milestone |
+## Expedition direction
 
-Catalog coverage (design entries, not a final independent-base count): Bolt, Life, Ice Blast, Lightning, Regeneration, Earth Shield, Meteor Shower, Ember Spear, Plague Seed, Cinder Field, Arcane Orbit, Focus Ray, Rune Trap, Seeker, Firewalk, Cross Blade, Wave, Water Jet, Frost Nova, Fire Bolt, Firestorm, Earthquake, Thunderwave, Frost Ray, Moonfall, Grasping Hand, Mana Storm, Summon Golem (castable word Golem), Yggdrasil, Lightning Bolt, Life Bolt, Meteor Spear, Soul Bloom, Steam Field, Prism Ray, Frost Sigil. The existing table has 29 base rows plus seven derived rows; desired independent-spell count and family tiers still require reconciliation.
+Prepare a deliberate spellbook at the tower → enter a realm → fight, travel and grow during the run → complete magical site challenges → discover spells and words → confront the guardian or reach recall → return and change the next preparation.
 
-## Presentation track alongside gameplay
+- **Four ley-line sites** are the target, reachable in different orders through an authored route network with restrained variation. Existing ley-line implementation is not assumed to match that final contract.
+- Completing all four permits the realm guardian encounter. The default expedition recall is **20 minutes**; the intended deadline still applies during a late boss attempt. This target is distinct from the current prototype's day/night or endless modes.
+- **Level 1 starts with normal slimes:** grunt, runner and bruiser patterns, then King Slime. Elemental counters, ranged barrages and the older Rootbound Colossus proposal do not become simultaneous first-level requirements.
+- Knowledge gives exploration purpose. Ritual attempts must support clear threats, failure/retry, completion and grant-once rewards.
+- Discovery retention on death remains a decision. Immediate retention is the recorded recommendation, not a settled rule. Preserve current saves until a tested migration exists.
+- Mana as cumulative progression, XP terminology, ranks and upgrades must be reconciled with the current functioning level system. Do not introduce a spending resource or remove working upgrades by interpreting an older draft as approval.
+- The tower concept is a walkable rotary destination chamber, stained-glass destinations/top portal and a preparation book. Adapt the existing hub; unresolved layout/art-medium choices remain open.
+- Tutorial plus four realms is the recorded campaign proposal, not a locked launch-size commitment. Additional guardian concepts and detailed old realm layouts remain available in the historical design.
 
-The approved direction is wizardry and readable ancient inscriptions, moving away from keycaps and typing-game branding. Norse-inspired angular carving is a visual reference, not a substitute alphabet players must decode. Prototype one casting line over the existing game: inscription appears on input, intensifies with meaningful commitment, releases on cast and fades on correction. Animation details are proposals; text updates immediately and remains readable.
+## Retained direction and implementation discrepancies
 
-Use plain readable menu text with restrained grimoire/stone ornament. Ordinary controls remain in tutorial/settings; menus need not require typing. The user may supply a layout sketch. A flat-color floor with subtle patches and existing obstacles is a candidate to evaluate from it, not an approved new environment or mandatory asset-generation job. Keep shaders and broad asset replacement later; readability fixes can happen immediately.
+Permanent spell and keyword knowledge, deliberate preparation and useful short spells remain the direction. Vocabulary replaces passive-item expression in the expedition design; this does not settle how existing XP, spell ranks and wizard upgrades transition. Preserve the playable progression until that transition is designed.
 
-## Delivery and decision gates
+The earlier confirmed target used finite **per-cast slowdown, not a shared meter**. The current 0.3.0 README describes a **shared refillable typing budget**. This is an explicit design-versus-implementation discrepancy to reconcile before changing casting assistance; neither wording silently overrides the other in this documentation merge. Numeric assist presets in older drafts remain proposals.
 
-Track each feature as existing, adapting, new, deferred or needs verification, separately from player acquisition. Retain a reproducible comparison build and grow the actual game in reviewable increments. Do not implement parallel replacement systems by default or remove a working system before its replacement is playable.
+The preserved Disruptor boss idea scrambles incantations while retaining their length. It is not assigned to King Slime or a current realm. Timing, shuffle versus replacement, affected spell scope and interaction with input modifiers remain open. The keyboard-wizard versus mouse-fighter final-boss idea is an optional later chapter, not part of the first expedition.
 
-Open decisions include XP versus mana terminology and upgrade roles, preparation capacity, automatic Magic Missile, discovery retention, Big infection geometry/kill-through, Soul Bloom healing carrier, Meteor Spear identity and final roster counting. Preserve local working notes; unresolved proposals must not become silent implementation defaults. Existing game fun is user-reported; the expanded loop remains to be validated.
+## Remaining systems and decisions
 
-[Validation](11-validation.md) defines evidence obligations, [components](14-spell-system-reference.md) defines property contracts, and [levels](06-levels.md) proposes player-facing content. Those tables do not supersede this incremental development order. Documentation approval does not itself implement gameplay or replace art.
+[Game systems architecture](20-game-systems-architecture.md) owns actor integration, enemy behaviors/attacks, elites, bosses, level/objective data, saves, progression and run flow. Its G1–G7 sequence is a dependency plan, not evidence that each item is still missing or already built. Inspect completion before assigning work; the validator/event/stat foundations are already in 0.3.0.
 
-### Tower concept for the preparation and expedition milestones
+| Decision | Current disposition |
+|---|---|
+| New combinations and recipes | Deferred for a future discussion; preserve current seven combinations and new theme ideas. |
+| Paused spears | Ice/Glacial Spear and Lightning Spear/Rod remain paused. |
+| Full catalog implementation | Preserve all authored identities; remaining per-spell questions are in doc 3, not a second list here. |
+| Death retention and persistent rewards | Select policy before expedition save implementation; test idempotent rewards and recovery. |
+| Progression terminology and upgrade roles | Reconcile existing six-slot activation, ranks and XP with expedition mana/knowledge; no silent replacement. |
+| Automatic Magic Missile | Retain current behavior; any manual-only experiment is separate. |
+| Summons, barriers and advanced magic | Verify shared actor/targeting/event support first; no assumption that all recorded engine gaps are still missing. |
+| Presentation direction | Wizardry and readable inscriptions; existing keycaps are implementation, not a prohibition on refinement. Keep useful art while evaluating alternatives. |
+| Campaign size and art medium | Four realms and later 2D/3D/hybrid exploration remain proposals. |
 
-See the [rotary destination chamber](09-ui-accessibility.md#wizard-tower-rotary-destination-chamber): walkable circular tower room, rotating stained-glass destinations, top-position portal and a large preparation book. Explore a simple blockout when hub work begins; book placement, capacity and 3D versus 2D remain open. Recall returns the wizard automatically at the level deadline (20 minutes by default); level-specific pacing is later tuning. This does not move hub construction ahead of keyword gameplay.
+## Delivery rules
+
+Each implementation increment keeps the game playable, uses isolated work, updates the changelog and version for its shipped build, receives review, and cleans up its worktree after merge. Record exact-candidate test evidence and distinguish completed, failed, blocked and untested journeys. Do not infer balance from equal damage or incantation length alone: short emergency magic and longer committed casts serve different purposes.
+
+This is a development sequence, not a schedule for when a player unlocks vocabulary. Acquisition is designed with the expedition challenges. Historical draft numbers and realm content are retained in the [dated archive](archive/2026-10-14/README.md), not parallel current requirements.

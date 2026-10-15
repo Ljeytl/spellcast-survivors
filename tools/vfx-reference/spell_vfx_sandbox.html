@@ -1,0 +1,1547 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Spell VFX Sandbox</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f6f5f2;--fg:#1d1b20;--muted:#6b6872;--line:#d3d0ca}
+@media (prefers-color-scheme:dark){:root{--bg:#141317;--fg:#eceaf0;--muted:#9a97a3;--line:#34313a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif;padding:16px}
+.wrap{max-width:860px;margin:0 auto}
+canvas{width:100%;image-rendering:pixelated;border-radius:8px;display:block;background:#1f1c25}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 6px}
+button{font:inherit;font-size:13px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
+button.on{border-color:var(--fg);font-weight:500}
+.row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.row label{width:60px;color:var(--muted);font-size:13px}
+.row input{flex:1}
+#desc{color:var(--muted);font-size:13px;margin:8px 0 0;min-height:40px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<canvas id="c" width="192" height="108"></canvas>
+<div class="btns" id="elements"></div>
+<div class="btns" id="spells"></div>
+<div class="btns">
+  <button id="slow">Slow-mo: off</button>
+  <button id="pause">Pause</button>
+</div>
+<div class="row"><label>Wind</label><input id="wind" type="range" min="-40" max="40" step="1" value="0"><span id="wind-o" style="min-width:28px">0</span></div>
+<p id="desc"></p>
+</div>
+<script>
+/* =====================================================================
+   FIRE VFX SANDBOX — every fire component, built on one engine.
+
+   ENGINE (shared by every element):
+     Noise, PixelBuffer, HeatField (emissive density), flame/smoke/ember/
+     debris particles, attach points {inherit, grip}, rings, decals,
+     area floors (disk, line, trail union, warning), juice (hit-stop, shake).
+   DATA (per element): MAT.fire, MAT.arcane, MAT.earth below.
+   COMPONENTS (per component type, element-agnostic):
+     projectile(), damageDisk(), field(), trailPatch(), wall(), novaFront(),
+     warning(), fallingCarrier(), burning status.
+   SPELLS: component chains, see SPELLS at the bottom.
+   ===================================================================== */
+
+const W = 192, H = 108;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const img = ctx.createImageData(W, H), px = new Uint32Array(img.data.buffer);
+const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const bayer = (x, y) => B4[((y & 3) << 2) | (x & 3)] / 16;
+const rnd = Math.random, TAU = Math.PI * 2;
+const hex = h => { const n = parseInt(h.slice(1), 16); return ((255 << 24) | ((n & 255) << 16) | (((n >> 8) & 255) << 8) | ((n >> 16) & 255)) >>> 0; };
+function put(x, y, c) { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return; px[y * W + x] = c; }
+
+/* ---------- noise ---------- */
+function hs(x, y) { let n = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0; n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967296; }
+function vn(x, y) { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf); const a = hs(xi, yi), b = hs(xi + 1, yi), c = hs(xi, yi + 1), d = hs(xi + 1, yi + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; }
+
+/* ---------- element data ---------- */
+const MAT_SRC = {
+  fire: {
+    heat: [[1.6, '#fff7d6'], [1.1, '#ffd54a'], [0.7, '#ff8a1f'], [0.35, '#e0401c'], [0.12, '#7a1f14']],
+    glow: '#3a1a12', ember: ['#fff7d6', '#ffd54a', '#ff8a1f', '#e0401c'], smoke: ['#4a4452', '#332e3b'],
+    body: { core: '#fff7d6', light: '#ffd54a', mid: '#ff8a1f', dark: '#c2361a', outline: '#4a1610' },
+    rim: ['#ff8a1f', '#ffd54a'], floor: ['#2a1416', '#3a1512', '#5a1a12'], scorch: ['#141010', '#211715'],
+    ring: ['#fff7d6', '#ffd54a', '#ff8a1f', '#e0401c'], warn: ['#3a1512', '#e0401c']
+  },
+  arcane: { body: { core: '#ffffff', light: '#bdf3ff', mid: '#6fc9e8', dark: '#3a6fb5', outline: '#1c2450' }, spark: ['#ffffff', '#bdf3ff', '#6fc9e8', '#3a6fb5'] },
+  earth: { body: { core: '#e8dcc0', light: '#c9b48c', mid: '#9a7d5a', dark: '#5e4630', outline: '#2a1e16' }, debris: ['#c9b48c', '#9a7d5a', '#5e4630'] }
+};
+function compile(o) { if (typeof o === 'string') return hex(o); if (Array.isArray(o)) return o.map(v => Array.isArray(v) ? [v[0], hex(v[1])] : compile(v)); const r = {}; for (const k in o) r[k] = compile(o[k]); return r; }
+const MAT = compile(MAT_SRC);
+const C = compile({ floorA: '#1f1c25', floorB: '#25222c', floorC: '#1b1820', enemy: '#5b4a6e', enemyO: '#2a2233', eye: '#e8e0f0', flash: '#ffffff', hat: '#5a3f9e', face: '#f0c9a0', robe: '#3b4f9e', shadow: '#16141b', ink: '#120e14', lit1: '#2a2028', lit2: '#382426', burnBody: '#7a4a5a' });
+
+/* static floor */
+const floorPx = new Uint32Array(W * H);
+for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const n = vn(x * 0.35, y * 0.35) + hs(x, y) * 0.25; floorPx[y * W + x] = n > 0.82 ? C.floorB : n < 0.25 ? C.floorC : C.floorA; }
+
+/* ---------- state ---------- */
+let T = 0, frame = 0, wind = 0, slow = false, paused = false, stop = 0, shakeT = 0, shakeA = 0;
+let later = [], flashes = [], flames = [], smoke = [], embers = [], debris = [], rings = [], decals = [], areas = [], projs = [], falls = [], sparks = [], novas = [], enemies = [];
+const heat = new Float32Array(W * H), blur = new Float32Array(W * H);
+const player = { x: 22, y: 56, vx: 0, vy: 0 };
+const STATIC = (x, y) => ({ x, y, vx: 0, vy: 0 });
+const drag = (v, dt, k) => v * Math.pow(k, dt * 60);
+const turb = (x, y, s) => (vn(x * 0.12, y * 0.12 + T * 3) - 0.5) * s;
+
+/* ---------- particles ---------- */
+// attach point: inherit = share of anchor velocity at birth; grip = local->world blend over life
+function flame(a, o) {
+  const lx = o.lx || 0, ly = o.ly || 0, inh = o.inh || 0;
+  flames.push({ a, lx, ly, wx: a.x + lx, wy: a.y + ly, vx: (o.vx || 0) + a.vx * inh, vy: (o.vy || 0) + a.vy * inh, dvx: 0, dx: 0, dy: 0,
+    rise: o.rise ?? 20, age: 0, life: o.life ?? 0.6, heat: o.heat ?? 1.2, gx: 0.2 + (o.grip ?? 0) * 2.8, small: o.small || 0, soul: !!o.soul });
+}
+function ember(x, y, vx, vy, life) { embers.push({ x, y, vx, vy, age: 0, life }); }
+function puff(x, y, s) { smoke.push({ x, y, vx: 0, rise: 6 + rnd() * 5, age: 0, life: 1.6 + rnd() * 1.2, s: s || 2 + (rnd() * 2 | 0) }); }
+function chunk(x, y, vx, vy, vz, cols, life, size) { debris.push({ x, y, z: 1, vx, vy, vz, cols, age: 0, life, size: size || 1, bounced: false }); }
+
+/* ---------- juice ---------- */
+function shake(a, t) { shakeA = Math.max(shakeA, a); shakeT = Math.max(shakeT, t); }
+function hitstop(f) { stop = Math.max(stop, f); }
+function hit(e, burn) { e.flash = 0.08; e.burn = Math.max(e.burn, burn); }
+function knock(e, dx, dy, f) { const L = Math.hypot(dx, dy) || 1; e.kx = (e.kx || 0) + dx / L * f; e.ky = (e.ky || 0) + dy / L * f * 0.8; }
+
+/* =====================================================================
+   COMPONENTS (element-agnostic shapes; fire look passed in)
+   ===================================================================== */
+
+// Payload: damage disk (impact). size scales everything together.
+function damageDisk(x, y, s, o = {}) {
+  const a = STATIC(x, y), m = MAT.fire, lk = 0.8 + 0.3 * s;
+  if (s >= 0.8) flashes.push({ x, y, r: 3.5 * s, age: 0, life: 0.07 });
+  const big = s >= 1;
+  for (let i = 0, n = Math.round((big ? 40 : 26) * s); i < n; i++) {
+    const ang = rnd() * TAU, sp = (big ? 20 + rnd() * 75 : 25 + rnd() * 55) * s;
+    flame(a, { lx: Math.cos(ang), ly: Math.sin(ang), vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp * 0.8, rise: 10 + rnd() * 12, life: (big ? 0.35 + rnd() * 0.35 : 0.28 + rnd() * 0.3) * lk, heat: big ? 1.75 : 1.5 });
+  }
+  if (big) {
+    later.push({ t: 0.07, run() { for (let i = 0; i < 18 * s; i++) { const ang = rnd() * TAU; flame(STATIC(x + Math.cos(ang) * 6 * s, y + Math.sin(ang) * 5 * s), { vx: Math.cos(ang) * 14, vy: Math.sin(ang) * 10, rise: 16 + rnd() * 10, life: 0.45 + rnd() * 0.3, heat: 1.35 }); } } });  // rolling second wave
+    field(x, y, 7 * s, 1.3, { rate: 0.9, heatK: 0.75 });            // lingering ground fire
+  }
+  if (s >= 1) for (let i = 0; i < 10 * s; i++) flame(a, { lx: (rnd() - 0.5) * 4 * s, ly: (rnd() - 0.5) * 3 * s, rise: 24 + rnd() * 14, life: 0.6 + rnd() * 0.4, heat: 1.3 });  // rising mushroom
+  for (let i = 0, n = Math.round((big ? 16 : 10) * s); i < n; i++) { const ang = rnd() * TAU, sp = (18 + rnd() * 34) * s; chunk(x, y, Math.cos(ang) * sp, Math.sin(ang) * sp * 0.7, 40 + rnd() * 60, m.ember, 0.8 + rnd() * 0.6, 1); }
+  if (o.rock) for (let i = 0, n = Math.round(7 * s); i < n; i++) { const ang = rnd() * TAU, sp = (14 + rnd() * 30) * s; chunk(x, y, Math.cos(ang) * sp, Math.sin(ang) * sp * 0.7, 50 + rnd() * 50, MAT.earth.debris, 1.6 + rnd(), 1 + (rnd() < 0.4 ? 1 : 0)); }
+  for (let i = 0, n = Math.round((big ? 7 : 4) * s); i < n; i++) puff(x + (rnd() - 0.5) * 8 * s, y - 4 * s - rnd() * 4, 2 + (big ? 1 : 0));
+  if (s >= 0.8) rings.push({ x, y, max: (big ? 20 : 14) * s, age: 0, life: big ? 0.42 : 0.35 });
+  if (!o.nodecal) decals.push({ x, y, r: 6.5 * s, age: 0, life: 6, seed: rnd() * 100 });
+  if (s >= 1) { shake(Math.min(3, s * 1.3), 0.2); hitstop(o.stop ?? 3); } else if (s >= 0.5) hitstop(1);
+  const R = 9 * s + 3;
+  for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < R) hit(e, 3);
+}
+
+// Delivery: projectile. body + trail emitted per distance, impact on contact.
+function projectile(o) {
+  const tgt = nearestEnemy(player.x, player.y), dx = tgt.x - player.x, dy = tgt.y - 3 - player.y, L = Math.hypot(dx, dy) || 1;
+  projs.push({ x: player.x + 3, y: player.y - 4, vx: dx / L * o.speed, vy: dy / L * o.speed, acc: 0, hits: new Set(), age: 0, ...o });
+}
+
+// Delivery: field (persistent area). dim floor, bright rim at true radius, ambient emitter.
+function field(x, y, r, life, o = {}) { areas.push({ kind: 'disk', x, y, r, age: 0, life, rate: o.rate ?? 1, trail: !!o.trail, heatK: o.heatK ?? 0.8 }); }
+
+// Delivery: wall (line mask area). rim along both edges, flames rising along the line.
+function wall(x1, y1, x2, y2, hw, life) { areas.push({ kind: 'line', x1, y1, x2, y2, hw, age: 0, life }); }
+
+// Timing: warning disk. fill grows to the real radius exactly at impact time.
+function warning(x, y, r, delay) { areas.push({ kind: 'warn', x, y, r, age: 0, life: delay }); }
+
+// Delivery: falling carrier (visual only; the damage disk is the hit).
+function fallingCarrier(tx, ty, delay, onLand) { falls.push({ tx, ty, x: tx + 34, z: 96, t: -delay, dur: 0.42, acc: 0, onLand, vx: 0, vy: 0 }); }
+
+// Propagation: expanding front. only the band is active; each enemy is hit once.
+function novaFront(x, y, max, dur) {
+  novas.push({ x, y, r: 0, max, dur, age: 0, hit: new Set() });
+  flashes.push({ x, y, r: 4, age: 0, life: 0.07 }); rings.push({ x, y, max: max * 0.55, age: 0, life: 0.22 });
+  for (let i = 0; i < 18; i++) { const a = rnd() * TAU; flame(STATIC(x, y), { vx: Math.cos(a) * 40, vy: Math.sin(a) * 30, rise: 12, life: 0.25, heat: 1.6 }); }
+  shake(1.5, 0.12); hitstop(2);
+}
+
+/* =====================================================================
+   UPDATE
+   ===================================================================== */
+function nearestEnemy(x, y) { let b = enemies[0], bd = 1e9; for (const e of enemies) { const d = Math.hypot(e.x - x, e.y - y); if (d < bd) { bd = d; b = e; } } return b; }
+
+function updateProjectiles(dt) {
+  projs = projs.filter(p => {
+    p.age += dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    const dist = Math.hypot(p.vx, p.vy) * dt, t = p.trail;
+    p.acc += t.rate * dt * 60 + dist * t.perDist;           // per time + per distance
+    const sp = Math.hypot(p.vx, p.vy) || 1, back = (p.body.a || p.body.r) * 0.9;
+    while (p.acc >= 1) { p.acc--; flame(p, { lx: -p.vx / sp * back + (rnd() + rnd() - 1) * t.spread, ly: -p.vy / sp * back + (rnd() + rnd() - 1) * t.spread * 0.8, inh: t.inh, grip: t.grip, heat: t.heat, rise: 16 + rnd() * 10, life: 0.28 + rnd() * 0.3, small: t.small || 0 }); }
+    if (rnd() < t.ember * dt * 60) ember(p.x, p.y, p.vx * 0.3 + (rnd() - 0.5) * 16, -(12 + rnd() * 16), 0.6 + rnd() * 0.7);
+    if (p.native === 'arcane') for (let i = 0; i < 2; i++) sparks.push({ x: p.x + (rnd() - 0.5) * 3, y: p.y + (rnd() - 0.5) * 3, vx: -p.vx * 0.05, vy: -p.vy * 0.05, age: 0, life: 0.35 + rnd() * 0.25 });
+    for (const e of enemies) {
+      if (p.hits.has(e) || Math.hypot(e.x - p.x, e.y - 3 - p.y) > 4.5) continue;
+      if (p.pierce) { p.hits.add(e); damageDisk(p.x, p.y, 0.35, { nodecal: true, stop: 0 }); hit(e, 3); }
+      else { damageDisk(p.x, p.y, p.impact, {}); if (p.native === 'arcane') for (let i = 0; i < 8; i++) { const a = rnd() * TAU; sparks.push({ x: p.x, y: p.y, vx: Math.cos(a) * 30, vy: Math.sin(a) * 30, age: 0, life: 0.3 }); } return false; }
+    }
+    return p.x > -8 && p.x < W + 8 && p.y > -8 && p.y < H + 8 && p.age < 3;
+  });
+}
+
+function updateAreas(dt) {
+  areas = areas.filter(A => {
+    A.age += dt; if (A.age > A.life) return false;
+    if (A.kind === 'disk') {
+      const n = A.r * A.r * 0.0042 * A.rate * dt * 60;
+      for (let i = 0; i < n / 3 || (i === 0 && rnd() < n / 3); i++) {       // spawn tongues: small clusters that sum into one rising flame
+        const ang = rnd() * TAU, d = Math.sqrt(rnd()) * A.r * 0.9, a = STATIC(A.x + Math.cos(ang) * d, A.y + Math.sin(ang) * d), rise = 20 + rnd() * 12, life = 0.45 + rnd() * 0.35;
+        for (let j = 0; j < 3; j++) flame(a, { lx: (rnd() - 0.5) * 1.5, ly: (rnd() - 0.5), heat: A.heatK * 0.46, rise: rise * (0.9 + j * 0.18), life: life * (1 - j * 0.15), small: j ? 1 : 0 });
+      }
+      if (rnd() < A.r * 0.004 * dt * 60) ember(A.x + (rnd() - 0.5) * A.r, A.y + (rnd() - 0.5) * A.r * 0.6, (rnd() - 0.5) * 10, -(14 + rnd() * 14), 0.8 + rnd());
+      if (!A.trail && rnd() < A.r * 0.003 * dt * 60) puff(A.x + (rnd() - 0.5) * A.r, A.y - 6 + (rnd() - 0.5) * A.r * 0.4);
+      for (const e of enemies) if (Math.hypot(e.x - A.x, e.y - 1 - A.y) < A.r) e.burn = Math.max(e.burn, 0.8);
+    } else if (A.kind === 'line') {
+      const len = Math.hypot(A.x2 - A.x1, A.y2 - A.y1), nx = -(A.y2 - A.y1) / len, ny = (A.x2 - A.x1) / len;
+      const n = len * 0.09 * dt * 60;
+      for (let i = 0; i < n; i++) { const t = rnd(), j = (rnd() - 0.5) * A.hw * 1.4; flame(STATIC(A.x1 + (A.x2 - A.x1) * t + nx * j, A.y1 + (A.y2 - A.y1) * t + ny * j), { heat: 1.15, rise: 24 + rnd() * 12, life: 0.45 + rnd() * 0.35 }); }
+      if (rnd() < 0.2 * dt * 60) { const t = rnd(); ember(A.x1 + (A.x2 - A.x1) * t, A.y1 + (A.y2 - A.y1) * t, (rnd() - 0.5) * 8, -(20 + rnd() * 14), 1 + rnd()); }
+      for (const e of enemies) if (distSeg(e.x, e.y - 1, A) < A.hw + 1.5) e.burn = Math.max(e.burn, 1.2);
+    }
+    return true;
+  });
+}
+function distSeg(x, y, A) { const dx = A.x2 - A.x1, dy = A.y2 - A.y1, t = Math.max(0, Math.min(1, ((x - A.x1) * dx + (y - A.y1) * dy) / (dx * dx + dy * dy))); return Math.hypot(x - A.x1 - dx * t, y - A.y1 - dy * t); }
+
+function updateFalls(dt) {
+  falls = falls.filter(f => {
+    f.t += dt; if (f.t < 0) return true;
+    const k = Math.min(1, f.t / f.dur), px0 = f.x, pz0 = f.z;
+    f.x = f.tx + 34 * (1 - k); f.z = 96 * (1 - k);
+    f.vx = (f.x - px0) / dt; f.vy = -(f.z - pz0) / dt;           // screen-space velocity of the carrier
+    const a = { x: f.x, y: f.ty - f.z, vx: f.vx, vy: f.vy };
+    f.acc += 5 * dt * 60;
+    while (f.acc >= 1) { f.acc--; flame(a, { lx: (rnd() - 0.5) * 3, ly: (rnd() - 0.5) * 3, inh: 0.15, grip: 0.1, heat: 1.35, rise: 10 + rnd() * 8, life: 0.25 + rnd() * 0.25 }); }
+    if (k >= 1) { f.onLand(f.tx, f.ty); return false; }
+    return true;
+  });
+}
+
+function updateNovas(dt) {
+  novas = novas.filter(N => {
+    N.age += dt; const k = Math.min(1, N.age / N.dur); N.r = N.max * (1 - Math.pow(1 - k, 2));
+    const n = TAU * N.r * 0.17 * dt * 60;
+    for (let i = 0; i < n; i++) { const a = rnd() * TAU, rr = N.r - rnd() * 2.5; flame(STATIC(N.x + Math.cos(a) * rr, N.y + Math.sin(a) * rr), { vx: Math.cos(a) * 22, vy: Math.sin(a) * 16, heat: 1.5 * (1 - k * 0.45), rise: 16 + rnd() * 12, life: 0.28 + rnd() * 0.25 }); }
+    if (rnd() < 0.8) { const a = rnd() * TAU; chunk(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 30, Math.sin(a) * 22, 30 + rnd() * 30, MAT.fire.ember, 0.6 + rnd() * 0.4, 1); }
+    for (const e of enemies) { if (N.hit.has(e)) continue; if (Math.abs(Math.hypot(e.x - N.x, e.y - 2 - N.y) - N.r) < 3) { N.hit.add(e); hit(e, 3); knock(e, e.x - N.x, e.y - N.y, 6); } }
+    if (N.age >= N.dur) for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + rnd() * 0.4; decals.push({ x: N.x + Math.cos(a) * N.max, y: N.y + Math.sin(a) * N.max, r: 2.5 + rnd() * 1.5, age: 0, life: 4, seed: rnd() * 100 }); }
+    return N.age < N.dur;
+  });
+}
+
+function updateEnemies(dt) {
+  for (const e of enemies) {
+    const ox = e.x, oy = e.y;
+    if (e.march) { e.hx -= 9 * dt; if (e.hx < 92) e.hx += 96; }
+    e.x = e.hx + Math.sin(e.ph + T * 0.7) * 5 + (e.kx || 0); e.y = e.hy + Math.cos(e.ph * 1.3 + T * 0.5) * 3 + (e.ky || 0);
+    e.kx = drag(e.kx || 0, dt, 0.88); e.ky = drag(e.ky || 0, dt, 0.88);
+    e.vx = (e.x - ox) / Math.max(dt, 1e-4); e.vy = (e.y - oy) / Math.max(dt, 1e-4);
+    e.flash -= dt;
+    if (e.stT > 0) { e.stT -= dt; FX[e.st].status(e, dt); }
+    if (e.burn > 0) {                                                // status: burning (grip-locked)
+      e.burn -= dt;
+      for (let i = 0; i < 2; i++) if (rnd() < 0.6 * dt * 60) flame(e, { lx: (rnd() - 0.5) * 6, ly: -2 - rnd() * 4, inh: 0.1, grip: 0.9, heat: 1.05, rise: 18 + rnd() * 10, life: 0.3 + rnd() * 0.3, small: rnd() < 0.5 ? 1 : 0 });
+      if (rnd() < 0.03 * dt * 60) ember(e.x, e.y - 5, (rnd() - 0.5) * 8, -(14 + rnd() * 10), 0.7);
+    }
+  }
+}
+
+function updateParticles(dt) {
+  flames = flames.filter(f => {
+    f.age += dt; if (f.age > f.life) return false;
+    const k = f.age / f.life;
+    f.dvx += (turb(f.wx + f.dx, f.wy + f.dy, 80) + wind * 1.5) * dt; f.dvx = drag(f.dvx, dt, 0.92);
+    f.dx += f.dvx * dt; f.dy -= f.rise * dt; f.wx += f.vx * dt; f.wy += f.vy * dt; f.vx = drag(f.vx, dt, 0.93); f.vy = drag(f.vy, dt, 0.93);
+    const b = Math.pow(k, f.gx);
+    f.x = (f.a.x + f.lx + f.dx) * (1 - b) + (f.wx + f.dx) * b; f.y = (f.a.y + f.ly + f.dy) * (1 - b) + (f.wy + f.dy) * b;
+    f.r = Math.max(0, (k < 0.3 ? 2 : k < 0.65 ? 1 : 0) - f.small); f.h = Math.pow(1 - k, 0.7) * f.heat;
+    return true;
+  });
+  smoke = smoke.filter(s => { s.age += dt; if (s.age > s.life) return false; s.vx = drag(s.vx + wind * 2.2 * dt, dt, 0.98); s.x += (s.vx + turb(s.x, s.y, 20)) * dt; s.y -= s.rise * dt; return true; });
+  embers = embers.filter(e => { e.age += dt; if (e.age > e.life) return false; e.vx = drag(e.vx, dt, 0.96) + (turb(e.x, e.y, 30) + wind * 1.8) * dt; e.x += e.vx * dt; e.y += e.vy * dt; e.vy = drag(e.vy, dt, 0.99); return true; });
+  debris = debris.filter(d => {
+    d.age += dt; if (d.age > d.life) return false;
+    d.vz -= 170 * dt; d.z += d.vz * dt; d.x += d.vx * dt; d.y += d.vy * dt;
+    if (d.z <= 0) { d.z = 0; if (!d.bounced) { d.vz = -d.vz * 0.35; d.vx *= 0.5; d.vy *= 0.5; d.bounced = true; } else { d.vz = 0; d.vx = drag(d.vx, dt, 0.8); d.vy = drag(d.vy, dt, 0.8); } }
+    return true;
+  });
+  sparks = sparks.filter(s => { s.age += dt; s.x += s.vx * dt; s.y += s.vy * dt; s.vx = drag(s.vx, dt, 0.9); s.vy = drag(s.vy, dt, 0.9); return s.age < s.life; });
+  rings = rings.filter(r => (r.age += dt) < r.life);
+  flashes = flashes.filter(f => (f.age += dt) < f.life);
+  decals = decals.filter(d => (d.age += dt) < d.life);
+}
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+function drawDecals() {
+  const m = MAT.fire;
+  for (const d of decals) {
+    if (d.type) continue;
+    const fade = 1 - d.age / d.life, R = Math.ceil(d.r + 3);
+    for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+      const X = Math.round(d.x) + ox, Y = Math.round(d.y) + oy, dist = Math.hypot(ox, oy * 1.25);
+      const edge = d.r * (0.7 + 0.55 * vn(X * 0.3 + d.seed, Y * 0.3));
+      if (dist < edge && bayer(X, Y) < fade * 0.95) put(X, Y, dist < edge * 0.55 ? m.scorch[0] : m.scorch[1]);
+    }
+  }
+}
+function areaVis(A, X, Y) { const v = Math.min(1, A.age / 0.25, (A.life - A.age) / 0.5); return bayer(X, Y) < v; }
+function insideOtherTrail(A, X, Y) { for (const B of areas) if (B !== A && B.trail && B.age > 0.1 && Math.hypot(X - B.x, Y - B.y) < B.r - 0.6) return true; return false; }
+function drawAreas() {
+  const m = MAT.fire;
+  for (const A of areas) {
+    if (A.kind === 'disk') {
+      const R = Math.ceil(A.r + 1);
+      for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+        const X = Math.round(A.x) + ox, Y = Math.round(A.y) + oy, d = Math.hypot(ox, oy);
+        if (d > A.r + 0.5 || !areaVis(A, X, Y)) continue;
+        if (Math.abs(d - A.r) < 0.7) { if (!A.trail || !insideOtherTrail(A, X, Y)) put(X, Y, m.rim[((X + Y + (frame >> 3)) & 3) === 0 ? 1 : 0]); continue; }
+        const n = vn(X * 0.32, Y * 0.32 + T * 0.6) * 0.65 + vn(X * 0.7 + 9, Y * 0.7 - T * 0.4) * 0.35;
+        const edgeK = d / A.r;                                   // floor glows hotter toward the center
+        put(X, Y, n > 0.72 - (1 - edgeK) * 0.12 ? m.floor[2] : n > 0.5 ? m.floor[1] : m.floor[0]);
+      }
+    } else if (A.kind === 'line') {
+      const x0 = Math.floor(Math.min(A.x1, A.x2) - A.hw - 1), x1 = Math.ceil(Math.max(A.x1, A.x2) + A.hw + 1), y0 = Math.floor(Math.min(A.y1, A.y2) - A.hw - 1), y1 = Math.ceil(Math.max(A.y1, A.y2) + A.hw + 1);
+      for (let Y = y0; Y <= y1; Y++) for (let X = x0; X <= x1; X++) {
+        const d = distSeg(X, Y, A); if (d > A.hw + 0.5 || !areaVis(A, X, Y)) continue;
+        if (Math.abs(d - A.hw) < 0.7) { put(X, Y, m.rim[((X + Y + (frame >> 3)) & 3) === 0 ? 1 : 0]); continue; }
+        const n = vn(X * 0.25, Y * 0.25 + T * 0.8); put(X, Y, n > 0.6 ? m.floor[1] : m.floor[0]);
+      }
+    } else if (A.kind === 'warn') {
+      const f = A.age / A.life, R = Math.ceil(A.r + 1);
+      for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+        const X = Math.round(A.x) + ox, Y = Math.round(A.y) + oy, d = Math.hypot(ox, oy);
+        if (Math.abs(d - A.r) < 0.7) { if (f > 0.75 || ((X + Y) & 1)) put(X, Y, m.warn[1]); }
+        else if (d < A.r * f && ((X + Y) & 1)) put(X, Y, m.warn[0]);
+      }
+    }
+  }
+}
+function drawRings() {
+  const m = MAT.fire;
+  for (const r of rings) {
+    const k = r.age / r.life, rad = r.max * (1 - Math.pow(1 - k, 3)), steps = Math.max(12, Math.ceil(TAU * rad * 1.5)), pal = r.c || m.ring, c = pal[Math.min(pal.length - 1, Math.floor(k * pal.length))];
+    for (let i = 0; i < steps; i++) { const a = i / steps * TAU, X = Math.round(r.x + Math.cos(a) * rad), Y = Math.round(r.y + Math.sin(a) * rad); if (k > 0.55 && bayer(X, Y) < (k - 0.55) * 2.2) continue; put(X, Y, c); if (k < 0.3) put(X + Math.sign(Math.cos(a)), Y, c); }
+  }
+}
+const EN = ['..xxx..', '.xbbbx.', 'xbebebx', 'xbbbbbx', 'xbbbbbx', '.xxxxx.'];
+const WIZ = ['..h..', '.hhh.', 'hhhhh', '.fff.', '.rrr.', 'rrrrr', 'rrrrr', '.r.r.'];
+function sprite(rows, x, y, map) { const h = rows.length, w = rows[0].length; for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const ch = rows[j][i]; if (ch !== '.') put(Math.round(x) - (w >> 1) + i, Math.round(y) - h + j + 1, map[ch]); } }
+function drawActors() {
+  for (const e of enemies) { for (let i = -2; i <= 2; i++) put(e.x + i, e.y + 1, C.shadow); sprite(EN, e.x, e.y, e.flash > 0 ? { x: C.flash, b: C.flash, e: C.flash } : { x: C.enemyO, b: e.burn > 0 && (frame >> 2) & 1 ? C.burnBody : e.stT > 0 && (frame >> 2) & 1 ? EL[e.st].tint : C.enemy, e: C.eye }); }
+  for (let i = -2; i <= 2; i++) put(player.x + i, player.y + 1, C.shadow);
+  sprite(WIZ, player.x, player.y, { h: C.hat, f: C.face, r: C.robe });
+}
+function drawSmoke() {
+  const m = MAT.fire;
+  for (const s of smoke) { const k = s.age / s.life, c = k < 0.5 ? m.smoke[0] : m.smoke[1], x0 = Math.round(s.x), y0 = Math.round(s.y); for (let dy = 0; dy < s.s; dy++) for (let dx = 0; dx < s.s; dx++) if (bayer(x0 + dx, y0 + dy) < (1 - k) * 0.85) put(x0 + dx, y0 + dy, c); }
+}
+const LW = 48, LH = 27, light = new Float32Array(LW * LH), lightB = new Float32Array(LW * LH);
+function accumulateHeat() {
+  heat.fill(0); sheat.fill(0);
+  for (const f of flames) {
+    const cx = Math.round(f.x), cy = Math.round(f.y), r = f.r;
+    for (let oy = -r; oy <= r; oy++) for (let ox = -r; ox <= r; ox++) { if (ox * ox + oy * oy > r * r + 1) continue; const X = cx + ox, Y = cy + oy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; (f.soul ? sheat : heat)[Y * W + X] += f.h; }
+  }
+}
+function drawFloorLight() {                                      // warm light cast on the ground near flames
+  light.fill(0);                                                // radial splat per flame: round falloff, no box artifacts
+  for (const f of flames) {
+    if (f.h < 0.25 || f.soul) continue;
+    const cx = f.x / 4 - 0.5, cy = f.y / 4 - 0.5, x0 = Math.floor(cx - 3), y0 = Math.floor(cy - 3);
+    for (let y = y0; y <= y0 + 7; y++) for (let x = x0; x <= x0 + 7; x++) {
+      if (x < 0 || y < 0 || x >= LW || y >= LH) continue;
+      const d = Math.hypot(x - cx, (y - cy) * 1.2); if (d >= 2.8) continue;
+      const w = 1 - d / 2.8; light[y * LW + x] += f.h * w * w;
+    }
+  }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x; if (px[i] !== floorPx[i]) continue;
+    const gx = Math.min(LW - 1.001, Math.max(0, x / 4 - 0.5)), gy = Math.min(LH - 1.001, Math.max(0, y / 4 - 0.5)), x0 = gx | 0, y0 = gy | 0, fx = gx - x0, fy = gy - y0;
+    const l00 = light[y0 * LW + x0], l10 = light[y0 * LW + x0 + 1], l01 = light[(y0 + 1) * LW + x0], l11 = light[(y0 + 1) * LW + x0 + 1];
+    const raw = (l00 * (1 - fx) + l10 * fx) * (1 - fy) + (l01 * (1 - fx) + l11 * fx) * fy;
+    const L = 1 - Math.exp(-raw * 0.3) + (bayer(x, y) - 0.5) * 0.3;    // compressed so dense flames don't plateau into a flat block
+    if (L > 0.8) px[i] = C.lit2; else if (L > 0.42) px[i] = C.lit1;
+  }
+}
+function drawHeat() {
+  const m = MAT.fire;
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; blur[i] = (heat[i] * 4 + heat[i - 1] + heat[i + 1] + heat[i - W] + heat[i + W] + heat[i - W - 1] + heat[i - W + 1] + heat[i + W - 1] + heat[i + W + 1]) / 12; }
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; if (blur[i] > 0.05 && heat[i] < 0.12 && (blur[i] > 0.12 || ((x + y) & 1))) px[i] = m.glow; }
+  for (let i = 0; i < W * H; i++) { let v = heat[i]; if (v <= 0) continue; v += (((i % W) + ((i / W) | 0)) & 1) ? 0.08 : -0.08; for (const [th, c] of m.heat) if (v >= th) { px[i] = c; break; } }
+}
+// body: shaded shape in the element's 4-value ramp, oriented to velocity
+function drawBody(x, y, vx, vy, b, pal, rim) {
+  const L = Math.hypot(vx, vy) || 1, ux = vx / L, uy = vy / L, R = Math.ceil((b.t === 'orb' ? b.r : b.a) + 1);
+  const inside = (ox, oy) => { if (b.t === 'orb') return ox * ox + oy * oy <= b.r * b.r + 0.5; const u = ox * ux + oy * uy, v = -ox * uy + oy * ux; return Math.abs(u) / b.a + Math.abs(v) / b.b <= 1; };
+  for (let oy = -R - 1; oy <= R + 1; oy++) for (let ox = -R - 1; ox <= R + 1; ox++) {   // outer outline keeps the hitbox readable over its own tail
+    if (inside(ox, oy)) continue;
+    if (inside(ox + 1, oy) || inside(ox - 1, oy) || inside(ox, oy + 1) || inside(ox, oy - 1)) put(Math.round(x) + ox, Math.round(y) + oy, C.ink);
+  }
+  for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+    if (!inside(ox, oy)) continue;
+    const edge = !inside(ox + 1, oy) || !inside(ox - 1, oy) || !inside(ox, oy + 1) || !inside(ox, oy - 1);
+    let c;
+    if (edge) c = rim || pal.outline;
+    else if (b.t !== 'orb' && ox * ux + oy * uy > b.a * 0.45) c = pal.core;
+    else { const s = b.t === 'orb' ? -(ox + oy) / b.r : -(ox * 0.35 + oy); c = s > 0.5 ? pal.light : s < -0.5 ? pal.dark : pal.mid; if (b.t === 'orb' && ox === -1 && oy === -1) c = pal.core; }
+    put(Math.round(x) + ox, Math.round(y) + oy, c);
+  }
+}
+function drawBodies() {
+  for (const p of projs) drawBody(p.x, p.y, p.vx, p.vy, p.body, MAT[p.native || 'fire'].body, p.rim);
+  for (const f of falls) {
+    if (f.t < 0) continue;
+    const k = 1 - f.z / 96, sr = 1 + k * 3;
+    for (let oy = -1; oy <= 1; oy++) for (let ox = -Math.ceil(sr); ox <= Math.ceil(sr); ox++) if (ox * ox / (sr * sr) + oy * oy <= 1 && ((ox + oy) & 1)) put(f.tx + ox, f.ty + oy, C.shadow);
+    drawBody(f.x, f.ty - f.z, f.vx, f.vy, { t: 'orb', r: 3 }, MAT.earth.body, MAT.fire.body.dark);
+  }
+}
+function drawFlashes() {
+  for (const f of flashes) { const R = Math.ceil(f.r); for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) if (ox * ox + oy * oy <= f.r * f.r) put(f.x + ox, f.y + oy, f.c ?? MAT.fire.body.core); }
+}
+function drawTop() {
+  const m = MAT.fire;
+  for (const e of embers) { const k = e.age / e.life; if (k > 0.7 && (frame & 2)) continue; put(e.x, e.y, m.ember[Math.min(3, Math.floor(k * 4))]); }
+  for (const d of debris) { const k = d.age / d.life; if (k > 0.75 && (frame & 2)) continue; const c = d.cols[Math.min(d.cols.length - 1, Math.floor(k * d.cols.length))]; if (d.z > 2) put(d.x, d.y, C.shadow); put(d.x, d.y - d.z, c); if (d.size > 1) put(d.x + 1, d.y - d.z, c); }
+  const a = MAT.arcane.spark;
+  for (const s of sparks) { const cs = s.cols || a, k = s.age / s.life, c = cs[Math.min(cs.length - 1, Math.floor(k * cs.length))]; put(s.x, s.y, c); if (k < 0.25) { put(s.x + 1, s.y, c); put(s.x - 1, s.y, c); put(s.x, s.y + 1, c); put(s.x, s.y - 1, c); } }
+}
+
+/* =====================================================================
+   WIDE SLICE: five more techniques on the same engine.
+     plague   = goo density (hard threshold, outline, highlight)
+     steam    = soft density (dithered puffs, no outline)
+     ice      = rigid sprites (shards, crystals, z-physics) + mist motes
+     lightning= instant paths (jagged arcs regenerated per frame)
+     life     = growth (vines and grass that grow, leaves that sway-fall)
+   Each element supplies the same hooks: body, trail, impact, status,
+   field, nova, decal. Families (Bolt, Field, Nova) never mention an element.
+   ===================================================================== */
+const EL = compile({
+  plague: { hi: '#e4fbb0', light: '#a6e45e', mid: '#56b23e', dark: '#2c6e3a', outline: '#1b1a2c', bubble: '#c4f383', rim: ['#6fd04a', '#c4f383'], floor: ['#17201a', '#1d2c1f', '#25402a'], stain: ['#16201a', '#1f3322'], tint: '#5a7a52' },
+  steam: { tones: ['#f2f6f8', '#c5d0d9', '#8e9cab'], rim: ['#9fb0bf', '#e8eef2'], floor: ['#1e1f27', '#24262f', '#2a2d38'], tint: '#8e8ea8' },
+  ice: { body: { core: '#ffffff', light: '#d6f6ff', mid: '#8fd3ee', dark: '#3f86c8', outline: '#1a2e5a' }, mote: ['#ffffff', '#d6f6ff', '#8fd3ee', '#3f86c8'], rim: ['#8fd3ee', '#ffffff'], floor: ['#1c2433', '#233247', '#2f4560'], frost: ['#2a3c50', '#3d5a78'], tint: '#6a80b8' },
+  lightning: { arc: ['#ffffff', '#cfe6ff', '#8fb2ff', '#7a5cf0'], dark: '#2a1f5e', rim: ['#8fb2ff', '#ffffff'], floor: ['#1c1a2c', '#211e38', '#2a2550'], spider: ['#14111c', '#2a2342'], tint: '#8a7ac8' },
+  life: { leaf: ['#d4f58a', '#86d24c', '#46963c', '#275c2e'], vine: ['#7ab24a', '#4e823a', '#2a4a22'], petal: ['#ffb0d0', '#ffe27a', '#ffffff'], body: { core: '#f0ffc0', light: '#c8f07a', mid: '#7fcf4a', dark: '#3e8f3a', outline: '#1e2e16' }, rim: ['#7fcf4a', '#d4f58a'], floor: ['#19221a', '#1f2e1e', '#2a4026'], tint: '#5e7a4e' }
+});
+
+let charges = [], ewaves = [], spores = [], eprojs = [], efields = [], enovas = [], blobs = [], bubbles = [], mists = [], shards = [], crystals = [], motes = [], arcs = [], vines = [], leaves = [], blades = [], hops = [];
+const gooAir = new Float32Array(W * H), gooGround = new Float32Array(W * H), soft = new Float32Array(W * H);
+const wAir = new Float32Array(W * H), wGround = new Float32Array(W * H);
+Object.assign(EL, compile({ water: { hi: '#ffffff', light: '#a6e6ff', mid: '#3f9fe4', dark: '#2063b0', outline: '#0f1d3a', foam: ['#ffffff', '#cdeffd', '#7cc4f2'], rim: ['#4fb2f0', '#e8f8ff'], floor: ['#151d2e', '#192842', '#20385e'], puddle: ['#1b3050', '#2a4f80'], tint: '#5a80c0' } }));
+let jets = [];
+
+function splat(buf, x, y, r, v) { const R = Math.ceil(r), cx = Math.round(x), cy = Math.round(y); for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) { const d = Math.hypot(ox, oy); if (d >= r) continue; const X = cx + ox, Y = cy + oy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; const w = 1 - d / r; buf[Y * W + X] += v * w * w; } }
+// goo metaball: linear falloff over 2× radius, so a lone blob crosses the 0.5 threshold exactly at re and neighbours merge
+function gsplat(buf, x, y, re, v = 1) { const r = re * 2, R = Math.ceil(r), cx = Math.round(x), cy = Math.round(y); for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) { const d = Math.hypot(ox, oy); if (d >= r) continue; const X = cx + ox, Y = cy + oy; if (X < 0 || Y < 0 || X >= W || Y >= H) continue; buf[Y * W + X] += v * (1 - d / r); } }
+function line(x0, y0, x1, y1, c) { x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1); const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx + dy; for (let i = 0; i < 400; i++) { put(x0, y0, c); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; } } }
+function jag(x0, y0, x1, y1, amp) { const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1, n = Math.max(2, Math.ceil(L / 4)), nx = -dy / L, ny = dx / L, pts = [[x0, y0]]; for (let i = 1; i < n; i++) { const t = i / n, o = (rnd() - 0.5) * 2 * amp * Math.sin(t * Math.PI); pts.push([x0 + dx * t + nx * o, y0 + dy * t + ny * o]); } pts.push([x1, y1]); return pts; }
+function path(pts, c) { for (let i = 1; i < pts.length; i++) line(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], c); }
+function hitEl(e, el, t) { if (T - (e.hT ?? -9) > 0.45) { e.flash = 0.08; e.hT = T; } e.st = el; e.stT = Math.max(e.st === el ? e.stT : 0, t); }
+function mote(x, y, vx, vy, cols, life, g, sway) { motes.push({ x, y, vx, vy, cols, age: 0, life, g: g || 0, sway: sway || 0, ph: rnd() * 6 }); }
+function bubble(x, y, big) { bubbles.push({ x, y, vy: -(5 + rnd() * 7), r: big ? 2 : 1.2, age: 0, life: 0.5 + rnd() * 0.7 }); }
+function mist(x, y, vx, vy, r, grow, life) { mists.push({ x, y, vx, vy, r, grow, age: 0, life }); }
+function shard(x, y, vx, vy, vz, len, life, pal) { shards.push({ pal, x, y, z: 3, vx, vy, vz, ang: rnd() * TAU, spin: (rnd() - 0.5) * 20, len, age: 0, life, bounced: false }); }
+function crystal(x, y, h, life, pal, o = {}) { crystals.push({ x, y, h, tilt: o.tilt ?? (rnd() - 0.5) * 0.6, age: 0, life, pal, rim: o.rim, w: o.w }); }
+function leaf(x, y, vx, vy, cols, life) { leaves.push({ x, y, vx, vy, cols, age: 0, life, ph: rnd() * 6 }); }
+function vine(x, y, ang, len, growT, life, curl) { vines.push({ x, y, ang, len, growT, life, curl: curl ?? 0.5, ph: rnd() * 6, age: 0 }); }
+function hop(x, y, life) { hops.push({ x, y, vx: 0, vy: 0, age: 0, life, next: 0 }); }
+const inDisk = (A) => { const a = rnd() * TAU, d = Math.sqrt(rnd()) * A.r * 0.92; return [A.x + Math.cos(a) * d, A.y + Math.sin(a) * d]; };
+
+const FX = {
+  plague: {
+    trail(p, dt) {
+      if (rnd() < 0.7 * dt * 60) blobs.push({ x: p.x - p.vx * 0.02 + (rnd() - 0.5) * 2, y: p.y - p.vy * 0.02 + (rnd() - 0.5) * 2, vx: p.vx * 0.15 + (rnd() - 0.5) * 10, vy: p.vy * 0.15 + (rnd() - 0.5) * 6, r: 1.4 + rnd() * 0.8, age: 0, life: 0.35 + rnd() * 0.25, g: 70 });
+      if (rnd() < 0.12 * dt * 60) bubble(p.x + (rnd() - 0.5) * 4, p.y + (rnd() - 0.5) * 3, false);
+    },
+    body(p) { const L = Math.hypot(p.vx, p.vy) || 1; if (p.pierce) { for (let i = 0; i < 5; i++) gsplat(gooAir, p.x - p.vx / L * i * 2.2, p.y - p.vy / L * i * 2.2, 2.3 - i * 0.3); return; } gsplat(gooAir, p.x, p.y, 3.4 + Math.sin(T * 13) * 0.3); gsplat(gooAir, p.x - p.vx / L * 3 + Math.cos(T * 11) * 0.6, p.y - p.vy / L * 3 + Math.sin(T * 9) * 0.6, 2.3); gsplat(gooAir, p.x - p.vx / L * 5.5, p.y - p.vy / L * 5.5, 1.4); },
+    impact(x, y) {
+      for (let i = 0; i < 18; i++) { const a = rnd() * TAU, sp = 30 + rnd() * 50; blobs.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.75, r: 1.6 + rnd() * 1.4, age: 0, life: 0.7 + rnd() * 0.6, g: 0, stick: true }); }
+      for (let i = 0; i < 6; i++) bubble(x + (rnd() - 0.5) * 8, y + (rnd() - 0.5) * 5, rnd() < 0.4);
+      decals.push({ type: 'stain', x, y, r: 7, age: 0, life: 6, seed: rnd() * 100 }); hitstop(1);
+      for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 11) hitEl(e, 'plague', 4);
+    },
+    status(e, dt) { if (rnd() < 0.22 * dt * 60) bubble(e.x + (rnd() - 0.5) * 6, e.y - 3 - rnd() * 3, rnd() < 0.2); if (rnd() < 0.05 * dt * 60) blobs.push({ x: e.x + (rnd() - 0.5) * 4, y: e.y - 2, vx: 0, vy: 5, r: 1.2, age: 0, life: 0.4, g: 60 }); },
+    field(A, dt) { if (rnd() < 0.3 * dt * 60) { const [x, y] = inDisk(A); bubble(x, y, rnd() < 0.3); } },
+    fieldGoo(A) { const R = Math.ceil(A.r); for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) { const d = Math.hypot(ox, oy); if (d > A.r - 2) continue; const X = Math.round(A.x) + ox, Y = Math.round(A.y) + oy; const n = vn(X * 0.16, Y * 0.16 + T * 0.25) + vn(X * 0.4 + 5, Y * 0.4 - T * 0.5) * 0.3; if (n > 0.9 - Math.min(1, A.age * 2) * 0.06) gooGround[Y * W + X] += 1.1; } },
+    nova(N, dt) { const n = TAU * N.r * 0.05 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; blobs.push({ x: N.x + Math.cos(a) * N.r, y: N.y + Math.sin(a) * N.r, vx: Math.cos(a) * 35, vy: Math.sin(a) * 26, r: 1.6 + rnd(), age: 0, life: 0.45 + rnd() * 0.3, g: 0, stick: true }); } if (rnd() < 0.3) { const a = rnd() * TAU; bubble(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, false); } }
+  },
+  steam: {
+    trail(p, dt) { p.macc = (p.macc || 0) + Math.hypot(p.vx, p.vy) * dt * 0.22; while (p.macc >= 1) { p.macc--; mist(p.x - p.vx * 0.03 + (rnd() - 0.5) * 3, p.y + (rnd() - 0.5) * 3, p.vx * 0.08, -7 - rnd() * 6, 3, 7 + rnd() * 3, 0.8 + rnd() * 0.5); } },
+    body(p) { if (p.pierce) { const L = Math.hypot(p.vx, p.vy) || 1; for (let i = 0; i < 6; i++) splat(soft, p.x - p.vx / L * i * 2, p.y - p.vy / L * i * 2, 3.6 - i * 0.35, 2.2); return; } splat(soft, p.x, p.y, 5.5, 2.6); splat(soft, p.x - p.vx * 0.03, p.y - p.vy * 0.03 - 1, 5, 1.2); splat(soft, p.x + Math.cos(T * 9) * 1.5, p.y - 2 + Math.sin(T * 7), 3.5, 0.8); },
+    impact(x, y) { for (let i = 0; i < 14; i++) { const a = rnd() * TAU, sp = 22 + rnd() * 26; mist(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.7 - 6, 2.5, 8 + rnd() * 5, 0.8 + rnd() * 0.5); } for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 12) hitEl(e, 'steam', 3); },
+    status(e, dt) { if (rnd() < 0.12 * dt * 60) mist(e.x + (rnd() - 0.5) * 4, e.y - 5, (rnd() - 0.5) * 4, -8, 1.5, 3, 0.6); },
+    field(A, dt) { if (rnd() < 0.7 * dt * 60) { const [x, y] = inDisk(A); mist(x, y, (rnd() - 0.5) * 4, -2 - rnd() * 3, 3, 3 + rnd() * 2, 1.4 + rnd() * 1.2); } },
+    nova(N, dt) { const n = TAU * N.r * 0.09 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; mist(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 16, Math.sin(a) * 12 - 5, 2.6, 7, 0.6 + rnd() * 0.4); } }
+  },
+  ice: {
+    trail(p, dt) { if (rnd() < 0.9 * dt * 60) mote(p.x - p.vx * 0.02 + (rnd() - 0.5) * 3, p.y + (rnd() - 0.5) * 3, p.vx * 0.08 + (rnd() - 0.5) * 6, 4 + rnd() * 6, EL.ice.mote, 0.6 + rnd() * 0.6, 4, 6); },
+    bodyDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 4.5, b: 2 }, EL.ice.body); if ((frame >> 2) % 6 === 0) put(p.x - p.vx / Math.hypot(p.vx, p.vy) * 1, p.y - 1, EL.ice.body.core); },
+    impact(x, y) {
+      for (let i = 0; i < 8; i++) { const a = rnd() * TAU, sp = 18 + rnd() * 36; shard(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.7, 35 + rnd() * 45, 2 + rnd() * 1.5, 1 + rnd() * 0.6); }
+      for (let i = 0; i < 16; i++) { const a = rnd() * TAU, sp = 15 + rnd() * 35; mote(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.7, EL.ice.mote, 0.6 + rnd() * 0.6, 8, 4); }
+      flashes.push({ x, y, r: 2.5, age: 0, life: 0.05, c: EL.ice.body.core }); decals.push({ type: 'frost', x, y, r: 8, age: 0, life: 6, seed: rnd() * 100 }); hitstop(2);
+      for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 11) hitEl(e, 'ice', 3);
+    },
+    status(e, dt) { if (rnd() < 0.2 * dt * 60) mote(e.x + (rnd() - 0.5) * 7, e.y - 6 + rnd() * 3, (rnd() - 0.5) * 3, 3 + rnd() * 4, EL.ice.mote, 0.6, 3, 4); },
+    field(A, dt) {
+      if (crystals.length < 10 && rnd() < 0.2 * dt * 60) { const [x, y] = inDisk(A); crystal(x, y, 7 + rnd() * 6, Math.min(A.life - A.age, 1.6 + rnd() * 1.5)); }
+      if (rnd() < 0.5 * dt * 60) { const [x, y] = inDisk(A); mote(x, y - 4, (rnd() - 0.5) * 3, 2 + rnd() * 3, EL.ice.mote, 1 + rnd(), 1, 5); }
+    },
+    nova(N, dt) { const n = TAU * N.r * 0.035 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; crystal(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, 6 + rnd() * 5, 0.35 + rnd() * 0.25); } if (rnd() < 0.6) { const a = rnd() * TAU; mote(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 20, Math.sin(a) * 14, EL.ice.mote, 0.6, 6, 3); } }
+  },
+  lightning: {
+    trail(p, dt) {
+      if ((frame & 1) === 0) arcs.push({ pts: jag(p.x, p.y, p.x - p.vx * 0.07 + (rnd() - 0.5) * 8, p.y - p.vy * 0.07 + (rnd() - 0.5) * 8, 2.5), age: 0, life: 0.08, c: 1 });
+      if (rnd() < 0.6 * dt * 60) hop(p.x, p.y, 0.2 + rnd() * 0.25);
+    },
+    bodyDraw(p) { for (let i = 0; i < 5; i++) { const a = rnd() * TAU, r = 4 + rnd() * 3; path(jag(p.x, p.y, p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 1.5), EL.lightning.arc[i < 2 ? 1 : 2]); } for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) put(p.x + ox, p.y + oy, Math.abs(ox) + Math.abs(oy) < 2 ? EL.lightning.arc[0] : EL.lightning.arc[1]); },
+    impact(x, y) {                                                   // bolt lands: small zap, then a charge telegraph before the sky strike
+      let tgt = null, bd = 7; for (const e of enemies) { const d = Math.hypot(e.x - x, e.y - 3 - y); if (d < bd) { bd = d; tgt = e; } }
+      flashes.push({ x, y, r: 1.5, age: 0, life: 0.04, c: EL.lightning.arc[0] }); for (let i = 0; i < 4; i++) hop(x, y, 0.15);
+      if (tgt) hitEl(tgt, 'lightning', 0.8);
+      charges.push({ x, y, e: tgt, age: 0, life: 0.45, off: (rnd() - 0.5) * 12 });
+    },
+    strike(x, y) {
+      const sx = x + (rnd() - 0.5) * 10;
+      arcs.push({ gen: () => { const m = jag(sx, -4, x, y, 4); const b = m[(m.length * 0.5) | 0]; return [m, jag(b[0], b[1], b[0] + (rnd() - 0.5) * 16, b[1] + 6 + rnd() * 8, 3)]; }, age: 0, life: 0.13, c: 0, thick: true });
+      flashes.push({ x, y, r: 5, age: 0, life: 0.05, c: EL.lightning.arc[0] });
+      for (let i = 0; i < 12; i++) hop(x + (rnd() - 0.5) * 4, y + (rnd() - 0.5) * 3, 0.15 + rnd() * 0.25);
+      const rays = []; for (let r = 0; r < 6; r++) { const a = rnd() * TAU, L = 5 + rnd() * 5; rays.push(...jag(x, y, x + Math.cos(a) * L, y + Math.sin(a) * L * 0.8, 1.5)); }
+      decals.push({ type: 'spider', x, y, r: 3, rays, age: 0, life: 5, seed: rnd() * 100 }); hitstop(2); shake(1, 0.08);
+      for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 10) hitEl(e, 'lightning', 2.5);
+    },
+    status(e, dt) { if (rnd() < 0.08 * dt * 60) hop(e.x + (rnd() - 0.5) * 6, e.y - 3, 0.12); },
+    field(A, dt) {
+      if (rnd() < 0.85 * dt * 60) for (let i = 0; i < 2; i++) { const [x0, y0] = inDisk(A), a = rnd() * TAU, L = 8 + rnd() * 12, x1 = x0 + Math.cos(a) * L, y1 = y0 + Math.sin(a) * L * 0.8; if (Math.hypot(x1 - A.x, y1 - A.y) < A.r) arcs.push({ pts: jag(x0, y0, x1, y1, 3), age: 0, life: 0.1, c: rnd() < 0.3 ? 0 : 1 }); }
+      if (rnd() < 0.05 * dt * 60) { const inside = enemies.filter(e => Math.hypot(e.x - A.x, e.y - 3 - A.y) < A.r); if (inside.length) { const e = inside[(rnd() * inside.length) | 0], [x0, y0] = inDisk(A); arcs.push({ pts: jag(x0, y0, e.x, e.y - 3, 3), age: 0, life: 0.08, c: 0 }); for (let i = 0; i < 5; i++) hop(e.x, e.y - 3, 0.2); } }
+      if (rnd() < 0.25 * dt * 60) { const [x, y] = inDisk(A); hop(x, y, 0.2); }
+    },
+    nova(N, dt) { for (let i = 0; i < 7; i++) { const a = i / 7 * TAU + N.seed + (rnd() - 0.5) * 0.3; arcs.push({ pts: jag(N.x, N.y, N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, 3), age: 0, life: 0.02, c: i & 1, thick: true }); } if (rnd() < 0.5) { const a = rnd() * TAU; hop(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, 0.2); } }
+  },
+  life: {
+    trail(p, dt) { p.lacc = (p.lacc || 0) + Math.hypot(p.vx, p.vy) * dt * 0.22; while (p.lacc >= 1) { p.lacc--; leaf(p.x - p.vx * 0.02, p.y, p.vx * 0.12 + (rnd() - 0.5) * 10, -6 - rnd() * 8, EL.life.leaf, 1 + rnd() * 0.7); } },
+    bodyDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 5, b: 2 }, EL.life.body); },
+    impact(x, y) {
+      for (let i = 0; i < 26; i++) { const a = rnd() * TAU, sp = 18 + rnd() * 40; leaf(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.7 - 10, rnd() < 0.55 ? EL.life.petal : EL.life.leaf, 1.1 + rnd() * 0.9); }
+      for (let i = 0; i < 9; i++) { const a = i / 9 * TAU, d = 5 + rnd() * 3; blades.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d * 0.7, h: 2, delay: 0.05 + i * 0.03, age: 0, life: 3, c: i & 1, ph: rnd() * 6, flower: true }); }   // ring of flowers pops open
+      flashes.push({ x, y, r: 2, age: 0, life: 0.05, c: EL.life.petal[2] });
+      const tuft = []; for (let i = 0; i < 14; i++) { const a = rnd() * TAU, d = rnd() * 6; tuft.push([x + Math.cos(a) * d, y + Math.sin(a) * d * 0.7, (rnd() * 3) | 0]); }
+      decals.push({ type: 'grass', x, y, r: 6, tuft, age: 0, life: 6, seed: rnd() * 100 }); hitstop(2); rings.push({ x, y, max: 10, age: 0, life: 0.25, c: EL.life.petal });
+      for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 10) hitEl(e, 'life', 3);
+    },
+    status(e, dt) { if (rnd() < 0.03 * dt * 60) leaf(e.x, e.y - 5, (rnd() - 0.5) * 8, -6, EL.life.leaf, 0.8); },
+    fieldStart(A) {
+      for (let i = 0; i < 70; i++) { const [x, y] = inDisk(A); blades.push({ x, y, h: 2 + ((rnd() * 3) | 0), delay: Math.hypot(x - A.x, y - A.y) / A.r * 0.6, age: 0, life: A.life, c: (rnd() * 3) | 0, ph: rnd() * 6, flower: rnd() < 0.1 }); }
+      for (let i = 0; i < 5; i++) vine(A.x, A.y, i / 5 * TAU + rnd() * 0.5, A.r * (0.6 + rnd() * 0.3), 1.2, A.life, 0.7);
+    },
+    field(A, dt) { if (rnd() < 0.12 * dt * 60) { const [x, y] = inDisk(A); leaf(x, y - 3, (rnd() - 0.5) * 6, -4, rnd() < 0.3 ? EL.life.petal : EL.life.leaf, 1.4); } },
+    novaStart(N) { for (let i = 0; i < 10; i++) vines.push({ x: N.x, y: N.y, ang: i / 10 * TAU + rnd() * 0.3, len: N.max, growT: N.dur, life: N.dur + 0.5, curl: 0.45, ph: rnd() * 6, age: 0 }); },
+    nova(N, dt) { if (rnd() < 0.5) { const a = rnd() * TAU; leaf(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 14, -8, rnd() < 0.3 ? EL.life.petal : EL.life.leaf, 0.9); } }
+  }
+};
+
+/* ----- Infection: seed → host → visible spore transfer → spread → orphan (Plague Seed chain) ----- */
+function infect(e, gen) { e.inf = true; e.gen = gen; e.st = 'plague'; e.stT = 4; e.spreadT = 0.55; for (let i = 0; i < 6; i++) { const a = rnd() * TAU; blobs.push({ x: e.x, y: e.y - 3, vx: Math.cos(a) * 22, vy: Math.sin(a) * 16, r: 1.3, age: 0, life: 0.35, g: 40 }); } bubble(e.x, e.y - 6, true); e.flash = 0.08; }
+function updateInfection(dt) {
+  for (const e of enemies) {
+    if (!e.inf) continue;
+    if (e.stT <= 0) { e.inf = false; spores.push({ x: e.x, y: e.y - 4, to: null, vx: (rnd() - 0.5) * 8, vy: -6, age: 0, life: 1.6 }); continue; }   // host expires: orphan spore lingers, then fades
+    e.spreadT -= dt;
+    if (e.spreadT <= 0 && e.gen < 8) {
+      e.spreadT = 1.1;
+      let best = null, bd = 46; for (const o of enemies) { if (o === e || o.inf || o.pending) continue; const d = Math.hypot(o.x - e.x, o.y - e.y); if (d < bd) { bd = d; best = o; } }
+      if (best) { best.pending = true; spores.push({ from: e, to: best, sx: e.x, sy: e.y - 4, x: e.x, y: e.y - 4, age: 0, life: 0.55, gen: e.gen + 1 }); for (let i = 0; i < 3; i++) bubble(e.x + (rnd() - 0.5) * 4, e.y - 5, false); }
+    }
+  }
+  spores = spores.filter(sp => {
+    sp.age += dt;
+    if (!sp.to) { sp.x += (sp.vx + Math.sin(sp.age * 6) * 6) * dt; sp.y += sp.vy * dt; if (rnd() < 0.15) bubble(sp.x, sp.y, false); return sp.age < sp.life; }
+    const k = Math.min(1, sp.age / sp.life), tx = sp.to.x, ty = sp.to.y - 3, ease = k * k * (3 - 2 * k);
+    sp.x = sp.sx + (tx - sp.sx) * ease; sp.y = sp.sy + (ty - sp.sy) * ease - Math.sin(k * Math.PI) * 9;
+    if (rnd() < 0.5) blobs.push({ x: sp.x, y: sp.y, vx: 0, vy: 4, r: 0.9, age: 0, life: 0.25, g: 50 });
+    if (k >= 1) { sp.to.pending = false; infect(sp.to, sp.gen); return false; }
+    return true;
+  });
+}
+
+/* ----- Wave: directional moving front. Only the bright band hits; each enemy once; pushes. ----- */
+function rimOf(el) { return el === 'fire' ? MAT.fire.rim : EL[el].rim; }
+function eWave(el, x, y, dx, dy) { const L = Math.hypot(dx, dy) || 1; ewaves.push({ el, ox: x, oy: y, dx: dx / L, dy: dy / L, d: 4, max: 150, speed: 120, hw: 9, age: 0, hit: new Set(), acc: 0 }); }
+function wavePoint(w, t) { const nx = -w.dy, ny = w.dx, back = (t * t) / w.hw * 0.35; return [w.ox + w.dx * (w.d - back) + nx * t, w.oy + w.dy * (w.d - back) + ny * t]; }
+/* per-element emission along any moving front: shared by Wave and Slash */
+function emitAt(el, x, y, fx, fy, w) {
+      if (el === 'fire') flame(STATIC(x, y), { vx: fx * 30, vy: fy * 24, rise: 18 + rnd() * 10, life: 0.28 + rnd() * 0.2, heat: 1.35 });
+      else if (el === 'plague') { if (rnd() < 0.12) blobs.push({ x, y, vx: fx * 40 + (rnd() - 0.5) * 10, vy: fy * 30 + (rnd() - 0.5) * 8, r: 1.4 + rnd(), age: 0, life: 0.45 + rnd() * 0.3, g: 0, stick: true }); if (rnd() < 0.45) bubble(x, y, rnd() < 0.2); }
+      else if (el === 'steam') { if (rnd() < 0.45) mist(x, y, fx * 22, fy * 16 - 5, 2.6, 7, 0.55 + rnd() * 0.4); }
+      else if (el === 'ice') { if (rnd() < 0.18) crystal(x, y, 5 + rnd() * 5, 0.35 + rnd() * 0.3); if (rnd() < 0.4) mote(x, y, fx * 20, fy * 14 - 4, EL.ice.mote, 0.6, 6, 3); }
+      else if (el === 'lightning') { if (rnd() < 0.25) hop(x, y, 0.2); }
+      else if (el === 'water') { if (rnd() < 0.3) wblob(x - fx * 2, y - fy * 2, fx * 50, fy * 38, 1.3 + rnd() * 0.8, 0.25, false); if (rnd() < 0.3) foamStreak(x, y, fx, fy, 6); if (rnd() < 0.7) droplet(x, y, fx * 40 + (rnd() - 0.5) * 10, fy * 30, 30 + rnd() * 40); if (rnd() < 0.2) mote(x, y - 3, fx * 30, -12, EL.water.foam, 0.4, 20, 0); }
+      else if (el === 'life') { if (rnd() < 0.35) blades.push({ x, y, h: 2 + ((rnd() * 3) | 0), delay: 0, age: 0, life: 0.9 + rnd() * 0.5, c: (rnd() * 3) | 0, ph: rnd() * 6, flower: rnd() < 0.15 }); if (rnd() < 0.15) leaf(x, y - 2, fx * 14, -8, rnd() < 0.3 ? EL.life.petal : EL.life.leaf, 0.9); }
+      else FX[el].waveEmit?.(x, y, fx, fy, w);
+}
+function updateWaves(dt) {
+  ewaves = ewaves.filter(w => {
+    w.age += dt; w.d += w.speed * dt; w.hw = Math.min(w.el === 'water' ? 24 : 16, 9 + w.age * (w.el === 'water' ? 18 : 10));
+    const fade = Math.min(1, (w.max - w.d) / 25);
+    w.acc += w.hw * 0.75 * dt * 60 * fade;
+    while (w.acc >= 1) {
+      w.acc--; const t = (rnd() * 2 - 1) * w.hw, [x, y] = wavePoint(w, t), fx = w.dx, fy = w.dy;
+      emitAt(w.el, x, y, fx, fy, w);
+    }
+    if (w.el === 'lightning') { const pts = []; for (let i = 0; i <= 6; i++) { const [x, y] = wavePoint(w, -w.hw + i / 6 * 2 * w.hw); pts.push([x + (rnd() - 0.5) * 3, y + (rnd() - 0.5) * 3]); } arcs.push({ pts, age: 0, life: 0.02, c: 0, thick: true }); if ((frame & 1) === 0) arcs.push({ pts: pts.map(([x, y]) => [x - w.dx * 4 + (rnd() - 0.5) * 3, y - w.dy * 4 + (rnd() - 0.5) * 3]), age: 0, life: 0.07, c: 2 }); for (let i = 0; i < 2; i++) { const [x, y] = pts[(rnd() * pts.length) | 0]; arcs.push({ pts: jag(x, y, x - w.dx * (6 + rnd() * 8), y - w.dy * (6 + rnd() * 8) + (rnd() - 0.5) * 6, 2), age: 0, life: 0.04, c: 1 }); } }
+    for (const e of enemies) {
+      if (w.hit.has(e)) continue;
+      const rx = e.x - w.ox, ry = e.y - 2 - w.oy, along = rx * w.dx + ry * w.dy, lat = rx * -w.dy + ry * w.dx, back = (lat * lat) / w.hw * 0.35;
+      if (Math.abs(lat) < w.hw + 1.5 && Math.abs(along - (w.d - back)) < 3.5) { w.hit.add(e); if (w.el === 'fire') hit(e, 3); else hitEl(e, w.el, 3); knock(e, w.dx, w.dy, w.el === 'steam' ? 5 : w.el === 'water' ? 16 : 9); if (w.el !== 'steam') hitstop(1); }
+    }
+    return w.d < w.max;
+  });
+}
+function drawWaves() {
+  for (const w of ewaves) {
+    const R = rimOf(w.el), fade = Math.min(1, (w.max - w.d) / 25), steps = Math.ceil(w.hw * 4);
+    for (let i = 0; i <= steps; i++) {
+      const t = -w.hw + i / steps * 2 * w.hw, [x, y] = wavePoint(w, t);
+      if (bayer(Math.round(x), Math.round(y)) > fade) continue;
+      if (w.el === 'steam' && ((i + (frame >> 1)) & 1)) continue;
+      put(x, y, R[((i + (frame >> 2)) % 5) ? 0 : 1]); put(x - w.dx * 1.2, y - w.dy * 1.2, R[0]);
+    }
+  }
+}
+
+/* ----- Spear for every element: pierces, mini contact at each enemy ----- */
+function eContact(el, x, y) {
+  FX[el].contact?.(x, y);
+  if (el === 'plague') { for (let i = 0; i < 6; i++) { const a = rnd() * TAU; blobs.push({ x, y, vx: Math.cos(a) * 30, vy: Math.sin(a) * 22, r: 1.3, age: 0, life: 0.5, g: 0, stick: true }); } bubble(x, y - 2, false); }
+  if (el === 'ice') { for (let i = 0; i < 3; i++) { const a = rnd() * TAU; shard(x, y, Math.cos(a) * 25, Math.sin(a) * 18, 30 + rnd() * 20, 1.8, 0.7); } for (let i = 0; i < 6; i++) mote(x, y, (rnd() - 0.5) * 30, (rnd() - 0.5) * 20, EL.ice.mote, 0.5, 6, 3); flashes.push({ x, y, r: 1.5, age: 0, life: 0.04, c: EL.ice.body.core }); }
+  if (el === 'lightning') { flashes.push({ x, y, r: 2, age: 0, life: 0.04, c: EL.lightning.arc[0] }); for (let i = 0; i < 5; i++) hop(x, y, 0.18); for (let i = 0; i < 3; i++) { const a = rnd() * TAU; arcs.push({ pts: jag(x, y, x + Math.cos(a) * 7, y + Math.sin(a) * 5, 1.5), age: 0, life: 0.06, c: 1 }); } }
+  if (el === 'life') { for (let i = 0; i < 7; i++) { const a = rnd() * TAU; leaf(x, y, Math.cos(a) * 25, Math.sin(a) * 18 - 6, rnd() < 0.4 ? EL.life.petal : EL.life.leaf, 0.8); } }
+}
+function drawSpear(p) {
+  if (FX[p.el].spearDraw) return FX[p.el].spearDraw(p);
+  const L = Math.hypot(p.vx, p.vy) || 1, ux = p.vx / L, uy = p.vy / L;
+  if (p.el === 'ice') drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 1.6 }, EL.ice.body);
+  if (p.el === 'life') drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 1.4 }, EL.life.body);
+  if (p.el === 'lightning') { const tx = p.x - ux * 10, ty = p.y - uy * 10; path(jag(tx, ty, p.x, p.y, 1.5), EL.lightning.arc[1]); line(tx + ux * 3, ty + uy * 3, p.x, p.y, EL.lightning.arc[0]); for (let i = 0; i < 2; i++) { const a = rnd() * TAU; path(jag(p.x, p.y, p.x + Math.cos(a) * 4, p.y + Math.sin(a) * 4, 1), EL.lightning.arc[2]); } }
+}
+
+/* ----- WATER: goo technique in blue, plus droplets on z-physics, ripples and puddles ----- */
+const WD = () => EL.water.foam;
+function wblob(x, y, vx, vy, r, life, stick, g) { blobs.push({ w: true, x, y, vx, vy, r, age: 0, life, g: g ?? 0, stick }); }
+function droplet(x, y, vx, vy, vz) { chunk(x, y, vx, vy, vz, WD(), 0.5 + rnd() * 0.5, 1); }
+function ripple(x, y, max, delay) { const go = () => rings.push({ x, y, max, age: 0, life: 0.5, c: [EL.water.foam[0], EL.water.foam[1], EL.water.foam[2], EL.water.rim[0]] }); if (delay) later.push({ t: delay, run: go }); else go(); }
+FX.water = {
+  trail(p, dt) {
+    if (rnd() < 0.6 * dt * 60) wblob(p.x - p.vx * 0.03, p.y - p.vy * 0.03, p.vx * 0.2 + (rnd() - 0.5) * 8, p.vy * 0.2 + (rnd() - 0.5) * 6, 1.1 + rnd() * 0.6, 0.25 + rnd() * 0.2, false, 80);
+    if (rnd() < 0.35 * dt * 60) droplet(p.x, p.y, p.vx * 0.15 + (rnd() - 0.5) * 12, (rnd() - 0.5) * 8, 15 + rnd() * 20);
+  },
+  body(p) { const L = Math.hypot(p.vx, p.vy) || 1; if (p.pierce) return; gsplat(wAir, p.x, p.y, 3.6); gsplat(wAir, p.x - p.vx / L * 3.5, p.y - p.vy / L * 3.5 + Math.sin(T * 12) * 0.5, 2.6); gsplat(wAir, p.x - p.vx / L * 6.5, p.y - p.vy / L * 6.5, 1.6); },
+  impact(x, y) {
+    for (let i = 0; i < 16; i++) { const a = rnd() * TAU, sp = 25 + rnd() * 40; droplet(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.6, 55 + rnd() * 55); }   // splash crown
+    for (let i = 0; i < 10; i++) { const a = rnd() * TAU, sp = 20 + rnd() * 30; wblob(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.7, 1.5 + rnd(), 0.6 + rnd() * 0.4, true); }
+    flashes.push({ x, y, r: 2.5, age: 0, life: 0.05, c: EL.water.hi });
+    ripple(x, y, 9); ripple(x, y, 14, 0.12); ripple(x, y, 18, 0.26);
+    decals.push({ type: 'puddle', x, y, r: 7, age: 0, life: 5, seed: rnd() * 100 }); hitstop(2);
+    for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 11) { hitEl(e, 'water', 3); knock(e, e.x - x, e.y - y, 7); }
+  },
+  status(e, dt) { if (rnd() < 0.18 * dt * 60) chunk(e.x + (rnd() - 0.5) * 6, e.y, 0, 0, 8 + rnd() * 4, WD(), 0.35, 1); },
+  fieldGoo(A) {                                                       // pool: mostly-filled water surface with drifting gaps
+    const R = Math.ceil(A.r); for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+      const d = Math.hypot(ox, oy); if (d > A.r - 1.5) continue; const X = Math.round(A.x) + ox, Y = Math.round(A.y) + oy;
+      const n = vn(X * 0.14 + T * 0.3, Y * 0.14) * 0.7 + vn(X * 0.35, Y * 0.35 - T * 0.6) * 0.3; if (n > 0.34 + Math.max(0, 1 - A.age * 2) * 0.6) wGround[Y * W + X] += 1.1;
+    }
+  },
+  field(A, dt) {
+    if (rnd() < 0.12 * dt * 60) { const [x, y] = inDisk(A); ripple(x, y, 4 + rnd() * 4); }
+    if (rnd() < 0.08 * dt * 60) { const [x, y] = inDisk(A); for (let i = 0; i < 4; i++) droplet(x, y, (rnd() - 0.5) * 16, (rnd() - 0.5) * 10, 25 + rnd() * 20); }
+    for (const e of enemies) if (Math.hypot(e.x - A.x, e.y - 1 - A.y) < A.r && rnd() < 0.08) ripple(e.x, e.y, 5);
+  },
+  nova(N, dt) {
+    const n = TAU * N.r * 0.07 * dt * 60;
+    for (let i = 0; i < n; i++) { const a = rnd() * TAU; wblob(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 30, Math.sin(a) * 22, 1.6 + rnd(), 0.4 + rnd() * 0.3, true); }
+    if (rnd() < 0.8) { const a = rnd() * TAU; droplet(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 30, Math.sin(a) * 20, 40 + rnd() * 30); }
+  },
+  jetGoo(j) {                                                         // Water Jet: a stream of goo from caster to the contact point
+    const dx = j.ex - j.sx, dy = j.ey - j.sy, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, k = Math.min(1, j.age / 0.12, (j.life - j.age) / 0.2);
+    for (let t = 0; t < L; t += 1.6) { const wob = Math.sin(t * 0.35 - T * 30) * 0.7; gsplat(wAir, j.sx + dx * t / L + nx * wob, j.sy + dy * t / L + ny * wob, (1.5 + (t / L) * 0.6) * k); }
+    gsplat(wAir, j.ex, j.ey, 2.8 * k);
+  }
+};
+function updateJets(dt) {
+  jets = jets.filter(j => {
+    j.age += dt; if (j.age > j.life) return false;
+    j.sx = player.x + 3; j.sy = player.y - 4;
+    const tgt = nearestEnemy(j.sx, j.sy), want = Math.atan2(tgt.y - 3 - j.sy, tgt.x - j.sx); let da = ((want - j.ang + Math.PI * 3) % TAU) - Math.PI;
+    j.ang += Math.max(-4 * dt, Math.min(4 * dt, da));                // tracks at a limited turn rate
+    let reach = 130; for (const e of enemies) { const rx = e.x - j.sx, ry = e.y - 3 - j.sy, along = rx * Math.cos(j.ang) + ry * Math.sin(j.ang), lat = Math.abs(-rx * Math.sin(j.ang) + ry * Math.cos(j.ang)); if (along > 0 && along < reach && lat < 3.5) { reach = along; j.hitE = e; } }
+    j.ex = j.sx + Math.cos(j.ang) * reach; j.ey = j.sy + Math.sin(j.ang) * reach;
+    if (reach < 130 && j.hitE) { hitEl(j.hitE, 'water', 1); knock(j.hitE, Math.cos(j.ang), Math.sin(j.ang), 0.9); if (rnd() < 0.7) { const a = j.ang + Math.PI + (rnd() - 0.5) * 2.2; droplet(j.ex, j.ey, Math.cos(a) * 35, Math.sin(a) * 25, 30 + rnd() * 30); } if (rnd() < 0.15) ripple(j.ex, j.ey + 3, 6); }
+    else if (rnd() < 0.3) droplet(j.ex, j.ey, Math.cos(j.ang) * 20, Math.sin(j.ang) * 14, 20);
+    return true;
+  });
+}
+
+/* ----- element components (same shapes as fire's) ----- */
+function eShoot(el, speed) { const tgt = nearestEnemy(player.x, player.y), dx = tgt.x - player.x, dy = tgt.y - 3 - player.y, L = Math.hypot(dx, dy) || 1; eprojs.push({ el, x: player.x + 3, y: player.y - 4, vx: dx / L * speed, vy: dy / L * speed, age: 0 }); }
+function eField(el, x, y, r, life) { const A = { el, x, y, r, age: 0, life }; efields.push(A); FX[el].fieldStart?.(A); }
+function eNova(el, x, y, max, dur) { const N = { el, x, y, r: 0, max, dur, age: 0, hit: new Set(), seed: rnd() * 6 }; enovas.push(N); FX[el].novaStart?.(N); }
+
+function updateElements(dt) {
+  updateInfection(dt);
+  charges = charges.filter(c => {
+    c.age += dt; if (c.e) { c.x = c.e.x; c.y = c.e.y - 3; }
+    if (rnd() < 0.5) { const a = rnd() * TAU, d = 9 * (1 - c.age / c.life) + 2; hops.push({ x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d * 0.7, vx: 0, vy: 0, age: 0, life: 0.12, next: 0 }); }
+    if (c.age >= c.life) { FX.lightning.strike(c.x, c.y); return false; }
+    return true;
+  });
+  updateWaves(dt);
+  updateJets(dt);
+  updateMatrix(dt);
+  eprojs = eprojs.filter(p => {
+    p.age += dt; p.x += p.vx * dt; p.y += p.vy * dt; FX[p.el].trail(p, dt);
+    for (const e of enemies) if (Math.hypot(e.x - p.x, e.y - 3 - p.y) < 4.5) { if (p.mini) { eContact(p.el, p.x, p.y); hitEl(e, p.el, 2); return false; } if (p.pierce) { if (p.hits.has(e)) continue; p.hits.add(e); eContact(p.el, p.x, p.y); hitEl(e, p.el, 3); continue; } if (p.onHit) p.onHit(e, p); else FX[p.el].impact(p.x, p.y); return false; }
+    if (p.maxAge && p.age > p.maxAge) return false;
+    return p.x > -8 && p.x < W + 8 && p.y > -8 && p.y < H + 8 && p.age < 3;
+  });
+  efields = efields.filter(A => { A.age += dt; if (A.age > A.life) return false; FX[A.el].field(A, dt); for (const e of enemies) if (Math.hypot(e.x - A.x, e.y - 1 - A.y) < A.r) hitEl(e, A.el, 0.8); return true; });
+  enovas = enovas.filter(N => {
+    N.age += dt; const k = Math.min(1, N.age / N.dur); N.r = N.max * (1 - Math.pow(1 - k, 2)); FX[N.el].nova(N, dt);
+    for (const e of enemies) { if (N.hit.has(e)) continue; if (Math.abs(Math.hypot(e.x - N.x, e.y - 2 - N.y) - N.r) < 3) { N.hit.add(e); hitEl(e, N.el, 3); } }
+    return N.age < N.dur;
+  });
+  blobs = blobs.filter(b => { b.age += dt; if (b.age > b.life) return false; b.vx = drag(b.vx, dt, 0.88); b.vy = drag(b.vy, dt, 0.88) + b.g * dt; b.x += b.vx * dt; b.y += b.vy * dt; return true; });
+  bubbles = bubbles.filter(b => { b.age += dt; b.y += b.vy * dt; b.x += Math.sin(b.age * 9 + b.y) * 3 * dt; if (b.age > b.life) { for (let i = 0; i < 3; i++) { const a = rnd() * TAU; mote(b.x, b.y, Math.cos(a) * 14, Math.sin(a) * 14, [EL.plague.hi, EL.plague.light], 0.15); } return false; } return true; });
+  mists = mists.filter(m => { m.age += dt; if (m.age > m.life) return false; m.vx = drag(m.vx + wind * 2.4 * dt, dt, 0.95); m.vy = drag(m.vy, dt, 0.97); m.x += (m.vx + turb(m.x, m.y, 10)) * dt; m.y += m.vy * dt; m.r += m.grow * dt; m.grow *= Math.pow(0.97, dt * 60); return true; });
+  shards = shards.filter(s => { s.age += dt; if (s.age > s.life) return false; s.vz -= 170 * dt; s.z += s.vz * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.ang += s.spin * dt; if (s.z <= 0) { s.z = 0; if (!s.bounced) { s.vz = -s.vz * 0.3; s.vx *= 0.5; s.vy *= 0.5; s.spin *= 0.4; s.bounced = true; } else { s.vz = 0; s.vx = drag(s.vx, dt, 0.8); s.vy = drag(s.vy, dt, 0.8); s.spin = 0; } } return true; });
+  crystals = crystals.filter(c => { c.age += dt; if (c.age > c.life) { for (let i = 0; i < 3; i++) { const a = rnd() * TAU; shard(c.x, c.y - c.h * 0.5, Math.cos(a) * 18, Math.sin(a) * 12, 25 + rnd() * 25, 1.6, 0.6 + rnd() * 0.4, c.pal); } for (let i = 0; i < 4; i++) mote(c.x, c.y - c.h * 0.5, (rnd() - 0.5) * 20, (rnd() - 0.5) * 12, c.pal ? [c.pal.core, c.pal.light, c.pal.mid, c.pal.dark] : EL.ice.mote, 0.5, 6, 3); return false; } return true; });
+  motes = motes.filter(m => { m.age += dt; if (m.age > m.life) return false; m.vx = drag(m.vx, dt, 0.92); m.vy = drag(m.vy, dt, 0.95) + m.g * dt; m.x += (m.vx + Math.sin(m.ph + T * 4) * m.sway + wind * 0.4) * dt; m.y += m.vy * dt; return true; });
+  leaves = leaves.filter(l => { l.age += dt; if (l.age > l.life) return false; l.vx = drag(l.vx, dt, 0.9); l.vy = drag(l.vy, dt, 0.92) + 16 * dt; l.x += (l.vx + Math.sin(l.ph + T * 5) * 9 + wind * 0.8) * dt; l.y += l.vy * dt; return true; });
+  vines = vines.filter(v => (v.age += dt) < v.life);
+  blades = blades.filter(b => (b.age += dt) < b.life);
+  hops = hops.filter(h => { h.age += dt; if (h.age > h.life) return false; h.next -= dt; if (h.next <= 0) { h.next = 0.04; const a = rnd() * TAU; h.vx = Math.cos(a) * 70; h.vy = Math.sin(a) * 70; } h.x += h.vx * dt; h.y += h.vy * dt; return true; });
+  arcs = arcs.filter(a => (a.age += dt) < a.life);
+}
+
+function accumulateElements() {
+  gooAir.fill(0); gooGround.fill(0); soft.fill(0); wAir.fill(0); wGround.fill(0); dSoft.fill(0);
+  for (const p of eprojs) if (p.el === 'water') FX.water.body(p);
+  for (const A of efields) if (A.el === 'water') FX.water.fieldGoo(A);
+  for (const j of jets) FX.water.jetGoo(j);
+  accMatrix();
+  for (const p of eprojs) { if (p.el === 'plague') FX.plague.body(p); if (p.el === 'steam') FX.steam.body(p); }
+  for (const A of efields) if (A.el === 'plague') FX.plague.fieldGoo(A);
+  for (const sp of spores) gsplat(gooAir, sp.x, sp.y, sp.to ? 2.1 : 1.8 * (1 - sp.age / sp.life * 0.5));
+  for (const b of blobs) { const k = b.age / b.life, r = b.r * (1 - k * 0.5); gsplat(b.w ? (b.stick && k > 0.35 ? wGround : wAir) : (b.stick && k > 0.35 ? gooGround : gooAir), b.x, b.y, r); }
+  for (const m of mists) { const k = m.age / m.life; splat(m.dk ? dSoft : soft, m.x, m.y, m.r, 1.05 * Math.pow(1 - k, 0.8)); }
+}
+function drawGoo(buf, P = EL.plague) {
+  const th = 0.5;
+  for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) {
+    const i = y * W + x; if (buf[i] < th) continue;
+    if (buf[i - W] < th || buf[i + W] < th || buf[i - 1] < th || buf[i + 1] < th) { px[i] = P.outline; continue; }
+    const tl = buf[i - 2 * W] < th || buf[i - 2] < th, br = buf[i + 2 * W] < th || buf[i + 2] < th;
+    px[i] = tl && buf[i - 2 * W - 1] < th && buf[i - 1 - W] >= th && buf[i - 2] < th ? P.hi : tl ? P.light : br ? P.dark : P.mid;
+  }
+}
+function drawSoft(buf = soft, t = EL.steam.tones) {
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const v = buf[y * W + x]; if (v < 0.25) continue; const L = v + (bayer(x, y) - 0.5) * 0.35; if (L > 1.15) px[y * W + x] = t[0]; else if (L > 0.7) px[y * W + x] = t[1]; else if (bayer(x, y) < v * 1.4) px[y * W + x] = t[2]; }
+}
+function drawEFields() {
+  for (const A of efields) {
+    const P = EL[A.el], R = Math.ceil(A.r + 1);
+    for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+      const X = Math.round(A.x) + ox, Y = Math.round(A.y) + oy, d = Math.hypot(ox, oy);
+      if (d > A.r + 0.5 || !areaVis(A, X, Y)) continue;
+      if (Math.abs(d - A.r) < 0.7) { const flick = A.el === 'lightning' ? hs(X + frame, Y) > 0.6 : ((X + Y + (frame >> 3)) & 3) === 0; if (A.el !== 'steam' || ((X + Y + (frame >> 2)) & 1)) put(X, Y, P.rim[flick ? 1 : 0]); continue; }
+      const n = vn(X * 0.3, Y * 0.3 + T * (A.el === 'ice' ? 0.05 : 0.4)) * 0.7 + vn(X * 0.8 + 3, Y * 0.8) * 0.3;
+      put(X, Y, n > 0.68 ? P.floor[2] : n > 0.48 ? P.floor[1] : P.floor[0]);
+      if (A.el === 'ice' && hs(X, Y) > 0.985 && ((frame >> 3) + X) % 7 === 0) put(X, Y, EL.ice.mote[0]);
+    }
+    FX[A.el].fieldDraw?.(A);
+  }
+  drawWalls();
+}
+function drawEDecals() {
+  for (const d of decals) {
+    if (!d.type) continue;
+    const fade = 1 - d.age / d.life;
+    if (DECAL[d.type]) { DECAL[d.type](d, fade); continue; }
+    if (d.type === 'spider') { for (let i = 1; i < d.rays.length; i++) { const [x, y] = d.rays[i]; if (bayer(Math.round(x), Math.round(y)) < fade) put(x, y, EL.lightning.spider[1]); } for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) put(d.x + ox, d.y + oy, EL.lightning.spider[0]); continue; }
+    if (d.type === 'grass') { for (const [x, y, c] of d.tuft) if (bayer(Math.round(x), Math.round(y)) < fade) { put(x, y, EL.life.leaf[2 + (c & 1)]); if (c === 0) put(x, y - 1, EL.life.leaf[1]); } continue; }
+    const R = Math.ceil(d.r + 3), cols = d.type === 'stain' ? EL.plague.stain : d.type === 'puddle' ? EL.water.puddle : EL.ice.frost;
+    for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) {
+      const X = Math.round(d.x) + ox, Y = Math.round(d.y) + oy, dist = Math.hypot(ox, oy * 1.25), edge = d.r * (0.7 + 0.55 * vn(X * 0.3 + d.seed, Y * 0.3));
+      if (dist < edge && bayer(X, Y) < fade * 0.9) put(X, Y, d.type === 'frost' ? (dist > edge * 0.6 || hs(X, Y) > 0.8 ? cols[1] : cols[0]) : (dist < edge * 0.55 ? cols[0] : cols[1]));
+    }
+  }
+}
+function drawGround() {
+  for (const b of blades) { if (b.age < b.delay) continue; const h = Math.min(b.h, Math.ceil((b.age - b.delay) * 18)), k = b.age / b.life; if (k > 0.85 && bayer(Math.round(b.x), Math.round(b.y)) < (k - 0.85) * 6.6) continue; const sway = Math.round(Math.sin(T * 2.2 + b.ph) * 0.7); for (let j = 0; j < h; j++) put(b.x + (j === h - 1 ? sway : 0), b.y - j, EL.life.leaf[j === h - 1 ? 1 : 2 + (b.c & 1)]); if (b.flower && b.age - b.delay > (b.life < 3.5 ? 0.15 : 0.8)) { const c = EL.life.petal[b.c % 2]; put(b.x + sway, b.y - h, EL.life.petal[1]); put(b.x + sway - 1, b.y - h, c); put(b.x + sway + 1, b.y - h, c); put(b.x + sway, b.y - h - 1, c); } }
+  for (const v of vines) {
+    const L = v.len * Math.min(1, v.age / v.growT), k = v.age / v.life; let x = v.x, y = v.y;
+    for (let s = 0; s < L; s += 0.8) { const a = v.ang + Math.sin(s * 0.22 + v.ph) * v.curl; x += Math.cos(a) * 0.8; y += Math.sin(a) * 0.8 * 0.8; if (k > 0.8 && bayer(Math.round(x), Math.round(y)) < (k - 0.8) * 5) continue; put(x, y, EL.life.vine[1]); if (((s * 10) | 0) % 60 < 8) { put(x + Math.sin(a) * 1.5, y - Math.cos(a) * 1.5, EL.life.leaf[1]); } }
+    put(x, y, EL.life.vine[0]);
+  }
+  for (const c of crystals) {
+    const g = Math.min(1, c.age / 0.1), s = g < 1 ? g * 1.25 : 1 + Math.max(0, 0.15 - (c.age - 0.1) * 1.5), h = c.h * s;
+    put(c.x - 1, c.y + 1, C.shadow); put(c.x, c.y + 1, C.shadow); put(c.x + 1, c.y + 1, C.shadow);
+    drawBody(c.x + c.tilt * h * 0.5, c.y - h * 0.5, c.tilt, -1, { t: 'diamond', a: Math.max(1.5, h * 0.5), b: Math.max(1.2, h * (c.w || 0.22)) }, c.pal || EL.ice.body, c.rim?.());
+  }
+}
+function drawStatuses() {
+  for (const sp of spores) {                                        // transfer link: dotted strand from host to travelling spore
+    if (!sp.to) continue; const dx = sp.x - sp.sx, dy = sp.y - sp.sy, L = Math.hypot(dx, dy);
+    for (let t = 0; t < L; t += 2) if (((t / 2 | 0) + (frame >> 2)) % 3 !== 0) put(sp.sx + dx * t / L, sp.sy + dy * t / L, EL.plague.dark);
+  }
+  for (const e of enemies) {
+    if (e.inf) { const pulse = (frame >> 3) & 1; put(e.x - 1, e.y - 3, EL.plague.mid); put(e.x + 2, e.y - 2, pulse ? EL.plague.light : EL.plague.mid); put(e.x - 2, e.y - 1, EL.plague.dark); put(e.x, e.y - 7 - pulse, EL.plague.hi); }
+    if (!(e.stT > 0)) continue;
+    FX[e.st].statusDraw?.(e);
+    if (e.st === 'life') { for (let i = 0; i < 18; i++) { const a = i / 18 * TAU, x = e.x + Math.cos(a) * 4, y = e.y - 2 + Math.sin(a) * 1.6 - (i % 9 < 4 ? 0 : 2); if (Math.sin(a * 3 + T * 3) > -0.3) put(x, y, EL.life.vine[(i & 1)]); } put(e.x + 3, e.y - 5, EL.life.leaf[1]); }
+    if (e.st === 'lightning' && (frame & 3) === 0) path(jag(e.x - 3, e.y - 5 + rnd() * 3, e.x + 3, e.y - 2 - rnd() * 3, 2), EL.lightning.arc[1]);
+  }
+}
+function drawCharges() {
+  const A = EL.lightning.arc;
+  for (const c of charges) {
+    const k = c.age / c.life, r = 10 * (1 - k) + 3, steps = Math.ceil(TAU * r * 1.3), blink = k > 0.6 ? (frame & 1) : ((frame >> 2) & 1);
+    for (let i = 0; i < steps; i++) { if (!blink && (i & 1)) continue; const a = i / steps * TAU; put(c.x + Math.cos(a) * r, c.y + 3 + Math.sin(a) * r * 0.6, A[k > 0.7 ? 0 : 2]); }
+    path(jag(c.x, c.y, c.x + (rnd() - 0.5) * 8, c.y + (rnd() - 0.5) * 6, 1.2), A[2]);
+    if (k > 0.6) { const yb = -4 + (c.y + 4) * ((k - 0.6) / 0.4); path(jag(c.x + c.off, -4, c.x + c.off * (1 - (k - 0.6) / 0.4), yb, 3), A[3]); }   // stepped leader reaching down from the sky
+  }
+}
+function drawElementTop() {
+  drawWaves(); drawCharges(); drawMatrixTop();
+  for (const p of eprojs) p.small ? drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 3, b: 1.3 }, EL[p.el].body) : p.pierce ? drawSpear(p) : FX[p.el].bodyDraw?.(p);
+  for (const a of arcs) { const L = a.gen ? a.gen() : [a.pts]; for (const pts of L) { if (a.thick) { for (const q of pts) put(q[0] + 1, q[1], EL.lightning.arc[2]); } path(pts, EL.lightning.arc[a.c]); } }
+  for (const s of shards) { const k = s.age / s.life; if (k > 0.75 && (frame & 2)) continue; if (s.z > 1) put(s.x, s.y, C.shadow); const sp = s.pal || EL.ice.body, vx = Math.cos(s.ang), vy = Math.sin(s.ang), x = s.x, y = s.y - s.z; for (let t = -s.len; t <= s.len; t += 0.5) put(x + vx * t, y + vy * t * 0.7, Math.abs(t) < 0.6 ? sp.core : t > 0 ? sp.light : sp.dark); }
+  for (const b of bubbles) {                                         // bubble: dark rim, light body, one specular pixel; swells before popping
+    const k = b.age / b.life, r = b.r + (k > 0.75 ? 0.6 : 0), R = Math.ceil(r + 1), P = EL.plague;
+    for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) { const d = Math.hypot(ox, oy); if (d > r + 0.5) continue; put(b.x + ox, b.y + oy, d > r - 0.5 ? P.outline : P.light); }
+    put(b.x - Math.round(r * 0.5), b.y - Math.round(r * 0.5), P.hi);
+  }
+  for (const m of motes) { const k = m.age / m.life; if (k > 0.7 && (frame & 2)) continue; const c = m.cols[Math.min(m.cols.length - 1, Math.floor(k * m.cols.length))]; put(m.x, m.y, c); if (m.cols === EL.ice.mote && k < 0.2 && m.sway > 5) { put(m.x + 1, m.y, c); put(m.x - 1, m.y, c); put(m.x, m.y + 1, c); put(m.x, m.y - 1, c); } }
+  for (const l of leaves) { const k = l.age / l.life; if (k > 0.8 && (frame & 2)) continue; const flip = Math.sin(l.ph + T * 7) > 0; put(l.x, l.y, l.cols[flip ? 0 : 1]); put(l.x + (flip ? 1 : 0), l.y + (flip ? 0 : 1), l.cols[l.cols.length > 3 ? 2 : 1]); }
+  for (const h of hops) { const k = h.age / h.life; put(h.x, h.y, EL.lightning.arc[k < 0.3 ? 0 : k < 0.6 ? 1 : 2]); put(h.x - h.vx * 0.012, h.y - h.vy * 0.012, EL.lightning.arc[2]); }
+  for (const N of enovas) { const steps = Math.ceil(TAU * N.r * 1.2); for (let i = 0; i < steps; i += 2) { const a = i / steps * TAU; put(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, EL[N.el].rim[(i + (frame >> 1)) & 3 ? 0 : 1]); } }
+}
+
+const E_DESC = {
+  plague: { bolt: 'Bolt × Plague (goo). Wobbling goo drop with outline and highlight, sheds drips and bubbles → splat: blobs fly and stick as a stain, bubbles pop → infected status (bubbles boiling off).', field: 'Field × Plague. Puddle pockets on a stained floor (goo surface pass), bubbles swelling and popping, bright rim at the true radius.', nova: 'Nova × Plague. Splash front: goo blobs thrown outward from the band, landing as stains.' },
+  steam: { bolt: 'Bolt × Steam (soft). Dense cloud ball, puffs billowing behind it → puff burst → scalded status.', field: 'Field × Steam. Fog bank of dithered puffs drifting with wind; dashed rim keeps the radius readable through the fog.', nova: 'Nova × Steam. Mist ring rolling outward.' },
+  ice: { bolt: 'Bolt × Ice (rigid). Crystal shard with glint, frost motes drifting down → shatter: shards tumble and bounce on z-physics, frost burst, rime decal → chilled status.', field: 'Field × Ice. Rime floor, crystals snapping up with overshoot and shattering when they expire, cold mist.', nova: 'Nova × Ice. Crystals erupt along the front as it passes, then shatter.' },
+  lightning: { bolt: 'Bolt × Lightning (paths). Knot of arcs regenerated every frame, afterimage arcs and hopping sparks → sky strike with branch, flash, spidering scorch → shocked status.', field: 'Field × Lightning. Arcs jump between random points; occasional zap to an enemy inside; flickering rim.', nova: 'Nova × Lightning. Radial arcs out to the front, regenerated every frame.' },
+  life: { bolt: 'Bolt × Life (growth). Thorn seed shedding leaves on sway-fall → bloom of petals and leaves, grass tuft decal → rooted status (vines wrapped around the enemy).', field: 'Field × Life. Grass grows outward from the center, vines creep, flowers bloom, leaves drift.', nova: 'Nova × Life. Vines erupt outward with the front, leaves budding along them.' }
+};
+
+/* =====================================================================
+   SPELLS = component chains (fire look)
+   ===================================================================== */
+const BASE_ENEMIES = [[132, 36], [152, 50], [170, 32], [140, 72], [162, 80], [180, 60]];
+const SPELLS = {
+  bolt: { name: 'Fire Bolt', every: 0.55, desc: 'Bolt × Fire. Projectile (small body, tail per distance, low grip) → contact → small damage disk → burning status.',
+    cast() { projectile({ speed: 170, body: { t: 'diamond', a: 4, b: 2 }, trail: { rate: 2, perDist: 0.5, heat: 1.0, spread: 0.8, grip: 0.15, inh: 0.25, ember: 0.15 }, impact: 0.55 }); } },
+  fireball: { name: 'Fireball', every: 1.7, desc: 'Ball × Fire. Heavy projectile (bigger body, dense tail) → contact → big damage disk: heat bloom, shockwave ring, debris, smoke, scorch, hit-stop and shake.',
+    cast() { projectile({ speed: 105, body: { t: 'orb', r: 3.5 }, trail: { rate: 5, perDist: 0.9, heat: 1.35, spread: 2.2, grip: 0.35, inh: 0.3, ember: 0.35 }, impact: 1.4 }); } },
+  spear: { name: 'Ember Spear', every: 1.1, desc: 'Spear × Fire. Fast piercing projectile → mini damage disk at every real contact, no decal → continues.',
+    cast() { projectile({ speed: 240, pierce: true, body: { t: 'diamond', a: 8, b: 1.4 }, trail: { rate: 3, perDist: 0.8, heat: 1.1, spread: 0.8, grip: 0.2, inh: 0.35, ember: 0.3 }, impact: 0.35 }); } },
+  field: { name: 'Cinder Field', every: 6.6, desc: 'Field × Fire. Persistent disk: dim banded ember floor, bright rim at the true radius, sparse ambient flames, embers, smoke. Burning while inside.',
+    cast() { field(150, 56, 20, 6, {}); } },
+  firewalk: { name: 'Firewalk', every: 99, desc: 'Trail × Fire. Caster emits small field patches by distance; one rim around the union; each patch dissolves on its own.',
+    setup() { player.walk = true; } },
+  wall: { name: 'Flame Wall', every: 7.2, desc: 'Wall × Fire. Line mask: rims on both edges, tall flames rising along it. Passable: enemies walk through and burn.',
+    setup() { for (const e of enemies) e.march = true; }, cast() { wall(124, 24, 124, 90, 2.5, 7); } },
+  nova: { name: 'Fire Nova', every: 2.2, desc: 'Nova × Fire. Expanding front from the caster: only the bright band is active, each enemy hit once as it passes, burning on hit.',
+    setup() { player.x = 150; player.y = 58; const P = [[128, 40], [172, 42], [126, 76], [174, 78], [150, 30], [150, 86]]; enemies.forEach((e, i) => { e.hx = P[i][0]; e.hy = P[i][1]; }); }, cast() { novaFront(player.x, player.y - 3, 34, 0.5); } },
+  meteor: { name: 'Meteor Shower', every: 3.4, desc: 'Composite: ground pattern → 4 staggered warnings (fill reaches the rim at impact) → falling carrier (Earth body, Fire tail, growing shadow) → big damage disk with rock debris → brief aftermath field → scorch.',
+    cast() {
+      for (let i = 0; i < 4; i++) {
+        const e = enemies[(rnd() * enemies.length) | 0], tx = e.hx + (rnd() - 0.5) * 10, ty = e.hy + (rnd() - 0.5) * 8, delay = 0.65 + 0.25 * i;
+        warning(tx, ty, 11, delay);
+        fallingCarrier(tx, ty, delay - 0.42, (x, y) => { damageDisk(x, y, 1.3, { rock: true, stop: 4 }); field(x, y, 10, 1.3, { rate: 0.6, heatK: 0.7 }); });
+      }
+    } },
+  fiery: { name: 'Fiery Bolt (keyword)', every: 0.6, desc: 'Keyword accent: Arcane body (native shape, palette, twinkle trail) + Fiery accent (orange rim, light flame and ember trail, fire impact, burning status).',
+    cast() { projectile({ native: 'arcane', rim: MAT.fire.body.mid, speed: 170, body: { t: 'diamond', a: 4, b: 2 }, trail: { rate: 1, perDist: 0.25, heat: 0.65, spread: 0.6, grip: 0.1, inh: 0.2, ember: 0.3, small: 1 }, impact: 0.5 }); } }
+};
+
+for (const k in SPELLS) SPELLS[k].el = 'fire';
+for (const el of ['plague', 'steam', 'ice', 'lightning', 'life']) {
+  SPELLS[el + '_bolt'] = { el, name: 'Bolt', every: 0.6, desc: E_DESC[el].bolt, cast() { eShoot(el, el === 'lightning' ? 210 : el === 'steam' ? 120 : 160); } };
+  SPELLS[el + '_field'] = { el, name: 'Field', every: 6.6, desc: E_DESC[el].field, cast() { eField(el, 150, 56, 20, 6); } };
+  SPELLS[el + '_nova'] = { el, name: 'Nova', every: 2.2, desc: E_DESC[el].nova, setup: SPELLS.nova.setup, cast() { eNova(el, player.x, player.y - 3, 34, 0.5); } };
+}
+SPELLS.plague_infection = { el: 'plague', name: 'Infection', every: 7, desc: 'Infection (Plague Seed chain). Seed projectile → host infected (lesion marker, bubbles boiling off) → a goo spore travels a visible arc along a dotted strand to the nearest uninfected enemy → that host infects the next → when a host expires, an orphan spore drifts and fades. Infection never spreads without a visible carrier.',
+  cast() { const tgt = nearestEnemy(player.x, player.y), dx = tgt.x - player.x, dy = tgt.y - 3 - player.y, L = Math.hypot(dx, dy) || 1; eprojs.push({ el: 'plague', x: player.x + 3, y: player.y - 4, vx: dx / L * 150, vy: dy / L * 150, age: 0, onHit(e, p) { FX.plague.impact(p.x, p.y); infect(e, 0); } }); } };
+function waveCast(el) { let cx = 0, cy = 0; for (const e of enemies) { cx += e.x; cy += e.y; } cx /= enemies.length; cy /= enemies.length; eWave(el, player.x + 4, player.y - 2, cx - player.x, cy - player.y); }
+SPELLS.fire_wave = { el: 'fire', name: 'Fire Wave', every: 2.2, desc: 'Wave × Fire. Directional moving front: a crescent of flame sweeps forward, only the bright band hits, each enemy once, pushed back and burning.', cast() { waveCast('fire'); } };
+const WDESC = { plague: 'Wave × Plague. A front of goo surges forward, splattering stains as it goes.', steam: 'Wave × Steam. A rolling bank of steam pushes forward (dashed front: soft push, no hit-stop).', ice: 'Wave × Ice. Crystals erupt along the advancing front and shatter behind it.', lightning: 'Wave × Lightning (Thunderwave). A crackling arc line sweeps forward, regenerated every frame.', life: 'Wave × Life (Shillelagh-style). Roots and grass erupt along a moving front, leaving a growing trail.' };
+for (const el of ['plague', 'steam', 'ice', 'lightning', 'life']) SPELLS[el + '_wave'] = { el, name: 'Wave', every: 2.2, desc: WDESC[el], cast() { waveCast(el); } };
+const SDESC = { plague: 'Spear × Plague. Elongated goo stream that pierces, splattering at each contact.', ice: 'Spear × Ice. Long crystal spear; shards and frost burst at each enemy it passes through.', lightning: 'Spear × Lightning. A straight bolt that pierces with a zap at every contact.', life: 'Spear × Life. Thorn spear shedding leaves; petals burst at each contact.' };
+for (const el of ['plague', 'ice', 'lightning', 'life']) SPELLS[el + '_spear'] = { el, name: 'Spear', every: 1.1, desc: SDESC[el], cast() { const tgt = nearestEnemy(player.x, player.y), dx = tgt.x - player.x, dy = tgt.y - 3 - player.y, L = Math.hypot(dx, dy) || 1; eprojs.push({ el, pierce: true, hits: new Set(), x: player.x + 3, y: player.y - 4, vx: dx / L * 230, vy: dy / L * 230, age: 0 }); } };
+SPELLS.lightning_bolt.desc = 'Bolt × Lightning (paths). Arc-knot projectile lands with a small zap → telegraph: a shrinking ring locks onto the target while a stepped leader reaches down → sky strike with branch, flash, spidering scorch → shocked status.';
+SPELLS.water_bolt = { el: 'water', name: 'Bolt', every: 0.6, desc: 'Bolt × Water (goo, blue). A heavy water drop with a moving highlight, flicking droplets → splash crown (droplets arc up and land on z-physics), splattered water, three expanding ripples, puddle → soaked status (drips).', cast() { eShoot('water', 160); } };
+SPELLS.water_field = { el: 'water', name: 'Pool', every: 6.6, desc: 'Field × Water. A rippling pool fills in: water surface with drifting gaps, ripples where enemies stand, droplets splashing up.', cast() { eField('water', 150, 56, 20, 6); } };
+SPELLS.water_nova = { el: 'water', name: 'Nova', every: 2.2, desc: 'Nova × Water. A splash ring: water thrown outward from the band, droplets arcing up.', setup: SPELLS.nova.setup, cast() { eNova('water', player.x, player.y - 3, 34, 0.5); } };
+SPELLS.water_wave = { el: 'water', name: 'Tsunami', every: 2.6, desc: 'Tsunami (Blast family). Spawns behind the wizard, widens fast and sweeps forward: a wall of water with foam spray and droplets, strong push, puddles left behind.', cast() { let cx = 0, cy = 0; for (const e of enemies) { cx += e.x; cy += e.y; } cx /= enemies.length; cy /= enemies.length; const dx = cx - player.x, dy = cy - player.y, L = Math.hypot(dx, dy); eWave('water', player.x - dx / L * 14, player.y - 2 - dy / L * 14, dx, dy); } };
+SPELLS.water_jet = { el: 'water', name: 'Water Jet', every: 2.4, desc: 'Water Jet (Ray family). A tracking stream from the wizard: turns toward targets at a limited rate, stops at the first enemy it touches, pushes it back, spray and ripples at the contact point.', cast() { const tgt = nearestEnemy(player.x, player.y); jets.push({ age: 0, life: 1.8, ang: Math.atan2(tgt.y - 3 - player.y, tgt.x - player.x) + 0.5, sx: player.x, sy: player.y, ex: player.x, ey: player.y }); } };
+/* =====================================================================
+   FULL MATRIX: Arcane, Prism, Sun, Moon, Earth, Metal, Death join the
+   engine. Every element supplies the same hooks; every family (Bolt,
+   Field, Nova, Wave, Spear, Wall) is element-agnostic. Signature spells
+   are short component chains on top.
+   ===================================================================== */
+Object.assign(EL, compile({
+  arcane: { body: { core: '#ffffff', light: '#c9f4ff', mid: '#8fb6f5', dark: '#6a4ad0', outline: '#1c1650' }, spark: ['#ffffff', '#bdf3ff', '#a98af5', '#6a4ad0'], rim: ['#8fa8f5', '#e2f6ff'], floor: ['#1a1830', '#201d3e', '#2a2656'], tint: '#7a7ac8' },
+  prism: { body: { core: '#ffffff', light: '#f4ecff', mid: '#cbb8ff', dark: '#8a6ad8', outline: '#1e1650' }, rb: ['#ff7aa0', '#ffb46a', '#fff27a', '#7affa0', '#7ad8ff', '#b48aff'], rim: ['#cbb8ff', '#ffffff'], floor: ['#1b1a2a', '#21203a', '#2a284a'], tint: '#a090d0' },
+  sun: { body: { core: '#ffffff', light: '#fff6c2', mid: '#ffd84a', dark: '#e09a20', outline: '#4a2a08' }, ray: ['#ffffff', '#fff6c2', '#ffd84a', '#f0a020'], rim: ['#ffd84a', '#fff6c2'], floor: ['#211d17', '#2b2619', '#38311d'], bleach: ['#3a3424', '#4a422c'], tint: '#c8b06a' },
+  moon: { body: { core: '#ffffff', light: '#e8ecff', mid: '#b4bcec', dark: '#7a80c8', outline: '#1a1a40' }, mote: ['#ffffff', '#dfe6ff', '#a9b4e8', '#7a78c8'], rim: ['#a9b4e8', '#ffffff'], floor: ['#19192a', '#1e2036', '#252a48'], sheen: ['#2a2e4a', '#3a4066'], tint: '#8a90c8' },
+  earth: { body: { core: '#e8dcc0', light: '#c9b48c', mid: '#9a7d5a', dark: '#5e4630', outline: '#2a1e16' }, dust: ['#9a8670', '#7a6a58', '#5a4c40'], debris: ['#c9b48c', '#9a7d5a', '#5e4630'], rim: ['#c9a46a', '#e8dcc0'], floor: ['#1e1a18', '#262019', '#30281c'], crack: ['#0d0b0b', '#3a2e22'], tint: '#8a7458' },
+  metal: { body: { core: '#ffffff', light: '#e2e6f0', mid: '#a8b0c2', dark: '#5a6276', outline: '#161a24' }, spark: ['#ffffff', '#fff2b0', '#ffc860', '#e08a30'], rim: ['#a8b0c2', '#ffffff'], floor: ['#1a1c22', '#20232b', '#282c36'], scratch: ['#30343e', '#40465a'], tint: '#8890a8' },
+  death: { tones: ['#e6f4ff', '#93a8c0', '#4e5d74'], body: { core: '#f0f8ff', light: '#c8dcec', mid: '#93a8c0', dark: '#5a6a80', outline: '#10131c' }, eye: '#0a0c14', rim: ['#7a98b8', '#d8ecff'], floor: ['#14161d', '#191c25', '#1f232e'], wither: ['#1c1e22', '#25282c'], tint: '#6a7a90' }
+}));
+const dSoft = new Float32Array(W * H);
+let glyphs = [], rays = [], crescents = [], streaks = [], skulls = [], ghosts = [], orbiters = [], traps = [], beams = [], ewalls = [], clouds = [], slashes = [];
+function resetMatrix() { glyphs = []; rays = []; crescents = []; streaks = []; skulls = []; ghosts = []; orbiters = []; traps = []; beams = []; ewalls = []; clouds = []; slashes = []; }
+const GLYPH = [['.x.x.', 'xxxxx', '..x..', '.x.x.', 'x...x'], ['xxx..', '..x..', '.xxx.', '..x..', '..xxx'], ['x...x', '.x.x.', '..x..', '.x.x.', 'x...x'], ['.xxx.', 'x...x', 'x.x.x', 'x...x', '.xxx.']];
+const SKULL = ['.ooo.', 'oeoeo', 'ooooo', '.omo.'], GHOST = ['.ooo.', 'oeoeo', 'ooooo', 'o.o.o'];
+function glyph(x, y, vy, life, cols) { glyphs.push({ x, y, vy, age: 0, life, k: (rnd() * 4) | 0, cols }); }
+function ray(x, y, ang, len, life, cols, r0) { rays.push({ x, y, ang, len, age: 0, life, cols, r0: r0 || 0 }); }
+function crescent(x, y, vx, vy, r, life, cols) { crescents.push({ x, y, vx, vy, ang: Math.atan2(vy, vx), spin: (rnd() - 0.5) * 10, r, age: 0, life, cols }); }
+function spark(x, y, vx, vy, life, cols) { sparks.push({ x, y, vx, vy, age: 0, life, cols }); }
+function dmist(x, y, vx, vy, r, grow, life) { mist(x, y, vx, vy, r, grow, life); mists[mists.length - 1].dk = true; }
+function rbc(i) { return EL.prism.rb[((i % 6) + 6) % 6]; }
+function rbCols(k) { return [EL.prism.body.core, rbc(k), rbc(k + 1), rbc(k + 2)]; }
+function nearHit(x, y, R, el, t, kf) { for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < R) { hitEl(e, el, t); if (kf) knock(e, e.x - x, e.y - y, kf); } }
+function crackDecal(x, y, n, L) { const rs = []; for (let i = 0; i < n; i++) { const a = i / n * TAU + rnd() * 0.5; rs.push(jag(x, y, x + Math.cos(a) * L * (0.6 + rnd() * 0.5), y + Math.sin(a) * L * 0.7 * (0.6 + rnd() * 0.5), 1.5)); } decals.push({ type: 'cracks', x, y, r: L, rs, age: 0, life: 6 }); }
+function dust(x, y, vx, vy) { mote(x, y, vx, vy, EL.earth.dust, 0.6 + rnd() * 0.4, -2, 2); }
+function mspark(x, y, a, sp) { mote(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.8 - 10, EL.metal.spark, 0.3 + rnd() * 0.3, 120, 0); }
+function drawGlyph(g) { const k = g.age / g.life, c = g.cols[Math.min(g.cols.length - 1, Math.floor(k * g.cols.length))], P = GLYPH[g.k]; if (k > 0.7 && (frame & 2)) return; for (let j = 0; j < 5; j++) for (let i = 0; i < 5; i++) if (P[j][i] === 'x') put(Math.round(g.x) - 2 + i, Math.round(g.y) - 2 + j, c); }
+function drawCrescent(x, y, r, ang, c, dark) { const R = Math.ceil(r + 1), ox = Math.cos(ang) * r * 0.55, oy = Math.sin(ang) * r * 0.55; for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) { const d = Math.hypot(i, j); if (d > r + 0.3) continue; if (Math.hypot(i + ox, j + oy) < r * 0.85) continue; put(x + i, y + j, dark && d > r - 0.7 ? dark : c); } }
+const DECAL = {
+  cracks(d, f) { for (const pts of d.rs) for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; if (bayer(Math.round(x1), Math.round(y1)) < f) line(x0, y0, x1, y1, i < pts.length / 2 ? EL.earth.crack[0] : EL.earth.crack[1]); } },
+  rune(d, f) { const r = d.r, steps = Math.ceil(TAU * r * 1.3); for (let i = 0; i < steps; i++) { const a = i / steps * TAU, x = d.x + Math.cos(a) * r, y = d.y + Math.sin(a) * r * 0.7; if ((i & 1) && bayer(Math.round(x), Math.round(y)) < f) put(x, y, EL.arcane.floor[2]); } if (f > 0.3) for (let i = 0; i < 4; i++) { const a = i / 4 * TAU + d.seed; put(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r * 0.7, EL.arcane.spark[3]); } },
+  blot(d, f) { const R = Math.ceil(d.r + 2); for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) { const X = Math.round(d.x) + ox, Y = Math.round(d.y) + oy, dist = Math.hypot(ox, oy * 1.25), edge = d.r * (0.75 + 0.45 * vn(X * 0.3 + d.seed, Y * 0.3)); if (dist < edge && bayer(X, Y) < f * 0.85) put(X, Y, dist < edge * 0.55 ? d.cols[1] : d.cols[0]); } },
+  scratch(d, f) { if (f > 0.15) for (const [x0, y0, x1, y1] of d.ls) line(x0, y0, x1, y1, f > 0.5 ? EL.metal.scratch[1] : EL.metal.scratch[0]); }
+};
+
+/* ---------- Wall: line-mask area. Solid walls stop marching enemies; passable walls apply status. ---------- */
+function eWall(el, x1, y1, x2, y2, hw, life) { const A = { el, x1, y1, x2, y2, hw, life, age: 0, len: Math.hypot(x2 - x1, y2 - y1), solid: ['ice', 'earth', 'metal', 'prism', 'life'].includes(el) }; ewalls.push(A); FX[el].wallStart?.(A); }
+function wallPt(A) { const t = rnd(), j = (rnd() - 0.5) * A.hw * 1.2, nx = -(A.y2 - A.y1) / A.len, ny = (A.x2 - A.x1) / A.len; return [A.x1 + (A.x2 - A.x1) * t + nx * j, A.y1 + (A.y2 - A.y1) * t + ny * j]; }
+function updateWalls(dt) {
+  ewalls = ewalls.filter(A => {
+    A.age += dt; if (A.age > A.life) return false;
+    FX[A.el].wallEmit?.(A, dt);
+    for (const e of enemies) {
+      if (A.solid) { if (e.march && e.hx > A.x1 - 2 && e.hx < A.x1 + A.hw + 7) { e.hx = A.x1 + A.hw + 7; if (rnd() < 0.03) FX[A.el].contact?.(e.x - 4, e.y - 3); } }
+      else if (distSeg(e.x, e.y - 1, A) < A.hw + 1.5) hitEl(e, A.el, 1.2);
+    }
+    return true;
+  });
+}
+function drawWalls() {
+  for (const A of ewalls) {
+    const P = EL[A.el], x0 = Math.floor(Math.min(A.x1, A.x2) - A.hw - 1), x1 = Math.ceil(Math.max(A.x1, A.x2) + A.hw + 1), y0 = Math.floor(Math.min(A.y1, A.y2) - A.hw - 1), y1 = Math.ceil(Math.max(A.y1, A.y2) + A.hw + 1);
+    for (let Y = y0; Y <= y1; Y++) for (let X = x0; X <= x1; X++) {
+      const d = distSeg(X, Y, A); if (d > A.hw + 0.5 || !areaVis(A, X, Y)) continue;
+      if (Math.abs(d - A.hw) < 0.7) { if (A.el === 'steam' && ((X + Y + (frame >> 2)) & 1)) continue; put(X, Y, A.el === 'prism' ? rbc((Y >> 2) + (frame >> 2)) : P.rim[((X + Y + (frame >> 3)) & 3) === 0 ? 1 : 0]); continue; }
+      const n = vn(X * 0.3, Y * 0.3 + T * 0.5); put(X, Y, n > 0.6 ? P.floor[1] : P.floor[0]);
+    }
+  }
+}
+
+/* ---------- new element looks ---------- */
+FX.arcane = {
+  trail(p, dt) { const a = p.age * 22; for (let i = 0; i < 2; i++) { const s = a + i * Math.PI; spark(p.x + Math.cos(s) * 3, p.y + Math.sin(s) * 2.4, -p.vx * 0.05, -p.vy * 0.05, 0.35 + rnd() * 0.2, EL.arcane.spark); } if (rnd() < 0.05) glyph(p.x, p.y, -8, 0.5, EL.arcane.spark); },
+  bodyDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 4, b: 2 }, EL.arcane.body); for (let i = 0; i < 3; i++) { const a = T * 12 + i * TAU / 3; put(p.x + Math.cos(a) * 4.5, p.y + Math.sin(a) * 3.5, EL.arcane.spark[1]); } },
+  impact(x, y) { for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; glyph(x + Math.cos(a) * 8, y + Math.sin(a) * 6, -4, 0.45, EL.arcane.spark); } for (let i = 0; i < 16; i++) { const a = rnd() * TAU, sp = 20 + rnd() * 40; spark(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.8, 0.35 + rnd() * 0.2, EL.arcane.spark); } rings.push({ x, y, max: 12, age: 0, life: 0.3, c: EL.arcane.spark }); flashes.push({ x, y, r: 2.5, age: 0, life: 0.05, c: EL.arcane.body.core }); decals.push({ type: 'rune', x, y, r: 8, age: 0, life: 4, seed: rnd() * 6 }); hitstop(1); nearHit(x, y, 11, 'arcane', 3); },
+  status(e, dt) { if (rnd() < 0.08 * dt * 60) spark(e.x + (rnd() - 0.5) * 6, e.y - 4, 0, -10, 0.4, EL.arcane.spark); },
+  statusDraw(e) { if ((frame >> 3) & 1) drawGlyph({ x: e.x, y: e.y - 11, age: 0, life: 1, k: ((e.ph * 3) | 0) % 4, cols: [EL.arcane.spark[2]] }); },
+  field(A, dt) { if (rnd() < 0.5 * dt * 60) { const [x, y] = inDisk(A); spark(x, y, 0, -12 - rnd() * 8, 0.6 + rnd() * 0.4, EL.arcane.spark); } if (rnd() < 0.04 * dt * 60) { const [x, y] = inDisk(A); glyph(x, y, -10, 0.9, EL.arcane.spark); } },
+  fieldDraw(A) { const r = A.r * 0.62, steps = Math.ceil(TAU * r * 1.3); for (let i = 0; i < steps; i++) { const a = i / steps * TAU; if (i % 3) put(A.x + Math.cos(a) * r, A.y + Math.sin(a) * r, EL.arcane.rim[0]); } for (let i = 0; i < 6; i++) { const a = T * 0.8 + i / 6 * TAU; drawGlyph({ x: A.x + Math.cos(a) * r, y: A.y + Math.sin(a) * r, age: 0, life: 1, k: i % 4, cols: [EL.arcane.spark[(i + (frame >> 3)) % 3 ? 2 : 1]] }); } },
+  nova(N, dt) { const n = TAU * N.r * 0.08 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; spark(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 18, Math.sin(a) * 14, 0.35, EL.arcane.spark); } if (rnd() < 0.25) { const a = rnd() * TAU; glyph(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, 0, 0.3, EL.arcane.spark); } },
+  waveEmit(x, y, fx, fy) { if (rnd() < 0.6) spark(x, y, fx * 30, fy * 24, 0.4, EL.arcane.spark); if (rnd() < 0.05) glyph(x, y, -6, 0.4, EL.arcane.spark); },
+  contact(x, y) { for (let i = 0; i < 8; i++) { const a = rnd() * TAU; spark(x, y, Math.cos(a) * 30, Math.sin(a) * 24, 0.3, EL.arcane.spark); } glyph(x, y - 4, -6, 0.35, EL.arcane.spark); },
+  wallEmit(A, dt) { if (rnd() < 0.5 * dt * 60) { const [x, y] = wallPt(A); spark(x, y, 0, -16 - rnd() * 10, 0.6, EL.arcane.spark); } if (rnd() < 0.12 * dt * 60) { const [x, y] = wallPt(A); glyph(x, y - 2, -14, 0.8, EL.arcane.spark); } },
+  spearDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 1.6 }, EL.arcane.body); for (let i = 0; i < 2; i++) { const a = T * 14 + i * Math.PI; put(p.x + Math.cos(a) * 3, p.y + Math.sin(a) * 3, EL.arcane.spark[1]); } }
+};
+FX.prism = {
+  trail(p, dt) { for (let i = 0; i < 2; i++) spark(p.x - p.vx * 0.02 + (rnd() - 0.5) * 3, p.y + (rnd() - 0.5) * 3, -p.vx * 0.05, -p.vy * 0.05, 0.4, rbCols((rnd() * 6) | 0)); },
+  bodyDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 4.5, b: 2.2 }, EL.prism.body, rbc(frame >> 2)); },
+  impact(x, y) { for (let i = 0; i < 6; i++) ray(x, y, i / 6 * TAU + rnd() * 0.2, 12 + rnd() * 4, 0.35, [EL.prism.body.core, rbc(i), rbc(i)], 2); for (let i = 0; i < 14; i++) { const a = rnd() * TAU, sp = 20 + rnd() * 35; spark(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.8, 0.4, rbCols(i)); } flashes.push({ x, y, r: 3, age: 0, life: 0.05, c: EL.prism.body.core }); rings.push({ x, y, max: 12, age: 0, life: 0.3, c: [EL.prism.body.core, EL.prism.body.light, EL.prism.body.mid] }); hitstop(1); nearHit(x, y, 11, 'prism', 3); },
+  status(e, dt) { if (rnd() < 0.08 * dt * 60) spark(e.x + (rnd() - 0.5) * 6, e.y - 4, 0, -8, 0.4, rbCols((rnd() * 6) | 0)); },
+  statusDraw(e) { for (let i = -1; i <= 1; i++) put(e.x + i, e.y - 9, rbc((frame >> 2) + i + 1)); },
+  field(A, dt) { if (rnd() < 0.4 * dt * 60) { const [x, y] = inDisk(A); spark(x, y, 0, -10, 0.6, rbCols((rnd() * 6) | 0)); } },
+  fieldDraw(A) { for (let i = 0; i < 6; i++) { const a = T * 0.6 + i / 6 * TAU; for (let r = 3; r < A.r - 1; r++) if (((r + (frame >> 2)) & 3) !== 0) put(A.x + Math.cos(a) * r, A.y + Math.sin(a) * r, rbc(i)); } const steps = Math.ceil(TAU * A.r * 1.3); for (let i = 0; i < steps; i++) { const a = i / steps * TAU; put(A.x + Math.cos(a) * A.r, A.y + Math.sin(a) * A.r, rbc((i >> 2) + (frame >> 2))); } },
+  nova(N, dt) { const n = TAU * N.r * 0.08 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; spark(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 18, Math.sin(a) * 14, 0.35, rbCols((a / TAU * 6) | 0)); } },
+  waveEmit(x, y, fx, fy, w) { if (rnd() < 0.6) spark(x, y, fx * 30, fy * 24, 0.4, rbCols(((y - w.oy) / 3) | 0)); },
+  contact(x, y) { for (let i = 0; i < 3; i++) ray(x, y, rnd() * TAU, 8, 0.25, [EL.prism.body.core, rbc(i * 2)], 1); },
+  wallStart(A) { const n = Math.ceil(A.len / 6); for (let i = 0; i <= n; i++) { const t = i / n, x = A.x1 + (A.x2 - A.x1) * t, y = A.y1 + (A.y2 - A.y1) * t; later.push({ t: t * 0.2, run: () => crystal(x, y + 2, 10 + rnd() * 5, A.life - t * 0.2, EL.prism.body, { tilt: (rnd() - 0.5) * 0.25, w: 0.26, rim: () => rbc((frame >> 2) + i) }) }); } },
+  wallEmit(A, dt) { if (rnd() < 0.3 * dt * 60) { const [x, y] = wallPt(A); spark(x, y - 6 - rnd() * 6, (rnd() - 0.5) * 6, -6, 0.5, rbCols((rnd() * 6) | 0)); } },
+  spearDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 1.8 }, EL.prism.body, rbc(frame >> 2)); }
+};
+FX.sun = {
+  trail(p, dt) { if (rnd() < 0.8 * dt * 60) mote(p.x - p.vx * 0.02, p.y + (rnd() - 0.5) * 3, -p.vx * 0.05, (rnd() - 0.5) * 4, EL.sun.ray, 0.4, 0, 3); },
+  bodyDraw(p) { const L = Math.hypot(p.vx, p.vy) || 1; line(p.x, p.y, p.x - p.vx / L * 9, p.y - p.vy / L * 9, EL.sun.ray[2]); line(p.x, p.y, p.x - p.vx / L * 5, p.y - p.vy / L * 5, EL.sun.ray[1]); for (let i = 0; i < 6; i++) { const a = T * 4 + i / 6 * TAU; line(p.x + Math.cos(a) * 4, p.y + Math.sin(a) * 4, p.x + Math.cos(a) * 6, p.y + Math.sin(a) * 6, EL.sun.ray[i & 1 ? 2 : 1]); } drawBody(p.x, p.y, 1, 0, { t: 'orb', r: 2.6 }, EL.sun.body); },
+  impact(x, y) { for (let i = 0; i < 10; i++) ray(x, y, i / 10 * TAU + rnd() * 0.15, 10 + rnd() * 6, 0.4, EL.sun.ray, 3); flashes.push({ x, y, r: 4, age: 0, life: 0.06, c: EL.sun.body.core }); for (let i = 0; i < 8; i++) { const a = rnd() * TAU, sp = 15 + rnd() * 25; spark(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.8, 0.45, EL.sun.ray); } rings.push({ x, y, max: 15, age: 0, life: 0.3, c: EL.sun.ray }); decals.push({ type: 'blot', cols: EL.sun.bleach, x, y, r: 6, age: 0, life: 3, seed: rnd() * 100 }); shake(1, 0.1); hitstop(2); nearHit(x, y, 12, 'sun', 3); },
+  status() {},
+  statusDraw(e) { if ((frame >> 2) % 4 === 0) { put(e.x + 3, e.y - 8, EL.sun.ray[0]); put(e.x + 2, e.y - 8, EL.sun.ray[2]); put(e.x + 4, e.y - 8, EL.sun.ray[2]); put(e.x + 3, e.y - 9, EL.sun.ray[2]); put(e.x + 3, e.y - 7, EL.sun.ray[2]); } },
+  field(A, dt) { if (rnd() < 0.3 * dt * 60) { const [x, y] = inDisk(A); mote(x, y, 0, -4, EL.sun.ray, 1.2, -1, 2); } },
+  fieldDraw(A) { for (let i = 0; i < 8; i++) { const a = T * 0.4 + i / 8 * TAU, L = A.r * (0.55 + 0.35 * Math.sin(T * 2 + i)); line(A.x + Math.cos(a) * 3, A.y + Math.sin(a) * 3, A.x + Math.cos(a) * L, A.y + Math.sin(a) * L, EL.sun.ray[i & 1 ? 3 : 2]); } drawBody(A.x, A.y, 1, 0, { t: 'orb', r: 2.2 }, EL.sun.body); },
+  nova(N, dt) { if ((frame & 1) === 0) for (let i = 0; i < 12; i++) ray(N.x, N.y, i / 12 * TAU + N.age, 4, 0.08, EL.sun.ray, N.r - 2); },
+  waveEmit(x, y, fx, fy) { if (rnd() < 0.15) ray(x, y, Math.atan2(fy, fx), 6, 0.15, EL.sun.ray, 0); if (rnd() < 0.3) mote(x, y, fx * 20, fy * 16, EL.sun.ray, 0.4, 0, 2); },
+  contact(x, y) { for (let i = 0; i < 6; i++) ray(x, y, i / 6 * TAU, 7, 0.22, EL.sun.ray, 2); flashes.push({ x, y, r: 2, age: 0, life: 0.04, c: EL.sun.body.core }); },
+  wallEmit(A, dt) { if (rnd() < 0.5 * dt * 60) { const [x, y] = wallPt(A); ray(x, y, -Math.PI / 2 + (rnd() - 0.5) * 0.2, 10 + rnd() * 10, 0.35, EL.sun.ray, 0); } if (rnd() < 0.2 * dt * 60) { const [x, y] = wallPt(A); mote(x, y - 4, (rnd() - 0.5) * 4, -6, EL.sun.ray, 0.8, 0, 2); } },
+  spearDraw(p) { const L = Math.hypot(p.vx, p.vy) || 1; line(p.x - p.vx / L * 14, p.y - p.vy / L * 14, p.x, p.y, EL.sun.ray[2]); line(p.x - p.vx / L * 8, p.y - p.vy / L * 8, p.x, p.y, EL.sun.ray[0]); for (let i = 0; i < 4; i++) { const a = T * 6 + i / 4 * TAU; line(p.x, p.y, p.x + Math.cos(a) * 4, p.y + Math.sin(a) * 4, EL.sun.ray[1]); } }
+};
+FX.moon = {
+  trail(p, dt) { if (rnd() < 0.6 * dt * 60) mote(p.x + (rnd() - 0.5) * 3, p.y + (rnd() - 0.5) * 3, -p.vx * 0.04, 4 + rnd() * 4, EL.moon.mote, 0.8, 2, 4); if (rnd() < 0.08 * dt * 60) crescent(p.x, p.y, -p.vx * 0.05, -p.vy * 0.05, 2.5, 0.35, [EL.moon.mote[2], EL.moon.mote[3]]); },
+  bodyDraw(p) { const a = Math.atan2(p.vy, p.vx); drawCrescent(p.x, p.y, 4, a, EL.moon.body.light, EL.moon.body.dark); put(p.x + Math.cos(a) * 3, p.y + Math.sin(a) * 3 - 1, EL.moon.body.core); },
+  impact(x, y) { for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + rnd() * 0.3; crescent(x, y, Math.cos(a) * 34, Math.sin(a) * 26, 3, 0.5, EL.moon.mote); } for (let i = 0; i < 12; i++) mote(x + (rnd() - 0.5) * 6, y - 4 + (rnd() - 0.5) * 4, (rnd() - 0.5) * 12, 4 + rnd() * 6, EL.moon.mote, 0.9, 2, 4); rings.push({ x, y, max: 13, age: 0, life: 0.4, c: EL.moon.mote }); flashes.push({ x, y, r: 2.5, age: 0, life: 0.05, c: EL.moon.body.core }); decals.push({ type: 'blot', cols: EL.moon.sheen, x, y, r: 6, age: 0, life: 4, seed: rnd() * 100 }); hitstop(1); nearHit(x, y, 11, 'moon', 3); },
+  status(e, dt) { if (rnd() < 0.05 * dt * 60) mote(e.x + (rnd() - 0.5) * 6, e.y - 8, 0, 4, EL.moon.mote, 0.6, 1, 3); },
+  statusDraw(e) { for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + T; if (i & 1) put(e.x + Math.cos(a) * 3, e.y - 9 + Math.sin(a), EL.moon.mote[1]); } },
+  field(A, dt) { if (rnd() < 0.5 * dt * 60) { const [x, y] = inDisk(A); mote(x, y - 10, (rnd() - 0.5) * 3, 6 + rnd() * 4, EL.moon.mote, 1.2, 0, 3); } },
+  fieldDraw(A) { drawCrescent(A.x, A.y - A.r - 6 + Math.sin(T * 1.5) * 1.5, 6, Math.PI * 0.25, EL.moon.body.light, EL.moon.body.dark); },
+  nova(N, dt) { if (rnd() < 0.5) { const a = rnd() * TAU; crescent(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 20, Math.sin(a) * 15, 2.5, 0.3, EL.moon.mote); } const n = TAU * N.r * 0.05 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; mote(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 10, Math.sin(a) * 8, EL.moon.mote, 0.5, 2, 2); } },
+  waveEmit(x, y, fx, fy) { if (rnd() < 0.08) crescent(x, y, fx * 30, fy * 24, 2.5, 0.35, EL.moon.mote); if (rnd() < 0.35) mote(x, y, fx * 16, fy * 12 + 3, EL.moon.mote, 0.5, 3, 3); },
+  contact(x, y) { for (let i = 0; i < 3; i++) { const a = rnd() * TAU; crescent(x, y, Math.cos(a) * 26, Math.sin(a) * 20, 2.2, 0.3, EL.moon.mote); } },
+  wallEmit(A, dt) { if (rnd() < 0.7 * dt * 60) { const [x, y] = wallPt(A); mote(x + (rnd() - 0.5) * 2, y - 16, 0, 14 + rnd() * 8, EL.moon.mote, 1.1, 0, 1.5); } },
+  spearDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 1.5 }, EL.moon.body); }
+};
+FX.earth = {
+  trail(p, dt) { if (rnd() < 0.5 * dt * 60) dust(p.x - p.vx * 0.03, p.y + 1, (rnd() - 0.5) * 6, -2); if (rnd() < 0.12 * dt * 60) chunk(p.x, p.y, p.vx * 0.1, p.vy * 0.1, 5, EL.earth.debris, 0.6, 1); },
+  bodyDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'orb', r: 3.2 }, EL.earth.body); put(p.x + 1, p.y, EL.earth.body.dark); },
+  impact(x, y) { for (let i = 0; i < 14; i++) { const a = rnd() * TAU, sp = 18 + rnd() * 34; chunk(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.7, 50 + rnd() * 60, EL.earth.debris, 1.4 + rnd(), 1 + (rnd() < 0.5 ? 1 : 0)); } for (let i = 0; i < 12; i++) { const a = rnd() * TAU; dust(x + Math.cos(a) * 4, y + Math.sin(a) * 3, Math.cos(a) * 18, Math.sin(a) * 10); } for (let i = 0; i < 3; i++) crystal(x + (rnd() - 0.5) * 8, y + (rnd() - 0.5) * 5, 5 + rnd() * 4, 0.6 + rnd() * 0.4, EL.earth.body); crackDecal(x, y, 5, 10); shake(2, 0.15); hitstop(3); nearHit(x, y, 12, 'earth', 3, 6); },
+  status(e, dt) { if (rnd() < 0.1 * dt * 60) dust(e.x + (rnd() - 0.5) * 5, e.y, (rnd() - 0.5) * 6, -3); },
+  fieldStart(A) { for (let i = 0; i < 9; i++) { const [x, y] = inDisk(A); later.push({ t: rnd() * 0.5, run: () => crystal(x, y, 6 + rnd() * 6, A.life - 0.6, EL.earth.body) }); } crackDecal(A.x, A.y, 7, A.r); },
+  field(A, dt) { if (rnd() < 0.4 * dt * 60) { const [x, y] = inDisk(A); dust(x, y, (rnd() - 0.5) * 6, -2); } },
+  novaStart(N) { shake(2, 0.2); crackDecal(N.x, N.y, 8, N.max * 0.6); },
+  nova(N, dt) { const n = TAU * N.r * 0.03 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; crystal(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, 5 + rnd() * 5, 0.4 + rnd() * 0.3, EL.earth.body); } if (rnd() < 0.7) { const a = rnd() * TAU; dust(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 14, Math.sin(a) * 8); } },
+  waveEmit(x, y, fx, fy) { if (rnd() < 0.15) crystal(x, y, 5 + rnd() * 5, 0.4 + rnd() * 0.3, EL.earth.body, { tilt: fx * 0.4 }); if (rnd() < 0.35) dust(x, y, fx * 16, fy * 10); },
+  contact(x, y) { for (let i = 0; i < 5; i++) { const a = rnd() * TAU; chunk(x, y, Math.cos(a) * 20, Math.sin(a) * 14, 30 + rnd() * 30, EL.earth.debris, 0.8, 1); } dust(x, y, 0, -4); },
+  wallStart(A) { const n = Math.ceil(A.len / 5); for (let i = 0; i <= n; i++) { const t = i / n, x = A.x1 + (A.x2 - A.x1) * t + (rnd() - 0.5) * 2, y = A.y1 + (A.y2 - A.y1) * t; later.push({ t: t * 0.25, run: () => { crystal(x, y + 2, 9 + rnd() * 6, A.life - t * 0.25, EL.earth.body, { tilt: (rnd() - 0.5) * 0.4, w: 0.34 }); dust(x, y + 2, (rnd() - 0.5) * 14, -3); } }); } shake(2, 0.2); },
+  wallEmit(A, dt) { if (rnd() < 0.15 * dt * 60) { const [x, y] = wallPt(A); dust(x, y + 2, (rnd() - 0.5) * 6, -2); } },
+  spearDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 2 }, EL.earth.body); }
+};
+FX.metal = {
+  trail(p) { if (p.px !== undefined) streaks.push({ x0: p.px, y0: p.py, x1: p.x, y1: p.y, age: 0, life: 0.12, cols: [EL.metal.body.light, EL.metal.body.mid, EL.metal.body.dark] }); p.px = p.x; p.py = p.y; },
+  bodyDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 4.5, b: 1.6 }, EL.metal.body); if ((frame >> 2) % 5 === 0) put(p.x, p.y - 1, EL.metal.body.core); },
+  impact(x, y) { for (let i = 0; i < 16; i++) mspark(x, y, rnd() * TAU, 30 + rnd() * 50); for (let i = 0; i < 4; i++) { const a = rnd() * TAU; shard(x, y, Math.cos(a) * 24, Math.sin(a) * 16, 30 + rnd() * 30, 1.8, 0.8, EL.metal.body); } flashes.push({ x, y, r: 2, age: 0, life: 0.05, c: EL.metal.body.core }); for (let i = 0; i < 4; i++) ray(x, y, i / 4 * TAU + Math.PI / 4, 6, 0.12, [EL.metal.body.core, EL.metal.spark[1]], 1); const ls = []; for (let i = 0; i < 3; i++) { const a = rnd() * TAU; ls.push([x, y, x + Math.cos(a) * 7, y + Math.sin(a) * 5]); } decals.push({ type: 'scratch', ls, x, y, r: 6, age: 0, life: 4 }); hitstop(2); nearHit(x, y, 10, 'metal', 2, 4); },
+  status(e, dt) { if (rnd() < 0.06 * dt * 60) mspark(e.x, e.y - 3, rnd() * TAU, 15); },
+  fieldDraw(A) { for (let i = 0; i < 6; i++) { const a = T * 3 + i / 6 * TAU, r = A.r * 0.7, x = A.x + Math.cos(a) * r, y = A.y + Math.sin(a) * r * 0.8; drawBody(x, y, -Math.sin(a), Math.cos(a), { t: 'diamond', a: 3.5, b: 1.3 }, EL.metal.body); } },
+  field(A) { for (const e of enemies) if (Math.hypot(e.x - A.x, e.y - A.y) < A.r && rnd() < 0.1) mspark(e.x, e.y - 3, rnd() * TAU, 25); if (rnd() < 0.15) { const a = T * 3 + ((rnd() * 6) | 0) / 6 * TAU; streaks.push({ x0: A.x + Math.cos(a - 0.3) * A.r * 0.7, y0: A.y + Math.sin(a - 0.3) * A.r * 0.56, x1: A.x + Math.cos(a) * A.r * 0.7, y1: A.y + Math.sin(a) * A.r * 0.56, age: 0, life: 0.1, cols: [EL.metal.body.light, EL.metal.body.dark] }); } },
+  nova(N) { if (rnd() < 0.7) { const a = rnd() * TAU; shard(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 30, Math.sin(a) * 22, 20, 2, 0.5, EL.metal.body); } if (rnd() < 0.6) { const a = rnd() * TAU; mspark(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, a, 20); } },
+  waveEmit(x, y, fx, fy) { if (rnd() < 0.25) mspark(x, y, Math.atan2(fy, fx) + (rnd() - 0.5), 40); if (rnd() < 0.15) streaks.push({ x0: x - fx * 8, y0: y - fy * 8, x1: x, y1: y, age: 0, life: 0.1, cols: [EL.metal.body.light, EL.metal.body.dark] }); },
+  contact(x, y) { for (let i = 0; i < 7; i++) mspark(x, y, rnd() * TAU, 35); flashes.push({ x, y, r: 1.5, age: 0, life: 0.04, c: EL.metal.body.core }); },
+  wallStart(A) { const n = Math.ceil(A.len / 4); for (let i = 0; i <= n; i++) { const t = i / n, x = A.x1 + (A.x2 - A.x1) * t, y = A.y1 + (A.y2 - A.y1) * t; later.push({ t: t * 0.2, run: () => { crystal(x, y + 2, 10 + rnd() * 4, A.life - t * 0.2, EL.metal.body, { tilt: (rnd() - 0.5) * 0.15, w: 0.24 }); mspark(x, y, -Math.PI / 2 + (rnd() - 0.5), 30); } }); } },
+  wallEmit(A) { for (const e of enemies) if (Math.abs(e.x - A.x1) < A.hw + 9 && rnd() < 0.05) mspark(e.x - 3, e.y - 3, Math.PI + (rnd() - 0.5), 25); },
+  spearDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 1.3 }, EL.metal.body); }
+};
+FX.death = {
+  trail(p, dt) { p.dacc = (p.dacc || 0) + Math.hypot(p.vx, p.vy) * dt * 0.3; while (p.dacc >= 1) { p.dacc--; dmist(p.x - p.vx * 0.03, p.y + Math.sin(p.age * 14) * 2, -p.vx * 0.1, -2, 2.6, 3, 0.6 + rnd() * 0.3); } },
+  bodyAcc(p) { const L = Math.hypot(p.vx, p.vy) || 1; if (p.pierce) { for (let i = 0; i < 6; i++) splat(dSoft, p.x - p.vx / L * i * 2, p.y - p.vy / L * i * 2 + Math.sin(T * 10 + i), 3.4 - i * 0.35, 2); return; } splat(dSoft, p.x, p.y, 4.5, 2.4); splat(dSoft, p.x - p.vx / L * 4, p.y - p.vy / L * 4 + Math.sin(T * 12) * 1.5, 3.5, 1.4); },
+  bodyDraw(p) { sprite(GHOST, p.x, p.y + 1, { o: EL.death.body.core, e: EL.death.eye }); },
+  impact(x, y) { for (let i = 0; i < 14; i++) { const a = rnd() * TAU, sp = 18 + rnd() * 24; dmist(x, y, Math.cos(a) * sp, Math.sin(a) * sp * 0.7 - 4, 2.6, 6, 0.8 + rnd() * 0.4); } skulls.push({ x, y: y + 2, age: 0, life: 0.5 }); rings.push({ x, y, max: 12, age: 0, life: 0.35, c: EL.death.tones }); decals.push({ type: 'blot', cols: EL.death.wither, x, y, r: 7, age: 0, life: 5, seed: rnd() * 100 }); hitstop(2); nearHit(x, y, 11, 'death', 3); },
+  status() {},
+  statusDraw(e) { for (let i = 0; i < 3; i++) { const a = T * 4 + i / 3 * TAU; put(e.x + Math.cos(a) * 5, e.y - 3 + Math.sin(a) * 2, EL.death.tones[i ? 1 : 0]); } },
+  field(A, dt) { if (rnd() < 0.6 * dt * 60) { const [x, y] = inDisk(A); dmist(x, y, (rnd() - 0.5) * 4, -1, 3, 2, 1.4 + rnd()); } if (rnd() < 0.02 * dt * 60) { const [x, y] = inDisk(A); skulls.push({ x, y, age: 0, life: 0.9 }); } },
+  nova(N, dt) { const n = TAU * N.r * 0.08 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; dmist(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 14, Math.sin(a) * 10 - 3, 2.4, 5, 0.6); } },
+  waveEmit(x, y, fx, fy) { if (rnd() < 0.45) dmist(x, y, fx * 20, fy * 15 - 3, 2.4, 6, 0.6); if (rnd() < 0.01) skulls.push({ x, y, age: 0, life: 0.4 }); },
+  contact(x, y) { for (let i = 0; i < 5; i++) { const a = rnd() * TAU; dmist(x, y, Math.cos(a) * 18, Math.sin(a) * 12, 2, 4, 0.5); } skulls.push({ x, y, age: 0, life: 0.3 }); },
+  wallEmit(A, dt) { if (rnd() < 0.8 * dt * 60) { const [x, y] = wallPt(A); dmist(x, y, (rnd() - 0.5) * 3, -14 - rnd() * 8, 2.6, 3, 0.9); } if (rnd() < 0.03 * dt * 60) { const [x, y] = wallPt(A); skulls.push({ x, y: y - 6, age: 0, life: 0.6 }); } },
+  spearDraw(p) { sprite(GHOST, p.x, p.y + 1, { o: EL.death.body.core, e: EL.death.eye }); }
+};
+
+/* ---------- hooks for the elements that existed before ---------- */
+FX.plague.wallAcc = A => { for (let t = 0; t <= A.len; t += 2) { const x = A.x1 + (A.x2 - A.x1) * t / A.len, y = A.y1 + (A.y2 - A.y1) * t / A.len; gsplat(gooGround, x + Math.sin(t * 0.7 + T * 2) * 0.8, y, 1.8 + vn(t * 0.3, T) * 1.2); } };
+FX.plague.wallEmit = (A, dt) => { if (rnd() < 0.5 * dt * 60) { const [x, y] = wallPt(A); bubble(x, y - 1, rnd() < 0.3); } };
+FX.steam.wallEmit = (A, dt) => { if (rnd() < 0.9 * dt * 60) { const [x, y] = wallPt(A); mist(x, y, (rnd() - 0.5) * 3, -10 - rnd() * 6, 2.6, 3, 0.9); } };
+FX.steam.contact = (x, y) => { for (let i = 0; i < 5; i++) { const a = rnd() * TAU; mist(x, y, Math.cos(a) * 16, Math.sin(a) * 10 - 4, 2, 4, 0.5); } };
+FX.ice.wallStart = A => { const n = Math.ceil(A.len / 5); for (let i = 0; i <= n; i++) { const t = i / n, x = A.x1 + (A.x2 - A.x1) * t, y = A.y1 + (A.y2 - A.y1) * t; later.push({ t: t * 0.2, run: () => crystal(x, y + 2, 9 + rnd() * 6, A.life - t * 0.2, EL.ice.body, { tilt: (rnd() - 0.5) * 0.4, w: 0.28 }) }); } };
+FX.ice.wallEmit = (A, dt) => { if (rnd() < 0.4 * dt * 60) { const [x, y] = wallPt(A); mote(x, y - 6, (rnd() - 0.5) * 4, 3, EL.ice.mote, 0.9, 1, 4); } };
+FX.lightning.wallStart = A => { crystal(A.x1, A.y1 + 2, 11, A.life, EL.metal.body, { tilt: 0, w: 0.2 }); crystal(A.x2, A.y2 + 2, 11, A.life, EL.metal.body, { tilt: 0, w: 0.2 }); };
+FX.lightning.wallEmit = (A) => { for (let i = 0; i < 2; i++) arcs.push({ pts: jag(A.x1, A.y1 - 9, A.x2, A.y2 - 9, 4), age: 0, life: 0.02, c: i ? 1 : 0, thick: !i }); if (rnd() < 0.4) { const [x, y] = wallPt(A); hop(x, y - 9, 0.15); } for (const e of enemies) if (distSeg(e.x, e.y - 1, A) < A.hw + 2 && rnd() < 0.15) { flashes.push({ x: e.x, y: e.y - 3, r: 1.5, age: 0, life: 0.03, c: EL.lightning.arc[0] }); hop(e.x, e.y - 3, 0.15); } };
+FX.life.wallStart = A => { const n = Math.ceil(A.len / 1.5); for (let i = 0; i <= n; i++) { const t = i / n, x = A.x1 + (A.x2 - A.x1) * t + (rnd() - 0.5) * 3, y = A.y1 + (A.y2 - A.y1) * t; blades.push({ x, y, h: 3 + ((rnd() * 3) | 0), delay: t * 0.4, age: 0, life: A.life, c: (rnd() * 3) | 0, ph: rnd() * 6, flower: rnd() < 0.12 }); } for (let i = 0; i < 3; i++) vines.push({ x: A.x1, y: A.y1, ang: Math.atan2(A.y2 - A.y1, A.x2 - A.x1), len: A.len, growT: 0.8, life: A.life, curl: 0.9, ph: rnd() * 6, age: 0 }); };
+FX.life.wallEmit = (A, dt) => { if (rnd() < 0.08 * dt * 60) { const [x, y] = wallPt(A); leaf(x, y - 4, (rnd() - 0.5) * 6, -4, rnd() < 0.3 ? EL.life.petal : EL.life.leaf, 1); } };
+FX.water.wallAcc = A => { for (let t = 0; t <= A.len; t += 2) { const x = A.x1 + (A.x2 - A.x1) * t / A.len, y = A.y1 + (A.y2 - A.y1) * t / A.len; gsplat(wGround, x + Math.sin(t * 0.5 - T * 4), y, 1.9); } };
+FX.water.wallEmit = (A, dt) => { if (rnd() < 0.9 * dt * 60) { const [x, y] = wallPt(A); wblob(x, y, (rnd() - 0.5) * 6, -30 - rnd() * 15, 1.2 + rnd() * 0.6, 0.45, false, 120); } if (rnd() < 0.2 * dt * 60) { const [x, y] = wallPt(A); droplet(x, y - 6, (rnd() - 0.5) * 16, (rnd() - 0.5) * 6, 25); } };
+FX.water.contact = (x, y) => { for (let i = 0; i < 7; i++) { const a = rnd() * TAU; droplet(x, y, Math.cos(a) * 25, Math.sin(a) * 16, 30 + rnd() * 20); } ripple(x, y + 2, 7); };
+FX.water.bodyAcc = p => { if (!p.pierce) return; const L = Math.hypot(p.vx, p.vy) || 1; for (let i = 0; i < 5; i++) gsplat(wAir, p.x - p.vx / L * i * 2.2, p.y - p.vy / L * i * 2.2, 2.3 - i * 0.3); };
+
+/* ---------- signature components ---------- */
+function updateOrbiters(dt) {
+  orbiters = orbiters.filter(o => {
+    o.age += dt; if (o.age > o.life) return false; o.a += 4 * dt;
+    for (let i = 0; i < 3; i++) {
+      const a = o.a + i * TAU / 3, x = player.x + Math.cos(a) * 20, y = player.y - 4 + Math.sin(a) * 15;
+      if (rnd() < 0.6) spark(x, y, 0, 0, 0.3, EL.arcane.spark);
+      for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 4.5 && (!e.orbT || T - e.orbT > 0.5)) { e.orbT = T; eContact('arcane', x, y); hitEl(e, 'arcane', 2); knock(e, e.x - player.x, e.y - player.y, 5); }
+    }
+    return true;
+  });
+}
+function drawOrbiters() { for (const o of orbiters) for (let i = 0; i < 3; i++) { const a = o.a + i * TAU / 3; drawBody(player.x + Math.cos(a) * 20, player.y - 4 + Math.sin(a) * 15, -Math.sin(a), Math.cos(a), { t: 'diamond', a: 3.5, b: 2 }, EL.arcane.body); } }
+function updateTraps(dt) {
+  traps = traps.filter(t => {
+    t.age += dt;
+    if (!t.armed && t.age > 0.8) { t.armed = true; flashes.push({ x: t.x, y: t.y, r: 2, age: 0, life: 0.05, c: EL.arcane.body.core }); }
+    if (t.armed) for (const e of enemies) if (Math.hypot(e.x - t.x, e.y - 1 - t.y) < 7) { t.fired = true; eNova('arcane', t.x, t.y, 16, 0.25); FX.arcane.impact(t.x, t.y); shake(1.5, 0.12); break; }
+    return !t.fired && t.age < 8;
+  });
+}
+function drawTraps() {
+  for (const t of traps) {
+    const k = Math.min(1, t.age / 0.8), r = 7, steps = Math.ceil(TAU * r * 1.3);
+    for (let i = 0; i < steps; i++) { const a = i / steps * TAU; if (!t.armed && i / steps > k) continue; put(t.x + Math.cos(a) * r, t.y + Math.sin(a) * r * 0.7, t.armed ? EL.arcane.spark[(frame >> 3) & 1 ? 0 : 1] : EL.arcane.spark[3]); }
+    drawGlyph({ x: t.x, y: t.y, age: 0, life: 1, k: 3, cols: [t.armed ? EL.arcane.spark[(frame >> 2) & 1 ? 1 : 2] : EL.arcane.spark[3]] });
+  }
+}
+function eBeam(el, o = {}) { const tgt = nearestEnemy(player.x, player.y); beams.push({ el, age: 0, life: o.life || 1.8, ang: Math.atan2(tgt.y - 3 - player.y, tgt.x - player.x) + (o.sweep ? -0.6 : 0.3), sweep: o.sweep, turn: o.turn || 3, width: o.width || 1, reach: 130, sx: player.x, sy: player.y, ex: player.x, ey: player.y }); }
+function updateBeams(dt) {
+  beams = beams.filter(b => {
+    b.age += dt; if (b.age > b.life) return false;
+    b.sx = player.x + 3; b.sy = player.y - 4;
+    if (b.sweep) b.ang += 0.7 * dt; else { const tgt = nearestEnemy(b.sx, b.sy), want = Math.atan2(tgt.y - 3 - b.sy, tgt.x - b.sx), da = ((want - b.ang + Math.PI * 3) % TAU) - Math.PI; b.ang += Math.max(-b.turn * dt, Math.min(b.turn * dt, da)); }
+    const c = Math.cos(b.ang), s = Math.sin(b.ang), pierce = b.el !== 'arcane'; let reach = 140, hitE = null;
+    for (const e of enemies) { const rx = e.x - b.sx, ry = e.y - 3 - b.sy, along = rx * c + ry * s, lat = Math.abs(-rx * s + ry * c); if (along > 0 && along < reach && lat < 3 + b.width) { if (pierce) { if (rnd() < 0.12) eContact(b.el, e.x, e.y - 3); hitEl(e, b.el, 1); } else { reach = along; hitE = e; } } }
+    b.reach = reach; b.ex = b.sx + c * reach; b.ey = b.sy + s * reach;
+    if (hitE) { hitEl(hitE, b.el, 1); if (rnd() < 0.3) eContact(b.el, b.ex, b.ey); }
+    if (b.el === 'sun' && rnd() < 0.6) { const t = rnd() * reach; ray(b.sx + c * t, b.sy + s * t, b.ang + (rnd() < 0.5 ? 1 : -1) * Math.PI / 2, 4 + rnd() * 3, 0.12, EL.sun.ray, 3); }
+    if (b.el === 'plague' && rnd() < 0.5) { const t = rnd() * reach; bubble(b.sx + c * t + (rnd() - 0.5) * 4, b.sy + s * t + (rnd() - 0.5) * 4, false); }
+    if (b.el === 'prism' && rnd() < 0.4) { const t = rnd() * reach; spark(b.sx + c * t, b.sy + s * t, (rnd() - 0.5) * 20, (rnd() - 0.5) * 20, 0.3, rbCols((rnd() * 6) | 0)); }
+    return true;
+  });
+}
+function drawBeams() {
+  for (const b of beams) {
+    const k = Math.min(1, b.age / 0.1, (b.life - b.age) / 0.15), c = Math.cos(b.ang), s = Math.sin(b.ang), nx = -s, ny = c;
+    const band = (o, col) => line(b.sx + nx * o, b.sy + ny * o, b.ex + nx * o, b.ey + ny * o, col);
+    if (b.el === 'arcane') { if (k > 0.5) { band(-2, EL.arcane.spark[3]); band(2, EL.arcane.spark[3]); } band(-1, EL.arcane.spark[1]); band(1, EL.arcane.spark[1]); band(0, EL.arcane.spark[0]); drawBody(b.ex, b.ey, 1, 0, { t: 'orb', r: 2.5 }, EL.arcane.body); }
+    else if (b.el === 'prism') { const w = Math.round(3 * k); for (let o = -w; o <= w; o++) band(o, o === 0 ? EL.prism.body.core : rbc(o + 3 + (frame >> 2))); }
+    else if (b.el === 'sun') { const w = Math.round(2 * k); for (let o = -w; o <= w; o++) band(o, EL.sun.ray[Math.abs(o)]); drawBody(b.ex, b.ey, 1, 0, { t: 'orb', r: 3 }, EL.sun.body); }
+    else if (b.el === 'plague') { for (let t = 0; t < b.reach; t++) { const w = (2 + Math.sin(t * 0.3 - T * 8) * 0.8) * k, x = b.sx + c * t, y = b.sy + s * t; for (let o = -w; o <= w; o += 1) if (bayer(Math.round(x + nx * o), Math.round(y + ny * o)) < 0.8 - Math.abs(o) / w * 0.45) put(x + nx * o, y + ny * o, Math.abs(o) < 1 ? EL.plague.light : EL.plague.mid); } }
+  }
+}
+function updateGhosts(dt) {
+  ghosts = ghosts.filter(g => {
+    g.age += dt; if (g.age > g.life) { FX.death.contact(g.x, g.y); return false; }
+    g.retarget -= dt; if (!g.tgt || g.retarget <= 0) { g.retarget = 1.2; g.tgt = enemies[(rnd() * enemies.length) | 0]; }
+    const want = Math.atan2(g.tgt.y - 4 - g.y, g.tgt.x - g.x), da = ((want - g.ang + Math.PI * 3) % TAU) - Math.PI;
+    g.ang += Math.max(-5 * dt, Math.min(5 * dt, da)); g.x += Math.cos(g.ang) * 70 * dt; g.y += Math.sin(g.ang) * 70 * dt;
+    g.acc += dt * 30; while (g.acc >= 1) { g.acc--; dmist(g.x - Math.cos(g.ang) * 3, g.y + Math.sin(g.age * 10) * 1.5, -Math.cos(g.ang) * 10, -1, 2.2, 3, 0.5); }
+    for (const e of enemies) if (Math.hypot(e.x - g.x, e.y - 4 - g.y) < 4 && (!e.ghT || T - e.ghT > 0.6)) { e.ghT = T; FX.death.contact(g.x, g.y); hitEl(e, 'death', 2); knock(e, Math.cos(g.ang), Math.sin(g.ang), 4); g.retarget = 0; }
+    return true;
+  });
+}
+function drawGhosts() { for (const g of ghosts) sprite(GHOST, g.x, g.y + 2, { o: EL.death.body.core, e: EL.death.eye }); }
+function updateClouds(dt) {
+  clouds = clouds.filter(c => {
+    c.age += dt; c.x += c.vx * dt;
+    for (let i = 0; i < 2; i++) mote(c.x + (rnd() - 0.5) * 26, c.y - 12, c.vx * 0.3 + (rnd() - 0.5) * 6, 18 + rnd() * 10, EL.ice.mote, 0.7, 4, 6);
+    if (rnd() < 0.1) decals.push({ type: 'frost', x: c.x + (rnd() - 0.5) * 20, y: c.y + (rnd() - 0.5) * 8, r: 4, age: 0, life: 3, seed: rnd() * 100 });
+    for (const e of enemies) if (Math.abs(e.x - c.x) < 16 && Math.abs(e.y - c.y) < 12) hitEl(e, 'ice', 0.8);
+    return c.age < c.life;
+  });
+}
+function updateSlashes(dt) {
+  slashes = slashes.filter(s => {
+    s.age += dt;
+    if (s.kind === 'crescent') {
+      if (s.age < 0) return true;
+      s.d += 170 * dt; s.x = s.ox + s.dx * s.d; s.y = s.oy + s.dy * s.d;
+      for (let i = 0; i < 2; i++) { const a = Math.atan2(s.dy, s.dx) + (rnd() - 0.5) * 2.4; mote(s.x + Math.cos(a) * 8, s.y + Math.sin(a) * 8, -s.dx * 10, 3, EL.moon.mote, 0.5, 2, 2); }
+      for (const e of enemies) if (!s.hit.has(e) && Math.hypot(e.x - s.x, e.y - 3 - s.y) < 9) { s.hit.add(e); eContact('moon', e.x, e.y - 3); hitEl(e, 'moon', 2); knock(e, s.dx, s.dy, 6); }
+      return s.d < 90;
+    }
+    if (s.kind === 'blade') {
+      const px0 = s.x, py0 = s.y; s.spin += 22 * dt;
+      if (s.phase === 'out') { s.d += 200 * dt; if (s.d >= 90) { s.phase = 'linger'; s.lt = 0; } s.x = s.ox + s.dx * s.d; s.y = s.oy + s.dy * s.d; }
+      else if (s.phase === 'linger') { s.lt += dt; for (let q = 0; q < 2; q++) { const a = rnd() * TAU; mspark(s.x + Math.cos(a) * 9, s.y + Math.sin(a) * 8, a, 35); } if (s.lt > 0.7) s.phase = 'back'; }
+      else { const dx = player.x + 3 - s.x, dy = player.y - 4 - s.y, L = Math.hypot(dx, dy); if (L < 5) { flashes.push({ x: s.x, y: s.y, r: 1.5, age: 0, life: 0.04, c: EL.metal.body.core }); return false; } s.x += dx / L * 220 * dt; s.y += dy / L * 220 * dt; }
+      streaks.push({ x0: px0, y0: py0, x1: s.x, y1: s.y, age: 0, life: 0.1, cols: [EL.metal.body.light, EL.metal.body.dark] });
+      for (const e of enemies) if (Math.hypot(e.x - s.x, e.y - 3 - s.y) < 9 && (!e.blT || T - e.blT > 0.3)) { e.blT = T; eContact('metal', e.x, e.y - 3); hitEl(e, 'metal', 2); }
+      return true;
+    }
+    if (s.kind === 'moonfall') {
+      if (s.age >= s.dur) { FX.moon.impact(s.x, s.y); eField('moon', s.x, s.y, 20, 4); shake(2.5, 0.2); hitstop(3); rings.push({ x: s.x, y: s.y, max: 24, age: 0, life: 0.45, c: EL.moon.mote }); return false; }
+      if (rnd() < 0.6) mote(s.x + (rnd() - 0.5) * 8, s.y - (1 - s.age / s.dur) * 80, (rnd() - 0.5) * 6, -8, EL.moon.mote, 0.5, 0, 2);
+      return true;
+    }
+    return false;
+  });
+}
+function drawSlashes() {
+  for (const s of slashes) {
+    if (s.kind === 'crescent' && s.age >= 0) { if (s.d > 68 && (frame & 1)) continue; drawCrescent(s.x, s.y, 10, Math.atan2(s.dy, s.dx), EL.moon.body.light, EL.moon.body.mid); }
+    if (s.kind === 'blade') for (const off of [0, Math.PI / 2]) { const a = s.spin + off; drawBody(s.x, s.y, Math.cos(a), Math.sin(a), { t: 'diamond', a: 6, b: 2.2 }, EL.metal.body); }
+    if (s.kind === 'moonfall') {
+      const k = s.age / s.dur, steps = Math.ceil(TAU * 20 * 1.3);
+      for (let i = 0; i < steps; i += 2) { if (i / steps > k) break; const a = i / steps * TAU; put(s.x + Math.cos(a) * 20, s.y + Math.sin(a) * 20, EL.moon.rim[0]); }
+      for (let i = -Math.ceil(2 + k * 8); i <= Math.ceil(2 + k * 8); i += 2) put(s.x + i, s.y, C.shadow);
+      drawCrescent(s.x, s.y - (1 - k) * 80, 7, Math.PI * 0.5, EL.moon.body.light, EL.moon.body.dark);
+    }
+  }
+}
+function updateMatrix(dt) {
+  glyphs = glyphs.filter(g => { g.age += dt; g.y += g.vy * dt; return g.age < g.life; });
+  rays = rays.filter(r => (r.age += dt) < r.life);
+  crescents = crescents.filter(c => { c.age += dt; c.x += c.vx * dt; c.y += c.vy * dt; c.vx = drag(c.vx, dt, 0.95); c.vy = drag(c.vy, dt, 0.95); c.ang += c.spin * dt; return c.age < c.life; });
+  streaks = streaks.filter(s => (s.age += dt) < s.life);
+  skulls = skulls.filter(s => { s.age += dt; s.y -= 6 * dt; return s.age < s.life; });
+  updateESlash(dt); updateWhips(dt); updateWalls(dt); updateOrbiters(dt); updateTraps(dt); updateBeams(dt); updateGhosts(dt); updateClouds(dt); updateSlashes(dt);
+}
+function accMatrix() {
+  for (const p of eprojs) FX[p.el].bodyAcc?.(p);
+  for (const A of ewalls) FX[A.el].wallAcc?.(A);
+  for (const w of whips) if (w.el === 'water') w.pts.forEach((p, i) => gsplat(wAir, p[0], p[1], 1.6 - i / w.pts.length * 0.6));
+  for (const g of ghosts) { splat(dSoft, g.x, g.y, 4, 2.2); splat(dSoft, g.x - Math.cos(g.ang) * 4, g.y + Math.sin(g.age * 9), 3, 1.2); }
+  for (const c of clouds) for (let i = 0; i < 5; i++) splat(soft, c.x + (i - 2) * 5 + Math.sin(T * 2 + i) * 1.5, c.y - 16 + Math.cos(T * 1.7 + i) * 1.2, 5, 1.8);
+}
+function drawMatrixTop() {
+  for (const r of rays) { const k = r.age / r.life, len = r.len * (k < 0.3 ? k / 0.3 : 1), c = r.cols[Math.min(r.cols.length - 1, Math.floor(k * r.cols.length))], x0 = r.x + Math.cos(r.ang) * r.r0, y0 = r.y + Math.sin(r.ang) * r.r0 * 0.8, x1 = r.x + Math.cos(r.ang) * (r.r0 + len), y1 = r.y + Math.sin(r.ang) * (r.r0 + len) * 0.8; if (k > 0.6 && bayer(Math.round(x1), Math.round(y1)) < (k - 0.6) * 2.5) continue; line(x0, y0, x1, y1, c); }
+  for (const s of streaks) { const k = s.age / s.life; line(s.x0, s.y0, s.x1, s.y1, s.cols[Math.min(s.cols.length - 1, Math.floor(k * s.cols.length))]); }
+  for (const g of glyphs) drawGlyph(g);
+  for (const c of crescents) { const k = c.age / c.life; if (k > 0.75 && (frame & 2)) continue; drawCrescent(c.x, c.y, c.r, c.ang, c.cols[Math.min(c.cols.length - 1, Math.floor(k * c.cols.length))]); }
+  for (const s of skulls) { const k = s.age / s.life; if (k > 0.6 && (frame & 1)) continue; sprite(SKULL, s.x, s.y, { o: EL.death.body.light, e: EL.death.eye, m: EL.death.body.mid }); }
+  drawOrbiters(); drawTraps(); drawBeams(); drawGhosts(); drawSlashes(); drawESlash(); drawWhips();
+}
+
+/* ---------- the full spell list ---------- */
+const NAMES = { fire: 'Fire', water: 'Water', ice: 'Ice', steam: 'Steam', plague: 'Plague', death: 'Death', lightning: 'Lightning', earth: 'Earth', metal: 'Metal', life: 'Life', arcane: 'Arcane', prism: 'Prism', sun: 'Sun', moon: 'Moon' };
+const VIBE = {
+  water: 'Goo technique in blue: heavy drops, splash crowns on z-physics, ripples, puddles.', ice: 'Rigid: crystals snap in and shatter, frost motes drift down.', steam: 'Soft: dithered cloud puffs that billow and drift with the wind.',
+  plague: 'Goo: viscous blobs, bubbles that swell and pop, stains.', lightning: 'Paths: arcs regenerated every frame, instant flashes, spidering scorch.', life: 'Growth: grass and vines grow, leaves and petals sway-fall.',
+  arcane: 'Emissive swirl: spiral twinkles, rune glyphs that blink and rise.', prism: 'Arcane sub-element: refracted rainbow light and crystal panels.', sun: 'Radiant: straight radiating rays, flares, bleached ground.',
+  moon: 'Cool and quiet: crescents, silver motes drifting down, halos.', earth: 'Rigid and heavy: rock bodies, erupting spikes, dust, cracks, big hit-stop.', metal: 'Rigid and fast: blades, afterimage streaks, spark sprays, scratches.',
+  death: 'Soft and dark: drifting wisps, ghost faces, skulls, withered ground.'
+};
+const FAMDESC = { bolt: 'Projectile → impact → status.', field: 'Persistent area: dim floor, bright rim at the true radius, ambient effect.', nova: 'Expanding front from the caster; only the band hits, once each.', wave: 'Directional moving front; band hits once and pushes.', spear: 'Fast piercing projectile; small burst at every enemy it passes.', wall: 'Line mask with rims on both edges.' };
+const SOLID = { ice: 1, earth: 1, metal: 1, prism: 1, life: 1 };
+const WALLNAME = { lightning: 'Tesla Wall', prism: 'Prism Wall', earth: 'Earth Wall', life: 'Hedge', water: 'Water Curtain', steam: 'Fog Wall', death: 'Spirit Wall', sun: 'Light Wall', moon: 'Moon Curtain', plague: 'Ooze Ridge', arcane: 'Rune Wall', ice: 'Ice Wall', metal: 'Spike Fence' };
+const marchSetup = () => { for (const e of enemies) e.march = true; };
+for (const el of ['water', 'ice', 'steam', 'plague', 'death', 'lightning', 'earth', 'metal', 'life', 'arcane', 'prism', 'sun', 'moon']) {
+  const d = f => `${f[0].toUpperCase() + f.slice(1)} × ${NAMES[el]}. ${FAMDESC[f]} ${VIBE[el]}`;
+  SPELLS[el + '_bolt'] ??= { el, name: 'Bolt', every: 0.6, desc: d('bolt'), cast() { eShoot(el, 160); } };
+  SPELLS[el + '_field'] ??= { el, name: 'Field', every: 6.6, desc: d('field'), cast() { eField(el, 150, 56, 20, 6); } };
+  SPELLS[el + '_nova'] ??= { el, name: 'Nova', every: 2.2, desc: d('nova'), setup: SPELLS.nova.setup, cast() { eNova(el, player.x, player.y - 3, 34, 0.5); } };
+  SPELLS[el + '_wave'] ??= { el, name: 'Wave', every: 2.2, desc: d('wave'), cast() { waveCast(el); } };
+  SPELLS[el + '_spear'] ??= { el, name: 'Spear', every: 1.1, desc: d('spear'), cast() { const tgt = nearestEnemy(player.x, player.y), dx = tgt.x - player.x, dy = tgt.y - 3 - player.y, L = Math.hypot(dx, dy) || 1; eprojs.push({ el, pierce: true, hits: new Set(), x: player.x + 3, y: player.y - 4, vx: dx / L * 230, vy: dy / L * 230, age: 0 }); } };
+  SPELLS[el + '_wall'] = { el, name: WALLNAME[el], every: 7.2, desc: `Wall × ${NAMES[el]}. ${FAMDESC.wall} ${SOLID[el] ? 'Solid: enemies pile up against it.' : 'Passable: enemies walk through and take the status.'} ${VIBE[el]}`, setup: marchSetup, cast() { eWall(el, 124, 24, 124, 90, 2.5, 7); } };
+}
+const centroid = () => { let cx = 0, cy = 0; for (const e of enemies) { cx += e.x; cy += e.y; } return [cx / enemies.length, cy / enemies.length]; };
+const SIG = {
+  ice_blast: { el: 'ice', name: 'Ice Blast', every: 1.4, desc: 'Ice Blast (your current spell). A 90° fan of nine shards, each with a frost-mote trail, shattering on the first enemy it touches.', cast() { const tgt = nearestEnemy(player.x, player.y), base = Math.atan2(tgt.y - 3 - player.y, tgt.x - player.x); for (let i = 0; i < 9; i++) { const a = base + (i / 8 - 0.5) * (Math.PI / 2), sp = 200 + rnd() * 30; eprojs.push({ el: 'ice', mini: true, small: true, x: player.x + 3, y: player.y - 4, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, age: 0, maxAge: 0.55 }); } flashes.push({ x: player.x + 5, y: player.y - 4, r: 2, age: 0, life: 0.05, c: EL.ice.body.core }); } },
+  ice_blizzard: { el: 'ice', name: 'Blizzard', every: 5.5, desc: 'Blizzard (Shower family, moving cloud). A snow cloud drifts across the crowd, raining snow, frosting the ground and chilling everything under it.', cast() { clouds.push({ x: 104, y: 56, vx: 16, age: 0, life: 5 }); } },
+  earth_quake: { el: 'earth', name: 'Earthquake', every: 2.6, desc: 'Earthquake. Four pulses, one per damage beat: crack ring, spikes erupting along each front, rocks thrown, screen shake.', setup: SPELLS.nova.setup, cast() { for (let i = 0; i < 4; i++) later.push({ t: i * 0.4, run: () => { eNova('earth', player.x, player.y - 2, 26 + i * 4, 0.35); shake(2.5, 0.18); hitstop(2); for (let k = 0; k < 10; k++) { const a = rnd() * TAU; chunk(player.x + Math.cos(a) * 6, player.y + Math.sin(a) * 4, Math.cos(a) * 30, Math.sin(a) * 20, 40 + rnd() * 30, EL.earth.debris, 1, 1); } } }); } },
+  lightning_chain: { el: 'lightning', name: 'Chain Lightning', every: 1.6, desc: 'Chain Lightning (Lightning Bolt combo). Bolt hits, then lightning hops to the nearest unhit enemy four times, with a visible link appearing only after each real hop.', cast() { const tgt = nearestEnemy(player.x, player.y), dx = tgt.x - player.x, dy = tgt.y - 3 - player.y, L = Math.hypot(dx, dy) || 1; const chainFrom = (e, left, seen) => { eContact('lightning', e.x, e.y - 3); hitEl(e, 'lightning', 2); flashes.push({ x: e.x, y: e.y - 3, r: 3, age: 0, life: 0.04, c: EL.lightning.arc[0] }); if (left <= 0) return; let best = null, bd = 60; for (const o of enemies) { if (seen.has(o)) continue; const dd = Math.hypot(o.x - e.x, o.y - e.y); if (dd < bd) { bd = dd; best = o; } } if (!best) return; seen.add(best); arcs.push({ gen: () => [jag(e.x, e.y - 3, best.x, best.y - 3, 4)], age: 0, life: 0.14, c: 0, thick: true }); later.push({ t: 0.09, run: () => chainFrom(best, left - 1, seen) }); }; eprojs.push({ el: 'lightning', x: player.x + 3, y: player.y - 4, vx: dx / L * 220, vy: dy / L * 220, age: 0, onHit(e) { chainFrom(e, 4, new Set([e])); } }); } },
+  arcane_orbit: { el: 'arcane', name: 'Arcane Orbit', every: 6.2, desc: 'Arcane Orbit (your current spell). Three crystals orbit the wizard with twinkle trails; only the crystals hit, not the circle.', setup: SPELLS.nova.setup, cast() { orbiters.push({ a: 0, age: 0, life: 6 }); } },
+  arcane_rune: { el: 'arcane', name: 'Rune Trap', every: 4, desc: 'Rune Trap (your current spell). The rune draws itself while arming, pulses when armed, and bursts with a glyph flash when an enemy steps on it.', setup: marchSetup, cast() { for (let i = 0; i < 3; i++) { const e = enemies[(rnd() * enemies.length) | 0]; traps.push({ x: Math.max(100, e.hx - 20), y: e.hy, age: 0 }); } } },
+  arcane_ray: { el: 'arcane', name: 'Focus Ray', every: 2.4, desc: 'Focus Ray (your current spell). A thin, stable tracking beam that stops at the first enemy it touches.', cast() { eBeam('arcane', { life: 2 }); } },
+  prism_ray: { el: 'prism', name: 'Prism Ray', every: 2.6, desc: 'Prism Ray (Focus Ray + Ember Spear combo). A wide rainbow beam that pierces everything in its line and turns slowly.', cast() { eBeam('prism', { life: 2.2, turn: 0.6, width: 3 }); } },
+  sun_beam: { el: 'sun', name: 'Sunbeam', every: 2.4, desc: 'Sunbeam (Sun theme). A golden piercing beam throwing short rays off its length, ending in a small sun.', cast() { eBeam('sun', { life: 2, width: 2 }); } },
+  plague_ray: { el: 'plague', name: 'Ray of Sickness', every: 3, desc: 'Ray of Sickness. A wavering haze that sweeps across the crowd instead of tracking, spreading the sickness to everything it crosses.', cast() { eBeam('plague', { life: 2.2, sweep: true, width: 2 }); } },
+  metal_blade: { el: 'metal', name: 'Cross Blade', every: 2.4, desc: 'Cross Blade (your current spell). A spinning cross flies out, lingers in a ring of sparks, then returns to the wizard.', cast() { const [cx, cy] = centroid(), dx = cx - player.x, dy = cy - player.y, L = Math.hypot(dx, dy); slashes.push({ kind: 'blade', ox: player.x + 3, oy: player.y - 4, x: player.x, y: player.y, dx: dx / L, dy: dy / L, d: 0, phase: 'out', spin: 0, age: 0 }); } },
+  death_seeker: { el: 'death', name: 'Seeker', every: 2, desc: 'Seeker (your current spell). A ghost that hunts enemies, turning visibly toward each new target, with a trailing wisp tail. Up to three.', cast() { if (ghosts.length < 3) ghosts.push({ x: player.x + 3, y: player.y - 6, ang: -0.3, age: 0, life: 6, retarget: 0, acc: 0 }); } },
+  moon_fall: { el: 'moon', name: 'Moonfall', every: 5, desc: 'Moonfall. The landing ring draws itself as a crescent falls from the sky; on landing, a silver burst leaves a moonlit field.', cast() { const e = enemies[(rnd() * enemies.length) | 0]; slashes.push({ kind: 'moonfall', x: e.hx, y: e.hy, age: 0, dur: 0.6 }); } },
+  moon_slash: { el: 'moon', name: 'Crescent Slash', every: 1.8, desc: 'Crescent Slash (Moon theme). Three crescents sweep forward one after another, pushing enemies back.', cast() { const [cx, cy] = centroid(), base = Math.atan2(cy - player.y, cx - player.x); for (let i = 0; i < 3; i++) { const a = base + (i - 1) * 0.25; slashes.push({ kind: 'crescent', ox: player.x + 4, oy: player.y - 3, x: player.x, y: player.y, dx: Math.cos(a), dy: Math.sin(a), d: 0, age: -i * 0.12, hit: new Set() }); } } }
+};
+Object.assign(SPELLS, SIG);
+
+FX.fire = { contact(x, y) { damageDisk(x, y, 0.35, { nodecal: true, stop: 0 }); }, status() {} };   // fire's own components predate the hook table
+/* ---------- Slash (every element) and Whip (Water, Lightning, Vine): the Slice/Whip family ---------- */
+let eslashes = [], whips = [];
+function smearCols(el) {
+  if (el === 'fire') return [MAT.fire.body.core, MAT.fire.body.light, MAT.fire.body.mid];
+  if (el === 'plague') return [EL.plague.hi, EL.plague.light, EL.plague.mid];
+  if (el === 'steam') return EL.steam.tones;
+  if (el === 'water') return [EL.water.hi, EL.water.light, EL.water.mid];
+  if (el === 'lightning') return [EL.lightning.arc[0], EL.lightning.arc[1], EL.lightning.arc[2]];
+  if (el === 'death') return EL.death.tones;
+  const b = EL[el].body; return [b.core, b.light, b.mid];
+}
+// arc smear: sweeps across the swing, thick in the middle and tapered at both ends; trailing part dithers out
+function eSlash(el, o = {}) { const tgt = nearestEnemy(player.x, player.y), a = Math.atan2(tgt.y - 3 - player.y, tgt.x - player.x), span = o.span || 2.4, dir = o.flip ? -1 : 1; eslashes.push({ el, cx: player.x + 2, cy: player.y - 4, a0: a - span / 2 * dir, span, dir, t: 0, dur: o.dur || 0.13, linger: 0.14, rIn: o.rIn || 7, rOut: o.rOut || 24, hit: new Set() }); }
+function updateESlash(dt) {
+  eslashes = eslashes.filter(s => {
+    s.t += dt; const k = Math.min(1, s.t / s.dur), cur = s.a0 + s.span * k * s.dir, ca = Math.cos(cur), sa = Math.sin(cur);
+    if (k < 1) {
+      for (let i = 0; i < 4; i++) { const r = s.rIn + rnd() * (s.rOut - s.rIn); emitAt(s.el, s.cx + ca * r, s.cy + sa * r * 0.85, ca, sa, { oy: s.cy, dx: ca, dy: sa }); }
+      if (s.el === 'lightning') arcs.push({ pts: jag(s.cx + ca * s.rIn, s.cy + sa * s.rIn * 0.85, s.cx + ca * s.rOut, s.cy + sa * s.rOut * 0.85, 2), age: 0, life: 0.06, c: 1 });
+    }
+    for (const e of enemies) {
+      if (s.hit.has(e)) continue;
+      const dx = e.x - s.cx, dy = (e.y - 3 - s.cy) / 0.85, d = Math.hypot(dx, dy); if (d < s.rIn - 3 || d > s.rOut + 3) continue;
+      let rel = (Math.atan2(dy, dx) - s.a0) * s.dir; rel = ((rel % TAU) + TAU) % TAU;
+      if (rel <= s.span * k) { s.hit.add(e); if (s.el === 'fire') hit(e, 3); else hitEl(e, s.el, 3); eContact(s.el, e.x, e.y - 3); knock(e, dx, dy, 6); hitstop(1); }
+    }
+    return s.t < s.dur + s.linger;
+  });
+}
+function drawESlash() {
+  for (const s of eslashes) {
+    const k = Math.min(1, s.t / s.dur), cur = s.span * k, cols = smearCols(s.el), steps = Math.ceil(s.span * s.rOut * 1.6);
+    for (let i = 0; i <= steps; i++) {
+      const rel = i / steps * s.span; if (rel > cur) break;
+      const age = (cur - rel) / s.span * s.dur + Math.max(0, s.t - s.dur), fade = 1 - age / (s.dur * 0.9 + s.linger * 0.6);
+      if (fade <= 0) continue;
+      const a = s.a0 + rel * s.dir, ca = Math.cos(a), sa = Math.sin(a), thick = (s.rOut - s.rIn) * (0.3 + 0.7 * Math.sin(rel / s.span * Math.PI));
+      for (let r = s.rOut - thick; r <= s.rOut; r += 0.7) {
+        const x = s.cx + ca * r, y = s.cy + sa * r * 0.85; if (bayer(Math.round(x), Math.round(y)) > fade) continue;
+        const band = (s.rOut - r) / thick;
+        put(x, y, s.el === 'prism' ? rbc(((r | 0) >> 1) + (frame >> 2)) : band < 0.2 ? cols[0] : band < 0.55 ? cols[1] : cols[2]);
+      }
+    }
+    if (k < 1) { const a = s.a0 + cur * s.dir; line(s.cx + Math.cos(a) * s.rIn, s.cy + Math.sin(a) * s.rIn * 0.85, s.cx + Math.cos(a) * (s.rOut + 1), s.cy + Math.sin(a) * (s.rOut + 1) * 0.85, cols[0]); }
+  }
+}
+// whip: the line rolls out with a travelling wave, the tip cracks (hit + flash) at full extension, then it recoils
+function eWhip(el) { const tgt = nearestEnemy(player.x, player.y); whips.push({ el, t: 0, dur: 0.5, ang: Math.atan2(tgt.y - 3 - player.y, tgt.x - player.x), L: Math.min(62, Math.hypot(tgt.x - player.x, tgt.y - 3 - player.y) + 4), pts: [], cracked: false, side: rnd() < 0.5 ? 1 : -1 }); }
+function whipPts(w) {
+  const N = 14, ox = player.x + 3, oy = player.y - 5, c = Math.cos(w.ang), s = Math.sin(w.ang), ext = Math.min(1, w.t / 0.22), out = w.t < 0.3 ? ext : Math.max(0, 1 - (w.t - 0.3) / 0.2) * 0.7 + 0.3, pts = [];
+  for (let i = 0; i <= N; i++) { const u = i / N, lag = Math.max(0, Math.min(1, ext * 1.25 - u * 0.25)), along = u * w.L * out * lag, wave = Math.sin(u * Math.PI * 1.4 - w.t * 16) * 7 * (1 - Math.min(1, w.t / 0.35)) * u * w.side; pts.push([ox + c * along - s * wave, oy + s * along * 0.9 + c * wave]); }
+  return pts;
+}
+function updateWhips(dt) {
+  whips = whips.filter(w => {
+    w.t += dt; w.pts = whipPts(w); const tip = w.pts[w.pts.length - 1];
+    if (!w.cracked && w.t >= 0.22) {
+      w.cracked = true; flashes.push({ x: tip[0], y: tip[1], r: 2.5, age: 0, life: 0.05, c: smearCols(w.el)[0] }); eContact(w.el, tip[0], tip[1]); rings.push({ x: tip[0], y: tip[1], max: 7, age: 0, life: 0.18, c: smearCols(w.el) });
+      for (const e of enemies) if (Math.hypot(e.x - tip[0], e.y - 3 - tip[1]) < 8) { hitEl(e, w.el, 3); knock(e, Math.cos(w.ang), Math.sin(w.ang), 8); }
+      hitstop(2);
+    }
+    const p = w.pts[(rnd() * w.pts.length) | 0];
+    if (w.el === 'water' && rnd() < 0.5) droplet(p[0], p[1], (rnd() - 0.5) * 20, (rnd() - 0.5) * 12, 15 + rnd() * 15);
+    if (w.el === 'lightning' && rnd() < 0.5) hop(p[0], p[1], 0.15);
+    if (w.el === 'life' && rnd() < 0.2) leaf(p[0], p[1], (rnd() - 0.5) * 10, -6, EL.life.leaf, 0.8);
+    return w.t < w.dur;
+  });
+}
+function drawWhips() {
+  for (const w of whips) {
+    const P = w.pts; if (P.length < 2) continue;
+    if (w.el === 'lightning') for (let i = 1; i < P.length; i++) path(jag(P[i - 1][0], P[i - 1][1], P[i][0], P[i][1], 1.6), EL.lightning.arc[i % 3 === 0 ? 0 : 1]);
+    if (w.el === 'life') { for (let i = 1; i < P.length; i++) line(P[i - 1][0], P[i - 1][1], P[i][0], P[i][1], EL.life.vine[i < P.length / 2 ? 2 : 1]); for (let i = 2; i < P.length; i += 3) { put(P[i][0] + 1, P[i][1] - 1, EL.life.leaf[1]); put(P[i][0] + 2, P[i][1] - 1, EL.life.leaf[0]); } }
+  }
+}
+for (const el of Object.keys(NAMES)) {
+  const key = el + '_slash';
+  SPELLS[key] = { el, name: 'Slash', every: 0.9, flip: false, desc: `Slash × ${NAMES[el]}. A crescent smear sweeps across the swing (thick in the middle, tapered at the ends); the leading edge emits the element and every enemy it passes is hit once and pushed. ${VIBE[el] || 'Emissive density: flame tongues, embers, smoke.'}`, setup: SPELLS.nova.setup, cast() { this.flip = !this.flip; eSlash(el, { flip: this.flip }); } };
+}
+SPELLS.water_whip = { el: 'water', name: 'Water Whip', every: 1.1, desc: 'Water Whip. A goo line rolls out with a travelling wave; the tip cracks with a splash at full extension, then the whip recoils, flicking droplets.', setup: SPELLS.nova.setup, cast() { eWhip('water'); } };
+SPELLS.lightning_whip = { el: 'lightning', name: 'Lightning Whip', every: 1.1, desc: 'Lightning Whip. A jagged arc chain regenerated every frame; the tip cracks with a flash and a zap.', setup: SPELLS.nova.setup, cast() { eWhip('lightning'); } };
+SPELLS.life_whip = { el: 'life', name: 'Vine Whip', every: 1.1, desc: 'Vine Whip. A leafy vine lashes out and cracks at the tip in a burst of petals, shedding leaves as it recoils.', setup: SPELLS.nova.setup, cast() { eWhip('life'); } };
+
+/* ===================== POLISH PASS 2 =====================
+   Water: own render (no dark outline, see-through ground water, white highlights), mostly droplets and spray.
+   Plague: bubbles first, goo only as small drips.
+   Death: soul fire (the fire engine in teal/violet) + bones + skeletal hands + necrotic veins.
+   Lightning Slash: built from arcs that follow the swing.  Metal: bigger, brighter blades.
+   ========================================================= */
+function drawWater(buf, ground) {
+  const Wt = EL.water, th = 0.5;
+  for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) {
+    const i = y * W + x, v = buf[i]; if (v < th) continue;
+    const up = buf[i - W] < th, edge = up || buf[i + W] < th || buf[i - 1] < th || buf[i + 1] < th;
+    if (ground) { if (edge) px[i] = up || ((x + y + (frame >> 3)) & 3) === 0 ? Wt.foam[1] : Wt.mid; else if (((x + y) & 1) === 0) px[i] = hs(x, y + (frame >> 4)) > 0.96 ? Wt.hi : Wt.mid; continue; }
+    if (edge) { px[i] = up ? Wt.hi : Wt.light; continue; }
+    px[i] = buf[i - 2 * W] < th ? Wt.hi : v > 1.3 ? Wt.light : ((x + y) & 1) ? Wt.light : Wt.mid;
+  }
+}
+const foamStreak = (x, y, vx, vy, len) => { const L = Math.hypot(vx, vy) || 1; streaks.push({ x0: x, y0: y, x1: x - vx / L * len, y1: y - vy / L * len, age: 0, life: 0.12, cols: [EL.water.hi, EL.water.foam[1], EL.water.foam[2]] }); };
+Object.assign(FX.water, {
+  trail(p, dt) {
+    if (rnd() < 0.9 * dt * 60) mote(p.x - p.vx * 0.03 + (rnd() - 0.5) * 2, p.y + (rnd() - 0.5) * 2, p.vx * 0.15 + (rnd() - 0.5) * 14, (rnd() - 0.5) * 10, EL.water.foam, 0.3, 40, 0);
+    if (rnd() < 0.5 * dt * 60) droplet(p.x, p.y, p.vx * 0.15 + (rnd() - 0.5) * 14, (rnd() - 0.5) * 8, 15 + rnd() * 20);
+    if ((frame & 1) === 0) foamStreak(p.x - p.vx * 0.03, p.y + (rnd() - 0.5) * 3, p.vx, p.vy, 5 + rnd() * 4);
+  },
+  body(p) { if (p.pierce) return; const L = Math.hypot(p.vx, p.vy) || 1; gsplat(wAir, p.x, p.y, 3); gsplat(wAir, p.x - p.vx / L * 3, p.y - p.vy / L * 3, 2); },
+  impact(x, y) {
+    for (let i = 0; i < 30; i++) { const a = rnd() * TAU, sp = 20 + rnd() * 45; droplet(x + Math.cos(a) * 2, y + Math.sin(a), Math.cos(a) * sp, Math.sin(a) * sp * 0.6, 60 + rnd() * 70); }   // tall splash crown
+    for (let i = 0; i < 10; i++) ray(x, y, i / 10 * TAU + rnd() * 0.3, 7 + rnd() * 5, 0.22, [EL.water.hi, EL.water.foam[1], EL.water.foam[2]], 2);
+    for (let i = 0; i < 4; i++) { const a = rnd() * TAU; wblob(x, y, Math.cos(a) * 18, Math.sin(a) * 12, 1.2, 0.4, true); }
+    flashes.push({ x, y, r: 2.5, age: 0, life: 0.05, c: EL.water.hi });
+    ripple(x, y, 9); ripple(x, y, 14, 0.12); ripple(x, y, 19, 0.26);
+    decals.push({ type: 'puddle', x, y, r: 6, age: 0, life: 4, seed: rnd() * 100 }); hitstop(2);
+    for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 11) { hitEl(e, 'water', 3); knock(e, e.x - x, e.y - y, 7); }
+  },
+  nova(N, dt) { const n = TAU * N.r * 0.08 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; droplet(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a) * 30, Math.sin(a) * 20, 40 + rnd() * 40); } if (rnd() < 0.6) { const a = rnd() * TAU; foamStreak(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, Math.cos(a), Math.sin(a), 5); } },
+  contact(x, y) { for (let i = 0; i < 12; i++) { const a = rnd() * TAU; droplet(x, y, Math.cos(a) * 28, Math.sin(a) * 18, 35 + rnd() * 30); } ripple(x, y + 2, 7); },
+  wallEmit(A, dt) { if (rnd() < 1.2 * dt * 60) { const [x, y] = wallPt(A); droplet(x, y, (rnd() - 0.5) * 10, (rnd() - 0.5) * 4, 50 + rnd() * 40); } if (rnd() < 0.4 * dt * 60) { const [x, y] = wallPt(A); foamStreak(x, y - 4 - rnd() * 8, 0, 1, 4); } }
+});
+
+function bubbleCluster(x, y, n, spread) { for (let i = 0; i < n; i++) bubble(x + (rnd() - 0.5) * spread, y + (rnd() - 0.5) * spread * 0.6, rnd() < 0.3); }
+Object.assign(FX.plague, {
+  trail(p, dt) { if (rnd() < 0.15 * dt * 60) blobs.push({ x: p.x, y: p.y, vx: 0, vy: 0, r: 0.9, age: 0, life: 0.3, g: 60 }); if (rnd() < 0.6 * dt * 60) bubble(p.x - p.vx * 0.03 + (rnd() - 0.5) * 4, p.y + (rnd() - 0.5) * 4, rnd() < 0.2); },
+  impact(x, y) {
+    bubbleCluster(x, y, 24, 14);
+    for (let i = 0; i < 5; i++) { const a = rnd() * TAU; blobs.push({ x, y, vx: Math.cos(a) * 25, vy: Math.sin(a) * 18, r: 1.1, age: 0, life: 0.5, g: 0, stick: true }); }
+    rings.push({ x, y, max: 11, age: 0, life: 0.3, c: [EL.plague.hi, EL.plague.light, EL.plague.mid] });
+    decals.push({ type: 'stain', x, y, r: 6, age: 0, life: 6, seed: rnd() * 100 }); hitstop(1);
+    for (const e of enemies) if (Math.hypot(e.x - x, e.y - 3 - y) < 11) hitEl(e, 'plague', 4);
+  },
+  status(e, dt) { if (rnd() < 0.3 * dt * 60) bubble(e.x + (rnd() - 0.5) * 7, e.y - 3 - rnd() * 4, rnd() < 0.15); },
+  field(A, dt) { if (rnd() < 1.0 * dt * 60) { const [x, y] = inDisk(A); bubble(x, y, rnd() < 0.25); } },
+  nova(N, dt) { const n = TAU * N.r * 0.07 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; bubble(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r, rnd() < 0.3); } }
+});
+
+/* ---------- Death = soul fire ---------- */
+const sheat = new Float32Array(W * H), sblur = new Float32Array(W * H);
+const SOUL = compile({ heat: [[1.5, '#f2fff8'], [1.0, '#9ff5d8'], [0.62, '#4ec4b0'], [0.32, '#5a4aa8'], [0.12, '#2e1f58']], glow: '#141026' });
+const BONE = compile({ core: '#fffbe8', light: '#e8dcc0', mid: '#b8a888', dark: '#6a5e4a', outline: '#1a1612' });
+const VEIN = compile(['#2a1840', '#4a2e70']);
+const HAND = ['o.o.o', 'o.o.o', 'ooooo', '.ooo.', '.ooo.'];
+let hands = [];
+function drawSoulHeat() {
+  let any = false; for (let i = 0; i < W * H; i++) if (sheat[i] > 0) { any = true; break; } if (!any) return;
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; sblur[i] = (sheat[i] * 4 + sheat[i - 1] + sheat[i + 1] + sheat[i - W] + sheat[i + W]) / 8; }
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; if (sblur[i] > 0.05 && sheat[i] < 0.12 && (sblur[i] > 0.12 || ((x + y) & 1))) px[i] = SOUL.glow; }
+  for (let i = 0; i < W * H; i++) { let v = sheat[i]; if (v <= 0) continue; v += (((i % W) + ((i / W) | 0)) & 1) ? 0.08 : -0.08; for (const [th, c] of SOUL.heat) if (v >= th) { px[i] = c; break; } }
+}
+function soulBurst(x, y, n, sp) { const a0 = STATIC(x, y); for (let i = 0; i < n; i++) { const a = rnd() * TAU, s = sp * (0.4 + rnd() * 0.6); flame(a0, { vx: Math.cos(a) * s, vy: Math.sin(a) * s * 0.8, rise: 14 + rnd() * 10, life: 0.35 + rnd() * 0.3, heat: 1.5, soul: true }); } }
+function bone(x, y, vx, vy, vz) { shard(x, y, vx, vy, vz, 1.6, 1 + rnd() * 0.5, BONE); }
+function soulRise(x, y) { skulls.push({ x, y, age: 0, life: 0.8 }); }
+function veins(x, y, n, L) { const rs = []; for (let i = 0; i < n; i++) { const a = i / n * TAU + rnd() * 0.5; rs.push(jag(x, y, x + Math.cos(a) * L * (0.6 + rnd() * 0.5), y + Math.sin(a) * L * 0.7 * (0.6 + rnd() * 0.5), 2)); } decals.push({ type: 'veins', x, y, r: L, rs, age: 0, life: 5 }); }
+DECAL.veins = (d, f) => { for (const pts of d.rs) for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; if (bayer(Math.round(x1), Math.round(y1)) < f) line(x0, y0, x1, y1, VEIN[i < pts.length / 2 ? 1 : 0]); } };
+function updateHands(dt) { hands = hands.filter(h => { h.age += dt; if (rnd() < 0.25) flame(STATIC(h.x + (rnd() - 0.5) * 4, h.y - 2), { heat: 0.55, rise: 10, life: 0.25, small: 1, soul: true }); return h.age < h.life; }); }
+function drawHands() {
+  for (const h of hands) {
+    const k = h.age / h.life, vis = Math.round(5 * Math.min(1, k / 0.2, (1 - k) / 0.3));
+    for (let i = -2; i <= 2; i++) put(h.x + i, h.y + 1, VEIN[0]);
+    for (let j = 5 - vis; j < 5; j++) for (let i = 0; i < 5; i++) if (HAND[j][i] === 'o') put(Math.round(h.x) - 2 + i, Math.round(h.y) - vis + (j - (5 - vis)), j === 5 - vis ? BONE.core : (i + j) & 1 ? BONE.light : BONE.mid);
+  }
+}
+dmist = (x, y, vx, vy, r, grow, life) => flame(STATIC(x, y), { vx, vy, rise: 10, life: Math.min(0.5, life * 0.6), heat: 0.9, small: 1, soul: true });
+FX.death = {
+  trail(p, dt) { const L = Math.hypot(p.vx, p.vy) || 1; for (let i = 0; i < 2; i++) flame(p, { lx: -p.vx / L * 3 + (rnd() - 0.5) * 2, ly: (rnd() - 0.5) * 2, inh: 0.2, grip: 0.15, heat: 1.1, rise: 14 + rnd() * 8, life: 0.3 + rnd() * 0.3, soul: true }); if (rnd() < 0.05 * dt * 60) bone(p.x, p.y, (rnd() - 0.5) * 10, (rnd() - 0.5) * 6, 15); },
+  bodyDraw(p) { sprite(SKULL, p.x, p.y + 2, { o: BONE.light, e: EL.death.eye, m: BONE.mid }); },
+  impact(x, y) {
+    soulBurst(x, y, 34, 50);
+    for (let i = 0; i < 6; i++) { const a = rnd() * TAU; bone(x, y, Math.cos(a) * 26, Math.sin(a) * 18, 40 + rnd() * 40); }
+    soulRise(x - 3, y - 2); later.push({ t: 0.12, run: () => soulRise(x + 3, y - 4) });
+    hands.push({ x: x + (rnd() - 0.5) * 6, y: y + 3, age: 0, life: 1.1 }); veins(x, y, 6, 11);
+    flashes.push({ x, y, r: 2.5, age: 0, life: 0.05, c: SOUL.heat[0][1] }); rings.push({ x, y, max: 13, age: 0, life: 0.35, c: [SOUL.heat[1][1], SOUL.heat[2][1], SOUL.heat[3][1]] });
+    hitstop(2); nearHit(x, y, 11, 'death', 3);
+  },
+  status(e, dt) { if (rnd() < 0.5 * dt * 60) flame(e, { lx: (rnd() - 0.5) * 6, ly: -2 - rnd() * 4, inh: 0.1, grip: 0.9, heat: 0.95, rise: 16 + rnd() * 8, life: 0.3 + rnd() * 0.25, small: 1, soul: true }); },
+  statusDraw(e) { if ((frame >> 3) % 3 === 0) put(e.x, e.y - 9, SOUL.heat[1][1]); },
+  fieldStart(A) { veins(A.x, A.y, 9, A.r); },
+  field(A, dt) {
+    const n = A.r * A.r * 0.0028 * dt * 60; for (let i = 0; i < n || (i === 0 && rnd() < n); i++) { const [x, y] = inDisk(A); flame(STATIC(x, y), { heat: 0.6, rise: 16 + rnd() * 10, life: 0.4 + rnd() * 0.3, small: 1, soul: true }); }
+    if (rnd() < 0.035 * dt * 60) { const [x, y] = inDisk(A); hands.push({ x, y, age: 0, life: 1.4 }); }
+    if (rnd() < 0.015 * dt * 60) { const [x, y] = inDisk(A); soulRise(x, y); }
+  },
+  nova(N, dt) { const n = TAU * N.r * 0.12 * dt * 60; for (let i = 0; i < n; i++) { const a = rnd() * TAU; flame(STATIC(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r), { vx: Math.cos(a) * 18, vy: Math.sin(a) * 14, heat: 1.3, rise: 14, life: 0.3, soul: true }); } if (rnd() < 0.12) { const a = rnd() * TAU; soulRise(N.x + Math.cos(a) * N.r, N.y + Math.sin(a) * N.r); } },
+  waveEmit(x, y, fx, fy) { flame(STATIC(x, y), { vx: fx * 28, vy: fy * 22, rise: 16, life: 0.3 + rnd() * 0.2, heat: 1.2, soul: true }); if (rnd() < 0.04) bone(x, y, fx * 30, fy * 20, 30); if (rnd() < 0.01) soulRise(x, y); },
+  contact(x, y) { soulBurst(x, y, 8, 30); bone(x, y, (rnd() - 0.5) * 20, (rnd() - 0.5) * 14, 30); },
+  wallEmit(A, dt) { const n = A.len * 0.07 * dt * 60; for (let i = 0; i < n; i++) { const [x, y] = wallPt(A); flame(STATIC(x, y), { heat: 1.1, rise: 24 + rnd() * 12, life: 0.45 + rnd() * 0.3, soul: true }); } if (rnd() < 0.02 * dt * 60) { const [x, y] = wallPt(A); soulRise(x, y - 6); } },
+  spearDraw(p) { drawBody(p.x, p.y, p.vx, p.vy, { t: 'diamond', a: 8, b: 1.6 }, BONE); }
+};
+
+/* ---------- Lightning Slash: arcs that follow the swing ---------- */
+function drawLightningSlash(s) {
+  const k = Math.min(1, s.t / s.dur), cur = s.span * k, A = EL.lightning.arc, linger = s.t > s.dur;
+  if (linger && (frame & 1)) return;
+  for (let band = 0; band < 3; band++) {
+    if (linger && band === 2) continue;
+    const r = s.rOut - band * 4, n = Math.max(2, Math.ceil(cur * r / 3)), pts = [];
+    for (let i = 0; i <= n; i++) { const a = s.a0 + (i / n) * cur * s.dir, rr = r + (rnd() - 0.5) * 3.5; pts.push([s.cx + Math.cos(a) * rr, s.cy + Math.sin(a) * rr * 0.85]); }
+    path(pts, A[band]); if (band === 0) for (const q of pts) put(q[0] + 1, q[1], A[2]);
+    if (band === 0 && !linger) for (let b = 0; b < 2; b++) { const q = pts[(rnd() * pts.length) | 0], a = Math.atan2(q[1] - s.cy, q[0] - s.cx); path(jag(q[0], q[1], q[0] + Math.cos(a) * (5 + rnd() * 5), q[1] + Math.sin(a) * (4 + rnd() * 4), 1.5), A[1]); }
+  }
+  if (!linger) { const a = s.a0 + cur * s.dir; flashes.push({ x: s.cx + Math.cos(a) * s.rOut, y: s.cy + Math.sin(a) * s.rOut * 0.85, r: 1.5, age: 0, life: 0.02, c: A[0] }); }
+}
+const _drawESlash = drawESlash;
+drawESlash = function () { const keep = eslashes; eslashes = keep.filter(s => s.el !== 'lightning'); _drawESlash(); eslashes = keep; for (const s of keep) if (s.el === 'lightning') drawLightningSlash(s); };
+
+/* ---------- Metal: blade storm field and a Cross Blade you can actually see ---------- */
+FX.metal.fieldDraw = A => {
+  for (let ring = 0; ring < 2; ring++) {
+    const dir = ring ? -1 : 1, r = A.r * (ring ? 0.45 : 0.78), n = ring ? 4 : 7;
+    for (let i = 0; i < n; i++) {
+      const a = T * 4.5 * dir + i / n * TAU;
+      for (let t = 1; t <= 5; t++) { const ta = a - dir * t * 0.08, c = t < 2 ? EL.metal.body.light : t < 4 ? EL.metal.body.mid : EL.metal.body.dark; put(A.x + Math.cos(ta) * r, A.y + Math.sin(ta) * r * 0.8, c); put(A.x + Math.cos(ta) * (r - 1), A.y + Math.sin(ta) * (r - 1) * 0.8, c); }
+      drawBody(A.x + Math.cos(a) * r, A.y + Math.sin(a) * r * 0.8, -Math.sin(a) * dir, Math.cos(a) * dir, { t: 'diamond', a: 4.5, b: 1.8 }, EL.metal.body, EL.metal.body.light);
+    }
+  }
+};
+FX.metal.field = (A, dt) => { for (const e of enemies) if (Math.hypot(e.x - A.x, e.y - A.y) < A.r && rnd() < 0.25) mspark(e.x, e.y - 3, rnd() * TAU, 35); if (rnd() < 0.06 * dt * 60) { const [x, y] = inDisk(A), a = rnd() * TAU; decals.push({ type: 'scratch', ls: [[x, y, x + Math.cos(a) * 6, y + Math.sin(a) * 4]], x, y, r: 4, age: 0, life: 3 }); } };
+function drawCrossBlade(s) {
+  const M = EL.metal.body, R = 10;
+  for (let i = -2; i <= 2; i++) if (i & 1) put(s.x + i * 2, s.y + 8, C.shadow);
+  for (let i = 0; i < 32; i++) { if (((i + (frame >> 1)) & 3) === 0) continue; const a = i / 32 * TAU; put(s.x + Math.cos(a) * R, s.y + Math.sin(a) * R * 0.85, (i & 1) ? M.mid : M.light); }   // spin blur
+  for (const off of [0, Math.PI / 2]) { const a = s.spin + off; drawBody(s.x, s.y, Math.cos(a), Math.sin(a), { t: 'diamond', a: 9, b: 2.8 }, M, M.light); }
+  put(s.x, s.y, M.core); put(s.x - 1, s.y, M.dark); put(s.x + 1, s.y, M.dark);
+}
+const _drawSlashes = drawSlashes;
+drawSlashes = function () { const keep = slashes; slashes = keep.filter(s => s.kind !== 'blade'); _drawSlashes(); slashes = keep; for (const s of keep) if (s.kind === 'blade') drawCrossBlade(s); };
+const _updateMatrix = updateMatrix;
+updateMatrix = function (dt) { _updateMatrix(dt); updateHands(dt); };
+const _drawMatrixTop = drawMatrixTop;
+drawMatrixTop = function () { drawHands(); _drawMatrixTop(); };
+SPELLS.death_bolt.desc = 'Bolt × Death (soul fire). A skull wreathed in teal-violet soul fire, shedding bone chips → burst of soul fire, bones on z-physics, skulls rising as souls, a skeletal hand clawing up, necrotic veins → soul-burn status.';
+SPELLS.death_field.desc = 'Field × Death. Necrotic veins spread across the ground, low soul fire flickers, skeletal hands claw up and sink back, souls drift away.';
+SPELLS.water_bolt.desc = 'Bolt × Water. A bright see-through drop throwing spray streaks and droplets → tall splash crown on z-physics, radial spray, three ripples, puddle. No dark outline: water is mostly light.';
+SPELLS.plague_bolt.desc = 'Bolt × Plague. A toxic glob trailing bubbles → bubbles boil up in a cluster and pop, small drips stick as a stain → bubbles keep boiling off the target.';
+
+let mode = 'bolt', cd = 0, curEl = 'fire';
+function setMode(k) {
+  mode = k; cd = 0.2;
+  resetMatrix(); eslashes = []; whips = []; hands = []; jets = []; charges = []; ewaves = []; spores = []; eprojs = []; efields = []; enovas = []; blobs = []; bubbles = []; mists = []; shards = []; crystals = []; motes = []; arcs = []; vines = []; leaves = []; blades = []; hops = [];
+  later = []; flashes = []; flames = []; smoke = []; embers = []; debris = []; rings = []; decals = []; areas = []; projs = []; falls = []; sparks = []; novas = [];
+  player.x = 22; player.y = 56; player.walk = false;
+  enemies = BASE_ENEMIES.map(([x, y], i) => ({ hx: x, hy: y, x, y, vx: 0, vy: 0, ph: i * 1.7, flash: 0, burn: 0, st: null, stT: 0, march: false }));
+  SPELLS[k].setup?.();
+  document.getElementById('desc').textContent = SPELLS[k].desc;
+  curEl = SPELLS[k].el; buildBar();
+}
+const ELNAMES = NAMES;
+const elBar = document.getElementById('elements'), bar = document.getElementById('spells');
+for (const el in ELNAMES) { const b = document.createElement('button'); b.textContent = ELNAMES[el]; b.dataset.el = el; b.onclick = () => setMode(el === 'fire' ? 'bolt' : el + '_bolt'); elBar.appendChild(b); }
+function buildBar() {
+  bar.innerHTML = '';
+  for (const k in SPELLS) { if (SPELLS[k].el !== curEl) continue; const b = document.createElement('button'); b.textContent = SPELLS[k].name; b.dataset.k = k; b.onclick = () => setMode(k); b.classList.toggle('on', k === mode); bar.appendChild(b); }
+  elBar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.el === curEl));
+}
+document.getElementById('slow').onclick = e => { slow = !slow; e.target.textContent = 'Slow-mo: ' + (slow ? 'on' : 'off'); };
+document.getElementById('pause').onclick = e => { paused = !paused; e.target.textContent = paused ? 'Resume' : 'Pause'; };
+const wi = document.getElementById('wind'); wi.oninput = () => { wind = +wi.value; document.getElementById('wind-o').textContent = wi.value; };
+
+let walkAcc = 0, lastPatch = null;
+function step(dt) {
+  T += dt;
+  if (player.walk) {
+    const ox = player.x, oy = player.y;
+    player.x = 108 + 64 * Math.sin(T * 0.8); player.y = 56 + 24 * Math.sin(T * 1.6);
+    player.vx = (player.x - ox) / dt; player.vy = (player.y - oy) / dt;
+    if (!lastPatch || Math.hypot(player.x - lastPatch.x, player.y - lastPatch.y) > 5) { lastPatch = { x: player.x, y: player.y + 1 }; field(lastPatch.x, lastPatch.y, 5, 3.2, { trail: true, rate: 1.4, heatK: 0.75 }); }
+  }
+  cd -= dt; if (cd <= 0) { cd = SPELLS[mode].every; SPELLS[mode].cast?.(); }
+  later = later.filter(l => { l.t -= dt; if (l.t <= 0) { l.run(); return false; } return true; });
+  updateEnemies(dt); updateElements(dt); updateProjectiles(dt); updateAreas(dt); updateFalls(dt); updateNovas(dt); updateParticles(dt);
+}
+function render() {
+  px.set(floorPx);
+  accumulateHeat(); accumulateElements(); drawDecals(); drawEDecals(); drawAreas(); drawEFields(); drawFloorLight(); drawGoo(gooGround); drawWater(wGround, true); drawRings(); drawGround(); drawActors(); drawStatuses(); drawSmoke(); drawSoft(); drawSoft(dSoft, EL.death.tones); drawGoo(gooAir); drawWater(wAir, false); drawHeat(); drawSoulHeat(); drawBodies(); drawFlashes(); drawTop(); drawElementTop();
+  ctx.fillStyle = '#1f1c25'; ctx.fillRect(0, 0, W, H);
+  let ox = 0, oy = 0; if (shakeT > 0) { ox = Math.round((rnd() - 0.5) * 2 * shakeA); oy = Math.round((rnd() - 0.5) * 2 * shakeA); }
+  ctx.putImageData(img, ox, oy);
+}
+function loop() {
+  frame++;
+  const dt = (1 / 60) * (slow ? 0.25 : 1);
+  if (!paused) { if (stop > 0) stop--; else step(dt); if (shakeT > 0) { shakeT -= dt; if (shakeT <= 0) shakeA = 0; } }
+  render();
+  requestAnimationFrame(loop);
+}
+setMode('bolt');
+loop();
+</script>
+</body>
+</html>

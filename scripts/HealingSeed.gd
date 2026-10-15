@@ -11,6 +11,9 @@ var radius = 28.0
 func _ready():
 	add_to_group("healing_seeds")
 	z_index = 4
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx:
+		vfx.prop_added(self, "seed")   # the VFX layer draws the sprout (docs/VFX_EVENTS.md)
 	var seeds = get_tree().get_nodes_in_group("healing_seeds").filter(func(seed): return not seed.is_queued_for_deletion() and seed.player_ref and seed.player_ref.get_ref() == player_ref.get_ref())
 	while seeds.size() > cap:
 		var oldest = seeds.pop_front()
@@ -30,11 +33,17 @@ func _physics_process(delta):
 	if not collected and global_position.distance_to(player.global_position) <= radius and player.health < player.max_health and player.has_method("start_healing_over_time"):
 		collected = true
 		player.start_healing_over_time(healing_amount, healing_duration)
+		var vfx = get_node_or_null("/root/Vfx")
+		if vfx:
+			vfx.prop_burst("seed", global_position)
 		queue_free()
 		return
 	queue_redraw()
 
 func _draw():
+	var vfx = get_node_or_null("/root/Vfx")
+	if vfx and vfx.presents_prop(self):
+		return
 	preload("res://scripts/AreaArt.gd").circle(self, Vector2.ZERO, radius, Color("91dca2"), clampf(remaining, 0, 1))
 	var art = preload("res://scripts/EffectArt.gd")
 	if collected:

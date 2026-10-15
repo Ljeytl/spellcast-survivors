@@ -29,15 +29,18 @@ func run():
 	var spells = game.spell_manager
 	spells.set_process(false)
 	spells.active_healing_effects.clear()
-	spells.spells[2] = spells.spell_catalog.regeneration.duplicate(true)
-	spells.spells[2].level = 1
+	spells.learn_spell("regeneration")
+	var regen_slot = spells.find_spell_slot("regeneration")
+	spells.spells[regen_slot].level = 1
 	game.player.health = 1
-	spells.cast_life_spell(2)
-	spells.process_healing_effects(1.0)
+	check(spells.cast_spell_by_type(regen_slot), "Regeneration casts: " + spells.last_cast_failure)
+	var regen = spells.last_generic_cast   # generic life aura
+	regen.manual = true
+	regen.run(1.0)
 	check(is_equal_approx(game.player.health, 4), "Regen heals three HP during first second")
-	spells.process_healing_effects(4.0)
+	regen.run(4.0)
 	check(is_equal_approx(game.player.health, 16), "Regen heals fifteen total over five seconds")
-	spells.process_healing_effects(1.0)
+	regen.run(1.0)
 	check(is_equal_approx(game.player.health, 16), "Regen stops after five seconds")
 	manager.game_time = 300
 	manager.check_boss_milestones()
@@ -63,16 +66,15 @@ func run():
 	enemy.set_physics_process(false)
 	enemy.global_position = game.player.global_position + Vector2(20, 0)
 	enemy.current_health = 500
-	var trap = preload("res://scripts/TacticalSpellEffect.gd").new()
-	trap.configure(spells.spell_catalog.rune_trap.duplicate(true), spells.spell_catalog.rune_trap.damage, game.player, enemy)
-	game.add_child(trap)
-	trap.set_process(false)
-	trap.age = 1
-	trap.advance_trap()
+	# Rune Trap runs on the generic engine: it arms, then bursts once on proximity.
+	var trap = spells.spawn_ported(spells.spell_catalog.rune_trap.duplicate(true), float(spells.spell_catalog.rune_trap.damage), {}, enemy)
+	trap.manual = true
+	trap.run(1.5)   # arms 0.8 s, activates, explodes 0.4 s later (doc 21 §5.1)
 	var trap_health = 500.0 - float(spells.spell_catalog.rune_trap.damage)
-	check(is_equal_approx(enemy.current_health, trap_health), "Trap deals its data damage")
-	trap.advance_trap()
+	check(is_equal_approx(enemy.current_health, trap_health), "Trap deals its data damage (%s)" % enemy.current_health)
+	trap.run(2.0)
 	check(is_equal_approx(enemy.current_health, trap_health), "Trap cannot trigger twice")
+	trap.free()
 	check(enemy.knockback_velocity == Vector2.ZERO, "Trap does not add knockback")
 	check(Targeting.meteor_weight(100, 100, 0) > Targeting.meteor_weight(500, 100, 0), "Closer enemies have higher weight")
 	check(Targeting.meteor_weight(100, 500, 0) > Targeting.meteor_weight(100, 30, 0), "Stronger enemies have higher weight")
@@ -109,16 +111,16 @@ func run():
 	var previous_meteor_damage = 0.0
 	for rank in range(1, 9):
 		spells.spells[meteor_slot].level = rank
-		spells.cast_meteor_shower_spell(meteor_slot)
-		var warnings = get_nodes_in_group("spell_projectiles").filter(func(n): return n.projectile_type == "warning")
+		spells.cast_spell_by_type(meteor_slot)
+		var meteor_cast = spells.last_generic_cast   # generic engine (doc 18 phase 2): one mark per meteor
+		var warnings = meteor_cast.root_parts()
 		check(warnings.size() == counts[rank - 1], "Meteor real cast count at rank %d" % rank)
 		var radius = minf(float(meteor_data.radius) + float(meteor_data.rank_growth.radius.per_rank) * (rank - 1), float(meteor_data.rank_growth.radius.max))
-		check(warnings.all(func(n): return is_equal_approx(n.effect_radius, radius)), "Meteor visible geometry at rank %d" % rank)
+		check(warnings.all(func(n): return is_equal_approx(n.geo("radius"), radius)), "Meteor visible geometry at rank %d" % rank)
 		var meteor_damage = spells.calculate_spell_damage(spells.spells[meteor_slot])
 		check(is_equal_approx(meteor_damage, float(meteor_data.damage) + float(meteor_data.rank_growth.damage.per_rank) * (rank - 1)) and meteor_damage > previous_meteor_damage, "Meteor ranks also increase damage at rank %d" % rank)
 		previous_meteor_damage = meteor_damage
-		for warning in warnings:
-			warning.free()
+		meteor_cast.queue_free()
 	spells.spells[meteor_slot].level = 1
 	check(preload("res://scripts/UpgradeCopy.gd").rank_description("meteor_shower", spells) == "+damage, +area", "Real upgrade copy describes area rank")
 	spells.spells[meteor_slot].level = 2
@@ -128,35 +130,34 @@ func run():
 	spells.spells[blade_slot].level = 1
 	enemy.global_position = game.player.global_position + Vector2(0, -150)
 	enemy.current_health = 500
-	spells.cast_build_spell(blade_slot)
-	var first_volley = get_nodes_in_group("cross_blade_volleys").back()
-	for blade in first_volley.get_children():
-		blade.set_physics_process(false)
-		blade.advance(0.4)
+	# Cross Blade runs on the generic engine (doc 18 phase 2): each blade is a root part of the cast.
+	spells.cast_spell_by_type(blade_slot)
+	var first_volley = spells.last_generic_cast
+	first_volley.manual = true
+	first_volley.run(0.4)
 	var blade_damage = spells.calculate_spell_damage(spells.spells[blade_slot])
 	check(is_equal_approx(enemy.current_health, 500.0 - blade_damage), "Rank-1 single blade aims at the enemy and hits outbound for its data damage")
-	for blade in first_volley.get_children():
-		blade.advance(2.0)
+	first_volley.run(2.0)
 	check(is_equal_approx(enemy.current_health, 500.0 - blade_damage * 3.0), "Return hit deals double damage")
 	first_volley.free()
 	for rank in range(1, 9):
 		spells.spells[blade_slot].level = rank
-		spells.cast_build_spell(blade_slot)
-		var volleys = get_nodes_in_group("cross_blade_volleys")
-		var volley = volleys.back()
-		var blades = volley.get_children()
+		spells.cast_spell_by_type(blade_slot)
+		var volley = spells.last_generic_cast
+		volley.manual = true
+		var blades = volley.root_parts()
 		var count = [1, 2, 3, 4, 5, 5, 6, 6][rank - 1]
 		var rank_blade_damage = spells.calculate_spell_damage(spells.spells[blade_slot])
 		check(blades.size() == count, "Blade count at rank %d" % rank)
-		for index in range(count):
-			check(is_equal_approx(blades[index].damage, rank_blade_damage) and is_equal_approx(rank_blade_damage, blade_damage + float(spells.spell_catalog.cross_blade.rank_growth.damage.per_rank) * (rank - 1)), "Each blade deals its rank damage outbound at rank %d" % rank)
-			var next = blades[(index + 1) % count]
+		for index in range(blades.size()):
+			check(is_equal_approx(float(blades[index].def.payload[0].hit), rank_blade_damage) and is_equal_approx(rank_blade_damage, blade_damage + float(spells.spell_catalog.cross_blade.rank_growth.damage.per_rank) * (rank - 1)), "Each blade deals its rank damage outbound at rank %d" % rank)
+			var next = blades[(index + 1) % blades.size()]
 			if count > 1:
 				check(is_equal_approx(fposmod(next.direction.angle() - blades[index].direction.angle(), TAU), TAU / count), "Blades form evenly spaced polygon")
 		if rank == 4:
 			check(blades.all(func(b): return is_equal_approx(absf(b.direction.x), absf(b.direction.y))), "Four blades form X rather than plus")
 		if rank == 8:
-			check(is_equal_approx(blades[0].info.blade_radius, 40) and is_equal_approx(blades[0].outbound_distance, 460), "Size and range ranks reach authored values")
+			check(is_equal_approx(blades[0].geo("radius"), 40) and is_equal_approx(float(blades[0].def.motion[0].range), 460), "Size and range ranks reach authored values")
 		volley.free()
 	spells.spells[blade_slot].level = 8
 	spells.upgrade_spell("cross_blade")
@@ -167,17 +168,16 @@ func run():
 		var cards = screen.generate_upgrade_options({}, 20)
 		check(not cards.any(func(card): return card.effect.get("type", "") == "spell_upgrade" and card.effect.get("spell", "") in ["cross_blade", "meteor_shower"]), "Level-up UI excludes capped spell ranks")
 	for index in range(4):
-		spells.cast_build_spell(blade_slot)
-	check(get_nodes_in_group("cross_blade_volleys").filter(func(n): return not n.is_queued_for_deletion()).size() == 3, "Active limit counts volleys, not individual blades")
+		spells.cast_spell_by_type(blade_slot)
+	check(spells.ported_casts("cross_blade").size() == 3, "Active limit counts volleys, not individual blades")
 	await process_frame
-	var live_volleys = get_nodes_in_group("cross_blade_volleys")
-	check(live_volleys.size() == 3 and live_volleys.all(func(v): return v.get_child_count() == 6), "Oldest volley and all its children are removed")
+	var live_volleys = spells.ported_casts("cross_blade")
+	check(live_volleys.size() == 3 and live_volleys.all(func(v): return v.root_parts().size() == 6), "Oldest volley and all its children are removed")
 	for v in live_volleys:
-		for blade in v.get_children():
-			blade.advance(10.0)
+		v.advance(10.0)
 	await process_frame
 	await process_frame
-	check(get_nodes_in_group("cross_blade_volleys").is_empty(), "Completed volleys and their children expire")
+	check(spells.ported_casts("cross_blade").is_empty(), "Completed volleys and their children expire")
 	var pacing_scaling = manager.encounter_config.get("scaling", {})
 	var pacing_points = []
 	for point in pacing_scaling.get("spawn_difficulty_points", []):

@@ -56,7 +56,7 @@ func run() -> void:
 	var armored = spawn("pursuer", center + Vector2(120, 0))
 	armored.is_elite = true
 	armored.elite_type = armored.EliteType.ARMORED
-	armored.damage_reduction = 0.5
+	armored.resistances = {"raw": 0.5, "arcane": 0.5}
 	var shield = spawn("shieldbearer", center + Vector2(140, 0))
 	shield.facing = Vector2.LEFT
 	var boss = spawn("pursuer", center + Vector2(160, 0), true)
@@ -81,7 +81,7 @@ func run() -> void:
 	check(blast.footprint == bounds, "Release footprint remains locked after camera change")
 	blast._process(0.02)
 	check(ordinary.current_health == 0.0 and ordinary.dying, "Real regular enemy dies through damage API")
-	check(armored.current_health == 0.0 and armored.dying, "Real armored enemy dies despite reduction")
+	check(armored.current_health == 0.0 and armored.dying, "Real armored enemy dies: Atomic is pure damage")
 	check(shield.current_health == 0.0 and shield.dying, "Real shieldbearer cannot directionally block full-area blast")
 	check(is_equal_approx(boss.current_health, 400.0) and not boss.dying, "Real boss loses sixty percent maximum health")
 	check(outside.current_health == 1000.0, "Enemy outside footprint is untouched")

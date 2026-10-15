@@ -51,72 +51,47 @@ func run():
 	manager.current_typing_text = "mega bolt"
 	check(manager.cast_freeform_spell("mega bolt"), "Freeform commits MEGA")
 	manager.advance_pending_casts(0.351)
-	var mega = projectiles(game)[0]
-	check(is_equal_approx(mega.damage, base_damage * 1.5), "MEGA damage snapshot")
-	var mega_size = mega.spell_size
-	mega.set_process(false)
+	# Bolt runs on the generic engine (doc 18 phase 2): the MEGA snapshot lives in the cast plan.
+	var mega_cast = manager.last_generic_cast
+	var mega_part: Dictionary = mega_cast.plan.parts.bolt
+	check(is_equal_approx(float(mega_part.payload[0].hit), base_damage * 1.5), "MEGA damage snapshot")
+	var mega_size = float(mega_part.geometry.radius)
 	check(is_equal_approx(manager.cast_keyword_multiplier, 1), "Dispatcher restores cast context")
 	check(is_equal_approx(game.player.spell_size_multiplier, 1), "Player size untouched")
 	check(is_equal_approx(game.player.spell_damage_multiplier, 1), "Player power untouched")
-	await create_timer(0.14).timeout
-	var bolts = projectiles(game)
-	check(bolts.size() == 2, "Delayed second Bolt emitted")
-	check(bolts.all(func(b): return is_equal_approx(b.spell_size, mega_size) and is_equal_approx(b.damage, base_damage * 1.5)), "Delayed Bolt retains MEGA snapshot")
+	for i in 9:   # 0.15 s of game time: the second bolt leaves 0.12 s after the first
+		await physics_frame
+	check(mega_cast.spawned == 2, "Delayed second Bolt emitted")
+	check(mega_cast.parts.all(func(p): return not is_instance_valid(p) or is_equal_approx(p.geo("radius"), mega_size)), "Delayed Bolt retains MEGA snapshot")
 	manager.cast_spell_by_type(1)
-	var normal = projectiles(game).back()
-	normal.set_process(false)
-	check(is_equal_approx(mega_size, normal.spell_size * 1.5), "Normal cast remains ordinary sized")
-	check(is_equal_approx(normal.damage, base_damage), "Normal cast remains ordinary power")
-	check(is_equal_approx(mega.get_node("CollisionShape2D").shape.radius, normal.get_node("CollisionShape2D").shape.radius * 1.5), "Collision matches visible growth")
-	if DisplayServer.get_name() != "headless":
-		root.size = Vector2i(1280, 720)
-		for projectile in projectiles(game):
-			if projectile != mega and projectile != normal:
-				projectile.hide()
-		mega.global_position = game.player.global_position + Vector2(-120, -100)
-		normal.global_position = game.player.global_position + Vector2(120, -100)
-		var labels: Array = []
-		for pair in [[mega, "MEGA BOLT"], [normal, "BOLT"]]:
-			var label = Label.new()
-			label.text = pair[1]
-			label.add_theme_font_size_override("font_size", 18)
-			game.add_child(label)
-			label.global_position = pair[0].global_position + Vector2(-50, -45)
-			labels.append(label)
-		DirAccess.make_dir_recursive_absolute("res://builds/mega-evidence")
-		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://builds/mega-evidence/bolt-size.png")
-		for label in labels:
-			label.queue_free()
+	var normal_part: Dictionary = manager.last_generic_cast.plan.parts.bolt
+	check(is_equal_approx(mega_size, float(normal_part.geometry.radius) * 1.5), "Normal cast remains ordinary sized")
+	check(is_equal_approx(float(normal_part.payload[0].hit), base_damage), "Normal cast remains ordinary power")
+	check(float(normal_part.geometry.get("pad", 14.0)) == float(mega_part.geometry.get("pad", 14.0)), "Collision matches visible growth (one radius drives hit and look)")
 	manager.fire_mana_bolt()
-	var automatic = projectiles(game, "mana_bolt")[0]
-	check(not automatic.has_meta("cast_size_snapshot"), "Magic Missile unaffected")
-	mega.reset_for_pool()
-	check(not mega.has_meta("cast_size_snapshot"), "Pool clears MEGA geometry")
-	mega.set_meta("cast_size_snapshot", mega_size / preload("res://scripts/VisualDefaults.gd").PROJECTILE_SCALES.get("bolt", 1.0))
-	mega.setup(mega.global_position, Vector2.RIGHT, base_damage * 1.5, Color.WHITE, "bolt")
-	var field_data = {"id": "test", "type": "field", "duration": 1.0, "radius": 100, "tick_interval": 0.5}
-	var field = preload("res://scripts/BuildSpellEffect.gd").new()
-	field.configure(field_data, 10, game.player, target)
-	game.add_child(field)
-	field.set_physics_process(false)
+	# Magic Missile runs on the generic engine; a MEGA cast's size never leaks into it.
+	var automatic: Dictionary = manager.last_generic_cast.plan.parts.missile
+	var plain_missile = preload("res://scripts/SpellGeometry.gd").BOLT_RADIUS * preload("res://scripts/SpellGeometry.gd").multiplier(game.player) * 0.8
+	check(is_equal_approx(float(automatic.geometry.radius), plain_missile), "Magic Missile unaffected (%s vs %s)" % [automatic.geometry.radius, plain_missile])
+	# Fields run on the generic engine (doc 18 phase 2): an extend recast queues a segment.
+	var field_data = {"id": "test", "type": "field", "duration": 1.0, "radius": 100, "tick_interval": 0.5, "recast_behavior": "extend"}
 	var boosted_field = field_data.duplicate(true)
 	boosted_field.keyword_size_multiplier = 1.5
-	field.queue_cast_extension(boosted_field, 15)
 	var before_health = target.current_health
-	field.advance(2)
+	var field = manager.spawn_ported(field_data, 10, {}, target)
+	field.manual = true
+	check(manager.spawn_ported(boosted_field, 15, {}, target) == field, "MEGA recast extends the live field")
+	field.run(2.0, 0.1)
 	var large_step_damage = before_health - target.current_health
 	field.free()
-	field = preload("res://scripts/BuildSpellEffect.gd").new()
-	field.configure(field_data, 10, game.player, target)
-	game.add_child(field)
-	field.set_physics_process(false)
-	field.queue_cast_extension(boosted_field, 15)
 	before_health = target.current_health
-	field.advance(1)
-	field.advance(1)
-	check(is_equal_approx(large_step_damage, before_health - target.current_health), "Segment boundary is independent of frame delta")
-	check(is_equal_approx(large_step_damage, 50), "Normal and MEGA field duration retain distinct power")
+	field = manager.spawn_ported(field_data, 10, {}, target)
+	field.manual = true
+	manager.spawn_ported(boosted_field, 15, {}, target)
+	field.run(1.0, 1.0 / 60.0)
+	field.run(1.0, 1.0 / 60.0)
+	check(is_equal_approx(large_step_damage, before_health - target.current_health), "Segment boundary is independent of frame delta (%s vs %s)" % [large_step_damage, before_health - target.current_health])
+	check(is_equal_approx(large_step_damage, 50), "Normal and MEGA field duration retain distinct power (%s)" % large_step_damage)
 	field.free()
 	var slot = 2
 	for id in manager.spell_catalog:
@@ -134,19 +109,40 @@ func run():
 	game.player.next_heal_feedback_msec = 0
 	manager.cast_spell_by_type(life, 1.5)
 	check(is_equal_approx(game.player.health - 10, ordinary_heal * 1.5), "MEGA Life heals more")
+	# With the VFX layer up the heal burst is drawn there (sized by the same value); check the
+	# particle fallback the layer replaces.
+	var vfx = root.get_node("Vfx")
+	game.player.health = 10
+	game.player.next_heal_feedback_msec = 0
+	vfx.presenter.enabled = false
+	manager.cast_spell_by_type(life, 1.5)
+	vfx.presenter.enabled = true
 	check(game.particle_manager.get_children().any(func(v): return v is Node2D and is_equal_approx(v.scale.x, 1.5)), "MEGA healing is visibly larger")
 	for id in ["regeneration", "arcane_orbit", "firewalk"]:
 		var owned_slot = manager.find_spell_slot(id)
 		manager.cast_spell_by_type(owned_slot)
 		manager.cast_spell_by_type(owned_slot, 1.5)
 		if id == "regeneration":
-			check(manager.active_healing_effects.size() == 1, "Mixed regeneration uses one stream")
-			check(is_equal_approx(manager.active_healing_effects[0].segments[1].rate, manager.active_healing_effects[0].segments[0].rate * 1.5), "MEGA regeneration potency")
+			var regen = manager.ported_casts(id)
+			check(regen.size() == 1, "Mixed regeneration uses one stream")
+			var aura = regen[0].root_parts()[0] if not regen.is_empty() else null
+			check(aura != null and not aura.segments.is_empty() and is_equal_approx(float(aura.segments[0].def.heal_rate), float(aura.def.heal_rate) * 1.5), "MEGA regeneration potency")
+		elif id == "arcane_orbit":
+			# Ported to the generic engine: the MEGA recast is a queued segment on the live sparks.
+			var casts = manager.ported_casts(id)
+			check(casts.size() == 1, id + " mixed casts preserve one effect")
+			var spark = casts[0].root_parts()[0]
+			check(not spark.segments.is_empty() and is_equal_approx(float(spark.segments[0].def.payload[0].hit), float(spark.def.payload[0].hit) * 1.5), id + " power")
+			check(not spark.segments.is_empty() and is_equal_approx(float(spark.segments[0].def.geometry.radius), float(spark.def.geometry.radius) * 1.5), id + " size")
 		else:
-			var effects = get_nodes_in_group("build_spell_effects").filter(func(v): return v.info.id == id)
-			check(effects.size() == 1, id + " mixed casts preserve one effect")
-			check(is_equal_approx(effects[0].queued_casts[0].damage, effects[0].damage * 1.5), id + " power")
-			check(is_equal_approx(effects[0].queued_casts[0].info.spell_size_multiplier, effects[0].info.spell_size_multiplier * 1.5), id + " size")
+			# Fire Walk: the MEGA recast queues an emitter segment whose patches carry the MEGA numbers.
+			var casts = manager.ported_casts(id)
+			check(casts.size() == 1, id + " mixed casts preserve one effect")
+			var walker = casts[0].root_parts()[0]
+			var plan_parts: Dictionary = casts[0].plan.parts
+			var queued = plan_parts.get(str(walker.segments[0].def.emit.part), {}) if not walker.segments.is_empty() else {}
+			check(not queued.is_empty() and is_equal_approx(float(queued.payload[0].hit), float(plan_parts.patch.payload[0].hit) * 1.5), id + " power")
+			check(not queued.is_empty() and is_equal_approx(float(queued.geometry.radius), float(plan_parts.patch.geometry.radius) * 1.5), id + " size")
 	for id in preload("res://scripts/SynergyCatalog.gd").RECIPES:
 		if not preload("res://scripts/SynergyCatalog.gd").RECIPES[id].get("enabled", true):
 			continue
@@ -165,14 +161,21 @@ func run():
 		manager.cast_keyword_multiplier = 1
 	var meteor_slot = manager.find_spell_slot("meteor_shower")
 	manager.cast_spell_by_type(meteor_slot, 1.5)
-	var warnings = projectiles(game, "warning")
-	check(not warnings.is_empty(), "MEGA meteor warning exists")
-	var warning_radius = warnings[0].effect_radius
-	manager.cast_spell_by_type(1)
-	await create_timer(0.7).timeout
-	var impacts = game.get_children().filter(func(v): return v.get_script() == preload("res://scripts/LingeringArea.gd"))
-	check(not impacts.is_empty(), "Delayed meteor impact exists")
-	check(impacts.any(func(v): return is_equal_approx(v.radius, warning_radius)), "Delayed meteor retains warning footprint")
+	# Meteor Shower runs on the generic engine: marks warn, then each lands an impact of the same size.
+	var meteor_casts = manager.ported_casts("meteor_shower")
+	check(not meteor_casts.is_empty(), "MEGA meteor warning exists")
+	var landed = 0
+	var footprint_kept = false
+	if not meteor_casts.is_empty():
+		var meteor = meteor_casts.back()
+		meteor.manual = true
+		var marks = meteor.root_parts().size()
+		meteor.run(1.5)
+		landed = meteor.spawned - marks
+		# Impacts take the mark's size scale; their own radius matches the mark's in the plan.
+		footprint_kept = is_equal_approx(float(meteor.plan.parts.impact.geometry.radius), float(meteor.plan.parts.mark.geometry.radius))
+	check(landed > 0, "Delayed meteor impact exists")
+	check(footprint_kept, "Delayed meteor retains warning footprint")
 	manager.last_spell_cast_time = -100
 	check(manager.activate_spell_slot(1), "Numbered cast begins")
 	var style = game.style_session

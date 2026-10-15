@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "source_revision": "6fa3eae60ecf10ca8a27b69cff680f6b112eb7ae",
+  "purpose": "visual-preview-only",
+  "effect": "ice_blast",
+  "settings": {
+    "bush": 1.05,
+    "comparison": true,
+    "enemy": 3,
+    "enemy_sizes": {
+      "swarmer": 3
+    },
+    "particle": 1.05,
+    "projectile": 1.05,
+    "scenery": true,
+    "tree": 1.05,
+    "variant": "swarmer",
+    "wizard": 1.05,
+    "zoom": 1.5
+  }
+}

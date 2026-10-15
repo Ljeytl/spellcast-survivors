@@ -36,6 +36,8 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 			has_duration = true
 
 	var power = float(bundle.get("power", 1.0)) * float(opts.get("rank_power", 1.0))
+	# Healing words: one budget per cast, spread over whatever the spell makes (doc 21 §4.3).
+	var heal_budget = float(bundle.get("heal", 0.0)) * float(preload("res://scripts/engine/KeywordParser.gd").data().categories.element.get("heal_per_strength", 40.0)) * power
 	var size = float(bundle.get("size", 1.0)) * float(opts.get("size_stat", 1.0))
 	var speed_mult = float(opts.get("speed_stat", 1.0))
 	var duration_mult = float(opts.get("duration_stat", 1.0))
@@ -43,6 +45,10 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		if flags.has(t):
 			power *= float(flags[t].get("power", 1.0))
 			bound[t] = true
+			# A word may add a damage type to every hit (SANGUINE: bleed), shared like an element word.
+			var adds: Dictionary = flags[t].get("adds", {})
+			if not adds.is_empty():
+				elements.append({"element": str(adds.damage_type), "share": float(adds.share), "status": str(adds.get("status", ""))})
 	if flags.has("swift"):
 		speed_mult *= float(flags.swift.speed)
 	if flags.has("lasting"):
@@ -98,7 +104,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 			bound["cascading"] = true
 
 	if flags.has("orbiting") and root_delivery == "projectile":
-		var hold = {"type": "orbit", "speed": 3.0, "radius": 70.0, "until": "enemy_in_range", "range": float(flags.orbiting.get("range", 420.0)), "hold": float(flags.orbiting.get("hold", 2.5))}
+		var hold = {"type": "orbit", "speed": 3.0, "radius": 70.0, "until": "enemy_in_range", "range": float(flags.orbiting.get("range", 420.0)), "hold": float(flags.orbiting.get("hold", 2.5)), "min_orbit": float(flags.orbiting.get("min_orbit", 0.0))}
 		root.motion = [hold] + root.get("motion", [])
 		bound["orbiting"] = true
 
@@ -107,6 +113,9 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 		var delivery = str(p.delivery)
 		var part_power = power * per_copy * float(p.get("_power", 1.0))
 		var periodic = delivery in ["field", "aura"]
+		# A flowing heal (Regeneration) strengthens with power like a heal payload does.
+		if p.has("heal_rate"):
+			p.heal_rate = float(p.heal_rate) * part_power
 		# Geometry
 		if p.has("geometry"):
 			for k in SIZE_KEYS:
@@ -159,13 +168,22 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 				var raw_share = clampf(float(item.get("raw_share", 1.0 if element == "" else 0.0)), 0.0, 1.0)
 				var entries := []
 				var own_type = element if element != "" else "raw"
-				if raw_share > 0.0:
-					entries.append({"amount": amount * raw_share, "damage_type": "raw"})
-				if raw_share < 1.0:
-					entries.append({"amount": amount * (1.0 - raw_share), "damage_type": own_type})
+				if item.has("mix"):
+					# Ported spells carry their data/spell_damage.json mix; raw shares read the spell's element.
+					for kind in item.mix:
+						entries.append({"amount": amount * float(item.mix[kind]), "damage_type": str(kind), "chart_element": element if str(kind) == "raw" and element != "" else str(kind), "base": true})
+				else:
+					if raw_share > 0.0:
+						entries.append({"amount": amount * raw_share, "damage_type": "raw"})
+					if raw_share < 1.0:
+						entries.append({"amount": amount * (1.0 - raw_share), "damage_type": own_type})
 				for e in elements:
 					entries.append({"amount": amount * float(e.share), "damage_type": str(e.element), "chart_element": str(e.element)})
 				payload.append({"type": "damage", "entries": entries, "element": element if element != "" else "raw", "hit": amount})
+		if main_hit > 0.0 and flags.has("overload"):
+			# Payoff words pop what is already pending, before this hit adds its own damage over time.
+			payload.append({"type": "overload", "multiplier": float(flags.overload.multiplier)})
+			bound["overload"] = true
 		for item in p.get("payload", []):
 			match str(item.type):
 				"status":
@@ -174,14 +192,29 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 					if periodic and str(s.status) == "chilled":
 						s.no_freeze = true
 					payload.append(s)
-				"impulse":
+				"impulse", "slow", "seed":
 					payload.append(item.duplicate())
 				"heal":
-					payload.append({"type": "heal", "amount": float(item.amount) * part_power})
+					payload.append({"type": "heal", "amount": float(item.amount) * part_power, "visual_size": float(item.get("visual_size", 1.0)) * size})
+		if main_hit > 0.0 and heal_budget > 0.0:
+			# The healing takes the shape of the hit: seeds from bodies, a circle from an area impact,
+			# the ground itself from fields and trails.
+			match delivery:
+				"volume":
+					payload.append({"type": "heal_zone", "amount": heal_budget / 3.0, "duration": 3.0})
+				"field", "aura":
+					var lasts = float(p.get("timing", {}).get("duration", 3.0))
+					p.heal_ground = {"rate": heal_budget / maxf(1.0, lasts)}
+				_:
+					var seeds = 6.0 if delivery == "beam" or bool(p.get("limits", {}).get("rehit", 0.0)) else 3.0
+					payload.append({"type": "seed", "budget": true, "amount": heal_budget / seeds, "duration": 2.0, "lifetime": 10.0, "radius": 28.0, "cap": 6})
 		if main_hit > 0.0:
 			for e in elements:
-				if str(e.status) != "":
-					payload.append({"type": "status", "status": str(e.status), "hit": main_hit * float(e.share), "no_freeze": periodic, "from_word": true})
+				var strength = float(e.get("effect", e.share))   # SANGUINE and wild elements: effect follows the share
+				if str(e.status) != "" and strength > 0.0:
+					# Doc 21 §4.2: a word that adds an effect adds the same effect the spell would, sized
+					# from the full hit (one burn %, one bleed %); the word's length only scales its damage.
+					payload.append({"type": "status", "status": str(e.status), "hit": main_hit, "no_freeze": periodic, "from_word": true})
 			if flags.has("pulling"):
 				payload.append({"type": "impulse", "force": float(flags.pulling.force), "direction": "toward"})
 				bound["pulling"] = true
@@ -194,7 +227,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 	var arrangement: Dictionary = def.get("arrangement", {"type": "single", "count": 1}).duplicate()
 	var release: Dictionary = def.get("release", {"type": "together"}).duplicate()
 	if copies > 1:
-		if str(arrangement.type) == "ring":
+		if str(arrangement.type) == "ring" or int(arrangement.get("count", 1)) > 1:
 			arrangement.count = int(arrangement.get("count", 1)) * copies
 		else:
 			match root_delivery:
@@ -260,17 +293,22 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 			"target":
 				if root_delivery == "self":
 					reason = "it has no target"
+			"payoff":
+				if not bound.has(flag):
+					reason = "it deals no damage"
 			"self":
-				if flag == "warding":
-					reason = "warding is not built yet"
+				if flag == "leeching" and not has_damage:
+					reason = "it deals no damage"
 		if reason != "":
 			rejected.append({"word": w, "reason": reason})
 
 	return {
 		"id": str(def.id), "name": str(def.get("name", def.id)), "element": element, "root": root_name,
 		"parts": parts, "arrangement": arrangement, "release": release, "casts": casts,
-		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle,
-		"quick": bool(opts.get("quick", false))
+		"flags": flags, "elements": elements, "rejected": rejected, "bundle": bundle, "heal_budget": heal_budget if has_damage else 0.0,
+		"quick": bool(opts.get("quick", false)), "max_spawns": int(def.get("max_spawns", 48)),
+		"needs_target": bool(def.get("needs_target", false)), "max_depth": int(def.get("max_depth", 3)),
+		"legacy": bool(def.get("legacy", false))   # a shipping spell on the bridge (old targeting rules)
 	}
 
 static func _word_for(words: Dictionary, category: String) -> String:
@@ -307,8 +345,11 @@ static func _first_raw_share(part: Dictionary) -> float:
 			return float(item.get("raw_share", 1.0))
 	return 1.0
 
+## Heals as a payload (Life) or as a flowing rate (Regeneration's aura, scaled by power while it lasts).
 static func _has_heal(parts: Dictionary) -> bool:
 	for n in parts:
+		if parts[n].has("heal_rate"):
+			return true
 		for item in parts[n].get("payload", []):
 			if str(item.type) == "heal":
 				return true

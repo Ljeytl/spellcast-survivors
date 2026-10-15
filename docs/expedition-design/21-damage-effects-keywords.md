@@ -1,0 +1,179 @@
+# Damage, effects and keywords
+
+**Status:** decided with the user, 14 October 2026, rev 1. This page owns current damage/effect/keyword rules and supersedes older spell-rewrite numbers. [Doc 3](03-spells.md) owns identities; engine/data ownership remains in [doc 19](19-engine-architecture.md) and [doc 20](20-game-systems-architecture.md).
+
+## 1. Every hit has three parts
+
+Every damaging spell answers three questions, from the spell's fantasy (what it is physically made of, and what it does):
+
+| Part | Meaning | Data |
+|---|---|---|
+| **Physical** (`raw`) | the force of a body: weight, edge, impact | share of each hit |
+| **Magical** | the element itself | share of each hit, by element |
+| **Effect** | a status or behaviour the hit leaves | optional; most spells have none or one |
+
+Every spell has a split (physical + magical = 100%). Not every spell has an effect. An effect belongs to a spell only when it is that spell's identity.
+
+**The effect takes the shape of the hit.** Whatever an effect is, it follows the part that carries it: a projectile hit leaves it on the enemy or at that point, an area impact leaves it over the area, a field or trail carries it for as long as it lasts. This holds for spells and keywords alike (section 4).
+
+## 2. Effects by element
+
+| Element | Damage over time | Control | Movement | Debuff | Build-up → payoff | Friendly |
+|---|---|---|---|---|---|---|
+| Arcane | — | transformed (idea) | gravity (idea) | **vulnerable**, in stacks | — | invulnerable, reflect (ideas) |
+| Fire | **burn** | — | — | — | — | — |
+| Water/Ice | — | **chill**, slow; frozen | push, pull | — | 5 chill → freeze | — |
+| Storm | — | **shock** (mark + stagger); stun | — | — | shock → chain / conduct / grounded | — |
+| Earth/Steel | **bleed** | root, stun | knockback | — | bleed → hemorrhage | — |
+| Plague/Death | **poison**, infection | — | — | weakened | — | — |
+| Life | — | **entangled** → root | pull (idea) | — | — | **healing** (shape follows the hit) |
+| No element | bleed via SANGUINE | taunted | Force words | marked | **Overload** (section 3) | ward, leech |
+
+Element reactions stay elemental: Thaw (fire on chill), Shatter (earth on frozen), Toxic Flare (fire on poison), Cleanse (life on poison or weakened), and shock's chain / conduct / grounded.
+
+### 2.1 Arcane: vulnerable stacks
+
+Arcane's one effect is **vulnerable**, built in stacks like chill: each stack +5% damage taken, up to 5 (+25%), lasting 4 s and refreshed by each new stack. Arcane is otherwise neutral on the type chart and partly pierces armour.
+
+## 3. Overload is a keyword, not arcane
+
+**Changed:** arcane damage no longer pops damage over time. Overload is an elementless payoff keyword that any spell can carry.
+
+- A hit carrying it lands all the damage over time pending on the enemy (bleed, poison, burn) at once, at a multiplier, and clears them.
+- Pending means what has already built up; ramp not yet reached does not count.
+- With nothing pending, the hit just deals its own damage.
+- Big swing by design. Strength by word length: **RUPTURING 2×, DETONATING 2.5×, OVERLOADING 3×** (starting numbers; bots tune).
+
+## 4. Keywords
+
+### 4.1 Two kinds
+
+1. **Modifiers** add to the shape the spell already has and apply to every damaging part: element words, effect words, healing, Overload, power, size, leech.
+2. **Makers** add a new part with its own shape and its own split: EXPLODING (a physical blast on hit), SPLITTING, CHAINING, CASCADING. Each is unique.
+
+They combine on their own: a part a maker adds is a damaging part, so every modifier applies to it. BURNING EXPLODING BOLT burns with both the bolt and the blast; OVERLOADING EXPLODING BOLT pops damage over time across the blast.
+
+A word means the same thing on every spell, so its card can say it in one line. The only per-spell difference is systematic: repeating parts (fields, trails, beams, orbits) apply effects at reduced strength, and healing follows the shape of the hit.
+
+### 4.2 Element words: a spectrum
+
+A word that names what the spell **is made of** adds damage; a word that names what it **does to the target** adds the effect; some do both. Word length scales the damage a word adds.
+
+| Tier | Damage per letter | Effect |
+|---|---|---|
+| Damage | 5% | none |
+| Both | 3% | the element's effect |
+| Effect | 1% | the element's effect |
+
+**An effect from a word is never weaker** (decided 14 Oct): it is the same effect the spell would apply, sized from the full hit, with one value per effect (one burn %, one bleed %). Word length scales only the added damage.
+
+| Element | Damage | Both | Effect |
+|---|---|---|---|
+| Arcane | ARCANE, MAGICAL | MYSTIC, ELDRITCH, ESOTERIC | RUNIC (vulnerable) |
+| Fire | INFERNAL, FIERY | FLAMING, BLAZING, EMBER | BURNING *(new)*, SCORCHING (burn) |
+| Water | GLACIAL, ICY | FROSTY | CHILLING *(new)*, FROZEN (chill) |
+| Storm | ELECTRIC, STORMY | THUNDERING | SHOCKING (shock) |
+| Earth | IRON, EARTHEN | BLADED | SERRATED (bleed) |
+| Plague | NECROTIC, DEATHLY | TOXIC | VENOMOUS, POISONOUS (poison) |
+| Life | LIVING, VERDANT | — | HEALING *(new)*, BLOOMING (healing); THORNED, OVERGROWN (entangle) |
+
+A word of the spell's own element strengthens that element's effect (BURNING CINDER FIELD burns harder).
+
+### 4.3 Healing follows the hit
+
+HEALING and BLOOMING leave healing in the shape of the hit:
+
+| The hit | The healing |
+|---|---|
+| projectile | a seed where the enemy was, walked over to collect |
+| area impact | a healing circle the size of the impact, for a few seconds |
+| field or trail | the ground heals you while you stand in it |
+| beam or orbit | small seeds, heavily capped |
+
+Balance is a **healing budget per cast** (word length × spell power), spread over whatever the spell makes. An area spell heals more conveniently, not more in total.
+
+### 4.4 Payoff and effect-on-you words
+
+| Group | Word | Does |
+|---|---|---|
+| Payoff (no element) | RUPTURING, DETONATING, OVERLOADING | Overload (section 3) |
+| Effect on you | WARDING *(was planned)* | a ward absorbs damage for a few seconds; refreshes, does not stack |
+| Effect on you | LEECHING *(new)* | heals a share of damage dealt, capped per cast below SANGUINE's cost |
+| Sacrifice | SANGUINE | unchanged: −10% health, 2.5× power, half the damage becomes bleed |
+
+Blood magic is a loop: SANGUINE spends health for damage, LEECHING earns it back, OVERLOADING cashes the bleed.
+
+## 5. Spells, part by part
+
+Every number is a **% of the spell's base hit** (its main hit; one tick for ground spells); a spell's parts can add up past 100%. Physical and magical are % of the base hit too (75 + 75 = a 150% part). **Every effect is sized from the hit that applied it.** Rank-1 base hits in brackets. Decided with the user, 14 October 2026.
+
+### 5.1 Arcane
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Magic Missile (15) | dart | 100 | 100 | 0 | — (physical for balance: armour resists the auto-attack) |
+| Bolt (50) | bolt | 100 | 0 | 100 arcane | — |
+| Arcane Orbit (12) | orb hit, each enemy at most every 0.5 s | 100 | 0 | 100 arcane | — (a damage ring) |
+| Focus Ray (24) | beam tick, 4 per second, first enemy | 100 | 0 | 100 arcane | ½ vulnerable stack |
+| Rune Trap (55) | arm (0.8 s) | 0 | — | — | — |
+| | activate (an enemy steps in) | 0 | — | — | everyone inside rooted 0.3–0.5 s + vulnerable stacks: 0 at rank 1 rising to 5 at rank 6+ |
+| | explode (≈0.4 s after activate) | 100 | 0 | 100 arcane | — |
+
+### 5.2 Fire
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Ember Spear (96) | spear hit, pierces | 100 | 75 | 25 fire | — |
+| | trail tick, every 0.5 s for 1.5 s | 20 | 0 | 20 fire (hot rubble) | burn |
+| Meteor Shower (32 × 3) | warning mark (0.65 s) | 0 | — | — | — |
+| | impact (radius 220) | 100 | 60 | 40 fire | stunned 0.2 s |
+| | crater, every 0.5 s for ≈1 s (Duration extends) | 25 | 6 | 19 fire | — |
+| Cinder Field (8) | field tick, every 0.5 s | 100 | 0 | 100 fire | burn |
+| Fire Walk (8) | emitter | 0 | — | — | — |
+| | patch tick, every 0.5 s | 100 | 0 | 100 fire | burn |
+
+### 5.3 Water/Ice and Storm
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Ice Blast (35) | shard | 100 | 60 | 40 water | 1 chill stack per shard that hits; knockback once per cast (no separate slow) |
+| Lightning (60) | strike (area) | 100 | 0 | 100 storm | shock: a 3 s mark + stunned 0.2 s (replaces the stagger) |
+
+### 5.4 Earth/Steel
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Cross Blade (11) | outward pass | 100 | 75 | 25 earth | 1 bleed |
+| | holding, a pulse every 0.3 s (Duration = holds longer; no afterimage) | 100 per pulse | 50 | 50 earth | 1 bleed per pulse |
+| | return pass | 200 | 75 | 125 earth | 2 bleed |
+| Earth Shield (60) | block | 0 | — | — | blocks one hit |
+| | eruption toward the attacker | 100 | 40 | 60 earth | bleed + knockback |
+
+### 5.5 Plague/Death and Life
+
+| Spell | Part | % of base | Physical | Magical | Effect |
+|---|---|---|---|---|---|
+| Infestation (4) | spore flight | 0 | — | — | infects the first host |
+| | infection tick, every 0.5 s, 3 s per host | 100 | 0 | 100 plague | **infected**: its own spreading damage over time (no ramp, no weaken); Overload does not touch it (its value is the spread); credited as "infection" |
+| Seeker (15) | spirit touch, each enemy every 1 s | 100 | 0 | 100 plague | 1 poison stack + weakened |
+| Life / Regeneration | heal / heal over time | — | — | — | — |
+
+### 5.6 Combinations
+
+| Combination | Part | % of base | Damage | Effect |
+|---|---|---|---|---|
+| Lightning Bolt (40) | bolt hit, then bounces through up to 4 more enemies | 150 each | 75 arcane + 75 storm | shock |
+| | one strike at the last enemy (area, radius 80) | 150 | 150 storm | shock |
+| Life Bolt (40) | bolt hit | 125 | 75 arcane + 50 life | plants a healing seed worth 15% of the damage the hit dealt |
+| Meteor Spear (45) | spear hit, pierces | 100 | 85 physical + 15 fire | — |
+| | trail tick | 20 | 20 fire | burn |
+| | a small meteor on every enemy pierced (radius ≈70, quick drop, no crater) | 55 | 33 physical + 22 fire | stunned 0.2 s |
+| Steam Field (12) | field tick | 120 | 60 fire + 60 water | burn + 1 chill stack (cannot freeze) |
+| Prism Ray (18) | laser: tracks and hits like Focus Ray | 60 | 60 arcane | ½ vulnerable stack |
+| | refraction: every tick that hits splits at the target into 6 lasers fanning ≈70° behind it, ≈250 long, piercing | 15 each | one element each: fire, water, storm, earth, plague, life | its element's effect: burn, chill (can freeze), shock (mark, no stun), bleed, poison, entangle |
+| Frost Sigil (60) | arm / activate | 0 | — | activate: root + vulnerable (as Rune Trap) + chill |
+| | explode | 150 | 100 arcane + 50 water | 2 chill stacks |
+| Soul Bloom (4) | infection tick | 100 | 100 plague | infected (spreads) |
+| | ghost on every infected death | — | — | flies to you and heals if you are hurt; otherwise hunts the nearest enemy and deals the same amount as plague; at most 3 out |
+
+Prism Ray replaces the old fixed, wide, all-piercing beam. The laser is 60% so the front target takes less than Focus Ray (100%) while the crowd behind takes up to 6 × 15% (150% a tick at most): a crowd beam, not a single-target one. Hard control never comes from Prism Ray.

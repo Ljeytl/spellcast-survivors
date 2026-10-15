@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="SpellCast Survivors"
-config/version="0.2.8"
+config/version="0.3.0"
 config/display_name="Shoulda Joined a Party"
 run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
@@ -25,6 +25,7 @@ UserSettings="*res://scripts/UserSettings.gd"
 CharacterManager="*res://scripts/CharacterManager.gd"
 DataManager="*res://scripts/DataManager.gd"
 AnimationManager="*res://scripts/AnimationManager.gd"
+Vfx="*res://scripts/vfx/Vfx.gd"
 
 [display]
 

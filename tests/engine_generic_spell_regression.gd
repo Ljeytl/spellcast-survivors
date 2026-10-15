@@ -47,6 +47,9 @@ class Caster extends Node2D:
 	var health = 100.0
 	var max_health = 100.0
 	var healed = 0.0
+	var ward = 0.0
+	func add_ward(a, _d):
+		ward = maxf(ward, a)
 	func heal(a, _v = 1.0):
 		healed += a
 		health = minf(max_health, health + a)
@@ -122,6 +125,7 @@ func run():
 	fusion_and_reactions()
 	clear()
 	await lifecycle_cleanup()
+	heal_keywords()
 	print("engine_generic_spell_regression: ", checks, " checks, ", failures, " failures")
 	quit(1 if failures > 0 else 0)
 
@@ -347,7 +351,9 @@ func keywords_runtime():
 	a = foe(Vector2(100, 0))
 	caster.health = 100.0
 	cast("sanguine spear", 1.0)
-	check(near(caster.health, 90.0) and near(a.taken(), 22 * 1.6), "SANGUINE costs 10% health for ×1.6")
+	var took = a.taken()
+	check(near(caster.health, 90.0) and took >= 22 * 2.5 * 1.5 - 0.01 and took < 22 * 2.5 * 1.5 + 5.0, "SANGUINE costs 10%% health for ×2.5 plus 50%% bleed, then bleeds (took %.1f)" % took)
+	check(a.status != null and a.status.has("bleed"), "SANGUINE makes the target bleed")
 	clear()
 	a = foe(Vector2(50, 0))
 	cast("blinking nova", 0.5)
@@ -369,7 +375,11 @@ func keywords_runtime():
 	# Element words on a generic spell.
 	a = foe(Vector2(200, 0))
 	cast("icy spear", 1.5)
-	check(a.status != null and a.status.chill_stacks() == 1 and near(a.received[0], 22 + 3.3), "ICY spear adds water damage and one chill")
+	check(near(a.received[0], 22 + 3.3) and (a.status == null or a.status.chill_stacks() == 0), "ICY spear (damage word) adds water damage, no chill")
+	clear()
+	a = foe(Vector2(200, 0))
+	cast("chilling spear", 1.5)
+	check(a.status != null and a.status.chill_stacks() == 1, "CHILLING spear (effect word) chills")
 	clear()
 	a = foe(Vector2(200, 0))
 	a.element = "fire"
@@ -377,8 +387,8 @@ func keywords_runtime():
 	check(near(a.received[0], 22 + 3.3 * 1.25), "ICY share beats a fire enemy on the chart")
 	clear()
 	a = foe(Vector2(200, 0))
-	cast("iron spear", 1.5)
-	check(a.status.bleed_meter > 0.0, "IRON (earth) word bleeds")
+	cast("serrated spear", 1.5)
+	check(a.status.bleed_meter > 0.0, "SERRATED (earth effect word) bleeds")
 	clear()
 	a = foe(Vector2(200, 0))
 	cast("toxic spear", 1.5)
@@ -424,8 +434,8 @@ func caps_and_safety():
 func fusion_and_reactions():
 	# One cast with fire and ice: both statuses coexist, no reaction (fusion).
 	var a = foe(Vector2(200, 0))
-	cast("icy fiery fireball", 1.0)
-	check(a.status.chill_stacks() >= 1 and a.status.has("burn"), "ICY FIERY fireball: burn and chill coexist")
+	cast("chilling burning fireball", 1.0)
+	check(a.status.chill_stacks() >= 1 and a.status.has("burn"), "CHILLING BURNING fireball: burn and chill coexist")
 	check(not a.status.reactions_fired.has("thaw"), "Same cast does not react with itself")
 	# A separate fire cast on the chilled enemy reacts.
 	a.status.reaction_ready_at = 0.0
@@ -464,4 +474,62 @@ func lifecycle_cleanup():
 	await process_frame
 	await process_frame
 	check(part != null and part.get_ref() == null, "Cancelling cast also frees its active projectile")
+	clear()
+
+## Doc 21 §4.3–4.4: healing takes the shape of the hit from one budget per cast; LEECHING is capped;
+## WARDING refreshes rather than stacks.
+func heal_keywords():
+	clear()
+	var budget = 0.05 * 7 * 40.0   # HEALING: effect tier, 7 letters, 40 healing per unit of strength
+	# Projectile: seeds where it hits, drawn from the budget.
+	foe(Vector2(200, 0))
+	var c = cast("healing spear", 1.0)
+	check(near(c.plan.heal_budget, budget), "HEALING budget is %.1f per cast" % budget)
+	var seeds = root.get_children().filter(func(n): return n.is_in_group("healing_seeds"))
+	check(seeds.size() >= 1 and near(seeds[0].healing_amount, budget / 3.0), "A projectile hit plants a seed from the budget")
+	for s in seeds:
+		s.free()
+	# Area impact: one healing circle the size of the impact; heals the caster standing in it.
+	clear()
+	foe(Vector2(200, 0))
+	c = cast("healing fireball", 1.5)
+	var zones = root.get_children().filter(func(n): return n.is_in_group("healing_zones"))
+	check(zones.size() == 1 and near(zones[0].radius, 90.0) and zones[0].total > 0.0, "An area impact leaves one healing circle its size")
+	check(c.heal_left >= -0.001 and c.heal_left < budget, "The circle and the seeds share one budget")
+	if zones.size() == 1:
+		caster.global_position = zones[0].global_position
+		caster.health = 50.0
+		caster.healed = 0.0
+		for i in 60:
+			zones[0]._physics_process(DT)
+		check(caster.healed > 0.0 and caster.healed <= zones[0].total + 0.001, "The circle heals the caster inside it")
+	for n in root.get_children().filter(func(n): return n.is_in_group("healing_zones") or n.is_in_group("healing_seeds")):
+		n.free()
+	# Field: the ground heals the caster standing in it, at budget / duration.
+	clear()
+	foe(Vector2(150, 0))
+	c = cast("healing flame wall", 0.0)
+	check(near(c.plan.parts.wall.heal_ground.rate, budget / 6.0), "A field heals at budget / duration")
+	c.run(0.1, DT, tick_all)
+	var wall = c.parts.filter(func(p): return is_instance_valid(p) and p.part_name == "wall")
+	if not wall.is_empty():
+		caster.global_position = wall[0].global_position
+		caster.health = 50.0
+		caster.healed = 0.0
+		c.run(2.0, DT, tick_all)
+		check(near(caster.healed, budget / 6.0 * 2.0, 0.3), "Standing in the wall heals (%.2f)" % caster.healed)
+	# LEECHING: a share of damage dealt, capped per cast.
+	clear()
+	foe(Vector2(200, 0))
+	caster.health = 50.0
+	caster.healed = 0.0
+	c = cast("leeching spear", 1.0)
+	check(caster.healed > 0.0 and caster.healed <= 100.0 * 0.08 + 0.001, "LEECHING heals, capped at 8%% of max health per cast (%.2f)" % caster.healed)
+	# WARDING refreshes rather than stacks.
+	clear()
+	foe(Vector2(200, 0))
+	caster.ward = 0.0
+	cast("warding spear", 0.2)
+	cast("warding spear", 0.2)
+	check(near(caster.ward, 30.0), "WARDING gives a 30 ward that refreshes, not stacks")
 	clear()

@@ -51,16 +51,18 @@ func run():
 	game.add_child(target)
 	target.global_position = game.player.global_position + Vector2(240, 0)
 	target.add_to_group("enemies")
-	var before = bolts(game).size()
-	check(manager.cast_freeform_spell("bolt"), "Legacy Bolt still casts")
-	check(bolts(game).size() > before, "Legacy Bolt spawns its own projectile")
-	check(manager.last_generic_cast == null, "Legacy cast does not touch the generic engine")
+	# Bolt is ported to the generic engine (doc 18 phase 2): same numbers, keywords work.
+	check(manager.cast_freeform_spell("bolt"), "Bolt still casts")
+	check(manager.last_generic_cast != null and manager.last_generic_cast.plan.id == "bolt", "Ported Bolt runs on the generic engine")
 	check(manager.cast_freeform_spell("mega bolt") and manager.pending_keyword_casts.size() == 1, "MEGA Bolt still uses the charge path")
 	manager.discard_pending_casts()
 	check(manager.cast_freeform_spell("bolt mega") and manager.pending_keyword_casts.size() == 1, "MEGA after the name also reaches the legacy charge")
 	manager.discard_pending_casts()
-	check(not manager.cast_freeform_spell("icy bolt") and manager.last_cast_failure == "ICY doesn't work on Bolt yet", "Unsupported keyword on an old spell fails with a reason: " + manager.last_cast_failure)
-	check(not manager.cast_freeform_spell("triple mega bolt") and manager.last_cast_failure.begins_with("TRIPLE"), "Any non-MEGA keyword is refused on old spells")
+	check(manager.cast_freeform_spell("icy bolt") and not manager.last_generic_cast.plan.elements.is_empty(), "Element words work on a ported old spell")
+	# Every shipping spell is on the generic engine: keywords the spell cannot use crack, the cast goes on.
+	manager.learn_spell("regeneration")
+	check(manager.cast_freeform_spell("triple regeneration"), "Keywords on a ported heal cast: " + manager.last_cast_failure)
+	manager.discard_pending_casts()
 	check(manager.find_cast_spell_slot("big bolt") == 0, "Legacy slot lookup unchanged")
 
 	# Generic spells.
@@ -90,8 +92,9 @@ func run():
 	check(manager.cast_freeform_spell("mega mega spear") and cracked.size() == 1 and cracked[0][1] == "used twice", "A duplicate word cracks; the spell still casts")
 	check(abs(float(manager.last_generic_cast.plan.bundle.power) - 1.5) < 0.001, "The cracked duplicate adds nothing")
 	cracked.clear()
-	check(manager.cast_freeform_spell("triple warding spear") and cracked.size() == 1 and cracked[0][0] == "warding", "Unbuilt WARDING cracks, TRIPLE still applies")
-	check(not manager.cast_freeform_spell("mega mega bolt") and manager.last_cast_failure.begins_with("MEGA"), "Old spells still refuse anything but one MEGA")
+	check(manager.cast_freeform_spell("leeching regeneration") and cracked.size() == 1 and cracked.any(func(c): return c[0] == "leeching"), "A word that does nothing (LEECHING on a heal) cracks; the spell still casts")
+	check(manager.cast_freeform_spell("mega mega regeneration"), "A doubled MEGA on a ported spell still casts: " + manager.last_cast_failure)
+	manager.discard_pending_casts()
 
 	# Real enemy, typed pipeline.
 	var enemy = mm.spawn_monster(mm.select_monster(), false, true)
@@ -102,7 +105,7 @@ func run():
 		enemy.global_position = game.player.global_position + Vector2(0, -200)
 		target.remove_from_group("enemies")
 		var hp = enemy.current_health
-		manager.cast_freeform_spell("iron spear")
+		manager.cast_freeform_spell("serrated spear")
 		for i in 60:
 			await physics_frame
 		check(enemy.current_health < hp, "Generic spell damages a real enemy")

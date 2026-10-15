@@ -8,9 +8,10 @@ const DECAY := [5.0, 8.0, 12.0, 18.0, 25.0, 35.0, 50.0, 65.0, 80.0]
 const CAP := 12000.0
 ## Atomic: every ATOMIC_COMBO_PER_CHARGE combo score earns a charge (max ATOMIC_MAX_CHARGES).
 ## Casting needs rank S or better and spends one charge. Charges are lost when the combo ends.
-const ATOMIC_COMBO_PER_CHARGE := 10000
-const ATOMIC_MAX_CHARGES := 3
-const ATOMIC_RANK := 6
+const GameData = preload("res://scripts/core/GameData.gd")
+static var ATOMIC_COMBO_PER_CHARGE: int = int(GameData.file("abilities").abilities.atomic.combo_per_charge)  # data/abilities.json
+static var ATOMIC_MAX_CHARGES: int = int(GameData.file("abilities").abilities.atomic.max_charges)
+static var ATOMIC_RANK: int = int(GameData.file("abilities").abilities.atomic.min_style_rank)
 const GRACE := 5.0
 const PICKUP_POINTS := 200
 

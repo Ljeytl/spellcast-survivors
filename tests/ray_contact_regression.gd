@@ -1,6 +1,5 @@
 extends SceneTree
 
-const Afterglow = preload("res://scripts/TacticalSpellEffect.gd").BeamAfterglow
 var checks = 0
 var failures = 0
 
@@ -15,6 +14,23 @@ func check(ok, message):
 	if not ok:
 		failures += 1
 		printerr("FAIL: ", message)
+
+## Beams run on the generic engine (doc 18 phase 2): each beam is a SpellPart, stepped by hand.
+func adv(part, seconds: float) -> void:
+	var dt = 1.0 / 60.0
+	var whole = int(floor(seconds / dt + 0.000001))
+	for i in whole:
+		part.step(dt)
+	if seconds - whole * dt > 0.000001:
+		part.step(seconds - whole * dt)
+
+## Pin a beam for a fixture: from the wizard, facing right, onto `enemy`, without turning.
+func pin(part, enemy) -> void:
+	part.beam_offset = Vector2.ZERO
+	part.direction = Vector2.RIGHT
+	part.target_ref = weakref(enemy)
+	part.def = part.def.duplicate(true)
+	part.def.aim = {"turn": 0.0}
 
 func run():
 	root.get_node("AudioManager").quitting = true
@@ -47,70 +63,57 @@ func run():
 		check(spells.learn_spell(id), "Learn " + id)
 	var beams: Array = []
 	for id in ["focus_ray", "prism_ray", "prism_ray"]:
-		check(spells.cast_build_spell(spells.find_spell_slot(id)), "Cast " + id)
-		beams = get_nodes_in_group("active_spell_channels")
-		for beam in beams:
-			beam.set_physics_process(false)
+		check(spells.cast_spell_by_type(spells.find_spell_slot(id)), "Cast " + id)
+	for c in get_nodes_in_group("generic_casts"):
+		c.manual = true
+	beams = get_nodes_in_group("active_spell_channels")
 	var reserved = {}
 	for beam in beams:
-		reserved[beam.target_ref.get_ref().get_instance_id()] = true
-	check(reserved.size() == 3, "Focus and two Prism casts reserve three distinct targets")
+		if beam.target_ref and beam.target_ref.get_ref():
+			reserved[beam.target_ref.get_ref().get_instance_id()] = true
+	check(beams.size() == 3 and reserved.size() == 3, "Focus and two Prism casts reserve three distinct targets")
 	var prism = beams[1]
-	prism.info.beam_origin_offset = Vector2.ZERO
-	prism.direction = Vector2.RIGHT
-	prism.target_ref = weakref(enemies[0])
-	prism.info.beam_turn_speed = 0.0
-	var shape = enemies[1].get_node("HurtBox/HurtBoxShape")
-	var half_height = shape.shape.size.y * absf(shape.global_scale.y) * 0.5
-	enemies[1].global_position.y += half_height + prism.beam_radius() - 1
-	enemies[4].global_position.y += half_height + prism.beam_radius() + 1
-	if "--known-bad-contact" in OS.get_cmdline_user_args():
-		shape.disabled = true
-	prism.advance(0.25)
-	for index in range(4):
-		check(is_equal_approx(enemies[index].current_health, 10000 - prism.damage), "Prism first tick reaches target " + str(index))
-	check(is_equal_approx(enemies[4].current_health, 10000), "Outside beam and hurtbox does not take damage")
-	prism.advance(0.25)
-	for index in range(4):
-		check(is_equal_approx(enemies[index].current_health, 10000 - prism.damage * 2), "Prism second tick reaches target " + str(index))
-	check(is_equal_approx(prism.beam_end.length(), 450), "Prism tip retains full reach")
+	pin(prism, enemies[0])
+	# Prism Ray (doc 21 §5.6): its laser stops at its target like Focus Ray; the refraction fans out
+	# behind the target and reaches the enemies lined up there.
+	adv(prism, 0.25)
+	var tick = 10000 - enemies[0].current_health
+	check(tick > 0, "Prism's laser lands on its target")
+	check(prism.beam_end.length() < 120, "Prism's laser stops at its target (%s)" % prism.beam_end.length())
+	var behind = 0
+	for index in range(1, 4):
+		if enemies[index].current_health < 10000:
+			behind += 1
+	check(behind >= 2, "The refraction reaches the enemies lined up behind (%d of 3)" % behind)
 	var focus = beams[0]
-	focus.info.beam_origin_offset = Vector2.ZERO
-	focus.direction = Vector2.RIGHT
-	focus.target_ref = weakref(enemies[0])
-	focus.advance(0.25)
+	pin(focus, enemies[0])
+	adv(focus, 0.25)
 	check(enemies[0].current_health < enemies[2].current_health, "Focus damages its first obstruction")
-	check(focus.beam_end.length() < 80, "Focus ends at body contact rather than passing into center")
+	check(focus.beam_end.length() < 80, "Focus ends at body contact rather than passing into center (%s)" % focus.beam_end.length())
 	if "--screenshots" in OS.get_cmdline_user_args():
-		for beam in beams:
-			beam.queue_redraw()
 		await RenderingServer.frame_post_draw
 		DirAccess.make_dir_recursive_absolute("res://builds/style-verification")
 		root.get_texture().get_image().save_png("res://builds/style-verification/ray-contact.png")
 	var dead = beams[2].target_ref.get_ref()
 	var previous_direction = beams[2].direction
+	var turn = float(beams[2].def.get("aim", {}).get("turn", 0.0))
 	dead.dying = true
-	beams[2].advance(0.05)
+	adv(beams[2], 0.05)
 	check(beams[2].target_ref.get_ref() != dead, "Dead target reservation is released")
-	check(absf(previous_direction.angle_to(beams[2].direction)) <= 0.01251, "Prism retargets within its slow turn limit")
+	check(absf(previous_direction.angle_to(beams[2].direction)) <= turn * 0.05 + 0.0001, "Prism retargets within its slow turn limit")
 	check(beams[2].target_ref.get_ref() != focus.target_ref.get_ref() and beams[2].target_ref.get_ref() != prism.target_ref.get_ref(), "Prism retarget selects an unreserved alternative")
 	for index in range(1, enemies.size()):
 		enemies[index].dying = true
 	beams[2].target_ref = null
-	beams[2].advance(0.05)
-	check(beams[2].target_ref.get_ref() == enemies[0], "One remaining enemy can be shared instead of wasting a channel")
+	adv(beams[2], 0.05)
+	check(beams[2].target_ref != null and beams[2].target_ref.get_ref() == enemies[0], "One remaining enemy can be shared instead of wasting a channel")
 	for enemy in enemies:
 		enemy.dying = true
-	prism.advance(0.05)
-	check(prism.target_ref == null and prism.is_style_channel_active(), "Empty retarget gap remains a bounded active channel")
-	prism.advance(prism.remaining + 0.05)
-	check(not prism.is_style_channel_active(), "Channel stops on expiry")
-	check(prism.is_queued_for_deletion(), "Expired damaging beam is removed")
-	var glows = game.get_children().filter(func(node): return node is Afterglow)
-	check(glows.size() == 1, "Expiry produces one short visual afterglow")
-	check(not glows[0].is_in_group("active_spell_channels"), "Afterglow cannot sustain style")
-	glows[0]._process(0.13)
-	check(glows[0].is_queued_for_deletion(), "Afterglow ends after 120 milliseconds")
+	adv(beams[2], 0.05)
+	check(beams[2].target_ref == null and beams[2].is_style_channel_active(), "Empty retarget gap remains a bounded active channel")
+	adv(beams[2], beams[2].remaining_life() + 0.05)
+	check(not beams[2].is_style_channel_active(), "Channel stops on expiry")
+	check(beams[2].done, "Expired damaging beam is removed")
 	game.queue_free()
 	await process_frame
 	print("RAY_CONTACT checks=%d failures=%d" % [checks, failures])

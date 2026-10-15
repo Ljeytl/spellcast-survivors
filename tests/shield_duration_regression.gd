@@ -19,7 +19,7 @@ func check(ok, label):
 		printerr("FAIL: ", label)
 
 func cast():
-	manager.cast_earthshield_spell(manager.find_spell_slot("earth_shield"))
+	manager.cast_spell_by_type(manager.find_spell_slot("earth_shield"))
 	player.earth_shield.set_physics_process(false)
 
 func target(offset: Vector2):
@@ -32,9 +32,21 @@ func target(offset: Vector2):
 	enemy.update_health_bar()
 	return enemy
 
+## Live eruption parts (Earth Shield's eruption runs on the generic engine).
+func eruptions() -> Array:
+	var out: Array = []
+	for c in get_nodes_in_group("generic_casts"):
+		if str(c.plan.get("id", "")) == "earth_shield" and not c.is_queued_for_deletion():
+			c.manual = true
+			for p in c.parts:
+				if is_instance_valid(p):
+					out.append(p)
+	return out
+
 func clear_eruptions():
-	for effect in get_nodes_in_group("earth_shield_eruptions"):
-		effect.free()
+	for c in get_nodes_in_group("generic_casts"):
+		if str(c.plan.get("id", "")) == "earth_shield":
+			c.free()
 
 func run():
 	root.get_node("AudioManager").quitting = true
@@ -82,22 +94,24 @@ func run():
 	check(game.style_session.score.combo==5000,"Blocked hit preserves combo")
 	check(player.earth_shield.charges[0].remaining==16,"Oldest expiring charge consumed first")
 	await process_frame
-	var eruption = get_nodes_in_group("earth_shield_eruptions")[-1]
-	eruption.set_physics_process(false)
+	# Earth Shield's eruption runs on the generic engine (doc 18 phase 2): an expanding cone part.
+	var eruption = eruptions().back()
 	check(eruption.direction.dot(Vector2.RIGHT)>0.99,"Retaliation points toward attacker")
+	eruption.done = false
 	eruption.age = 0
-	eruption.hit_ids.clear()
+	eruption.front = 0.0
+	eruption.hits.clear()
 	attacker.current_health = 10000
 	beside.current_health = 10000
 	if "--known-bad-direction" in OS.get_cmdline_user_args():
 		eruption.direction = Vector2.LEFT
-	eruption.advance(0.05)
+	eruption.step(0.05)
 	check(attacker.current_health==10000,"Damage waits for visible front")
-	eruption.advance(0.17)
+	eruption.step(0.17)
 	check(attacker.current_health==9940 and beside.current_health==9940,"Directional eruption damages its cone")
 	check(behind.current_health==10000 and far.current_health==10000,"Behind and outside reach remain unharmed")
 	check(attacker.knockback_velocity.x>0,"Push is away from player")
-	eruption.advance(0.02)
+	eruption.step(0.02)
 	check(attacker.current_health==9940,"One hit per eruption")
 	if "--visual" in OS.get_cmdline_user_args():
 		await RenderingServer.frame_post_draw
@@ -170,8 +184,7 @@ func run():
 	shot._physics_process(0.1)
 	check(player.health==100 and player.earth_shield.charges.is_empty(),"Actual projectile collision spends one charge")
 	await process_frame
-	eruption=get_nodes_in_group("earth_shield_eruptions")[-1]
-	eruption.set_physics_process(false)
+	eruption = eruptions().back()
 	check(eruption.direction.dot(Vector2.LEFT)>0.99,"Projectile retaliation uses shooter direction")
 	clear_eruptions()
 	player.shield_grace_remaining=0
@@ -182,7 +195,7 @@ func run():
 	explosive.create_explosion()
 	check(player.health==100 and player.earth_shield.charges.is_empty(),"Explosion damage is blocked without recursion")
 	await process_frame
-	check(get_nodes_in_group("earth_shield_eruptions").size()==1,"Explosion produces one deferred retaliation")
+	check(eruptions().size()==1,"Explosion produces one deferred retaliation")
 	clear_eruptions()
 	check(game.hud.get_node("BuildVersion").text == "v%s · Playtest" % ProjectSettings.get_setting("application/config/version"), "HUD uses current project version")
 	if "--visual" in OS.get_cmdline_user_args():

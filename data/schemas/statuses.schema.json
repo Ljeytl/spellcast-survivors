@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "statuses.json",
+  "type": "object",
+  "properties": {
+    "_rules": {
+      "type": "object",
+      "properties": {
+        "slow_cap": {
+          "type": "number"
+        },
+        "secondary_slow_share": {
+          "type": "number"
+        },
+        "hard_cc_window": {
+          "type": "number"
+        },
+        "hard_cc_repeat_multiplier": {
+          "type": "number"
+        },
+        "reaction_cooldown": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "slow_cap",
+        "secondary_slow_share",
+        "hard_cc_window",
+        "hard_cc_repeat_multiplier",
+        "reaction_cooldown"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": {
+    "type": "object",
+    "properties": {
+      "element": {
+        "type": "string",
+        "x-ref": "element"
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "dot",
+          "control",
+          "hard",
+          "modifier"
+        ]
+      },
+      "damage_type": {
+        "type": "string",
+        "x-ref": "damage_type"
+      },
+      "tick": {
+        "type": "number"
+      },
+      "duration": {
+        "type": "number"
+      },
+      "share": {
+        "type": "number"
+      },
+      "share_per_tick": {
+        "type": "number"
+      },
+      "meter_per_hit": {
+        "type": "number"
+      },
+      "meter_decay": {
+        "type": "number"
+      },
+      "meter_decay_delay": {
+        "type": "number"
+      },
+      "boss_meter_multiplier": {
+        "type": "number"
+      },
+      "hemorrhage": {
+        "type": "object",
+        "properties": {
+          "max_health": {
+            "type": "number"
+          },
+          "elite_max_health": {
+            "type": "number"
+          },
+          "boss_max_health": {
+            "type": "number"
+          },
+          "bleed_multiplier": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "max_health",
+          "elite_max_health",
+          "boss_max_health",
+          "bleed_multiplier"
+        ],
+        "additionalProperties": false
+      },
+      "ramp": {
+        "type": "number"
+      },
+      "weaken": {
+        "type": "number"
+      },
+      "cap": {
+        "type": "number"
+      },
+      "slow_per_stack": {
+        "type": "number"
+      },
+      "frostbite_share": {
+        "type": "number"
+      },
+      "threshold": {
+        "type": "string",
+        "x-ref": "status"
+      },
+      "refreeze_immunity": {
+        "type": "number"
+      },
+      "locks": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "move",
+            "attack"
+          ]
+        }
+      },
+      "stun": {
+        "type": "number"
+      },
+      "chain_share": {
+        "type": "number"
+      },
+      "chain_targets": {
+        "type": "number"
+      },
+      "chain_range": {
+        "type": "number"
+      },
+      "conduct_share": {
+        "type": "number"
+      },
+      "conduct_radius": {
+        "type": "number"
+      },
+      "slow": {
+        "type": "number"
+      },
+      "damage_dealt": {
+        "type": "number"
+      },
+      "root_after": {
+        "type": "number"
+      },
+      "root_window": {
+        "type": "number"
+      },
+      "root_duration": {
+        "type": "number"
+      },
+      "ramp_max": {
+        "type": "number",
+        "minimum": 1,
+        "$comment": "poison: a stack's tick never exceeds base \u00d7 ramp_max"
+      },
+      "per_stack": {
+        "type": "number",
+        "$comment": "vulnerable: extra damage taken per stack"
+      },
+      "max_stacks": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "required": [
+      "kind",
+      "duration"
+    ],
+    "additionalProperties": false
+  },
+  "x-registry": "status"
+}

@@ -5,10 +5,11 @@ static func alive(enemy) -> bool:
 
 static func incoming(tree: SceneTree, enemy, excluding = null) -> float:
 	var total = 0.0
-	for projectile in tree.get_nodes_in_group("spell_projectiles"):
-		if projectile == excluding or not projectile.has_method("reserved_damage"):
-			continue
-		total += projectile.reserved_damage(enemy)
+	for group in ["spell_projectiles", "engine_projectiles"]:
+		for projectile in tree.get_nodes_in_group(group):
+			if projectile == excluding or not projectile.has_method("reserved_damage"):
+				continue
+			total += projectile.reserved_damage(enemy)
 	return total
 
 static func select(tree: SceneTree, origin: Vector2, maximum_range: float = INF, excluded: Dictionary = {}, excluding = null):
@@ -111,28 +112,3 @@ static func select_meteor(tree: SceneTree, origin: Vector2, viewport: Rect2, cov
 		if roll <= 0.0:
 			return candidate.enemy
 	return candidates.back().enemy
-
-static func select_spirit(tree: SceneTree, player: Node2D, excluding = null, current = null):
-	var reserved: Array = []
-	for spirit in tree.get_nodes_in_group("build_spell_effects"):
-		if spirit == excluding or spirit.is_queued_for_deletion() or spirit.info.get("type", "") != "spirit" or spirit.remaining <= 0:
-			continue
-		if not spirit.caster or spirit.caster.get_ref() != player:
-			continue
-		var other = spirit.target_ref.get_ref() if spirit.target_ref else null
-		if alive(other):
-			reserved.append(other)
-	var chosen = null
-	var best = INF
-	var viewport = player.get_viewport().get_visible_rect()
-	for enemy in tree.get_nodes_in_group("enemies"):
-		if not alive(enemy) or not enemy.is_visible_in_tree() or not viewport.has_point(enemy.get_global_transform_with_canvas().origin):
-			continue
-		var distance = player.global_position.distance_to(enemy.global_position)
-		if distance > 600.0:
-			continue
-		var score = (0.0 if enemy == current else distance + 1.0) + (602.0 if enemy in reserved else 0.0)
-		if score < best:
-			best = score
-			chosen = enemy
-	return chosen

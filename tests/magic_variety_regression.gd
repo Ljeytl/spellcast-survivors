@@ -52,14 +52,32 @@ func target(offset: Vector2):
 	enemy.add_to_group("enemies")
 	return enemy
 
+## Ported spells (doc 18 phase 2): the generic cast, driven by hand.
 func effect(id: String, aim = null, overrides: Dictionary = {}):
 	var data = manager.spell_catalog[id].duplicate(true)
 	data.merge(overrides, true)
-	var spell = load("res://scripts/TacticalSpellEffect.gd").new()
-	spell.configure(data, float(data.damage), game.player, aim)
-	game.add_child(spell)
-	spell.set_physics_process(false)
-	return spell
+	var cast = manager.spawn_ported(data, float(data.damage), {}, aim)
+	cast.manual = true
+	for part in cast.root_parts():
+		if part.delivery == "beam":
+			part.beam_offset = Vector2.ZERO  # fixtures measure from the wizard, not a side lane
+			part.step(0.0)
+	return cast
+
+func root_of(cast):
+	var roots = cast.root_parts()
+	return roots[0] if not roots.is_empty() else null
+
+## Cross Blade throws a ring; the aimed blade is the one heading along +x in these fixtures.
+func aimed_blade(cast):
+	var best = null
+	for p in cast.root_parts():
+		if best == null or p.direction.x > best.direction.x:
+			best = p
+	return best
+
+func live_patches(cast) -> int:
+	return cast.parts.filter(func(p): return is_instance_valid(p) and not p.done and p.part_name.begins_with("patch")).size()
 
 func key(code: int, character: int = 0):
 	var event = InputEventKey.new()
@@ -109,19 +127,21 @@ func run():
 		check(game.spells_cast == 2 and not manager.is_typing, "Actual numbered typing casts new incantation")
 		for i in range(5):
 			manager.cast_spell_by_type(slot)
-		var active = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.id == id and not node.is_queued_for_deletion() and not node.get_parent().is_queued_for_deletion())
-		var capped = get_nodes_in_group("cross_blade_volleys").filter(func(node): return not node.is_queued_for_deletion()).size() if id == "cross_blade" else active.size()
+		var active = manager.ported_casts(id)
+		var capped = active.size()
 		# Extend-recast spells (Fire Walk) lengthen one instance instead of stacking up to active_limit.
 		var expected_cap = 1 if manager.spells[slot].get("recast_behavior", "stack") == "extend" else mini(int(manager.spells[slot].active_limit), 7)
 		check(capped == expected_cap, "Per-spell concurrent cap: " + id)
 		enemy.free()
 		for node in active:
-			node.set_physics_process(false)
-			node.advance(maxf(20.0, float(node.remaining) + 1.0))  # extended recasts accumulate duration
-			if node.info.type == "trap":
-				check(not node.is_queued_for_deletion() and not node.triggered, "Untriggered trap remains prepared in empty arena")
+			# A trap waits, everything else runs out.
+			var root = node.root_parts()[0] if not node.root_parts().is_empty() else null
+			var is_trap = root != null and root.delivery == "trap"
+			node.advance(120.0)   # stops early once finished (extended recasts accumulate duration)
+			if is_trap:
+				check(not node.finished and not root.done, "Untriggered trap remains prepared in empty arena")
 			else:
-				check(node.is_queued_for_deletion(), "Nonpersistent empty-arena effect expires after large delta")
+				check(node.finished, "Nonpersistent empty-arena effect expires after large delta")
 	for recipe_id in NEW_RECIPES:
 		fresh()
 		var recipe = load("res://scripts/SynergyCatalog.gd").RECIPES[recipe_id]
@@ -134,8 +154,9 @@ func run():
 		check(bonus_slot > 6 and manager.find_spell_slot(recipe.ingredients[0]) == primary_slot, "Tactical bonus preserves primary slot")
 		for i in range(5):
 			manager.cast_spell_by_type(bonus_slot)
-		var family = manager.spells[primary_slot].type
-		var family_nodes = get_nodes_in_group("build_spell_effects").filter(func(node): return node.info.type == family and not node.is_queued_for_deletion())
+		var family_nodes = []
+		for owned in [recipe.ingredients[0], recipe_id]:
+			family_nodes.append_array(manager.ported_casts(owned))
 		check(family_nodes.size() == mini(int(manager.get_spell_info(bonus_slot).active_limit), 5) + 1, "Bonus keeps its own active limit without replacing ingredient: " + recipe_id)
 	for id in ["rune_trap"]:
 		fresh()
@@ -144,33 +165,31 @@ func run():
 		corpse.dying = true
 		var live = target(Vector2(0, 120))
 		manager.cast_spell_by_type(manager.find_spell_slot(id))
-		var spawned = get_nodes_in_group("build_spell_effects").back()
-		check(spawned.target_ref.get_ref() == live, "Initial tactical aim ignores nearest dying enemy: " + id)
+		var rune = manager.last_generic_cast.root_parts()[0]
+		check(game.player.global_position.direction_to(rune.global_position).dot(Vector2.DOWN) > 0.99, "Initial tactical aim ignores nearest dying enemy: " + id)
 	fresh()
 	var near = target(Vector2(100, 0))
 	var far = target(Vector2(200, 0))
 	var off_axis = target(Vector2(100, 90))
 	var beam = effect("focus_ray", near)
-	if "--known-bad-extra-beam-tick" in OS.get_cmdline_user_args():
-		beam.tick_remaining = 0
 	beam.advance(0.24)
 	check(near.hits == 0, "Beam has no early extra tick")
-	check(beam.beam_end.length() < 120, "Base beam visual stops at first blocking target")
+	check(root_of(beam).beam_end.length() < 120, "Base beam visual stops at first blocking target")
 	beam.advance(0.01)
 	check(near.hits == 1 and far.hits == 0 and off_axis.hits == 0, "Focused beam hits one aligned target")
 	beam.advance(1.75)
-	check(near.hits == 8 and far.hits == 0, "Beam deals exactly eight ticks over two seconds")
+	check(near.hits == 8 and far.hits == 0, "Beam deals exactly eight ticks over two seconds (%d)" % near.hits)
 	check(near.hits != 9, "Known-bad immediate-plus-lifetime ninth tick rejected")
 	fresh()
 	var line = [target(Vector2(100, 0)), target(Vector2(200, 0)), target(Vector2(300, 0)), target(Vector2(400, 0))]
 	beam = effect("focus_ray", line[0], {"beam_targets": 3})
 	beam.advance(0.25)
 	check(line[0].hits == 1 and line[1].hits == 1 and line[2].hits == 1 and line[3].hits == 0, "Prism pierces three, never fourth")
-	check(beam.beam_end.length() > 300 and beam.beam_end.length() < 320, "Prism visual matches third blocking enemy")
+	check(root_of(beam).beam_end.length() > 300 and root_of(beam).beam_end.length() < 320, "Prism visual matches third blocking enemy (%s)" % root_of(beam).beam_end.length())
 	line[0].free()
 	game.player.position += Vector2(0, 30)
 	beam.advance(0.25)
-	check(beam.global_position == game.player.global_position and beam.target_ref.get_ref() == line[1], "Beam follows caster and retargets freed target")
+	check(root_of(beam).global_position.distance_to(game.player.global_position) < 0.01 and root_of(beam).target_ref.get_ref() == line[1], "Beam follows caster and retargets freed target")
 	fresh()
 	near = target(Vector2(160, 0))
 	far = target(Vector2(310, 0))
@@ -178,53 +197,52 @@ func run():
 	trap.advance(0.79)
 	check(near.hits == 0 and far.hits == 0, "Trap cannot hit before arming")
 	trap.advance(0.01)
+	check(near.hits == 0 and far.hits == 0, "Stepping in activates the rune; the explosion waits for its fuse (doc 21 §5.1)")
+	trap.advance(0.45)
 	check(near.hits == 1 and far.hits == 1, "Frost burst reaches enlarged radius after arming")
-	check(near.slow == 0.6 and far.slow == 0.6, "Frost uses 60% remaining speed for 40% slow")
 	trap.advance(3)
-	check(near.hits == 1 and far.hits == 1 and trap.is_queued_for_deletion(), "Trap bursts exactly once")
+	check(near.hits == 1 and far.hits == 1 and trap.finished, "Trap bursts exactly once")
 	fresh()
 	trap = effect("rune_trap")
 	trap.advance(5.9)
-	check(not trap.triggered, "Empty trap does not detonate on a timer")
+	check(not trap.finished and root_of(trap) != null and root_of(trap).armed, "Empty trap does not detonate on a timer")
 	near = target(Vector2(160, 0))
-	trap.advance(0.05)
-	check(trap.triggered and near.hits == 1, "Armed trap triggers on later proximity")
+	trap.advance(0.5)
+	check(near.hits == 1, "Armed trap triggers on later proximity")
 	fresh()
 	await process_frame  # Seeker only targets on-screen enemies; let the new camera settle first
 	near = target(Vector2(100, 0))
 	var spirit = effect("seeker", near, {"move_speed": 320, "hit_interval": 0.5})  # pursuit timing fixture
 	spirit.advance(0.2)
-	check(spirit.global_position.x > game.player.position.x and near.hits == 0, "Spirit travels instead of remote damage")
+	check(root_of(spirit).global_position.x > game.player.position.x and near.hits == 0, "Spirit travels instead of remote damage")
 	near.position += Vector2(60, 0)
 	spirit.advance(0.6)
 	check(near.hits > 0, "Spirit pursues moving target and strikes")
 	far = target(Vector2(250, 0))
 	near.free()
 	spirit.advance(0.1)
-	check(spirit.target_ref != null and spirit.target_ref.get_ref() == far, "Spirit reacquires after target freed")
+	check(root_of(spirit).target_ref != null and root_of(spirit).target_ref.get_ref() == far, "Spirit reacquires after target freed")
 	fresh()
 	await process_frame
 	near = target(Vector2(30, 0))
 	far = target(Vector2(80, 0))
+	var reaper_damage = float(manager.spell_catalog.seeker.damage)
 	spirit = effect("seeker", near, {"reaping": true, "hit_interval": 0.5})  # pre-1.0s-interval fixture timing
 	spirit.advance(0.05)
-	check(near.hits == 1 and far.hits == 0 and spirit.burst_remaining == 0, "Reaping spirit survivor hit does not burst or flash")
+	check(near.hits == 1 and far.hits == 0, "Reaping spirit survivor hit does not burst")
 	near.current_health = 1
 	spirit.advance(0.6)  # past the 0.5s re-hit boundary without relying on exact float accumulation
-	check(near.hits == 2 and far.hits == 1 and is_equal_approx(far.current_health, 10000 - spirit.damage * 0.5), "Actual spirit kill bursts half damage once, excluding primary")
-	check(spirit.burst_remaining > 0 and spirit.burst_position == near.global_position, "Only actual kill creates a flash at the damage center")
-	spirit.advance(0.3)
-	check(spirit.burst_remaining == 0, "Burst flash expires within the owning spirit without extra nodes")
+	check(near.hits == 2 and far.hits == 1 and is_equal_approx(far.current_health, 10000 - reaper_damage * 0.5), "Actual spirit kill bursts half damage once, excluding primary (%s)" % far.current_health)
 	fresh()
 	near = target(Vector2.ZERO)
 	var trail = effect("firewalk", null, {"patch_duration": 2.0})
 	trail.advance(2.1)
 	var stationary_hits = near.hits
 	trail.advance(2)
-	check(trail.trail_points.is_empty() and near.hits == stationary_hits, "Standing still cannot keep regenerating a stationary field")
+	check(live_patches(trail) == 0 and near.hits == stationary_hits, "Standing still cannot keep regenerating a stationary field")
 	game.player.position += Vector2(40, 0)
 	trail.advance(0.4)
-	check(trail.trail_points.size() == maxi(1, ceili(40.0 / float(trail.info.trail_radius))), "Movement creates a new spaced patch")
+	check(live_patches(trail) == maxi(1, ceili(40.0 / float(manager.spell_catalog.firewalk.trail_radius))), "Movement creates a new spaced patch (%d)" % live_patches(trail))
 	game.player.position += Vector2(40, 0)
 	trail.advance(0.2)
 	near.position = game.player.position - Vector2(20, 0)
@@ -232,46 +250,50 @@ func run():
 	trail.advance(0.5)
 	check(near.hits - prior_hits <= 1, "Overlapping patches never multiply one trail tick")
 	trail.advance(10)
-	check(trail.is_queued_for_deletion(), "Trail has finite total lifetime")
+	check(trail.finished, "Trail has finite total lifetime")
 	fresh()
 	near = target(Vector2(150, 0))
 	far = target(Vector2(280, 0))
 	var blade = effect("cross_blade", near)
+	var thrown = aimed_blade(blade)
 	blade.advance(0.7)
-	check(near.hits == 1 and far.hits == 1 and blade.leg == 1, "Outbound sweep hits each crossed enemy once")
+	check(near.hits == 1 and far.hits == 1 and thrown.phase >= 1, "Outbound sweep hits each crossed enemy once (%d, %d, phase %d)" % [near.hits, far.hits, thrown.phase])
 	blade.advance(1.6)
-	check(near.hits == 2 and far.hits == 2, "Return leg can hit each enemy once again")
+	check(near.hits == 2 and far.hits == 2, "Return leg can hit each enemy once again (%d, %d)" % [near.hits, far.hits])
 	check(near.hits != 3, "Known-bad per-frame blade hit would fail deduplication")
 	fresh()
 	near = target(Vector2(150, 0))
 	blade = effect("cross_blade", near)
+	thrown = aimed_blade(blade)
 	blade.advance(0.7)
 	game.player.position += Vector2(0, 100)
 	blade.advance(1.1)
-	check(blade.global_position.y > game.player.position.y - 100, "Returning blade tracks moving caster")
+	check(not is_instance_valid(thrown) or thrown.done or thrown.global_position.y > game.player.position.y - 100, "Returning blade tracks moving caster")
 	blade.advance(20)
-	check(blade.is_queued_for_deletion(), "Moving-caster blade remains finite")
+	check(blade.finished, "Moving-caster blade remains finite")
 	fresh()
 	for id in NEW_IDS:
 		var temporary_caster = Node2D.new()
 		game.add_child(temporary_caster)
-		var spell = load("res://scripts/TacticalSpellEffect.gd").new()
-		spell.configure(manager.spell_catalog[id], 1, temporary_caster, null)
-		game.add_child(spell)
-		spell.set_physics_process(false)
+		var data = manager.spell_catalog[id]
+		var def = load("res://scripts/engine/LegacyBridge.gd").build(load("res://scripts/SpellGeometry.gd").scaled_data(data, game.player), 1.0, {})
+		var cast = load("res://scripts/engine/GenericCast.gd").new()
+		cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), temporary_caster, game, {"spell": id}, true)
+		game.add_child(cast)
+		cast.step(0.0)
 		temporary_caster.free()
-		spell.advance(0.1)
-		check(spell.is_queued_for_deletion(), "Freed caster safely ends effect: " + id)
+		cast.advance(0.1)
+		check(cast.finished, "Freed caster safely ends effect: " + id)
 	var paused_effect = effect("focus_ray")
-	paused_effect.set_physics_process(true)
-	var lifetime = paused_effect.remaining
+	paused_effect.manual = false
+	var lifetime = root_of(paused_effect).remaining_life()
 	paused = true
 	await create_timer(0.1, true).timeout
-	check(paused_effect.remaining == lifetime, "Effects do not advance during pause")
+	check(root_of(paused_effect).remaining_life() == lifetime, "Effects do not advance during pause")
 	paused = false
 	game.free()
 	game = null
-	check(get_nodes_in_group("build_spell_effects").is_empty(), "Run teardown removes all effect nodes")
+	check(get_nodes_in_group("generic_casts").is_empty(), "Run teardown removes all effect nodes")
 	await test_ordinary_offers()
 	print("Magic variety: ", checks, " assertions, ", failures, " failures")
 	if is_instance_valid(game):

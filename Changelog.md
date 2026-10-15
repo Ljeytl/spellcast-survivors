@@ -1,3 +1,166 @@
+# Documentation consolidation — 14 October 2026
+
+- Record approval of the release table: 0.3.0 foundations, 0.3.1 combat feel, 0.4.x full catalog, 0.5.0 enemies/tutorial, 0.6.0 first expedition, 0.7.0 onward expansion, and 1.0.0 launch. Keep completion evidence beside each goal.
+
+- Consolidate the complete expedition spell catalog into doc 3, including later designs, paused spears, historical/reserved ideas and rejected examples. Apply the latest circular Flame Wall, rank-added Arcane Slash, enemy-aimed Scorching Ray and unified Shillelagh decisions directly to their entries.
+- Put release planning and expedition sequencing in doc 15; release goals and version assignments are now agreed with Aditya. Preserve the full catalog rather than selecting a smaller pack. Leave new combination recipes for a later discussion.
+- Replace duplicate active catalogs and outdated roadmaps with owner links; retain the prior package as dated history. Keep architecture and current damage/effect rules in docs 19–21, and presentation/dependency review in doc 18.
+- Update documentation validation to check the current roster and preserved catalog instead of enforcing the obsolete 36-row campaign and 14-keyword proposal. No gameplay/version change in this documentation merge.
+
+# 0.3.0 — The spell engine, chunky-magic VFX, pick and prepare, elements and statuses (14 October 2026)
+
+The biggest release so far. Every spell now runs on one data-driven engine and is drawn by a new VFX layer; you prepare your spells before a run; elements, resistances and statuses make damage types matter; and the foundations for the next milestones (data validation, stats with modifiers, event bus, seeded randomness, co-op-ready rules) are in. Architecture: `docs/expedition-design/19-engine-architecture.md` and `20-game-systems-architecture.md` (signed off).
+
+**Highlights**
+- **One spell engine for everything.** All 16 base spells, the 7 combinations, Magic Missile and Regeneration run on the generic engine (parts × deliveries × motions), with the same numbers, targeting and recast rules as before. Keywords work on every spell. The old per-spell effect nodes are gone (`legacy-spells-before-port` tag keeps them).
+- **Chunky-magic VFX.** Fire, ice, water, lightning, life, plague, earth and arcane looks for every shape; projectiles made of their element, true-radius fields and rings, status visuals. Test arena and in-game showcase (`tools/vfx-showcase`).
+- **Pick and prepare.** A preparation screen before the run: six ordered slots that open as you level; level-ups no longer offer base spells; your kit is saved.
+- **Elements, resistances, statuses.** Hits split into raw and elemental damage against an element chart and per-type resistances. Burn, bleed, poison, chill/freeze and shock as a mark with chain / conduct / grounded reactions; Overload and Toxic Flare.
+- **End-screen damage chart** per spell and per damage-over-time or reaction.
+- **Fix: poison no longer compounds without limit.**
+- **Foundations:** every data file validated against a schema; combinations and Atomic are data; stats with modifiers; event bus; seeded randomness; co-op-ready rule checks. No gameplay change from these.
+
+**Known:** elites still never spawn (their resistances and elements have no effect in play until the enemy rework); the camera is about 8% closer than 0.2.8 and spawn distances were not retuned; HUNTING and SCATTERED barely show against a horde of identical enemies; effects layer on top of each other untidily (an effect-layering pass is planned for 0.3.1).
+
+## Playtest fixes (14 October)
+
+- **Landings with weight.** Meteor Shower, Lightning, Rune Trap's blast, Meteor Spear's meteors and Lightning Bolt's strike land with a white flash, shockwave rings, rocks thrown up, a scorch, a hit-pause, camera shake and an impact sound. Meteor Shower's crater is cracked rubble with rocks popping up. Stunned enemies show circling stars.
+- **Statuses read on the enemy, quietly.** Status marks sit on the body (they floated up to 70 px above it), are smaller and see-through: burn is a few embers (no flames), poison small bubbles, bleed red drops (it was earth dust), infection bubbles on the host. Enemies flash red on hits for 0.14 s, not on damage-over-time ticks.
+- **Spell looks.** Magic Missile is a thin force dart, Ice Blast throws long ice shards, Earth Shield's charges are small pebbles orbiting you, Regeneration has no ring, Life centres on the wizard and Life Bolt uses the life look. The old bolt-sprite cast bursts no longer draw over the new VFX.
+- **Keywords.** QUICK works on every spell (initials, or word starts when two spells share them: QUICK EM S, QUICK LIG). Common misspellings are accepted (ICEY, FIREY…) and unknown words suggest one ("fire — try FIERY"). Size words ramp per letter: BIG +21%, LARGE +42%, MASSIVE +67%, GIGANTIC +81%. REPULSING shoves about five times as far, PULLING about three. ORBITING circles you at least once before it flies.
+- **Casting circle.** Every keyword and QUICK builds its own rune circle (only MEGA did); combinations and learned spells build runes too.
+- **Clearer progress.** A new spell or rank shows a big banner, a chime and the slot flashing gold.
+- **Necronomicon pages:** spells, shape words, flight & hit words, element words, special words, element chart (left / right to flip).
+- **The tower** remembers which doorway faced north.
+- **Second pass:** landings telegraph — a blue ring over the true area, an inner ring closing on it, then the blast (Lightning, Lightning Bolt's strike, Rune Trap and Frost Sigil's fuse; Meteor Spear's meteor follows each pierced enemy a beat later). Every projectile hit punches (star, hit-pause, shake for heavy bodies). Lightning is one bolt; Lightning Bolt travels slower. Prism Ray refracts into six thick, slowly swaying lasers, each with its own element look. Arcane Orbit is a glowing sphere; Steam Field billows steam. Quieter Ice Blast, Cross Blade and poison; snowflakes for chill. Damage-over-time ticks flash red. QUICK + slot number ("quick 3"). Keycaps light every keyword gold and rejected words red; accepted and cracked words float over the wizard. FREEZING is a new water word (damage + chill).
+- **Last pass:** area circles take the spell's element colours (halves for two-element spells; red stays for fire and enemies); Lightning sounds once, on the strike; Steam Field stands on a wet floor; Seeker's ghost is bigger and its strike reads; Lightning Bolt's bounces travel slowly after a fast first bolt.
+
+## Damage, effects and keywords (doc 21)
+
+- **Element words now sit on a spectrum: damage, both, or effect.** A word that names what the spell is made of adds that element's damage (FIERY, ICY, IRON: no status); a word that names what it does adds the effect (BURNING, CHILLING, SERRATED, VENOMOUS, RUNIC); some do both at half strength (FLAMING, FROSTY, TOXIC, MYSTIC, ELDRITCH). New words: BURNING, CHILLING. Each word's Necronomicon line says which. An effect from a word is the same effect the spell would apply, at full strength; word length scales only its added damage.
+- **Overload is a keyword, not arcane.** Arcane damage no longer pops damage over time. New Payoff words RUPTURING (×2), DETONATING (×2.5) and OVERLOADING (×3) land all the bleed, poison and burn already on the enemy at once, multiplied, before the hit adds its own.
+- **Vulnerable stacks:** +5% damage taken per stack, up to five (+25%; was a flat +15%).
+- **Stronger control:** chill slows 20% per stack (80% at four, the fifth freezes; chill may pass the 70% slow cap), weakened enemies deal 50% less damage (was 20%), entangle slows 50% (was 25%).
+- **Healing in the shape of the hit:** HEALING and BLOOMING (life) give each cast a healing budget. Projectiles plant seeds where they hit, an area impact leaves a healing circle its size, and fields and trails heal you while you stand in them.
+- **WARDING is built:** a 30-point ward for 6 s that refreshes rather than stacks. **LEECHING** (new): heals 15% of the damage dealt, at most 8% of your max health per cast, so SANGUINE always costs something.
+
+## The spell pass (doc 21 §5)
+
+Every spell and combination now has its damage and effects set part by part, as a share of its base hit; a spell's parts can add up past 100%. Each effect is sized from the hit that applied it.
+
+- **Magic Missile** is all physical (armour resists the auto-attack). **Bolt** and **Arcane Orbit** are plain arcane damage.
+- **Focus Ray** adds half a vulnerable stack per tick. **Rune Trap** has three stages: it arms, an enemy steps in and it *activates* (everyone inside rooted for 0.4 s and marked vulnerable: 0 stacks at rank 1 up to 5 at rank 6+), then it explodes 0.4 s later.
+- **Ember Spear**'s trail ticks 20% fire and burns. **Meteor Shower**: 60 / 40 fire impact with a 0.2 s stun, then a short crater of hot rubble (25% a tick, no burn; Duration extends it).
+- **Ice Blast**: one chill stack per shard, no separate slow. **Lightning**'s shock is a 3 s mark plus a 0.2 s stun (the stagger is gone).
+- **Cross Blade**: out 100% (75 / 25 earth), holding 100% per pulse (50 / 50; Duration holds longer, no afterimage), back 200% (75 / 125) with a double bleed. **Earth Shield**'s eruption is 40 / 60 earth.
+- **Seeker** poisons and weakens. **Infestation**'s ticks are credited as infection.
+- **Combinations:** Lightning Bolt hits 75 arcane + 75 storm per bounce and strikes once (150% storm) where the chain ends. Life Bolt's seed heals 15% of the hit's damage. Meteor Spear drops a small meteor (55%, stuns) on every enemy it pierces. Steam Field: 60 fire + 60 water, burn and chill. Frost Sigil: Rune Trap's stages plus chill; explodes for 100 arcane + 50 water and two chill stacks. **Prism Ray** tracks like Focus Ray at 60% and refracts at its target into six 15% lasers, one per element, each applying its effect. **Soul Bloom**: every infected death releases a ghost that heals you if you are hurt, otherwise hunts an enemy for the same amount (at most three).
+
+## Balance: bot comparison against 0.2.8
+
+- **Fix: Magic Missile and Lightning Bolt lost about 15–20% damage against moving enemies.** The port steered homing projectiles by a fixed turn rate; 0.2.8 blended toward the target. Restored the blend (`"lerp"` motion); a controlled bot test now matches 0.2.8 within noise.
+- **Fix: Fire Walk stopped laying patches after about six minutes.** Recasts extend one cast, and that cast ran out of its 400-spawn budget. Each recast now adds a fresh budget (`tests/long_recast_regression.gd`).
+
+## Repository cleanup
+
+- README rewritten for 0.3 (how to play with Space/number casting, keywords, preparation; builds; data, tests, architecture).
+- Old executables in the repository root (`SpellCast Survivors.exe/.dmg/.wasm/.pck/...`) removed from git; prototype notes and unused root files moved to `docs/archive/root/`. Workshop exports archived in `docs/archive/workshop-exports/`. Old stashes kept as `archive/stash-*` branches.
+
+## Keywords: all of them, documented and tested
+
+- **Every built keyword is in the Necronomicon**, generated from `data/keywords.json` (`scripts/KeywordCatalog.gd`): one card per kind of word (tier, power, size, count, twin cast, motion, duration, timing, on hit, force, target, effect on you, arrangement, sacrifice, wild) and one per element, each word with its numbers ("TRIPLE: 3 copies, 45% each", "SCORCHING: +45% Fire damage, burns"). 69 words; categories carry their name and promise in data, so new words appear on their own.
+- **Keyword contract test** (`tests/keyword_contract_regression.gd`): every keyword on every shipping spell and enabled combination, cast through the real typed path, either changes the cast or is rejected with a reason (the rune cracks). 1,500 pairs, no word silently does nothing, none fails to cast. `tests/keyword_vfx_regression.gd` casts one word per kind on every spell and checks the VFX layer draws every part.
+- **Fix: Regeneration ignored SUPER, OMEGA, POWERFUL, POTENT and MIGHTY** ("nothing to strengthen") because its healing is a flowing rate, not a heal payload. Power words now strengthen it like MEGA does.
+- **SANGUINE is worth its price:** still costs 10% of max health, now ×2.5 power (was ×1.6, the same as MIGHTY for free) and adds 50% of the hit as bleed damage plus bleeding. Words can add a damage type in data (`"adds"` in `data/keywords.json`).
+- **WARDING is marked planned** (`"planned": true`): it was rejected by every spell ("not built yet"). It still cracks if typed and stays out of the Necronomicon until it is built.
+- Showcase: `&words=fiery+double` casts every spell with those keywords (`tools/vfx-showcase`). Tests may raise their time limit with `## timeout: <s>` (run_tests.sh).
+
+## Release tooling and last fixes
+
+- **Fix: every non-accent nova drew lightning arcs.** The lightning nova sat in the `else` of the accent check, so a plain fire, ice or arcane nova also crackled. Only a lightning-native nova draws arcs now.
+- **`tools/test/run_tests.sh`**: runs the whole headless suite 4 at a time (resumable) and fails only on failures not listed in `tools/test/baseline.txt`, which records the known headless failures of this release. It takes `GODOT=/path/to/godot`. Builds stay on `tools/export_web.py` (web/itch) and `tools/export_playtest.py` (Windows, macOS).
+- `scripts/vfx/looks/VfxLook.gd`: base class for one element's look, not used yet; the presentation split (doc 19 step 6) moves each look into its own module on it.
+
+## Engine foundations, step 1 (docs 19 and 20)
+
+- **Every data file is validated** against a schema in `data/schemas/` (`scripts/core/DataValidator.gd`). Unknown keys, wrong types, missing fields, out-of-range values and references to ids that do not exist (spells, statuses, elements, damage types, keywords, keyword categories, enemy variants, resistance profiles) are reported with file and path, e.g. `spells.json $.spells.bolt.damgae: unknown key`. Debug builds report problems at load; `tests/data_validation_regression.gd` fails on them. New schemas are drafted with `tools/data-schemas/draft_schema.py` and annotated by hand.
+- **`data/damage_types.json`**: damage types, elements, aliases and the element cycle defined once. `TypeChart.gd` still holds its own copy; a test keeps the two identical until it reads the file (doc 20 G2).
+- **Found by the validator, not changed yet:** the Necromancer, Time Mage and Summoner characters start with spells that do not exist (`shadow_bolt`, `drain_life`, `temporal_strike`, `summon_imp`, `spirit_guardian`); left for the character rework (doc 20 G6).
+- **Combinations and Atomic are data.** The seven combination recipes (plus disabled Reaping Spirit) moved from `SynergyCatalog.gd` to `data/recipes.json`; Atomic's timings, boss damage share and charge rules (combo per charge, max charges, style rank) moved from `AtomicBlast.gd` and `StyleScore.gd` to `data/abilities.json`. Same values. `scripts/core/GameData.gd` reads and caches data files.
+- **Fix: poison could grow without limit.** Every application added to one shared pool, refreshed the 10 s timer and kept the old ramp, so refreshing poison (any poison keyword on a fast spell, a long boss fight) multiplied each tick by 1.15 again forever, about ×4000 after a minute. Each application is now its own stack with its own 10 s clock and ramp, like bleed, and a stack's tick never exceeds `ramp_max` × its start (`data/statuses.json`, 4.0). A single application deals exactly what it did before (≈40.6 per 100 over 10 s). End-screen credit for poison is split by what each spell's live stacks deal.
+- **Stats with modifiers** (`scripts/engine/stats/StatBlock.gd`, doc 19 §5.3): the wizard's stats are base values plus modifiers with sources. Level-up passives are `passive:<type>` modifiers; the ley-line attunement bonus is a `ley:attuned` ×1.2 Spell Power modifier while you stand in an attuned circle (applied each tick, so a MEGA snapshot taken inside the circle keeps it). `player.spell_damage_multiplier` and the other fields still read and write as before. Elite multipliers move with the elite rework (doc 20 G3).
+- **Event bus** (`scripts/core/EventBus.gd`): declared gameplay events with required fields, synchronous delivery in subscription order. No system is moved onto it yet.
+- **Seeded randomness** (`scripts/core/Rng.gd`): a run seed, named streams per system and a generator per cast, stable across platforms. No system is moved onto it yet.
+- **Co-op-ready rules as a ratchet** (`tests/coop_rules_regression.gd`, `tests/coop_rules_allowlist.json`): global player/game lookups (19 files today) and unseeded gameplay randomness (14 files) may not grow; each fix must lower the recorded count.
+- No gameplay change.
+
+## Shipping spells move to the spell engine (doc 18 phase 2)
+
+- **Every shipping spell now uses the new spell effects in the game.** Magic Missile and Regeneration moved onto the spell engine (same damage, count by level, homing and overkill-aware targets for the missiles; same healing per second, duration and recast-extend for Regeneration, now a life aura around the wizard). Healing seeds (Life Bolt, Soul Bloom), Earth Shield's stored charges (stones orbiting the wizard), heals and shield blocks are drawn by the VFX layer too. Fire Walk burns as low ground fire and never throws flames over the wizard. Homing shots whose target dies retarget to the nearest enemy still worth hitting, as before.
+- **Old spell code removed.** `BuildSpellEffect`, `TacticalSpellEffect`, `CrossBladeVolley`, `IceBlast`, `LightningArea` and `EarthShieldEruption` are gone, with SpellManager's dead helpers (`cast_build_spell`, `chain_lightning`, the old meteor strike/warning and AoE explosion). Tests that drove the old nodes now drive the generic casts (`SpellManager.spawn_ported(info, damage, bundle, target)`).
+- **Port fixes found while moving the tests:** Lightning, meteor impacts, Lightning Bolt splashes and Rune Trap bursts stay live for their old 0.2–0.25 s (× Duration) and still catch enemies that walk in, each once. Fire Walk ticks the whole trail on one clock again, so an enemy crossing patches is hit every half second (it was closer to once a second). Focus Ray stops at the front of the enemy's body, not its centre. A Fire Walk MEGA recast's patches keep the MEGA numbers. A recast's numbers take over after the tick that lands on the boundary. A cast whose caster is freed ends. Reaping Spirit (combination, still disabled) keeps its kill burst.
+- **Earth Shield runs on the generic engine.** Charges, blocking and release timing are unchanged; the released eruption is an expanding cone that knocks enemies back, drawn as crystals and dust along its front. Every shipping spell except Regeneration now runs on the generic engine.
+- **Infestation and Soul Bloom run on the generic engine** (`scripts/engine/Infection.gd`): same rules (a spore flies to the nearest visible host, hosts tick and pass the plague on once while alive and once on death, unclaimed spores rest on the ground and wait; Soul Bloom's dead hosts drop healing blooms); casting with no visible host still fails with "No target in range". New look: goo spores in flight, resting goo pockets, bubbles over infected hosts.
+- **Cross Blade runs on the generic engine**: the ring (one blade aimed at the target, X at four) flies out, lingers pulsing for half damage, then flies home hitting everything again at double damage; three volleys at most. New look: spinning steel four-armed blades on the true radius.
+- **Seeker and Fire Walk run on the generic engine.** Seeker hunts the nearest on-screen enemy no other spirit holds, returns to you when none is left and only strikes on screen; it now looks like the sandbox spirit (pale ghost trailing dark mist). Fire Walk lays overlapping burning patches along your path while it lasts (an enemy burns once per tick however many patches it stands in); recasts extend the laying, a recast after it ends starts a new trail without bridging the gap.
+- **Lightning Bolt, Life Bolt, Focus Ray and Prism Ray run on the generic engine.** Lightning Bolt homes, bounces to the next enemy (never the same twice) and splashes at every hit; Life Bolt spreads over on-screen enemies and plants a healing seed on a damaging hit; Focus Ray tracks with its turn speed, keeps its lane and avoids enemies another beam is on, and holds the style meter while channelling; Prism Ray is fixed, wide and pierces. New beam look from the sandbox (white core in arcane blue with an orb where it stops; rainbow bands for Prism). Arena page **Shipping2**.
+- **Meteor Shower runs on the generic engine**: same weighted aim over the horde, every mark shows at once and each meteor lands one interval after the last. New look: the warning ring sits on the true radius and brightens as the rock falls from the sky in flames and smoke, then the fire impact.
+- **Cinder Field, Steam Field and Arcane Orbit run on the generic engine** with their old recast rules: Arcane Orbit extends (a recast adds its duration and its numbers take over when the current cast runs out), Cinder Field stacks to three and at the cap extends the field on the horde or moves the emptiest one to it. The spell timer chips read ported casts.
+- **Bolt, Ice Blast, Life, Lightning, Rune Trap and Frost Sigil also run on the generic engine** (same numbers and targeting: Bolt still aims each shot at the enemy worth hitting when it leaves, Ice Blast shards stack damage but push and slow once per enemy, Lightning casts nothing when there is no group to strike, Rune Trap waits until triggered). Their old dispatch branches are gone; `IceBlast.gd`, `LightningArea.gd` and the old trap code stay only for their unit tests until those move over.
+- **Ember Spear and Meteor Spear run on the generic engine** (`scripts/engine/LegacyBridge.gd`). Same numbers, targeting and hitboxes as before (rank, combination scaling, passives and MEGA still resolve in SpellManager); the old dispatch branch, BuildSpellEffect's spear code and `EmberTrail.gd` are gone.
+- **Keywords work on ported spells**: `double ember spear`, `fiery homing ember spear`, `icy ember spear`. A word that changes nothing cracks and the cast goes on, as on generic spells.
+- They get the new VFX: magma spear, the burning trail as a smouldering line on its true hitbox, meteor blasts. Arena page **Shipping** shows the ported spells with game numbers.
+- Engine: swept projectile hits (fast projectiles cannot skip enemies), per-part `geometry.pad`, projectile `trail` (a line field that grows behind it), per-target field ticks (`timing.per_target`), `limits.cap` (oldest goes out first), typed damage mixes (`mix`) from `data/spell_damage.json`.
+- Perf: VFX draw on a 60 Hz fixed step on ones, grid hysteresis, faster element drawing (heavy arena scene 24.5 -> 5.4 ms per step).
+
+## Pick and prepare, elements and resistances, statuses, end-screen damage chart
+
+- **Pick and prepare:** walking into the Woodland doorway opens a preparation screen: six ordered slots, slot 1 must attack (Bolt by default). Slots 2–6 open at levels 2/4/7/11/16 instead of a power-up; empty slots give a power-up. Level-up no longer offers base spells (combinations still are). The kit is saved between runs. The bottom casting strip lists prepared spells still to come, dimmed, as "Lv 4 lightning".
+- **Elements and resistances (doc 18 §5.5, §6.1, §6.5):** every spell hit is split into raw and elemental shares (`data/spell_damage.json`) and resolved against the element chart and per-type resistances. No separate armour: raw is a damage type. Armoured elite profile in `data/resistances.json` (30% everything, 15% arcane). Atomic is pure damage. Neutral Woodland enemies take exactly the same damage as before.
+- **Statuses (doc 18 §6.1b):** Burn (Ember Spear trail, Cinder Field, Firewalk, Steam Field); Bleed (Cross Blade, Earth Shield), each application its own 4 s timer so bleed scales with hit rate, not fight length; Chill, 5 stacks freeze (Ice Blast, Frost Sigil); Shock is a 3 s mark: Lightning chains it, Water/Ice conducts it, Earth grounds it, the applying cast never sets it off. Overload and Toxic Flare credit the spell whose damage over time they consumed.
+- **UI:** element and damage mix on preparation cards and in the Necronomicon, plus an Elements chart section. End screen: damage bar chart per spell and per DoT/reaction with arrow-key or hover details (casts, per cast, kills, DoT parts); shared bleed/poison pools split credit by contribution.
+- Status moments are announced to the VFX layer (`docs/VFX_EVENTS.md`): applied, reaction, expired.
+
+## VFX: every element, every shape, test arena
+
+- **Test arena** (`tools/vfx-arena/VfxArena.tscn`, web build via the arena export): the sandbox layout with the real spell engine. Tab cycles element pages (Arcane, Fire, Ice, Water, Plague, Earth, Lightning, Life), 1-9 picks a spell, B grass/dark floor, S slow-mo, P placeholder art, T ones/twos, R reset. `compare.html` runs ones and twos side by side with shared keys.
+- **Effects run on ones by default** (picked in the side-by-side); twos stays available. The sandbox's effects ran at 2x on 120 Hz displays, so effect motion runs at 2x here (gameplay untouched).
+- **Fire:** projectiles are made of flames (no drawn body); the fireball is bigger with a magma core; flame wall as a line field on its true hitbox; fire nova.
+- **Ice:** shatter with shards on z-physics, pixel snowflakes (3 sizes, spinning), crystal field, snow-wave nova, chilled status.
+- **Lightning:** sandbox pixel-staircase arcs with a calm cadence (a few at a time), strike telegraph that lands with the real strike, sky strike with spidering scorch, quiet range ring for Lightning Rod.
+- **Water:** goo technique (water in the air and on the ground), splash crowns, ripples, puddles, pool, Tsunami wall.
+- **Life:** leaves, grass and flowers growing, vines, Regrowth bloom at the caster, entangled vine wrap.
+- **Plague / Earth:** outlined goo and popping bubbles, stain; boulders, rubble, stone spikes, cracks.
+- **Arcane and shapes:** bare nova, field, orbit, rune trap, slash smear; keyword accents layer the accent element over the arcane look (fiery nova, icy field, shocking slash).
+- **Keywords and combos** (`docs/VFX_KEYWORDS.md`): element keywords add their particles to the spell's own look (fiery tsunami: a boiling wall with a burning crest); reactions for fire + water/ice (steam), fire + earth (magma cracks), fire + life (burning leaves), lightning + water, earth + ice, plague + life. Delayed/charged casts gather at the staff, sanguine spills blood, blinking leaves a poof and a streak, pulling/repulsing show rings and streaks, strong casts hit harder on screen. Rejected keywords show nothing.
+- Every engine element now has a look; only unknown elements keep the placeholder art. Water resolves to Ice when the spell applies chilled/frozen.
+- Perf (headless arm VM, arena): all-elements stress 8.6 ms draw; pool and plague goo and the Tsunami wall run in the shaders.
+
+## VFX meets the spell engine
+
+- New event contract (`docs/VFX_EVENTS.md`): the generic spell engine announces cast, part spawned, hit and finished; the VFX layer decides the look from the cast plan. VFX only read gameplay; a test casts the same spells with VFX on and off and requires identical damage.
+- Native element owns the body, keyword element owns the accent: `fiery spear` is an arcane spear with an orange edge, a flame trail, fire bursts on every pierce, and burning enemies.
+- Fire looks on generic spells: projectile bodies (bolt / spear / ball) with flame trails, impact recipe sized to the real radius (designed star, flash, flame bloom, ring that breaks into segments, big-and-small debris, smoke, scorch, VFX-only hit-stop, shake on big hits), fire fields with floor and rim at the real radius that erode when they end, cast flash at the staff, flames on burning enemies.
+- Shapes and elements without a look yet keep the placeholder art. Legacy spells get VFX when they move to the generic engine.
+- Console: `vfx cast <text>` (cast any incantation with keywords), `vfx learn <id>` (data-only generic spells such as fireball), `vfx present off|on`.
+
+## Chunky-magic VFX, finer grid + full Cinder Field reference
+
+- VFX pixels are now 2x2 art px (6 screen px at 1080p, a 320x180 grid), down from 4x4. At 12 px the port looked cruder than the sandbox did in its page.
+- The VFX sim now runs in sandbox units, so sandbox numbers port verbatim; shapes keep sandbox proportions and only the pixels get finer.
+- The test flame is now the real sandbox Cinder Field: banded floor and bright rim at the true radius (`shaders/vfx_ground.gdshader`, noise identical to the sandbox) plus warm floor light on the grass.
+- Effects animate on twos (30 Hz steps) by default; `vfx twos off` to compare. Smoke is plum instead of gray; the heat halo is a warm tint instead of the dark-brown that read as dirt on grass.
+- Web (Chromium, M-series Mac): 12 fields / 955 flames cost 1.5 ms per frame on twos.
+
+## Chunky-magic VFX, Milestone 0 (grid and layers)
+
+- **Camera is about 8% closer** (zoom 1.3875 → 1.5, about 14% less visible area). The wizard and world now scale by exactly 3 screen px per art px, so pixels are even. Side effect on pacing: enemies enter from the edge of the visible area, so they now spawn about 50 world px closer, and on-screen-only targeting sees a slightly smaller area. Not retuned; flagged for review.
+- New `Vfx` autoload (`scripts/vfx/Vfx.gd`): the chunky-magic layer from `docs/VFX_PORT_BRIEF.md`. One VFX cell = 8 world px = 4×4 art px (12×12 screen px at 1080p). Two world-locked layers: ground (under actors) and air (over actors, under UI). The grid sizes itself from the visible area, so non-16:9 windows work.
+- Emissive fire heat field ported from the sandbox (`shaders/vfx_heat.gdshader`), plus embers, smoke and scorch decals (`shaders/vfx_decal.gdshader`). VFX hit-stop freezes only the VFX simulation, never game time. Flame budget 1000 (400 with reduced effects).
+- Console: `vfx flame` (test flame beside the wizard), `vfx stress <n>`, `vfx bench [frames]`, `vfx stats`, `vfx clear`. Not wired to any spell yet; no spell looks change.
+- Web build (Compatibility, M-series Mac, Chromium): 1 test field 0.6 ms; 30 overlapping fields at the old 1500 cap 6.1 ms. Late-game horde (minute 14) 11.2 ms/frame without VFX, 18.7 ms with 1500 flames, so the cap is now 1000.
+- Tests: `vfx_layer_regression` (grid scale, layer order, world lock at fractional camera offsets, grid covers the view, VFX-only hit-stop). Zoom checks updated in `visual_proportions_regression`, `readability_scale_regression` and the workshop healing test.
+
 # 0.2.8 — Integrate the spell-system foundation
 
 - Integrate the spell-system specification and phase-one engine: shared typed effects, statuses, reactions, keyword planning, generic spell parts, and Spear save-ID migration.

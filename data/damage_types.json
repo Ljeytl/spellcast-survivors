@@ -1,0 +1,27 @@
+{
+  "_doc": "Damage types, elements and the element cycle (doc 18 §5.5, §6). One definition for the whole game (doc 20 §2). TypeChart.gd mirrors this file until it reads it directly (doc 20 G2); tests/data_validation_regression.gd keeps them in agreement.",
+  "damage_types": {
+    "raw": {"name": "Raw"},
+    "arcane": {"name": "Arcane"},
+    "fire": {"name": "Fire"},
+    "water": {"name": "Water/Ice"},
+    "storm": {"name": "Storm"},
+    "earth": {"name": "Earth/Steel"},
+    "plague": {"name": "Plague/Death"},
+    "life": {"name": "Life"},
+    "bleed": {"name": "Bleed"},
+    "pure": {"name": "Pure", "ignores_resistance": true}
+  },
+  "elements": {
+    "arcane": {"name": "Arcane", "damage_type": "arcane", "color": "b58cff"},
+    "fire": {"name": "Fire", "damage_type": "fire", "color": "ff9a5a"},
+    "water": {"name": "Water/Ice", "damage_type": "water", "color": "8ce6ee"},
+    "storm": {"name": "Storm", "damage_type": "storm", "color": "f4ed96"},
+    "earth": {"name": "Earth/Steel", "damage_type": "earth", "color": "d8b979"},
+    "plague": {"name": "Plague/Death", "damage_type": "plague", "color": "a8c46a"},
+    "life": {"name": "Life", "damage_type": "life", "color": "91de83"}
+  },
+  "element_aliases": {"ice": "water", "steel": "earth", "spirit": "plague", "death": "plague", "holy": "life", "lightning": "storm"},
+  "type_cycle": ["storm", "water", "fire", "plague", "life", "earth"],
+  "type_chart": {"strong": 1.25, "same": 0.75}
+}

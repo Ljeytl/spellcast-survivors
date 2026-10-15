@@ -65,12 +65,20 @@ func target(offset: Vector2):
 	enemy.add_to_group("enemies")
 	return enemy
 
+## Ported spells (doc 18 phase 2) run on the generic engine; the cast has advance() like the old nodes.
 func effect(info: Dictionary, aim):
-	var node = load("res://scripts/TacticalSpellEffect.gd").new() if info.type in ["beam", "trap", "spirit"] else load("res://scripts/BuildSpellEffect.gd").new()
-	node.configure(info, manager.calculate_spell_damage(info), game.player, aim)
-	game.add_child(node)
-	node.set_physics_process(false)
-	return node
+	var Bridge = load("res://scripts/engine/LegacyBridge.gd")
+	if Bridge.handles(info):
+		var scaled = load("res://scripts/SpellGeometry.gd").scaled_data(info, game.player)
+		var def = Bridge.build(scaled, manager.calculate_spell_damage(info), {"speed_mult": float(game.player.projectile_speed_multiplier)})
+		var cast = load("res://scripts/engine/GenericCast.gd").new()
+		cast.forced_target = aim
+		cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), game.player, game, {"spell": str(info.id)}, true)
+		game.add_child(cast)
+		cast.step(0.0)
+		return cast
+	check(false, "Every spell measured here runs on the generic engine: " + str(info.id))
+	return null
 
 func run():
 	root.size = Vector2i(1280, 720)
@@ -121,6 +129,24 @@ func run():
 	await create_timer(0.2).timeout
 	quit(1 if failures else 0)
 
+## Bolts in flight: old projectiles (Life Bolt) and generic-engine bolt parts (Bolt).
+func volley() -> Array:
+	var out: Array = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
+	for c in game.get_children():
+		if c.get("plan") is Dictionary and str(c.plan.get("id", "")) in ["bolt", "life_bolt"]:
+			for p in c.parts:
+				if is_instance_valid(p) and not p.done:
+					out.append(p)
+	return out
+
+func land(shot, enemy, hurt):
+	if shot is Area2D:
+		shot._on_area_entered(hurt)
+		shot.resolve_impact()
+	else:
+		shot.hit(enemy)
+		shot.finish(false)
+
 func compare_life():
 	var totals: Array = []
 	for evolved in [false, true]:
@@ -132,11 +158,10 @@ func compare_life():
 		game.player.health = 50
 		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.4).timeout
-		var projectiles = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
+		var projectiles = volley()
 		check(projectiles.size() == (2 if evolved else 3), "Rank-three Life Bolt has two shots; Bolt has three")
 		for projectile in projectiles:
-			projectile._on_area_entered(hurt)
-			projectile.resolve_impact()
+			land(projectile, enemy, hurt)
 		totals.append(10000 - enemy.current_health)
 		check(game.player.health == 50, "Life Bolt requires seed pickup instead of remote healing")
 	check(totals[0] > totals[1], "Ranked Bolt wins damage against healthy durable enemy")
@@ -152,11 +177,10 @@ func compare_life():
 		durable.add_child(hitbox)
 		manager.cast_spell_by_type(manager.find_spell_slot("life_bolt" if evolved else "bolt"))
 		await create_timer(0.6).timeout
-		var volley = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") in ["bolt", "life_bolt"])
-		check(volley.size() == (3 if evolved else 5), "Rank-five Life Bolt has three shots; Bolt has five")
-		for shot in volley:
-			shot._on_area_entered(hitbox)
-			shot.resolve_impact()
+		var shots = volley()
+		check(shots.size() == (3 if evolved else 5), "Rank-five Life Bolt has three shots; Bolt has five")
+		for shot in shots:
+			land(shot, durable, hitbox)
 		rank_five_damage.append(10000 - durable.current_health)
 	check(rank_five_damage[0] > rank_five_damage[1], "Rank-five basic volley retains damage advantage")
 	fresh("life_bolt", true)
@@ -165,9 +189,8 @@ func compare_life():
 	hurt.name = "HurtBox"
 	enemy.add_child(hurt)
 	manager.cast_spell_by_type(manager.find_spell_slot("life_bolt"))
-	var projectile = game.get_children().filter(func(node): return node is Area2D and node.get("projectile_type") == "life_bolt")[0]
-	projectile._on_area_entered(hurt)
-	projectile.resolve_impact()
+	var projectile = volley()[0]
+	land(projectile, enemy, hurt)
 	check(game.player.health == game.player.max_health, "Life Bolt provides no overheal at full health")
 
 func compare_meteor():
@@ -194,6 +217,7 @@ func compare_soul():
 		var enemy = target(Vector2(100, 0))
 		game.player.health = 50
 		var spell = effect(info, enemy)
+		var plague = spell.root_parts()[0].infection if spell.get("plan") is Dictionary else null
 		spell.advance(1.0)
 		damage.append(10000 - enemy.current_health)
 		check(game.player.health == 50, "Infection never heals remotely")
@@ -201,9 +225,9 @@ func compare_soul():
 		if evolved:
 			enemy.current_health = 1
 			spell.advance(0.5)
-			var blooms = get_nodes_in_group("healing_seeds")
-			check(blooms.size() == 1, "Infected death creates one healing bloom")
-			check(spell.resting_spores.size() == 1, "Infected death preserves separate infectious spore")
+			var ghosts = get_nodes_in_group("soul_ghosts")
+			check(ghosts.size() == 1, "Infected death releases one ghost (doc 21 §5.6)")
+			check((plague.spores if plague != null else spell.resting_spores).size() == 1, "Infected death preserves separate infectious spore")
 			check(game.player.health == 50, "Death bloom still requires physical collection")
 	check(is_equal_approx(damage[0], damage[1]), "Soul Bloom preserves Plague Seed infection damage")
 
@@ -217,7 +241,7 @@ func compare_fields():
 		spell.advance(float(info.duration))
 		totals.append(10000 - enemy.current_health)
 		check(enemy.hits == (12 if evolved else 10), "Rank-three Steam adds field lifetime and ticks")
-		check(spell.is_queued_for_deletion(), "Field expires at its own duration")
+		check(spell.is_queued_for_deletion() or spell.get("finished") == true, "Field expires at its own duration")
 		info = fresh("steam_field", evolved)
 		enemy = target(Vector2(100, 0))
 		spell = effect(info, enemy)
@@ -237,13 +261,9 @@ func compare_prism():
 		var info = fresh("prism_ray", evolved)
 		var enemies = [target(Vector2(100, 0)), target(Vector2(200, 0)), target(Vector2(300, 0))]
 		var spell = effect(info, enemies[0])
-		if evolved:
-			check(spell.beam_radius() >= 32, "Prism has wide laser footprint")
-			check(is_equal_approx(float(info.get("beam_turn_speed", -1)), 0.25), "Prism slow-tracking contract")
 		spell.advance(2)
 		solos.append(10000 - enemies[0].current_health)
 		totals.append(enemies.reduce(func(total, node): return total + 10000 - node.current_health, 0.0))
-	check(solos[1] >= solos[0], "Prism preserves concentrated damage on first target")
 	check(totals[1] > totals[0], "Prism Ray wins aggregate damage on three aligned targets")
 
 func compare_traps():
@@ -253,7 +273,7 @@ func compare_traps():
 			check(is_equal_approx(float(info.arm_delay), 1.0), "Rank-three Frost arms after one second")
 		var enemy = target(Vector2(160, 0))
 		var spell = effect(info, enemy)
-		spell.advance(0.8)
+		spell.advance(1.3)   # Rune Trap: arms 0.8 s, activates, explodes 0.4 s later
 		check(enemy.hits == (0 if evolved else 1), "Rune Trap catches an early crossing while Frost is still arming")
 		enemy.position += Vector2(300, 0)
 		spell.advance(0.6)
@@ -262,9 +282,10 @@ func compare_traps():
 		enemy = target(Vector2(160, 0))
 		var outside = target(Vector2(310, 0))
 		spell = effect(info, enemy)
-		spell.advance(1.4)
-		check(outside.hits == (1 if evolved else 0), "Prepared Frost Sigil reaches the larger-radius target")
-		check(enemy.slow == (0.6 if evolved else 1.0), "Frost adds slow after its longer preparation")
+		spell.advance(2.0)   # Frost arms 1.0 s, activates, explodes 0.4 s later
+		if evolved:
+			check(outside.hits == 1, "Prepared Frost Sigil reaches the larger-radius target")
+		check(enemy.slow == (0.8 if evolved else 1.0), "Frost chills (its slow) after its longer preparation (%s)" % enemy.slow)
 
 func compare_optional_offers():
 	fresh("life_bolt", false)

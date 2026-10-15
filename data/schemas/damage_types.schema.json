@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "damage_types.json",
+  "type": "object",
+  "properties": {
+    "damage_types": {
+      "type": "object", "x-registry": "damage_type",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {"name": {"type": "string"}, "ignores_resistance": {"type": "boolean"}},
+        "required": ["name"], "additionalProperties": false
+      }
+    },
+    "elements": {
+      "type": "object", "x-registry": "element",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "damage_type": {"type": "string", "x-ref": "damage_type"},
+          "color": {"type": "string"}
+        },
+        "required": ["name", "damage_type", "color"], "additionalProperties": false
+      }
+    },
+    "element_aliases": {
+      "type": "object", "x-registry": "element_alias",
+      "additionalProperties": {"type": "string", "x-ref": "element"}
+    },
+    "type_cycle": {"type": "array", "items": {"type": "string", "x-ref": "element"}, "minItems": 2},
+    "type_chart": {
+      "type": "object",
+      "properties": {"strong": {"type": "number", "minimum": 1}, "same": {"type": "number", "minimum": 0, "maximum": 1}},
+      "required": ["strong", "same"], "additionalProperties": false
+    }
+  },
+  "required": ["damage_types", "elements", "element_aliases", "type_cycle", "type_chart"],
+  "additionalProperties": false
+}

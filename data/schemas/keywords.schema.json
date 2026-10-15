@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "keywords.json",
+  "type": "object",
+  "properties": {
+    "categories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "power_per_letter": {
+            "type": "number"
+          },
+          "size_per_letter": {
+            "type": "number"
+          },
+          "size_ramp": {
+            "type": "number"
+          },
+          "ramp_after": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "charge_base": {
+            "type": "number"
+          },
+          "charge_per_letter": {
+            "type": "number"
+          },
+          "exclusive": {
+            "type": "boolean"
+          },
+          "share_per_letter": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "promise": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number",
+            "minimum": 0
+          },
+          "tiers": {
+            "type": "object",
+            "$comment": "Element words: per tier, damage share and effect strength per letter.",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "share_per_letter": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "effect_per_letter": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "share_per_letter",
+                "effect_per_letter"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "heal_per_strength": {
+            "type": "number",
+            "minimum": 0,
+            "$comment": "element words with effect healing: healing budget per cast per unit of effect strength"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "promise",
+          "order"
+        ]
+      },
+      "x-registry": "keyword_category"
+    },
+    "diminishing": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "element_status": {
+      "type": "object",
+      "properties": {
+        "arcane": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "fire": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "water": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "storm": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "earth": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "plague": {
+          "type": "string",
+          "x-ref": "status"
+        },
+        "life": {
+          "type": "string",
+          "x-ref": "status"
+        }
+      },
+      "required": [
+        "arcane",
+        "fire",
+        "water",
+        "storm",
+        "earth",
+        "plague",
+        "life"
+      ],
+      "additionalProperties": false,
+      "propertyNames": {
+        "type": "string",
+        "x-ref": "element"
+      }
+    },
+    "aliases": {
+      "type": "object",
+      "description": "Misspellings accepted silently as the real word.",
+      "additionalProperties": {"type": "string"}
+    },
+    "suggest": {
+      "type": "object",
+      "description": "Unknown word -> the keyword the error message suggests.",
+      "additionalProperties": {"type": "string"}
+    },
+    "quick": {
+      "type": "object",
+      "properties": {
+        "word": {
+          "type": "string"
+        },
+        "power": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "word",
+        "power"
+      ],
+      "additionalProperties": false
+    },
+    "words": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "x-ref": "keyword_category"
+          },
+          "copies": {
+            "type": "number"
+          },
+          "per_copy": {
+            "type": "number"
+          },
+          "delay": {
+            "type": "number"
+          },
+          "power": {
+            "type": "number"
+          },
+          "flag": {
+            "type": "string"
+          },
+          "speed": {
+            "type": "number"
+          },
+          "turn": {
+            "type": "number"
+          },
+          "range": {
+            "type": "number"
+          },
+          "hold": {
+            "type": "number"
+          },
+          "min_orbit": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "size": {
+            "type": "number"
+          },
+          "pierce": {
+            "type": "number"
+          },
+          "hops": {
+            "type": "number"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "force": {
+            "type": "number"
+          },
+          "absorb": {
+            "type": "number"
+          },
+          "distance": {
+            "type": "number"
+          },
+          "arrangement": {
+            "type": "string",
+            "enum": [
+              "line",
+              "ring"
+            ]
+          },
+          "health_cost": {
+            "type": "number"
+          },
+          "element": {
+            "type": "string",
+            "x-ref": "element"
+          },
+          "planned": {
+            "type": "boolean",
+            "$comment": "Not built yet: casting cracks the word, and the Necronomicon leaves it out."
+          },
+          "adds": {
+            "type": "object",
+            "$comment": "Extra damage this word adds to every hit, as a share of the hit, and the status it applies.",
+            "properties": {
+              "damage_type": {
+                "type": "string",
+                "x-ref": "damage_type"
+              },
+              "share": {
+                "type": "number",
+                "minimum": 0
+              },
+              "status": {
+                "type": "string",
+                "x-ref": "status"
+              }
+            },
+            "required": [
+              "damage_type",
+              "share"
+            ],
+            "additionalProperties": false
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "damage",
+              "both",
+              "effect"
+            ],
+            "$comment": "Element words: damage adds the element's damage, effect adds its status, both adds some of each."
+          },
+          "multiplier": {
+            "type": "number",
+            "minimum": 1,
+            "$comment": "payoff words: pending damage over time lands at this multiple"
+          },
+          "effect": {
+            "type": "string",
+            "enum": [
+              "healing"
+            ],
+            "$comment": "element word whose effect is healing in the shape of the hit (doc 21 \u00a74.3) instead of its element's status"
+          },
+          "share": {
+            "type": "number",
+            "minimum": 0,
+            "$comment": "leeching: share of damage dealt healed"
+          },
+          "cap": {
+            "type": "number",
+            "minimum": 0,
+            "$comment": "leeching: cap per cast, share of max health"
+          }
+        },
+        "required": [
+          "category"
+        ],
+        "additionalProperties": false
+      },
+      "x-registry": "keyword"
+    }
+  },
+  "required": [
+    "categories",
+    "diminishing",
+    "element_status",
+    "quick",
+    "words"
+  ],
+  "additionalProperties": false
+}

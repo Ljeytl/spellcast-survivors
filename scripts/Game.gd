@@ -95,6 +95,8 @@ func _ready():
 	
 	# Initialize all game systems in the correct order
 	setup_all_systems()
+	if preload("res://scripts/RunMode.gd").prepared and not preload("res://scripts/RunMode.gd").training:
+		spell_manager.begin_prepared_run(preload("res://scripts/Preparation.gd").load_slots())
 	style_session = preload("res://scripts/StyleSession.gd").new()
 	style_session.game = self
 	add_child(style_session)
@@ -214,7 +216,11 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot_container.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if is_unlocked else Control.CURSOR_ARROW
 	name_label.text = info.get("name", "Empty")
-	slot_container.visible = is_unlocked or interface_debug
+	# Preparation runs show the spells still to come, greyed, with the level that opens them.
+	var upcoming = {} if is_unlocked else upcoming_prepared_slot(index)
+	if not upcoming.is_empty():
+		name_label.text = upcoming.name
+	slot_container.visible = is_unlocked or interface_debug or not upcoming.is_empty()
 	name_label.modulate = Color.WHITE if is_unlocked else Color("a6b4c8")
 	# Set up the level label
 	var level_label = slot_container.get_node_or_null("LevelLabel")
@@ -222,6 +228,10 @@ func setup_individual_spell_slot(slot_container: Node, index: int, spell_name: S
 		update_spell_level_display(level_label, spell_name)
 		if is_unlocked:
 			update_spell_level_display(level_label, spell_name)
+		elif not upcoming.is_empty():
+			level_label.text = "Lv %d" % upcoming.level
+			level_label.visible = true
+			level_label.modulate = Color(0.75, 0.75, 0.75, 1.0)
 		else:
 			level_label.text = "Learn at level-up"
 			level_label.modulate = Color(0.6, 0.6, 0.6, 1.0)
@@ -469,6 +479,8 @@ func setup_player():
 		spell_manager.typing_started.connect(_on_typing_started) 
 		spell_manager.typing_ended.connect(_on_typing_ended)
 		spell_manager.spell_locked_error.connect(_on_spell_locked_error)
+		spell_manager.keyword_cracked.connect(func(word, reason): float_word(str(word).to_upper() + " cracked: " + str(reason), Color("ff5a4a")))
+		spell_manager.keywords_accepted.connect(func(words): float_word("  ".join(words.map(func(w): return str(w).to_upper())), Color("ffe49b")))
 		
 	# Create level up screen
 	level_up_screen = level_up_screen_scene.instantiate()
@@ -778,9 +790,43 @@ func show_damage_number(pos: Vector2, damage: float):
 func _on_player_level_up(new_level: int, _player_stats: Dictionary):
 	if current_state == GameState.GAME_OVER:
 		return
+	if open_prepared_spell(new_level):
+		return
 	pending_level_ups.append(new_level)
 	if current_state == GameState.PLAYING:
 		show_next_level_up()
+
+## The prepared spell that will fill HUD slot `index` (0-based) next, {id, name, level}, or {} when the
+## slot is already filled, the run is not a preparation run, or nothing more is coming.
+func upcoming_prepared_slot(index: int) -> Dictionary:
+	var order: Array = spell_manager.prepared_order
+	if order.is_empty():
+		return {}
+	var pending: Array = []
+	for i in range(1, order.size()):
+		var id = str(order[i])
+		if id.is_empty() or spell_manager.acquired_spells.has(id) or not spell_manager.spell_catalog.has(id):
+			continue
+		pending.append({"id": id, "name": str(spell_manager.spell_catalog[id].name), "level": preload("res://scripts/Preparation.gd").ACTIVATION_LEVELS[i]})
+	var k = index - spell_manager.spells.size()
+	return pending[k] if k >= 0 and k < pending.size() else {}
+
+## Preparation runs: a level in Preparation.ACTIVATION_LEVELS opens the next prepared spell
+## instead of a power-up choice. An empty slot falls through to a normal power-up.
+func open_prepared_spell(level: int) -> bool:
+	var order: Array = spell_manager.prepared_order
+	var index = preload("res://scripts/Preparation.gd").slot_for_level(level)
+	if index <= 0 or index >= order.size():
+		return false
+	var id = str(order[index])
+	if id.is_empty() or not spell_manager.learn_spell(id):
+		return false
+	update_spell_slot_lock_status()
+	var slot = spell_manager.find_spell_slot(id)
+	var info = spell_manager.get_spell_info(slot)
+	celebrate_spell(slot, "New spell: " + str(info.name), "Press %d, then type %s" % [slot, str(info.display_name).to_upper()])
+	show_gameplay_feedback("%s ready · Press %d, then type %s" % [info.name, slot, info.display_name])
+	return true
 
 func queue_boss_reward() -> bool:
 	if current_state == GameState.GAME_OVER:
@@ -847,10 +893,16 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 			var learned = spell_manager.get_spell_info(slot)
 			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)  # training slots past 6 cast with Space
 			acknowledgement = learned.name + " learned · Press %s, then type %s" % [cast_hint, learned.display_name]
+			celebrate_spell(slot, "New spell: " + str(learned.name), "Press %s, then type %s" % [cast_hint, str(learned.display_name).to_upper()])
 	elif effect.get("type") == "spell_upgrade" and effect.has("stat"):
 		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (now")[0]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
+	if effect.get("type") == "spell_upgrade":
+		var up_slot = spell_manager.find_spell_slot(effect.get("spell", ""))
+		var up_info = spell_manager.get_spell_info(up_slot) if up_slot > 0 else {}
+		if not up_info.is_empty():
+			celebrate_spell(up_slot, str(up_info.name) + " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", "")), str(upgrade_data.get("description", "")).split(" (now")[0].split(" (Currently:")[0])
 	else:
 		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (Currently:")[0]
 	show_gameplay_feedback(acknowledgement if interface_debug or effect.get("type") == "learn_spell" else str(upgrade_data.get("name", "Upgrade applied")))
@@ -1071,12 +1123,84 @@ func update_spell_slot_lock_status():
 	for i in range(spell_slots.size()):
 		var info = spell_manager.spells.get(i + 1, {})
 		setup_individual_spell_slot(spell_slots[i], i, info.get("id", ""))
-		spell_slots[i].tooltip_text = ("Click or press %d, then type: %s" % [i + 1, info.display_name]) if not info.is_empty() else "Learn a spell when you level up (six equipped spells maximum)"
+		var upcoming = upcoming_prepared_slot(i) if info.is_empty() else {}
+		if not upcoming.is_empty():
+			spell_slots[i].tooltip_text = "%s opens at level %d" % [upcoming.name, upcoming.level]
+		else:
+			spell_slots[i].tooltip_text = ("Click or press %d, then type: %s" % [i + 1, info.display_name]) if not info.is_empty() else "Learn a spell when you level up (six equipped spells maximum)"
 
 func _on_spell_slot_input(event: InputEvent, slot: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		spell_slots[slot - 1].accept_event()
 		spell_manager.activate_spell_slot(slot)
+
+## New spell or new rank: a big centre banner that pops, a chime and the slot flashing gold,
+## so it is impossible to miss (playtest: "not at all obvious u unlocked a spell and leveled up").
+func celebrate_spell(slot: int, title: String, line: String):
+	if not is_instance_valid(hud):
+		return
+	var old = hud.get_node_or_null("SpellCelebration")
+	if old:
+		old.queue_free()
+	var banner = Label.new()
+	banner.name = "SpellCelebration"
+	banner.text = title.to_upper() + "\n" + line
+	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	banner.custom_minimum_size = Vector2(720, 140)
+	banner.position = (hud.size - banner.custom_minimum_size) * 0.5 - Vector2(0, 150)
+	banner.add_theme_font_size_override("font_size", 44)
+	banner.add_theme_color_override("font_color", Color("ffe49b"))
+	banner.add_theme_color_override("font_outline_color", Color("1a1208"))
+	banner.add_theme_constant_override("outline_size", 10)
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner.pivot_offset = banner.custom_minimum_size * 0.5
+	banner.scale = Vector2(0.4, 0.4)
+	banner.process_mode = Node.PROCESS_MODE_ALWAYS
+	hud.add_child(banner)
+	var tw = banner.create_tween()
+	tw.tween_property(banner, "scale", Vector2(1.15, 1.15), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(banner, "scale", Vector2.ONE, 0.12)
+	tw.tween_interval(1.6)
+	tw.tween_property(banner, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(banner.queue_free)
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.LEVEL_UP)
+		AudioManager.play_sound(AudioManager.SoundType.MEGA_RELEASE, 0.5)
+	var index = slot - 1
+	if index >= 0 and index < spell_slots.size() and is_instance_valid(spell_slots[index]):
+		var cell: Control = spell_slots[index]
+		var flash = cell.create_tween()
+		for i in 3:
+			flash.tween_property(cell, "modulate", Color(2.2, 1.9, 1.0), 0.12)
+			flash.tween_property(cell, "modulate", Color.WHITE, 0.18)
+	if particle_manager and player and particle_manager.has_method("create_spell_unlock_effect"):
+		particle_manager.create_spell_unlock_effect(player.global_position)
+
+## Typed words called out over the wizard: accepted words in gold, cracked ones in red with why
+## (playtest: it was not obvious what was accepted or rejected).
+var _word_stack := 0
+func float_word(text: String, color: Color):
+	if not is_instance_valid(player):
+		return
+	var label = Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_outline_color", Color("120e14"))
+	label.add_theme_constant_override("outline_size", 6)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.z_index = 60
+	label.size = Vector2(520, 30)
+	label.position = player.global_position + Vector2(-260, -110 - 26 * (_word_stack % 3))
+	_word_stack += 1
+	add_child(label)
+	var tw = label.create_tween()
+	tw.tween_property(label, "position:y", label.position.y - 36, 1.4).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 0.5).set_delay(0.9)
+	tw.tween_callback(label.queue_free)
+	tw.tween_callback(func(): _word_stack = maxi(0, _word_stack - 1))
 
 func show_gameplay_feedback(text: String):
 	var interface = get_node_or_null("GameplayReadability")

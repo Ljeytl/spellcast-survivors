@@ -11,8 +11,19 @@ const DAMAGE_FLASH_DURATION = 0.1     # How long the red damage flash lasts
 const DEBUG_XP_AMOUNT = 50.0          # XP for debug mode
 
 # Core player stats - these change during gameplay
+const StatBlock = preload("res://scripts/engine/stats/StatBlock.gd")
+## Every changeable number of the wizard: base values plus modifiers with sources (doc 19 §5.3).
+## The fields below read and write it, so existing code keeps using player.spell_damage_multiplier etc.
+var stats = StatBlock.new({
+	"max_health": BASE_MAX_HEALTH, "spell_damage_multiplier": 1.0, "cast_speed_multiplier": 1.0,
+	"spell_size_multiplier": 1.0, "spell_duration_multiplier": 1.0, "projectile_speed_multiplier": 1.0,
+	"typing_duration_bonus": 0.0, "movement_speed_multiplier": 1.0, "xp_range_multiplier": 1.0,
+})
+
 var health: float = BASE_MAX_HEALTH          # Current health points
-var max_health: float = BASE_MAX_HEALTH      # Maximum health (can be upgraded)
+var max_health: float:  # Maximum health (can be upgraded)
+	get: return stats.value("max_health")
+	set(v): stats.set_value("max_health", v)
 var overheal: float = 0.0                    # Temporary health above max (from earth shield)
 var overheal_timer: float = 0.0              # Time remaining for overheal effect
 var overheal_duration: float = 16.0           # How long earth shield overheal lasts (seconds)
@@ -22,18 +33,42 @@ var level: int = 1                           # Current player level
 var xp_to_next_level: float = BASE_XP_REQUIREMENT  # XP needed for next level
 
 # Upgrade multipliers - these improve through level-up choices
-var spell_damage_multiplier: float = 1.0     # Increases damage of all spells
-var cast_speed_multiplier: float = 1.0
-var spell_size_multiplier: float = 1.0
-var spell_duration_multiplier: float = 1.0
-var projectile_speed_multiplier: float = 1.0
-var typing_duration_bonus: float = 0.0
+var spell_damage_multiplier: float:
+	get: return stats.value("spell_damage_multiplier")
+	set(v): stats.set_value("spell_damage_multiplier", v)
+var cast_speed_multiplier: float:
+	get: return stats.value("cast_speed_multiplier")
+	set(v): stats.set_value("cast_speed_multiplier", v)
+var spell_size_multiplier: float:
+	get: return stats.value("spell_size_multiplier")
+	set(v): stats.set_value("spell_size_multiplier", v)
+var spell_duration_multiplier: float:
+	get: return stats.value("spell_duration_multiplier")
+	set(v): stats.set_value("spell_duration_multiplier", v)
+var projectile_speed_multiplier: float:
+	get: return stats.value("projectile_speed_multiplier")
+	set(v): stats.set_value("projectile_speed_multiplier", v)
+var typing_duration_bonus: float:
+	get: return stats.value("typing_duration_bonus")
+	set(v): stats.set_value("typing_duration_bonus", v)
 var next_heal_feedback_msec: int = 0
 const MAX_PASSIVE_FAMILIES = 6
 const SUPPORTED_PASSIVES = ["spell_area", "spell_duration", "spell_damage", "movement_speed", "max_health", "xp_range", "projectile_speed", "slowdown_duration", "mana_bolt_mastery"]
 var passive_ranks: Dictionary = {}
-var movement_speed_multiplier: float = 1.0   # Increases walking speed
-var xp_range_multiplier: float = 1.0         # Increases XP orb pickup range
+var movement_speed_multiplier: float:
+	get: return stats.value("movement_speed_multiplier")
+	set(v): stats.set_value("movement_speed_multiplier", v)
+var xp_range_multiplier: float:
+	get: return stats.value("xp_range_multiplier")
+	set(v): stats.set_value("xp_range_multiplier", v)
+
+## Level-up passive → the stat it adds to. Each pick is one modifier with source "passive:<type>".
+const PASSIVE_STATS = {
+	"spell_damage": "spell_damage_multiplier", "cast_speed": "cast_speed_multiplier",
+	"spell_area": "spell_size_multiplier", "spell_duration": "spell_duration_multiplier",
+	"projectile_speed": "projectile_speed_multiplier", "slowdown_duration": "typing_duration_bonus",
+	"movement_speed": "movement_speed_multiplier", "max_health": "max_health", "xp_range": "xp_range_multiplier",
+}
 
 # Signals sent to other systems when player state changes
 signal health_changed(new_health: float, max_health: float, overheal_amount: float)  # Update health bar UI
@@ -243,8 +278,11 @@ func heal(amount: float, visual_size: float = 1.0):
 	health = min(max_health, health + amount)
 	if health > previous_health and Time.get_ticks_msec() >= next_heal_feedback_msec:
 		next_heal_feedback_msec = Time.get_ticks_msec() + 350
+		var vfx = get_node_or_null("/root/Vfx")
 		var particles = get_parent().get("particle_manager")
-		if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
+		if vfx and vfx.prop_burst("heal", global_position, visual_size):
+			pass   # the VFX layer shows heals (docs/VFX_EVENTS.md)
+		elif is_instance_valid(particles) and particles.has_method("create_heal_effect"):
 			var effect = particles.create_heal_effect(global_position)
 			if is_instance_valid(effect):
 				effect.scale = Vector2.ONE * visual_size
@@ -265,6 +303,12 @@ func toggle_invincibility():
 # Alternative name for add_xp used by chest system
 func gain_xp(amount: float):
 	add_xp(amount)
+
+## WARDING: a ward absorbs damage before health. It refreshes rather than stacks (doc 21 §4.4).
+func add_ward(amount: float, duration: float):
+	overheal = maxf(overheal, amount)
+	overheal_timer = maxf(overheal_timer, duration)
+	health_changed.emit(health, max_health, overheal)
 
 # Add temporary overheal (from earth shield spell)
 func add_overheal(amount: float, duration: float = 16.0):
@@ -356,36 +400,16 @@ func apply_upgrade(upgrade_data: Dictionary) -> bool:
 		passive_ranks[effect_type] = int(passive_ranks.get(effect_type, 0)) + 1
 	elif effect_type not in ["spell_upgrade", "learn_spell", "recovery"]:
 		return false
-	# Apply the upgrade based on its type
-	match effect_type:
-		"recovery":
-			heal(float(value))
-		"spell_damage":
-			spell_damage_multiplier += value  # Increase spell damage
-		"cast_speed":
-			cast_speed_multiplier += value
-		"spell_area":
-			spell_size_multiplier += value
-		"spell_duration":
-			spell_duration_multiplier += value
-		"projectile_speed":
-			projectile_speed_multiplier += value
-		"slowdown_duration":
-			typing_duration_bonus += value
-		"mana_bolt_mastery":
-			cast_speed_multiplier += 0.1
-		"movement_speed":
-			movement_speed_multiplier += value # Increase walking speed
-		"max_health":
-			max_health += value               # Increase maximum health
-			health += value                   # Also heal when max health increases
+	# Passives are stat modifiers; spell upgrades are handled by SpellManager.
+	if effect_type == "recovery":
+		heal(float(value))
+	elif effect_type == "mana_bolt_mastery":
+		stats.add_modifier("cast_speed_multiplier", "add", 0.1, "passive:mana_bolt_mastery")
+	elif PASSIVE_STATS.has(effect_type):
+		stats.add_modifier(PASSIVE_STATS[effect_type], "add", float(value), "passive:" + effect_type)
+		if effect_type == "max_health":
+			health += value  # also heal when max health increases
 			health_changed.emit(health, max_health, overheal)
-		"xp_range":
-			xp_range_multiplier += value      # Increase XP orb pickup range
-		"spell_upgrade":
-			# Spell level upgrades are handled by SpellManager
-			var spell_name = effect.get("spell", "")
-			pass
 	return true
 
 # Track enemies currently touching the player for continuous damage

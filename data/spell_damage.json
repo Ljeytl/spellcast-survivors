@@ -1,0 +1,28 @@
+{
+  "_doc": "Typed damage for shipping spells (doc 21 §5). damage = each damage type as a multiple of the spell's base hit (may add up past 1); raw shares use the spell's element on the type chart. element defaults to spells.json. statuses are applied on hit: {status, strength?, stacks?, duration?, no_freeze?, no_stun?}. parts: per part (named as in scripts/engine/LegacyBridge.gd), that part's own damage and statuses, which replace the spell's. pure is untyped damage no resistance reduces.",
+  "spells": {
+    "mana_bolt": {"damage": {"raw": 1.0}},
+    "bolt": {"damage": {"arcane": 1.0}},
+    "ice_blast": {"damage": {"raw": 0.6, "water": 0.4}, "statuses": [{"status": "chilled"}]},
+    "earth_shield": {"damage": {"raw": 0.4, "earth": 0.6}, "statuses": [{"status": "bleed"}]},
+    "lightning": {"damage": {"storm": 1.0}, "statuses": [{"status": "shocked"}]},
+    "meteor_shower": {"damage": {"raw": 0.6, "fire": 0.4}, "parts": {"impact": {"damage": {"raw": 0.6, "fire": 0.4}, "statuses": [{"status": "stunned", "duration": 0.2}]}, "crater": {"damage": {"raw": 0.06, "fire": 0.19}, "statuses": []}}},
+    "ember_spear": {"damage": {"raw": 0.75, "fire": 0.25}, "parts": {"spear": {"damage": {"raw": 0.75, "fire": 0.25}, "statuses": []}, "trail": {"damage": {"fire": 0.2}, "statuses": [{"status": "burn"}]}}},
+    "infestation": {"damage": {"plague": 1.0}},
+    "cinder_field": {"damage": {"fire": 1.0}, "statuses": [{"status": "burn"}]},
+    "arcane_orbit": {"damage": {"arcane": 1.0}},
+    "focus_ray": {"damage": {"arcane": 1.0}, "statuses": [{"status": "vulnerable", "stacks": 0.5}]},
+    "rune_trap": {"damage": {"arcane": 1.0}, "parts": {"activate": {"damage": {}, "statuses": [{"status": "rooted", "duration": 0.4}]}, "burst": {"damage": {"arcane": 1.0}, "statuses": []}}},
+    "seeker": {"damage": {"plague": 1.0}, "statuses": [{"status": "poison"}, {"status": "weakened"}]},
+    "firewalk": {"damage": {"fire": 1.0}, "statuses": [{"status": "burn"}]},
+    "cross_blade": {"damage": {"raw": 0.75, "earth": 0.25}, "statuses": [{"status": "bleed"}], "parts": {"blade": {"damage": {"raw": 0.75, "earth": 0.25}, "statuses": [{"status": "bleed"}]}, "hold": {"damage": {"raw": 0.5, "earth": 0.5}, "statuses": [{"status": "bleed"}]}, "return": {"damage": {"raw": 0.75, "earth": 1.25}, "statuses": [{"status": "bleed", "stacks": 2}]}}},
+    "lightning_bolt": {"element": "storm", "damage": {"arcane": 0.75, "storm": 0.75}, "parts": {"bolt": {"damage": {"arcane": 0.75, "storm": 0.75}, "statuses": [{"status": "shocked"}]}, "bounce": {"damage": {"arcane": 0.75, "storm": 0.75}, "statuses": [{"status": "shocked"}]}, "splash": {"damage": {"storm": 1.5}, "statuses": [{"status": "shocked"}]}}},
+    "life_bolt": {"element": "life", "damage": {"arcane": 0.75, "life": 0.5}},
+    "meteor_spear": {"element": "fire", "damage": {"raw": 0.85, "fire": 0.15}, "parts": {"spear": {"damage": {"raw": 0.85, "fire": 0.15}, "statuses": []}, "trail": {"damage": {"fire": 0.2}, "statuses": [{"status": "burn"}]}, "meteor": {"damage": {"raw": 0.33, "fire": 0.22}, "statuses": [{"status": "stunned", "duration": 0.2}]}}},
+    "soul_bloom": {"element": "plague", "damage": {"plague": 1.0}},
+    "steam_field": {"element": "fire", "damage": {"fire": 0.6, "water": 0.6}, "statuses": [{"status": "burn"}, {"status": "chilled", "no_freeze": true}]},
+    "prism_ray": {"element": "arcane", "damage": {"arcane": 0.6}, "parts": {"beam": {"damage": {"arcane": 0.6}, "statuses": [{"status": "vulnerable", "stacks": 0.5}]}, "ray_fire": {"damage": {"fire": 0.15}, "statuses": [{"status": "burn"}]}, "ray_water": {"damage": {"water": 0.15}, "statuses": [{"status": "chilled"}]}, "ray_storm": {"damage": {"storm": 0.15}, "statuses": [{"status": "shocked", "no_stun": true}]}, "ray_earth": {"damage": {"earth": 0.15}, "statuses": [{"status": "bleed"}]}, "ray_plague": {"damage": {"plague": 0.15}, "statuses": [{"status": "poison"}]}, "ray_life": {"damage": {"life": 0.15}, "statuses": [{"status": "entangled"}]}}},
+    "frost_sigil": {"element": "arcane", "damage": {"arcane": 1.0, "water": 0.5}, "parts": {"activate": {"damage": {}, "statuses": [{"status": "rooted", "duration": 0.4}, {"status": "chilled"}]}, "burst": {"damage": {"arcane": 1.0, "water": 0.5}, "statuses": [{"status": "chilled", "stacks": 2}]}}},
+    "atomic": {"element": "", "damage": {"pure": 1.0}}
+  }
+}

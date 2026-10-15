@@ -44,12 +44,16 @@ func target_at(point):
 	target.add_child(box)
 	return target
 
-func effect(data, target = null, tactical = false):
-	var node = load("res://scripts/TacticalSpellEffect.gd" if tactical else "res://scripts/BuildSpellEffect.gd").new()
-	stage.add_child(node)
-	node.configure(data, 20, player, target)
-	node.set_physics_process(false)
-	return node
+## Ported spells run on the generic engine (doc 18 phase 2): build a cast from data, driven by hand.
+func effect(data: Dictionary, target = null, speed := 1.0):
+	var scaled = load("res://scripts/SpellGeometry.gd").scaled_data(data, player)
+	var def = load("res://scripts/engine/LegacyBridge.gd").build(scaled, 20, {"speed_mult": speed})
+	var cast = load("res://scripts/engine/GenericCast.gd").new()
+	cast.forced_target = target
+	cast.setup(load("res://scripts/engine/CastPlanner.gd").plan(def, {}, {}), player, stage, {"spell": str(data.id)}, true)
+	stage.add_child(cast)
+	cast.step(0.0)
+	return cast
 
 func projectile(kind):
 	var node = load("res://scenes/SpellProjectile.tscn").instantiate()
@@ -71,39 +75,43 @@ func run():
 	stage.add_child(player)
 	player.add_to_group("player")
 	var enemy = target_at(Vector2(100, 0))
-	var plague = effect({"type": "plague", "duration": 5.0}, enemy)
-	check(plague.infection_links.size() == 1, "Seed-to-host link exists at cast")
+	var plague_cast = effect({"id": "infestation", "type": "plague", "duration": 5.0}, enemy)
+	var plague = plague_cast.root_parts()[0].infection
+	check(plague.links.size() == 1, "Seed-to-host link exists at cast")
 	var neighbor = target_at(Vector2(150, 0))
 	# A new host's first tick (and so its first spread) waits a full tick interval after the seed lands.
-	plague.advance(1.0)
-	check(plague.infections.size() == 1 and plague.infection_links.size() == 1 and enemy.hits == 1, "Spread produces a real transfer link")
-	plague.advance(0.4)
-	check(plague.infection_links.is_empty(), "Transfer feedback expires")
+	plague_cast.advance(1.0)
+	check(plague.hosts.size() == 1 and plague.links.size() == 1 and enemy.hits == 1, "Spread produces a real transfer link")
+	plague_cast.advance(0.4)
+	check(plague.links.is_empty(), "Transfer feedback expires")
 	clear_effects()
-	var trap = effect({"type": "trap", "duration": 6.0}, null, true)
+	var trap = effect({"id": "rune_trap", "type": "trap", "duration": 6.0})
+	var rune = trap.root_parts()[0]
 	trap.advance(60)
-	check(not trap.is_queued_for_deletion() and not trap.triggered, "Untriggered trap survives beyond old expiry")
-	enemy = target_at(trap.position)
-	trap.advance(0.05)
-	check(trap.triggered and enemy.hits == 1, "Persistent trap still triggers once")
+	check(not trap.finished and not rune.done and rune.armed, "Untriggered trap survives beyond old expiry")
+	enemy = target_at(rune.global_position)
+	trap.advance(0.5)   # activate, then the explosion 0.4 s later
+	check(rune.done and enemy.hits == 1, "Persistent trap still triggers once")
 	trap.advance(1)
-	check(trap.is_queued_for_deletion() and enemy.hits == 1, "Triggered trap ends promptly")
+	check(trap.finished and enemy.hits == 1, "Triggered trap ends promptly")
 	clear_effects()
 	for speed in [1.0, 2.0]:
 		enemy = target_at(Vector2(100, 0))
-		var blade = effect({"type": "returning", "duration": 3.0, "projectile_speed_multiplier": speed}, enemy, true)
-		blade.advance(0.7 / speed)
+		var blade_cast = effect({"id": "cross_blade", "type": "returning", "duration": 3.0, "blade_count": 1}, enemy, speed)
+		var blade = blade_cast.root_parts()[0]
+		blade_cast.advance(0.7 / speed)
 		check(is_equal_approx(blade.position.x, 350), "Speed buff preserves outbound range")
 		check(enemy.hits == 1, "Outbound path hits once")
-		blade.advance(0.2)
+		blade_cast.advance(0.2)
 		check(is_equal_approx(blade.position.x, 350), "Blade visibly lingers before return")
-		blade.advance(1.5)
-		check(enemy.hits == 2 and blade.is_queued_for_deletion(), "Return contributes second useful hit")
+		blade_cast.advance(1.5)
+		check(enemy.hits == 2 and blade_cast.finished, "Return contributes second useful hit")
 		clear_effects()
 	enemy = target_at(Vector2(300, 0))
-	var spirit = effect({"type": "spirit", "duration": 5.0, "projectile_speed_multiplier": 2.0}, enemy, true)
-	spirit.advance(0.2)
-	check(is_equal_approx(spirit.position.x, 128), "Seeker uses projectile-speed snapshot")
+	var spirit_cast = effect({"id": "seeker", "type": "spirit", "duration": 5.0}, enemy, 2.0)
+	var spirit = spirit_cast.root_parts()[0]
+	spirit_cast.advance(0.2)
+	check(is_equal_approx(spirit.position.x, 128), "Seeker uses projectile-speed snapshot (%s)" % spirit.position.x)
 	check(enemy.hits == 0, "Seeker cannot damage before arriving")
 	clear_effects()
 	enemy = target_at(Vector2(40, 0))

@@ -166,9 +166,17 @@ func run():
 	var DS = load("res://scripts/DamageSource.gd")
 	DS.current = DS.make("bolt", 0.0)
 	game.player.global_position = site.global_position + Vector2(LeySite.RADIUS + 120, 0)
+	ley.update_attunement()  # applied each tick as a stat modifier (doc 19 §5.3)
 	var outside = m.cast_stat("spell_damage_multiplier")
 	game.player.global_position = site.global_position
+	ley.update_attunement()
 	check(is_equal_approx(m.cast_stat("spell_damage_multiplier"), outside * 1.2), "An attuned circle gives +20% Spell Power")
+	check(game.player.stats.has_source(ley.ATTUNED_SOURCE), "The bonus is a modifier with the ley source")
+	game.player.global_position = site.global_position + Vector2(LeySite.RADIUS + 120, 0)
+	ley.update_attunement()
+	check(is_equal_approx(m.cast_stat("spell_damage_multiplier"), outside) and not game.player.stats.has_source(ley.ATTUNED_SOURCE), "Leaving the circle removes the bonus")
+	game.player.global_position = site.global_position
+	ley.update_attunement()
 	DS.current = {}
 	var style = game.style_session
 	style.score.combo = 500.0

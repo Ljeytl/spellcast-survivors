@@ -7,8 +7,10 @@ class Target extends Node2D:
 	var current_health = 1000.0
 	var dying = false
 	var slow = 0.0
+	var hits: Array = []
 	func take_damage(amount, _source = Vector2.ZERO, _damage_source = {}):
 		if not dying:
+			hits.append(float(amount))
 			current_health = maxf(0.0, current_health - amount)
 	func apply_slow(amount, _duration):
 		slow = amount
@@ -32,12 +34,16 @@ func make_target(game, position):
 	target.add_to_group("enemies")
 	return target
 
-func effect_for(game, id):
-	for effect in get_nodes_in_group("build_spell_effects"):
-		if effect.info.id == id and not effect.is_queued_for_deletion():
-			effect.set_physics_process(false)
-			return effect
+## Spells ported to the generic engine (doc 18 phase 2): the cast node, stepped by hand.
+func cast_for(game, id):
+	for node in game.get_children():
+		if node.get("plan") is Dictionary and str(node.plan.get("id", "")) == id and not node.is_queued_for_deletion():
+			node.manual = true
+			return node
 	return null
+
+func spear_hits(target, amount) -> int:
+	return target.hits.filter(func(h): return is_equal_approx(h, amount)).size()
 
 func run():
 	root.get_node("CharacterManager").reset_progression()
@@ -123,41 +129,43 @@ func run():
 	var start = game.player.global_position
 	var a = make_target(game, start + Vector2(70, 0))
 	var b = make_target(game, start + Vector2(140, 0))
-	var c = make_target(game, start + Vector2(70, 65))
+	var c = make_target(game, start + Vector2(70, 40))   # inside the smaller rank-1 meteor (48, playtest)
 	manager.learn_spell("ember_spear")
 	manager.cast_freeform_spell("ember spear")
-	var effect = effect_for(game, "ember_spear")
-	effect.advance(0.3)
-	var lance_health = 1000.0 - manager.calculate_spell_damage(manager.spells[manager.find_spell_slot("ember_spear")])
-	check(is_equal_approx(a.current_health, lance_health) and is_equal_approx(b.current_health, lance_health), "Swept spear pierces two enemies")
+	var spear_cast = cast_for(game, "ember_spear")
+	spear_cast.run(0.3)
+	var lance_damage = manager.calculate_spell_damage(manager.spells[manager.find_spell_slot("ember_spear")])
+	check(spear_hits(a, lance_damage) == 1 and spear_hits(b, lance_damage) == 1, "Swept spear pierces two enemies")
 	check(c.current_health == 1000, "Lance does not damage outside its line")
-	effect.advance(0.5)
-	check(is_equal_approx(a.current_health, lance_health), "Piercing target cannot be hit twice")
+	spear_cast.run(0.5)
+	check(spear_hits(a, lance_damage) == 1, "Piercing target cannot be hit twice")
 	manager.learn_spell("meteor_shower")
 	manager.learn_spell("meteor_spear")
 	manager.cast_freeform_spell("meteor spear")
-	effect = effect_for(game, "meteor_spear")
-	effect.advance(0.3)
+	cast_for(game, "meteor_spear").run(1.4)   # the meteor lands a beat after the hit (playtest)
+	var effect = null
 	check(c.current_health < 1000, "Meteor Spear splash reaches off-line enemy")
 	manager.learn_spell("infestation")
 	manager.learn_spell("regeneration")
 	manager.learn_spell("soul_bloom")
 	game.player.health = 20.0
 	manager.cast_freeform_spell("soul bloom")
-	effect = effect_for(game, "soul_bloom")
-	effect.advance(1.25)
+	# Soul Bloom runs on the generic engine (doc 18 phase 2): the plague lives on the cast's part.
+	var bloom_cast = cast_for(game, "soul_bloom")
+	var plague = bloom_cast.root_parts()[0].infection
+	bloom_cast.run(1.25)
 	# Soul Bloom heals through blooms left by infected deaths (CombinationScaling strips lifesteal), not per-hit drain.
 	check(is_equal_approx(game.player.health, 20.0), "Soul Bloom infection damage does not lifesteal")
-	check(effect.infections.size() > 1, "Infection spreads to neighbor")
+	check(plague.hosts_started > 1, "Infection spreads to neighbor")
 	for i in range(15):
 		make_target(game, start + Vector2(70 + i, 0))
 	# Plague grows as a chain (one jump per host), so give it time to pass the old eight-host cap.
 	for i in range(16):
-		effect.advance(0.5)
-	check(effect.hosts_started > 8, "Soul Bloom spreads beyond eight lifetime hosts")
+		bloom_cast.run(0.5)
+	check(plague.hosts_started > 8, "Soul Bloom spreads beyond eight lifetime hosts")
 	a.current_health = 0.0
 	var hp = game.player.health
-	effect.deal_damage(a, 100.0)
+	plague.part.hit(a)
 	check(game.player.health == hp, "Dead targets cannot heal")
 	game.queue_free()
 	await process_frame
@@ -176,61 +184,62 @@ func run():
 	b = make_target(game, start + Vector2(500, 0))
 	manager.learn_spell("cinder_field")
 	manager.cast_freeform_spell("cinder field")
-	effect = effect_for(game, "cinder_field")
-	effect.advance(0.5)
-	effect.advance(0.5)
+	# Cinder Field, Steam Field and Arcane Orbit run on the generic engine (doc 18 phase 2).
+	var field_cast = cast_for(game, "cinder_field")
+	var field = field_cast.root_parts()[0]
+	field_cast.run(0.5)
+	field_cast.run(0.5)
 	check(a.current_health <= 1000.0 - 2.0 * manager.calculate_spell_damage(manager.spells[manager.find_spell_slot("cinder_field")]) + 0.001 and b.current_health == 1000, "Field ticks repeatedly only inside radius")
-	var position = effect.global_position
+	var position = field.global_position
 	game.player.position += Vector2(400, 0)
-	effect.advance(0.5)
-	check(effect.global_position == position, "Field remains anchored when player moves")
+	field_cast.run(0.5)
+	check(field.global_position == position, "Field remains anchored when player moves")
 	manager.learn_spell("ice_blast")
 	manager.learn_spell("steam_field")
 	manager.cast_freeform_spell("steam field")
-	effect = effect_for(game, "steam_field")
-	effect.advance(0.5)
-	check(is_equal_approx(b.slow, 0.6), "Steam Field slows damaged nearby target")
+	cast_for(game, "steam_field").run(0.5)
+	check(is_equal_approx(b.slow, 0.8), "Steam Field chills a damaged nearby target (doc 21 §5.6: chill is its slow) (%s)" % b.slow)
 	manager.learn_spell("arcane_orbit")
 	manager.cast_freeform_spell("arcane orbit")
-	effect = effect_for(game, "arcane_orbit")
-	b.position = game.player.position + Vector2.from_angle(2.0) * float(effect.info.orbit_radius)
+	var orbit_cast = cast_for(game, "arcane_orbit")
+	var orb = orbit_cast.root_parts()[0]
+	var orbit_radius = float(orb.def.motion[0].radius)
+	b.position = game.player.position + Vector2.from_angle(2.0) * orbit_radius
 	var old_health = b.current_health
-	effect.advance(0.5)
-	check(is_equal_approx(effect.angle, 2.0), "Orbit naturally rotates four radians per second")
+	orbit_cast.run(0.5)
+	check(is_equal_approx(fposmod(orb.orbit_angle, TAU), 2.0), "Orbit naturally rotates four radians per second")
 	check(b.current_health < old_health, "Orbit damages target at its naturally advanced spark position")
-	b.position = game.player.position + Vector2.from_angle(4.0) * float(effect.info.orbit_radius)
+	b.position = game.player.position + Vector2.from_angle(4.0) * orbit_radius
 	old_health = b.current_health
-	effect.advance(0.5)
+	orbit_cast.run(0.5)
 	check(b.current_health < old_health, "Orbit continues hitting at the next rotated position")
 	game.player.position += Vector2(10, 0)
-	effect.advance(0.1)
-	check(effect.global_position == game.player.global_position, "Orbit follows player")
-	effect.advance(5.0)
-	check(effect.is_queued_for_deletion(), "Persistent spells expire")
-	for candidate in get_nodes_in_group("build_spell_effects"):
-		candidate.queue_free()
+	orbit_cast.run(0.1)
+	check(is_equal_approx(orb.global_position.distance_to(game.player.global_position), orbit_radius), "Orbit follows player")
+	orbit_cast.run(6.0)
+	check(orbit_cast.finished, "Persistent spells expire")
+	for candidate in get_nodes_in_group("generic_casts"):
+		candidate.free()
 	a.current_health = 1000.0
 	a.position = game.player.position
 	b.position = game.player.position + Vector2(1000, 0)
 	var fixture_info = manager.spell_catalog.cinder_field
-	var bulk = preload("res://scripts/BuildSpellEffect.gd").new()
-	bulk.configure(fixture_info, 12.0, game.player, a)
-	game.add_child(bulk)
-	bulk.set_physics_process(false)
-	bulk.advance(5.0)
-	check(a.current_health == 880.0, "Five seconds produces exactly ten half-second ticks")
+	# Cinder Field on the generic engine: frame partition does not change the tick count.
+	var bulk = manager.spawn_ported(fixture_info, 12.0, {}, a)
+	bulk.manual = true
+	bulk.run(5.0, 0.5)
+	check(a.current_health == 880.0, "Five seconds produces exactly ten half-second ticks (%s)" % a.current_health)
+	bulk.free()
 	a.current_health = 1000.0
-	var sliced = preload("res://scripts/BuildSpellEffect.gd").new()
-	sliced.configure(fixture_info, 12.0, game.player, a)
-	game.add_child(sliced)
-	sliced.set_physics_process(false)
-	for i in range(10):
-		sliced.advance(0.5)
-	check(a.current_health == 880.0, "Tick totals independent of frame partition")
+	var sliced = manager.spawn_ported(fixture_info, 12.0, {}, a)
+	sliced.manual = true
+	sliced.run(5.0)
+	check(a.current_health == 880.0, "Tick totals independent of frame partition (%s)" % a.current_health)
+	sliced.free()
 	for i in range(5):
 		manager.cast_freeform_spell("arcane orbit")
-	var active = get_nodes_in_group("build_spell_effects").filter(func(item): return item.info.id == "arcane_orbit" and not item.is_queued_for_deletion())
-	check(active.size() == 1 and active[0].remaining >= 30, "Repeated orbit casts extend one maintained effect")
+	var active = manager.ported_casts("arcane_orbit")
+	check(active.size() == 1 and active[0].root_parts()[0].remaining_life() >= 30, "Repeated orbit casts extend one maintained effect")
 	manager.spells.clear()
 	manager.bonus_spells.clear()
 	manager.acquired_spells.clear()
@@ -255,7 +264,7 @@ func run():
 	game.queue_free()
 	await process_frame
 	await process_frame
-	check(get_nodes_in_group("build_spell_effects").is_empty(), "Run teardown removes all spell effects")
+	check(get_nodes_in_group("generic_casts").is_empty(), "Run teardown removes all spell effects")
 	for child in root.get_node("AudioManager").get_children():
 		if child is AudioStreamPlayer:
 			child.stop()

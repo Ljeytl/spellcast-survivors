@@ -49,27 +49,26 @@ func run():
 	var reference = game.hud.get_node("CastingReference")
 	check(reference.is_visible_in_tree() and reference.entries.firewalk.text == "2  fire walk", "Exact spell names and numbers remain")
 	manager.cast_spell_by_type(manager.find_spell_slot("firewalk"))
-	var trail = get_nodes_in_group("build_spell_effects")[0]
-	trail.set_physics_process(false)
+	# Ported spells draw through the VFX ground layer (doc 18 phase 2): it sits below the wizard on an absolute z.
+	var trail = manager.ported_casts("firewalk")[0]
+	trail.manual = true
 	game.player.position += Vector2(50, 0)
-	trail.advance(0.2)
+	trail.run(0.2)
 	game.player.position -= Vector2(50, 0)
-	check(trail.z_index < game.player.z_index and not trail.z_as_relative, "Firewalk draws below wizard independently of insertion order")
-	trail.z_index = 1
-	check(not (trail.z_index < game.player.z_index), "Known-bad foreground fire fails ordering invariant")
+	var vfx = root.get_node("Vfx")
+	check(vfx._ground_layer.z_index < game.player.z_index and not vfx._ground_layer.z_as_relative, "Firewalk draws below wizard independently of insertion order")
+	check(not (vfx.AIR_Z < game.player.z_index), "Known-bad foreground layer fails ordering invariant")
 	await settle()
 	await capture("before-foreground-fire")
-	trail.z_index = -2
-	trail.advance(0.1)
+	trail.run(0.1)
 	manager.cast_spell_by_type(manager.find_spell_slot("firewalk"))
 	await settle()
 	check("s" in reference.entries.firewalk.text and "+5s" in reference.entries.firewalk.text, "Duration and recast confirmation remain visible without instructions")
 	await capture("after-ground-fire")
 	for id in ["cinder_field", "rune_trap"]:
 		manager.cast_spell_by_type(manager.find_spell_slot(id))
-	for effect in get_nodes_in_group("build_spell_effects"):
-		effect.set_physics_process(false)
-		check(effect.z_index < game.player.z_index, "Sibling ground effect below wizard: " + str(effect.info.id))
+	for id in ["cinder_field", "rune_trap"]:
+		check(not manager.ported_casts(id).is_empty() and vfx._ground_layer.z_index < game.player.z_index, "Sibling ground effect below wizard: " + id)
 	for geometry in [Vector2i(1280, 720), Vector2i(640, 480), Vector2i(480, 640)]:
 		root.size = geometry
 		interface.layout()

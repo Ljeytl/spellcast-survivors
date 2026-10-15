@@ -29,3 +29,31 @@ static func multiplier(attacker: String, defender: String) -> float:
 	if beats(a) == d:
 		return STRONG
 	return 1.0
+
+## Player-facing names and colours for each element (doc 18 §6.1 colour families).
+const NAMES = {"arcane": "Arcane", "fire": "Fire", "water": "Water/Ice", "storm": "Storm", "earth": "Earth/Steel", "plague": "Plague/Death", "life": "Life", "raw": "Raw", "bleed": "Bleed", "pure": "Pure"}
+const COLORS = {"arcane": Color("b58cff"), "fire": Color("ff9a5a"), "water": Color("8ce6ee"), "storm": Color("f4ed96"), "earth": Color("d8b979"), "plague": Color("a8c46a"), "life": Color("91de83")}
+
+static func display_name(element: String) -> String:
+	var e = normalize(element)
+	return str(NAMES.get(e, e.capitalize()))
+
+static func color(element: String) -> Color:
+	return COLORS.get(normalize(element), Color("eee8d8"))
+
+## The element this one loses to, or "".
+static func beaten_by(element: String) -> String:
+	var e = normalize(element)
+	for other in CYCLE:
+		if beats(other) == e:
+			return other
+	return ""
+
+## "Fire · strong vs Plague/Death, weak to Water/Ice" (Arcane: neutral to everything).
+static func matchup_line(element: String) -> String:
+	var e = normalize(element)
+	if e == "arcane":
+		return "Arcane · neutral to every element"
+	if e not in CYCLE:
+		return ""
+	return "%s · strong vs %s, weak to %s" % [display_name(e), display_name(beats(e)), display_name(beaten_by(e))]

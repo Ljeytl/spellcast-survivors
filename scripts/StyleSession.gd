@@ -159,15 +159,26 @@ func collect_style_pickup() -> bool:
 	return true
 
 var damage_by_spell: Dictionary = {}
+## Part of damage_by_spell dealt by DoTs and reactions, per spell: {"cross_blade": {"bleed": 310.0}}.
+var damage_by_effect: Dictionary = {}
 var kills_by_spell: Dictionary = {}
 
 func record_damage(source: Dictionary, amount: float):
 	if finalized or amount <= 0.0:
 		return
-	var spell = str(source.get("spell", ""))
-	if spell.is_empty():
-		spell = "other"
-	damage_by_spell[spell] = float(damage_by_spell.get(spell, 0.0)) + amount
+	# Shared DoT pools (bleed, poison) carry "split": {spell: fraction} so each spell gets its share.
+	var split: Dictionary = source.get("split", {})
+	if split.is_empty():
+		var spell = str(source.get("spell", ""))
+		split = {spell if not spell.is_empty() else "other": 1.0}
+	var via = str(source.get("via", ""))
+	for spell in split:
+		var share = amount * float(split[spell])
+		damage_by_spell[spell] = float(damage_by_spell.get(spell, 0.0)) + share
+		if not via.is_empty():
+			if not damage_by_effect.has(spell):
+				damage_by_effect[spell] = {}
+			damage_by_effect[spell][via] = float(damage_by_effect[spell].get(via, 0.0)) + share
 
 func on_kill(points: float, source: Dictionary = {}):
 	if finalized:
@@ -202,6 +213,10 @@ func finish(stats: Dictionary) -> Dictionary:
 	result = score.summary()
 	result["special_casts"] = special_casts
 	result["damage_by_spell"] = damage_by_spell.duplicate()
+	result["damage_by_effect"] = damage_by_effect.duplicate(true)
+	result["kills_by_spell"] = kills_by_spell.duplicate()
+	var casts = game.get("telemetry")
+	result["casts_by_spell"] = casts.casts_by_spell.duplicate() if casts != null and is_instance_valid(casts) else {}
 	result["run_id"] = run_id
 	result["eligible"] = eligible
 	result["exclusion_reason"] = exclusion_reason

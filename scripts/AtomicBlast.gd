@@ -3,10 +3,11 @@ extends Node2D
 func _init():
 	DamageSource.stamp(self)
 
-const WARNING_SECONDS := 0.65
-const AFTERGLOW_SECONDS := 0.85
-const BOSS_HEALTH_FRACTION := 0.60
-const ARMORED_ELITE_TYPE := 1
+const GameData = preload("res://scripts/core/GameData.gd")
+## Numbers from data/abilities.json (atomic).
+static var WARNING_SECONDS: float = float(GameData.file("abilities").abilities.atomic.warning)
+static var AFTERGLOW_SECONDS: float = float(GameData.file("abilities").abilities.atomic.afterglow)
+static var BOSS_HEALTH_FRACTION: float = float(GameData.file("abilities").abilities.atomic.boss_health_fraction)
 
 var footprint := Rect2()
 var game: Node
@@ -62,12 +63,11 @@ func _impact() -> void:
 		if enemy.is_in_group("bosses"):
 			damage = float(enemy.get("max_health")) * BOSS_HEALTH_FRACTION
 		else:
-			var armored = enemy.get("is_elite")
-			var elite_type = enemy.get("elite_type")
-			if armored == true and elite_type == ARMORED_ELITE_TYPE:
-				damage /= maxf(0.001, 1.0 - float(enemy.get("damage_reduction")))
+			# Atomic deals pure damage (data/spell_damage.json), which no resistance reduces.
 			damage += 1.0
-		enemy.take_damage(damage, Vector2.INF, DamageSource.of(self))
+		var source = DamageSource.of(self).duplicate()
+		source.spell = "atomic"  # always pure damage, even when the blast was made without a cast source
+		enemy.take_damage(damage, Vector2.INF, source)
 	for projectile in get_tree().get_nodes_in_group("enemy_projectiles"):
 		if is_instance_valid(projectile) and projectile is Node2D and footprint.has_point(projectile.global_position):
 			projectile.queue_free()

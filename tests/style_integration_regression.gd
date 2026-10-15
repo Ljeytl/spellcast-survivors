@@ -112,16 +112,16 @@ func run():
 	key(KEY_ESCAPE)
 	manager.set_process(false)
 	manager.learn_spell("focus_ray")
-	manager.cast_build_spell(manager.find_spell_slot("focus_ray"))
+	manager.cast_spell_by_type(manager.find_spell_slot("focus_ray"))
 	var channel = get_first_node_in_group("active_spell_channels")
 	check(is_instance_valid(channel), "Real Focus Ray exposes active channel lifetime")
-	channel.set_physics_process(false)
+	channel.cast.manual = true   # Focus Ray runs on the generic engine (doc 18 phase 2)
 	session.score.combo = 3700.0
 	session.score.grace_remaining = 0.0
 	var channel_bank = session.score.run_score
 	session.advance(10.0)
 	check(session.score.combo == 3700.0 and session.score.run_score == channel_bank, "Active channel without a target suspends decay but awards nothing")
-	channel.advance(20.0)
+	channel.cast.advance(20.0)
 	session.advance(0.1)
 	check(session.score.grace_remaining == 5.0, "Channel expiry restores full normal grace")
 	session.advance(2.0)
@@ -134,7 +134,7 @@ func run():
 	letters("bolt")
 	check(session.score.manual_casts == 1 and session.score.run_score == 46, "Real slot input scores once at reference pace")
 	var bank = session.score.run_score
-	manager.cast_bolt_spell(1)
+	manager.cast_spell_by_type(1)
 	manager.handle_auto_attack(100.0)
 	check(session.score.run_score == bank and session.score.manual_casts == 1, "Automatic and direct effect calls award nothing")
 	manager.casting_clock += 2.0
@@ -246,6 +246,7 @@ func run():
 		await process_frame
 	check(current_scene.has_method("depart"), "Retry returns to tower")
 	current_scene.depart()
+	if is_instance_valid(current_scene.get("archive")) and current_scene.archive.has_method("begin_run"): current_scene.archive.begin_run()  # Woodland opens preparation first
 	for i in 10:
 		await process_frame
 	game = current_scene

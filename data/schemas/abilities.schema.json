@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "abilities.json",
+  "type": "object",
+  "properties": {
+    "abilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "incantation": {
+            "type": "string"
+          },
+          "warning": {
+            "type": "number",
+            "minimum": 0
+          },
+          "afterglow": {
+            "type": "number",
+            "minimum": 0
+          },
+          "boss_health_fraction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "combo_per_charge": {
+            "type": "number",
+            "minimum": 0
+          },
+          "max_charges": {
+            "type": "number",
+            "minimum": 0
+          },
+          "min_style_rank": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "name",
+          "incantation",
+          "warning",
+          "afterglow",
+          "boss_health_fraction",
+          "combo_per_charge",
+          "max_charges",
+          "min_style_rank"
+        ],
+        "additionalProperties": false
+      },
+      "x-registry": "ability"
+    }
+  },
+  "required": [
+    "abilities"
+  ],
+  "additionalProperties": false
+}

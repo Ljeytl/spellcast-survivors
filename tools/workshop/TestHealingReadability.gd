@@ -102,7 +102,7 @@ func run():
 	workshop.command([JSON.stringify({"action":"select", "id":"regeneration"})])
 	await settled(workshop)
 	check(workshop.fixture.settings.spell_size == 1, "Reset clears all effect overrides")
-	check(is_equal_approx(workshop.fixture.game.camera.zoom.x, 1.3875), "Workshop camera matches game default")
+	check(is_equal_approx(workshop.fixture.game.camera.zoom.x, 1.5), "Workshop camera matches game default")
 	workshop.command([JSON.stringify({"action":"select", "id":"regeneration"})])
 	workshop.command([JSON.stringify({"action":"select", "id":"ice_blast"})])
 	await settled(workshop)

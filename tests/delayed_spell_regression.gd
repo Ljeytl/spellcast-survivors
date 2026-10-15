@@ -30,9 +30,6 @@ func settle(seconds):
 	while Time.get_ticks_msec() < deadline:
 		await process_frame
 
-func projectile_count(game):
-	return game.get_children().filter(func(child): return child is Area2D and child.get("projectile_type") in ["mana_bolt", "bolt"]).size()
-
 func run():
 	var game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child(game)
@@ -46,42 +43,26 @@ func run():
 	spells.mana_bolt_level = 3
 	var target = target_for(game, game.player.position + Vector2(1000, 0))
 	spells.fire_mana_bolt()
-	var before = projectile_count(game)
-	var before_ids = game.get_children().filter(func(child): return child is Area2D and child.get("projectile_type") in ["mana_bolt", "bolt"]).map(func(child): return child.get_instance_id())
-	check(before == 1, "First mana projectile fires immediately")
+	# Magic Missile runs on the generic engine: its missiles leave 0.05 s apart.
+	var missiles = spells.last_generic_cast
+	check(missiles != null and missiles.spawned == 1, "First mana projectile fires immediately")
+	var fired = missiles.spawned if missiles != null else 0
 	target.free()
 	await settle(0.08)
-	var after_ids = game.get_children().filter(func(child): return child is Area2D and child.get("projectile_type") in ["mana_bolt", "bolt"]).map(func(child): return child.get_instance_id())
-	check(after_ids.all(func(id): return before_ids.has(id)), "Delayed mana projectile skips freed target while existing projectiles may expire")
+	check(not is_instance_valid(missiles) or missiles.spawned == fired, "Delayed mana projectile skips freed target while existing projectiles may expire")
 	target = target_for(game, game.player.position + Vector2(1000, 0))
 	spells.spells[1].level = 3
-	spells.cast_enhanced_bolt_spell(1)
-	before = projectile_count(game)
+	spells.cast_spell_by_type(1)
+	var bolt_cast = spells.last_generic_cast
+	var thrown = bolt_cast.spawned
 	target.free()
 	await settle(0.3)
-	check(projectile_count(game) <= before, "Delayed spread projectiles skip freed target")
-	var first = target_for(game, game.player.position + Vector2(1000, 0))
-	var second = target_for(game, first.position + Vector2(50, 0))
-	var untouched = target_for(game, first.position + Vector2(100, 0))
-	spells.chain_lightning(first, 10.0, 3, [])
-	check(first.current_health == 990.0, "Initial chain hit applies damage")
-	second.free()
-	first.free()
-	await settle(0.15)
-	check(untouched.current_health == 1000.0, "Freed chain target cancels its continuation without retargeting")
-	untouched.free()
-	first = target_for(game, game.player.position + Vector2(1000, 0))
-	second = target_for(game, first.position + Vector2(50, 0))
-	spells.chain_lightning(first, 10.0, 3, [])
-	await settle(0.12)
-	check(second.current_health == 992.0, "Live chain continuation retains damage reduction")
-	first.free()
-	second.free()
+	check(not is_instance_valid(bolt_cast) or bolt_cast.spawned == thrown, "Delayed spread projectiles skip freed target")
+	# The old chain_lightning helper is gone: Lightning Bolt bounces on the generic engine (tests/legacy_port_regression.gd).
 	target = target_for(game, game.player.position + Vector2(1000, 0))
 	spells.fire_mana_bolt()
-	spells.cast_enhanced_bolt_spell(1)
-	second = target_for(game, target.position + Vector2(50, 0))
-	spells.chain_lightning(target, 10.0, 3, [])
+	spells.cast_spell_by_type(1)
+	target_for(game, target.position + Vector2(50, 0))
 	game.queue_free()
 	await process_frame
 	await settle(0.4)

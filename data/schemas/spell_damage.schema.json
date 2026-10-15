@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "spell_damage.json",
+  "type": "object",
+  "properties": {
+    "spells": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "damage": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0
+            },
+            "propertyNames": {
+              "type": "string",
+              "x-ref": "damage_type"
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "x-ref": "status"
+                },
+                "part": {
+                  "type": "string"
+                },
+                "strength": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "stacks": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "duration": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "no_freeze": {
+                  "type": "boolean"
+                },
+                "no_stun": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "element": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "object",
+            "$comment": "doc 21 \u00a75: per part, damage as multiples of the spell's base hit (may add past 1) and that part's statuses",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "damage": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "propertyNames": {
+                    "type": "string",
+                    "x-ref": "damage_type"
+                  }
+                },
+                "statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "x-ref": "status"
+                      },
+                      "part": {
+                        "type": "string"
+                      },
+                      "strength": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "stacks": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "duration": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "no_freeze": {
+                        "type": "boolean"
+                      },
+                      "no_stun": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "status"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "damage"
+        ],
+        "additionalProperties": false
+      },
+      "propertyNames": {
+        "type": "string",
+        "x-ref": [
+          "spell",
+          "ability"
+        ]
+      }
+    }
+  },
+  "required": [
+    "spells"
+  ],
+  "additionalProperties": false
+}

@@ -13,6 +13,7 @@ var arches: Array[Node2D] = []
 var selected = 0
 var angle = 0.0
 var target_angle = 0.0
+static var remembered_angle := 0.0   # which doorway faced north, kept across visits to the menu
 var orb_active = false
 var transitioning = false
 var archive: Control
@@ -91,6 +92,8 @@ func _ready():
 	preload("res://scripts/BuildVersion.gd").attach(ui)
 	get_viewport().size_changed.connect(fit_camera)
 	fit_camera()
+	angle = remembered_angle
+	target_angle = remembered_angle
 	update_ring()
 	update_prompt()
 	AudioManager.play_music(AudioManager.SoundType.MUSIC_MENU, true, 1.0)
@@ -143,9 +146,26 @@ func is_open(index: int) -> bool:
 func depart():
 	if transitioning or not is_open(selected) or not settled():
 		return
+	if selected == 0:
+		open_preparation()
+		return
 	transitioning = true
-	preload("res://scripts/RunMode.gd").training = selected == TRAINING_PORTAL
+	preload("res://scripts/RunMode.gd").training = true
+	preload("res://scripts/RunMode.gd").prepared = false
 	SceneManager.goto_scene("res://scenes/Game.tscn")
+
+## Woodland runs start from the spellbook preparation screen. Back returns the wizard to the room.
+func open_preparation():
+	archive = preload("res://scripts/PreparationScreen.gd").new()
+	hud.add_child(archive)
+	archive.confirmed.connect(func():
+		transitioning = true
+		preload("res://scripts/RunMode.gd").training = false
+		preload("res://scripts/RunMode.gd").prepared = true
+		SceneManager.goto_scene("res://scenes/Game.tscn"))
+	archive.closed.connect(func():
+		archive = null
+		wizard.position = Vector2(0, -230))
 
 func move_wizard(direction: Vector2, _delta: float):
 	var before = wizard.position
@@ -184,6 +204,7 @@ func settled() -> bool:
 func turn(direction: int):
 	if orb_active and settled():
 		target_angle += direction * STEP
+		remembered_angle = target_angle
 
 func interact():
 	if transitioning or is_instance_valid(archive):
