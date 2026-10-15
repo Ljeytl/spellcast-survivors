@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The integrated release baseline is **0.3.0**; combat-feel development starts at **0.3.1-dev.1**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.2**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 
@@ -38,6 +38,8 @@ The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/
 ### 0.3.1 development checkpoint — 15 October 2026
 
 `0.3.1-dev.1` connects Reduced effects to the spell renderer, including restart, and reduces Steam Field mist obstruction. Targeted settings and VFX regressions plus desktop/narrow native captures cover this first change. Full moving-combat, audio, status-overlap and whole-roster qualification remain open; this is not a release-complete claim.
+
+`0.3.1-dev.2` fades enemy hit flashes after their initial red cue, lowers the cold-status flake density and gives Frost Sigil a distinct ice glyph. Targeted moving Steam fixtures and trap arming/trigger captures support this increment; full playthrough and audio qualification remain open.
 
 ## Expedition direction
 

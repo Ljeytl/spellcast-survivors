@@ -1,3 +1,11 @@
+# 0.3.1-dev.2 — Enemy feedback and trap identities (15 October 2026)
+
+- Enemy damage still flashes red immediately on every hit and damage-over-time tick, then fades during the existing flash window so the enemy silhouette and status cues reappear sooner. Player damage feedback retains its previous intensity and duration.
+- Chill/freeze snowflakes emit less often, stay smaller and drift from the sides of enemies; reduced effects lowers their rate further. Ice spell bursts are unchanged.
+- Frost Sigil now draws a six-branched ice glyph while arming and waiting; Rune Trap keeps its arcane rune. Both keep their actual trigger-radius ring and existing activation/fuse mechanics.
+- Compare moving Steam combat and armed/triggered trap phases against the previous build. Add regression coverage for the enemy fade, unchanged player cue, and trap silhouette distinction independent of palette.
+- Remaining 0.3.1 work: crowded status readability, full cast/impact timing, visual size versus hitboxes, sound synchronization and whole-roster qualification.
+
 # 0.3.1-dev.1 — Combat feel work in progress (15 October 2026)
 
 - Reduced effects now reaches the spell renderer when toggled from Options and loads before gameplay on restart. Camera shake and legacy particles keep the same preference.

@@ -1090,10 +1090,12 @@ func _chilled(dt: float) -> void:
 		if not s.has_method("has") or not (s.has("chilled") or s.has("frozen")):
 			continue
 		n += 1
-		var p: Vector2 = _body(e)[0]
-		# Chilled: small bright snowflakes drifting down off the body and trailing away (playtest).
-		if randf() < 0.14 * dt * 60.0:
-			vfx.elements.flake(p.x + (randf() - 0.5) * 5.0, p.y - 2.0 + randf() * 3.0, (randf() - 0.5) * 4.0, 3.0 + randf() * 3.0, 0.7 + randf() * 0.3, 1 if randf() < 0.2 else 0, 4.0)
+		var body := _body(e)
+		var p: Vector2 = body[0]
+		var h: float = body[1]
+		if randf() < (0.025 if vfx.reduced_effects else 0.055) * dt * 60.0:
+			var side := -1.0 if randf() < 0.5 else 1.0
+			vfx.elements.flake(p.x + side * (h + 1.5), p.y - h * 0.5, side * 1.5, 3.0 + randf() * 3.0, 0.5 + randf() * 0.25, 0, 4.0)
 
 static func _in_disk(x: float, y: float, r: float) -> Vector2:
 	var a := randf() * TAU
@@ -1798,7 +1800,18 @@ func _draw_trap(buf: PackedByteArray, part, st: Dictionary) -> void:
 		var a := TAU * i / steps
 		var pair: Array = cols[0] if cos(a) <= 0.0 else cols[1]
 		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), pair[0] if armed and ((i + (frame >> 2)) % 4 != 0) else pair[1])
-	el.draw_glyph(buf, c.x, c.y, 3, (cols[0][0] if (frame >> 2) & 1 else cols[1][1]) if armed else cols[0][1])
+	if str(part.cast.plan.get("id", "")) == "frost_sigil":
+		var frost_color: Color = AREA_COL.ice[0] if armed else AREA_COL.ice[1]
+		var spoke_radius := minf(r * 0.55, 5.0) * k
+		for i in 6:
+			var axis := Vector2.from_angle(float(i) * TAU / 6.0 - PI / 2.0)
+			var tip := c + axis * spoke_radius
+			el.line(buf, c, tip, frost_color)
+			for side in [-1.0, 1.0]:
+				var fork := c + axis * spoke_radius * 0.55
+				el.line(buf, fork, fork + axis.rotated(side * PI / 3.0) * spoke_radius * 0.4, frost_color)
+	else:
+		el.draw_glyph(buf, c.x, c.y, 3, (cols[0][0] if (frame >> 2) & 1 else cols[1][1]) if armed else cols[0][1])
 
 ## Vulnerable (arcane status): rising sparks and a blinking glyph overhead.
 func _vulnerable(dt: float) -> void:

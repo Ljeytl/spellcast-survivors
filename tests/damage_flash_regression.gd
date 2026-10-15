@@ -40,6 +40,9 @@ func red_pixels(image: Image, center: Vector2):
 	return count
 
 func run():
+	if not root.is_node_ready():
+		await root.ready
+	await process_frame
 	root.get_node("AudioManager").quitting = true
 	root.set_flag(Window.FLAG_NO_FOCUS, true)
 	root.position = Vector2i(5000, 5000)
@@ -113,6 +116,8 @@ func run():
 		enemy_sprite.modulate = slow_color
 	player_flash.advance(0.06)
 	enemy_flash.advance(0.06)
+	check(enemy_flash.self_modulate.a < 0.8 * enemy_sprite.self_modulate.a, "Enemy flash reveals silhouette before expiry")
+	check(is_equal_approx(player_flash.self_modulate.a, 0.9 * player_sprite.self_modulate.a), "Player damage cue keeps its original intensity")
 	player.take_damage(1)
 	enemy.take_damage(1)
 	check(player_sprite.get_node("DamageFlash") == player_flash and enemy_sprite.get_node("DamageFlash") == enemy_flash, "Repeated hits reuse one overlay per actor")
