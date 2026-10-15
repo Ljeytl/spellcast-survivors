@@ -81,9 +81,11 @@ func run():
 	var ball = Elites.cast(fiery, data.words.fiery.cast, player)
 	check(ball != null and ball.target_group == "player", "a monster's spell targets the player")
 	ball.manual = true
+	ball.step(0.5)
+	check(ball.root_parts().is_empty(), "FIERY charges before anything appears")
 	ball.step(0.8)
 	check(is_equal_approx(player.health, before), "the meteor's warning comes before it lands")
-	for i in 120:
+	for i in 150:
 		ball.step(1.0 / 60.0)
 	check(player.health < before, "FIERY's meteor lands on you (%s -> %s)" % [before, player.health])
 	check(player.has_status("burn"), "and sets you on fire")
@@ -96,8 +98,10 @@ func run():
 	var strike = Elites.cast(shocking, data.words.shocking.cast, player)
 	strike.manual = true
 	strike.step(0.5)
+	check(strike.root_parts().is_empty(), "SHOCKING charges before its mark appears")
+	strike.step(0.8)
 	check(is_equal_approx(player.health, before), "SHOCKING warns before it strikes")
-	for i in 60:
+	for i in 120:
 		strike.step(1.0 / 60.0)
 	check(player.health < before and player.has_status("shocked"), "then the strike lands and shocks you")
 	player.statuses.clear()
@@ -135,6 +139,8 @@ func run():
 	var elites_casts = Elites.build(["fiery", "quick"], "Charger")
 	check(elites_casts.casts.size() == 1 and elites_casts.contact_statuses == ["burn"], "words carry their casts and contact statuses")
 	player.statuses.clear()
+	for id in ["fiery", "icy", "shocking"]:
+		check(float(data.words[id].cast.get("windup", 0.0)) >= 0.5, "%s charges up before casting" % id.to_upper())
 	for e in get_nodes_in_group("generic_casts"):
 		e.queue_free()
 
