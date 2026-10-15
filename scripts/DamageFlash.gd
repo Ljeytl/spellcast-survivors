@@ -3,9 +3,11 @@ extends Sprite2D
 const DURATION = 0.1
 static var masks: Dictionary = {}
 var remaining = 0.0
+var lifetime = DURATION
+var fade_out = false
 var source: Sprite2D
 
-static func trigger(target: Sprite2D, duration: float = DURATION):
+static func trigger(target: Sprite2D, duration: float = DURATION, fade: bool = false):
 	if not is_instance_valid(target) or target.texture == null:
 		return null
 	var flash = target.get_node_or_null("DamageFlash")
@@ -15,6 +17,8 @@ static func trigger(target: Sprite2D, duration: float = DURATION):
 		flash.source = target
 		target.add_child(flash)
 	flash.remaining = duration
+	flash.lifetime = duration
+	flash.fade_out = fade
 	flash.visible = true
 	flash.sync_sprite()
 	return flash
@@ -39,7 +43,8 @@ func sync_sprite():
 				image.set_pixel(x, y, Color(1, 1, 1, image.get_pixel(x, y).a))
 		masks[source.texture] = ImageTexture.create_from_image(image)
 	texture = masks[source.texture]
-	self_modulate.a = 0.9 * source.self_modulate.a
+	var fade_alpha = minf(1.0, remaining / maxf(0.001, lifetime * 0.75)) if fade_out else 1.0
+	self_modulate.a = 0.9 * source.self_modulate.a * fade_alpha
 	hframes = source.hframes
 	vframes = source.vframes
 	frame = source.frame

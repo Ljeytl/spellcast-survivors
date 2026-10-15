@@ -490,7 +490,7 @@ func update_health_bar():
 func flash_damage():
 	var visual = $Sprite2D
 	if visual:
-		preload("res://scripts/DamageFlash.gd").trigger(visual, 0.14)
+		preload("res://scripts/DamageFlash.gd").trigger(visual, 0.14, true)
 
 func die():
 	if dying:

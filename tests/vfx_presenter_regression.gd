@@ -203,6 +203,45 @@ func run():
 			shown = shown or not vfx.elements.slashes.is_empty()
 		check(shown, "Bare %s is presented (arcane look), no placeholder art" % spell)
 
+	clear()
+	var chilled = foe(Vector2.ZERO)
+	chilled.apply_effect({"type": "status", "status": "chilled", "stacks": 1, "duration": 5.0})
+	var cold_counts: Array = []
+	for reduced in [false, true]:
+		vfx.reduced_effects = reduced
+		vfx.elements.flakes.clear()
+		seed(42)
+		for i in 600:
+			vfx.presenter._chilled(DT)
+		cold_counts.append(vfx.elements.flakes.size())
+		var off_body = not vfx.elements.flakes.is_empty()
+		for flake in vfx.elements.flakes:
+			off_body = off_body and absf(float(flake[0])) > 3.0 and int(flake[6]) == 0
+		check(off_body, "Cold status emits small flakes beside the body")
+	check(cold_counts[1] > 0 and cold_counts[1] < cold_counts[0], "Reduced effects lowers cold status emission without hiding the cue")
+	vfx.reduced_effects = false
+
+	clear()
+	c = cast("trap", 0.0)
+	var trap = c.parts[0]
+	trap.armed = true
+	trap.age = 1.0
+	var neutral = {"cols": [[Color.WHITE, Color.WHITE], [Color.WHITE, Color.WHITE]]}
+	var rune_pixels = PackedByteArray()
+	rune_pixels.resize(vfx._size.x * vfx._size.y * 4)
+	vfx.presenter._draw_trap(rune_pixels, trap, neutral)
+	c.plan.id = "frost_sigil"
+	var frost_pixels = PackedByteArray()
+	frost_pixels.resize(rune_pixels.size())
+	vfx.presenter._draw_trap(frost_pixels, trap, neutral)
+	var rune_shape: Array = []
+	var frost_shape: Array = []
+	for i in range(3, rune_pixels.size(), 4):
+		rune_shape.append(rune_pixels[i] > 0)
+		frost_shape.append(frost_pixels[i] > 0)
+	check(rune_shape.has(true) and frost_shape.has(true), "Both armed trap identities render visible pixels")
+	check(rune_shape != frost_shape, "Frost Sigil differs from Rune Trap by silhouette, not just colour")
+
 	# Keyword visuals (plan 5.2) and reactions (plan 5.3).
 	clear()
 	foe(Vector2(120, 0))
