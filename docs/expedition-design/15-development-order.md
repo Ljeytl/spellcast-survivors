@@ -109,3 +109,7 @@ The preserved Disruptor boss idea scrambles incantations while retaining their l
 Each implementation increment keeps the game playable, uses isolated work, updates the changelog and version for its shipped build, receives review, and cleans up its worktree after merge. Record exact-candidate test evidence and distinguish completed, failed, blocked and untested journeys. Do not infer balance from equal damage or incantation length alone: short emergency magic and longer committed casts serve different purposes.
 
 This is a development sequence, not a schedule for when a player unlocks vocabulary. Acquisition is designed with the expedition challenges. Historical draft numbers and realm content are retained in the [dated archive](archive/2026-10-14/README.md), not parallel current requirements.
+
+### Painted spell expression study — 0.3.2-dev.4
+
+Extend the approved paintbrush direction beyond spirit images into moving Steam volume, fire Bolt strokes and Arcane Slash gestures. Preserve gameplay and meteor cadence. Review native/accent identities, true size, reduced effects, pause and cleanup; then refine impact and sound coherence and evaluate other spells individually. Full-roster beauty, crowded-play readability and performance remain open qualification work.

@@ -1,6 +1,6 @@
 # VFX system plan: every spell, every element, every keyword
 
-Status: proposed plan, 9 October 2026. Documentation only. It changes no spell rules, numbers, or runtime until a build phase below is approved.
+Status: implementation and visual-design reference, updated 15 October 2026. The fantasy-first art direction below supersedes the original universal pixel-grid restriction. Later technical sections retain the original raster plan as context; consult the event contract and current code for implemented behavior.
 
 Sources: `data/spells/` (one file per spell), `docs/expedition-design/03-spells.md`, `04-composition.md`, `08-art-feedback.md`, `16-element-family-matrix.md`, `17-element-spell-ideas.md`. Spell statuses follow those documents: listing a proposed spell here specifies how it would look if selected. It does not approve the spell.
 
@@ -10,24 +10,15 @@ Port plan: `docs/VFX_PORT_BRIEF.md` (milestones 0–3). Where this plan and the 
 
 ---
 
-## Art direction decision — chunky magic (locked 9 October 2026)
+## Art direction — spell fantasy first (updated 15 October 2026)
 
-**Spell VFX are deliberately drawn on a coarser pixel grid than the world art.** This is intentional: magic reads as its own substance and pops off the background. It is not a resolution bug and must not be "fixed" by redrawing effects at sprite density.
+Spell presentation includes art, motion, timing, sound, feedback and the relationship between visible action and gameplay output. The goal is a spell players want to cast and build around. Existing implementations are hypotheses, not artistic requirements.
 
-| Layer | Grid at 1920×1080 | Screen pixels per grid pixel | Contents |
-|---|---|---|---|
-| World art | 640×360 | 3 | wizard (27×35 art px), enemies, terrain, props |
-| VFX ("chunky magic") | **160×90** | **12** (= 4 art pixels) | every spell effect, status effect, impact, field, decal |
-| UI | native | 1 | text, HUD, menus |
+The earlier universal coarse-pixel restriction is superseded. Preserve the world art; choose rendering resolution and technique to express each spell. Painted translucency, flowing strokes and smooth deformation are valid alongside the existing raster effects. The spirit comparison established a promising painted direction, not a requirement to give every spell the same silhouette or material.
 
-Rules that keep the mix looking intentional:
+The first broader study is Steam (rolling translucent volume), fire Bolts (a hot head pulling a curling stroke), and Arcane Slash (a decisive calligraphic sweep). Judge formation, travel or sustain, contact and disappearance in motion at gameplay size. Keep spell geometry, accessibility settings and dense-combat readability truthful. Do not equate implementation or passing regression tests with artistic acceptance.
 
-1. **Camera zoom must give integer art scaling.** Sprite scale 2 × camera zoom **1.5** = 3 screen px per art px. The current `CAMERA_ZOOM = 1.3875` (2.775 px per art px) renders uneven pixels and must change to 1.5.
-2. **Every VFX pixel lands on the 160×90 grid**, aligned to the art grid (1 VFX px = exactly 4×4 art px). Effects render into a 160×90 `SubViewport` and are nearest-upscaled ×12.
-3. **No off-grid transforms on effects.** Rotation, scaling and sub-pixel motion happen in simulation; the result is rasterized to the grid. Never rotate or scale an effect texture with filtering.
-4. **The world never goes chunky.** Sprites, terrain and UI stay on their own grids, so the contrast is always clean.
-5. **One shared VFX palette**, distinct from the world palette.
-6. **Composition is already correct.** The reference sandbox (`tools/vfx-reference/spell_vfx_sandbox.html`, 192×108) frames the wizard at the same share of the screen as the game. Porting is a uniform rescale of 160/192 ≈ 0.83 on positions, radii and speeds; particle pixel sizes stay as authored.
+The remaining renderer specifications below describe the original raster system and reusable ideas. They do not mandate pixelation for new effects. Existing staggered Meteor falls and repeated shakes are intentionally preserved.
 
 ## Reference sandbox status
 

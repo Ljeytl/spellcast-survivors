@@ -43,6 +43,9 @@ func _ready():
 	for id in preload("res://scripts/SynergyCatalog.gd").RECIPES:
 		if preload("res://scripts/SynergyCatalog.gd").RECIPES[id].get("enabled", true):
 			order.append(id)
+	for bare in preload("res://scripts/engine/SpellDefs.gd").bare_incantations():
+		if not order.has(bare):
+			order.append(bare)
 	if OS.has_feature("web"):
 		var form = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('form') || 'auto'"))
 		if form in ["auto", "ghost", "wisp"]:
@@ -103,13 +106,17 @@ func _cast(id: String):
 		for ingredient in recipes[id].ingredients:
 			manager.learn_spell(ingredient)
 			manager.get_spell_info(manager.find_spell_slot(ingredient)).level = manager.COMBINATION_RANK
+	if preload("res://scripts/engine/SpellDefs.gd").bare_incantations().has(id):
+		manager.last_spell_cast_time = -1e9
+		manager.cast_keyword_spell((("mega " if mega and not "mega" in words.split(" ") else "") + words + " " + id).strip_edges())
+		return
 	manager.learn_spell(id)
 	var slot = manager.find_spell_slot(id)
 	if slot < 0:
 		return
 	if words != "":
 		manager.last_spell_cast_time = -1e9
-		manager.cast_keyword_spell(words + " " + str(manager.get_spell_info(slot).display_name).to_lower())
+		manager.cast_keyword_spell(("mega " if mega and not "mega" in words.split(" ") else "") + words + " " + str(manager.get_spell_info(slot).display_name).to_lower())
 	else:
 		manager.cast_spell_by_type(slot, 1.5 if mega else 1.0)
 	if id == "earth_shield":

@@ -313,6 +313,13 @@ func part_spawned(part) -> void:
 				var spirit = preload("res://scripts/vfx/SpiritVisual.gd").new()
 				part.add_child(spirit)
 				st.spirit = spirit
+			elif st.family == "bolt" and (look.native == "fire" or (look.native == "arcane" and look.accent == "fire")):
+				var stroke = preload("res://scripts/vfx/PaintedSpell.gd").new()
+				stroke.setup(false, float(part.geo("radius", 10.0)))
+				if look.native != "fire":
+					stroke.material.set_shader_parameter("core_color", BODY[look.native][1])
+				part.add_child(stroke)
+				st.painted = stroke
 		"burst":
 			var r_su: float = part.geo("radius", 90.0) / WPS
 			# the accent owns the impact (plan 5.1); an arcane base adds its glyph flourish
@@ -647,11 +654,13 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	var dist := pos.distance_to(st.last)
 	var native: String = st.look.native
 	var accent: String = st.look.accent
-	if native == "fire":
+	if native == "fire" and not st.has("painted"):
 		_fire_body(part, st, pos, vel, dt)
 		_emit_trail(part, st, "acc", FAMILY[st.family].trail, pos, vel, dist, dt)
-	elif accent == "fire":
+	elif accent == "fire" and not st.has("painted"):
 		_emit_trail(part, st, "acc", ACCENT_TRAIL, pos, vel, dist, dt)
+	if st.has("painted") and randf() < dt * (3.0 if vfx.reduced_effects else 8.0):
+		vfx.ember(pos.x, pos.y, -vel.x * 0.12, -vel.y * 0.12 - 5.0, 0.25)
 	if native == "ice" or accent == "ice":
 		_ice_trail(pos, vel, dt, 0.3 if st.family == "shard" else 1.0)
 	if native == "lightning" or accent == "lightning":
@@ -743,8 +752,9 @@ func _heavy_landing(p: Vector2, r: float, el: String, w: float, area: Array = []
 		area = [one, one]
 	_hit_rings.append([p.x, p.y, r, 0.0, 0.35, area])
 	var snd: String = LANDING_SOUND.get(el, "SPELL_IMPACT_FIRE")
-	if vfx.get_node_or_null("/root/AudioManager") != null:
-		AudioManager.play_sound(AudioManager.SoundType.get(snd, AudioManager.SoundType.SPELL_IMPACT_FIRE))
+	var audio = vfx.get_node_or_null("/root/AudioManager")
+	if audio != null:
+		audio.play_sound(audio.SoundType.get(snd, audio.SoundType.SPELL_IMPACT_FIRE))
 
 ## Meteor crater: rocks and hot grit popping up out of the ground, smoke drifting off it.
 func _rubble(f: Dictionary, dt: float) -> void:
@@ -1728,7 +1738,19 @@ func _slash(part, look: Dictionary, pos: Vector2) -> void:
 		_emit_at(key, x, y, fx, fy)
 		if acc != "" and randf() < 0.5:
 			_emit_at(acc, x, y, fx, fy)
-	vfx.elements.slash(pos.x, pos.y, mid - span * 0.5 * _flip, span, _flip, R * 0.3, R, SMEAR[key], emit)
+	if key == "arcane":
+		var stroke = preload("res://scripts/vfx/PaintedSpell.gd").new()
+		stroke.setup(true, R * WPS, span, _flip)
+		vfx.add_child(stroke)
+		stroke.global_position = part.global_position
+		stroke.rotation = mid
+		for i in 5:
+			var angle := mid + span * (float(i) / 4.0 - 0.5)
+			var at := pos + Vector2.from_angle(angle) * R
+			if acc != "":
+				_emit_at(acc, at.x, at.y, cos(angle), sin(angle))
+	else:
+		vfx.elements.slash(pos.x, pos.y, mid - span * 0.5 * _flip, span, _flip, R * 0.3, R, SMEAR[key], emit)
 
 ## Per-element emission along a moving edge (sandbox emitAt).
 func _emit_at(el_name: String, x: float, y: float, fx: float, fy: float) -> void:
@@ -2256,7 +2278,7 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		var pos: Vector2 = part.global_position / WPS
 		var d: Vector2 = pos - st.last
 		var dir: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
-		if st.family == "ghost":
+		if st.family == "ghost" or st.has("painted"):
 			continue
 		if st.family == "blade":
 			_draw_blade(buf, pos, part)
