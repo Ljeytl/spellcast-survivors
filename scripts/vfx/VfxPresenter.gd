@@ -393,13 +393,14 @@ func part_spawned(part) -> void:
 					line_o.style = 2
 				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, line_o)
 			elif str(part.def.get("vfx", {}).get("style", "")) == "steam":
-				# Steam Field: grey condensation footprint with rising white vapor.
+				# Steam Field: connected rolling vapor above the active area.
 				var sr: float = part.geo("radius", 60.0) / WPS
-				# Pale rim follows the damage radius beneath the vapor.
-				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.0, "look": vfx.field_look("steam")})
+				st.field = {"x": pos.x, "y": pos.y, "r": sr, "age": 0.0, "life": life + 0.5}
 				st.steam = true
-				st.steam_acc = 0.0
-				_steam_cloud(st.field, true)
+				st.cloud = preload("res://scripts/vfx/SteamCloud.gd").new()
+				st.cloud.setup(sr * WPS, life, vfx.reduced_effects)
+				vfx.add_child(st.cloud)
+				st.cloud.global_position = part.global_position + Vector2(0, -sr * WPS * 0.25)
 			elif str(part.def.get("vfx", {}).get("style", "")) == "rubble":
 				# Meteor crater: cracked, charred ground with low fire, rocks kicked up while it burns.
 				var cr: float = part.geo("radius", 60.0) / WPS
@@ -495,6 +496,8 @@ func part_finished(part, natural: bool) -> void:
 	if st == null:
 		return
 	_parts.erase(id)
+	if is_instance_valid(st.get("cloud")):
+		st.cloud.finish()
 	match st.kind:
 		"projectile":
 			if natural and part.def.get("events", {}).is_empty():
@@ -534,6 +537,8 @@ func step(dt: float) -> void:
 			"field":
 				st.field.x = pos.x
 				st.field.y = pos.y
+				if is_instance_valid(st.get("cloud")):
+					st.cloud.global_position = part.global_position + Vector2(0, -float(st.field.r) * WPS * 0.25)
 				if part.geo_type() == "line":
 					# Lines can grow (a spear's burning trail follows the spear): keep the axis on the hitbox.
 					var hw: float = part.geo("width", 30.0) * 0.5
@@ -552,18 +557,13 @@ func step(dt: float) -> void:
 					_plague_field(st.field, dt)
 				elif st.look.native == "earth":
 					_earth_field(st.field, dt)
-				if st.look.accent != "":
+				if st.look.accent != "" and not st.get("steam", false):
 					_accent_field(st.look.accent, st.field, dt)
 					_steam_if(st.look, _in_disk(st.field.x, st.field.y, st.field.r), dt)
 				_field_force(part.cast.plan, st.field, st.look.accent if st.look.accent != "" else st.look.native, dt)
 				if st.get("rubble", false):
 					_rubble(st.field, dt)
-				if st.get("steam", false):
-					st.steam_acc += dt
-					var interval := 0.60 if vfx.reduced_effects else 0.40
-					if st.steam_acc >= interval:
-						st.steam_acc = fmod(st.steam_acc, interval)
-						_steam_cloud(st.field, false)
+
 			"wave":
 				_water_wave(part, st, dt)
 			"meteor":
@@ -1013,17 +1013,6 @@ func _ice_contact(x: float, y: float) -> void:
 	for i in 6:
 		el.mote(x, y, (randf() - 0.5) * 30.0, (randf() - 0.5) * 20.0, ICE.mote, 0.5, 6.0, 3.0)
 	vfx.flash(x, y, 1.5, 0.04, ICE.body[0])
-
-func _steam_cloud(field: Dictionary, initial: bool) -> void:
-	var center := Vector2(field.x, field.y)
-	var radius: float = field.r
-	var count := 3 if vfx.reduced_effects else 5
-	for i in count:
-		var angle := TAU * float(i) / float(count - 1)
-		var vent := center if i == count - 1 else center + Vector2(cos(angle), sin(angle)) * radius * 0.52
-		vent += Vector2(sin(vfx._t * 2.0 + i), cos(vfx._t * 1.5 + i)) * radius * 0.08
-		var size := radius * (0.44 if initial else 0.34)
-		vfx.elements.mist(vent.x, vent.y, sin(vfx._t + i) * 5.0, -22.0 - float(i % 3) * 5.0, size, radius * 0.4, 1.35 + randf() * 0.15)
 
 ## Rime field: crystals snap up and shatter, motes drift.
 func _ice_field(A: Dictionary, dt: float) -> void:
