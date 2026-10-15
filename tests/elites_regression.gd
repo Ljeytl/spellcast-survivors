@@ -1,7 +1,7 @@
 extends SceneTree
 ## 0.3.3 elites: a monster plus words from data/elites.json. Each word changes what it says; patrols
 ## arrive on schedule with escorts and roll more words later; ley waves after the first are led by an
-## elite; LEECHING heals on contact; the elite shows its words and keeps its own behaviour.
+## elite; killing the last of an elite group drops its reward; LEECHING heals on contact; the elite shows its words and keeps its own behaviour.
 
 const Elites = preload("res://scripts/Elites.gd")
 
@@ -81,9 +81,11 @@ func run():
 	var ball = Elites.cast(fiery, data.words.fiery.cast, player)
 	check(ball != null and ball.target_group == "player", "a monster's spell targets the player")
 	ball.manual = true
+	ball.step(0.5)
+	check(ball.root_parts().is_empty(), "FIERY charges before anything appears")
 	ball.step(0.8)
 	check(is_equal_approx(player.health, before), "the meteor's warning comes before it lands")
-	for i in 120:
+	for i in 150:
 		ball.step(1.0 / 60.0)
 	check(player.health < before, "FIERY's meteor lands on you (%s -> %s)" % [before, player.health])
 	check(player.has_status("burn"), "and sets you on fire")
@@ -96,8 +98,10 @@ func run():
 	var strike = Elites.cast(shocking, data.words.shocking.cast, player)
 	strike.manual = true
 	strike.step(0.5)
+	check(strike.root_parts().is_empty(), "SHOCKING charges before its mark appears")
+	strike.step(0.8)
 	check(is_equal_approx(player.health, before), "SHOCKING warns before it strikes")
-	for i in 60:
+	for i in 120:
 		strike.step(1.0 / 60.0)
 	check(player.health < before and player.has_status("shocked"), "then the strike lands and shocks you")
 	player.statuses.clear()
@@ -135,6 +139,8 @@ func run():
 	var elites_casts = Elites.build(["fiery", "quick"], "Charger")
 	check(elites_casts.casts.size() == 1 and elites_casts.contact_statuses == ["burn"], "words carry their casts and contact statuses")
 	player.statuses.clear()
+	for id in ["fiery", "icy", "shocking"]:
+		check(float(data.words[id].cast.get("windup", 0.0)) >= 0.5, "%s charges up before casting" % id.to_upper())
 	for e in get_nodes_in_group("generic_casts"):
 		e.queue_free()
 
@@ -152,6 +158,18 @@ func run():
 	var patrol_size = get_nodes_in_group("enemies").size()
 	check(patrol_size == 1 + int(data.patrols.escorts), "elite plus escorts (%d)" % patrol_size)
 	check(monsters.check_elite_patrol() == null, "one patrol per interval")
+	# Clearing the whole patrol drops the group reward, once, where the last one fell.
+	var group: Array = get_nodes_in_group("enemies").filter(func(e): return e.has_meta("elite_group"))
+	check(group.size() == patrol_size, "the whole patrol is one group")
+	var potions_before = get_nodes_in_group("health_potions").size()
+	for m in group.slice(0, group.size() - 1):
+		monsters._on_monster_died(m)
+	await process_frame
+	check(get_nodes_in_group("health_potions").size() == potions_before, "no reward while any of the group stands")
+	monsters._on_monster_died(group[-1])
+	await process_frame
+	check(get_nodes_in_group("health_potions").size() == potions_before + int(data.group_reward.health_potions), "killing the last of the group drops its reward")
+	check(monsters.elite_groups.is_empty(), "the group is done")
 	monsters.game_time = float(data.patrols.until) - 1.0
 	monsters.next_patrol = monsters.game_time
 	var later = monsters.check_elite_patrol()
@@ -168,6 +186,7 @@ func run():
 		check(not site.wave_members.any(func(m): return is_instance_valid(m) and m.is_in_group("elites")), "the opening ley wave has no elite")
 		ley.summon_wave(site)
 		check(site.wave_members.size() > 0 and site.wave_members[0].is_in_group("elites"), "later ley waves are led by an elite")
+		check(site.wave_members.all(func(m): return m.has_meta("elite_group")), "an elite-led ley wave is one group (cleared together)")
 	else:
 		check(true, "no ley sites in this scene (skipped)")
 	print("elites: %d checks, %d failures" % [checks, failures])

@@ -127,6 +127,10 @@ func run():
 	manager.spells[meteor_slot].level = 1
 	manager.acquired_spells["meteor_shower"] = true
 	foe.queue_free()
+	# Earlier casts (rune traps, fiery grounds, bolts in flight) run in real time; under a loaded
+	# parallel run they could reach the crowd before the meteors do. Clear them first.
+	for n in get_nodes_in_group("generic_casts") + get_nodes_in_group("engine_projectiles"):
+		n.queue_free()
 	await process_frame
 	var crowd = [dummy(game, start + Vector2(160, 40)), dummy(game, start + Vector2(260, -40))]
 	check(manager.cast_freeform_spell("meteor shower"), "Meteor Shower casts")

@@ -220,8 +220,13 @@ func cast_queued(cast) -> void:
 		return
 	var first: float = float(cast.pending[0].at)
 	if first > 0.05:
-		_charges.append({"caster": weakref(cast.caster), "age": 0.0, "dur": first,
-			"key": look.accent if look.accent != "" else look.native, "big": cast.plan.get("flags", {}).has("charged")})
+		var key: String = look.accent if look.accent != "" else look.native
+		var hostile := str(cast.get("target_group")) == "player"
+		var hp: Array = hostile_cols(cast.plan) if hostile else []
+		# A monster's charge glows in its hostile colour, like its telegraph.
+		_charges.append({"caster": weakref(cast.caster), "age": 0.0, "dur": first, "key": key,
+			"big": cast.plan.get("flags", {}).has("charged") or hostile,
+			"pal": [Color.WHITE, hp[0], hp[1]] if hostile else SPARK[key]})
 
 func cast_started(cast) -> void:
 	if not enabled or cast == null or not is_instance_valid(cast.caster):
@@ -808,14 +813,17 @@ func _area_cols(part) -> Array:
 	return [a, b]
 
 ## A dashed ring, left half in one element's colours and right half in the other's.
-func _split_ring(buf: PackedByteArray, c: Vector2, r: float, cols: Array, hot: bool, density: float = 1.2) -> void:
+## `sweep` < 1 draws only that fraction of it, clockwise from the top (a ring being drawn).
+func _split_ring(buf: PackedByteArray, c: Vector2, r: float, cols: Array, hot: bool, density: float = 1.2, sweep: float = 1.0) -> void:
 	var el = vfx.elements
 	var steps := ceili(TAU * r * density)
 	var frame: int = vfx._steps
 	for i in steps:
 		if ((i + (frame >> 2)) & 3) == 0:
 			continue
-		var a := TAU * i / steps
+		if sweep < 1.0 and float(i) / steps > sweep:
+			break
+		var a := TAU * i / steps - (PI * 0.5 if sweep < 1.0 else 0.0)
 		var pair: Array = cols[0] if cos(a) <= 0.0 else cols[1]
 		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), pair[0] if hot or (i & 1) == 0 else pair[1])
 
@@ -874,16 +882,9 @@ func _draw_warn(buf: PackedByteArray, c: Vector2, st: Dictionary) -> void:
 		st.cols = _area_cols(wp)
 	var cols: Array = st.cols
 	if is_hostile(wp):
-		# Hostile: denser and always hot, a second rim once it is about to land, and a pip on the
-		# exact centre, so you know it is coming for you and where.
-		_split_ring(buf, c, r, cols, true, 1.8)
-		if k >= 0.6:
-			_split_ring(buf, c, r + 0.6, cols, (vfx._steps & 2) == 0, 1.8)
-		var pip: Color = cols[0][1] if (vfx._steps & 4) else cols[0][0]
-		for d in [Vector2.ZERO, Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
-			el.spx(buf, roundi(c.x + d.x), roundi(c.y + d.y), pip)
-	else:
-		_split_ring(buf, c, r, cols, k >= 0.6)
+		_hostile_ring(buf, c, r, cols, k)
+		return
+	_split_ring(buf, c, r, cols, k >= 0.6)
 	var inner := r * k
 	if inner > 1.0:
 		var steps := ceili(TAU * inner * 0.6)
@@ -891,6 +892,34 @@ func _draw_warn(buf: PackedByteArray, c: Vector2, st: Dictionary) -> void:
 			var a := TAU * i / steps
 			var pair: Array = cols[0] if cos(a) <= 0.0 else cols[1]
 			el.spx(buf, roundi(c.x + cos(a) * inner), roundi(c.y + sin(a) * inner), pair[1] if k < 0.75 else pair[0])
+
+## A monster's telegraph, in three beats over its life k (0..1): the rim is drawn around the area
+## like a spell being inscribed (to HOSTILE_DRAW), then a ring swells from the centre to the rim, and
+## in the last beat the rim doubles and flashes before the blast. A pip marks the exact centre.
+const HOSTILE_DRAW := 0.35
+func _hostile_ring(buf: PackedByteArray, c: Vector2, r: float, cols: Array, k: float) -> void:
+	var el = vfx.elements
+	var sweep := clampf(k / HOSTILE_DRAW, 0.0, 1.0)
+	_split_ring(buf, c, r, cols, true, 1.8, sweep)
+	if sweep < 1.0:
+		var tip := TAU * sweep - PI * 0.5
+		var at := c + Vector2(cos(tip), sin(tip)) * r
+		el.spx(buf, roundi(at.x), roundi(at.y), Color.WHITE)
+		if randf() < 0.5:
+			vfx.spark(at.x, at.y, (randf() - 0.5) * 16.0, (randf() - 0.5) * 16.0, 0.18, [cols[0][0], cols[0][1], cols[0][1]])
+	else:
+		var grow := clampf((k - HOSTILE_DRAW) / (1.0 - HOSTILE_DRAW), 0.0, 1.0)
+		var inner := r * grow * grow * (3.0 - 2.0 * grow)
+		if inner > 1.0:
+			var steps := ceili(TAU * inner * 0.7)
+			for i in steps:
+				var a := TAU * i / steps
+				el.spx(buf, roundi(c.x + cos(a) * inner), roundi(c.y + sin(a) * inner), cols[0][1] if grow < 0.7 else cols[0][0])
+		if k >= 0.8:
+			_split_ring(buf, c, r + 0.7, cols, (vfx._steps & 2) == 0, 1.8)
+	var pip: Color = cols[0][1] if (vfx._steps & 4) else cols[0][0]
+	for d in [Vector2.ZERO, Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+		el.spx(buf, roundi(c.x + d.x), roundi(c.y + d.y), pip)
 
 ## An enemy's body in su: centre and half-height, so status effects sit ON it, not above it.
 func _body(e) -> Array:
@@ -2068,7 +2097,7 @@ func _step_charges(dt: float) -> void:
 			var a := randf() * TAU
 			var r := (10.0 if c.big else 7.0) + randf() * 5.0
 			# gathering: sparks start out on a ring and fly into the staff
-			vfx.spark(at.x + cos(a) * r, at.y + sin(a) * r * 0.8, -cos(a) * r * 3.2, -sin(a) * r * 2.6, 0.3, SPARK[c.key])
+			vfx.spark(at.x + cos(a) * r, at.y + sin(a) * r * 0.8, -cos(a) * r * 3.2, -sin(a) * r * 2.6, 0.3, c.pal)
 	_charges = keep
 
 func draw_charges(buf: PackedByteArray) -> void:
@@ -2081,14 +2110,14 @@ func draw_charges(buf: PackedByteArray) -> void:
 		var k: float = clampf(c.age / c.dur, 0.0, 1.0)
 		var r: float = (2.0 + k * (9.0 if c.big else 6.0))
 		var steps := maxi(8, ceili(TAU * r * 1.2))
-		var col: Color = SPARK[c.key][0] if k > 0.8 and (vfx._steps & 2) else SPARK[c.key][1 if k > 0.5 else 2]
+		var col: Color = c.pal[0] if k > 0.8 and (vfx._steps & 2) else c.pal[1 if k > 0.5 else 2]
 		for i in steps:
 			if (i + (vfx._steps >> 2)) % 3 == 0:
 				continue
 			var a := TAU * i / steps
 			el.spx(buf, roundi(at.x + cos(a) * r), roundi(at.y + sin(a) * r * 0.8), col)
 		if c.big and k > 0.5:
-			el.draw_glyph(buf, at.x, at.y - r - 3.0, 3, SPARK[c.key][1])
+			el.draw_glyph(buf, at.x, at.y - r - 3.0, 3, c.pal[1])
 
 ## Blinking: a poof where the caster stood, a dotted streak, a flash on arrival.
 func _blink_fx(from: Vector2, to: Vector2, key: String) -> void:
@@ -2264,7 +2293,7 @@ func draw_bodies(buf: PackedByteArray) -> void:
 				# warning: the true radius, dashed and marching, brightening as the rock comes down
 				if is_hostile(mp):
 					var hp := hostile_cols(mp.cast.plan)
-					vfx.elements.draw_nova(buf, mc.x, mc.y, float(st.r), [hp[1], hp[0]] if k < 0.7 or (vfx._steps & 2) else [hp[0], hp[1]])
+					_hostile_ring(buf, mc, float(st.r), [hp, hp], clampf(float(st.age) / maxf(0.05, float(st.life)), 0.0, 1.0))
 				else:
 					vfx.elements.draw_nova(buf, mc.x, mc.y, float(st.r), METEOR_WARN if k < 0.7 else METEOR_WARN_HOT)
 				if float(st.age) >= float(st.life) - METEOR_FALL:
