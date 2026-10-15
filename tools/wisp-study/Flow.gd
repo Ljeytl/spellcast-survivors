@@ -62,7 +62,7 @@ func advance(dt: float, origin: Vector2, velocity: Vector2) -> void:
 			var distance := maxf(offset.length(), 1.0)
 			var tangent := Vector2(-offset.y, offset.x) / distance
 			var curl := Vector2(sin(p.position.y * 0.05 + phase * 2.0), cos(p.position.x * 0.04 - phase * 1.6))
-			var flow := tangent * 65.0 * exp(-distance / 70.0) + curl * (9.0 if reduced else 19.0) - heading * 22.0
+			var flow := tangent * 82.0 * exp(-distance / 70.0) + curl * (9.0 if reduced else 19.0) - heading * 22.0
 			if arrival_age >= 0.0:
 				flow += -offset * 7.0
 			p.velocity = p.velocity.lerp(flow, 1.0 - exp(-step * 3.0))
@@ -86,15 +86,16 @@ func _upload(velocity: Vector2) -> void:
 	var normal := Vector2(-heading.y, heading.x)
 	var stretch := clampf(velocity.length() / 180.0, 0.0, 0.6)
 	for i in range(8):
-		var angle := phase * (1.4 + i * 0.07) + i * TAU / 8.0
-		var pulse := 1.0 + sin(phase * 3.0 + i * 0.6) * 0.13
-		var local := (heading * cos(angle) * (5.0 + stretch * 5.0) + normal * sin(angle) * 4.5) * pulse * core_energy
-		cells.append(Vector4(local.x, local.y, (9.0 + sin(angle * 2.0 + phase) * 2.0) * maxf(core_energy, 0.01), 0.50 * core_energy))
+		var t := float(i) / 7.0
+		var bend := sin(phase * 2.1 - t * 3.5) * (2.0 + t * 5.0)
+		var local := (heading * (5.0 - t * (24.0 + stretch * 9.0)) + normal * bend) * core_energy
+		var radius := (4.0 + sin(t * PI) * 7.0) * (1.0 + sin(phase * 2.5 - t * 4.0) * 0.12)
+		cells.append(Vector4(local.x, local.y, radius * maxf(core_energy, 0.01), (0.32 + sin(t * PI) * 0.20) * core_energy))
 	for p in particles:
 		var t: float = p.age / p.life
 		var local: Vector2 = to_local(p.position)
 		var density := (1.0 - smoothstep(0.55, 1.0, t)) * 0.30
-		cells.append(Vector4(local.x, local.y, lerpf(15.0, 2.0, t), density))
+		cells.append(Vector4(local.x, local.y, lerpf(22.0, 2.0, t) * (1.0 + sin(phase * 2.0 - t * 5.0) * 0.14), density))
 	var count := cells.size()
 	while cells.size() < 80:
 		cells.append(Vector4.ZERO)

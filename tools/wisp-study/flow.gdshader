@@ -14,7 +14,7 @@ void vertex() {
 void fragment() {
 	vec2 p = point;
 	vec2 turbulence = vec2(sin(p.y * 0.13 - phase * 3.1) + sin(p.x * 0.09 + phase * 2.2), cos(p.x * 0.12 - phase * 2.5));
-	p += turbulence * 1.4;
+	p += turbulence * 0.8;
 	float core = 0.0;
 	float vapor = 0.0;
 	for (int i = 0; i < 80; i++) {
@@ -24,7 +24,7 @@ void fragment() {
 		if (i < 8) {
 			core += contribution;
 		} else {
-			vec4 next = i + 1 < cell_count ? cells[i + 1] : vec4(0.0, 0.0, 12.0, 0.30);
+			vec4 next = i + 1 < cell_count ? cells[i + 1] : vec4(0.0, 0.0, 18.0, 0.30);
 			vec2 segment = next.xy - cells[i].xy;
 			float along = clamp(dot(p - cells[i].xy, segment) / max(dot(segment, segment), 0.01), 0.0, 1.0);
 			vec2 center = mix(cells[i].xy, next.xy, along);
@@ -34,12 +34,12 @@ void fragment() {
 			vapor = max(vapor, ribbon);
 		}
 	}
-	float grain = sin(p.x * 0.48 + p.y * 0.21 - phase * 5.0) * sin(p.y * 0.32 + phase * 2.7);
+	float grain = sin(p.x * 0.18 + p.y * 0.11 - phase * 5.0) * sin(p.y * 0.13 + phase * 2.7);
 	core *= 1.0 + grain * 0.16;
 	vec3 mist = mix(vec3(0.13, 0.39, 0.55), vec3(0.37, 0.90, 0.81), smoothstep(0.02, 0.28, vapor));
 	mist *= 1.0 + grain * 0.12;
-	vec3 light = mix(vec3(0.46, 0.93, 0.84), vec3(1.0, 0.97, 0.77), smoothstep(0.35, 1.5, core));
+	vec3 light = mix(vec3(0.46, 0.93, 0.84), vec3(0.77, 1.0, 0.87), smoothstep(0.35, 1.2, core));
 	vec3 color = mix(mist, light, smoothstep(0.10, 0.70, core));
-	float alpha = max(smoothstep(0.025, 0.50, core) * 0.97, smoothstep(0.008, 0.28, vapor) * 0.85);
+	float alpha = max(smoothstep(0.025, 0.65, core) * 0.90, smoothstep(0.008, 0.28, vapor) * 0.85);
 	COLOR = vec4(color, alpha * energy);
 }

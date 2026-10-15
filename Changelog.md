@@ -4,6 +4,7 @@
 - Record rejection of both spirit-image approaches and the reasoning failure behind repeated revisions. Keep them unmerged and superseded; prove hover, acceleration, turns, stopping and arrival before gameplay integration.
 - Clarify the gate: C− minimum per column and B− arithmetic average (2.7); fantasy leads design choices. Historical audit verdicts remain incomplete.
 - Add an isolated `tools/wisp-study/Study.tscn` with a changing core, continuous advected material, hover/acceleration/turn/settle/arrival cycle, reduced-motion variant, pause and reset. It uses no spell illustration and does not change gameplay. Add 14 simulation/lifecycle checks.
+- Preserve the approved connected-motion direction; refine the isolated core into a bending shape with softer aqua light, a fuller breathing mantle and stronger hover circulation.
 - Visual review remains pending before connecting to Soul Bloom. Cross Blade, Atomic, audio and mixed-combat review remain outstanding.
 
 # 0.3.3 — Elites (15 October 2026)
