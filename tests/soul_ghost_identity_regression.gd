@@ -53,7 +53,7 @@ func run():
 	visual._process(0.0)
 	check(visual.soul and visual.healing and visual.radius == 22.0, "Soul has a substantial healing spirit renderer")
 	check(ghost.healing and ghost.heading.x < 0, "Hurt caster gets healing intent and return direction")
-	check(ghost.trail.size() == 1, "Moving spirit records its wake")
+	check(visual.wake.emitting and not visual.wake.local_coords, "Moving spirit emits a world-space wake")
 	player.health = 100
 	ghost._physics_process(0.05)
 	visual._process(0.05)
@@ -62,6 +62,8 @@ func run():
 	ghost.position = enemy.position - Vector2(10, 0)
 	ghost._physics_process(0.01)
 	check(enemy.current_health == 94.0 and ghost.is_queued_for_deletion(), "Hunting arrival still delivers one six-damage hit")
+	check(visual.released and visual.get_parent() == root, "Arrival preserves its visual after gameplay host retires")
+	check(not visual.wake.emitting, "Arrival stops creating wake particles")
 	check(vfx._rings.size() == 1 and vfx._stars.size() == 1, "Hunting arrival emits one ring and one core flash")
 	await process_frame
 	player.health = 50
@@ -72,18 +74,47 @@ func run():
 	ghost.set_physics_process(false)
 	ghost._physics_process(0.01)
 	check(player.health == 56.0 and ghost.is_queued_for_deletion(), "Healing arrival still delivers six health")
+	var healing_visual = get_nodes_in_group("spirit_remnants").back()
+	healing_visual._process(0.2)
+	check(healing_visual.sprite.modulate.a > 0.0, "Short-distance soul remains visible after immediate heal")
+	check(player.health == 56.0, "Visual continuation cannot heal again")
+	healing_visual._process(0.7)
+	check(healing_visual.is_queued_for_deletion(), "Remnant expires after its bounded lifetime")
 	check(vfx._rings.size() == 2 and vfx._stars.size() == 2, "Healing arrival emits one ring and one core flash")
 	await process_frame
 	ghost = GHOST.new()
 	ghost.player_ref = weakref(player)
 	root.add_child(ghost)
 	ghost.set_physics_process(false)
+	var expired_visual = ghost.get_child(0)
 	ghost._physics_process(4.0)
+	expired_visual._process(0.01)
+	check(expired_visual.sprite.modulate.a == 0.0, "Expired soul cannot reappear when the visual detaches")
 	check(vfx._rings.size() == 2 and vfx._stars.size() == 2, "Natural spirit expiry does not imitate a successful arrival")
 	await process_frame
 	vfx.clear()
+	await process_frame
 	check(get_nodes_in_group("spirit_visuals").is_empty(), "Spirit visuals disappear with their gameplay hosts")
 	check(vfx._rings.is_empty() and vfx._stars.is_empty(), "World reset clears spirit arrival effects")
+	for i in range(4):
+		var capped = GHOST.new()
+		capped.player_ref = weakref(player)
+		capped.position = Vector2(300, 100)
+		root.add_child(capped)
+		capped.set_physics_process(false)
+	check(get_nodes_in_group("soul_ghosts").filter(func(g): return not g.is_queued_for_deletion()).size() == 3, "Visual remnants do not consume active soul capacity")
+	check(get_nodes_in_group("spirit_remnants").size() == 1, "Cap retirement leaves one bounded visual remnant")
+	check(player.health == 56.0, "Cap retirement does not deliver healing")
+	var remnant = get_nodes_in_group("spirit_remnants")[0]
+	var before = remnant.release_age
+	paused = true
+	await create_timer(0.05, true).timeout
+	check(remnant.release_age == before, "Detached remnant respects game pause")
+	paused = false
+	for active in get_nodes_in_group("soul_ghosts"):
+		active.queue_free()
+	vfx.clear()
+	await process_frame
 	enemy.free()
 	player.free()
 	print("Soul spirit: %d checks, %d failures" % [checks, failures])

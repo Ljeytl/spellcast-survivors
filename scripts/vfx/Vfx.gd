@@ -234,6 +234,8 @@ func _set_visible(v: bool):
 
 ## Removes every effect. Called when the world changes (scene switch).
 func clear():
+	for remnant in get_tree().get_nodes_in_group("spirit_remnants"):
+		remnant.queue_free()
 	for child in get_children():
 		if child.is_in_group("steam_clouds"):
 			child.queue_free()

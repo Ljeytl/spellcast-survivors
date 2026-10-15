@@ -794,7 +794,7 @@ This order covers the current roster before promoting the future catalog into im
 
 ### A B requires evidence in play
 
-For each current spell, grade six columns: **fantasy**, **visual quality**, **motion and behavior**, **casting and impact**, **sound and camera**, and **readability**. Ending/cleanup belongs in motion and readability; enemy response belongs in casting/impact. Every column must be in the C band or higher (C− is acceptable), and the arithmetic mean must reach B (3.0). Use A+=4.3, A=4.0, A−=3.7, B+=3.3, B=3.0, B−=2.7, C+=2.3, C=2.0, C−=1.7, D+=1.3, D=1.0, D−=0.7 and F=0. A missing observation is untested, never zero or an invented grade. An incomplete row cannot pass; a mean of observed columns may be shown only as a clearly labeled partial mean. These are working artistic judgments, not objective measurements.
+For each current spell, grade six columns: **fantasy**, **visual quality**, **motion and behavior**, **casting and impact**, **sound and camera**, and **readability**. Ending/cleanup belongs in motion and readability; enemy response belongs in casting/impact. Every column must be in the C band or higher (C− is acceptable), and the arithmetic mean must reach B− (2.7). Use A+=4.3, A=4.0, A−=3.7, B+=3.3, B=3.0, B−=2.7, C+=2.3, C=2.0, C−=1.7, D+=1.3, D=1.0, D−=0.7 and F=0. A missing observation is untested, never zero or an invented grade. An incomplete row cannot pass; a mean of observed columns may be shown only as a clearly labeled partial mean. These are working artistic judgments, not objective measurements.
 
 **Fantasy leads the recommendations.** Preserve an exceptional identity even when its readability is merely C−; improve comprehension around the essential effect instead of stripping away its character. For example, an Ember Spear with A+ fantasy and C− readability is not automatically a redesign candidate. The average remains unweighted as requested; fantasy priority governs what to preserve and which improvements to pursue. Simplicity can earn an A.
 
@@ -809,11 +809,17 @@ Show each artistic batch for judgment before treating it as accepted or integrat
 Keep a short decision record for target ownership/retargeting, damaging geometry versus decorative trails, attack cadence, lifetime, recast/cap rules, rank changes and compatible modifiers. For spirit alternatives, explicitly choose orbit-host damage versus collision damage and one-pass versus persistent attacks. For Lightning, decide whether ground charge is harmless residue or a new payload. For Flame Wall, settle placement/movement and contact cadence. Paused spear families remain paused; undefined catalog cells remain undefined. Sound assets and their licenses must be tracked when assets are selected; no specific external sound or paid acquisition is mandated here.
 
 
+### Soul Bloom delivery prototype — 0.3.2-dev.6
+
+The first audit follow-up preserves the approved ghost/wisp bodies and gives Soul Bloom a world-space particle wake. Gameplay delivery remains immediate; a separate, non-damaging visual remnant finishes the approach and dissolves over 0.42 seconds, with remaining wake particles cleared by 0.8 seconds. Cap retirement and expiry do not fake a successful arrival. Reduced effects lowers wake density and sway, and remnants respect pause and world reset.
+
+This is a presentation candidate awaiting artistic review, not a new passing grade. Review near and far delivery, both forms, full-health hunting, reduced effects and narrow geometry in the captured build. Audio, mixed-combat judgment and the complete spell-feel gate remain open. The dated baseline below is preserved unchanged.
+
 ## Current spell audit — 15 October 2026
 
 **Status: provisional visual audit; full spell-feel gate INCOMPLETE.** Candidate `a96ddd56c42e8759371ef7918dc564d016cbdbf0`. All 31 current player spell/form/special sequences were captured in a background Chromium Web build using the real Game scene and spell engine. This is a dated assessment, not an approval of the current effects or a claim that the game meets the target. Future catalog spells have no running implementation to grade here; their design scripts remain proposals.
 
-The six-column rubric above applies. **U means untested.** The final six-column average is withheld for every row because sound was not audibly reviewed. The numeric partial mean uses the five observed columns only; B corresponds to 3.00. Do not treat it as a passing overall grade. All visible grades are provisional judgments from recorded frame sequences: casting/impact describes the observed release and contact, not a certified typing-response test, and motion describes path/material changes, not a frame-time benchmark. Fantasy remains the priority when choosing what to preserve or improve.
+The six-column rubric above applies. **U means untested.** The final six-column average is withheld for every row because sound was not audibly reviewed. The numeric partial mean uses the five observed columns only; the accepted B− threshold corresponds to 2.70. Do not treat it as a passing overall grade. All visible grades are provisional judgments from recorded frame sequences: casting/impact describes the observed release and contact, not a certified typing-response test, and motion describes path/material changes, not a frame-time benchmark. Fantasy remains the priority when choosing what to preserve or improve.
 
 ### Evidence and coverage
 
@@ -832,7 +838,7 @@ The preserved evidence bundle is located at `/Users/ljeytl/.codex/visualizations
 | Narrow layout | Larger Steam reviewed at 640×800. Cloud retains its identity; the bottom active-spell text overlaps the minimap area. Layout issue OPEN, separate from the cloud's artistic grade. Other narrow spell/layout cases UNTESTED. |
 | Reduced effects and pause | Reduced Lightning captured. Showcase-cycle pause used to observe expiry; it is not game pause. Full reduced-effects sibling sweep, actual pause/resume, save/reopen and lifecycle interruption remain UNTESTED. |
 | Misses, blocks and recipient states | Empty cases and synthetic shield block observed; wounded healing fixtures log health=30 at cast. Full resist/immunity, blocked-damage and all healing-at-full-health cases remain UNTESTED. |
-| Review controls | Runtime error collector deliberately challenged by a known error; grading controls reject a D despite a high average, reject B− average, accept a C− floor with a high enough average, and keep U incomplete. These controls validate the mechanism, not aesthetic quality. |
+| Review controls | Runtime error collector deliberately challenged by a known error; grading controls reject a D despite a high average, accept B− average and reject an average below it, accept a C− floor with a high enough average, and keep U incomplete. These controls validate the mechanism, not aesthetic quality. |
 
 No runtime/art changes were made during this audit. The working showcase copy uses an isolated save identity and compatibility renderer, with explicit fixture controls for the above cases. Normal-speed captures and slow-motion diagnostic captures are separate. Apparent capture stalls must not be reported as a measured game-performance defect.
 

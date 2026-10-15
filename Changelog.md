@@ -1,3 +1,10 @@
+# 0.3.2-dev.6 — Soul Bloom delivery and wake (15 October 2026)
+
+- Give Soul Bloom a world-space particle wake and a brief visual arrival that survives its gameplay delivery. Preserve healing, damage, speed, targeting and the three-active-soul cap; remnants cannot deliver another hit. Both ghost and wisp forms retain their painted bodies.
+- Fade retired souls without a false arrival flash; clear remaining visuals on world reset. Reduced effects lowers wake density and body sway.
+- Clarify the spell-feel gate: every column C− or better, arithmetic average B− (2.7) or better. Fantasy remains the design priority; the historical audit remains provisional.
+- Next: Cross Blade silhouette/contact and Atomic blast identity, followed by audible and mixed-combat review.
+
 # Design audit — Spell feel baseline (15 October 2026)
 
 - Record provisional visual scorecards and fantasy-led improvement ideas for all 31 current player spell/form/special sequences in doc 18, with a machine-readable snapshot. Preserve simple Magic Missile and the stronger meteor, steam and burning-spear identities.
