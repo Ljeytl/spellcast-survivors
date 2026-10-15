@@ -785,6 +785,10 @@
               }
             },
             "additionalProperties": false
+          },
+          "rank_damage_pct": {
+            "type": "number",
+            "$comment": "Magic Missile: damage gained per rank as a fraction of its base."
           }
         },
         "required": [

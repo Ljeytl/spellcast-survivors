@@ -13,8 +13,15 @@ signal spell_locked_error(spell_name: String, required_level: int, current_level
 
 # Constants for spell system
 const TIME_SCALE_DURING_TYPING = 0.2
-const SPELL_DAMAGE_MULTIPLIER = 0.15
-const MANA_BOLT_COOLDOWN = 1.5
+## Magic Missile's numbers are data (data/spells.json mana_bolt: damage, cooldown, rank_damage_pct,
+## projectile_ranks, speed, homing_strength).
+static var MANA_BOLT: Dictionary = _mana_bolt_data()
+static var SPELL_DAMAGE_MULTIPLIER: float = float(MANA_BOLT.get("rank_damage_pct", 0.15))
+static var MANA_BOLT_COOLDOWN: float = float(MANA_BOLT.get("cooldown", 1.5))
+
+static func _mana_bolt_data() -> Dictionary:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+	return parsed.spells.get("mana_bolt", {}) if parsed is Dictionary else {}
 const CHAIN_LIGHTNING_RANGE = 200.0
 const PLAYER_TRANSPARENCY_TYPING = 1.0
 const METEOR_DELAY_INTERVAL = 0.5
@@ -83,7 +90,7 @@ var spells = {}
 var freeform_spells: Dictionary = {}
 
 # Magic Missile is the auto-attack spell
-var mana_bolt_damage = 15.0
+var mana_bolt_damage = float(MANA_BOLT.get("damage", 15.0))
 var mana_bolt_level = 1
 var mana_bolt_cooldown = MANA_BOLT_COOLDOWN
 var mana_bolt_timer = 0.0
@@ -475,10 +482,12 @@ func fire_mana_bolt():
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
 	var damage = mana_bolt_damage * level_multiplier * cast_stat("spell_damage_multiplier")
 	# One more missile at each rank in data/spells.json mana_bolt.projectile_ranks.
-	var count = 1 + DataManager.get_all_spells().get("mana_bolt", {}).get("projectile_ranks", []).filter(func(r): return mana_bolt_level >= int(r)).size()
+	var count = 1 + MANA_BOLT.get("projectile_ranks", []).filter(func(r): return mana_bolt_level >= int(r)).size()
 	if Targeting.select(get_tree(), player.global_position) == null:
 		return
-	var info = {"id": "mana_bolt", "type": "mana_bolt", "name": "Magic Missile", "projectile_count": count}
+	var info = MANA_BOLT.duplicate(true)
+	info.id = "mana_bolt"
+	info.projectile_count = count
 	if spawn_ported(info, damage) == null:
 		return
 	if AudioManager:

@@ -4,6 +4,7 @@
       "id": "mana_bolt",
       "presentation": {"summary": "", "sound": "SPELL_MANA_BOLT", "icon": "bolt", "preview": {"glyph": "bolt", "color": "bc8fff"}, "projectile_scale": 0.8},
       "projectile_ranks": [3, 6, 10],
+      "rank_damage_pct": 0.15,
       "name": "Magic Missile",
       "element": "arcane",
       "type": "auto_attack",

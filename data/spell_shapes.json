@@ -15,9 +15,9 @@
      "motion": [
       {
        "type": "guided",
-       "speed": "=450.0 * speed",
-       "lerp": 6.0,
-       "range": "=450.0 * speed * 3.0"
+       "speed": "=float(v(\"speed\", 450.0)) * speed",
+       "lerp": "=float(v(\"homing_strength\", 6.0))",
+       "range": "=float(v(\"speed\", 450.0)) * speed * 3.0"
       }
      ],
      "payload": [

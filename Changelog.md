@@ -69,6 +69,7 @@ Goal: every spell's shape, ranks, recast rules, targeting and preparation are da
 - **A spell can now be added as data only.** `tests/data_only_spell_regression.gd` defines a spell purely in data at runtime and checks it is preparable, learnable, castable, aimed by its data rule, grows with rank, takes keywords (BIG) and gets a rank-up card. Release plan (doc 15) records 0.3.2 as this milestone.
 - **Fix: Bolt's rank-up card matches Bolt.** Bolt fires one more bolt each rank up to five, but its card said "+1 projectile" only at ranks 3 and 6. It now says so at ranks 2–5 (one data line). The only intended behavior change in 0.3.2.
 - **Spell presentation is data.** Each spell's `presentation` (short description, cast sound and whether the cast plays it, icon, spellbook preview glyph and colour, projectile scale) replaces the per-spell tables in `UpgradeCopy`, `AudioManager`, `InventoryIcon`, `SpellBookPreview` and `VisualDefaults`. `scripts/engine/SpellCatalog.gd` reads any spell or combination by id and gives a spell with no presentation data defaults from its element and shape. `tests/presentation_data_regression.gd` proves all 25 match 0.3.1.
+- **Magic Missile's numbers are data.** Its damage, fire interval, damage per rank (`rank_damage_pct`), extra-missile ranks, speed and homing come from its `spells.json` entry (several of those fields existed there but were ignored in favour of code constants).
 
 # Documentation consolidation — 14 October 2026
 
