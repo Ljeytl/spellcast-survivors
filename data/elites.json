@@ -1,0 +1,18 @@
+{
+  "_doc": "Elites (0.3.3): an existing monster plus one or more words, Diablo-style, using the player's own keyword vocabulary. The monster keeps its own behaviour; each word adds one trait. base applies to every elite. patrols and ley_waves say when they appear and how many words they roll. Numbers are first-pass, deliberately large; tune freely. Guardians, bosses, cast words (EXPLODING, SHOOTING) and learning a word from a defeated elite are later work (doc 15).",
+  "base": {"health_mult": 2.5, "damage_mult": 1.25, "size_mult": 1.5, "xp_mult": 3.0, "tint": [0.68, 0.6, 0.86]},
+  "words": {
+    "quick": {"word": "QUICK", "speed_mult": 1.5},
+    "massive": {"word": "MASSIVE", "size_mult": 1.35, "health_mult": 2.0, "speed_mult": 0.75},
+    "fiery": {"word": "FIERY", "element": "fire"},
+    "icy": {"word": "ICY", "element": "water"},
+    "stormy": {"word": "STORMY", "element": "storm"},
+    "iron": {"word": "IRON", "element": "earth"},
+    "leeching": {"word": "LEECHING", "heal_per_hit": 0.08}
+  },
+  "patrols": {
+    "first": 240, "every": 240, "until": 1140, "escorts": 4,
+    "words": [{"from": 0, "count": 1}, {"from": 600, "count": 2}]
+  },
+  "ley_waves": {"from_wave": 2, "words": 1}
+}
