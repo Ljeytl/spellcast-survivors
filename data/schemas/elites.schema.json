@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "elites.json",
+  "type": "object",
+  "properties": {
+    "_doc": {"type": "string"},
+    "base": {"$ref": "#/$defs/mods"},
+    "words": {"type": "object", "additionalProperties": {"$ref": "#/$defs/mods"}},
+    "patrols": {
+      "type": "object",
+      "properties": {
+        "first": {"type": "number"}, "every": {"type": "number"}, "until": {"type": "number"}, "escorts": {"type": "number"},
+        "words": {"type": "array", "items": {"type": "object", "properties": {"from": {"type": "number"}, "count": {"type": "number"}}, "required": ["from", "count"], "additionalProperties": false}}
+      },
+      "required": ["first", "every", "until", "escorts", "words"],
+      "additionalProperties": false
+    },
+    "ley_waves": {"type": "object", "properties": {"from_wave": {"type": "number"}, "words": {"type": "number"}}, "required": ["from_wave", "words"], "additionalProperties": false}
+  },
+  "required": ["base", "words", "patrols", "ley_waves"],
+  "additionalProperties": false,
+  "$defs": {
+    "mods": {
+      "type": "object",
+      "properties": {
+        "word": {"type": "string"},
+        "health_mult": {"type": "number"}, "damage_mult": {"type": "number"}, "size_mult": {"type": "number"},
+        "speed_mult": {"type": "number"}, "xp_mult": {"type": "number"},
+        "tint": {"type": "array", "items": {"type": "number"}},
+        "element": {"type": "string", "x-ref": ["element", "element_alias"]},
+        "heal_per_hit": {"type": "number", "$comment": "fraction of max health healed each time its contact damage lands"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -22,17 +22,28 @@ var spawn_data: Dictionary = {}
 var normal_collision_mask = 34
 ## Training dummies walk back to this point instead of chasing; INF means a normal enemy.
 var training_anchor := Vector2.INF
+## Elite words and traits (scripts/Elites.gd, data/elites.json); empty for a normal monster.
+var elite: Dictionary = {}
 const TRAINING_PULL = 6.0
 const TRAINING_MAX_SPEED = 260.0
 
-func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false):
+func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false, elite_traits: Dictionary = {}):
 	spawn_data = definition
 	variant = definition.id
 	family = definition.family
 	boss = is_boss
 	encounter_name = definition.name
+	elite = elite_traits
+	if not elite.is_empty():
+		stats = stats.duplicate()
+		for key in ["health", "damage", "speed", "xp"]:
+			if stats.has(key):
+				stats[key] = float(stats[key]) * float(elite.get(key + "_mult", 1.0))
+		encounter_name = str(elite.get("name", encounter_name))
+		if str(elite.get("element", "")) != "":
+			element = str(elite.element)   # the type chart gives it its resistance and weakness
 	set_monster_stats(stats)
-	scale = Vector2.ONE * definition.get("size", 1.0) * (1.7 if boss else 1.0)
+	scale = Vector2.ONE * definition.get("size", 1.0) * (1.7 if boss else 1.0) * float(elite.get("size_mult", 1.0))
 	enemy_type = {"grunt": EnemyType.CHASER, "runner": EnemyType.SWARM, "brute": EnemyType.TANK, "shooter": EnemyType.SHOOTER}[family]
 
 func _ready():
@@ -56,6 +67,21 @@ func _ready():
 	bar.offset_top = bar.offset_bottom - 5.0
 	update_health_bar()
 	add_to_group("enemies")
+	if not elite.is_empty():
+		add_to_group("elites")
+		var tint: Array = elite.get("tint", [1, 1, 1])
+		sprite.self_modulate = Color(float(tint[0]), float(tint[1]), float(tint[2]))   # darker, never a status colour
+		var words = Label.new()
+		words.name = "EliteWords"
+		words.text = str(elite.get("label", ""))
+		words.add_theme_font_size_override("font_size", 13)
+		words.add_theme_color_override("font_color", Color("f2c96b"))   # keyword gold
+		words.add_theme_color_override("font_outline_color", Color("1a1420"))
+		words.add_theme_constant_override("outline_size", 4)
+		words.scale = Vector2.ONE / scale
+		var words_size = words.get_minimum_size()
+		words.position = Vector2(-words_size.x * words.scale.x / 2.0, bar.offset_top - (words_size.y + 2.0) * words.scale.y)
+		add_child(words)
 	if boss:
 		add_to_group("bosses")
 		var label = Label.new()
@@ -221,3 +247,10 @@ func _draw():
 			var settings = spawn_data.get("boss_charge", {})
 			reach = float(settings.get("speed", speed * float(settings.get("speed_multiplier", 2.5)))) * float(settings.get("duration", 0.65)) * slow_multiplier / scale.x
 		draw_line(Vector2.ZERO, line_direction * reach, Color(1, 0.2, 0.1, 0.8), 4.0)
+
+## LEECHING: its contact damage heals it (a fraction of its max health per hit that lands).
+func on_dealt_contact(_amount: float):
+	var heal = float(elite.get("heal_per_hit", 0.0))
+	if heal > 0.0 and not dying:
+		current_health = minf(max_health, current_health + max_health * heal)
+		update_health_bar()

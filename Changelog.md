@@ -1,3 +1,10 @@
+# 0.3.3 (in progress) — Elites
+
+- **Elites are in.** An elite is a monster you already know plus one or more words from your own keyword vocabulary, Diablo-style: **QUICK** (much faster), **MASSIVE** (bigger, tankier, slower), **FIERY / ICY / STORMY / IRON** (that element, so the type chart decides what it resists and what hurts it) and **LEECHING** (heals each time it hits you). Every elite is bigger, tougher, worth more XP, drawn in a darker shade and shows its words above its health bar; it keeps its own behaviour (an ICY Charger still charges).
+- **Patrols:** from 4:00, every 4 minutes until 19:00, an elite leads four of its own kind in from one side ("Elite patrol · ICY Charger"). From 10:00 patrol elites carry two words. Patrols wait while a boss is out. **Ley lines:** every wave after a site's first is led by an elite.
+- Everything is data (`data/elites.json`): words, numbers, patrol times, word tiers, ley leaders. Rolls use the run's seeded random streams. Console: `elite <monster> [words]`, `elite patrol`.
+- Later (doc 15): cast words (EXPLODING, SHOOTING) through the spell engine, a third word for ley guardians, contact statuses on the player, and learning a word from an elite that carries it.
+
 # 0.3.2-dev.4 — Painted spell motion study (15 October 2026)
 
 - Steam keeps its rising particle volume, with continuous shading, warm highlights, cool depth and moving edge texture instead of hard pixel bands.
