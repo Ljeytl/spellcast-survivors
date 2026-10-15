@@ -1,3 +1,13 @@
+# 0.3.1 — First combat-feel release (15 October 2026)
+
+Ships the combat-feel work so far (0.3.1-dev.1 to dev.5 below) as a player build. This is the first slice of the agreed whole-roster feel pass, not its completion: full-roster sound, impact timing, crowded-combat readability and size-to-hitbox review continue in the next builds.
+
+- **Steam Field** is a connected, rolling vapor cloud fed by vents (shader surface), instead of puffs over a painted pool.
+- **Enemy hits** still flash red at once but fade sooner, so the enemy and its status marks read again quickly. Chill snowflakes are smaller and rarer.
+- **Frost Sigil** draws its own six-branched ice glyph; Rune Trap keeps its arcane rune.
+- **Effect timing** no longer depends on frame rate (landing rings and Prism Ray afterimages age with the game), and **Arcane Orbit** and **Seeker** draw at their real size, including size words.
+- **Reduced effects** now reaches the spell renderer from Options and persists across restarts.
+
 # 0.3.1-dev.5 — Steam volume prototype (15 October 2026)
 
 - Replace Steam's repeated circular puffs and painted floor with a connected vapor surface: uneven initial vents, rolling grey-white folds, density openings and thinning upward dispersal. The cloud uses game time so sustained vapor continues through impact hitstop and expires with the spell.
