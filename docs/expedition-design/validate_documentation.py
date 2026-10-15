@@ -35,9 +35,8 @@ def validate_catalog(text):
 
 class DocumentationChecks(unittest.TestCase):
     def test_live_bases(self):
-        source = (REPO / 'scripts/SpellManager.gd').read_text()
-        ids = json.loads(re.search(r'const BASE_SPELL_IDS = (\[.*?\])', source)[1])
         spells = json.loads((REPO / 'data/spells.json').read_text())['spells']
+        ids = [key for key, spell in spells.items() if spell.get('preparable')]   # 0.3.2: the list is data
         table = content('03-spells.md').split('### Existing combinations')[0]
         for key in ids:
             self.assertIn(f'| `{key}` | {spells[key]["name"]} | Implemented manual base |', table)
