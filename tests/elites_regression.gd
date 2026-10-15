@@ -103,10 +103,31 @@ func run():
 	var burst = Elites.cast(frosty, data.words.icy.cast, player)
 	burst.manual = true
 	burst.step(0.5)
-	check(is_equal_approx(player.health, before), "ICY warns before its frost bursts")
+	check(is_equal_approx(player.health, before), "ICY winds up before it throws")
+	check(burst.root_parts().is_empty(), "nothing has left its hands during the windup")
 	for i in 60:
 		burst.step(1.0 / 60.0)
-	check(player.health < before and player.has_status("chilled"), "then the frost ring hits and chills you")
+	check(player.health < before and player.has_status("chilled"), "then its ice shards hit and chill you")
+
+	# --- small, element-coloured versions of the wizard's spells --------------------------------------
+	var Shapes = preload("res://scripts/engine/SpellTemplate.gd")
+	var radius_of = func(id: String) -> float:
+		return float(Shapes.build({"id": id, "name": id, "range": 500.0, "level": 1}, 10.0, {"speed_mult": 1.0}).parts.values()[0].get("geometry", {}).get("radius", 0.0))
+	check(radius_of.call("elite_meteor") < radius_of.call("meteor_shower") * 0.5, "the elite meteor is a small one")
+	check(radius_of.call("elite_lightning") < radius_of.call("lightning") * 0.5, "the elite lightning is a small one")
+	check(data.words.icy.cast.spell == "elite_frost_burst" and str(Shapes.build({"id": "elite_frost_burst", "name": "x", "range": 300.0, "level": 1}, 10.0, {}).parts.shard.delivery) == "projectile", "ICY throws a small Ice Blast, not a full ring")
+	var Presenter = preload("res://scripts/vfx/VfxPresenter.gd")
+	var yours = preload("res://scripts/engine/GenericCast.gd").new()
+	check(Presenter.is_hostile({"cast": strike}) and not Presenter.is_hostile({"cast": yours}), "a monster's spell is drawn as hostile, yours is not")
+	yours.free()
+	var built = Elites.build(["fiery"], "Charger")
+	check(built.color == data.words.fiery.color and built.casts[0].color == data.words.fiery.color, "FIERY carries its colour to its name and its spell")
+	var fiery_label = fiery.get_node("EliteWords")
+	check(fiery_label.get_theme_color("font_color") == Color(data.words.fiery.color), "FIERY's name is drawn in fire orange")
+	check(quick.get_node("EliteWords").get_theme_color("font_color") == Color("f2c96b"), "a word with no element stays keyword gold")
+	var coloured = Elites.cast(fiery, built.casts[0], player)
+	check(str(coloured.plan.get("hostile_color", "")) == data.words.fiery.color, "the elite's spell carries its hostile colour")
+	coloured.queue_free()
 	var elites_casts = Elites.build(["fiery", "quick"], "Charger")
 	check(elites_casts.casts.size() == 1 and elites_casts.contact_statuses == ["burn"], "words carry their casts and contact statuses")
 	player.statuses.clear()

@@ -40,7 +40,7 @@ static func patrol_word_count(at_time: float) -> int:
 static func build(word_ids: Array, monster_name: String) -> Dictionary:
 	var base: Dictionary = data().get("base", {})
 	var out := {"words": word_ids.duplicate(), "health_mult": 1.0, "damage_mult": 1.0, "size_mult": 1.0, "speed_mult": 1.0, "xp_mult": 1.0,
-		"element": "", "heal_per_hit": 0.0, "tint": base.get("tint", [1, 1, 1]), "casts": [], "contact_statuses": [], "resist_profile": ""}
+		"element": "", "heal_per_hit": 0.0, "tint": base.get("tint", [1, 1, 1]), "casts": [], "contact_statuses": [], "resist_profile": "", "color": ""}
 	var labels: Array = []
 	for mods in [base] + word_ids.map(func(id): return data().words.get(id, {})):
 		for key in ["health_mult", "damage_mult", "size_mult", "speed_mult", "xp_mult"]:
@@ -48,8 +48,13 @@ static func build(word_ids: Array, monster_name: String) -> Dictionary:
 		if mods.has("element"):
 			out.element = str(mods.element)
 		out.heal_per_hit += float(mods.get("heal_per_hit", 0.0))
+		if mods.has("color"):
+			out.color = str(mods.color)
 		if mods.has("cast"):
-			out.casts.append(mods.cast.duplicate())
+			var cfg: Dictionary = mods.cast.duplicate()
+			if mods.has("color"):
+				cfg.color = str(mods.color)
+			out.casts.append(cfg)
 		if mods.has("contact_status"):
 			out.contact_statuses.append(str(mods.contact_status))
 		if mods.has("resist_profile"):
@@ -71,6 +76,15 @@ static func cast(monster: Node2D, cfg: Dictionary, target: Node2D):
 	var damage = float(monster.get("base_damage")) * float(cfg.get("damage_mult", 1.0))
 	var info = {"id": spell, "name": spell, "range": float(cfg.get("range", 500.0)), "level": 1}
 	var plan = preload("res://scripts/engine/CastPlanner.gd").plan(Template.build(info, damage, {"speed_mult": 1.0}), {}, {})
+	# Windup: the elite visibly charges (the same anticipation glow a charged wizard cast gets) before
+	# the spell leaves, so even a thrown spell is telegraphed. Hostile colour: the word's colour,
+	# used for the telegraph so a monster's spell never reads as one of yours.
+	var windup = float(cfg.get("windup", 0.0))
+	if windup > 0.0 and not plan.get("casts", []).is_empty():
+		plan.casts[0].delay = float(plan.casts[0].delay) + windup
+		plan.flags["charged"] = {}
+	if str(cfg.get("color", "")) != "":
+		plan.hostile_color = str(cfg.color)
 	var c = preload("res://scripts/engine/GenericCast.gd").new()
 	c.name = "EliteCast_" + spell
 	c.forced_target = target
