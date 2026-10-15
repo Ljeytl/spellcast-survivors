@@ -2,54 +2,41 @@
   "id": "elite_frost_burst",
   "order": 9030,
   "shape": {
-    "root": "warn",
-    "max_depth": 2,
+    "root": "shard",
+    "max_depth": 1,
     "cast_rules": {
       "targeting": {
         "rule": "none"
       }
     },
+    "arrangement": {
+      "type": "fan",
+      "count": 5,
+      "spread": 14.0
+    },
     "parts": {
-      "warn": {
-        "delivery": "field",
+      "shard": {
+        "delivery": "projectile",
         "origin": "caster",
         "geometry": {
-          "type": "disk",
-          "radius": 170.0,
-          "pad": 0.0
+          "type": "body",
+          "radius": 10.0,
+          "pad": 10.0
         },
-        "timing": {
-          "duration": 0.8,
-          "interval": 999.0
-        },
-        "events": {
-          "on_expire": {
-            "part": "ring"
+        "motion": [
+          {
+            "type": "straight",
+            "speed": 330.0,
+            "range": 300.0
           }
-        },
-        "payload": [],
-        "vfx": {
-          "warn": true
-        }
-      },
-      "ring": {
-        "delivery": "volume",
-        "origin": "parent",
-        "geometry": {
-          "type": "ring",
-          "radius": 170.0,
-          "thickness": 30.0
-        },
-        "propagation": {
-          "type": "expanding",
-          "speed": 420.0
-        },
+        ],
         "payload": [
           {
             "$damage": ""
           }
         ],
         "vfx": {
+          "family": "shard",
           "look": "ice"
         }
       }

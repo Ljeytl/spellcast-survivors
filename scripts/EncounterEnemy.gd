@@ -81,7 +81,10 @@ func _ready():
 		words.name = "EliteWords"
 		words.text = str(elite.get("label", ""))
 		words.add_theme_font_size_override("font_size", 13)
-		words.add_theme_color_override("font_color", Color("f2c96b"))   # keyword gold
+		# Keyword gold, or the element word's own colour (FIERY orange, ICY cyan, SHOCKING yellow)
+		# so you know what it will throw before it throws it.
+		var word_color := str(elite.get("color", ""))
+		words.add_theme_color_override("font_color", Color(word_color) if word_color != "" else Color("f2c96b"))
 		words.add_theme_color_override("font_outline_color", Color("1a1420"))
 		words.add_theme_constant_override("outline_size", 4)
 		words.scale = Vector2.ONE / scale

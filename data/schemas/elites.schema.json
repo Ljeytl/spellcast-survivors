@@ -149,6 +149,10 @@
             },
             "damage_mult": {
               "type": "number"
+            },
+            "windup": {
+              "type": "number",
+              "$comment": "seconds the elite visibly charges before the spell leaves"
             }
           },
           "required": [
@@ -157,6 +161,10 @@
             "range"
           ],
           "additionalProperties": false
+        },
+        "color": {
+          "type": "string",
+          "$comment": "element word colour: the elite's name and its spells' telegraphs"
         }
       },
       "additionalProperties": false

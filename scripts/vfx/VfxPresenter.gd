@@ -767,10 +767,33 @@ const AREA_COL := {"arcane": [Color("#e2d4ff"), Color("#9b7cf0")], "fire": [Colo
 	"lightning": [Color("#ffffff"), Color("#8fb2ff")], "earth": [Color("#f0e2c0"), Color("#c9a46a")], "plague": [Color("#d8f8a0"), Color("#6fd04a")],
 	"life": [Color("#e6ffb0"), Color("#7fcf4a")], "raw": [Color("#ffffff"), Color("#c8ccd4")]}
 
+## A monster's spell (an elite's word spell): its telegraph is drawn in loud, saturated element
+## colours, never the soft ones your own spells use, so a hostile area reads at a glance.
+const HOSTILE_COL := {"fire": [Color("#fff27a"), Color("#ff3a12")], "water": [Color("#ffffff"), Color("#18d6ff")],
+	"ice": [Color("#ffffff"), Color("#18d6ff")], "storm": [Color("#ffffff"), Color("#ffe11a")], "lightning": [Color("#ffffff"), Color("#ffe11a")],
+	"earth": [Color("#ffe9b8"), Color("#ff9a2a")], "plague": [Color("#f0ff9a"), Color("#8cff2a")], "life": [Color("#f0ff9a"), Color("#8cff2a")],
+	"arcane": [Color("#ffd6ff"), Color("#ff3ad8")]}
+
+## Is this a monster's spell aimed at the player?
+static func is_hostile(part) -> bool:
+	return part != null and part.cast != null and str(part.cast.get("target_group")) == "player"
+
+## A hostile spell's [bright, deep] pair: the elite word's own colour when it has one, else its element's.
+func hostile_cols(plan: Dictionary) -> Array:
+	var hc := str(plan.get("hostile_color", ""))
+	if hc != "":
+		var deep := Color(hc)
+		return [deep.lerp(Color.WHITE, 0.6), deep]
+	var native := str(look_of(plan).native)
+	return HOSTILE_COL.get(native, HOSTILE_COL.get(str(plan.get("element", "")), HOSTILE_COL.arcane))
+
 ## The two colours an area of this spell is drawn in: its two biggest damage types (data/spell_damage.json),
 ## else its element and any keyword accent. Both the same for a one-element spell.
 func _area_cols(part) -> Array:
 	var plan: Dictionary = part.cast.plan if part != null and part.cast != null else {}
+	if is_hostile(part):
+		var pair := hostile_cols(plan)
+		return [pair, pair]
 	var prof: Dictionary = preload("res://scripts/engine/SpellDamage.gd").profile(str(plan.get("id", "")), str(part.part_name) if part != null else "")
 	var mix: Dictionary = prof.get("damage", {})
 	var keys: Array = mix.keys().filter(func(k): return AREA_COL.has(str(k)) and str(k) != "raw" and float(mix[k]) > 0.0)
@@ -850,7 +873,17 @@ func _draw_warn(buf: PackedByteArray, c: Vector2, st: Dictionary) -> void:
 	if not st.has("cols"):
 		st.cols = _area_cols(wp)
 	var cols: Array = st.cols
-	_split_ring(buf, c, r, cols, k >= 0.6)
+	if is_hostile(wp):
+		# Hostile: denser and always hot, a second rim once it is about to land, and a pip on the
+		# exact centre, so you know it is coming for you and where.
+		_split_ring(buf, c, r, cols, true, 1.8)
+		if k >= 0.6:
+			_split_ring(buf, c, r + 0.6, cols, (vfx._steps & 2) == 0, 1.8)
+		var pip: Color = cols[0][1] if (vfx._steps & 4) else cols[0][0]
+		for d in [Vector2.ZERO, Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+			el.spx(buf, roundi(c.x + d.x), roundi(c.y + d.y), pip)
+	else:
+		_split_ring(buf, c, r, cols, k >= 0.6)
 	var inner := r * k
 	if inner > 1.0:
 		var steps := ceili(TAU * inner * 0.6)
@@ -2229,7 +2262,11 @@ func draw_bodies(buf: PackedByteArray) -> void:
 				var mc: Vector2 = mp.global_position / WPS
 				var k: float = _meteor_k(st)
 				# warning: the true radius, dashed and marching, brightening as the rock comes down
-				vfx.elements.draw_nova(buf, mc.x, mc.y, float(st.r), METEOR_WARN if k < 0.7 else METEOR_WARN_HOT)
+				if is_hostile(mp):
+					var hp := hostile_cols(mp.cast.plan)
+					vfx.elements.draw_nova(buf, mc.x, mc.y, float(st.r), [hp[1], hp[0]] if k < 0.7 or (vfx._steps & 2) else [hp[0], hp[1]])
+				else:
+					vfx.elements.draw_nova(buf, mc.x, mc.y, float(st.r), METEOR_WARN if k < 0.7 else METEOR_WARN_HOT)
 				if float(st.age) >= float(st.life) - METEOR_FALL:
 					var rock: Vector2 = mc + st.sky * (1.0 - k)
 					_draw_magma(buf, rock, -Vector2(st.sky).normalized(), 2.6 * clampf(float(st.r) / 8.0, 0.8, 1.5), mp.get_instance_id())

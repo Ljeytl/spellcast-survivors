@@ -1,13 +1,13 @@
 {
-  "_doc": "Elites (0.3.3): an existing monster plus one or more words, Diablo-style, using the player's own keyword vocabulary. The monster keeps its own behaviour; each word adds one trait. base applies to every elite. patrols and ley_waves say when they appear and how many words they roll. Numbers are first-pass, deliberately large; tune freely. Element words do something: FIERY calls down a meteor on you (warning, impact, burning ground), ICY bursts frost when you are close, SHOCKING calls a warned lightning strike on you, IRON is armoured; each touch also puts its status on you (player_statuses). Their spells are data/spells/elite_*.json, cast through the same spell engine as yours. Ley guardians, bosses, more cast words and learning a word from a defeated elite are later work (doc 15).",
+  "_doc": "Elites (0.3.3): an existing monster plus one or more words, Diablo-style, using the player's own keyword vocabulary. The monster keeps its own behaviour; each word adds one trait. base applies to every elite. patrols and ley_waves say when they appear and how many words they roll. Numbers are first-pass, deliberately large; tune freely. Element words do something (small, element-coloured versions of the wizard's own spells, always telegraphed): FIERY calls down a meteor on you (warning, impact, burning ground), ICY winds up and throws a fan of ice shards at you when you are close, SHOCKING calls a warned lightning strike on you, IRON is armoured; each touch also puts its status on you (player_statuses). Their spells are data/spells/elite_*.json, cast through the same spell engine as yours. Ley guardians, bosses, more cast words and learning a word from a defeated elite are later work (doc 15). color: an element word's colour for the elite's name and its spells' telegraphs. windup: seconds the elite charges (a visible glow) before the spell leaves.",
   "base": {
     "health_mult": 2.5,
     "damage_mult": 1.25,
     "size_mult": 1.5,
     "xp_mult": 3.0,
     "tint": [
-      0.68,
-      0.6,
+      0.8,
+      0.78,
       0.86
     ]
   },
@@ -31,7 +31,8 @@
         "every": 5.0,
         "range": 560.0,
         "damage_mult": 1.0
-      }
+      },
+      "color": "#ff7a2a"
     },
     "icy": {
       "word": "ICY",
@@ -40,9 +41,11 @@
       "cast": {
         "spell": "elite_frost_burst",
         "every": 4.0,
-        "range": 170.0,
-        "damage_mult": 0.8
-      }
+        "range": 280.0,
+        "damage_mult": 0.8,
+        "windup": 0.7
+      },
+      "color": "#5fe0ff"
     },
     "shocking": {
       "word": "SHOCKING",
@@ -53,12 +56,14 @@
         "every": 5.0,
         "range": 600.0,
         "damage_mult": 1.5
-      }
+      },
+      "color": "#ffe94a"
     },
     "iron": {
       "word": "IRON",
       "element": "earth",
-      "resist_profile": "elite_armored"
+      "resist_profile": "elite_armored",
+      "color": "#d9b27a"
     },
     "leeching": {
       "word": "LEECHING",

@@ -15,7 +15,7 @@
         "origin": "target",
         "geometry": {
           "type": "disk",
-          "radius": 64.0,
+          "radius": 48.0,
           "pad": 0.0
         },
         "timing": {
@@ -37,7 +37,7 @@
         "origin": "parent",
         "geometry": {
           "type": "disk",
-          "radius": 64.0,
+          "radius": 48.0,
           "pad": 0.0
         },
         "propagation": {
