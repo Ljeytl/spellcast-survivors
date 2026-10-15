@@ -705,6 +705,39 @@
           },
           "blade_count": {
             "type": "number"
+          },
+          "preparable": {
+            "type": "boolean",
+            "$comment": "Can be prepared in the pre-run spellbook (Preparation.gd)."
+          },
+          "opens_kit": {
+            "type": "boolean",
+            "$comment": "false: cannot sit in slot 1 (not an attack)."
+          },
+          "projectile_ranks": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "$comment": "Magic Missile: ranks at which it fires one more missile."
+          },
+          "rank_card_projectile_ranks": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "$comment": "Rank-up card: ranks that say +1 projectile."
+          },
+          "rank_card_power": {
+            "type": "string",
+            "$comment": "Rank-up card: the word for its power growth instead of the damage check (e.g. +healing)."
+          },
+          "rank_card_extra": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "$comment": "Rank-up card: lines every rank adds (e.g. +push)."
           }
         },
         "required": [
@@ -815,6 +848,36 @@
       ],
       "additionalProperties": false,
       "x-registry": "unlock_condition"
+    },
+    "preparation": {
+      "type": "object",
+      "properties": {
+        "_doc": {
+          "type": "string"
+        },
+        "slots": {
+          "type": "number"
+        },
+        "activation_levels": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "default_kit": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ref": "spell"
+          }
+        }
+      },
+      "required": [
+        "slots",
+        "activation_levels",
+        "default_kit"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

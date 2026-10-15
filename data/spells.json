@@ -2,6 +2,7 @@
   "spells": {
     "mana_bolt": {
       "id": "mana_bolt",
+      "projectile_ranks": [3, 6, 10],
       "name": "Magic Missile",
       "element": "arcane",
       "type": "auto_attack",
@@ -39,6 +40,8 @@
       "rank_growth": {"damage": {"per_rank": 21.4286}},
       "role": "Fire a straight bolt toward the nearest enemy.",
       "id": "bolt",
+      "rank_card_projectile_ranks": [3, 6],
+      "preparable": true,
       "name": "Bolt",
       "element": "arcane",
       "slot": 1,
@@ -72,10 +75,13 @@
       },
       "incantation": "bolt"
     },
-    "life": {"id": "life", "name": "Life", "element": "holy", "incantation": "life", "type": "heal", "heal_amount": 4, "damage": 0, "role": "Restore a little health immediately.", "unlock_condition": {"type": "default"}},
+    "life": {"id": "life", "rank_card_power": "+healing", "preparable": true, "opens_kit": false, "name": "Life", "element": "holy", "incantation": "life", "type": "heal", "heal_amount": 4, "damage": 0, "role": "Restore a little health immediately.", "unlock_condition": {"type": "default"}},
     "regeneration": {
       "role": "Restore health over time.",
       "id": "regeneration",
+      "rank_card_power": "+healing",
+      "preparable": true,
+      "opens_kit": false,
       "recast_behavior": "extend",
       "name": "Regeneration",
       "element": "holy",
@@ -120,6 +126,8 @@
       "degrees_per_shard": 6,
       "role": "Push nearby enemies back and slow them.",
       "id": "ice_blast",
+      "rank_card_extra": ["+push"],
+      "preparable": true,
       "shard_count": 3, "cone_degrees": 45, "growth_description": "more shards, wider and longer cone", "rank_growth": {"radius": {"per_rank": 35.7143, "max": 500}, "damage": {"per_rank": 10.7143}, "slow_duration": {"per_rank": 0.2857, "max": 4.0}, "slow_effect": {"per_rank": -0.0286}, "cone_degrees": {"per_rank": 45, "max": 360}},
       "name": "Ice Blast",
       "element": "ice",
@@ -171,6 +179,9 @@
     "earth_shield": {
       "role": "Stack a one-hit block that erupts toward the attacker.",
       "id": "earth_shield",
+      "rank_card_power": "+damage",
+      "preparable": true,
+      "opens_kit": false,
       "recast_behavior": "stack",
       "name": "Earth Shield",
       "element": "earth",
@@ -223,6 +234,7 @@
     "lightning": {
       "role": "Strike a group with a brief circle of lightning.",
       "id": "lightning",
+      "preparable": true,
       "growth_description": "wider strike", "rank_growth": {"radius": {"per_rank": 10.7143, "max": 175}, "damage": {"per_rank": 17.1429}},
       "name": "Lightning",
       "element": "storm",
@@ -277,6 +289,7 @@
       "rank_growth": {"damage": {"per_rank": 9.1429}, "radius": {"per_rank": 4.7143, "max": 78}},
       "role": "Bombard enemies with delayed area attacks.",
       "id": "meteor_shower",
+      "preparable": true,
       "name": "Meteor Shower",
       "element": "fire",
       "slot": 6,
@@ -367,6 +380,7 @@
       "spear_radius": 24.0,
       "rank_growth": {"damage": {"per_rank": 39.4286}, "spear_radius": {"per_rank": 5.1429, "max": 60.0}},
       "id": "ember_spear",
+      "preparable": true,
       "name": "Ember Spear",
       "incantation": "ember spear",
       "element": "fire",
@@ -385,6 +399,7 @@
     "infestation": {
       "incantation": "infection",
       "id": "infestation",
+      "preparable": true,
       "recast_behavior": "stack",
       "name": "Infection",
       "element": "plague",
@@ -404,6 +419,7 @@
       "extend_at_cap": true,
       "active_limit": 3,
       "id": "cinder_field",
+      "preparable": true,
       "growth_description": "larger field", "rank_growth": {"radius": {"per_rank": 7.143, "max": 150}, "damage": {"per_rank": 2.2857}},
       "recast_behavior": "stack",
       "name": "Cinder Field",
@@ -420,6 +436,7 @@
     },
     "arcane_orbit": {
       "id": "arcane_orbit",
+      "preparable": true,
       "growth_description": "wider orbit, extra spark at ranks 5 and 8", "rank_growth": {"orbit_radius": {"per_rank": 4.286, "max": 130}, "orb_count": {"per_rank": 0.2857, "max": 4, "integer": true}, "damage": {"per_rank": 3.5714}},
       "recast_behavior": "extend",
       "name": "Arcane Orbit",
@@ -904,6 +921,7 @@
     },
     "focus_ray": {
       "id": "focus_ray",
+      "preparable": true,
       "growth_description": "third beam at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "damage": {"per_rank": 3.4286}, "duration": {"per_rank": 0.1429, "max": 3.0}, "beam_radius": {"per_rank": 1.7143, "max": 24.0}},
       "recast_behavior": "stack",
       "name": "Focus Ray",
@@ -921,6 +939,7 @@
     },
     "rune_trap": {
       "id": "rune_trap",
+      "preparable": true,
       "growth_description": "larger blast and trigger", "rank_growth": {"trap_radius": {"per_rank": 17.1429, "max": 240}, "trigger_radius": {"per_rank": 4.2857, "max": 90}, "damage": {"per_rank": 15.7143}},
       "recast_behavior": "stack",
       "name": "Rune Trap",
@@ -938,6 +957,7 @@
     },
     "seeker": {
       "id": "seeker",
+      "preparable": true,
       "growth_description": "longer-lasting spirits, third spirit at rank 8", "rank_growth": {"active_limit": {"per_rank": 0.1429, "max": 3, "integer": true}, "duration": {"per_rank": 1.7143, "max": 24.0}, "damage": {"per_rank": 3.5714}},
       "recast_behavior": "stack",
       "name": "Seeker",
@@ -956,6 +976,7 @@
     },
     "firewalk": {
       "id": "firewalk",
+      "preparable": true,
       "recast_behavior": "extend",
       "name": "Fire Walk",
       "element": "fire",
@@ -977,6 +998,7 @@
     "cross_blade": {
       "rank_growth": {"damage": {"per_rank": 3.0}},
       "id": "cross_blade",
+      "preparable": true,
       "name": "Cross Blade",
       "element": "steel",
       "type": "returning",
@@ -1027,5 +1049,11 @@
     "survive_time": "Player must survive specified time in a single run",
     "enemies_killed": "Player must kill specified number of enemies",
     "default": "Always available"
+  },
+  "preparation": {
+    "_doc": "The pre-run spellbook (scripts/Preparation.gd): ordered slots, the level each slot opens at, and the kit a new profile starts with. Spells marked preparable can be prepared; opens_kit false keeps a spell out of slot 1 (it cannot kill things on its own).",
+    "slots": 6,
+    "activation_levels": [1, 2, 4, 7, 11, 16],
+    "default_kit": ["bolt", "ice_blast", "lightning", "life", "meteor_shower", "ember_spear"]
   }
 }

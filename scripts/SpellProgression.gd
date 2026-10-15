@@ -31,7 +31,7 @@ static func resolve(data: Dictionary) -> Dictionary:
 	return result
 
 static func can_upgrade(data: Dictionary) -> bool:
-	if data.get("id", "") == "frost_sigil" and int(data.get("level", 1)) >= 9:
+	if data.has("max_rank") and int(data.get("level", 1)) >= int(data.max_rank):   # data: e.g. Frost Sigil's recipe
 		return false
 	if int(data.get("level", 1)) >= RANK_CAP:
 		return false

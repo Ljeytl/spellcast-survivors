@@ -4,11 +4,20 @@ extends RefCounted
 ## Those levels give the spell instead of a power-up choice. Combinations stay outside the six slots.
 
 const PATH = "user://preparation.cfg"
-const SLOTS = 6
-const ACTIVATION_LEVELS = [1, 2, 4, 7, 11, 16]
-## Slot 1 is your only spell until level 2, so it has to be able to kill things.
-const NON_ATTACK = ["life", "regeneration", "earth_shield"]
-const DEFAULT_SLOTS = ["bolt", "ice_blast", "lightning", "life", "meteor_shower", "ember_spear"]
+## The rules are data: data/spells.json "preparation" (slots, activation_levels, default_kit) and
+## each spell's "preparable" / "opens_kit".
+static var _data: Dictionary = _load()
+static var SLOTS: int = int(_data.preparation.get("slots", 6))
+static var ACTIVATION_LEVELS: Array = _data.preparation.get("activation_levels", []).map(func(l): return int(l))
+## Slot 1 is your only spell until level 2, so it has to be able to kill things (opens_kit false).
+static var NON_ATTACK: Array = _data.spells.keys().filter(func(id): return _data.spells[id].get("opens_kit", true) == false)
+static var DEFAULT_SLOTS: Array = _data.preparation.get("default_kit", [])
+
+static func _load() -> Dictionary:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+	if not parsed is Dictionary:
+		return {"spells": {}, "preparation": {}}
+	return {"spells": parsed.get("spells", {}), "preparation": parsed.get("preparation", {})}
 
 static var slots: Array = []
 

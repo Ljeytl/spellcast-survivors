@@ -50,7 +50,17 @@ var last_cast_failure: String = ""
 const MAX_EQUIPPED_SPELLS = 6
 ## How many base spells learn_spell accepts. Training Grounds raises it to equip everything.
 var slot_limit: int = MAX_EQUIPPED_SPELLS
-const BASE_SPELL_IDS = ["bolt", "life", "regeneration", "ice_blast", "earth_shield", "lightning", "meteor_shower", "ember_spear", "infestation", "cinder_field", "arcane_orbit", "focus_ray", "rune_trap", "seeker", "firewalk", "cross_blade"]
+## The preparable base spells, in catalog order (data/spells.json "preparable").
+static var BASE_SPELL_IDS: Array = _preparable_ids()
+
+static func _preparable_ids() -> Array:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json"))
+	var out: Array = []
+	if parsed is Dictionary:
+		for id in parsed.get("spells", {}):
+			if bool(parsed.spells[id].get("preparable", false)):
+				out.append(str(id))
+	return out
 var spell_catalog: Dictionary = {}
 var evolved_ingredients: Dictionary = {}
 var bonus_spells: Dictionary = {}
@@ -464,13 +474,8 @@ func fire_mana_bolt():
 		return
 	var level_multiplier = 1.0 + SPELL_DAMAGE_MULTIPLIER * (mana_bolt_level - 1)
 	var damage = mana_bolt_damage * level_multiplier * cast_stat("spell_damage_multiplier")
-	var count = 1
-	if mana_bolt_level >= 3:
-		count = 2
-	if mana_bolt_level >= 6:
-		count = 3
-	if mana_bolt_level >= 10:
-		count = 4
+	# One more missile at each rank in data/spells.json mana_bolt.projectile_ranks.
+	var count = 1 + DataManager.get_all_spells().get("mana_bolt", {}).get("projectile_ranks", []).filter(func(r): return mana_bolt_level >= int(r)).size()
 	if Targeting.select(get_tree(), player.global_position) == null:
 		return
 	var info = {"id": "mana_bolt", "type": "mana_bolt", "name": "Magic Missile", "projectile_count": count}
@@ -1165,8 +1170,9 @@ func rank_change_summary(spell_id: String) -> String:
 	now_info = preload("res://scripts/SpellProgression.gd").resolve(now_info)
 	next_info = preload("res://scripts/SpellProgression.gd").resolve(next_info)
 	var parts: Array = []
-	var extra_projectiles = {"bolt": [3, 6], "mana_bolt": [3, 6, 10]}
-	if extra_projectiles.has(spell_id) and rank + 1 in extra_projectiles[spell_id]:
+	var card: Dictionary = DataManager.get_all_spells().get(spell_id, {})
+	var projectile_ranks: Array = card.get("rank_card_projectile_ranks", card.get("projectile_ranks", []))
+	if projectile_ranks.any(func(r): return int(r) == rank + 1):
 		parts.append("+1 projectile")
 	for key in RANK_COUNT_WORDS:
 		var gained = int(next_info.get(key, 0)) - int(now_info.get(key, 0))
@@ -1174,20 +1180,16 @@ func rank_change_summary(spell_id: String) -> String:
 			parts.append("+%d %s%s" % [gained, RANK_COUNT_WORDS[key], "s" if gained > 1 else ""])
 	if int(next_info.get("active_limit", 0)) > int(now_info.get("active_limit", 0)):
 		parts.append("+1 at once")
-	match spell_id:
-		"life", "regeneration":
-			parts.append("+healing")
-		"earth_shield":
-			parts.append("+damage")
-		_:
-			if float(next_info.get("damage", 0.0)) > float(now_info.get("damage", 0.0)) or not (raw.has("rank_steps") or raw.get("rank_growth", {}).has("damage")):
-				parts.append("+damage")
+	if card.has("rank_card_power"):
+		parts.append(str(card.rank_card_power))
+	elif float(next_info.get("damage", 0.0)) > float(now_info.get("damage", 0.0)) or not (raw.has("rank_steps") or raw.get("rank_growth", {}).has("damage")):
+		parts.append("+damage")
 	if RANK_AREA_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
 		parts.append("+area")
 	if RANK_DURATION_KEYS.any(func(key): return float(next_info.get(key, 0.0)) > float(now_info.get(key, 0.0))):
 		parts.append("+duration")
-	if spell_id == "ice_blast":
-		parts.append("+push")
+	for line in card.get("rank_card_extra", []):
+		parts.append(str(line))
 	return ", ".join(parts) if not parts.is_empty() else "+damage"
 
 ## Doc 18 phase 2: a shipping spell rebuilt on the generic engine (scripts/engine/LegacyBridge.gd).

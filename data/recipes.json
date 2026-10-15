@@ -147,6 +147,7 @@
       "card_description": "A large frost trap explodes and slows survivors.",
       "overrides": {
         "trap_radius": 170,
+        "max_rank": 9,
         "frost": true,
         "arm_delay": 1.2
       },
