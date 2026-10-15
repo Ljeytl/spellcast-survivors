@@ -93,6 +93,7 @@ func populate():
 	_page = "shape"
 	add_heading("KEYWORDS")
 	add_note("Say keywords before a spell name, in any order: \"fiery double bolt\". Words of different kinds combine; more words of one kind add less each. If a word can't change that spell, its rune cracks and the spell casts without it. Not accepted by Magic Missile or Atomic.")
+	add_note("QUICK + a slot number casts that slot's spell instantly at 35% power: \"quick 3\".", READABILITY.GOLD)
 	# Generated from data/keywords.json (KeywordCatalog): one card per kind of word, then one per element.
 	for cat in KEYWORD_CATALOG.categories():
 		_page = str(PAGE_OF_CATEGORY.get(str(cat.id), "special"))

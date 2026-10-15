@@ -138,12 +138,14 @@ static func _spear(info: Dictionary, damage: float, ctx: Dictionary) -> Dictiona
 		}
 	if bool(info.get("explosive", false)):
 		# Meteor Spear (doc 21 §5.6): a small meteor drops on every enemy the spear pierces.
-		var small = 70.0 * float(info.get("spell_size_multiplier", 1.0))
+		var small = 48.0 * float(info.get("spell_size_multiplier", 1.0))   # was 70: too wide early (playtest)
 		spear.events = {"on_hit": {"part": "drop"}}
 		parts.drop = {
 			"delivery": "field", "origin": "parent", "anchor": "hit_target",
 			"geometry": {"type": "disk", "radius": small, "pad": 0.0},
-			"timing": {"duration": 0.25, "interval": 999.0},
+			# the mark shows at the pierced enemy, a beat, then the rock falls (0.65 s) and lands:
+			# the meteor clearly follows the hit (playtest: 0.25 s read as summoned at once)
+			"timing": {"duration": 1.0, "interval": 999.0},
 			"events": {"on_expire": {"part": "meteor"}},
 			"payload": [],
 			"vfx": {"family": "meteor"},
@@ -217,15 +219,30 @@ static func _life(info: Dictionary, ctx: Dictionary) -> Dictionary:
 static func _lightning(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictionary:
 	var id = str(info.id)
 	var strike := {
-		"delivery": "volume", "origin": "target",
+		"delivery": "volume", "origin": "parent",
 		"geometry": {"type": "disk", "radius": float(info.get("radius", 160.0)), "pad": 0.0},
 		"propagation": {"type": "instant", "linger": float(info.get("active_duration", 0.2 * float(info.get("spell_duration_multiplier", 1.0))))},
 		"payload": _damage(id, damage),
 		"vfx": {"heavy": 1.0},
 	}
-	var def = _shell(info, "strike", {"strike": strike})
+	var mark := _warn(float(info.get("radius", 160.0)), "strike", "target")
+	var def = _shell(info, "mark", {"mark": mark, "strike": strike})
+	def.max_depth = 2
 	def.needs_target = true
 	return def
+
+## A warning before a landing (playtest: "a blue ring, a beat, then BAM"): a payload-less mark
+## over the true area for `wait` seconds that drops `then` when it expires.
+const WARN_SECONDS := 0.32
+static func _warn(radius: float, then: String, origin: String = "parent", wait: float = WARN_SECONDS) -> Dictionary:
+	return {
+		"delivery": "field", "origin": origin,
+		"geometry": {"type": "disk", "radius": radius, "pad": 0.0},
+		"timing": {"duration": wait, "interval": 999.0},
+		"events": {"on_expire": {"part": then}},
+		"payload": [],
+		"vfx": {"warn": true},
+	}
 
 ## Rune Trap (and Frost Sigil), doc 21 §5.1: a rune laid toward the nearest enemy (at most 160 away)
 ## arms, waits, and when an enemy steps in it ACTIVATES (roots everyone inside briefly and marks them
@@ -255,6 +272,7 @@ static func _trap(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictiona
 		"propagation": {"type": "instant", "linger": 0.4},
 		"payload": marks,
 		"events": {"on_expire": {"part": "burst"}},
+		"vfx": {"warn": true},   # the 0.4 s fuse reads as the closing ring before the blast
 	}
 	var burst := {
 		"delivery": "volume", "origin": "parent",
@@ -279,6 +297,8 @@ static func _field(info: Dictionary, damage: float, _ctx: Dictionary) -> Diction
 		"timing": {"interval": float(info.get("tick_interval", 0.5)), "duration": float(info.get("duration", 5.0)), "delay_first": true},
 		"payload": payload,
 	}
+	if id == "steam_field":
+		field.vfx = {"style": "steam"}   # its own look: billowing steam over hot water, not Cinder Field's fire
 	var def = _shell(info, "field", {"field": field})
 	def.recast = _recast(info)
 	return def
@@ -292,6 +312,7 @@ static func _orbit(info: Dictionary, damage: float, ctx: Dictionary) -> Dictiona
 		"motion": [{"type": "orbit", "speed": float(info.get("angular_speed", 4.0)) * float(ctx.get("speed_mult", 1.0)), "radius": float(info.get("orbit_radius", 130.0))}],
 		"payload": _damage(id, damage),
 		"limits": {"pierce": -1, "rehit": float(info.get("tick_interval", 0.5)), "rehit_shared": true, "lifetime": float(info.get("duration", 6.0))},
+		"vfx": {"family": "sphere"},   # a glowing orb, not a bolt (playtest)
 	}
 	var def = _shell(info, "orb", {"orb": orb})
 	def.arrangement = {"type": "ring", "count": maxi(1, int(info.get("orb_count", 3))), "radius": float(info.get("orbit_radius", 130.0))}
@@ -352,11 +373,11 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 ## striking a small lightning area at every hit.
 static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
 	var id = str(info.id)
-	var speed = 550.0 * float(ctx.get("speed_mult", 1.0))
+	var speed = 340.0 * float(ctx.get("speed_mult", 1.0))   # slower so each hop reads (playtest; was 550)
 	var hops = int(info.get("bounce_count", 4))
 	var reach = float(info.get("bounce_range", 240.0))
 	# Doc 21 §5.6: the bolt bounces through up to `hops` more enemies, then ONE strike lands on the last.
-	var events = {"on_hit#bounce": {"part": "bounce", "chain": true, "hops": hops, "range": reach, "exclude_hit": true, "end": {"part": "splash"}}}
+	var events = {"on_hit#bounce": {"part": "bounce", "chain": true, "hops": hops, "range": reach, "exclude_hit": true, "end": {"part": "splash_warn"}}}
 	var bolt := {
 		"delivery": "projectile", "origin": "caster",
 		"geometry": {"type": "body", "radius": SpellGeometry.BOLT_RADIUS * float(info.get("projectile_size_multiplier", 1.0)), "pad": "hurtbox"},
@@ -370,7 +391,7 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 	bounce.origin = "parent"
 	bounce.motion = [{"type": "guided", "speed": speed, "lerp": 5.0, "range": reach * 1.5}]
 	bounce.payload = _damage(id, damage, "bounce")
-	bounce.events = {"on_hit#bounce": {"part": "bounce", "chain": true, "range": reach, "exclude_hit": true, "end": {"part": "splash"}}}
+	bounce.events = {"on_hit#bounce": {"part": "bounce", "chain": true, "range": reach, "exclude_hit": true, "end": {"part": "splash_warn"}}}
 	var splash := {
 		"delivery": "volume", "origin": "parent",
 		"geometry": {"type": "disk", "radius": float(info.get("splash_radius", 80.0)) * float(info.get("spell_size_multiplier", 1.0)), "pad": 0.0},
@@ -378,10 +399,11 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 		"payload": _damage(id, damage, "splash"),   # 1.5x the base hit in storm (data/spell_damage.json)
 		"vfx": {"heavy": 0.8},
 	}
-	var def = _shell(info, "bolt", {"bolt": bolt, "bounce": bounce, "splash": splash})
+	var splash_warn := _warn(float(info.get("splash_radius", 80.0)) * float(info.get("spell_size_multiplier", 1.0)), "splash")
+	var def = _shell(info, "bolt", {"bolt": bolt, "bounce": bounce, "splash_warn": splash_warn, "splash": splash})
 	def.release = {"type": "together", "retarget": true}
 	def.max_spawns = 64
-	def.max_depth = hops + 2       # the strike still lands after the last bounce
+	def.max_depth = hops + 3       # the warning and the strike still land after the last bounce
 	def.needs_target = true        # no enemy, no bolt (old behaviour)
 	return def
 
@@ -429,14 +451,15 @@ static func _beam(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionar
 	}
 	var parts := {"beam": beam}
 	if bool(info.get("refract", false)):
-		var fan = 70.0
+		var fan = 150.0   # wide: one enemy takes one or two rays, not all six (playtest)
 		beam.events = {}
 		for i in PRISM_RAYS.size():
 			var ray = PRISM_RAYS[i]
-			beam.events["on_hit#" + ray] = {"part": ray, "turn": -fan * 0.5 + fan * i / (PRISM_RAYS.size() - 1), "exclude_hit": true}
+			beam.events["on_hit#" + ray] = {"part": ray, "turn": -fan * 0.5 + fan * i / (PRISM_RAYS.size() - 1), "exclude_hit": true,
+				"sway": 14.0, "sway_speed": 0.35, "sway_phase": float(i)}
 			parts[ray] = {
 				"delivery": "volume", "origin": "parent",
-				"geometry": {"type": "line", "length": 250.0 * float(info.get("spell_size_multiplier", 1.0)), "width": 16.0, "pad": "hurtbox"},
+				"geometry": {"type": "line", "length": 420.0 * float(info.get("spell_size_multiplier", 1.0)), "width": 28.0 * float(info.get("spell_size_multiplier", 1.0)), "pad": "hurtbox"},
 				"propagation": {"type": "instant", "linger": 0.05},
 				"payload": _damage(id, damage, ray),
 				"vfx": {"family": "ray", "look": PRISM_LOOKS[ray]},

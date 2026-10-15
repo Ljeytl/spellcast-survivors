@@ -72,7 +72,7 @@ func run():
 	check(meteor.parts.has("crater") and meteor.parts.mark.events.has("on_expire#crater"), "Meteor Shower leaves a crater after its impact")
 	check(payload_statuses(meteor, "impact").has("stunned"), "The impact carries the stun")
 	var bolt = Bridge.build({"id": "lightning_bolt", "type": "bouncing_projectile", "damage": 40, "bounce_count": 4}, 40.0, {})
-	check(not bolt.parts.bolt.events.has("on_hit") and bolt.parts.bolt.events["on_hit#bounce"].get("end", {}).get("part", "") == "splash", "Lightning Bolt strikes once, where its chain ends")
+	check(not bolt.parts.bolt.events.has("on_hit") and bolt.parts.bolt.events["on_hit#bounce"].get("end", {}).get("part", "") == "splash_warn" and bolt.parts.splash_warn.events.on_expire.part == "splash", "Lightning Bolt strikes once, where its chain ends, after a warning ring")
 	var trap1 = Bridge.build({"id": "rune_trap", "type": "trap", "damage": 55, "level": 1}, 55.0, {})
 	var trap6 = Bridge.build({"id": "rune_trap", "type": "trap", "damage": 55, "level": 7}, 55.0, {})
 	check(trap1.parts.rune.events.on_trigger.part == "activate" and trap1.parts.activate.events.on_expire.part == "burst", "Rune Trap: arm, activate, explode")

@@ -380,7 +380,8 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 			return
 		dir = at.direction_to(target.global_position)
 	if ev.has("turn"):
-		dir = dir.rotated(deg_to_rad(float(ev.turn)))   # a fixed angle off the parent (Prism Ray's refraction)
+		var sway := float(ev.get("sway", 0.0)) * sin(clock * float(ev.get("sway_speed", 0.0)) * TAU + float(ev.get("sway_phase", 0.0)))
+		dir = dir.rotated(deg_to_rad(float(ev.turn) + sway))   # an angle off the parent (Prism Ray's refraction), swaying slowly
 	for i in copies:
 		var d = dir.rotated(spread * (i - (copies - 1) * 0.5)) if copies > 1 else dir
 		var child = _make_part(child_name, at, d, parent.depth + 1, parent.power_scale, parent.size_scale)

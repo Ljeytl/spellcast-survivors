@@ -135,6 +135,7 @@ func run():
 		var next = chain_cast.parts.filter(func(p): return is_instance_valid(p) and not p.done and p.part_name == "bounce")
 		chain = next.back() if not next.is_empty() else null
 	check(struck.size() == 6 and chain == null, "Five bounces damage six distinct enemies and terminate")
+	chain_cast.advance(0.4)   # the strike lands after its warning ring (playtest)
 	check(chain_targets.all(func(target): return target.current_health < 1000.0), "Impact splash can hit the seventh enemy without another direct bounce")
 	for target in chain_targets:
 		target.free()
@@ -209,6 +210,7 @@ func run():
 	root.size = Vector2i(1280, 720)
 	await process_frame
 	manager.cast_freeform_spell("lightning")
+	manager.last_generic_cast.advance(0.4)   # the strike lands after its warning ring (playtest)
 	check(front.current_health < before_lightning and side.current_health < 1000 and inside.current_health == neighbor_health, "Lightning strikes nearby group and excludes enemies beyond circle")
 	if is_instance_valid(ice):
 		ice.queue_free()

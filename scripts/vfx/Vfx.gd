@@ -540,9 +540,13 @@ func chunk(x: float, y: float, vx: float, vy: float, vz: float, palette: Array, 
 func shake(strength: float):
 	if reduced_effects:
 		return
-	var scene = get_tree().current_scene if get_tree() else null
-	var cs = scene.get("camera_shake") if scene else null
-	if cs and cs.has_method("shake_light"):
+	# The live game camera's shaker registers itself (the game is not always current_scene).
+	var cs = preload("res://scripts/CameraShake.gd").active
+	if cs == null or not is_instance_valid(cs):
+		return
+	if strength >= 0.6 and cs.has_method("shake_impact"):
+		cs.shake_impact(6.0 + strength * 5.0, 0.18 + strength * 0.08)
+	elif cs.has_method("shake_light"):
 		cs.shake_light() if strength < 0.5 else cs.shake_medium()
 
 # ------------------------------------------------------------------ spell-engine events (docs/VFX_EVENTS.md)

@@ -479,6 +479,8 @@ func setup_player():
 		spell_manager.typing_started.connect(_on_typing_started) 
 		spell_manager.typing_ended.connect(_on_typing_ended)
 		spell_manager.spell_locked_error.connect(_on_spell_locked_error)
+		spell_manager.keyword_cracked.connect(func(word, reason): float_word(str(word).to_upper() + " cracked: " + str(reason), Color("ff5a4a")))
+		spell_manager.keywords_accepted.connect(func(words): float_word("  ".join(words.map(func(w): return str(w).to_upper())), Color("ffe49b")))
 		
 	# Create level up screen
 	level_up_screen = level_up_screen_scene.instantiate()
@@ -1175,6 +1177,30 @@ func celebrate_spell(slot: int, title: String, line: String):
 			flash.tween_property(cell, "modulate", Color.WHITE, 0.18)
 	if particle_manager and player and particle_manager.has_method("create_spell_unlock_effect"):
 		particle_manager.create_spell_unlock_effect(player.global_position)
+
+## Typed words called out over the wizard: accepted words in gold, cracked ones in red with why
+## (playtest: it was not obvious what was accepted or rejected).
+var _word_stack := 0
+func float_word(text: String, color: Color):
+	if not is_instance_valid(player):
+		return
+	var label = Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_outline_color", Color("120e14"))
+	label.add_theme_constant_override("outline_size", 6)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.z_index = 60
+	label.size = Vector2(520, 30)
+	label.position = player.global_position + Vector2(-260, -110 - 26 * (_word_stack % 3))
+	_word_stack += 1
+	add_child(label)
+	var tw = label.create_tween()
+	tw.tween_property(label, "position:y", label.position.y - 36, 1.4).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(label, "modulate:a", 0.0, 0.5).set_delay(0.9)
+	tw.tween_callback(label.queue_free)
+	tw.tween_callback(func(): _word_stack = maxi(0, _word_stack - 1))
 
 func show_gameplay_feedback(text: String):
 	var interface = get_node_or_null("GameplayReadability")

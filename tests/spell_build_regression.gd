@@ -129,7 +129,7 @@ func run():
 	var start = game.player.global_position
 	var a = make_target(game, start + Vector2(70, 0))
 	var b = make_target(game, start + Vector2(140, 0))
-	var c = make_target(game, start + Vector2(70, 65))
+	var c = make_target(game, start + Vector2(70, 40))   # inside the smaller rank-1 meteor (48, playtest)
 	manager.learn_spell("ember_spear")
 	manager.cast_freeform_spell("ember spear")
 	var spear_cast = cast_for(game, "ember_spear")
@@ -142,7 +142,7 @@ func run():
 	manager.learn_spell("meteor_shower")
 	manager.learn_spell("meteor_spear")
 	manager.cast_freeform_spell("meteor spear")
-	cast_for(game, "meteor_spear").run(0.3)
+	cast_for(game, "meteor_spear").run(1.4)   # the meteor lands a beat after the hit (playtest)
 	var effect = null
 	check(c.current_health < 1000, "Meteor Spear splash reaches off-line enemy")
 	manager.learn_spell("infestation")

@@ -56,6 +56,11 @@ static func analyze(text: String, spells: Array, power_words: Array) -> Dictiona
 	var body = rest
 	# QUICK: the rest is the spell's initials ("quick e s" = Ember Spear).
 	var quick: bool = mods.has("quick")
+	if quick and body.strip_edges().is_valid_int():
+		# QUICK + slot number: one rune, complete at once.
+		var d := body.strip_edges()
+		return {"power_words": mods, "runes": d, "rune_count": d.length(), "valid": true, "forming_power_word": false, "power_word": "",
+			"element": "", "spell": d, "total_runes": d.length(), "full_rings": 0, "partial": d.length(), "ring_count": 1, "complete": true, "candidates": []}
 	var spell_candidates: Array = []
 	for spell in spells:
 		if (quick and quick_fits(body, str(spell.incantation))) or (not quick and str(spell.incantation).begins_with(body)):

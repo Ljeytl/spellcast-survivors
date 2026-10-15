@@ -687,6 +687,8 @@ func start_freeform_typing():
 	typing_slowdown_remaining = typing_slowdown_capacity
 	current_typing_text = ""
 	target_spell = ""  # No target in freeform mode, we'll match dynamically
+	last_parse = {}     # a new incantation: last cast's cracked words no longer colour the keycaps
+	last_cracked = []
 	
 	_apply_typing_slowdown()
 
@@ -717,10 +719,13 @@ func handle_freeform_typing_input(event: InputEventKey):
 	else:
 		# Add character to typing text
 		var char = char(event.unicode)
-		if char.length() > 0 and (char.is_valid_identifier() or char == " "):
+		if char.length() > 0 and (char.is_valid_identifier() or char == " " or char.is_valid_int()):
 			current_typing_text += char.to_lower()
 			style_input_changed.emit(current_typing_text)
 			update_freeform_typing_display()
+			if quick_slot_of(current_typing_text) >= 0:
+				attempt_freeform_cast()   # "quick 3" casts at once
+				return
 			
 			# Play typing sound for each character
 			if AudioManager:
@@ -781,6 +786,18 @@ var last_generic_cast = null
 var last_parse: Dictionary = {}
 var last_cracked: Array = []
 signal keyword_cracked(word: String, reason: String)
+signal keywords_accepted(words: Array)   # the words that took effect on a cast, for the "accepted" callout
+
+## After a cast: announce which typed words took effect (rejected ones were announced as cracked).
+func _announce_words(parsed: Dictionary) -> void:
+	var bad := {}
+	for r in last_cracked + parsed.get("rejected", []):
+		bad[str(r.word)] = true
+	var good: Array = parsed.get("keywords", []).filter(func(w): return not bad.has(str(w)))
+	if bool(parsed.get("quick", false)):
+		good.push_front("quick")
+	if not good.is_empty():
+		keywords_accepted.emit(good)
 
 ## Generic spells this player can cast now: bare forms plus learned ones. incantation -> definition.
 func castable_generic_spells() -> Dictionary:
@@ -802,12 +819,38 @@ func legacy_incantations() -> Dictionary:
 			out[str(info.name).to_lower()] = slot
 	return out
 
+## QUICK + slot number ("quick 3"): the spell in that slot at QUICK's power. The obvious form;
+## QUICK + initials still parses.
+func quick_slot_of(text: String) -> int:
+	var words = text.strip_edges().to_lower().split(" ", false)
+	var quick_word = str(KeywordParser.data().get("quick", {}).get("word", "quick"))
+	if words.size() == 2 and words[0] == quick_word and words[1].is_valid_int():
+		return int(words[1])
+	return -1
+
 func parse_incantation(text: String) -> Dictionary:
+	var qslot = quick_slot_of(text)
+	if qslot >= 0:
+		var r = {"ok": false, "spell": "", "quick": true, "keywords": [], "unknown": [], "rejected": [], "bundle": KeywordParser.empty_bundle(), "error": ""}
+		if is_spell_unlocked(qslot):
+			r.ok = true
+			r.spell = str(get_spell_info(qslot).display_name).to_lower()
+			r.bundle.power = float(KeywordParser.data().get("quick", {}).get("power", 0.35))
+		else:
+			r.error = "no spell in slot %d" % qslot
+		return r
 	var names: Array = legacy_incantations().keys()
 	names.append_array(castable_generic_spells().keys())
 	return KeywordParser.parse(text, names)
 
 func cast_keyword_spell(text: String) -> bool:
+	last_cracked = []
+	var ok = _cast_keyword_spell(text)
+	if ok:
+		_announce_words(last_parse)
+	return ok
+
+func _cast_keyword_spell(text: String) -> bool:
 	var parsed = parse_incantation(text)
 	last_parse = parsed
 	if not parsed.ok:

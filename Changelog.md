@@ -23,6 +23,7 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 - **Clearer progress.** A new spell or rank shows a big banner, a chime and the slot flashing gold.
 - **Necronomicon pages:** spells, shape words, flight & hit words, element words, special words, element chart (left / right to flip).
 - **The tower** remembers which doorway faced north.
+- **Second pass:** landings telegraph — a blue ring over the true area, an inner ring closing on it, then the blast (Lightning, Lightning Bolt's strike, Rune Trap and Frost Sigil's fuse; Meteor Spear's meteor follows each pierced enemy a beat later). Every projectile hit punches (star, hit-pause, shake for heavy bodies). Lightning is one bolt; Lightning Bolt travels slower. Prism Ray refracts into six thick, slowly swaying lasers, each with its own element look. Arcane Orbit is a glowing sphere; Steam Field billows steam. Quieter Ice Blast, Cross Blade and poison; snowflakes for chill. Damage-over-time ticks flash red. QUICK + slot number ("quick 3"). Keycaps light every keyword gold and rejected words red; accepted and cracked words float over the wizard. FREEZING is a new water word (damage + chill).
 
 ## Damage, effects and keywords (doc 21)
 

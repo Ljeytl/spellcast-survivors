@@ -48,6 +48,10 @@ var error = 0.0
 var glow = 0.0
 var fade = 0.0
 var burst = 0.0
+# Satellite spin is integrated, not clock x speed: with clock x speed every change in glow (each
+# letter typed) jumped every satellite to a new angle and fast typing made it spin wildly (playtest).
+var sat_phase := 0.0
+var rune_phase := 0.0
 var burst_mult = 1.0
 var sealed = false
 var awaiting_release = 0.0   # power-word casts charge briefly after typing ends; hold the circle
@@ -365,10 +369,10 @@ func _on_released(_family: String, canonical: String, _typed: String):
 func satellite_center(i: int, n: int) -> Vector2:
 	var travel = float(satellites[i].travel) if i < satellites.size() else float(forming.get("travel", 0.0))
 	var orbit = lerpf(SATELLITE_TRAVEL_FROM, SATELLITE_ORBIT, ease(clampf(travel, 0.0, 1.0), 0.4))
-	return Vector2.from_angle(clock * (0.7 + glow * 0.5) + i * TAU / maxf(1.0, n)) * orbit
+	return Vector2.from_angle(sat_phase + i * TAU / maxf(1.0, n)) * orbit
 
 func satellite_rune_angle(j: int, n: int) -> float:
-	return clock * (1.6 + glow * 1.5 + burst * 6.0) + j * TAU / maxf(4.0, n)
+	return rune_phase + j * TAU / maxf(4.0, n)
 
 func _process(_delta):
 	var now = Time.get_ticks_usec()
@@ -427,6 +431,8 @@ func _process(_delta):
 	element_flash = maxf(0.0, element_flash - dt * 2.0)
 	for i in ring_flash.size():
 		ring_flash[i] = maxf(0.0, ring_flash[i] - dt * 3.0)
+	sat_phase = fmod(sat_phase + dt * (0.7 + minf(glow, 1.0) * 0.4), TAU)
+	rune_phase = fmod(rune_phase + dt * (1.6 + minf(glow, 1.0) * 1.0 + burst * 4.0), TAU)
 	var spin = 1.0 + glow * 2.0 + burst * 10.0
 	var full = good_runes / STATE.RUNES_PER_RING
 	for r in ring_rot.size():

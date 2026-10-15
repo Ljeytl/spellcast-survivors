@@ -168,7 +168,8 @@ func _draw():
 		pos.y -= 16 * (1 - progress) * (1 - progress)
 		var tint = typed_letter_tint(i)
 		if completion_remaining > 0:
-			tint = Color("ffe49b") if completed_mega else Color("79d9e8")
+			var wc := word_class(i)
+			tint = Color("ff5a4a") if wc == "rejected" else (Color("ffe49b") if completed_mega or wc == "keyword" else Color("79d9e8"))
 			tint.a = clampf(completion_remaining / completion_duration * 1.8, 0.0, 1.0)
 			if not manager.game_manager.particle_manager.reduced_effects:
 				pos.y -= (1.0 - completion_remaining / completion_duration) * (20 if completed_mega else 10)
@@ -210,8 +211,40 @@ func fitted_caption(font: Font) -> String:
 		text = text.left(text.length() - 1)
 	return text + "…"
 
+## What the typed word under this letter is: "keyword" (gold), "rejected" (it cracked on the last
+## cast: red) or "" (the spell name / not a word). Every keyword lights, not only MEGA (playtest).
+func word_class(index: int) -> String:
+	if index < 0 or index >= letters.length() or letters[index] == " ":
+		return ""
+	var start := index
+	while start > 0 and letters[start - 1] != " ":
+		start -= 1
+	var stop := index
+	while stop < letters.length() and letters[stop] != " ":
+		stop += 1
+	var word := letters.substr(start, stop - start).to_lower()
+	var KP = preload("res://scripts/engine/KeywordParser.gd")
+	word = str(KP.data().get("aliases", {}).get(word, word))
+	if not (KP.is_keyword(word) or word == "mega" or word == str(KP.data().get("quick", {}).get("word", "quick"))):
+		return ""
+	# a word that also starts a spell name ("arcane orbit") is the spell's while the rest matches it
+	if stop < letters.length() and manager.has_method("legacy_incantations"):
+		var rest := letters.substr(start).to_lower()
+		for inc in manager.legacy_incantations():
+			if str(inc).contains(" ") and rest.begins_with(str(inc)):
+				return ""
+	var cracked: Array = []
+	if manager.get("last_cracked") != null:
+		cracked.append_array(manager.last_cracked)
+	if manager.get("last_parse") is Dictionary:
+		cracked.append_array(manager.last_parse.get("rejected", []))
+	for r in cracked:
+		if str(r.get("word", "")) == word:
+			return "rejected"
+	return "keyword"
+
 func typed_letter_tint(index: int) -> Color:
-	var tint = Color("dfbd76") if letters.begins_with("mega ") and index < 4 else Color.WHITE
+	var tint = Color("dfbd76") if word_class(index) == "keyword" else Color.WHITE
 	if not manager.target_spell.is_empty():
 		var target = manager.target_spell
 		if ("mega " + target).begins_with(letters) or letters.begins_with("mega "):

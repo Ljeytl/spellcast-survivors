@@ -94,6 +94,11 @@ func run():
 	check(manager.cast_keyword_spell("quick em s"), "QUICK casts Ember Spear by word starts (" + manager.last_cast_failure + ")")
 	check(casts_of(game, "ember_spear").size() == before_quick + 1, "QUICK threw a spear")
 	check(not manager.parse_incantation("quick es").ok or manager.parse_incantation("quick es").spell == "ember spear", "Shared initials need more letters or pick the one unlocked")
+	var spear_slot = manager.find_spell_slot("ember_spear")
+	var before_num = casts_of(game, "ember_spear").size()
+	check(manager.cast_keyword_spell("quick %d" % spear_slot), "QUICK + slot number casts that slot (" + manager.last_cast_failure + ")")
+	check(casts_of(game, "ember_spear").size() == before_num + 1, "QUICK %d threw a spear" % spear_slot)
+	check(not manager.parse_incantation("quick 9").ok, "QUICK on an empty slot fails")
 
 	# --- Bolt, Ice Blast, Life, Lightning, Rune Trap ------------------------------------------
 	root.size = Vector2i(1280, 720)

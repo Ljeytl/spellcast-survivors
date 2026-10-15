@@ -58,10 +58,10 @@ const SMEAR := {
 	"water": [Color("#ffffff"), Color("#a6e6ff"), Color("#3f9fe4")], "life": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a")],
 	"plague": [Color("#e4fbb0"), Color("#a6e45e"), Color("#56b23e")], "earth": [Color("#e8dcc0"), Color("#c9b48c"), Color("#9a7d5a")],
 }
-const EARTH_BODY := {"shard": {"t": "diamond", "a": 6.0, "b": 1.4}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.2}, "bolt": {"t": "orb", "r": 3.2}, "spear": {"t": "diamond", "a": 8.0, "b": 2.0}, "ball": {"t": "orb", "r": 4.6}}
+const EARTH_BODY := {"sphere": {"t": "orb", "r": 3.4}, "shard": {"t": "diamond", "a": 6.0, "b": 1.4}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.2}, "bolt": {"t": "orb", "r": 3.2}, "spear": {"t": "diamond", "a": 8.0, "b": 2.0}, "ball": {"t": "orb", "r": 4.6}}
 # Rigid looks keep a drawn body (that IS the technique: crystal sprites).
-const LIFE_BODY := {"shard": {"t": "diamond", "a": 6.0, "b": 1.4}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
-const ICE_BODY := {"shard": {"t": "diamond", "a": 7.0, "b": 1.3}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
+const LIFE_BODY := {"sphere": {"t": "orb", "r": 3.4}, "shard": {"t": "diamond", "a": 6.0, "b": 1.4}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
+const ICE_BODY := {"sphere": {"t": "diamond", "a": 4.0, "b": 3.4}, "shard": {"t": "diamond", "a": 7.0, "b": 1.3}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
 const INK := Color("#120e14")
 # Magma core (fireball): dark crust, glowing cracks, hot seams. Hue-shifted
 # toward red in the dark end, white kept out (white is for impacts).
@@ -69,6 +69,8 @@ const MAGMA := [Color("#2a0f0c"), Color("#4a1a12"), Color("#c2361a"), Color("#ff
 
 # Sandbox projectile presets (SPELLS.bolt / spear / fireball / fiery), sandbox units.
 const FAMILY := {
+	# Arcane Orbit: a big glowing sphere with a soft sparkle wake (not a bolt).
+	"sphere": {"body": {"t": "orb", "r": 3.4}, "trail": {"rate": 2.5, "per_dist": 0.4, "heat": 0.9, "spread": 1.6, "grip": 0.2, "inh": 0.2, "ember": 0.25}, "impact": 0.5},
 	# Magic Missile: a thin force dart, quick sparkle trail (not the Bolt's fat diamond).
 	"dart": {"body": {"t": "diamond", "a": 3.2, "b": 1.0}, "trail": {"rate": 1.2, "per_dist": 0.6, "heat": 0.9, "spread": 0.3, "grip": 0.1, "inh": 0.3, "ember": 0.05}, "impact": 0.35},
 	# Ice Blast: a long thin ice shard.
@@ -85,6 +87,7 @@ const FAMILY := {
 # radius (su), "n" = flames per 60 fps frame, "len" stretches the knot along
 # the motion (spears), "core" = white core half-size in cells.
 const FIRE_BODY := {
+	"sphere": {"r": 2.4, "n": 3.0, "len": 1.0, "heat": 0.6, "core": 2},
 	"dart": {"r": 1.0, "n": 1.0, "len": 1.4, "heat": 0.4, "core": 1},
 	"shard": {"r": 1.0, "n": 1.0, "len": 1.8, "heat": 0.4, "core": 1},
 	"bolt": {"r": 1.3, "n": 1.5, "len": 1.6, "heat": 0.45, "core": 1},
@@ -251,7 +254,16 @@ func part_spawned(part) -> void:
 		return
 	var vfam0 := str(part.def.get("vfx", {}).get("family", ""))
 	if vfam0 == "none":
-		_presented[part.get_instance_id()] = weakref(part)   # drawn by nothing (Regeneration's aura)
+		# Regeneration's aura: no ring or floor, only leaves and petals rising around the wizard.
+		_parts[part.get_instance_id()] = {"part": weakref(part), "kind": "healaura", "look": look_of(part.cast.plan), "last": part.global_position / WPS, "acc": 0.0,
+			"r": float(part.geo("radius", 34.0)) / WPS}
+		_presented[part.get_instance_id()] = weakref(part)
+		return
+	if bool(part.def.get("vfx", {}).get("warn", false)):
+		# The telegraph before a landing: the true area as a bright ring, an inner ring closing on it.
+		_parts[part.get_instance_id()] = {"part": weakref(part), "kind": "warn", "look": look_of(part.cast.plan), "last": part.global_position / WPS,
+			"acc": 0.0, "age": 0.0, "life": maxf(0.05, float(part.total_life())), "r": float(part.geo("radius", 60.0)) / WPS}
+		_presented[part.get_instance_id()] = weakref(part)
 		return
 	if vfam0 == "ray":
 		var pos: Vector2 = part.global_position / WPS
@@ -260,13 +272,14 @@ func part_spawned(part) -> void:
 		var cols: Array = BODY.get(key2, BODY.arcane)
 		var dir2: Vector2 = Vector2(part.direction).normalized()
 		var length_su: float = part.geo("length", 250.0) / WPS
-		var steps := 10
-		for i in steps:
-			var k := float(i + 1) / steps
-			var p2: Vector2 = pos + dir2 * length_su * k
-			vfx.spark(p2.x, p2.y, dir2.x * 6.0, dir2.y * 6.0, 0.12 + 0.05 * randf(), [cols[0], cols[1], cols[2]])
+		# A real laser: a thick band in the element's colours that holds a moment and thins out.
+		var hw_su: float = maxf(1.5, part.geo("width", 28.0) * 0.5 / WPS)
+		_lasers.append([pos, dir2, length_su, hw_su, 0.0, 0.32, cols, key2])
+		_ray_flavour(key2, pos, dir2, length_su, hw_su)
 		var tip: Vector2 = pos + dir2 * length_su
-		vfx.flash(tip.x, tip.y, 1.0, 0.06, cols[1])
+		vfx.flash(tip.x, tip.y, 1.5, 0.06, cols[1])
+		for i in 3:
+			vfx.spark(tip.x, tip.y, dir2.x * 20.0 + (randf() - 0.5) * 20.0, dir2.y * 20.0 + (randf() - 0.5) * 20.0, 0.2, [cols[0], cols[1], cols[2]])
 		_presented[part.get_instance_id()] = weakref(part)
 		return
 	var look = look_of(part.cast.plan)
@@ -378,6 +391,14 @@ func part_spawned(part) -> void:
 					line_o.heat_k = 0.5
 					line_o.style = 2
 				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, line_o)
+			elif str(part.def.get("vfx", {}).get("style", "")) == "steam":
+				# Steam Field: hot water and billowing white steam; only a few low flames under it.
+				var sr: float = part.geo("radius", 60.0) / WPS
+				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.12, "heat_k": 0.4, "style": 2})
+				st.steam = true
+				for i in 10:
+					var q := _in_disk(pos.x, pos.y, sr)
+					vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -6.0 - randf() * 6.0, 2.6, 7.0, 1.0 + randf() * 0.6)
 			elif str(part.def.get("vfx", {}).get("style", "")) == "rubble":
 				# Meteor crater: cracked, charred ground with low fire, rocks kicked up while it burns.
 				var cr: float = part.geo("radius", 60.0) / WPS
@@ -396,6 +417,7 @@ func part_hit(part, enemy, at: Vector2) -> void:
 		return
 	_part_hit_look(part, enemy, at)
 	var p: Vector2 = part.global_position / WPS
+	_contact_punch(part, st, p)
 	_force_fx(part.cast.plan, p, st.look.accent if st.look.accent != "" else st.look.native)
 	if st.look.accent != "" and st.look.native != "arcane":
 		_react(st.look.native, st.look.accent, p, 0.6)
@@ -410,6 +432,13 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 			spawns_burst = true
 	if impact_look == "lightning":
 		_zap(p.x, p.y)
+		return
+	var many: bool = st.family in ["blade", "shard"]   # many hits a cast: keep each one small (playtest)
+	if impact_look == "earth" and many:
+		_earth_contact(p.x, p.y)
+		return
+	if impact_look == "ice" and many:
+		_ice_impact(p.x, p.y, 0.22)   # thirteen shards a cast: each hit a small chip (playtest: too noisy)
 		return
 	if impact_look == "plague" or impact_look == "earth":
 		if st.family == "spear" or st.look.native != impact_look:
@@ -519,10 +548,31 @@ func step(dt: float) -> void:
 				_field_force(part.cast.plan, st.field, st.look.accent if st.look.accent != "" else st.look.native, dt)
 				if st.get("rubble", false):
 					_rubble(st.field, dt)
+				if st.get("steam", false):
+					var f: Dictionary = st.field
+					var nm := 1.1 * dt * 60.0 * maxf(1.0, float(f.r) / 18.0)
+					while nm > 0.0:
+						if nm < 1.0 and randf() > nm:
+							break
+						nm -= 1.0
+						var q := _in_disk(float(f.x), float(f.y), float(f.r))
+						vfx.elements.mist(q.x, q.y, (randf() - 0.5) * 6.0, -7.0 - randf() * 8.0, 2.2 + randf(), 6.5, 0.9 + randf() * 0.6)
+					if randf() < 0.12 * dt * 60.0:
+						var q2 := _in_disk(float(f.x), float(f.y), float(f.r) * 0.9)
+						vfx.elements.droplet(q2.x, q2.y, (randf() - 0.5) * 10.0, (randf() - 0.5) * 6.0, 15.0 + randf() * 15.0)
 			"wave":
 				_water_wave(part, st, dt)
 			"meteor":
 				_meteor_fall(part, st, pos, dt)
+			"warn":
+				st.age = float(st.age) + dt
+			"healaura":
+				if randf() < 0.35 * dt * 60.0:
+					var q := _in_disk(pos.x, pos.y, float(st.r) * 1.6)
+					vfx.elements.leaf(q.x, q.y, (randf() - 0.5) * 4.0, -(5.0 + randf() * 4.0), LIFE.petal if randf() < 0.35 else LIFE.leaf, 1.0)
+				if randf() < 0.15 * dt * 60.0:
+					var q2 := _in_disk(pos.x, pos.y, float(st.r) * 1.2)
+					vfx.spark(q2.x, q2.y, 0.0, -8.0, 0.5, [Color("#ffffff"), Color("#d4f58a"), Color("#7fcf4a")])
 			"patch":
 				if randf() < 0.12 * dt * 60.0:
 					var a := randf() * TAU
@@ -604,7 +654,7 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	elif accent == "fire":
 		_emit_trail(part, st, "acc", ACCENT_TRAIL, pos, vel, dist, dt)
 	if native == "ice" or accent == "ice":
-		_ice_trail(pos, vel, dt)
+		_ice_trail(pos, vel, dt, 0.3 if st.family == "shard" else 1.0)
 	if native == "lightning" or accent == "lightning":
 		_lightning_trail(st, pos, vel, dt)
 	if native == "water" or accent == "water":
@@ -687,7 +737,9 @@ func _heavy_landing(p: Vector2, r: float, el: String, w: float) -> void:
 		vfx.chunk(p.x + cos(a) * r * 0.3, p.y + sin(a) * r * 0.2, cos(a) * sp, sin(a) * sp * 0.6, 30.0 + randf() * 40.0 * w, EAR.debris, 0.7 + randf() * 0.4, 1 + int(randf() < 0.3 * w))
 	vfx.scorch(p.x, p.y, r * 0.6, 3.0)
 	vfx.hitstop(roundi(2.0 + 2.0 * w))
-	vfx.shake(0.8 if w >= 1.0 else 0.4)
+	vfx.shake(0.6 + 0.4 * w)
+	# The damage area itself: a red ring at the true radius that holds a beat, so you see what was hit.
+	_hit_rings.append([p.x, p.y, r, 0.0, 0.35])
 	var snd: String = LANDING_SOUND.get(el, "SPELL_IMPACT_FIRE")
 	if vfx.get_node_or_null("/root/AudioManager") != null:
 		AudioManager.play_sound(AudioManager.SoundType.get(snd, AudioManager.SoundType.SPELL_IMPACT_FIRE))
@@ -704,6 +756,67 @@ func _rubble(f: Dictionary, dt: float) -> void:
 	if randf() < 0.06 * dt * 60.0:
 		var q3 := _in_disk(float(f.x), float(f.y), r * 0.8)
 		vfx.puff(q3.x, q3.y)
+
+const WARN_RIM := [Color("#7fd0ff"), Color("#ffffff")]
+const WARN_HOT := [Color("#ffffff"), Color("#bfeaff")]
+
+## Every projectile hit lands with a punch scaled to the spell (playtest: "haptic feedback on all
+## spells"): a white star at the contact, a frame of hit-pause, and a small shake for heavy bodies.
+## Many-hit spells (blades, shards, missiles) get a lighter touch so a volley isn't noise.
+func _contact_punch(part, st: Dictionary, p: Vector2) -> void:
+	var fam := str(st.get("family", "bolt"))
+	var light: bool = fam in ["blade", "shard", "dart", "orbiter", "ghost"]
+	var sz: float = clampf(float(part.size_scale), 0.6, 2.5)
+	vfx.star(p.x, p.y, (2.0 if light else 3.5) * sz, 0.05, 4, Color.WHITE)
+	if light:
+		return
+	vfx.flash(p.x, p.y, 2.5 * sz, 0.05, Color.WHITE)
+	vfx.hitstop(1 if fam == "bolt" else 2)
+	if fam in ["ball", "spear"] or sz >= 1.4:
+		vfx.shake(0.35)
+
+## Prism Ray: each refracted ray carries its element along it, so the six read apart at a glance.
+func _ray_flavour(look: String, a: Vector2, d: Vector2, L: float, hw: float) -> void:
+	var el = vfx.elements
+	var n := Vector2(-d.y, d.x)
+	match look:
+		"fire":
+			for i in 5:
+				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
+				vfx.flame(null, q, {"heat": 1.2, "rise": 10.0 + randf() * 8.0, "life": 0.25 + randf() * 0.2, "small": 1.0})
+		"ice":
+			for i in 3:
+				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
+				el.flake(q.x, q.y, (randf() - 0.5) * 4.0, 2.0, 0.6, 1 if randf() < 0.4 else 0, 3.0)
+		"lightning":
+			var b: Vector2 = a + d * L
+			el.arc(a.x, a.y, b.x, b.y, 3.0, 0.3, 0, true, true, false)
+		"earth":
+			for i in 3:
+				var q: Vector2 = a + d * L * randf()
+				vfx.chunk(q.x, q.y, n.x * (randf() - 0.5) * 30.0, n.y * (randf() - 0.5) * 30.0, 20.0 + randf() * 25.0, EAR.debris, 0.6, 1)
+		"plague":
+			for i in 4:
+				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
+				el.bubble(q.x, q.y, randf() < 0.3)
+		"life":
+			for i in 3:
+				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
+				el.leaf(q.x, q.y, (randf() - 0.5) * 6.0, -3.0, LIFE.petal if randf() < 0.4 else LIFE.leaf, 0.8)
+
+## Telegraph: the exact area as a dashed blue ring that brightens, and a solid ring growing from
+## the centre that meets the edge the moment it lands (playtest: "blue ring, then BAM").
+func _draw_warn(buf: PackedByteArray, c: Vector2, st: Dictionary) -> void:
+	var el = vfx.elements
+	var k: float = clampf(float(st.age) / float(st.life), 0.0, 1.0)
+	var r: float = float(st.r)
+	el.draw_nova(buf, c.x, c.y, r, WARN_RIM if k < 0.6 else WARN_HOT)
+	var inner := r * k
+	if inner > 1.0:
+		var steps := ceili(TAU * inner * 0.6)
+		for i in steps:
+			var a := TAU * i / steps
+			el.spx(buf, roundi(c.x + cos(a) * inner), roundi(c.y + sin(a) * inner), WARN_RIM[0] if k < 0.75 else WARN_HOT[0])
 
 ## An enemy's body in su: centre and half-height, so status effects sit ON it, not above it.
 func _body(e) -> Array:
@@ -812,7 +925,8 @@ func _damage_disk(x: float, y: float, s: float, o: Dictionary) -> void:
 
 # ------------------------------------------------------------------ ice (sandbox FX.ice)
 
-func _ice_trail(p: Vector2, vel: Vector2, dt: float) -> void:
+func _ice_trail(p: Vector2, vel: Vector2, dt: float, k: float = 1.0) -> void:
+	dt *= k   # Ice Blast's many shards trail lighter (playtest: too much noise)
 	if randf() < 0.25 * dt * 60.0:
 		vfx.elements.flake(p.x - vel.x * 0.02 + (randf() - 0.5) * 3.0, p.y + (randf() - 0.5) * 3.0,
 			vel.x * 0.06 + (randf() - 0.5) * 6.0, 2.0 + randf() * 4.0, 0.7 + randf() * 0.5, 0 if randf() < 0.7 else 1, 5.0)
@@ -926,8 +1040,9 @@ func _chilled(dt: float) -> void:
 			continue
 		n += 1
 		var p: Vector2 = _body(e)[0]
-		if randf() < 0.2 * dt * 60.0:
-			vfx.elements.mote(p.x + (randf() - 0.5) * 5.0, p.y - 2.0 + randf() * 4.0, (randf() - 0.5) * 2.0, 2.0 + randf() * 2.0, _ghost(ICE.mote), 0.35, 3.0, 4.0)
+		# Chilled: small bright snowflakes drifting down off the body and trailing away (playtest).
+		if randf() < 0.14 * dt * 60.0:
+			vfx.elements.flake(p.x + (randf() - 0.5) * 5.0, p.y - 2.0 + randf() * 3.0, (randf() - 0.5) * 4.0, 3.0 + randf() * 3.0, 0.7 + randf() * 0.3, 1 if randf() < 0.2 else 0, 4.0)
 
 static func _in_disk(x: float, y: float, r: float) -> Vector2:
 	var a := randf() * TAU
@@ -1378,6 +1493,34 @@ var _wrapped: Array = []
 func draw_statuses(buf: PackedByteArray) -> void:
 	var el = vfx.elements
 	var t: float = vfx._t
+	var keep := []
+	for hr in _hit_rings:
+		hr[3] += 1.0 / 60.0
+		if hr[3] < hr[4]:
+			keep.append(hr)
+			var hk: float = hr[3] / hr[4]
+			el.draw_nova(buf, hr[0], hr[1], hr[2], [Color(Color("#ff4a3a"), 1.0 - hk * 0.6), Color(Color("#ffd0c0"), 1.0 - hk * 0.6), Color(Color("#c2261a"), 1.0 - hk * 0.6)])
+	_hit_rings = keep
+	var keep_l := []
+	for L in _lasers:
+		L[4] += 1.0 / 60.0
+		if L[4] >= L[5]:
+			continue
+		keep_l.append(L)
+		var lk: float = L[4] / L[5]
+		var a0: Vector2 = L[0]
+		var d0: Vector2 = L[1]
+		var b0: Vector2 = a0 + d0 * float(L[2])
+		var nrm: Vector2 = d0.orthogonal()
+		var hw := maxi(1, roundi(float(L[3]) * (1.0 - lk * 0.5)))
+		var lc: Array = L[6]
+		if str(L[7]) == "lightning":
+			el.line(buf, a0, b0, lc[0])   # the storm ray is its arcs; only a thin white core here
+			continue
+		for o in range(-hw, hw + 1):
+			var c: Color = lc[0] if o == 0 else (lc[1] if absi(o) < hw else lc[mini(3, lc.size() - 1)])
+			el.line(buf, a0 + nrm * o, b0 + nrm * o, c)
+	_lasers = keep_l
 	# Stunned: three little stars circling the top of the body.
 	for q in _dazed:
 		var c: Vector2 = q[0]
@@ -1414,11 +1557,11 @@ func _burst(look: String, pos: Vector2, r_su: float, pw: float = 1.0) -> void:
 		"lightning":
 			_strike(pos.x, pos.y, clampf(r_su / 10.0, 0.6, 2.0))
 			if r_su >= 8.0:
-				# A storm circle, not a single bolt: a few more strikes inside it and its true edge.
-				for i in 3:
+				# One big bolt (a second only on a huge circle) and the true edge; the heavy landing
+				# carries the rest (playtest: six bolts read as noise).
+				if r_su >= 16.0:
 					var a := randf() * TAU
-					var d := r_su * (0.45 + randf() * 0.3)
-					_strike(pos.x + cos(a) * d, pos.y + sin(a) * d * 0.8, 0.6)
+					_strike(pos.x + cos(a) * r_su * 0.5, pos.y + sin(a) * r_su * 0.4, 0.7)
 				vfx.ring(pos.x, pos.y, r_su, 0.2, LIT.arc)
 		"water":
 			_water_impact(pos.x, pos.y, clampf(r_su / 11.0, 0.6, 2.5))
@@ -1625,6 +1768,8 @@ func _vulnerable(dt: float) -> void:
 
 var _marked: Array = []
 var _dazed: Array = []
+var _hit_rings: Array = []   # [x, y, r, age, life] landing damage areas
+var _lasers: Array = []      # [from su, dir, length su, half-width su, age, life, palette, look]  Prism Ray refraction
 
 ## Stunned (Meteor Shower, shock): collected for draw_statuses.
 func _stunned(_dt: float) -> void:
@@ -1749,8 +1894,8 @@ func _poisoned(dt: float) -> void:
 			var p: Vector2 = b[0]
 			var h: float = b[1]
 			# Small bubbles popping on the body, short-lived so they never float off above it.
-			if randf() < 0.5 * dt * 60.0:
-				vfx.elements.bubble(p.x + (randf() - 0.5) * h * 1.4, p.y + (randf() - 0.3) * h, false, 0.35, STATUS_ALPHA)
+			if randf() < 0.28 * dt * 60.0:
+				vfx.elements.bubble(p.x + (randf() - 0.5) * h * 1.4, p.y + (randf() - 0.3) * h, false, 0.35, 0.42)
 		elif s.has_method("has") and s.has("bleed") and randf() < 0.15 * dt * 60.0:
 			var p2: Vector2 = _body(e)[0]
 			# Bleed is blood, not earth: dark red drops falling off the body.
@@ -2014,6 +2159,11 @@ func draw_bodies(buf: PackedByteArray) -> void:
 			if bp != null and is_instance_valid(bp) and not bp.done:
 				_draw_beam(buf, bp, st)
 			continue
+		if st.kind == "warn":
+			var wpart = st.part.get_ref()
+			if wpart != null and is_instance_valid(wpart) and not wpart.done:
+				_draw_warn(buf, wpart.global_position / WPS, st)
+			continue
 		if st.kind == "meteor":
 			var mp = st.part.get_ref()
 			if mp != null and is_instance_valid(mp) and not mp.done:
@@ -2191,8 +2341,7 @@ func _draw_beam(buf: PackedByteArray, part, st: Dictionary) -> void:
 		else:
 			c = pal[0] if o == 0 else (pal[1] if absi(o) < hw else pal[3])
 		el.line(buf, a + n * o, b + n * o, c)
-	if not pierce:
-		el.body(buf, b, Vector2.RIGHT, {"t": "orb", "r": 2.5}, BODY.get(st.look.native, BODY.arcane))
+	# (no orb at the tip: playtest called it "the dumb pixel thing"; the tip sparks carry the contact)
 
 ## Seeker (sandbox ghosts): a pale spirit trailing dark mist, bobbing as it drifts.
 func _ghost_step(st: Dictionary, pos: Vector2, dt: float) -> void:
@@ -2238,9 +2387,10 @@ func _infection_step(part, dt: float) -> void:
 	if inf == null:
 		return
 	for h in inf.hosts:
-		if randf() < 0.3 * dt * 60.0:
+		if randf() < 0.14 * dt * 60.0:
+			# Infected: solid green bubbles rising off the host (playtest: keep the old look, from the body).
 			var hp: Vector2 = Vector2(h.pos) / WPS
-			vfx.elements.bubble(hp.x + (randf() - 0.5) * 4.0, hp.y + (randf() - 0.5) * 3.0, false, 0.4, 0.7)
+			vfx.elements.bubble(hp.x + (randf() - 0.5) * 4.0, hp.y - randf() * 2.0, randf() < 0.3)
 	for sp in inf.spores:
 		if randf() < 0.05 * dt * 60.0:
 			var sq: Vector2 = Vector2(sp.position) / WPS

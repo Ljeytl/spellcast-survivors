@@ -55,7 +55,7 @@ func lightning(step: float):
 	var anchor = enemy(Vector2.ZERO)
 	var cast = game.spell_manager.spawn_ported({"id": "lightning", "type": "direct_strike", "radius": 160, "active_duration": 0.2}, 80, {}, anchor)
 	cast.manual = true
-	cast.run(0.2, step)
+	cast.run(0.32 + 0.2 + 2.0 * step, step)   # warning ring (0.32 s), then the 0.2 s strike (playtest)
 	return cast
 
 func run():
@@ -78,12 +78,13 @@ func run():
 		var area = lightning(step)
 		check(inside.current_health == 9920 and edge.current_health == 9920, "Lightning hits inside and exact boundary once at step " + str(step))
 		check(outside.current_health == 10000, "Lightning never damages beyond visible radius")
-		check(area.finished, "Lightning expires at 0.2 seconds")
+		check(area.finished, "Lightning expires 0.2 s after it lands")
 		clear_combat()
 	var close = enemy(Vector2(120, 0))
 	var cluster = [enemy(Vector2(300, 0)), enemy(Vector2(310, 60)), enemy(Vector2(300, -60))]
 	game.spell_manager.learn_spell("lightning")
 	check(game.spell_manager.cast_freeform_spell("lightning"), "Owned typed Lightning casts")
+	game.spell_manager.last_generic_cast.advance(0.4)   # the strike lands after its warning ring (playtest)
 	check(close.current_health == 10000 and cluster.all(func(node): return node.current_health == 9940), "Lightning favors useful group coverage over isolated nearest enemy")
 	var strike = game.spell_manager.last_generic_cast
 	check(strike != null and strike.plan.id == "lightning" and str(strike.plan.parts[strike.plan.root].geometry.type) == "disk", "Lightning uses circular burst, not bouncing projectile")
