@@ -235,7 +235,7 @@ func _set_visible(v: bool):
 ## Removes every effect. Called when the world changes (scene switch).
 func clear():
 	for child in get_children():
-		if child.is_in_group("steam_clouds"):
+		if child.is_in_group("steam_clouds") or child.is_in_group("painted_spells"):
 			child.queue_free()
 	if presenter:
 		presenter.clear_transients()

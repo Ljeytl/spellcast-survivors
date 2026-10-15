@@ -1,14 +1,14 @@
 # Spell VFX port: milestone brief
 
 Read first, in order:
-1. `docs/VFX_SYSTEM_PLAN.md`: architecture, the locked **chunky magic** rule, element looks, component templates. Where it disagrees with this brief on engine details, **this brief wins**.
+1. `docs/VFX_SYSTEM_PLAN.md`: architecture, current fantasy-first art direction, element looks and component templates. This brief governs the original raster renderer; the updated art direction permits other rendering techniques for spell-specific presentation.
 2. `tools/vfx-reference/spell_vfx_sandbox.html`: the behavior and look reference. Open it in a browser. Every element and spell has a button; slow-mo and wind are on the toolbar. Its code is already split into engine / element data (`MAT`, `EL`, `FX`) / components / spells. Port that structure.
 
 ## Ground rules (apply to every milestone)
 
 - **Gameplay does not change.** Damage, hitboxes, timing, targeting and spell rules stay exactly as they are. VFX only *read* gameplay state and events. Rims must match real hitboxes (`08-art-feedback.md`: visual language is a gameplay contract).
 - **Hit-stop is VFX-only.** In the sandbox, hit-stop freezes the whole simulation. In the game it freezes **only the VFX simulation** for N frames. Never touch `Engine.time_scale`, `get_tree().paused`, or anything else that delays gameplay.
-- **Chunky magic is intentional.** Spell VFX render on a coarse grid: **1 VFX px = 8 world px = 4×4 art px** (at 1920×1080 that is 160×90, 12×12 screen px each). Do not redraw effects at sprite density. Do not apply filtered rotation or scaling to effect textures.
+- **Original raster renderer.** Existing raster effects render on a coarse grid: **1 VFX px = 8 world px = 4×4 art px** (at 1920×1080 that is 160×90, 12×12 screen px each). Keep this grid stable for effects using that renderer. This is not a universal art restriction: painted spirits, Steam and painted spell strokes use separate smooth rendering paths. See the updated art direction in `VFX_SYSTEM_PLAN.md`.
 - **Grid is defined in world units, not as a fixed 160×90.** The project uses `stretch/aspect = expand`, so the visible world rect changes with window shape (itch iframe, ultrawide, browser fullscreen). Size the grid from the visible rect plus margin; the cell size never changes. ×12 is an integer only at 1080p and 1440p. That is accepted.
 - **Sandbox → game rescale.** The sandbox is 192×108. Multiply sandbox positions, radii and speeds by **160/192 ≈ 0.833**. Particle pixel sizes (1 px, 2 px dots, etc.) stay as authored.
 - **Two layers:** `VfxGround` (above terrain, below actors: decals, floors, rims, warnings, ground liquid) and `VfxAir` (above actors, below UI: flames, bodies, particles, flashes, airborne liquid). Follow the sandbox draw order (`render()` near the end of the file) to decide which layer each pass goes to.

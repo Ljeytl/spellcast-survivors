@@ -5,6 +5,14 @@
 - Everything is data (`data/elites.json`): words, numbers, patrol times, word tiers, ley leaders. Rolls use the run's seeded random streams. Console: `elite <monster> [words]`, `elite patrol`.
 - Later (doc 15): cast words (EXPLODING, SHOOTING) through the spell engine, a third word for ley guardians, contact statuses on the player, and learning a word from an elite that carries it.
 
+# 0.3.2-dev.4 — Painted spell motion study (15 October 2026)
+
+- Steam keeps its rising particle volume, with continuous shading, warm highlights, cool depth and moving edge texture instead of hard pixel bands.
+- Fire-native Bolts and arcane Bolts with fire accents gain a coherent curling flame stroke with fine trailing fibers and sparse embers. Accented bolts retain their native core color; the old white spark cluster is suppressed so it cannot cover the painted body. Other fire projectile families keep their existing treatment.
+- Arcane Slash draws a tapered calligraphic sweep with directional brush fibers and a locally fading tail, using the real attack radius and angle. Other elemental slashes retain their existing effects.
+- Spell showcase now includes bare forms such as Slash, so the real generic cast path can be reviewed alongside prepared spells.
+- Gameplay damage, targeting and attack timing are unchanged. Continue reviewing sound, impact cohesion, crowded encounters and performance before extending the painted language to the full roster.
+
 # 0.3.2-dev.3 — Painted ghost and soul-wisp comparison (15 October 2026)
 
 - Bring both approved spirit concepts into the game as painted transparent assets: a rounded expressive ghost and a faceless luminous wisp. Gentle veil motion preserves the brushwork instead of replacing it with geometric outlines.

@@ -20,7 +20,6 @@ func setup(radius: float, duration: float, reduced: bool) -> void:
 	var shader_material := ShaderMaterial.new()
 	shader_material.shader = CLOUD_SHADER
 	shader_material.set_shader_parameter("reduced", reduced)
-	shader_material.set_shader_parameter("pixel_grid", Vector2(radius * 2.7, radius * 3.0) / 3.0)
 	material = shader_material
 	add_to_group("steam_clouds")
 	for i in (10 if reduced else 16):
