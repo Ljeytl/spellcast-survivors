@@ -4,7 +4,7 @@ Updated 14 October 2026 against release source `6ed65b3` (0.3.0). This is the co
 
 **Status:** implemented means available in the current game; design means a recorded future identity, not shipped content; open means a material behavior or naming choice remains; paused means explicitly excluded from implementation until revisited; reserved means preserved exploration; rejected means not selected. Design numbers in the historical specifications are tuning proposals, not current runtime values. Alias names do not automatically create separate spells or accepted incantations. There is no fixed 36-spell shipping cap.
 
-[Release plan](15-development-order.md) owns sequencing. [Damage, effects and keywords](21-damage-effects-keywords.md) owns current damage/status rules. [Spell architecture](19-engine-architecture.md) owns construction. [Presentation and shared mechanics](18-spell-system-rewrite.md) owns quality criteria. New combination recipes and acquisition will be decided later; existing combinations stay available.
+[Release plan](15-development-order.md) owns sequencing. [Damage, effects and keywords](21-damage-effects-keywords.md) owns current damage/status rules. [Spell architecture](19-engine-architecture.md) owns construction. [Spell feel specification](18-spell-system-rewrite.md) owns the full caster-to-aftermath sequences and quality criteria. New combination recipes and acquisition will be decided later; existing combinations stay available.
 
 ## Current playable inventory
 

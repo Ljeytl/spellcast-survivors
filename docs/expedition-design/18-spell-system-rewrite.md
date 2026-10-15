@@ -1,6 +1,16 @@
-# Spell presentation and shared mechanics
+# Spell feel specification and shared mechanics
 
-Updated 14 October 2026. The rewrite foundations and existing spell migration are part of 0.3.0. This page now owns the presentation review contract and dependency checklist; the full catalog is in [doc 3](03-spells.md), engine architecture in [doc 19](19-engine-architecture.md), game systems in [doc 20](20-game-systems-architecture.md), and damage/status/keyword rules in [doc 21](21-damage-effects-keywords.md). The older rewrite specification is [historical](archive/2026-10-14/18-spell-system-rewrite.md).
+Updated 15 October 2026. The rewrite foundations and existing spell migration are part of 0.3.0. This page now owns the complete spell-feel sequences, presentation review contract and dependency checklist; the full catalog is in [doc 3](03-spells.md), engine architecture in [doc 19](19-engine-architecture.md), game systems in [doc 20](20-game-systems-architecture.md), and damage/status/keyword rules in [doc 21](21-damage-effects-keywords.md). The older rewrite specification is [historical](archive/2026-10-14/18-spell-system-rewrite.md).
+
+## Reading guide
+
+- [Shared sequence and material language](#spell-feel-design-brief)
+- [Current manual spells](#current-manual-spell-sequences)
+- [Existing combinations](#existing-combination-sequences)
+- [Automatic and special attacks](#automatic-and-special-attack-sequences)
+- [Bare forms and modifiers](#bare-forms-and-modifier-presentation)
+- [Spirit behavior candidates](#spirit-behavior-candidates)
+- [Future catalog sequences](#authored-future-spell-sequences)
 
 ## Presentation contract
 
@@ -21,6 +31,769 @@ Spell identity must remain readable through anticipation, release, travel, conta
 | Accessibility and performance | Reduced effects propagates through all renderers and shake; visible enemies take priority under budgets; evaluate native and web frame time. |
 
 The existing VFX layer and art are inputs for refinement, not proof of good feel and not a requirement to replace every asset. The historical grey-value asset pipeline is an option, not a new mandatory rewrite of the current renderer. Element palettes, shapes, stamps, outlines and audio should be shared where useful while preserving authored identity.
+
+## Spell feel design brief
+
+Draft for design review, 15 October 2026. This is the canonical sequence specification for spell feel: what the player sees, hears and feels from the caster's first gesture to the final residue. It proposes a target experience, not a claim that the current game already delivers it. The catalog in [doc 3](03-spells.md) still owns identities and selection status; [doc 21](21-damage-effects-keywords.md) still owns damage and status rules. No gameplay change or new acquisition is approved merely by appearing here.
+
+**The target is a consistent B in actual play.** A B spell has a recognizable fantasy, convincing motion, responsive release, satisfying contact and a deliberate ending. Its strength and reach are understandable in a moving fight. A technically correct effect, attractive still image or loud impact does not earn that grade. The working assessment is that our best spells are around B and many others are C or below; individual grades remain unassigned until reviewed in motion and with sound.
+
+### How to read and use these scripts
+
+Read the full sequence aloud before choosing an emitter, sprite or shader. Prototype the connected sequence, then compare it with the intended experience. The [particle sandbox](../../tools/vfx-reference/spell_vfx_sandbox.html) is a strong motion/material reference, not a perfect target or a replacement for combat review. Preserve its successful flow, density, trailing motion and release of energy where they serve the spell. Particle systems are the preferred approach. The rejected painted Bolt and Slash treatments must not return as the default. The ghost and wisp art remains a separate approved visual experiment whose movement still needs work.
+
+Each current-spell script covers intention, caster/staff, release and motion, contact, sound/camera, ending/readability, and any gameplay decision. Future scripts inherit the shared rules below and explicitly leave unresolved mechanics open. No phase has to be lengthy: a quick bolt can gather, release and recover in one compact gesture. A lasting field needs a sustained phase; an instant slash does not need a forced travel phase.
+
+### Shared casting sequence
+
+1. **Preparing the word:** the staff gathers the spell's material while the player types or uses an existing preparation window. A small responsive cue starts immediately. A recognizable head of fire, rising stone chips or snapping arcs identifies the coming spell without becoming a second UI. Preparation strength follows real readiness, not keystroke count alone.
+2. **Commit:** accepted input produces a clear release gesture and sound. Staff direction, hand/body pose and muzzle position agree. A stab, sweep, plant or upward call should feel physically connected to the result. Quick casting never acquires an arbitrary new windup merely to fit an animation. Added delay, movement lock or vulnerability is a gameplay proposal requiring a separate decision.
+3. **Delivery:** motion has material and intent. Trails remember the path; particles detach and continue living. Turning must not rotate an entire rigid trail around its head. Core motion remains consistent with targeting and collision.
+4. **Contact:** the real hit drives the contact flash, sound, material response and any enemy reaction. A miss does not receive a successful-hit payoff. Actual shield blocks, immunity and resisted damage need distinct feedback. Cosmetic recoil does not silently add stagger or displacement.
+5. **Sustain:** show the real pulse, dwell, crossing or rehit rhythm. Avoid making every damage tick a new explosion. The player should understand whether the spell remains dangerous, is charging again, or is spent.
+6. **End:** give material a believable release: embers cool, water runs out, ice fractures or thaws, energy collapses, souls unravel. Stop damage cues when gameplay stops. Harmless residue is dimmer, broken and retreating rather than an active rim.
+7. **Cancel or invalid cast:** gathered material falls back into the staff or dissipates locally with a short soft failure cue. No target strike, hit sound or strong shake. Rejected modifiers do not create the visual promise of an effect that was rejected.
+
+Staff movement is local to the caster; the world effect is not a texture glued to the staff. Recoil and recovery can overlap normal movement and the next allowed action. During rapid recasts, articulate the new release without snapping the pose back to idle every time. A persistent field or summon does not keep the wizard stuck in its casting pose.
+
+### Motion and material rules
+
+- **Fire:** a compact hot source feeds rising tongues, stretched travel flames and detached embers. Short tongues turn, split and die at different ages. Large fire has a heavier body, not just more screen-filling sparks.
+- **Steam and water:** steam expands, rolls and partially hides what it passes over; water has momentum, a coherent leading mass, spray and falling droplets. A steam cloud is not a grey ground circle. Water does not use plague goo.
+- **Ice and earth:** ice has sharp cold surfaces, chips and brittle fracture; earth carries mass, launches grit and settles. Thin frost and deep cracks have different weight. Neither needs persistent glitter to remain visible.
+- **Lightning:** unstable gathering arcs collapse into decisive contacts, then smaller branches search and die. Keep individual leaders and branches legible; random flashing everywhere loses force.
+- **Arcane:** controlled geometry and precise pulses, with material that gathers and releases deliberately. Glyphs mark meaningful actions; decorative runes should not compete with every target.
+- **Life and plague:** life grows, reaches and recoils; plague swells, creeps and transmits between hosts. Healing has an inward, restorative resolution. Infection has a connected, uneasy rhythm rather than generic green confetti.
+- **Spirits:** a head or core leads, the body yields, the tail lags and shed wisps drift independently. Acceleration stretches; deceleration curls. A breeze may disturb loose material, while pursuit remains purposeful. Hovering, circling and repeated attacks must be designed as behavior when they affect contact, not disguised by rotating a PNG.
+
+### Sound camera and intensity
+
+Use a connected sound phrase: gathering texture, release transient, material sustain if needed, contact, then a decay. Do not play a full contact sound per particle or a full release sound on every tick. Repeated copies vary subtly without changing their identity. Prioritize the player's important cast/contact and immediate threats; bound overlapping tails and loops. On pause, interruption, scene change or host deletion, loops stop or suspend with their owner. Sound cues have a visible equivalent.
+
+Camera terms below are relative design targets, not approved numeric amplitudes: **none** for automatic attacks, healing, light contact and continuous ticks; **light** for a restrained short contact kick; **firm** for a deliberate heavy strike; **heavy** for rare major payoff. Shake occurs on impact, not every anticipation spark. Overlapping shakes must be bounded and respect the player's zero-shake setting. Preserve the enjoyed staggered meteor impacts and multiple kicks instead of synchronizing them or replacing the cascade with one shake. The HUD and typing stay stable.
+
+Flash, sound, camera and enemy reaction should agree on the same event without all reaching maximum intensity. Reduced effects preserves the core, direction, real boundary and contact cue while reducing secondary particles, long tails and rapid brightness changes. A large spell is not permission to hide the next threat. Full-screen flashes and camera zoom changes are not the default; any special treatment must retain accessible alternatives.
+
+### Timing and gameplay boundary
+
+These scripts specify relationships and rhythms rather than inventing frame counts for every spell. Record actual runtime timing when a prototype is built. Fit the presentation to existing cast, warning, travel, hit, tick and expiry events unless a behavior proposal is explicitly accepted. There must be no invisible damage while a visual implies the spell is still winding up, nor a convincing impact before the actual hit.
+
+User directions to preserve: Lightning's staff charge → ground slam → blue warning circle → descending strike → shock response → charged aftermath; staggered Meteor Shower falls and repeated shakes; Flame Wall's large passable ring with proportional radius/band growth and a low-direct/strong-DoT intent; Arcane Slash's additional slashes by level and final-rank glyph/explosion; separate enemy-aimed Scorching Ray beams provisionally; one Shillelagh with a rooting trail and a pull. These directions are not claims that all mechanics are implemented.
+
+Circling wisps that damage their host and ghosts that make heavier repeated passes are **candidate behavior designs**, not selected changes to Seeker or Soul Bloom. Balance follows the chosen attack rhythm: measure actual contacts, time on target, target switching, overkill, travel downtime, survivability and crowd utility before choosing damage per hit. No unapproved cooldowns, enemy stuns or invulnerability are introduced by this brief.
+
+## Current manual spell sequences
+
+All sequences below are proposed presentation targets for current spells. Runtime identifiers bind them to the real spells; the current catalog and data retain authority over mechanics and progression.
+
+### Bolt
+
+**Runtime:** `bolt`. **Intent:** a quick, dependable packet of directed magic; the elementary cast should still be enjoyable.
+
+**Caster and staff:** a small concentrated bead gathers at the tip; the wizard points and snaps it forward. Release has a tiny staff recoil, with recovery immediately available for movement and recasting.
+
+**Motion and contact:** the head stays distinct from a short particle wake. The wake follows the travelled path and breaks into motes rather than rotating as one object. Actual contact compresses the head into a crisp spark and short outward flecks; a miss dwindles without a hit burst.
+
+**Sound and camera:** a brief resonant gathering note, a clean release flick and a compact contact tap. Camera none at ordinary strength. Copies form one audible release phrase rather than a deafening stack.
+
+**End and readability:** sparks die quickly; no damaging ground is implied. Size affects the readable core, not just the glow. Fire-modified Bolt inherits fire tongues and embers while retaining a clear projectile head. **Decision:** a standalone Fire Bolt is a catalog design, not a new current spell ID.
+
+### Life
+
+**Runtime:** `life`. **Intent:** a decisive breath of renewal focused on the wizard.
+
+**Caster and staff:** the staff draws a small green-gold seed of light inward; the caster gathers rather than throws it. A brief opening of leaves or soft roots connects the staff and body.
+
+**Motion and contact:** the healing pulse resolves into the recipient, followed by a subtle lift through the silhouette. The visible resolution coincides with actual healing. Leaf fragments drift out and settle; the player is not engulfed in a permanent bright ring.
+
+**Sound and camera:** a warm intake and clear rounded healing note, with a soft leafy exhale. Camera none; no hostile hit flash or recoil.
+
+**End and readability:** the body glow recedes from extremities toward the core. At full health or when no benefit occurs, do not fake a large successful heal. **Decision:** no extra ally recipients or regeneration payload are implied.
+
+### Regeneration
+
+**Runtime:** `regeneration`. **Intent:** living magic quietly repairs over time.
+
+**Caster and staff:** a bud opens at the staff, then sends a gentle ribbon into the wizard. The initial gesture is distinct from Life's immediate resolution.
+
+**Motion and contact:** small growth pulses appear on actual healing ticks. Between them a restrained leafy orbit or breathing glow communicates that the effect remains active. The motion follows the caster without leaving a false healing field behind.
+
+**Sound and camera:** soft activation, quiet tick accents and a final settling tone. Avoid a continuous loud healing loop. Camera none.
+
+**End and readability:** the final leaf closes or drifts away when the effect ends; refresh uses a small renewal cue rather than replaying a huge cast. **Decision:** tick cadence and refresh stay authoritative to the existing effect.
+
+### Ice Blast
+
+**Runtime:** `ice_blast`. **Intent:** throw a biting fan of cold that breaks against a crowd.
+
+**Caster and staff:** frost condenses along the tip; a short outward flick cracks it into the launched shards. The caster's gesture opens toward the actual fan.
+
+**Motion and contact:** distinct pointed shards carry sparse ice dust and short cold streaks. Impacts produce brittle chips and a small rime flash on each real recipient. A chilled enemy shows cold buildup; a genuine freeze gets the stronger lock-up treatment.
+
+**Sound and camera:** a crystalline intake, a sharp fan release and restrained brittle contacts. One light kick may accompany the main grouped impact; not one shake per shard.
+
+**End and readability:** missed shards chip away; frost residue thins. Keep spread lanes readable and distinguish hit ice from existing frozen status. **Decision:** no new fan width, freeze guarantee or knockback is specified.
+
+### Earth Shield
+
+**Runtime:** `earth_shield`. **Intent:** take shelter inside heavy, protective stone.
+
+**Caster and staff:** the staff plants or presses down; grit lifts and stones assemble around the caster with staggered weight. The pose releases as soon as protection is established.
+
+**Motion and contact:** pieces orbit or hold according to the actual shield state. Consumption of the current one-hit shield charge drives a localized crack, chips and a heavy response at the incoming direction. Any actual retaliatory eruption originates from the protection rather than an unrelated flash.
+
+**Sound and camera:** stone scraping at assembly, a compact low block knock, a larger fracture on break. Light kick on an important block; firm only for the final heavy break/eruption, not idle orbit.
+
+**End and readability:** protection loss is obvious: surviving pieces drop or crumble. Voluntary expiry is quieter than a violent break. **Decision:** do not imply physical enemy collision or invulnerability beyond the real shield rules.
+
+### Lightning
+
+**Runtime:** `lightning`. **Intent:** command a violent strike from above through a deliberate staff action.
+
+**Caster and staff:** small arcs gather between the staff head and hand; charge tightens and the wizard drives the staff into the ground. A short conductive pulse answers at the target as the large blue warning circle appears. Fit the slam into existing preparation/release timing; an added action lock is not assumed.
+
+**Motion and contact:** the circle gathers charge inward, its edge communicating the actual impact footprint. A faint leader seeks down from above; the main bolt arrives at the damage event. On impact, a brief flash and enemy reaction coincide with branching arcs racing outward across the ground.
+
+**Sound and camera:** rising electrical tension, staff ground-thump, then a sharp crack over a short low blast and sizzling decay. A firm camera kick belongs to the main strike. Secondary crawling sparks do not trigger more full shakes or blasts.
+
+**End and readability:** ground charge becomes smaller, irregular and broken, then goes dark. Unless a real damaging aftermath exists, this is visibly spent residue, not a continuing hazard. Show the transition from warning to active hit clearly. **Decision:** adding damaging ground charge would change the payload and needs a separate choice; the requested charged look can be cosmetic.
+
+### Meteor Shower
+
+**Runtime:** `meteor_shower`. **Intent:** call a sequence of separate heavy arrivals, each satisfying in its own right.
+
+**Caster and staff:** an upward call draws hot cinders above the staff; the gesture opens the skyward attack. Each warning mark promises one actual landing.
+
+**Motion and contact:** rocks become readable before impact, accelerate into their marks and drag burning wakes. Falls remain staggered. Every landing delivers its own crushing flash, debris kick and crater response; the next meteor can already be descending while the previous impact settles.
+
+**Sound and camera:** approaching rush, separate deep impacts, skittering debris and fire tails. Preserve repeated firm kicks with bounded overlap. Do not synchronize the falls or flatten them into a single impact to reduce noise.
+
+**End and readability:** craters glow while their real burning phase is active, then cool into broken char. Marks and live craters differ. **Decision:** orbit-and-release meteors belong to the later signature idea, not this base behavior.
+
+### Ember Spear
+
+**Runtime:** `ember_spear`. **Intent:** drive a concentrated burning lance through a line of enemies.
+
+**Caster and staff:** sparks pull into a long narrow spear at the tip; the wizard thrusts directly along the shot. A brief pressure release makes the spear feel launched rather than spawned.
+
+**Motion and contact:** an unbroken leading shape pulls a thin flame tail. Piercing contacts snap sideways in short ember cuts, then the spear continues; it must not appear to explode and die on every pierced enemy.
+
+**Sound and camera:** a compressed fiery thrust, sharp muted punctures and a fading hiss. Light kick only on a substantial contact, with repetition bounded.
+
+**End and readability:** the remaining lance breaks into a few embers at range expiry; no successful-hit blast on a miss. Keep its narrow damaging path distinct from the decorative wake. **Decision:** the existing burning line trail is part of this spell: a thin hot seam forms behind the spear, ticks with the real damage cadence, then cools. Keep this ground burn separate from the airborne decorative wake; do not add extra damage events.
+
+### Infection
+
+**Runtime:** `infestation`. **Intent:** introduce a living sickness that visibly takes hold and spreads.
+
+**Caster and staff:** a swollen spore gathers at the tip and is flicked toward the host with an uneasy organic release.
+
+**Motion and contact:** the spore travels as a coherent seed with sparse drips. On attachment it sinks into the enemy silhouette; restrained bubbles and internal pulses communicate infection. Real spread events send a distinct travelling transfer toward another host, followed by that host's own attachment cue.
+
+**Sound and camera:** soft wet release, a small attachment tick and quiet irregular host pulses. Camera none. Infection should be unsettling, not an explosion every tick.
+
+**End and readability:** cure or expiry drains the host effect; death resolves into a collapse rather than leaving a floating status marker. Keep host identity readable under stacked ailments. **Decision:** extra transmission events, death blooms and slowing are not inferred from the particles.
+
+### Cinder Field
+
+**Runtime:** `cinder_field`. **Intent:** establish a bed of persistent, scalding embers.
+
+**Caster and staff:** the caster casts a low scatter of coals or presses heat into the chosen area. The field ignites from several connected patches into its true footprint.
+
+**Motion and contact:** low flames crawl over coals, with occasional upward embers. Enemy contact/ticks produce restrained heat responses at the affected enemy; the whole field does not detonate repeatedly.
+
+**Sound and camera:** a short ignition whoosh followed by quiet crackling; ticks use light local sizzles. Camera none during sustain, at most a light ignition response if warranted by scale.
+
+**End and readability:** hot edges collapse inward, coals dim and ash lifts. The active ground boundary remains distinguishable from residual char. **Decision:** keep this low ember bed distinct from Flame Wall's upright barrier and Steam's airborne volume.
+
+### Arcane Orbit
+
+**Runtime:** `arcane_orbit`. **Intent:** maintain controlled magical bodies that sweep around the wizard and make deliberate contacts.
+
+**Caster and staff:** condensed motes lift from the staff and find their orbital lanes. The caster releases control into a stable rhythm rather than repeatedly recasting each orb.
+
+**Motion and contact:** each orb has a readable head and short curved wake following its actual route. Contact briefly compresses/pulses the orb and sends a small outward spark before it continues. Crossing behind and in front of the wizard should feel spatially coherent.
+
+**Sound and camera:** a rounded establishment tone, restrained orbit texture and separate contact taps. No continuous camera shake or impact sound per rendered revolution.
+
+**End and readability:** orbiting bodies thin and unravel in their direction of travel. Effective radius and orb size are visible; trails do not imply a solid damaging disk. **Decision:** no enemy-centered orbit behavior is added here.
+
+### Focus Ray
+
+**Runtime:** `focus_ray`. **Intent:** focus sustained force down deliberate lanes.
+
+**Caster and staff:** a bright point tightens inside a focusing ring at the staff; the caster braces or aims as the ray opens. The source visibly supplies the beam.
+
+**Motion and contact:** a clear narrow core carries flowing internal energy. Contact at enemies or termination produces localized pressure sparks, not a giant decorative orb. Actual tracking and copies have distinct lanes; pulse emphasis follows real damage ticks.
+
+**Sound and camera:** a short locking tone, controlled continuous hum and small contact crackle. At most one light initial kick; no vibration on every tick. Stop the loop when the beam stops.
+
+**End and readability:** the beam pinches off at the source and its remaining energy clears promptly. Nonpiercing termination must match what blocks it. **Decision:** do not invent free tracking or longer duration to support a looping animation.
+
+### Rune Trap
+
+**Runtime:** `rune_trap`. **Intent:** inscribe a quiet promise of force that snaps shut on intrusion.
+
+**Caster and staff:** a precise staff tracing sends an inscription to the placed location. Lines draw into a recognizably arcane shape during arming.
+
+**Motion and contact:** armed state is quiet and complete; an approaching trigger is not itself a hit. The real trigger pulls the inscription inward, then releases its burst over the actual area, with a clear recipient response.
+
+**Sound and camera:** scratch/chime while inscribing, a restrained armed cue, then a concise magical crack. Light or firm impact kick according to actual payoff; no armed-state shaking.
+
+**End and readability:** triggered lines fracture and disappear; removal/reset of an untriggered trap erases the inscription quietly. The current named trap waits indefinitely after arming, so do not animate a countdown to an invented natural expiry. Armed, triggered and spent states must differ in shape/motion as well as color. **Decision:** no decorative lingering damaging field after the burst.
+
+### Seeker
+
+**Runtime:** `seeker`. **Intent:** send a purposeful supernatural presence after an enemy.
+
+**Caster and staff:** gather a small presence at the staff; it stretches toward the selected direction, peels away and gains confidence as it pursues.
+
+**Motion and contact:** the core leads while the body and tail lag through turns. Detached wisps continue drifting. Contact pulls the body into a brief concentrated strike, with a readable response at the target; the current persistent chasing spirit can contact repeatedly and continues until its actual end condition, rather than being consumed on the first hit. Avoid a goo burst that hides the spirit.
+
+**Sound and camera:** a breathy gathering whisper, a restrained travelling tone and a short spectral contact accent. Camera none for ordinary contact; stronger rare impacts may justify light feedback.
+
+**End and readability:** the presence unravels into its direction of motion, or quietly loses coherence on a miss. Target death and retargeting should produce a purposeful turn, not a teleport. **Decision:** ghost repeated passes and wisp target-orbiting are separate candidate behaviors below; neither is selected by this visual script.
+
+### Fire Walk
+
+**Runtime:** `firewalk`. **Intent:** leave a hot, dangerous wake through the route the wizard chooses.
+
+**Caster and staff:** fire travels from the staff toward the caster's feet, establishing the empowered state with a quick low flare.
+
+**Motion and contact:** new footprints or patches ignite behind actual movement. Patches have low rising tongues and local embers. Damage ticks respond at affected enemies, while the trail itself stays continuous enough to read the route.
+
+**Sound and camera:** a quick ignition, subdued movement-linked crackle and local burn contact. Camera none; footsteps do not become explosions.
+
+**End and readability:** each patch cools on its own lifetime, leaving a darkening broken trail. Stopping the caster must not imply new patches where none exist. **Decision:** do not change patch spacing, damage stacking or stationary emission in the presentation pass.
+
+### Cross Blade
+
+**Runtime:** `cross_blade`. **Intent:** throw a substantial spinning cutting shape with repeated edge contacts.
+
+**Caster and staff:** a brief metallic gathering around the tip resolves into the blade; a throwing flick gives it direction and angular motion.
+
+**Motion and contact:** the cross remains recognizable beneath a restrained rotational blur. Sparks come from real edge contacts; turns and any return behavior follow the actual trajectory. Do not bury the blade in a generic orb glow.
+
+**Sound and camera:** metallic release, airy rotational swish and sharp clipped hits. Camera none or a small light contact cue for a major hit, not every rotation.
+
+**End and readability:** fragments or residual light spin away when the blade really ends. The blade's visible reach matches its effective body. **Decision:** outward, hold and return are existing behavior. A new catching mechanic or extra passes would be a change; the staff may visually receive the spent blade without creating one.
+
+## Existing combination sequences
+
+These seven recipes remain unchanged. Their identity should feel like a specific synthesis, not two complete base effects drawn over one another.
+
+### Lightning Bolt
+
+**Runtime:** `lightning_bolt`. **Intent:** a travelling electrical attack ricochets between enemies and discharges at each contact.
+
+**Caster and staff:** compact charge forms at the tip and is thrust outward. This has a directed release, unlike Lightning's grounded call to the sky.
+
+**Motion and contact:** a bright moving head and broken conductive wake reveal the current target. Each real collision gives an immediate projectile contact cue and starts its actual local warning; the delayed sky strike lands after that warning. Meanwhile the next travelling segment commits to the next enemy. Keep contact, warning and area strike as three distinct events rather than collapsing them into an instant splash.
+
+**Sound and camera:** short launch crack, separate crisp contact zaps and a thinning electrical tail. Light bounded kicks for meaningful contacts; no full Lightning blast mix at every bounce.
+
+**End and readability:** the final contact spends the charge. A dead/missing next target leads to natural dissipation, not a false connected beam. **Decision:** keep this bouncing recipe distinct from both the base sky strike and future channeled Static Shock.
+
+### Life Bolt
+
+**Runtime:** `life_bolt`. **Intent:** offensive life magic turns a struck enemy into an opportunity for recovery.
+
+**Caster and staff:** a seedlike core forms inside a projectile; a gentle thrust releases it without losing the bolt's responsiveness.
+
+**Motion and contact:** a compact living head carries short leaf motes. Real enemy contact has a clear damage cue, followed by the actual healing-seed or recovery object. Its appearance and collection are separate beats; no heal sound plays merely because an enemy was hit.
+
+**Sound and camera:** a soft wooden release, a small strike tick, then a warmer collection note when recovery occurs. Camera none.
+
+**End and readability:** remaining recovery objects follow their actual lifetime, collection radius and target rules. Friendly recovery must not resemble a hostile seed hazard. **Decision:** remote automatic healing is not substituted for the existing collection behavior.
+
+### Meteor Spear
+
+**Runtime:** `meteor_spear`. **Intent:** a penetrating spear marks its route with heavier consequences from above.
+
+**Caster and staff:** form the narrow Ember Spear with a denser ember core and a brief upward pull in its sparks.
+
+**Motion and contact:** the spear stays fast and narrow; its real meteor-trigger events create distinct warnings/descending bodies. Separate the spear's piercing cut from each meteor's crushing arrival so the player understands both sources.
+
+**Sound and camera:** a fiery thrust with small punctures, followed by weightier meteor rushes and impacts. Preserve staggered heavier kicks at the actual landings; spear contacts should not duplicate them.
+
+**End and readability:** the spear can disappear while already-created meteors finish their legitimate lifecycle. Cooling impact residue follows the actual aftermath. **Decision:** no extra meteors per decorative ember; actual trigger events own every arrival.
+
+### Soul Bloom
+
+**Runtime:** `soul_bloom`. **Intent:** life escapes an infected death and seeks a new purpose.
+
+**Caster and staff:** the initial cast carries a restrained mixture of infection and renewal. The signature moment belongs at a real infected host's death, not as an unrelated flourish at the caster.
+
+**Motion and contact:** a soul gathers out of the collapsing host, separates, and follows its real healing or hunting destination. The body yields around turns; the tail retains its route. Healing resolves inward into the wizard; hunting concentrates into a target strike.
+
+**Sound and camera:** soft emergence breath; a warm resolving note for an actual heal and a sharper hollow accent for an actual hostile contact. Camera none for healing and ordinary soul contacts.
+
+**End and readability:** healing and hunting differ by destination, motion resolution and tint, not tint alone. Unspent expiry dissipates without a hit or heal cue. **Decision:** the current one-delivery soul is the baseline. Persistent orbiting or repeated ghost passes would require new lifetime, target, rehit and damage decisions.
+
+### Steam Field
+
+**Runtime:** `steam_field`. **Intent:** a volume of scalding vapor occupies the battlefield.
+
+**Caster and staff:** heat and cold condense into a pressurized breath around the tip; release feeds rising jets at the field location. The initial source should explain the cloud's growth.
+
+**Motion and contact:** overlapping puffs rise, swell and roll into connected masses, with moving gaps and denser streams beneath. Steam partly obscures the space without erasing important threats. Real damage has local scald reactions; frost/fire keywords do not turn the whole cloud back into Cinder Field.
+
+**Sound and camera:** a pressurized initial hiss, a lower rolling vent sound and restrained local scald accents. Camera none during sustain; no repeated explosion noise.
+
+**End and readability:** emission ceases, existing vapor stretches and thins, and the ground becomes visible again. Show a spent cloud as dissipating rather than a still-active damage boundary. **Decision:** volume appearance does not authorize blindness, projectile blocking or additional damage after expiry.
+
+### Prism Ray
+
+**Runtime:** `prism_ray`. **Intent:** a focused ray splits into distinct elemental directions at meaningful contact.
+
+**Caster and staff:** a small ordered prism-like focus gathers at the tip; the main ray releases with a clean braced gesture.
+
+**Motion and contact:** the primary lane stays clear. Actual refraction events create separate departing beams with their own material accents, rather than a rainbow fog around the whole cast. Each real contact receives a compact elemental response.
+
+**Sound and camera:** a focused hum, crystalline splitting accents and restrained element contacts. Light feedback on the initial release or major split at most; no camera rattle for every beam tick.
+
+**End and readability:** beams stop and decay according to their own lifetime; disconnected leftovers do not continue implying damage. Shapes, direction and source distinguish lanes alongside color. **Decision:** preserve the actual elemental beam recipe rather than inventing additional targets or unlimited branches.
+
+### Frost Sigil
+
+**Runtime:** `frost_sigil`. **Intent:** lay a cold inscription that springs into a freezing strike.
+
+**Caster and staff:** rime draws inward along the staff, then traces a crystalline ground glyph with pointed ice geometry, distinct from Rune Trap's arcane inscription.
+
+**Motion and contact:** arming grows fine frost into a complete sigil. Trigger snaps the structure outward into a cold burst or expanding frost response matching actual propagation. Genuine freeze is a separate enemy-state event, not guaranteed by every blue flash.
+
+**Sound and camera:** brittle inscription, quiet ready cue, then a sharp ice crack and falling chips. Light or firm kick on the real detonation, never on arming.
+
+**End and readability:** an untriggered sigil remains armed until removed by gameplay or reset; on removal its frost quietly thaws. Triggered frost breaks and recedes. Preserve the real trigger and damage radii, which need not be the same. **Decision:** lingering decorative snow does not extend the trap's damage or freeze duration.
+
+## Automatic and special attack sequences
+
+### Magic Missile
+
+**Runtime:** `mana_bolt`. **Intent:** a dependable background attack that feels crisp without exhausting the player's attention.
+
+**Caster and staff:** a tiny ready glint at the automatic source, followed by a quick flick or pulse. Do not interrupt a manual casting pose with a competing full-body animation.
+
+**Motion and contact:** a small directed dart leaves a short sparse wake, turns according to real guidance, and breaks into a compact contact spark. Multiple missiles remain individually readable.
+
+**Sound and camera:** quiet release and soft contact taps with bounded voices. Camera none. Manual casts and threats take audible priority.
+
+**End and readability:** rapid unobtrusive decay; misses do not explode. **Decision:** no new charge time, camera effect or manual commitment is added to the automatic attack.
+
+### Atomic
+
+**Runtime:** `atomic` (special ability). **Intent:** a rare earned release with overwhelming scale and a clear consequence.
+
+**Caster and staff:** once legitimately available and committed, energy contracts toward the wizard/staff into an unnaturally tense focus. Preserve the actual warning window and the distinction between ready and committed.
+
+**Motion and contact:** the existing affected scope is telegraphed before the real damage event. A decisive expansion and impact response carries the payoff; the central shape remains readable beneath secondary debris and light.
+
+**Sound and camera:** gathering tension, a short controlled drop in ambience, then a dominant blast with a decaying low tail. Heavy bounded kick with reduced/zero-shake alternatives; do not rely on a long white screen or deafening mix.
+
+**End and readability:** afterglow withdraws and ordinary combat cues regain priority quickly. Boss response follows the actual special damage rule. **Decision:** combo gating, scope, boss damage, survival and interruption remain governed by current ability rules; no new time freeze or invulnerability is implied.
+
+## Bare forms and modifier presentation
+
+Bare forms are intentionally weak foundations, not unfinished previews of a stronger named spell. Use a modest arcane treatment when no element supplies a material. An elemental modifier changes material expression while the underlying geometry and real payload remain legible. These forms do not create extra named acquisition slots.
+
+### Spear
+
+**Runtime:** `spear`. A brief staff thrust launches a narrow directed body with a thin path-following wake. Each real piercing hit gives a clipped puncture and small sideways flecks; expiry dissolves the remaining point. Camera none ordinarily. Preserve the line of attack and contacts through a crowd. Element accents change the puncture material without turning every contact into a full explosion.
+
+### Slash
+
+**Runtime:** `slash`. The staff or casting hand draws a short cutting gesture toward the target. A fast particle-supported crescent sweeps through the real cone; a crisp edge and taper communicate direction. Contact has a short cutting tick and local enemy flash; the tail disappears promptly. Camera none or light for stronger variants. This is the bare short slash, not the full future Arcane Slash progression or an implicit sword-equipped character.
+
+### Nova
+
+**Runtime:** `nova`. The staff gathers a small central pulse and opens it into the actual expanding front. A clear moving rim carries contact, with restrained particles left behind. Sound expands from a compact release to a short airy tail; light kick only if the real impact merits it. The interior must not look continuously damaging when only the front hits. End by breaking the rim and letting the last particles drift outward.
+
+### Field
+
+**Runtime:** `field`. A placement gesture establishes the actual disk, whose material settles into a readable sustained state. Local tick cues and a quiet sustain sound communicate ongoing activity; camera none. Arming/growth, active edge and collapse differ. Element changes choose ember bed, water, growth or other appropriate material, not a permanent opaque circle. Expiry retires the damaging boundary before residue finishes.
+
+### Trap
+
+**Runtime:** `trap`. A quick trace inscribes an armed shape, then waits quietly. The actual trigger provides the burst, contact sound and optional light kick. Empty expiry erases the inscription with no successful-hit sound. Distinguish trigger radius from damage extent and armed state from decorative residue. Named Rune Trap and Frost Sigil can add stronger authored identity while retaining this readable lifecycle.
+
+### Orbit
+
+**Runtime:** `orbit`. A small body leaves the staff and finds its real orbital route. Its wake remembers the curve; individual contacts get compact ticks and sparks, without a constant camera pulse. Bodies lose coherence at expiry. The lane is not a solid wall and the whole interior is not a damaging disk. Elements modify the material; target-centered orbits are a separate behavior proposal.
+
+### Keywords status reactions and copies
+
+The detailed semantics remain in [doc 21](21-damage-effects-keywords.md). Presentation follows accepted effects, never rejected words. Size must scale the damaging core and boundaries; speed changes stretch wakes but keep a clear head; extra copies require separated releases/lanes rather than one unreadable bloom. Delayed/charged variants visibly hold real stored energy; homing changes reveal the turn; bounce/chain show the chosen next target; return effects retain ownership and route. Longer duration extends sustain rather than replaying ignition indefinitely.
+
+Burn grips and flickers; poison pulses within/around the host; bleed produces brief directional drops; chill gathers rime; frozen locks into a stronger coherent shell; shock snaps locally; roots physically connect to the ground. Vulnerability and other marks remain small enough to coexist. Apply, tick, reaction and expiry are separate beats. A genuine reaction may earn a stronger accent, but stacked statuses do not each demand full flashes, sound loops and camera kicks. Enemy stagger, knockback and freeze only occur when the gameplay applies them.
+
+## Spirit behavior candidates
+
+These alternatives are not yet assigned to a spell. Ghost and wisp can still be compared on both Seeker and Soul Bloom.
+
+**Haunting wisp:** circle a selected enemy at a visible offset, leading with the core while the tail trails around the orbit. A close pass or directed tendril/pulse makes each actual damage event understandable. Its hover includes acceleration, small corrections and independent shed vapor. Soft circling sound gives way to short contact accents; camera none. On host death it visibly seeks or dissolves according to a selected rule. Decide orbit radius, damaging path versus attached-host damage, cadence, target transfer, lifetime and caps before implementation. Orbiting a host does not automatically hit every nearby enemy.
+
+**Passing ghost:** orient toward a victim, gather its body, rush through, then curve around for another committed pass. The face/core remains legible while the tail stretches and catches up. Each real crossing gets a heavier spectral strike; turns and recovery are quieter. Decide whether these are actual body collisions, whether other crossed enemies are hit, the rehit interval, target-death rule, lifetime and damage per pass. Fewer heavier hits are a balancing candidate, not a numerical commitment.
+
+**Current behavior with richer motion:** retain Seeker's persistent chase/contact behavior and Soul Bloom's single-delivery heal-or-hunt behavior but animate a yielding body, lagging trail, independent wisps and meaningful arrival. This is the lowest gameplay-change option. Do not label it a haunting/orbiting spirit unless its actual movement supports that description.
+
+## Authored future spell sequences
+
+These are proposed feel scripts for the selected or open catalog identities, not an implementation queue or new recipes. Catalog statuses remain authoritative. Shared casting, contact, audio, reduced-effects and lifecycle rules above apply to every entry. An unresolved delivery or target rule is a decision to make before implementation; the script must adapt to that decision. No invented numeric balance accompanies these proposals.
+
+### Arcane Slash
+
+**Experience:** conjure a magical cutting action that visibly writes through the fight. The staff draws back, condenses a sharp arcane edge and cuts across the actual target direction. Each additional slash receives a distinct alternating or stepped gesture and particle sweep, rather than all copies overlapping into one flash.
+
+**Contact and end:** the leading edge owns the hit; sparks and a short fading cut trace follow. At the final rank, the completed cut pattern resolves into the small glyph/explosion payoff. Ordinary ranks must not imply that payoff already exists.
+
+**Sound and camera:** gathering ring, clean blade-like swishes, clipped hit accents; light kick on substantial cuts and a firmer final payoff if warranted. **Open:** exact targeting, slash spacing, glyph location and final-rank timing. The rejected striped shader is not the visual target; the existing bare Slash is only a starting implementation.
+
+### Mana Storm
+
+The staff lifts a loose cluster of condensed magic into a moving cloud; it forms a readable overhead source before raining distinct darts downward. Each arrival has a small precise hit and vanishing mote trail. A soft high gathering sound becomes irregular dart releases and compact contacts; camera none except a deliberately stronger terminal event, if one is selected. The cloud thins and the last already-released darts finish. **Open:** follows the caster or wanders independently; this choice determines drift, warning distribution and recast behavior.
+
+### Arcane Nova
+
+The staff draws energy inward, then opens a powerful expanding front around the wizard. A bright thin leading edge and streaming particles communicate outward force; contact responses progress with the ring rather than all firing at cast time. Use a compact resonant release, expanding airy tail and light/firm single kick. The rim breaks into escaping motes at its real extent; the cleared interior should not look active. **Open:** propagation speed, contact timing and how this authored spell differs from the weak bare Nova.
+
+### Black Hole / Eye of [unnamed]
+
+The staff compresses light into a dense dark seed, then places a gravity center whose surrounding debris reveals inward motion. Material curves and accelerates toward it; a legible boundary separates influence from decorative distortion. Enemy motion must follow actual allowed force, not cosmetic teleporting. Sound is a low gathering pressure with sparse inward tearing accents; camera none during sustain, potentially firm on a selected final collapse. The well releases/collapses without falsely hitting the whole screen. **Open:** force limits, affected entities, end payload and combo-earned threshold; no global camera warp is assumed.
+
+### Prism Wall
+
+A deliberate staff trace raises a fragile faceted barrier along the selected boundary. Segments assemble into a clear obstructing surface; incoming eligible attacks create localized refractive stress and a visible response toward the attacker if actual reflection occurs. Glassy assembly and clipped contacts precede a brittle break; camera none or light on destruction. Fragments lose collision appearance as they disperse. **Open:** reflect damage versus physical projectiles, eligibility, fraction and collision rules. Do not depict a projectile bouncing if only damage is returned.
+
+### Prismatic Shield
+
+The staff closes a small faceted envelope around the wizard. Its protected state has a clear shell and restrained internal light; eligible incoming hits ripple at their point of contact. A bright clean seal and soft deflections communicate protection; camera none so the shield does not feel like repeated damage. Near the actual end, facets loosen, then open and vanish. **Open:** duration, exact invulnerability and reflection; this cannot inherit Earth Shield's charge rules by visual similarity.
+
+### XP Magnet / Arcane Restoration
+
+A drawing gesture gathers a small attractor at the staff. Eligible experience objects bend inward along readable paths, accelerate toward the player and resolve with individual but voice-limited collection cues. Soft gathering hum and light pickup notes; camera none. The attractor fades when collection/activation ends, without a healing bloom. **Open:** a castable action versus always-available utility, attraction scope and excluded pickups. Do not imply health restoration from the historical name.
+
+### Time Stop
+
+The staff pinches a regular moving rhythm into stillness. A clear activation cue marks the moment enemies actually stop; affected actors hold a restrained frozen-time treatment while the wizard remains readable and active. Sound narrows into a suspended texture, then releases cleanly as time resumes; camera none during the hold, optional light activation cue. Resume motion and queued impacts deliberately, without an uncontrolled stack of audio peaks. **Open:** whether new casts wait, projectile handling, boss eligibility and combo-earned threshold. Do not freeze the game merely to produce the visual.
+
+### Mirror Image
+
+The staff sweeps through the caster's silhouette, leaving decoys that separate into readable places with a brief imperfect shimmer. Decoy movement and enemy attention should reveal actual distraction; a hit makes an image fracture rather than imitate a real player death. Use soft displaced footsteps/echoes and a glassy dispersal, with camera none. Images fade individually at end; ownership remains clear. **Open:** target rules, count, lifetimes and whether decoys reproduce harmless cast gestures.
+
+### Polymorph
+
+A compact twisting symbol forms at the staff and reaches the chosen target. The real transformation pulls the old silhouette inward and lets the new creature emerge in one readable transition, preserving the target's location. A short elastic warble and soft pop replace heavy impact audio; camera none. Reversion unwinds the treatment rather than looking like a new kill. **Open:** delivery, eligible creatures/bosses, new behavior and duration. An immune target needs a truthful failed transformation cue.
+
+### Ward
+
+A protective staff gesture traces a personal boundary that settles into a quiet, readable ready state. Actual prevented or reduced harm resolves locally against that boundary, then it reseals or breaks according to the chosen rule. Use a low clean activation and muted deflection notes; camera none except possibly a light final break. Expiry opens the boundary and removes the protection cue. **Open:** independent spell versus WARDING keyword, protection mechanism and cost; do not specify both as separate acquired spells without a decision.
+
+### Fire Bolt
+
+The staff kindles a compact flame, draws it into a hot head and throws it with a short forward snap. Flame tongues stretch backward, curl, detach and die; the core remains readable through the wake. Contact flares sharply at the victim, sheds embers and ends without Fireball's broad detonation. A quick breath of ignition, fiery release and short sizzle; camera none or light for a stronger hit. Misses lose heat quietly. **Open:** standalone acquisition and differentiation from a fire-modified Bolt. Use particle-driven material, not the rejected striped stroke.
+
+### Fireball
+
+A heavier mass of fire gathers at the staff with visible pressure, then launches as a substantial coherent body. Flames roll around the core and drag behind it. Actual impact opens the mass into a broad explosion, with outward embers and a short smoke response; the body clearly ceases to exist. Gathering roar, launch whoosh, sharp blast over a low thump; firm kick at detonation. Residue cools and clears. **Open:** blast extent/timing and recast balance; no persistent burning field unless selected.
+
+### Scorching Ray
+
+Heat collects into separate bright points around the staff head, then each releases a coherent beam toward an assigned enemy. Flame flow stays directional inside the lanes; contacts sear locally and track actual targeting. Use a sharp ignition and controlled sustained hiss with restrained tick contacts; camera none after release. Beams taper and cut off, leaving small cooling scorches where appropriate. **Open:** targeting allocation and duration. Separate enemy-aimed beams are the provisional direction; a V arrangement is an alternative, not an extra simultaneous mode.
+
+### Flame Wall / Fire Wall
+
+The staff plants heat into a large ring around the wizard; ignition runs around the circumference and erects strong upward tongues in the band. The center remains readable and traversable space. Real crossings and ongoing burns produce local reactions rather than explosive direct hits. A surrounding ignition whoosh gives way to a low sustained roar; one light establishment kick at most, none per tick. Flames shorten and die around the ring at expiry. **Open:** following versus fixed placement and rehit rules. Radius and band thickness scale proportionally; low direct damage and strong DoT remain the intended balance direction.
+
+### Volcano
+
+A heavy staff plant cracks the chosen ground and builds pressure beneath a vent. The initial eruption has a clear warning and heavy release; later lava lumps have distinct launch arcs, landing cues and material splashes. Sound shifts from subterranean rumble to eruption and intermittent lob/land phrases; firm initial kick, restrained later impacts. The vent dwindles to cooling rock. **Open:** its role beside Meteor Shower, projectile targeting and active lava aftermath. A persistent vent should not borrow Meteor's falling-from-the-sky identity.
+
+### Fire Shield
+
+Flame gathers from the staff into a compact protective mantle around the caster. Idle heat stays restrained; an actual qualifying hit concentrates it toward the attacker and releases the retaliatory blast. Use a quick ignition, muted protected contact and a distinct outward retaliation roar; light/firm kick only on the meaningful blast. The mantle dims or breaks as protection ends. **Open:** protection amount, eligible trigger, retaliation area and charges; no free retaliation from cosmetic near misses.
+
+### Fire Orbit
+
+The staff separates a flame cluster into orbiting bodies, each feeding a curved wake. Real contacts flare locally and leave only the actual burn status on the victim. A low establishment whoosh and sparse contact sizzles; camera none during repeated orbit. At expiry the bodies unravel tangentially into dying embers. **Open:** contact cadence and whether this is distinct enough from a fire-modified Orbit to warrant an authored identity. The lane must not appear to be an impassable wall.
+
+### Flame Seed
+
+The staff lowers a glowing ember into the ground. A readable dormant seed swells, sprouts and opens into a fire-flower turret only when maturation is real. Each actual attack gathers at the flower, launches and produces its own contact. Sounds move from a small plant hiss to opening crackle and compact firing bursts; camera none outside any selected major destruction. Withering/trampling and natural expiry have distinct endings. **Open:** growth time, trample, attacks, maturity, ownership and recast limits.
+
+### Fire Golem
+
+The staff draws nearby fire into an allied silhouette; limbs gain shape before the ally begins acting. Movement sheds low flames while an attack visibly gathers in its hands or mouth and commits toward the real target. Use a heavy ignition, restrained burning footsteps and a clear attack phrase; no constant camera shake. Death releases the bound fire and leaves cooling fragments. **Open:** copied kit spells, their ranks, ownership and target rules. A copied Ember Spear must retain its own contact sequence without looking like an extra player cast.
+
+### Flaming Restoration
+
+The staff draws controlled warmth toward the recipient, where it settles as an inward restorative pulse or an outward empowering mantle according to the selected benefit. Keep the release and ending gentle; use a warm ignition note and quiet heat texture, camera none. A healing resolution belongs only to a real heal, while a buff needs a distinct sustained cue. **Open:** whether it heals, buffs, or both, and what benefit it grants. No hostile burn aura is implied.
+
+### Snowball
+
+Cold compacts into a small dense ball at the staff, then is tossed or thrust along the chosen projectile path. Powder trails behind the solid center. Contact compresses and breaks it into icy fragments with a short chill cue. Soft icy release, crisp compact crunch; camera none. Unspent travel ends in a powdery breakup. **Open:** hit/chill tuning and distinct identity from Ice Blast's fan; no giant explosion or automatic freeze.
+
+### Ice Spear / Glacial Spear / Glacial Lance
+
+**Paused.** Preserve the possible brittle penetrating body and heavy cold-contact fantasy without selecting impale versus lateral shove. Either would need a clear staff thrust, travel wake, authoritative contact and fracture/expiry, with a narrow icy sound and restrained impact kick. The shove version must show actual sideways displacement; the impale version must show actual restraint. No implementation, acquisition, numeric balance or variant choice proceeds until this family is revisited.
+
+### Water Jet
+
+Water coils around the staff head, pressurizes, then releases as a connected stream with a strong leading flow. The caster aims while the water bends only as much as real tracking permits. Actual contact splashes and pushes according to the payload; spray falls away from the main stream. Pressurized release and sustained rush with heavier splash contacts; camera none after any light opening kick. The flow thins and droplets finish independently. **Open:** target allocation for extra jets and push limits.
+
+### Water Whip
+
+A hanging ribbon of water gathers from the staff, then the gesture sends a wave down its length into the lash tip. The tip's snap owns contact; detached droplets continue past the sweep. Use a wet swish, tight snap and falling splash, camera none or light at a strong contact. The ribbon breaks or retracts after the attack. **Open:** collision path, displacement and repeat rhythm. Do not render a rigid rotating line as a flexible whip.
+
+### Tsunami
+
+The staff pulls a broad body of water up behind the wizard, then drives it forward as a rectangular advancing wave. A clear crest carries momentum, with rolling water behind it and spray peeling off. Contact progresses across the front and applies real displacement; never depict a simultaneous radial hit. Deep gathering rush, broad breaking-water impact and receding wash; firm kick at the meaningful collision/release, not constant rumble. Water drains at the end. **Open:** propagation, push and trailing damage.
+
+### Frost Nova
+
+The staff draws heat inward, then releases cold in every direction. A thin advancing frost front is followed by branching rime and scattered chips; actual contact drives chill, with a stronger shell only on genuine freeze. A sharp cold intake, radial crystalline crack and fine settling ice; light/firm single kick. The front breaks at range and harmless rime thaws. **Open:** exact propagation and control profile; this authored design is distinct from the inactive legacy draft.
+
+### Frost Strike / falling icicle
+
+The staff lifts a cold point toward the target; a clear ground warning appears as an icicle forms above. Its visible descent resolves into the real impact, shattering outward with local cold feedback. A thin rising tone, falling whistle and brittle heavy crack; firm contact kick. Fragments settle and cold residue fades. **Open:** final name, warning duration, impact geometry and any aftermath; decorative fragments are not extra hits by default.
+
+### Blizzard
+
+The staff releases a gust that gathers a storm volume. Snow has a prevailing direction with turbulent eddies and changing density, rather than uniformly scattered screen noise. Local enemy cold responses follow actual exposure. Use a soft storm onset, controlled wind bed and sparse ice contacts; camera none during sustain. The wind loses density and remaining flakes drift out. **Open:** following versus independent motion and slow/freeze rules. Preserve threat silhouettes through the storm.
+
+### Whirlpool / Maelstrom
+
+A circular staff gesture establishes water rotation at the chosen center. Water accelerates inward along curved paths and creates a readable rotating rim. Enemy displacement and damage pulses follow actual forces; splashes come from real interactions. Use low circulating water and occasional intake splashes, camera none. Rotation slows and drains at expiry rather than exploding by default. **Open:** name, force limits, center behavior and escape/collision rules.
+
+### Lightning Spear / Lightning Rod
+
+**Paused.** Preserve the idea of a thrown conductive spear establishing a rod on a host or ground. A future script would distinguish launch, attachment, charge gathering, discharge and rod removal, with a sharp launch crack and discrete zaps rather than a constant full strike. No active damage ring or host-death behavior is selected. The paused status takes precedence over the existence of a data-only prototype.
+
+### Static Shock
+
+The staff maintains a live electrical source that commits its first arc to a real recipient. Each hop forms a legible conductive connection before the next contact resolves, with quick irregular branches confined near that path. Use a controlled electrical sustain and distinct short hop zaps; camera none for the chain rhythm. Arcs break in order when the channel ends or no next target exists. **Open:** channel rules, hop/retarget cadence and target exclusions; distinct from bouncing Lightning Bolt.
+
+### Lightning Whip
+
+Arcs gather along a flexible lash from the staff; a sweep sends charge toward the snapping tip. The actual contact gets a concentrated zap and short branching discharge on the victim. Electric gathering, airy lash and sharp tip crack; light contact kick at most. Remaining branches extinguish rapidly rather than leaving a solid beam. **Open:** contact geometry, timing and status payload; the electrical lash should preserve whip motion.
+
+### Thunderwave
+
+The caster braces and drives a pressure pulse outward from the staff/body. A surrounding radial front carries the actual push, with brief dust and air distortion that do not hide the enemy trajectories. A compact low gathering sound gives way to a broad thunder crack and short bass tail; firm single kick. The wave expands and breaks, leaving no persistent hazard. **Open:** displacement limits and propagation. This is radial, not the superseded travelling directional wave.
+
+### Rain of Lightning / Lightning Rain
+
+The raised staff calls a distributed set of charges into an area. Each chosen location gets a proportionate warning and distinct descending strike, with staggered branches and small ground aftershocks. Sound forms a sequence of sharp cracks at varied emphasis rather than one continuous overloaded roar. Bounded light/firm impact kicks preserve readable cadence. Ground sparks spend themselves between arrivals and stop when the spell ends. **Open:** warning rhythm, target selection and whether any live aftermath exists.
+
+### Static Field
+
+The staff deposits a charged ground source that settles into a clear boundary. Fine branches search inside it; actual ticks or selected enemy-to-enemy arcs become brighter, directional events. A restrained electrical bed and local zaps; camera none during sustain. The boundary breaks and residual charge becomes sparse before fading. **Open:** a meaningful mechanic beyond generic ticking damage. This must remain separate from the personal exposure-based storm aura.
+
+### Tesla Wall
+
+The staff establishes two solid coils, one after the other, and charge connects them into a passable electrical boundary. Coil solidity and the dangerous connecting line have different shapes. Crossing contacts produce local arcs; coil hits produce structural stress. Rising coil charge, steady restrained electrical tone and discrete crossing zaps; camera none except light destruction. When a coil breaks, its link visibly disconnects. **Open:** coil health, pathing, linked lifetime and damage behavior after one end is lost.
+
+### Spike
+
+The staff punches force into the chosen ground; a small earth warning cracks before a spike erupts into the actual target. Grit and fragments travel outward from the emergence, while bleed appears only on affected enemies. A short subterranean scrape and hard upward crack; light/firm contact kick. The spike collapses or retreats without implying permanent collision. **Open:** warning, persistence and exact hit timing.
+
+### Bullet / Spray
+
+Metal condenses into small hard projectiles at the staff tip; repeated releases have a stable firing rhythm and modest recoil. Thin travel streaks make direction clear without hiding individual shots. Real hits make clipped metal sparks and enemy responses; misses end quietly. Dry release snaps and compact metallic ticks, camera none for normal repeated shots. **Open:** one identity versus variants, cadence, spread and penetration; do not assume an actual firearm model.
+
+### Boulder
+
+Stone fragments gather into a weighty mass, then the staff heaves it along the real path. Rotation and grit communicate momentum. Contact has a dense crunch, actual push and chips thrown along the impact direction; the boulder does not become a fiery explosion. Low assembly rumble, heavy launch and firm contact kick. The remaining mass settles or breaks according to chosen lifetime/collision. **Open:** travel/collision response and knockback limits.
+
+### Earth Spear
+
+The staff draws grit into a rigid pointed shaft and thrusts it forward. The primary contact cracks the shaft into visibly smaller secondary spears that scatter along the selected trajectories; those have lighter contacts. Stone scrape, sharp primary fracture and small secondary ticks; light/firm primary kick, none per fragment. Dust and missed fragments settle promptly. **Open:** fragment targeting, count and eligible triggering contacts.
+
+### Lance
+
+**Reserved.** Preserve a close-range piercing thrust: a compact ready pose, decisive extension along a narrow line, hard contact and prompt recovery. A short thrust swish and clipped puncture with no routine shake would suit it. Reach, weapon manifestation, target selection and acquisition are not selected. Do not implement the reservation as another renamed Spear.
+
+### Earth Blast
+
+The staff compacts fragments, then releases a broad fan with weight in each piece. Actual contacts deliver debris, bleeding and the selected knockback; the fan must read as rough physical material rather than cold shards. A gravelly release and staggered crunches, with a light grouped kick. Fragments fall and dust clears. **Open:** spread and push limits; distinguish its force and abrasion from Ice Blast's cold control.
+
+### Shrapnel
+
+The chosen source releases a dense burst of small metal fragments with legible outward paths. Contact is sharp and brief, with sparks at actual victims and quieter fragments that miss. Use a concise metallic burst and scattered ticks; light or firm primary kick according to the selected source, no shake per fragment. End with settling debris. **Open:** delivery first—throw, placed charge, direct burst or another form. A grenade, fuse and explosion are not automatically selected.
+
+### Earth Nova
+
+The staff plants a forceful command into the ground and a radial sequence of spikes erupts outward. Each emergence carries local grit and contact, making progression understandable. Deep ground crack followed by expanding stone breaks; firm initial/major impact response, not an unbounded shake for every spike. Spikes lose their threatening posture as the damage phase ends. **Open:** propagation, persistence and collision; bleed follows the actual payload.
+
+### Earth Wall / Earth Walls / Stonewall
+
+A deliberate staff trace raises a physical barrier, with heavy chunks locking together along the chosen boundary. Local hits chip that location and progressively expose damage; a breach opens visible traversable space. Stone grinding and weighty hit knocks, light/firm response on substantial collapse. Broken fragments settle without retaining false collision. **Open:** single wall versus enclosure, placement, health, pathing and whether collapse damages anything.
+
+### Earth Trap
+
+The staff lays a rough buried pattern, then the ground becomes a quiet armed patch. Trigger drives spikes upward around real victims, with a visible brief immobilizing connection and actual bleed cues. Low placement scrape, sharp springing crack and restrained chips; light contact kick. Once spent, spikes break/retract and the restraint visibly releases. **Open:** arming, activation limits and persistence after triggering.
+
+### Muck
+
+A low staff sweep lays thick slowing ground along the selected route. The surface stretches and settles around footsteps; actual slowed enemies show drag without being secretly rooted. Wet earth release and subdued sticky movement accents; camera none. The patch dries or sinks as slowing ends, leaving a clearly spent stain. **Open:** placement, duration and later fire/oil interaction; no ignition behavior until selected.
+
+### Earth Golem / Summon Golem / Golem
+
+Stone rises around a core at the staff's command and assembles into a visible ally. Heavy footsteps settle weight locally; an attack draws back before committing, then scatters grit on contact. Deep assembly knocks, bounded footsteps and distinct attack crunches; light/firm attack camera feedback only if the ally deserves that screen priority, never every step. Death collapses the body into inactive rubble. **Open:** taunt, attacks, kit access, ownership and limits.
+
+### Earthquake
+
+**Reserved.** A staff plant could send uneven ground stress through an area, with local cracks leading actual eruptions and displacement. Low rumble should support discrete heavy moments instead of constant nausea-inducing shake; accessible motion alternatives are essential. Ground settles as danger ends. Decide a distinct mechanic against Earth Nova before selecting timing, damage, force or a large persistent camera treatment.
+
+### Carcass (unnamed)
+
+The staff gathers or lifts infected remains, then hurls them on a readable lob with a clear destination. Landing breaks the mass into a diseased ground zone; actual exposure drives local host effects. Heavy wet release, dense landing and subdued unhealthy bubbling, light/firm landing kick. The dead zone loses active secretion before its residue decays. **Open:** final name, source, arc, warning and infection payload. Do not assume corpse consumption unless selected.
+
+### Ray of Sickness
+
+An unhealthy pressure gathers at the staff and releases as a coherent searching ray. A sweep or pivot across the crowd visibly reaches each recipient; debuff application is separate from the ray's decorative haze. Use an uneasy low sustain and short wet contact accents; camera none. The beam pinches off and the final vapor dissipates, while actual statuses retain their own durations. **Open:** sweep versus tracking, DoT, slow and weakened payload.
+
+### Grasping Hand
+
+A contracting gesture at the staff calls a spectral hand from the chosen area. Fingers approach and close around actual recipients; a hold, pull or crush must be visibly distinct if selected. Sound moves from a low breath to a concentrated grip accent; light/firm kick only for an actual crush, none for holding. Release opens the fingers and lets them unravel. **Open:** which phases exist, timing, target limits and force; a decorative hand cannot imply restraint on a free enemy.
+
+### Raise Dead
+
+The staff reaches toward eligible corpses; energy enters each source before an ally visibly rises from it. Formation ends before independent movement and attacks begin. Use a restrained summoning whisper, rising-body material sounds and the ally's own attack cues; camera none for ordinary raising. A failed/invalid corpse gets no false ally emergence. Allies collapse or unbind at their actual end. **Open:** corpse eligibility/consumption, ally types, caps and ownership.
+
+### Hex
+
+A small deliberate gesture knots a mark at the staff and delivers it to the chosen victim. Application makes the mark grip the silhouette; vulnerability remains restrained and identifiable beside other statuses. A short binding whisper/click and quiet expiry; camera none. The mark loosens and disappears when the effect ends. **Open:** delivery, eligibility, duration and recast behavior. A curse cue must not pretend to be direct damage when there is none.
+
+### Plague Spear, Nova, Shower, Field, Wall, Trail, Trap
+
+**Open exploration slots, not seven selected spells.** Preserve a shared material hypothesis—swollen sources, creeping transfer, wet contact and unhealthy residue—but do not invent names, acquisition or seven payloads to fill the matrix. Once a distinct identity is selected, specify its staff gesture, delivery, application, sustain, sound and ending using the matching geometry contract above. Camera should ordinarily remain quiet, reserving weight for a real major release. **Decision required:** one actual purpose and complete behavior per selected identity.
+
+### Vine Ball (unnamed)
+
+A living knot gathers at the staff and is sent to the target area. On actual arrival it unfurls into reaching vines; visible ground connections explain immobilization. A woody release, unfurling rustle and tightening grip accents; light impact cue at most. The vines relax, dry and withdraw when restraint ends. **Open:** name, delivery details and bleeding. Do not add a damaging explosion merely because the source is ball-shaped.
+
+### Shillelagh / Life Spear
+
+A staff thrust sends living growth along a line, leaving a readable rooting trail. Vines reach from that trail toward eligible enemies and visibly draw them into it; the pull and the rooted connection are distinct steps. Use a woody thrust, travelling root cracks and short tightening creaks; light contact feedback, no constant shaking during restraint. Roots release and wither when their actual effect ends. **Open:** line/travel geometry, pull limits and rehit timing. This is one spell, not separate Life Spear and Shillelagh acquisitions.
+
+### Vine Whip
+
+A growing vine extends from the staff, then transmits the casting gesture along a flexible length to its tip. A real lash has a visible snap and local plant/impact response; thorns and leaves follow the motion rather than forming a rigid green beam. Woody swish, sharp fibrous contact and soft leaf fall; camera none or light on a heavy hit. Retraction or withering ends the attack. **Open:** contact path, timing and status payload.
+
+### Crushing Vines / expanding vine circle / Life Nova
+
+The staff calls roots into a circular front that grows outward through the ground. Vines reach and tighten on real recipients, with separate growth, restraint and crushing accents if those phases are selected. Root creaks and a firm tightening sound support the strongest actual hit; camera light/firm at that moment, none during ordinary growth. Plants relax and wither as control ends. **Open:** root versus slow, propagation and whether the names describe one identity.
+
+### Exploding Flowers / poisonous flowers
+
+The staff scatters buds toward selected locations; each becomes readable before its actual bloom or burst. A poisonous opening would release controlled drifting pollen; an explosive flower would visibly tense and snap outward. Planting rustle and either soft pollen release or a compact organic pop; camera none for poison ticks, light for a substantial burst. Petals settle and danger visibly ends. **Open:** strike versus shower, poison versus burst, and triggering conditions. Alternatives are not separate confirmed spells.
+
+### Flower Trail / vine trail
+
+A staff gesture sends growth toward the wizard's route. New plants emerge behind real movement; each patch matures and expires independently. Flowers release pollen where poison is real; vines visibly writhe where they control. Soft travelling growth sounds and restrained local contacts, camera none. Spent plants droop and withdraw so old paths stop looking dangerous. **Open:** flower poison versus roiling-vine behavior, spacing and duration; choose the identity before building both.
+
+### Yggdrasil / Tree of Life / World Tree
+
+The staff plants a powerful seed and roots spread before the trunk rises into a visible tree. Growth communicates increasing presence; healing reaches the wizard with inward restorative cues while harmful roots or other selected attacks clearly connect to enemies. Deep woody growth, leaf movement, warm healing and distinct hostile contacts; firm establishment cue at most, no continuous camera shaking. Destruction and natural withering need different endings. **Open:** growth stages, maturity, destructibility, hostile mechanism and combo threshold if ultimate. Preserve one identity across these names.
+
+### Dash
+
+A short directional preparation draws the caster's silhouette toward the intended route, then releases into a decisive movement burst. A brief path-following wake marks where the wizard travelled; arrival has a controlled settling cue rather than an automatic damage blast. Sharp displacement swish and soft landing; camera none by default so aim remains readable. Cancel/blocked movement must not show a completed dash. **Open:** immediate versus stored charge, direction, collision, invulnerability, damage and limits.
+
+### Swiftness
+
+The staff loosens a small windlike ribbon around the caster's movement. Activation opens the posture; actual faster travel stretches a restrained wake that relaxes at rest. Soft rising release and sparse motion accents; camera none. The ribbon slackens when the speed benefit ends, without implying a stun. **Open:** magnitude, duration and refresh. Do not use a constant screen blur to communicate speed.
+
+### Personal storm aura
+
+The staff gathers a small storm around the wizard or selected location. A readable exposure region is present, but it does not look like instant contact damage. Each enemy's real dwell progress gathers charge toward that enemy; completed exposure produces its own strike and response. Quiet charged ambience, then discrete cracks; bounded light/firm kicks on significant strikes, none for merely entering. Expiry releases remaining unspent charge harmlessly. **Open:** name, following versus fixed, exposure reset and repeat rules. Level-ups extend duration; kills do not. Keep this distinct from Static Field.
+
+## Signature and deferred combination sequences
+
+### Homing Bolt
+
+The staff launches a clear leading bolt whose wake remembers the turns. Guidance is purposeful: turn toward the actual target rather than wobbling randomly, and keep any spiral readable around a forward path. Contact is compact; misses or lost targets dissipate according to the real rule. Focused release note and small hit accent, camera none. **Open:** special HOMING expression, smaller guided copies and signature distinction. This is not automatically an extra base acquisition.
+
+### Ring of Meteors
+
+A skyward staff call establishes distinct heavy rocks in orbit, each with its own burning wake. A release command or selected automatic rule then sends individual rocks toward real enemies; their warnings and impacts retain separate heavy beats. Orbital rumble gives way to descending rushes and impacts, with bounded repeated firm kicks. Unreleased rocks need an explicit end rule. **Open:** release trigger, targets and whether this upgrades Meteor Shower or is separately acquired.
+
+### Sunbeam
+
+A solar focus builds above the staff, then releases a powerful clean ray with visible source, direction and contact pressure. The center is bright but bounded; heat and light spill away from actual hits without washing out the whole arena. A rising clear tone, strong release and controlled sustained roar; firm initial/major contact kick, not constant shaking. End by narrowing the beam and releasing residual warmth. **Open:** recipe, acquisition, duration and payload. Sun remains a combination theme; no ingredients are selected here.
+
+### Moon Slash / Crescent Slash
+
+The staff draws a cool crescent and releases multiple purple cutting forms with deliberate spacing. Each has a crisp advancing edge, a softer trailing wake and its own actual contact. Use airy glasslike swishes and clipped cool impacts; light bounded feedback on significant hits. Crescents thin into drifting particles after their range or contact limit. **Open:** recipe, targeting, copy rhythm and acquisition. Do not treat this as a recolor automatically approved by the Arcane Slash script.
+
+### Moonfall
+
+The staff calls a cool descending mass toward a marked location. Its arrival creates a clearly bounded aftermath whose enemy harm and friendly healing resolve differently at their recipients. A distant gathering tone, weighty soft-edged impact and quieter pulsing aftermath; firm initial kick, none for healing or regular ticks. The area loses active structure before moonlit residue fades. **Open:** recipe, scope, timing and payload; falling magic and the dual aftermath must share one readable identity.
+
+## Parked identities and unselected alternatives
+
+The following entries remain preserved in [doc 3](03-spells.md), but do not yet have enough selected behavior for an implementation script. This is a deliberate unresolved-design list, not a missing set of secretly approved spells. Start a sequence only after the identity is selected; apply the shared staff, contact, sound and ending contract then.
+
+| Preserved names | Decision before a complete script |
+|---|---|
+| Arcane Orb | What a slow impact body contributes beside Bolt, Orbit and Fireball. |
+| Pulse; Wave; Splash | Separate identities versus local/radial geometry expressions. |
+| Gravity Well | Relationship to Black Hole and whether it is the same spell. |
+| Arcane Missiles; Time Warp; Arcane Turret | Select a distinct volley, time mechanic or stationary summon; old inactive drafts are not approval. |
+| Plague / Plague Nut | Select the small infection identity and its relationship to Infection. |
+| Thorn Volley; Venom Mark; Spore Bloom | Choose fan, delayed mark or nursery behaviors and acquisition individually. |
+| Chain Heal | Allied recipients and traversal must exist before a connected healing sequence is designed. |
+| Seeking Spirit; Reaping Spirit | Distinguish from Seeker/Soul Bloom; Reaping Spirit remains disabled, not an eighth current combination. |
+| Skeleton Warrior; Flame Elemental | Select allied behaviors and distinguish from Raise Dead and Fire Golem. |
+| Fire | Grammar/base-word decision; not another implementation implied by FIERY. |
+| Undertow; Tidal Wave; Ice Shard | Select return-band, large-wave or small-projectile identities without silently aliasing them to Tsunami/Snowball. |
+| Chain Lightning; Thunder Spear; Tempest | Select immediate chain, delayed spear or weather roles; do not bypass the paused Lightning Spear family. |
+| Earth Bolt; Stone | Resolve projectile identity and distinction from Boulder/Bullet. |
+| Slash / Whip starters; Crescent | Character weapon/acquisition and possible moon ingredient identity. |
+| Daybreak; Solar Flare | Resolve solar burst/fan identities; Sun remains a combination theme. |
+| Explosion — ritual incantation | Full chant, interruption, release word, scope and damage must be selected before a multi-stage ritual script. |
+| Super Extreme Meteor Shower Deluxe | Decide mastery expression and parser behavior; not a free alias or an automatic larger meteor cast. |
+| Boots of Hermes | Equipment/charges/persistence and its relationship to Dash. |
+| Regrowth / Heal; Lightning Arc / Thunder; Returning Blade / Boomerang; Fire Trail / Ember Trail | Historical names, not extra spells or approved short incantations. |
+
+Frost Ray / Ice Ray, Tidal Push and Divine Aura remain removed/dropped; Firestorm remains questioned beside Meteor Shower; Arcane Shield remains unselected. Generic matrix-fill examples (including Arcane Ball, Mana Spear/Strike/Seed/Golem, Water Spear, Lightning Ball, Earth Wave, elemental slices, Fire Cone/Blast/Wave/Nova/Sigil, Ice/Water Wall, plain Rain/Water Field, Life Seed, Frostball and Plague Ball) do not gain design approval from this brief. The catalog owns their full disposition.
+
+## Enemy spell readability
+
+Enemy spells use the same material quality but a distinct threat presentation. Player spell beauty cannot erase hostile warnings. Do not make every elite cast borrow the player's staff pose; animate the actual enemy's body/source and preserve its own silhouette. Enemy warnings must remain distinguishable by shape/motion and source, not only hue.
+
+- **Elite fireball (`elite_fireball`):** the enemy gathers a compact hot mass, visibly releases it along the real trajectory, and the real collision/expiry blast gets a readable area and local burst. Hostile warning/direction takes priority over player embers. Short charge, launch and blast sounds; avoid shaking the player's view merely because a distant enemy fired. An actual player hit can receive the appropriate damage feedback.
+- **Elite frost burst (`elite_frost_burst`):** the enemy visibly gathers cold, then sends its actual expanding ring outward. A distinct hostile leading edge communicates when it will reach the player; chips settle behind it. Cold gathering and expanding crack, with player-contact feedback only on a real hit. The safe interior must not falsely look active.
+- **Elite lightning (`elite_lightning`):** the enemy source visibly charges and places the actual warning at the target. Preserve the longer hostile warning window; the descending strike and player response coincide with real damage. The crack and ground aftershock are local; spent ground does not remain a false hazard. This does not shorten enemy reaction time to match the faster player Lightning.
+
+Other enemy attacks retain their own design owners. This brief adds quality requirements to shared spell presentations, not new elite words or attacks.
+
+## Prototype order and acceptance
+
+### First playable batches
+
+1. **Lightning sequence:** staff charge/ground gesture, truthful target warning, descending strike, contact, sound, camera and spent charge. This tests the whole sequence in one high-contrast example.
+2. **Continuous material and spirits:** Steam volume and dissipation; Seeker/Soul Bloom yielding bodies, independent trails and actual arrival/contact. Evaluate the existing behavior first, then compare selected spirit-behavior prototypes separately.
+3. **Quick attacks:** Bolt, Magic Missile, Ember Spear, Ice Blast and Cross Blade. Protect responsiveness, distinct contact rhythms and heavy-versus-light contrast.
+4. **Sustained and defensive:** Cinder Field, Fire Walk, Orbit, Focus Ray, healing, Earth Shield and traps. Focus on actual state changes, local tick feedback and clean endings.
+5. **Combinations and stress:** all seven recipes, ranked/copy variants, accepted modifiers, stacked statuses and simultaneous enemy attacks. Preserve the meteor cascade throughout; refine its weak phases without flattening its enjoyed rhythm.
+
+This order covers the current roster before promoting the future catalog into implementation. It does not replace the agreed release roadmap or select a smaller future spell catalog. Existing strong phases can be retained; each spell still receives a full-sequence review.
+
+### A B requires evidence in play
+
+For each current spell, record separate assessments of **casting responsiveness**, **fantasy and motion**, **contact and enemy response**, **sound/camera**, **state and boundary readability**, and **ending/cleanup**. Mark each B-or-better, below B, or untested, with a short reason. A spell does not reach the B floor while a material dimension is below B or untested. This is a working review rubric, not an objective universal scoring scale.
+
+Capture the complete candidate in motion with sound and a real moving enemy, then a crowded encounter with another player spell and an enemy threat. Compare normal size, meaningful rank/copy upgrades, rapid recasts, target death, expiry, pause, reduced effects and narrow geometry. Observe miss, block/resist, heal-at-full-health and cancellation when applicable. Use the actual release/damage events to verify alignment. A tiny fast spell should be sampled well enough that its full life is not skipped between screenshots.
+
+Keep technical correctness, subjective feel, audio and performance findings separate. Record exact revision, test path, capture conditions, known limitations and the user's acceptance/disposition. Headless validation can establish behavior; sampled screenshots cannot certify motion or sound. Do not open visible Godot windows without an explicit request. A beautiful isolated frame does not certify crowded combat, and a clean test run does not certify a B.
+
+Show each artistic batch for judgment before treating it as accepted or integrating it as the new default. User feedback can reject a treatment without rejecting the spell's fantasy. Iterate the deficient phase, or change the approach when the approach is the problem; do not increase particle count, shake and loudness everywhere to manufacture a higher grade.
+
+### Decisions to settle before behavior changes
+
+Keep a short decision record for target ownership/retargeting, damaging geometry versus decorative trails, attack cadence, lifetime, recast/cap rules, rank changes and compatible modifiers. For spirit alternatives, explicitly choose orbit-host damage versus collision damage and one-pass versus persistent attacks. For Lightning, decide whether ground charge is harmless residue or a new payload. For Flame Wall, settle placement/movement and contact cadence. Paused spear families remain paused; undefined catalog cells remain undefined. Sound assets and their licenses must be tracked when assets are selected; no specific external sound or paid acquisition is mandated here.
+
 
 ## Shared mechanics dependency checklist
 

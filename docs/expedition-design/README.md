@@ -8,7 +8,7 @@ Updated 14 October 2026 for **0.3.0**. Start with the complete spell catalog and
 |---|---|
 | [Full spell catalog](03-spells.md) | Every implemented, authored, paused, open, reserved and rejected identity; aliases and deferred new combination themes. |
 | [Release plan and expedition roadmap](15-development-order.md) | Agreed release goals and version numbers, combat-feel work, the full catalog implementation track, enemies/tutorial, expedition loop, dependencies and open product decisions. |
-| [Presentation and shared mechanics](18-spell-system-rewrite.md) | Timing, motion, impact, readability, audio, quality evidence and capabilities to verify before new spells. |
+| [Spell feel and shared mechanics](18-spell-system-rewrite.md) | Complete caster-to-aftermath spell scripts, sound, camera, motion, readability, open behavior decisions and review criteria. |
 | [Spell engine architecture](19-engine-architecture.md) | Signed-off engine construction, data ownership and reusable behavior. |
 | [Game systems architecture](20-game-systems-architecture.md) | Signed-off actor/enemy/boss, level/objective, save/progression and run-flow design. |
 | [Damage, effects and keywords](21-damage-effects-keywords.md) | Current damage splits, elemental effects, statuses and keyword semantics. |

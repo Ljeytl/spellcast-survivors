@@ -36,7 +36,27 @@ def validate_catalog(text):
         raise ValueError('Missing authored identities: ' + ', '.join(missing))
 
 
+def validate_feel_sequences(text):
+    spells = spell_library.document('spells', REPO)['spells']
+    recipes = spell_library.document('recipes', REPO)['recipes']
+    expected = {key for key, row in spells.items() if row.get('preparable')}
+    expected.update(key for key, row in recipes.items() if row.get('enabled', True))
+    expected.update({'mana_bolt', 'atomic', 'spear', 'slash', 'nova', 'field', 'orbit', 'trap'})
+    documented = set(re.findall(r'\*\*Runtime:\*\* `([^`]+)`', text))
+    missing = expected - documented
+    if missing:
+        raise ValueError('Missing spell sequences: ' + ', '.join(sorted(missing)))
+
+
 class DocumentationChecks(unittest.TestCase):
+    def test_runtime_feel_coverage(self):
+        validate_feel_sequences(content('18-spell-system-rewrite.md'))
+
+    def test_missing_feel_sequence_control(self):
+        text = content('18-spell-system-rewrite.md').replace('**Runtime:** `lightning`', '')
+        with self.assertRaisesRegex(ValueError, 'lightning'):
+            validate_feel_sequences(text)
+
     def test_live_bases(self):
         spells = spell_library.document('spells', REPO)['spells']   # data/spells/<id>.json
         ids = [key for key, spell in spells.items() if spell.get('preparable')]   # 0.3.2: the list is data
