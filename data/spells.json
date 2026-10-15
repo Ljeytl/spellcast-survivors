@@ -40,7 +40,7 @@
       "rank_growth": {"damage": {"per_rank": 21.4286}},
       "role": "Fire a straight bolt toward the nearest enemy.",
       "id": "bolt",
-      "rank_card_projectile_ranks": [3, 6],
+      "rank_card_projectile_ranks": [2, 3, 4, 5],
       "preparable": true,
       "name": "Bolt",
       "element": "arcane",
