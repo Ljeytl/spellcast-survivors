@@ -50,7 +50,7 @@
     "twinned": {"category": "twin", "delay": 0.15, "power": 0.8},
     "homing": {"category": "motion", "flag": "homing", "speed": 0.85, "turn": 7.0},
     "swift": {"category": "motion", "flag": "swift", "speed": 1.35},
-    "orbiting": {"category": "motion", "flag": "orbiting", "range": 420.0, "hold": 2.5},
+    "orbiting": {"category": "motion", "flag": "orbiting", "range": 420.0, "hold": 3.0, "min_orbit": 2.1},
     "lasting": {"category": "duration", "flag": "lasting", "duration": 1.4},
     "repeating": {"category": "timing", "flag": "repeating", "delay": 0.6, "power": 0.4, "size": 0.75},
     "delayed": {"category": "timing", "flag": "delayed", "delay": 0.8, "power": 1.15},

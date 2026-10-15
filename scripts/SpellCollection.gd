@@ -15,6 +15,14 @@ var entries: VBoxContainer
 var catalog_ids: Array[String] = []
 var keyword_ids: Array[String] = []
 var back: Button
+# Pages (playtest: the keyword section was one wall). Every card is built once; a tab shows one page.
+const PAGES := [["spells", "SPELLS"], ["shape", "SHAPE WORDS"], ["flight", "FLIGHT & HIT WORDS"], ["element", "ELEMENT WORDS"], ["special", "SPECIAL WORDS"], ["chart", "ELEMENT CHART"]]
+const PAGE_OF_CATEGORY := {"tier": "shape", "power": "shape", "size": "shape", "count": "shape", "twin": "shape", "arrangement": "shape",
+	"motion": "flight", "duration": "flight", "timing": "flight", "contact": "flight", "force": "flight", "target": "flight",
+	"self": "special", "sacrifice": "special", "wild": "special", "payoff": "special"}
+var _page := "spells"
+var page_buttons := {}
+var current_page := "spells"
 
 func _ready():
 	READABILITY.apply_theme(self)
@@ -42,6 +50,22 @@ func _ready():
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	summary.add_theme_font_size_override("font_size", 20)
 	column.add_child(summary)
+	var tabs = HFlowContainer.new()
+	tabs.name = "PageTabs"
+	tabs.add_theme_constant_override("h_separation", 8)
+	tabs.add_theme_constant_override("v_separation", 6)
+	column.add_child(tabs)
+	for pg in PAGES:
+		var b = Button.new()
+		b.name = "Page_" + str(pg[0])
+		b.text = str(pg[1])
+		b.toggle_mode = true
+		b.focus_mode = Control.FOCUS_NONE
+		b.add_theme_font_size_override("font_size", 18)
+		var id: String = pg[0]
+		b.pressed.connect(func(): show_page(id))
+		tabs.add_child(b)
+		page_buttons[id] = b
 	var scroll = ScrollContainer.new()
 	scroll.name = "CatalogScroll"
 	scroll.focus_mode = Control.FOCUS_ALL
@@ -54,6 +78,7 @@ func _ready():
 	entries.add_theme_constant_override("separation", 16)
 	scroll.add_child(entries)
 	populate()
+	show_page("spells")
 	back = Button.new()
 	back.text = "BACK"
 	back.add_theme_font_size_override("font_size", 32)
@@ -65,10 +90,12 @@ func _ready():
 	update_typography.call_deferred()
 
 func populate():
+	_page = "shape"
 	add_heading("KEYWORDS")
 	add_note("Say keywords before a spell name, in any order: \"fiery double bolt\". Words of different kinds combine; more words of one kind add less each. If a word can't change that spell, its rune cracks and the spell casts without it. Not accepted by Magic Missile or Atomic.")
 	# Generated from data/keywords.json (KeywordCatalog): one card per kind of word, then one per element.
 	for cat in KEYWORD_CATALOG.categories():
+		_page = str(PAGE_OF_CATEGORY.get(str(cat.id), "special"))
 		for word in cat.words:
 			keyword_ids.append(word)
 		var first: String = cat.words[0]
@@ -76,6 +103,7 @@ func populate():
 		add_entry("keyword_" + str(cat.id), str(cat.name).to_upper(), "for example %s bolt" % first,
 			str(cat.promise) + "\n" + "\n".join(lines),
 			"Keyword · always available · no slot", false)
+	_page = "element"
 	add_note(KEYWORD_CATALOG.element_promise())
 	for group in KEYWORD_CATALOG.elements():
 		for word in group.words:
@@ -83,6 +111,7 @@ func populate():
 		var lines: Array = group.words.map(func(w): return KEYWORD_CATALOG.word_line(w))
 		add_entry("keyword_" + str(group.element), "%s WORDS" % str(group.name).to_upper(), "for example %s bolt" % group.words[0],
 			"\n".join(lines), "Element keyword · always available · no slot", false)
+	_page = "spells"
 	add_heading("SPELLS & COMBINATIONS")
 	for id in load("res://scripts/SpellManager.gd").BASE_SPELL_IDS:
 		var data = get_tree().root.get_node("DataManager").get_spell_data(id)
@@ -98,7 +127,28 @@ func populate():
 			ingredients.append(ingredient_name(ingredient))
 		var status = "Discovered" if id in discoveries else "Undiscovered"
 		add_entry(id, recipe.name, recipe.incantation, with_element(id, COPY.EVOLUTIONS.get(id, "")), "%s · Bonus spell · no active slot\n%s\nReach rank 8 in both ingredients, then choose this combination." % [status, " + ".join(ingredients)])
+	_page = "chart"
 	add_element_chart()
+	# The page notes: one line on each keyword page so it reads on its own.
+	for pg in ["flight", "special"]:
+		var tip = Label.new()
+		tip.text = "Say keywords before a spell name, in any order: \"swift piercing bolt\"."
+		tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tip.add_theme_font_size_override("font_size", 20)
+		tip.set_meta("page", pg)
+		entries.add_child(tip)
+		entries.move_child(tip, 0)
+
+## Shows one page of the book; arrow keys left / right flip pages.
+func show_page(id: String):
+	current_page = id
+	for child in entries.get_children():
+		child.visible = str(child.get_meta("page", "spells")) == id
+	for pid in page_buttons:
+		page_buttons[pid].button_pressed = pid == id
+	var scroll = find_child("CatalogScroll", true, false) as ScrollContainer
+	if scroll:
+		scroll.scroll_vertical = 0
 
 ## Element chart (doc 18 §6.5): six elements in a cycle, each +25% against the next, -25% against itself.
 func add_element_chart():
@@ -115,6 +165,7 @@ func add_note(text: String, color: Color = READABILITY.PAPER):
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_font_size_override("font_size", 20)
 	label.add_theme_color_override("font_color", color)
+	label.set_meta("page", _page)
 	entries.add_child(label)
 
 func with_element(id: String, description: String) -> String:
@@ -127,6 +178,7 @@ func add_heading(text: String):
 	label.text = text
 	label.add_theme_font_size_override("font_size", 22)
 	label.add_theme_color_override("font_color", READABILITY.GOLD)
+	label.set_meta("page", _page)
 	entries.add_child(label)
 
 func add_entry(id: String, spell_name: String, incantation: String, description: String, status: String, spell: bool = true):
@@ -135,6 +187,7 @@ func add_entry(id: String, spell_name: String, incantation: String, description:
 	var card = PanelContainer.new()
 	card.name = "Entry_" + id
 	card.add_theme_stylebox_override("panel", READABILITY.panel_style(READABILITY.GOLD))
+	card.set_meta("page", _page)
 	entries.add_child(card)
 	var row = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 16)
@@ -174,6 +227,11 @@ func _unhandled_input(event):
 			KEY_END: amount = int(scroll.get_v_scroll_bar().max_value)
 		if amount != 0:
 			scroll.scroll_vertical += amount
+			get_viewport().set_input_as_handled()
+		if event.keycode in [KEY_LEFT, KEY_RIGHT]:
+			var ids: Array = PAGES.map(func(pg): return pg[0])
+			var i = ids.find(current_page)
+			show_page(ids[posmod(i + (1 if event.keycode == KEY_RIGHT else -1), ids.size())])
 			get_viewport().set_input_as_handled()
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()

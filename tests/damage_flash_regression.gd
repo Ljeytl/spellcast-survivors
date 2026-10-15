@@ -124,7 +124,7 @@ func run():
 	enemy_sprite.modulate = Color(0.8, 1.4, 0.8, 0.65)
 	var elite_color = enemy_sprite.modulate
 	player_flash.advance(0.06)
-	enemy_flash.advance(0.06)
+	enemy_flash.advance(0.10)   # enemy flash lasts 0.14 s (playtest)
 	check(not player_flash.visible and not enemy_flash.visible, "Overlays clear after their last hit")
 	check(player_sprite.modulate == invincible_color and enemy_sprite.modulate == elite_color, "Expiry preserves colors changed during flash")
 	player.toggle_invincibility()

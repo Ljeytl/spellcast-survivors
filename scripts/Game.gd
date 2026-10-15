@@ -822,8 +822,7 @@ func open_prepared_spell(level: int) -> bool:
 	update_spell_slot_lock_status()
 	var slot = spell_manager.find_spell_slot(id)
 	var info = spell_manager.get_spell_info(slot)
-	if particle_manager and player:
-		particle_manager.create_spell_unlock_effect(player.global_position)
+	celebrate_spell(slot, "New spell: " + str(info.name), "Press %d, then type %s" % [slot, str(info.display_name).to_upper()])
 	show_gameplay_feedback("%s ready · Press %d, then type %s" % [info.name, slot, info.display_name])
 	return true
 
@@ -892,10 +891,16 @@ func _on_upgrade_selected(upgrade_data: Dictionary):
 			var learned = spell_manager.get_spell_info(slot)
 			var cast_hint = "Space" if slot > spell_manager.MAX_EQUIPPED_SPELLS else str(slot)  # training slots past 6 cast with Space
 			acknowledgement = learned.name + " learned · Press %s, then type %s" % [cast_hint, learned.display_name]
+			celebrate_spell(slot, "New spell: " + str(learned.name), "Press %s, then type %s" % [cast_hint, str(learned.display_name).to_upper()])
 	elif effect.get("type") == "spell_upgrade" and effect.has("stat"):
 		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (now")[0]
 	elif effect.get("type") == "spell_upgrade":
 		acknowledgement += " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", ""))
+	if effect.get("type") == "spell_upgrade":
+		var up_slot = spell_manager.find_spell_slot(effect.get("spell", ""))
+		var up_info = spell_manager.get_spell_info(up_slot) if up_slot > 0 else {}
+		if not up_info.is_empty():
+			celebrate_spell(up_slot, str(up_info.name) + " · Rank %d" % spell_manager.get_spell_rank(effect.get("spell", "")), str(upgrade_data.get("description", "")).split(" (now")[0].split(" (Currently:")[0])
 	else:
 		acknowledgement += " · " + str(upgrade_data.get("description", "")).split(" (Currently:")[0]
 	show_gameplay_feedback(acknowledgement if interface_debug or effect.get("type") == "learn_spell" else str(upgrade_data.get("name", "Upgrade applied")))
@@ -1126,6 +1131,50 @@ func _on_spell_slot_input(event: InputEvent, slot: int):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		spell_slots[slot - 1].accept_event()
 		spell_manager.activate_spell_slot(slot)
+
+## New spell or new rank: a big centre banner that pops, a chime and the slot flashing gold,
+## so it is impossible to miss (playtest: "not at all obvious u unlocked a spell and leveled up").
+func celebrate_spell(slot: int, title: String, line: String):
+	if not is_instance_valid(hud):
+		return
+	var old = hud.get_node_or_null("SpellCelebration")
+	if old:
+		old.queue_free()
+	var banner = Label.new()
+	banner.name = "SpellCelebration"
+	banner.text = title.to_upper() + "\n" + line
+	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	banner.custom_minimum_size = Vector2(720, 140)
+	banner.position = (hud.size - banner.custom_minimum_size) * 0.5 - Vector2(0, 150)
+	banner.add_theme_font_size_override("font_size", 44)
+	banner.add_theme_color_override("font_color", Color("ffe49b"))
+	banner.add_theme_color_override("font_outline_color", Color("1a1208"))
+	banner.add_theme_constant_override("outline_size", 10)
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner.pivot_offset = banner.custom_minimum_size * 0.5
+	banner.scale = Vector2(0.4, 0.4)
+	banner.process_mode = Node.PROCESS_MODE_ALWAYS
+	hud.add_child(banner)
+	var tw = banner.create_tween()
+	tw.tween_property(banner, "scale", Vector2(1.15, 1.15), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(banner, "scale", Vector2.ONE, 0.12)
+	tw.tween_interval(1.6)
+	tw.tween_property(banner, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(banner.queue_free)
+	if AudioManager:
+		AudioManager.play_sound(AudioManager.SoundType.LEVEL_UP)
+		AudioManager.play_sound(AudioManager.SoundType.MEGA_RELEASE, 0.5)
+	var index = slot - 1
+	if index >= 0 and index < spell_slots.size() and is_instance_valid(spell_slots[index]):
+		var cell: Control = spell_slots[index]
+		var flash = cell.create_tween()
+		for i in 3:
+			flash.tween_property(cell, "modulate", Color(2.2, 1.9, 1.0), 0.12)
+			flash.tween_property(cell, "modulate", Color.WHITE, 0.18)
+	if particle_manager and player and particle_manager.has_method("create_spell_unlock_effect"):
+		particle_manager.create_spell_unlock_effect(player.global_position)
 
 func show_gameplay_feedback(text: String):
 	var interface = get_node_or_null("GameplayReadability")

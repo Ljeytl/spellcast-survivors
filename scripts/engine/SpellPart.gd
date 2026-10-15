@@ -234,7 +234,9 @@ func _step_projectile(delta: float) -> void:
 				advance = released
 			elif until == "enemy_in_range":
 				var near = cast.nearest_enemy(center, float(ph.get("range", 400.0)), exclude)
-				advance = near != null or phase_time >= float(ph.get("hold", 2.5))
+				# ORBITING circles the caster at least `min_orbit` seconds first, so it reads as orbiting
+				# even in a horde where an enemy is always in range (playtest).
+				advance = (near != null and phase_time >= float(ph.get("min_orbit", 0.0))) or phase_time >= float(ph.get("hold", 2.5))
 			if advance:
 				_next_phase(true)
 		"chase":

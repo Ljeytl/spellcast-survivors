@@ -58,10 +58,10 @@ const SMEAR := {
 	"water": [Color("#ffffff"), Color("#a6e6ff"), Color("#3f9fe4")], "life": [Color("#f0ffc0"), Color("#c8f07a"), Color("#7fcf4a")],
 	"plague": [Color("#e4fbb0"), Color("#a6e45e"), Color("#56b23e")], "earth": [Color("#e8dcc0"), Color("#c9b48c"), Color("#9a7d5a")],
 }
-const EARTH_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.2}, "bolt": {"t": "orb", "r": 3.2}, "spear": {"t": "diamond", "a": 8.0, "b": 2.0}, "ball": {"t": "orb", "r": 4.6}}
+const EARTH_BODY := {"shard": {"t": "diamond", "a": 6.0, "b": 1.4}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.2}, "bolt": {"t": "orb", "r": 3.2}, "spear": {"t": "diamond", "a": 8.0, "b": 2.0}, "ball": {"t": "orb", "r": 4.6}}
 # Rigid looks keep a drawn body (that IS the technique: crystal sprites).
-const LIFE_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
-const ICE_BODY := {"orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
+const LIFE_BODY := {"shard": {"t": "diamond", "a": 6.0, "b": 1.4}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 5.0, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.4}, "ball": {"t": "orb", "r": 3.5}}
+const ICE_BODY := {"shard": {"t": "diamond", "a": 7.0, "b": 1.3}, "dart": {"t": "diamond", "a": 3.0, "b": 1.2}, "orbiter": {"t": "diamond", "a": 3.5, "b": 2.0}, "bolt": {"t": "diamond", "a": 4.5, "b": 2.0}, "spear": {"t": "diamond", "a": 8.0, "b": 1.6}, "ball": {"t": "diamond", "a": 5.0, "b": 3.2}}
 const INK := Color("#120e14")
 # Magma core (fireball): dark crust, glowing cracks, hot seams. Hue-shifted
 # toward red in the dark end, white kept out (white is for impacts).
@@ -69,6 +69,10 @@ const MAGMA := [Color("#2a0f0c"), Color("#4a1a12"), Color("#c2361a"), Color("#ff
 
 # Sandbox projectile presets (SPELLS.bolt / spear / fireball / fiery), sandbox units.
 const FAMILY := {
+	# Magic Missile: a thin force dart, quick sparkle trail (not the Bolt's fat diamond).
+	"dart": {"body": {"t": "diamond", "a": 3.2, "b": 1.0}, "trail": {"rate": 1.2, "per_dist": 0.6, "heat": 0.9, "spread": 0.3, "grip": 0.1, "inh": 0.3, "ember": 0.05}, "impact": 0.35},
+	# Ice Blast: a long thin ice shard.
+	"shard": {"body": {"t": "diamond", "a": 7.0, "b": 1.3}, "trail": {"rate": 1.5, "per_dist": 0.5, "heat": 0.8, "spread": 0.4, "grip": 0.1, "inh": 0.3, "ember": 0.05}, "impact": 0.4},
 	"bolt": {"body": {"t": "diamond", "a": 4.0, "b": 2.0}, "trail": {"rate": 2.0, "per_dist": 0.5, "heat": 1.0, "spread": 0.8, "grip": 0.15, "inh": 0.25, "ember": 0.15}, "impact": 0.55},
 	"spear": {"body": {"t": "diamond", "a": 8.0, "b": 1.4}, "trail": {"rate": 3.0, "per_dist": 0.8, "heat": 1.1, "spread": 0.8, "grip": 0.2, "inh": 0.35, "ember": 0.3}, "impact": 0.35},
 	"orbiter": {"body": {"t": "diamond", "a": 3.5, "b": 2.0}, "trail": {"rate": 1.5, "per_dist": 0.3, "heat": 0.9, "spread": 0.6, "grip": 0.15, "inh": 0.2, "ember": 0.15}, "impact": 0.4},
@@ -81,6 +85,8 @@ const FAMILY := {
 # radius (su), "n" = flames per 60 fps frame, "len" stretches the knot along
 # the motion (spears), "core" = white core half-size in cells.
 const FIRE_BODY := {
+	"dart": {"r": 1.0, "n": 1.0, "len": 1.4, "heat": 0.4, "core": 1},
+	"shard": {"r": 1.0, "n": 1.0, "len": 1.8, "heat": 0.4, "core": 1},
 	"bolt": {"r": 1.3, "n": 1.5, "len": 1.6, "heat": 0.45, "core": 1},
 	"orbiter": {"r": 1.2, "n": 1.5, "len": 1.4, "heat": 0.45, "core": 1},
 	"spear": {"r": 0.7, "n": 2.0, "len": 5.0, "heat": 0.45, "core": 1},
@@ -305,6 +311,9 @@ func part_spawned(part) -> void:
 				_burst(look.native, pos, r_su * 0.45, 1.0)      # the native keeps a small say in the impact
 				_react(look.native, look.accent, pos, clampf(r_su / 11.0, 0.6, 2.5))
 			_force_fx(part.cast.plan, pos, look.accent if look.accent != "" else look.native)
+			var heavy := float(part.def.get("vfx", {}).get("heavy", 0.0))
+			if heavy > 0.0:
+				_heavy_landing(pos, r_su, look.native, heavy)
 		"slash":
 			_slash(part, look, pos)
 		"trap":
@@ -369,6 +378,13 @@ func part_spawned(part) -> void:
 					line_o.heat_k = 0.5
 					line_o.style = 2
 				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, line_o)
+			elif str(part.def.get("vfx", {}).get("style", "")) == "rubble":
+				# Meteor crater: cracked, charred ground with low fire, rocks kicked up while it burns.
+				var cr: float = part.geo("radius", 60.0) / WPS
+				st.field = vfx.field(pos.x, pos.y, cr, life + 0.5, {"rate": 0.35, "heat_k": 0.6, "style": 2})
+				st.rubble = true
+				vfx.crack_decal(pos.x, pos.y, 7, cr * 0.9, life + 1.0)
+				vfx.scorch(pos.x, pos.y, cr * 0.8, life + 1.0)
 			else:
 				st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5)
 	_parts[part.get_instance_id()] = st
@@ -501,6 +517,8 @@ func step(dt: float) -> void:
 					_accent_field(st.look.accent, st.field, dt)
 					_steam_if(st.look, _in_disk(st.field.x, st.field.y, st.field.r), dt)
 				_field_force(part.cast.plan, st.field, st.look.accent if st.look.accent != "" else st.look.native, dt)
+				if st.get("rubble", false):
+					_rubble(st.field, dt)
 			"wave":
 				_water_wave(part, st, dt)
 			"meteor":
@@ -565,6 +583,7 @@ func step(dt: float) -> void:
 	_entangled(dt)
 	_vulnerable(dt)
 	_poisoned(dt)
+	_stunned(dt)
 
 func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	if st.family == "ghost":
@@ -649,6 +668,42 @@ static func _ghost(cols: Array, a: float = STATUS_ALPHA) -> Array:
 	for c in cols:
 		out.append(Color(c, a))
 	return out
+
+const LANDING_SOUND := {"fire": "SPELL_IMPACT_FIRE", "lightning": "SPELL_IMPACT_LIGHTNING", "earth": "SPELL_IMPACT_EARTH",
+	"water": "SPELL_IMPACT_ICE", "ice": "SPELL_IMPACT_ICE"}
+
+## A spell that lands (Meteor Shower, Lightning, Rune Trap's blast, Meteor Spear's meteors,
+## Lightning Bolt's strike) lands with weight: white flash, star, shockwave rings, rocks thrown up,
+## a scorch, a VFX hit-pause, camera shake and an impact sound. `w` scales it (playtest: "no bam").
+func _heavy_landing(p: Vector2, r: float, el: String, w: float) -> void:
+	var cols: Array = SPARK.get(el, SPARK.fire)
+	vfx.flash(p.x, p.y, maxf(4.0, r * 0.7) * w, 0.09, Color.WHITE)
+	vfx.star(p.x, p.y, maxf(4.0, r * 0.45) * w, 0.12, 8, cols[0])
+	vfx.ring(p.x, p.y, r * 1.15, 0.32, cols)
+	vfx.ring(p.x, p.y, r * 0.6, 0.2, [Color.WHITE, cols[1], cols[2]])
+	for i in roundi(8 * w):
+		var a := randf() * TAU
+		var sp := 10.0 + randf() * 22.0
+		vfx.chunk(p.x + cos(a) * r * 0.3, p.y + sin(a) * r * 0.2, cos(a) * sp, sin(a) * sp * 0.6, 30.0 + randf() * 40.0 * w, EAR.debris, 0.7 + randf() * 0.4, 1 + int(randf() < 0.3 * w))
+	vfx.scorch(p.x, p.y, r * 0.6, 3.0)
+	vfx.hitstop(roundi(2.0 + 2.0 * w))
+	vfx.shake(0.8 if w >= 1.0 else 0.4)
+	var snd: String = LANDING_SOUND.get(el, "SPELL_IMPACT_FIRE")
+	if vfx.get_node_or_null("/root/AudioManager") != null:
+		AudioManager.play_sound(AudioManager.SoundType.get(snd, AudioManager.SoundType.SPELL_IMPACT_FIRE))
+
+## Meteor crater: rocks and hot grit popping up out of the ground, smoke drifting off it.
+func _rubble(f: Dictionary, dt: float) -> void:
+	var r: float = float(f.r)
+	if randf() < 0.35 * dt * 60.0:
+		var q := _in_disk(float(f.x), float(f.y), r)
+		vfx.chunk(q.x, q.y, (randf() - 0.5) * 10.0, (randf() - 0.5) * 6.0, 18.0 + randf() * 26.0, EAR.debris, 0.6 + randf() * 0.4, 1 + int(randf() < 0.25))
+	if randf() < 0.2 * dt * 60.0:
+		var q2 := _in_disk(float(f.x), float(f.y), r)
+		vfx.ember(q2.x, q2.y, (randf() - 0.5) * 6.0, -(10.0 + randf() * 10.0), 0.6)
+	if randf() < 0.06 * dt * 60.0:
+		var q3 := _in_disk(float(f.x), float(f.y), r * 0.8)
+		vfx.puff(q3.x, q3.y)
 
 ## An enemy's body in su: centre and half-height, so status effects sit ON it, not above it.
 func _body(e) -> Array:
@@ -1323,6 +1378,13 @@ var _wrapped: Array = []
 func draw_statuses(buf: PackedByteArray) -> void:
 	var el = vfx.elements
 	var t: float = vfx._t
+	# Stunned: three little stars circling the top of the body.
+	for q in _dazed:
+		var c: Vector2 = q[0]
+		var hh: float = q[1]
+		for i in 3:
+			var a := t * 7.0 + float(i) / 3.0 * TAU
+			el.spx(buf, roundi(c.x + cos(a) * hh * 0.8), roundi(c.y - hh * 0.55 + sin(a) * hh * 0.25), Color(Color("#fff3a0"), 0.8))
 	if (vfx._steps >> 3) & 1:
 		for p in _marked:
 			el.draw_glyph(buf, p.x, p.y - 1.0, 0, Color(ARC.spark[2], STATUS_ALPHA))   # on the body, not floating above it
@@ -1562,6 +1624,24 @@ func _vulnerable(dt: float) -> void:
 	_marked = list
 
 var _marked: Array = []
+var _dazed: Array = []
+
+## Stunned (Meteor Shower, shock): collected for draw_statuses.
+func _stunned(_dt: float) -> void:
+	var tree = vfx.get_tree()
+	var list := []
+	if tree == null:
+		_dazed = list
+		return
+	for e in tree.get_nodes_in_group("enemies"):
+		if list.size() >= MAX_BURNING:
+			break
+		if not is_instance_valid(e) or e.get("status") == null:
+			continue
+		var s = e.status
+		if s.has_method("has") and s.has("stunned"):
+			list.append(_body(e))
+	_dazed = list
 
 # ------------------------------------------------------------------ plague (sandbox FX.plague, polish pass 2: bubbles first)
 
@@ -2194,12 +2274,11 @@ func _eruption_step(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 # their own; they register here and skip their placeholder drawing while the layer is up.
 
 const SEED_STEM := [Color("#7ab24a"), Color("#4e823a")]
+# Earth Shield charge: a small pebble circling the wizard (playtest: one big rock on his head looked goofy).
 const STONE := [
-	"..ab.",
-	".abbc",
-	"abbcd",
-	".bccd",
-	"..dd.",
+	".ab",
+	"abc",
+	"bcd",
 ]
 
 func prop_added(node, kind: String) -> void:
@@ -2255,8 +2334,10 @@ func _step_props(dt: float) -> void:
 func _stone_at(node, index: int, centre: Vector2) -> Vector2:
 	var count := maxi(1, mini(node.charges.size(), 12))
 	var age: float = float(node.age)
-	var angle := -PI * 0.5 + index * TAU / count + sin(age * 0.8) * 0.12
-	return centre + Vector2.from_angle(angle) * (35.0 + 3.0 * sin(age * 2.0 + index)) / WPS
+	# The pebbles orbit (never parked over the head) on a flattened ring around the body.
+	var angle := index * TAU / count + age * 1.6
+	var r := 42.0 + 2.0 * sin(age * 2.0 + index)
+	return centre + Vector2(cos(angle) * r, sin(angle) * r * 0.55 + 4.0) / WPS
 
 func _draw_props(buf: PackedByteArray) -> void:
 	if not enabled:
@@ -2301,5 +2382,5 @@ func _draw_props(buf: PackedByteArray) -> void:
 						for k in row.length():
 							if row[k] == ".":
 								continue
-							el.spx(buf, roundi(q.x) + k - 2, roundi(q.y + bob) + j - 2, cols[row[k]])
+							el.spx(buf, roundi(q.x) + k - 1, roundi(q.y + bob) + j - 1, cols[row[k]])
 

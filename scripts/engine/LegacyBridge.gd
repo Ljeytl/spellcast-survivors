@@ -72,7 +72,7 @@ static func _mana_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dict
 		"motion": [{"type": "guided", "speed": speed, "lerp": 6.0, "range": speed * 3.0}],  # old homing_strength 6
 		"payload": _damage(id, damage),
 		"limits": {"pierce": 0, "contact_all": true},
-		"vfx": {"family": "bolt"},
+		"vfx": {"family": "dart"},
 	}
 	var def = _shell(info, "missile", {"missile": missile})
 	def.arrangement = {"type": "single", "count": maxi(1, int(info.get("projectile_count", 1)))}
@@ -153,6 +153,7 @@ static func _spear(info: Dictionary, damage: float, ctx: Dictionary) -> Dictiona
 			"geometry": {"type": "disk", "radius": small, "pad": 0.0},
 			"propagation": {"type": "instant", "linger": 0.1},
 			"payload": _damage(id, damage, "meteor"),
+			"vfx": {"heavy": 0.6},   # a landing with weight: flash, ring, rocks, shake (playtest)
 		}
 	var def = _shell(info, "spear", parts)
 	if bool(info.get("explosive", false)):
@@ -196,7 +197,7 @@ static func _ice_blast(info: Dictionary, damage: float, ctx: Dictionary) -> Dict
 		"motion": [{"type": "straight", "speed": speed, "range": float(info.get("radius", 400.0))}],
 		"payload": payload,
 		"limits": {"pierce": int(info.get("shard_pierce", 0))},
-		"vfx": {"family": "bolt", "look": "ice"},
+		"vfx": {"family": "shard", "look": "ice"},
 	}
 	var def = _shell(info, "shard", {"shard": shard})
 	if cone >= 359.0:
@@ -220,6 +221,7 @@ static func _lightning(info: Dictionary, damage: float, _ctx: Dictionary) -> Dic
 		"geometry": {"type": "disk", "radius": float(info.get("radius", 160.0)), "pad": 0.0},
 		"propagation": {"type": "instant", "linger": float(info.get("active_duration", 0.2 * float(info.get("spell_duration_multiplier", 1.0))))},
 		"payload": _damage(id, damage),
+		"vfx": {"heavy": 1.0},
 	}
 	var def = _shell(info, "strike", {"strike": strike})
 	def.needs_target = true
@@ -260,6 +262,7 @@ static func _trap(info: Dictionary, damage: float, _ctx: Dictionary) -> Dictiona
 		# old rune: the burst stays live 0.25 s (× Duration) and catches late entrants once
 		"propagation": {"type": "instant", "linger": float(info.get("active_duration", 0.25 * float(info.get("spell_duration_multiplier", 1.0))))},
 		"payload": _damage(id, damage, "burst"),
+		"vfx": {"heavy": 0.8},
 	}
 	var def = _shell(info, "rune", {"rune": rune, "activate": activate, "burst": burst})
 	def.max_depth = 3
@@ -331,6 +334,7 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 		# old meteor strike: a 0.2 s (× Duration) blast that still catches late entrants
 		"propagation": {"type": "instant", "linger": 0.2 * float(info.get("spell_duration_multiplier", 1.0))},
 		"payload": _damage(id, damage, "impact"),
+		"vfx": {"heavy": 1.2},
 	}
 	# Doc 21 §5.2: a short burning crater of hot rubble (25% of the impact a tick, no burn); Duration extends it.
 	var crater := {
@@ -338,7 +342,7 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 		"geometry": {"type": "disk", "radius": radius * 0.6, "pad": 0.0},
 		"timing": {"interval": 0.5, "duration": 1.0 * float(info.get("spell_duration_multiplier", 1.0)), "delay_first": true},
 		"payload": _damage(id, damage, "crater"),
-		"vfx": {"style": "smoulder"},
+		"vfx": {"style": "rubble"},
 	}
 	var def = _shell(info, "mark", {"mark": mark, "impact": impact, "crater": crater})
 	def.arrangement = {"type": "points", "count": int(info.get("meteor_count", 3)), "stagger_life": float(info.get("delay_interval", 0.3))}
@@ -372,6 +376,7 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 		"geometry": {"type": "disk", "radius": float(info.get("splash_radius", 80.0)) * float(info.get("spell_size_multiplier", 1.0)), "pad": 0.0},
 		"propagation": {"type": "instant", "linger": 0.2},   # old splash: 0.2 s, late entrants still hit once
 		"payload": _damage(id, damage, "splash"),   # 1.5x the base hit in storm (data/spell_damage.json)
+		"vfx": {"heavy": 0.8},
 	}
 	var def = _shell(info, "bolt", {"bolt": bolt, "bounce": bounce, "splash": splash})
 	def.release = {"type": "together", "retarget": true}

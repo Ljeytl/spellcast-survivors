@@ -195,6 +195,9 @@
           "hold": {
             "type": "number"
           },
+          "min_orbit": {
+            "type": "number"
+          },
           "duration": {
             "type": "number"
           },

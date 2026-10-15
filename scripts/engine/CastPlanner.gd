@@ -104,7 +104,7 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 			bound["cascading"] = true
 
 	if flags.has("orbiting") and root_delivery == "projectile":
-		var hold = {"type": "orbit", "speed": 3.0, "radius": 70.0, "until": "enemy_in_range", "range": float(flags.orbiting.get("range", 420.0)), "hold": float(flags.orbiting.get("hold", 2.5))}
+		var hold = {"type": "orbit", "speed": 3.0, "radius": 70.0, "until": "enemy_in_range", "range": float(flags.orbiting.get("range", 420.0)), "hold": float(flags.orbiting.get("hold", 2.5)), "min_orbit": float(flags.orbiting.get("min_orbit", 0.0))}
 		root.motion = [hold] + root.get("motion", [])
 		bound["orbiting"] = true
 
