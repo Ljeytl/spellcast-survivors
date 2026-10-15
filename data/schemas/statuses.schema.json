@@ -177,10 +177,6 @@
       "max_stacks": {
         "type": "integer",
         "minimum": 1
-      },
-      "stacks_per_strength": {
-        "type": "number",
-        "$comment": "vulnerable: stacks one application adds per unit of word strength (RUNIC 0.25 -> 1 stack)"
       }
     },
     "required": [

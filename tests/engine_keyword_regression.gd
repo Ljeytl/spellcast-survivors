@@ -197,7 +197,7 @@ func planner_keywords():
 	check(e.size() == 2 and e[1].damage_type == "water" and e[1].chart_element == "water" and near(e[1].amount, 3.3), "ICY adds water damage keyed on its own element")
 	check(status_of(pl, "chilled") == null, "ICY applies no chill (damage word)")
 	pl = mk("chilling spear")
-	check(status_of(pl, "chilled") != null and near(status_of(pl, "chilled").hit, 22.0 * 0.40), "CHILLING applies chill at its effect strength")
+	check(status_of(pl, "chilled") != null and near(status_of(pl, "chilled").hit, 22.0), "CHILLING applies the same chill the spell would, sized from the full hit")
 	pl = mk("homing spear")
 	var m = pl.parts.spear.motion[0]
 	check(m.type == "guided" and near(m.speed, 900 * 0.85) and near(m.turn, 7.0), "HOMING turns straight motion into guided")

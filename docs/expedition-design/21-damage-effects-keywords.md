@@ -57,13 +57,15 @@ A word means the same thing on every spell, so its card can say it in one line. 
 
 ### 4.2 Element words: a spectrum
 
-A word that names what the spell **is made of** adds damage; a word that names what it **does to the target** adds the effect; some do both. Each word carries two numbers in data: damage share and effect strength. Word length scales both.
+A word that names what the spell **is made of** adds damage; a word that names what it **does to the target** adds the effect; some do both. Word length scales the damage a word adds.
 
-| Tier | Per letter (proposed) |
-|---|---|
-| Damage | 5% damage, no effect |
-| Both | about 3% damage + effect at half strength |
-| Effect | about 1% damage + effect at full strength |
+| Tier | Damage per letter | Effect |
+|---|---|---|
+| Damage | 5% | none |
+| Both | 3% | the element's effect |
+| Effect | 1% | the element's effect |
+
+**An effect from a word is never weaker** (decided 14 Oct): it is the same effect the spell would apply, sized from the full hit, with one value per effect (one burn %, one bleed %). Word length scales only the added damage.
 
 | Element | Damage | Both | Effect |
 |---|---|---|---|

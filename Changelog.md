@@ -15,7 +15,7 @@ The biggest release so far. Every spell now runs on one data-driven engine and i
 
 ## Damage, effects and keywords (doc 21)
 
-- **Element words now sit on a spectrum: damage, both, or effect.** A word that names what the spell is made of adds that element's damage (FIERY, ICY, IRON: no status); a word that names what it does adds the effect (BURNING, CHILLING, SERRATED, VENOMOUS, RUNIC); some do both at half strength (FLAMING, FROSTY, TOXIC, MYSTIC, ELDRITCH). New words: BURNING, CHILLING. Each word's Necronomicon line says which.
+- **Element words now sit on a spectrum: damage, both, or effect.** A word that names what the spell is made of adds that element's damage (FIERY, ICY, IRON: no status); a word that names what it does adds the effect (BURNING, CHILLING, SERRATED, VENOMOUS, RUNIC); some do both at half strength (FLAMING, FROSTY, TOXIC, MYSTIC, ELDRITCH). New words: BURNING, CHILLING. Each word's Necronomicon line says which. An effect from a word is the same effect the spell would apply, at full strength; word length scales only its added damage.
 - **Overload is a keyword, not arcane.** Arcane damage no longer pops damage over time. New Payoff words RUPTURING (×2), DETONATING (×2.5) and OVERLOADING (×3) land all the bleed, poison and burn already on the enemy at once, multiplied, before the hit adds its own.
 - **Vulnerable stacks:** +5% damage taken per stack, up to five (+25%; was a flat +15%).
 - **Stronger control:** chill slows 20% per stack (80% at four, the fifth freezes; chill may pass the 70% slow cap), weakened enemies deal 50% less damage (was 20%), entangle slows 50% (was 25%).

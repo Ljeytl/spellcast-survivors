@@ -9,7 +9,15 @@ const TYPE_CHART = preload("res://scripts/engine/TypeChart.gd")
 static var RECIPES: Dictionary = preload("res://scripts/SynergyCatalog.gd").RECIPES  # data/recipes.json
 const PAPER = Color("eee8d8")
 const MUTED = Color("8f9a86")
-const EFFECT_COLORS = {"bleed": Color("d0564e"), "hemorrhage": Color("a83a3a"), "burn": Color("ff9a5a"), "poison": Color("a8c46a"), "frostbite": Color("8ce6ee"), "overload": Color("b58cff"), "thaw": Color("8ce6ee"), "toxic flare": Color("a8c46a"), "shock arc": Color("f4ed96")}
+const EFFECT_COLORS = {"bleed": Color("d0564e"), "hemorrhage": Color("a83a3a"), "burn": Color("ff9a5a"), "poison": Color("a8c46a"), "frostbite": Color("8ce6ee"), "overload": Color("b58cff"), "thaw": Color("8ce6ee"), "toxic flare": Color("a8c46a"), "shock arc": Color("f4ed96"),
+	"chain": Color("f4ed96"), "conduct": Color("cfe6ff"), "infection": Color("7fa64a"), "ghost": Color("d6f0c8")}
+## Player-facing names for the effect rows (doc 21): the source tags are internal words.
+const EFFECT_NAMES = {"bleed": "Bleed", "hemorrhage": "Hemorrhage", "burn": "Burn", "poison": "Poison", "frostbite": "Frostbite",
+	"overload": "Overload", "thaw": "Thaw", "toxic flare": "Toxic Flare", "shock arc": "Shock arc", "chain": "Shock chain",
+	"conduct": "Shock conduct", "infection": "Infection", "ghost": "Soul Bloom ghosts"}
+
+static func effect_name(via: String) -> String:
+	return str(EFFECT_NAMES.get(via, via.capitalize()))
 
 var detail: Label
 var rows: Array[Control] = []
@@ -46,13 +54,13 @@ func populate(style: Dictionary) -> bool:
 				by_effect[via] = {}
 			by_effect[via][id] = float(effects[id][via])
 	if not by_effect.is_empty():
-		add_heading("DAMAGE OVER TIME & REACTIONS")
+		add_heading("DAMAGE OVER TIME, REACTIONS & GHOSTS")
 		var names = by_effect.keys()
 		names.sort_custom(func(a, b): return sum(by_effect[a]) > sum(by_effect[b]))
 		for via in names:
 			var amount = sum(by_effect[via])
 			if amount >= 1.0:
-				add_row(str(via).capitalize(), amount, top, EFFECT_COLORS.get(via, MUTED), effect_detail(str(via), by_effect[via]))
+				add_row(effect_name(str(via)), amount, top, EFFECT_COLORS.get(via, MUTED), effect_detail(str(via), by_effect[via]))
 	detail = Label.new()
 	detail.name = "DamageDetail"
 	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -145,7 +153,7 @@ func spell_detail(id: String, amount: float, grand: float, parts: Dictionary, ki
 func effect_detail(via: String, by_spell: Dictionary) -> String:
 	var ids = by_spell.keys()
 	ids.sort_custom(func(a, b): return float(by_spell[a]) > float(by_spell[b]))
-	var bits: Array[String] = ["%s: %s total" % [via.capitalize(), group_digits(int(round(sum(by_spell))))]]
+	var bits: Array[String] = ["%s: %s total" % [effect_name(via), group_digits(int(round(sum(by_spell))))]]
 	for id in ids:
 		bits.append("%s %s" % [spell_name(id), group_digits(int(round(float(by_spell[id]))))])
 	return " · ".join(bits)

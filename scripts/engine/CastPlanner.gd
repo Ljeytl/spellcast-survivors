@@ -212,7 +212,9 @@ static func plan(def: Dictionary, bundle: Dictionary, opts: Dictionary = {}) -> 
 			for e in elements:
 				var strength = float(e.get("effect", e.share))   # SANGUINE and wild elements: effect follows the share
 				if str(e.status) != "" and strength > 0.0:
-					payload.append({"type": "status", "status": str(e.status), "hit": main_hit * strength, "word_strength": strength, "no_freeze": periodic, "from_word": true})
+					# Doc 21 §4.2: a word that adds an effect adds the same effect the spell would, sized
+					# from the full hit (one burn %, one bleed %); the word's length only scales its damage.
+					payload.append({"type": "status", "status": str(e.status), "hit": main_hit, "no_freeze": periodic, "from_word": true})
 			if flags.has("pulling"):
 				payload.append({"type": "impulse", "force": float(flags.pulling.force), "direction": "toward"})
 				bound["pulling"] = true

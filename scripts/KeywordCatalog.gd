@@ -76,7 +76,7 @@ static func word_line(word: String) -> String:
 				effect = "heals you for %d per cast, in the shape of the hit" % int(round(float(tier.effect_per_letter) * n * float(c.get("heal_per_strength", 40.0))))
 			match str(w.get("tier", "damage")):
 				"damage": text = "+%s %s damage" % [pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e)]
-				"both": text = "+%s %s damage, %s (half strength)" % [pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e), effect]
+				"both": text = "+%s %s damage, %s" % [pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e), effect]
 				_: text = "%s, +%s %s damage" % [effect, pct(float(tier.share_per_letter) * n), TYPE_CHART.display_name(e)]
 		_:
 			match str(w.get("flag", word)):

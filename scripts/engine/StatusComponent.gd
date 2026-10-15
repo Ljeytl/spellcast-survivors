@@ -125,8 +125,8 @@ func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void
 				apply("rooted", {"duration": float(d.root_duration)}, source)
 		"vulnerable":
 			# Stacks (doc 21 §2.1): each adds damage taken, up to a cap; a new application refreshes them.
-			# Element words pass their strength (RUNIC 0.25 = 1 stack); a plain application adds one.
-			var add = float(params.get("stacks", float(params.get("word_strength", 0.0)) * float(d.stacks_per_strength) if params.has("word_strength") else 1.0))
+			# One stack per application unless a spell says otherwise (Focus Ray: half a stack per tick).
+			var add = float(params.get("stacks", 1.0))
 			var now = float(timed.get("vulnerable", {}).get("strength", 0.0))
 			timed["vulnerable"] = {"remaining": duration, "strength": minf(float(d.max_stacks), now + add), "source": source, "cast": cast}
 		"shocked":
