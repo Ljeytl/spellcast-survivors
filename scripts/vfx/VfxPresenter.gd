@@ -673,7 +673,7 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		_plague_trail(pos, vel, dt)
 	if native == "earth" or accent == "earth":
 		_earth_trail(pos, vel, dt)
-	if native == "arcane":
+	if native == "arcane" and not st.has("painted"):
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
 
