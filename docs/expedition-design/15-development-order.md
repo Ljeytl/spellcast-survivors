@@ -99,6 +99,7 @@ The preserved Disruptor boss idea scrambles incantations while retaining their l
 | Death retention and persistent rewards | Select policy before expedition save implementation; test idempotent rewards and recovery. |
 | Progression terminology and upgrade roles | Reconcile existing six-slot activation, ranks and XP with expedition mana/knowledge; no silent replacement. |
 | Automatic Magic Missile | Retain current behavior; any manual-only experiment is separate. |
+| Bare forms (`spear`, `nova`, `field`, `orbit`, `trap`, `slash`) | Decided 15 October 2026: keep them in the game as always-castable weak forms through the generic caster; their role and whether they join the ranked spell path are revisited later. Their data lives in the spell files (`generic` section). |
 | Summons, barriers and advanced magic | Verify shared actor/targeting/event support first; no assumption that all recorded engine gaps are still missing. |
 | Presentation direction | Wizardry and readable inscriptions; existing keycaps are implementation, not a prohibition on refinement. Keep useful art while evaluating alternatives. |
 | Campaign size and art medium | Four realms and later 2D/3D/hybrid exploration remain proposals. |
