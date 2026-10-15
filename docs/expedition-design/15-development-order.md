@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.5**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.6**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 
@@ -49,11 +49,13 @@ The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/
 
 `0.3.1-dev.5` tests a different Steam hypothesis: connected rolling vapor fed by pressure vents, with partial occlusion and gradual breakup. It replaces individual puff stamps and the ground disk with a shader surface. HOMING movement, live reduced-effects changes, pause, reset and expiry are explicit lifecycle checks. Audio remains unfinished; visual success must be judged in motion.
 
+`0.3.1-dev.6` restores particle-driven shared density for Steam after comparing Steam → Field in the reference sandbox, adds Soul Bloom spirit identity and healing/hunting cues, and synchronizes accelerating meteor descent to gameplay time. These are targeted visual changes; sound and full-roster identity qualification remain open.
+
 ### Next identity investigations
 
-- Meteor Shower and Meteor Spear: inspect descent against authoritative impact timing during repeated hitstop, then judge warning, weight, sound and camera response together. Source review found separate gameplay and VFX clocks; reproduce in native combat before claiming a visible defect fixed.
+- Meteor Shower and Meteor Spear: inspect descent against authoritative impact timing during repeated hitstop, then judge warning, weight, sound and camera response together. The dev.6 timing fix has regression coverage and native captures; the broader audio/camera sequence still needs judgment.
 - Prism Ray: inspect overlapping contact fans and afterimages in moving crowds. Reconcile doc 21's older angle/length with the current playtest-tuned bridge before changing mechanics.
-- Soul Bloom: inspect whether its travelling orb communicates a ghost and distinguishes healing from hunting, then improve departure, travel and arrival as one sequence.
+- Soul Bloom: dev.6 replaces the orb with a spirit and mode cues. Continue reviewing departure and arrival effects and sound as one sequence.
 
 These are source-grounded priorities, not completed visual or auditory qualification.
 
