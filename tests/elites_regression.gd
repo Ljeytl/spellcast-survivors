@@ -61,6 +61,45 @@ func run():
 	leech.on_dealt_contact(10.0)
 	check(is_equal_approx(leech.current_health, leech.max_health * (0.5 + float(data.words.leeching.heal_per_hit))), "LEECHING heals when its hit lands")
 
+	# --- element words do something ---------------------------------------------------------------
+	var player = game.player
+	player.is_invincible = false
+	player.health = 1000.0
+	player.max_health = 1000.0
+	var iron = monsters.spawn_monster(def, false, true, NAN, -1.0, ["iron"])
+	check(not iron.resistances.is_empty(), "IRON is armoured (resistance profile)")
+	icy.on_dealt_contact(5.0)
+	check(player.has_status("chilled") and player.status_speed_multiplier() < 1.0, "an ICY touch chills you (slower)")
+	player.statuses.clear()
+	var fiery = monsters.spawn_monster(def, false, true, NAN, -1.0, ["fiery"])
+	fiery.global_position = player.global_position + Vector2(200, 0)
+	var before = player.health
+	var ball = Elites.cast(fiery, data.words.fiery.cast, player)
+	check(ball != null and ball.target_group == "player", "a monster's spell targets the player")
+	ball.manual = true
+	for i in 120:
+		ball.step(1.0 / 60.0)
+	check(player.health < before, "FIERY's fireball hits you (%s -> %s)" % [before, player.health])
+	check(player.has_status("burn"), "and sets you on fire")
+	var burning = player.health
+	player.process_statuses(1.0)
+	check(player.health < burning, "burn hurts over time")
+	player.statuses.clear()
+	var shocking = monsters.spawn_monster(def, false, true, NAN, -1.0, ["shocking"])
+	before = player.health
+	var strike = Elites.cast(shocking, data.words.shocking.cast, player)
+	strike.manual = true
+	strike.step(0.5)
+	check(is_equal_approx(player.health, before), "SHOCKING warns before it strikes")
+	for i in 60:
+		strike.step(1.0 / 60.0)
+	check(player.health < before and player.has_status("shocked"), "then the strike lands and shocks you")
+	var elites_casts = Elites.build(["fiery", "quick"], "Charger")
+	check(elites_casts.casts.size() == 1 and elites_casts.contact_statuses == ["burn"], "words carry their casts and contact statuses")
+	player.statuses.clear()
+	for e in get_nodes_in_group("generic_casts"):
+		e.queue_free()
+
 	# --- patrols ------------------------------------------------------------------------------------
 	for e in get_nodes_in_group("enemies"):
 		e.queue_free()

@@ -27,12 +27,17 @@ var had_caster := false        # a cast whose caster is freed ends (run teardown
 var forced_dir := Vector2.ZERO  # aim set by the caller
 var forced_target = null       # ported spells keep their old targeting: the caller picks the target
 var target_picker: Callable    # or picks it when each copy is released (release.retarget)
+## Who this cast hits: the player's spells hit "enemies"; a monster's spells hit "player" (doc 19 P10:
+## every caster uses the same engine; only the side it hits changes).
+var target_group := "enemies"
 var point_picker: Callable     # arrangement "points": the caller picks the ground points (old Meteor Shower)
 
 func setup(p_plan: Dictionary, p_caster: Node2D, p_world: Node, p_source: Dictionary, p_manual: bool = false, seed_value: int = -1) -> void:
 	plan = p_plan
 	caster = p_caster
 	had_caster = p_caster != null
+	if p_caster != null and p_caster.is_in_group("enemies"):
+		target_group = "player"
 	world = p_world
 	source = p_source
 	manual = p_manual
@@ -449,7 +454,7 @@ func record_hit(part, enemy) -> void:
 func enemies() -> Array:
 	if not is_inside_tree():
 		return []
-	return get_tree().get_nodes_in_group("enemies").filter(func(e):
+	return get_tree().get_nodes_in_group(target_group).filter(func(e):
 		return is_instance_valid(e) and e is Node2D and e.is_inside_tree() and e.get("dying") != true \
 			and (e.get("current_health") == null or float(e.get("current_health")) > 0.0))
 

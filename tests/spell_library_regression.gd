@@ -1,6 +1,6 @@
 extends SceneTree
 ## 0.3.2: one file per spell (data/spells/<id>.json). SpellLibrary must reassemble the five old spell
-## documents exactly as they read before the split (tests/fixtures/spell_documents_0_3_2.bin): every
+## documents exactly as they read before the split (spells added since are allowed) (tests/fixtures/spell_documents_0_3_2.bin): every
 ## value, and the key order of spells, recipes and generic spells (catalog order matters).
 
 var checks = 0
@@ -17,13 +17,20 @@ func _initialize():
 	var f = FileAccess.open("res://tests/fixtures/spell_documents_0_3_2.bin", FileAccess.READ)
 	var old: Dictionary = f.get_var()
 	f.close()
+	# Spells added since the split (new files) are allowed; everything that existed must read back the
+	# same, in the same relative order.
+	var item_key = {"spells": "spells", "recipes": "recipes", "spell_shapes": "shapes", "spell_damage": "spells", "generic_spells": "spells"}
 	for name in library.names():
 		var now: Dictionary = library.document(name)
-		check(now == old[name], "%s reassembles exactly" % name)
 		check(now.keys() == old[name].keys(), "%s top-level order" % name)
-	check(library.document("spells").spells.keys() == old.spells.spells.keys(), "spell catalog order")
-	check(library.document("recipes").recipes.keys() == old.recipes.recipes.keys(), "recipe order")
-	check(library.document("generic_spells").spells.keys() == old.generic_spells.spells.keys(), "generic spell order")
+		var k = item_key[name]
+		for top in old[name]:
+			if top != k:
+				check(now[top] == old[name][top], "%s.%s unchanged" % [name, top])
+		for id in old[name][k]:
+			check(now[k].has(id) and now[k][id] == old[name][k][id], "%s: %s reads back exactly" % [name, id])
+		if name in ["spells", "recipes", "generic_spells"]:   # catalog order matters; shapes and damage are looked up by id
+			check(now[k].keys().filter(func(id): return old[name][k].has(id)) == old[name][k].keys(), "%s keeps its order" % name)
 	for e in library.entries():
 		check(FileAccess.file_exists("res://data/spells/%s.json" % e.id), "one file per spell: " + str(e.id))
 	# Completeness: every spell a player can prepare, and every combination, carries what it needs to

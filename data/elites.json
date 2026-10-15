@@ -1,18 +1,104 @@
 {
-  "_doc": "Elites (0.3.3): an existing monster plus one or more words, Diablo-style, using the player's own keyword vocabulary. The monster keeps its own behaviour; each word adds one trait. base applies to every elite. patrols and ley_waves say when they appear and how many words they roll. Numbers are first-pass, deliberately large; tune freely. Guardians, bosses, cast words (EXPLODING, SHOOTING) and learning a word from a defeated elite are later work (doc 15).",
-  "base": {"health_mult": 2.5, "damage_mult": 1.25, "size_mult": 1.5, "xp_mult": 3.0, "tint": [0.68, 0.6, 0.86]},
+  "_doc": "Elites (0.3.3): an existing monster plus one or more words, Diablo-style, using the player's own keyword vocabulary. The monster keeps its own behaviour; each word adds one trait. base applies to every elite. patrols and ley_waves say when they appear and how many words they roll. Numbers are first-pass, deliberately large; tune freely. Element words do something: FIERY throws fireballs, ICY bursts frost when you are close, SHOCKING calls a warned lightning strike on you, IRON is armoured; each touch also puts its status on you (player_statuses). Their spells are data/spells/elite_*.json, cast through the same spell engine as yours. Ley guardians, bosses, more cast words and learning a word from a defeated elite are later work (doc 15).",
+  "base": {
+    "health_mult": 2.5,
+    "damage_mult": 1.25,
+    "size_mult": 1.5,
+    "xp_mult": 3.0,
+    "tint": [
+      0.68,
+      0.6,
+      0.86
+    ]
+  },
   "words": {
-    "quick": {"word": "QUICK", "speed_mult": 1.5},
-    "massive": {"word": "MASSIVE", "size_mult": 1.35, "health_mult": 2.0, "speed_mult": 0.75},
-    "fiery": {"word": "FIERY", "element": "fire"},
-    "icy": {"word": "ICY", "element": "water"},
-    "stormy": {"word": "STORMY", "element": "storm"},
-    "iron": {"word": "IRON", "element": "earth"},
-    "leeching": {"word": "LEECHING", "heal_per_hit": 0.08}
+    "quick": {
+      "word": "QUICK",
+      "speed_mult": 1.5
+    },
+    "massive": {
+      "word": "MASSIVE",
+      "size_mult": 1.35,
+      "health_mult": 2.0,
+      "speed_mult": 0.75
+    },
+    "fiery": {
+      "word": "FIERY",
+      "element": "fire",
+      "contact_status": "burn",
+      "cast": {
+        "spell": "elite_fireball",
+        "every": 4.0,
+        "range": 520.0,
+        "damage_mult": 1.0
+      }
+    },
+    "icy": {
+      "word": "ICY",
+      "element": "water",
+      "contact_status": "chilled",
+      "cast": {
+        "spell": "elite_frost_burst",
+        "every": 4.0,
+        "range": 170.0,
+        "damage_mult": 0.8
+      }
+    },
+    "shocking": {
+      "word": "SHOCKING",
+      "element": "storm",
+      "contact_status": "shocked",
+      "cast": {
+        "spell": "elite_lightning",
+        "every": 5.0,
+        "range": 600.0,
+        "damage_mult": 1.5
+      }
+    },
+    "iron": {
+      "word": "IRON",
+      "element": "earth",
+      "resist_profile": "elite_armored"
+    },
+    "leeching": {
+      "word": "LEECHING",
+      "heal_per_hit": 0.08
+    }
   },
   "patrols": {
-    "first": 240, "every": 240, "until": 1140, "escorts": 4,
-    "words": [{"from": 0, "count": 1}, {"from": 600, "count": 2}]
+    "first": 240,
+    "every": 240,
+    "until": 1140,
+    "escorts": 4,
+    "words": [
+      {
+        "from": 0,
+        "count": 1
+      },
+      {
+        "from": 600,
+        "count": 2
+      }
+    ]
   },
-  "ley_waves": {"from_wave": 2, "words": 1}
+  "ley_waves": {
+    "from_wave": 2,
+    "words": 1
+  },
+  "player_statuses": {
+    "_doc": "Statuses monsters put on the player (elite contact and elite spells). Slows stack as the strongest one.",
+    "burn": {
+      "duration": 3.0,
+      "tick": 0.5,
+      "damage_per_second": 4.0
+    },
+    "chilled": {
+      "duration": 2.0,
+      "slow": 0.35
+    },
+    "shocked": {
+      "duration": 0.6,
+      "slow": 0.7
+    }
+  }
 }

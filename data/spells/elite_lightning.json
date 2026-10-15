@@ -1,0 +1,69 @@
+{
+  "id": "elite_lightning",
+  "order": 9020,
+  "shape": {
+    "root": "mark",
+    "max_depth": 2,
+    "cast_rules": {
+      "targeting": {
+        "rule": "none"
+      }
+    },
+    "parts": {
+      "mark": {
+        "delivery": "field",
+        "origin": "target",
+        "geometry": {
+          "type": "disk",
+          "radius": 64.0,
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": 0.9,
+          "interval": 999.0
+        },
+        "events": {
+          "on_expire": {
+            "part": "strike"
+          }
+        },
+        "payload": [],
+        "vfx": {
+          "warn": true
+        }
+      },
+      "strike": {
+        "delivery": "volume",
+        "origin": "parent",
+        "geometry": {
+          "type": "disk",
+          "radius": 64.0,
+          "pad": 0.0
+        },
+        "propagation": {
+          "type": "instant",
+          "linger": 0.1
+        },
+        "payload": [
+          {
+            "$damage": ""
+          }
+        ],
+        "vfx": {
+          "heavy": 0.8
+        }
+      }
+    }
+  },
+  "damage": {
+    "element": "storm",
+    "damage": {
+      "storm": 1.0
+    },
+    "statuses": [
+      {
+        "status": "shocked"
+      }
+    ]
+  }
+}

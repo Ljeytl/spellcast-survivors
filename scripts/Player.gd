@@ -124,6 +124,7 @@ func _physics_process(delta):
 
 	# Process continuous damage from touching enemies
 	process_enemy_contact_damage(delta)
+	process_statuses(delta)
 
 	# Update the red damage flash effect
 	if is_flashing:
@@ -154,7 +155,7 @@ func handle_movement():
 		# Normalize to prevent faster diagonal movement
 		input_dir = input_dir.normalized()
 		# Apply speed with upgrades multiplier
-		var current_speed = BASE_SPEED * movement_speed_multiplier
+		var current_speed = BASE_SPEED * movement_speed_multiplier * status_speed_multiplier()
 
 		# Apply slowdown based on touching enemies
 		var slowdown_multiplier = calculate_enemy_slowdown()
@@ -441,3 +442,58 @@ func add_earth_shield_charge(info: Dictionary):
 		earth_shield = preload("res://scripts/EarthShield.gd").new()
 		add_child(earth_shield)
 	earth_shield.add_charge(info)
+
+# --- monster spells and statuses on the player (elites, data/elites.json "player_statuses") -----
+## Running statuses: id -> {remaining, tick}. Burn hurts over time; chilled and shocked slow.
+var statuses: Dictionary = {}
+
+## Effects from monster spells and elite contact (scripts/engine/Effects.gd routes here).
+func apply_effect(effect: Dictionary, source: Dictionary = {}, origin: Vector2 = Vector2.INF) -> float:
+	match str(effect.get("type", "")):
+		"damage":
+			var total := 0.0
+			for entry in effect.get("entries", []):
+				total += float(entry.get("amount", 0.0))
+			total += float(effect.get("amount", 0.0))
+			if total > 0.0:
+				var before = health + overheal
+				take_damage(total, {"kind": "spell", "source_position": origin, "spell": str(source.get("spell", ""))})
+				return maxf(0.0, before - health - overheal)
+		"status":
+			apply_status(str(effect.get("status", "")))
+		"heal":
+			heal(float(effect.get("amount", 0.0)))
+	return 0.0
+
+func apply_status(id: String) -> void:
+	var defs: Dictionary = preload("res://scripts/Elites.gd").data().get("player_statuses", {})
+	if not defs.has(id):
+		return
+	statuses[id] = {"remaining": float(defs[id].get("duration", 2.0)), "tick": float(defs[id].get("tick", 0.5))}
+
+func has_status(id: String) -> bool:
+	return statuses.has(id)
+
+func status_speed_multiplier() -> float:
+	var defs: Dictionary = preload("res://scripts/Elites.gd").data().get("player_statuses", {})
+	var mult := 1.0
+	for id in statuses:
+		mult = minf(mult, 1.0 - float(defs.get(id, {}).get("slow", 0.0)))
+	return mult
+
+func process_statuses(delta: float) -> void:
+	if statuses.is_empty():
+		return
+	var defs: Dictionary = preload("res://scripts/Elites.gd").data().get("player_statuses", {})
+	for id in statuses.keys():
+		var s: Dictionary = statuses[id]
+		s.remaining -= delta
+		var dps = float(defs.get(id, {}).get("damage_per_second", 0.0))
+		if dps > 0.0:
+			s.tick -= delta
+			if s.tick <= 0.0:
+				var interval = float(defs[id].get("tick", 0.5))
+				s.tick += interval
+				take_damage(dps * interval, {"kind": "status", "status": id})
+		if s.remaining <= 0.0:
+			statuses.erase(id)
