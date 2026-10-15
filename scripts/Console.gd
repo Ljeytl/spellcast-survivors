@@ -101,7 +101,7 @@ var commands: Dictionary = {
 	},
 	"vfx": {
 		"description": "Chunky-magic VFX debug: test flame by the wizard, stress test, stats",
-		"usage": "vfx flame | vfx stress <count> | vfx twos [on/off] | vfx present [on/off] | vfx learn <generic spell id> | vfx cast <text> | vfx bench [frames] | vfx clear | vfx stats"
+		"usage": "vfx flame | vfx stress <count> | vfx twos [on/off] | vfx present [on/off] | vfx spirit [auto/ghost/wisp] | vfx learn <generic spell id> | vfx cast <text> | vfx bench [frames] | vfx clear | vfx stats"
 	},
 	"bighead": {
 		"description": "Double current enemy art size; off restores original sizes",
@@ -1229,6 +1229,12 @@ func vfx_debug(args: Array):
 			vfx.clear_test_flames()
 			vfx.clear()
 			add_output("VFX cleared.")
+		"spirit":
+			if args.size() != 2 or args[1].to_lower() not in ["auto", "ghost", "wisp"]:
+				add_output("Usage: vfx spirit auto | ghost | wisp")
+				return
+			vfx.spirit_form_override = args[1].to_lower()
+			add_output("Spirit comparison: " + vfx.spirit_form_override + " (Seeker and Soul Bloom)")
 		"present":
 			vfx.presenter.enabled = not vfx.presenter.enabled if args.size() < 2 else args[1].to_lower() in ["on", "true", "1"]
 			add_output("VFX presents spells: " + str(vfx.presenter.enabled) + " (off = placeholder art)")

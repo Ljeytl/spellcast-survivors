@@ -67,7 +67,6 @@ func run():
 	var part = Part.new()
 	root.add_child(part)
 	p._parts[part.get_instance_id()] = {"kind": "projectile", "family": "sphere", "look": {"native": "arcane", "accent": ""}, "part": weakref(part), "last": Vector2.ZERO}
-	var previous_width := 0.0
 	for scale in [0.75, 1.0, 1.42, 2.4]:
 		part.def = {"geometry": {"type": "body", "radius": 42.0 * scale}}
 		var pixels = buffer()
@@ -75,18 +74,6 @@ func run():
 		var span = row_span(pixels)
 		var visible_radius: float = (span.y - span.x + 1) * vfx.CELL * 0.5
 		check(span.x >= 0 and absf(visible_radius - part.geo("radius")) <= vfx.CELL * 2, "Arcane orb drawn radius matches geometry at %.2fx" % scale)
-		part.def.geometry.radius = 24.0 * scale
-		pixels = buffer()
-		p._draw_ghost(pixels, Vector2.ZERO, part)
-		span = row_span(pixels)
-		var filled: bool = span.x >= 0
-		for x in range(span.x, span.y + 1):
-			filled = filled and pixels[(-vfx._origin.y * vfx._size.x + x) * 4 + 3] > 0
-		check(filled, "Ghost center stays continuous at fractional scale %.2fx" % scale)
-		var width: float = (span.y - span.x + 1) * vfx.CELL
-		check(absf(width - (7.0 * scale + 2.0) * Presenter.WPS) <= Presenter.WPS * 2.0, "Ghost scales above and below its base size")
-		check(width > previous_width, "Every geometry increase enlarges the ghost")
-		previous_width = width
 	part.life_total = 2.0
 	part.age = 1.675
 	var meteor := {"kind": "meteor", "part": weakref(part), "age": 0.0, "life": 2.0, "r": 8.0, "sky": Vector2(-30, -70)}

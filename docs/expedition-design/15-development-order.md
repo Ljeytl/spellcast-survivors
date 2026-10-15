@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The latest release is **0.3.1** (15 October 2026), the first combat-feel slice built from 0.3.1-dev.1 to dev.5. It does not complete the whole-roster feel goal below; later builds continue it; development after it is **0.3.2-dev.2** (the release was cut before the dev.6 Steam particles, spirit and meteor work, which ships next). Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The latest release is **0.3.1** (15 October 2026), the first combat-feel slice built from 0.3.1-dev.1 to dev.5. It does not complete the whole-roster feel goal below; later builds continue it; development after it is **0.3.2-dev.3** (the release was cut before the dev.6 Steam particles, spirit and meteor work, which ships next). Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 
@@ -54,11 +54,14 @@ The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/
 
 `0.3.2-dev.2` lowers Cinder flames toward an ember-bed silhouette and gives Soul Bloom flowing twin trails, a directional luminous core and a small arrival cue. Preserve staggered meteor falls and repeated shakes as an explicitly enjoyed part of the fantasy. Damage balance is unchanged.
 
+`0.3.2-dev.3` implements both approved painted spirit concepts: the expressive ghost and faceless soul wisp. Both can be compared on Seeker and Soul Bloom via showcase G or `vfx spirit ghost|wisp|auto`. Preserve the brushwork and soft translucency. Auto pairing is provisional; ghost/necrotic and wisp/life remain hypotheses, not established elemental rules.
+
 ### Next identity investigations
 
 - Meteor Shower and Meteor Spear: inspect descent against authoritative impact timing during repeated hitstop, then judge warning, weight, sound and camera response together. The dev.6 timing fix has regression coverage and native captures; the broader audio/camera sequence still needs judgment.
 - Prism Ray: inspect overlapping contact fans and afterimages in moving crowds. Reconcile doc 21's older angle/length with the current playtest-tuned bridge before changing mechanics.
-- Soul Bloom: dev.2 refines the silhouette, trails and arrival. Continue reviewing infected-host departure, crowd readability and sound as one sequence.
+- Seeker and Soul Bloom: compare both painted forms on both spells before choosing their visual language. Continue judging mixed-spell crowd readability, impact sound and performance as a full sequence.
+- Broader art direction: explore the approved paintbrush quality on other effects while keeping each spell’s simple defining shape. No roster-wide restyle is implied by this comparison.
 - Flame Wall: develop the catalog’s surrounding burning ring and its visuals together; do not polish the current straight line into an assumed final design. Intended damage identity is low direct contact damage and strong damage over time; balance changes belong in a separate implementation pass.
 
 These are source-grounded priorities, not completed visual or auditory qualification.

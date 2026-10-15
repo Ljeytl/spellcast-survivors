@@ -19,6 +19,8 @@ extends Node2D
 ## Effect motion steps every frame by default ("on ones"); on_twos steps at
 ## STEP_HZ instead (console "vfx twos"). Ones won the side-by-side comparison. Hit-stop freezes only this simulation.
 
+var spirit_form_override := "auto"
+
 const CELL := 4.0
 const WPS := 1280.0 / 192.0          # world px per sandbox unit
 const K := WPS / CELL                # cells per sandbox unit

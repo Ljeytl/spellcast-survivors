@@ -77,6 +77,8 @@ Optional per-part hint in a spell's shape (`data/spells/<id>.json`): `"vfx": {"f
 
 ## Debug
 
-In-game showcase (dev tool, not shipped): `tools/vfx-showcase/Showcase.tscn` runs the real Game scene and casts every shipping spell in turn through the real SpellManager. Keys: Space/Right next, Left back, P pause, M MEGA, S slow-mo, K clear enemies. URL (web export with that main scene): `?spell=<id>` repeats one spell, `&mega=1`, `&slow=0.25`, `&empty=1` (no horde).
+In-game showcase (dev tool, not shipped): `tools/vfx-showcase/Showcase.tscn` runs the real Game scene and casts every shipping spell in turn through the real SpellManager. Keys: Space/Right next, Left back, P pause, M MEGA, S slow-mo, K defeat enemies through the real damage/death path, G cycle ghost/wisp/auto for both spirit spells. URL (web export with that main scene): `?spell=<id>` repeats one spell, `&mega=1`, `&slow=0.25`, `&empty=1` (no horde), `&form=ghost|wisp|auto` (spirit comparison). Showcase exit restores the prior form and time scale.
 
-Console: `vfx present off|on` (placeholder vs VFX), `vfx learn <id>` (make a data-only generic spell castable, e.g. `fireball`, `flame_wall`, `meteor_ring`), `vfx flame`, `vfx stress <n>`, `vfx twos`, `vfx bench`, `vfx stats`, `vfx clear`.
+Console: `vfx spirit auto|ghost|wisp` (live painted-form comparison for Seeker and Soul Bloom; auto provisionally uses ghost/wisp respectively), `vfx present off|on` (placeholder vs VFX), `vfx learn <id>` (make a data-only generic spell castable, e.g. `fireball`, `flame_wall`, `meteor_ring`), `vfx flame`, `vfx stress <n>`, `vfx twos`, `vfx bench`, `vfx stats`, `vfx clear`.
+
+Painted spirits use `SpiritVisual.gd` children owned by their gameplay hosts. The transparent textures in `assets/vfx/spirits/` retain the approved brushwork; `spirit_flow.gdshader` bends the veil using host age rather than wall-clock time. Reduced effects lowers motion. These are visual extents, not collision boundaries; geometry changes scale both forms proportionally. Neither the override nor the provisional pairing is a saved player preference.
