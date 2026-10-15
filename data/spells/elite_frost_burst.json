@@ -2,16 +2,39 @@
   "id": "elite_frost_burst",
   "order": 9030,
   "shape": {
-    "root": "ring",
+    "root": "warn",
+    "max_depth": 2,
     "cast_rules": {
       "targeting": {
         "rule": "none"
       }
     },
     "parts": {
+      "warn": {
+        "delivery": "field",
+        "origin": "caster",
+        "geometry": {
+          "type": "disk",
+          "radius": 170.0,
+          "pad": 0.0
+        },
+        "timing": {
+          "duration": 0.8,
+          "interval": 999.0
+        },
+        "events": {
+          "on_expire": {
+            "part": "ring"
+          }
+        },
+        "payload": [],
+        "vfx": {
+          "warn": true
+        }
+      },
       "ring": {
         "delivery": "volume",
-        "origin": "caster",
+        "origin": "parent",
         "geometry": {
           "type": "ring",
           "radius": 170.0,
