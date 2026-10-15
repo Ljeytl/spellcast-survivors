@@ -16,7 +16,7 @@ Spell presentation includes art, motion, timing, sound, feedback and the relatio
 
 The earlier universal coarse-pixel restriction is superseded. Preserve the world art; choose rendering resolution and technique to express each spell. Painted translucency, flowing strokes and smooth deformation are valid alongside the existing raster effects. The spirit comparison established a promising painted direction, not a requirement to give every spell the same silhouette or material.
 
-The first broader study is Steam (rolling translucent volume), fire Bolts (a hot head pulling a curling stroke), and Arcane Slash (a decisive calligraphic sweep). Judge formation, travel or sustain, contact and disappearance in motion at gameplay size. Keep spell geometry, accessibility settings and dense-combat readability truthful. Do not equate implementation or passing regression tests with artistic acceptance.
+The painted Bolt and Slash study was rejected on 15 October; their previous particle/raster presentation is restored. Particle systems are the preferred direction for further spell work. Painted ghost/wisp comparison and particle-driven Steam remain separate treatments. Judge formation, travel or sustain, contact and disappearance in motion at gameplay size. Keep spell geometry, accessibility settings and dense-combat readability truthful. Do not equate implementation or passing regression tests with artistic acceptance.
 
 The remaining renderer specifications below describe the original raster system and reusable ideas. They do not mandate pixelation for new effects. Existing staggered Meteor falls and repeated shakes are intentionally preserved.
 
