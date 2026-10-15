@@ -1,3 +1,10 @@
+# 0.3.2-dev.2 — Cinder heat and flowing souls (15 October 2026)
+
+- Give Cinder Field shorter, lower flames so it reads as a hot ember bed. Other fire fields keep their existing particle profile; damage and timing are unchanged.
+- Reshape Soul Bloom ghosts into directional spirits with curling twin trails and a bright core. Healing uses mint and ivory; hunting uses violet and chartreuse. Add a small arrival ring and spark without changing targeting, speed, healing or damage.
+- Preserve the enjoyed staggered meteor falls and repeated impact shakes. Flame Wall remains a separate geometry/design task: the catalog calls for a surrounding burning ring, and its current line should not be treated as the final fantasy.
+- Continue native motion review of Cinder at normal/LARGE/reduced settings and both spirit modes. Full-roster feel, audio, crowded status readability and performance qualification remain open.
+
 # 0.3.2-dev.1 (labelled 0.3.1-dev.6 before the 0.3.1 cut) — Particle-driven Steam, spirits and meteor weight (15 October 2026)
 
 - Revisit Steam → Field in the local VFX sandbox. Its particles accumulate into a shared density surface; the old port painted independent puffs and the previous prototype scrolled noise through a fixed mask. Steam now uses bounded rising, expanding, swirling particles to shape one connected cloud, with blue-grey shadow bands and ivory dense folds. Reduced effects lowers the particle budget while retaining volume.

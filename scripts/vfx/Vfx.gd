@@ -374,7 +374,7 @@ func puff(x: float, y: float, s: int = 0):
 ## |along| <= |axis| + r, |across| <= r, with tall flames rising along it.
 func field(x: float, y: float, r: float, life: float, o: Dictionary = {}) -> Dictionary:
 	var f := {"x": x, "y": y, "r": r, "age": 0.0, "life": life, "acc": 0.0,
-		"rate": o.get("rate", 1.0), "heat_k": o.get("heat_k", 0.8), "trail": o.get("trail", false),
+		"profile": str(o.get("profile", "default")), "rate": o.get("rate", 1.0), "heat_k": o.get("heat_k", 0.8), "trail": o.get("trail", false),
 		"axis": o.get("axis", Vector2.ZERO), "look": int(o.get("look", 0)), "goo": int(o.get("goo", 0))}
 	if o.has("style"):
 		f.style = int(o.style)   # 2 = smoulder: sparse char floor (a burning trail)
@@ -700,8 +700,9 @@ func _update_fields(dt: float):
 			var ang := randf() * TAU
 			var d := sqrt(randf()) * r * 0.9
 			var at := Vector2(A.x + cos(ang) * d, A.y + sin(ang) * d)
-			var rise := 20.0 + randf() * 12.0
-			var lf := 0.45 + randf() * 0.35
+			var low: bool = A.get("profile", "") == "cinder"
+			var rise := randf_range(9.0, 17.0) if low else randf_range(20.0, 32.0)
+			var lf := randf_range(0.28, 0.48) if low else randf_range(0.45, 0.80)
 			for j in 3:
 				flame(null, at, {"lx": (randf() - 0.5) * 1.5, "ly": randf() - 0.5, "heat": A.heat_k * 0.46,
 					"rise": rise * (0.9 + j * 0.18), "life": lf * (1.0 - j * 0.15), "small": 1.0 if j > 0 else 0.0})

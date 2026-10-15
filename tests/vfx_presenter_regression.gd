@@ -128,6 +128,18 @@ func run():
 		check(on == off, "VFX never change gameplay: " + text + " " + str(on) + " vs " + str(off))
 	vfx.presenter.enabled = true
 
+	var cinder_info: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/spells.json")).spells.cinder_field
+	cinder_info.incantation = "cinder field"
+	Defs.register(preload("res://scripts/engine/LegacyBridge.gd").build(cinder_info, 8.0, {}))
+	for item in [["cinder field", "cinder"], ["flame wall", "default"]]:
+		clear()
+		foe(Vector2(150, 0))
+		cast(item[0], 0.1)
+		check(vfx._fields.any(func(field): return field.get("profile", "default") == item[1]), "Fire presentation routed by spell: " + item[0])
+	clear()
+	var neutral_field = vfx.field(0, 0, 8, 1)
+	check(neutral_field.profile == "default", "Unspecified fire fields preserve their existing profile")
+
 	# Fiery spear: native arcane body + fire accent; presented, trail flames, cast flash.
 	clear()
 	foe(Vector2(300, 0))

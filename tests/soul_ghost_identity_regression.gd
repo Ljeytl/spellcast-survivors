@@ -28,6 +28,9 @@ func run():
 	if not root.is_node_ready():
 		await root.ready
 	await process_frame
+	var vfx = root.get_node("Vfx")
+	vfx.set_process(false)
+	vfx.clear()
 	var player := Player.new()
 	root.add_child(player)
 	var enemy := Enemy.new()
@@ -48,6 +51,7 @@ func run():
 	ghost.position = enemy.position - Vector2(10, 0)
 	ghost._physics_process(0.01)
 	check(enemy.current_health == 94.0 and ghost.is_queued_for_deletion(), "Hunting arrival still delivers one six-damage hit")
+	check(vfx._rings.size() == 1 and vfx._stars.size() == 1, "Hunting arrival emits one ring and one core flash")
 	await process_frame
 	player.health = 50
 	ghost = GHOST.new()
@@ -57,7 +61,17 @@ func run():
 	ghost.set_physics_process(false)
 	ghost._physics_process(0.01)
 	check(player.health == 56.0 and ghost.is_queued_for_deletion(), "Healing arrival still delivers six health")
+	check(vfx._rings.size() == 2 and vfx._stars.size() == 2, "Healing arrival emits one ring and one core flash")
 	await process_frame
+	ghost = GHOST.new()
+	ghost.player_ref = weakref(player)
+	root.add_child(ghost)
+	ghost.set_physics_process(false)
+	ghost._physics_process(4.0)
+	check(vfx._rings.size() == 2 and vfx._stars.size() == 2, "Natural spirit expiry does not imitate a successful arrival")
+	await process_frame
+	vfx.clear()
+	check(vfx._rings.is_empty() and vfx._stars.is_empty(), "World reset clears spirit arrival effects")
 	enemy.free()
 	player.free()
 	print("Soul spirit: %d checks, %d failures" % [checks, failures])

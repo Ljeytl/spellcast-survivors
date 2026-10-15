@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The latest release is **0.3.1** (15 October 2026), the first combat-feel slice built from 0.3.1-dev.1 to dev.5. It does not complete the whole-roster feel goal below; later builds continue it; development after it is **0.3.2-dev.1** (the release was cut before the dev.6 Steam particles, spirit and meteor work, which ships next). Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The latest release is **0.3.1** (15 October 2026), the first combat-feel slice built from 0.3.1-dev.1 to dev.5. It does not complete the whole-roster feel goal below; later builds continue it; development after it is **0.3.2-dev.2** (the release was cut before the dev.6 Steam particles, spirit and meteor work, which ships next). Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 
@@ -51,11 +51,14 @@ The 0.3.0 audit raised Steam/Cinder separation and obstruction, armed Rune Trap/
 
 `0.3.1-dev.6` restores particle-driven shared density for Steam after comparing Steam → Field in the reference sandbox, adds Soul Bloom spirit identity and healing/hunting cues, and synchronizes accelerating meteor descent to gameplay time. These are targeted visual changes; sound and full-roster identity qualification remain open.
 
+`0.3.2-dev.2` lowers Cinder flames toward an ember-bed silhouette and gives Soul Bloom flowing twin trails, a directional luminous core and a small arrival cue. Preserve staggered meteor falls and repeated shakes as an explicitly enjoyed part of the fantasy. Damage balance is unchanged.
+
 ### Next identity investigations
 
 - Meteor Shower and Meteor Spear: inspect descent against authoritative impact timing during repeated hitstop, then judge warning, weight, sound and camera response together. The dev.6 timing fix has regression coverage and native captures; the broader audio/camera sequence still needs judgment.
 - Prism Ray: inspect overlapping contact fans and afterimages in moving crowds. Reconcile doc 21's older angle/length with the current playtest-tuned bridge before changing mechanics.
-- Soul Bloom: dev.6 replaces the orb with a spirit and mode cues. Continue reviewing departure and arrival effects and sound as one sequence.
+- Soul Bloom: dev.2 refines the silhouette, trails and arrival. Continue reviewing infected-host departure, crowd readability and sound as one sequence.
+- Flame Wall: develop the catalog’s surrounding burning ring and its visuals together; do not polish the current straight line into an assumed final design. Intended damage identity is low direct contact damage and strong damage over time; balance changes belong in a separate implementation pass.
 
 These are source-grounded priorities, not completed visual or auditory qualification.
 
