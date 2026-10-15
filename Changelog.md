@@ -1,3 +1,8 @@
+# 0.3.1-dev.4 — Steam Field grey footprint (15 October 2026)
+
+- Steam Field gains a dedicated ash-grey circular floor and pale condensation rim at its damage radius, distinct from Water pools and Cinder Field. Sparse rising mist remains visible above it in normal and reduced-effects modes.
+- Inspected native normal, reduced, LARGE moving-crowd, narrow-window and Cinder captures; 130 capture checks and 84 VFX regression checks passed. Other spell-family sizing, audio and whole-roster combat-feel qualification remain open.
+
 # 0.3.1-dev.3 — Effect timing and readable spell size (15 October 2026)
 
 - Landing rings and Prism Ray afterimages now age in the VFX simulation instead of during drawing. Camera redraws and display cadence no longer shorten or stretch their lifetime; clearing effects also clears those transients.

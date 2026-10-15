@@ -4,7 +4,7 @@ Updated 14 October 2026 for 0.3.0. Preserve the full [expedition spell catalog](
 
 ## Version numbers
 
-The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.3**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
+The integrated release baseline is **0.3.0**; combat-feel development is at **0.3.1-dev.4**. Development build identifiers do not mark the whole-roster release complete. Use separate whole-number components: `0.3.9` is followed by `0.3.10`, not a decimal fraction. “3.0” and “3.1” in conversation mean `0.3.0` and `0.3.1` here. Increment the release version when shipping a changed build; a documentation consolidation does not itself create a gameplay release. Verify tags and distributable builds before calling a release published.
 
 ## Agreed release goals
 

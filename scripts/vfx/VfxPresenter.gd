@@ -393,10 +393,10 @@ func part_spawned(part) -> void:
 					line_o.style = 2
 				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, line_o)
 			elif str(part.def.get("vfx", {}).get("style", "")) == "steam":
-				# Steam Field: hot water and billowing white steam; only a few low flames under it.
+				# Steam Field: grey condensation footprint with rising white vapor.
 				var sr: float = part.geo("radius", 60.0) / WPS
-				# wet grey-blue floor with a pale rim (the water look), steam over it, not Cinder Field's red ground
-				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.0, "look": vfx.field_look("water")})
+				# Pale rim follows the damage radius beneath the vapor.
+				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.0, "look": vfx.field_look("steam")})
 				st.steam = true
 				for i in (3 if vfx.reduced_effects else 6):
 					var q := _in_disk(pos.x, pos.y, sr)
