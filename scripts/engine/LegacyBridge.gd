@@ -373,7 +373,8 @@ static func _meteor_shower(info: Dictionary, damage: float, _ctx: Dictionary) ->
 ## striking a small lightning area at every hit.
 static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) -> Dictionary:
 	var id = str(info.id)
-	var speed = 340.0 * float(ctx.get("speed_mult", 1.0))   # slower so each hop reads (playtest; was 550)
+	var speed = 550.0 * float(ctx.get("speed_mult", 1.0))
+	var hop_speed = 260.0 * float(ctx.get("speed_mult", 1.0))   # bounces travel slowly so each hop reads (playtest)
 	var hops = int(info.get("bounce_count", 4))
 	var reach = float(info.get("bounce_range", 240.0))
 	# Doc 21 §5.6: the bolt bounces through up to `hops` more enemies, then ONE strike lands on the last.
@@ -389,7 +390,7 @@ static func _lightning_bolt(info: Dictionary, damage: float, ctx: Dictionary) ->
 	}
 	var bounce = bolt.duplicate(true)
 	bounce.origin = "parent"
-	bounce.motion = [{"type": "guided", "speed": speed, "lerp": 5.0, "range": reach * 1.5}]
+	bounce.motion = [{"type": "guided", "speed": hop_speed, "lerp": 5.0, "range": reach * 1.5}]
 	bounce.payload = _damage(id, damage, "bounce")
 	bounce.events = {"on_hit#bounce": {"part": "bounce", "chain": true, "range": reach, "exclude_hit": true, "end": {"part": "splash_warn"}}}
 	var splash := {

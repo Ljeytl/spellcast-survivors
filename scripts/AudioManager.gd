@@ -331,6 +331,10 @@ func spell_sound_type(spell_name: String) -> SoundType:
 		_: return SoundType.SPELL_BOLT
 
 func play_spell_sound(spell_name: String, _level: int = 1):
+	# Lightning's sound belongs to the strike, which lands after its warning ring (the VFX layer
+	# plays it); playing it at the cast too sounded twice (playtest).
+	if spell_name.to_lower().replace(" ", "_") == "lightning":
+		return
 	play_sound(spell_sound_type(spell_name))
 
 func play_spell_impact_sound(spell_name: String, level: int = 1):

@@ -104,8 +104,9 @@ const METEOR_WARN_HOT := [Color("#ff9a3a"), Color("#fff1b0")]
 const RAINBOW := [Color("#ff5a5a"), Color("#ffb03a"), Color("#ffe85a"), Color("#6ee07a"), Color("#5ac8ff"), Color("#9a7aff")]
 
 # Sandbox death spirit: GHOST sprite ('o' body, 'e' eyes) and its dark mist.
-const GHOST := [".ooo.", "oeoeo", "ooooo", "o.o.o"]
-const GHOST_COL := {"o": Color("#f0f8ff"), "e": Color("#0a0c14")}
+# Seeker: a bigger ghost with a pale outline so it reads as a spirit, not a blob (playtest).
+const GHOST := ["..ooo..", ".ooooo.", "ooeoeoo", "ooooooo", "ooooooo", "oo.o.oo", "o..o..o"]
+const GHOST_COL := {"o": Color("#f0f8ff"), "e": Color("#0a0c14"), "r": Color("#9fb8d8")}
 const DEATH_MIST := [Color("#c8dcec"), Color("#93a8c0"), Color("#5a6a80")]
 
 const BLADE_COL := [Color("#ffffff"), Color("#e8eef6"), Color("#a9b4c2"), Color("#5c6675")]
@@ -326,7 +327,7 @@ func part_spawned(part) -> void:
 			_force_fx(part.cast.plan, pos, look.accent if look.accent != "" else look.native)
 			var heavy := float(part.def.get("vfx", {}).get("heavy", 0.0))
 			if heavy > 0.0:
-				_heavy_landing(pos, r_su, look.native, heavy)
+				_heavy_landing(pos, r_su, look.native, heavy, _area_cols(part))
 		"slash":
 			_slash(part, look, pos)
 		"trap":
@@ -394,7 +395,8 @@ func part_spawned(part) -> void:
 			elif str(part.def.get("vfx", {}).get("style", "")) == "steam":
 				# Steam Field: hot water and billowing white steam; only a few low flames under it.
 				var sr: float = part.geo("radius", 60.0) / WPS
-				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.12, "heat_k": 0.4, "style": 2})
+				# wet grey-blue floor with a pale rim (the water look), steam over it, not Cinder Field's red ground
+				st.field = vfx.field(pos.x, pos.y, sr, life + 0.5, {"rate": 0.0, "look": vfx.field_look("water")})
 				st.steam = true
 				for i in 10:
 					var q := _in_disk(pos.x, pos.y, sr)
@@ -432,6 +434,14 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 			spawns_burst = true
 	if impact_look == "lightning":
 		_zap(p.x, p.y)
+		return
+	if st.family == "ghost":
+		# Seeker's strike: the spirit lunges through: a pale wail ring and a burst of spirit mist.
+		vfx.ring(p.x, p.y, 7.0, 0.22, [Color("#ffffff"), Color("#c8dcec"), Color("#93a8c0")])
+		for i in 6:
+			var ga := randf() * TAU
+			vfx.elements.mist(p.x, p.y, cos(ga) * 14.0, sin(ga) * 10.0 - 4.0, 1.8, 4.0, 0.45, DEATH_MIST)
+		_plague_contact(p.x, p.y)
 		return
 	var many: bool = st.family in ["blade", "shard"]   # many hits a cast: keep each one small (playtest)
 	if impact_look == "earth" and many:
@@ -725,7 +735,7 @@ const LANDING_SOUND := {"fire": "SPELL_IMPACT_FIRE", "lightning": "SPELL_IMPACT_
 ## A spell that lands (Meteor Shower, Lightning, Rune Trap's blast, Meteor Spear's meteors,
 ## Lightning Bolt's strike) lands with weight: white flash, star, shockwave rings, rocks thrown up,
 ## a scorch, a VFX hit-pause, camera shake and an impact sound. `w` scales it (playtest: "no bam").
-func _heavy_landing(p: Vector2, r: float, el: String, w: float) -> void:
+func _heavy_landing(p: Vector2, r: float, el: String, w: float, area: Array = []) -> void:
 	var cols: Array = SPARK.get(el, SPARK.fire)
 	vfx.flash(p.x, p.y, maxf(4.0, r * 0.7) * w, 0.09, Color.WHITE)
 	vfx.star(p.x, p.y, maxf(4.0, r * 0.45) * w, 0.12, 8, cols[0])
@@ -739,7 +749,10 @@ func _heavy_landing(p: Vector2, r: float, el: String, w: float) -> void:
 	vfx.hitstop(roundi(2.0 + 2.0 * w))
 	vfx.shake(0.6 + 0.4 * w)
 	# The damage area itself: a red ring at the true radius that holds a beat, so you see what was hit.
-	_hit_rings.append([p.x, p.y, r, 0.0, 0.35])
+	if area.is_empty():
+		var one: Array = AREA_COL.get(el, AREA_COL.arcane)
+		area = [one, one]
+	_hit_rings.append([p.x, p.y, r, 0.0, 0.35, area])
 	var snd: String = LANDING_SOUND.get(el, "SPELL_IMPACT_FIRE")
 	if vfx.get_node_or_null("/root/AudioManager") != null:
 		AudioManager.play_sound(AudioManager.SoundType.get(snd, AudioManager.SoundType.SPELL_IMPACT_FIRE))
@@ -757,8 +770,41 @@ func _rubble(f: Dictionary, dt: float) -> void:
 		var q3 := _in_disk(float(f.x), float(f.y), r * 0.8)
 		vfx.puff(q3.x, q3.y)
 
-const WARN_RIM := [Color("#7fd0ff"), Color("#ffffff")]
-const WARN_HOT := [Color("#ffffff"), Color("#bfeaff")]
+# Area circles take the spell's element colour, split in halves for a two-element spell; red is
+# for enemies and fire only (playtest). [bright, mid] per damage type.
+const AREA_COL := {"arcane": [Color("#e2d4ff"), Color("#9b7cf0")], "fire": [Color("#ffd54a"), Color("#ff6a1f")],
+	"water": [Color("#e8f8ff"), Color("#6fc8f0")], "ice": [Color("#e8f8ff"), Color("#8fd3ee")], "storm": [Color("#ffffff"), Color("#8fb2ff")],
+	"lightning": [Color("#ffffff"), Color("#8fb2ff")], "earth": [Color("#f0e2c0"), Color("#c9a46a")], "plague": [Color("#d8f8a0"), Color("#6fd04a")],
+	"life": [Color("#e6ffb0"), Color("#7fcf4a")], "raw": [Color("#ffffff"), Color("#c8ccd4")]}
+
+## The two colours an area of this spell is drawn in: its two biggest damage types (data/spell_damage.json),
+## else its element and any keyword accent. Both the same for a one-element spell.
+func _area_cols(part) -> Array:
+	var plan: Dictionary = part.cast.plan if part != null and part.cast != null else {}
+	var prof: Dictionary = preload("res://scripts/engine/SpellDamage.gd").profile(str(plan.get("id", "")), str(part.part_name) if part != null else "")
+	var mix: Dictionary = prof.get("damage", {})
+	var keys: Array = mix.keys().filter(func(k): return AREA_COL.has(str(k)) and str(k) != "raw" and float(mix[k]) > 0.0)
+	keys.sort_custom(func(a, b): return float(mix[a]) > float(mix[b]))
+	var look := look_of(plan)
+	if keys.is_empty():
+		keys = [look.native if look.native != "" else "arcane"]
+	if keys.size() == 1 and look.accent != "" and AREA_COL.has(look.accent) and look.accent != keys[0]:
+		keys.append(look.accent)
+	var a: Array = AREA_COL.get(str(keys[0]), AREA_COL.arcane)
+	var b: Array = AREA_COL.get(str(keys[1]), a) if keys.size() > 1 else a
+	return [a, b]
+
+## A dashed ring, left half in one element's colours and right half in the other's.
+func _split_ring(buf: PackedByteArray, c: Vector2, r: float, cols: Array, hot: bool, density: float = 1.2) -> void:
+	var el = vfx.elements
+	var steps := ceili(TAU * r * density)
+	var frame: int = vfx._steps
+	for i in steps:
+		if ((i + (frame >> 2)) & 3) == 0:
+			continue
+		var a := TAU * i / steps
+		var pair: Array = cols[0] if cos(a) <= 0.0 else cols[1]
+		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), pair[0] if hot or (i & 1) == 0 else pair[1])
 
 ## Every projectile hit lands with a punch scaled to the spell (playtest: "haptic feedback on all
 ## spells"): a white star at the contact, a frame of hit-pause, and a small shake for heavy bodies.
@@ -810,13 +856,18 @@ func _draw_warn(buf: PackedByteArray, c: Vector2, st: Dictionary) -> void:
 	var el = vfx.elements
 	var k: float = clampf(float(st.age) / float(st.life), 0.0, 1.0)
 	var r: float = float(st.r)
-	el.draw_nova(buf, c.x, c.y, r, WARN_RIM if k < 0.6 else WARN_HOT)
+	var wp = st.part.get_ref()
+	if not st.has("cols"):
+		st.cols = _area_cols(wp)
+	var cols: Array = st.cols
+	_split_ring(buf, c, r, cols, k >= 0.6)
 	var inner := r * k
 	if inner > 1.0:
 		var steps := ceili(TAU * inner * 0.6)
 		for i in steps:
 			var a := TAU * i / steps
-			el.spx(buf, roundi(c.x + cos(a) * inner), roundi(c.y + sin(a) * inner), WARN_RIM[0] if k < 0.75 else WARN_HOT[0])
+			var pair: Array = cols[0] if cos(a) <= 0.0 else cols[1]
+			el.spx(buf, roundi(c.x + cos(a) * inner), roundi(c.y + sin(a) * inner), pair[1] if k < 0.75 else pair[0])
 
 ## An enemy's body in su: centre and half-height, so status effects sit ON it, not above it.
 func _body(e) -> Array:
@@ -1499,7 +1550,7 @@ func draw_statuses(buf: PackedByteArray) -> void:
 		if hr[3] < hr[4]:
 			keep.append(hr)
 			var hk: float = hr[3] / hr[4]
-			el.draw_nova(buf, hr[0], hr[1], hr[2], [Color(Color("#ff4a3a"), 1.0 - hk * 0.6), Color(Color("#ffd0c0"), 1.0 - hk * 0.6), Color(Color("#c2261a"), 1.0 - hk * 0.6)])
+			_split_ring(buf, Vector2(hr[0], hr[1]), hr[2], hr[5], hk < 0.5)   # the spell's own colours (halves for two)
 	_hit_rings = keep
 	var keep_l := []
 	for L in _lasers:
@@ -1737,15 +1788,17 @@ func _draw_trap(buf: PackedByteArray, part, st: Dictionary) -> void:
 	var k := clampf(float(part.age) / maxf(0.01, arming), 0.0, 1.0)
 	var armed: bool = part.armed
 	var frame: int = vfx._steps
-	var acc: String = st.look.accent
-	var hot: Color = RIM[acc] if acc != "" else ARC.spark[(frame >> 3) & 1]
+	if not st.has("cols"):
+		st.cols = _area_cols(part)
+	var cols: Array = st.cols
 	var steps := ceili(TAU * r * 1.3)
 	for i in steps:
 		if not armed and float(i) / steps > k:
 			continue
 		var a := TAU * i / steps
-		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), hot if armed and ((i + (frame >> 2)) % 4 != 0) else ARC.spark[3])
-	el.draw_glyph(buf, c.x, c.y, 3, (ARC.spark[1] if (frame >> 2) & 1 else ARC.spark[2]) if armed else ARC.spark[3])
+		var pair: Array = cols[0] if cos(a) <= 0.0 else cols[1]
+		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), pair[0] if armed and ((i + (frame >> 2)) % 4 != 0) else pair[1])
+	el.draw_glyph(buf, c.x, c.y, 3, (cols[0][0] if (frame >> 2) & 1 else cols[1][1]) if armed else cols[0][1])
 
 ## Vulnerable (arcane status): rising sparks and a blinking glyph overhead.
 func _vulnerable(dt: float) -> void:
@@ -2355,6 +2408,17 @@ func _ghost_step(st: Dictionary, pos: Vector2, dt: float) -> void:
 func _draw_ghost(buf: PackedByteArray, pos: Vector2, part) -> void:
 	var bob := sin(float(part.age) * 6.0) * 1.0
 	var s: float = clampf(float(part.geo("radius", 24.0)) / 24.0, 1.0, 2.0)
+	# pale rim one pixel out, so the ghost stands off the grass and the horde
+	for j in GHOST.size():
+		var rrow: String = GHOST[j]
+		for i in rrow.length():
+			if rrow[i] == ".":
+				continue
+			for o in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1)]:
+				var ni: int = i + o.x
+				var nj: int = j + o.y
+				if nj < 0 or ni < 0 or ni >= rrow.length() or GHOST[nj][ni] == ".":
+					vfx.elements.spx(buf, roundi(pos.x + (ni - 3) * s), roundi(pos.y + bob + (nj - 3) * s), GHOST_COL.r)
 	for j in GHOST.size():
 		var row: String = GHOST[j]
 		for i in row.length():
@@ -2364,7 +2428,7 @@ func _draw_ghost(buf: PackedByteArray, pos: Vector2, part) -> void:
 			var c: Color = GHOST_COL[ch]
 			for sy in roundi(s):
 				for sx in roundi(s):
-					vfx.elements.spx(buf, roundi(pos.x + (i - 2) * s) + sx, roundi(pos.y + bob + (j - 2) * s) + sy, c)
+					vfx.elements.spx(buf, roundi(pos.x + (i - 3) * s) + sx, roundi(pos.y + bob + (j - 3) * s) + sy, c)
 
 ## Cross Blade: a four-armed blade spinning at the true radius, steel with a bright edge.
 func _draw_blade(buf: PackedByteArray, pos: Vector2, part) -> void:
