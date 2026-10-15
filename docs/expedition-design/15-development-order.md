@@ -115,3 +115,7 @@ This is a development sequence, not a schedule for when a player unlocks vocabul
 ### Painted spell expression study — 0.3.2-dev.4
 
 Extend the approved paintbrush direction beyond spirit images into moving Steam volume, fire Bolt strokes and Arcane Slash gestures. Preserve gameplay and meteor cadence. Review native/accent identities, true size, reduced effects, pause and cleanup; then refine impact and sound coherence and evaluate other spells individually. Full-roster beauty, crowded-play readability and performance remain open qualification work.
+
+### Particle direction restored — 0.3.2-dev.5
+
+The painted Bolt and Slash study was rejected and rolled back. Continue spell-expression work through particle systems. Preserve the ghost/wisp comparison and Steam independently; do not infer a universal painted style from approved spirit art.

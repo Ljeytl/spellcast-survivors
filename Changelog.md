@@ -1,3 +1,9 @@
+# 0.3.2-dev.5 — Restore particle spell presentation (15 October 2026)
+
+- Revert the rejected painted Flaming Bolt and Arcane Slash treatments to the previous particle flame bodies/trails and raster slash sweep with edge particles. Remove their unused stroke renderer and shader.
+- Preserve ghost/wisp comparison, Steam particle volume, showcase improvements and elite integration.
+- Future spell presentation work follows the preferred particle-system approach. The painted spirit approval does not imply approval of that treatment across other spell families.
+
 # 0.3.3 (in progress) — Elites
 
 - **Elites are in.** An elite is a monster you already know plus one or more words from your own keyword vocabulary, Diablo-style: **QUICK** (much faster), **MASSIVE** (bigger, tankier, slower), **FIERY / ICY / STORMY / IRON** (that element, so the type chart decides what it resists and what hurts it) and **LEECHING** (heals each time it hits you). Every elite is bigger, tougher, worth more XP, drawn in a darker shade and shows its words above its health bar; it keeps its own behaviour (an ICY Charger still charges).

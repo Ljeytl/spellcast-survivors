@@ -83,6 +83,6 @@ Console: `vfx spirit auto|ghost|wisp` (live painted-form comparison for Seeker a
 
 Painted spirits use `SpiritVisual.gd` children owned by their gameplay hosts. The transparent textures in `assets/vfx/spirits/` retain the approved brushwork; `spirit_flow.gdshader` bends the veil using host age rather than wall-clock time. Reduced effects lowers motion. These are visual extents, not collision boundaries; geometry changes scale both forms proportionally. Neither the override nor the provisional pairing is a saved player preference.
 
-### Painted spell study (0.3.2-dev.4)
+### Particle presentation restored (0.3.2-dev.5)
 
-`PaintedSpell.gd` draws fire Bolt bodies as children of their gameplay part and short Arcane Slash sweeps as bounded Vfx children. Effective geometry controls their extent; animation never mutates gameplay. Fire accents retain the native core color. Presenter visibility and live Reduced effects apply to bodies; reset clears detached sweeps. Steam retains its bounded physical-puff simulation while its shader renders continuous volume. These are experimental presentation directions, not full-roster visual or audio sign-off.
+The painted Bolt and Slash study was rejected. Bolt again uses the existing native body and particle flame trails; Slash uses the raster sweep and moving edge emissions. The unused painted-stroke renderer is removed. Painted ghost/wisp comparison and Steam's physical-puff simulation remain intact. Particle systems are the preferred direction for subsequent spell presentation work.

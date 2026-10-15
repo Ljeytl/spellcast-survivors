@@ -102,7 +102,7 @@ func tick_all(dt: float) -> void:
 func damage_profile(text: String, presenting: bool) -> Array:
 	clear()
 	vfx.presenter.enabled = presenting
-	var foes = [foe(Vector2(80 if text.contains("slash") else 150, 0)), foe(Vector2(300, 10)), foe(Vector2(450, -10))]
+	var foes = [foe(Vector2(150, 0)), foe(Vector2(300, 10)), foe(Vector2(450, -10))]
 	cast(text, 2.5, 7)
 	var out = []
 	for f in foes:
@@ -121,55 +121,12 @@ func run():
 	await process_frame
 	check(vfx._active, "Vfx active with a camera")
 
-	var bolt_info: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells.bolt.duplicate(true)
-	bolt_info.incantation = "bolt"
-	Defs.register(preload("res://scripts/engine/SpellTemplate.gd").build(bolt_info, 1.0, {}))
-
 	# Read-only contract: identical damage with and without VFX presenting.
-	for text in ["fiery spear", "fireball", "spear", "flame wall", "flaming bolt", "arcane slash"]:
+	for text in ["fiery spear", "fireball", "spear", "flame wall"]:
 		var on = damage_profile(text, true)
 		var off = damage_profile(text, false)
-		if text in ["flaming bolt", "arcane slash"]:
-			check(on.any(func(value): return value > 0.0), "Painted cast damage fixture lands: " + text)
 		check(on == off, "VFX never change gameplay: " + text + " " + str(on) + " vs " + str(off))
 	vfx.presenter.enabled = true
-
-	clear()
-	foe(Vector2(350, 0))
-	var fire_cast = cast("flaming bolt", 0.05)
-	var painted = fire_cast.parts[0].get_children().filter(func(child): return child.is_in_group("painted_spells"))
-	check(painted.size() == 1, "Fire-accented Bolt owns one painted body")
-	if painted.size() == 1:
-		var stroke = painted[0]
-		stroke._process(0.0)
-		var old_width: float = stroke.scale.x
-		fire_cast.parts[0].def.geometry.radius = float(fire_cast.parts[0].geo("radius", 10.0)) * 2.0
-		stroke._process(0.0)
-		check(is_equal_approx(stroke.scale.x, old_width * 2.0), "Painted flame follows effective radius")
-		vfx.reduced_effects = true
-		stroke._process(0.0)
-		check(stroke.material.get_shader_parameter("reduced"), "Live flame follows reduced preference")
-		vfx.reduced_effects = false
-		vfx.presenter.enabled = false
-		stroke._process(0.0)
-		check(not stroke.visible, "Presenter toggle hides flame")
-		vfx.presenter.enabled = true
-	clear()
-	foe(Vector2(80, 0))
-	cast("arcane slash", 0.01)
-	var sweeps = get_nodes_in_group("painted_spells").filter(func(child): return child.slash and not child.is_queued_for_deletion())
-	check(sweeps.size() == 1, "Arcane Slash owns one painted sweep")
-	if sweeps.size() == 1:
-		var sweep = sweeps[0]
-		check(is_equal_approx(sweep.scale.x, 120.0 * 2.08), "Sweep canvas follows attack radius")
-		sweep.set_process(false)
-		sweep._process(0.12)
-		check(not sweep.is_queued_for_deletion(), "Sweep remains through attack gesture")
-		sweep._process(0.16)
-		check(sweep.is_queued_for_deletion(), "Sweep expires after its short painted tail")
-	clear()
-	await process_frame
-	check(get_nodes_in_group("painted_spells").is_empty(), "Reset removes painted bodies and sweeps")
 
 	var cinder_info: Dictionary = preload("res://scripts/core/GameData.gd").file("spells").spells.cinder_field.duplicate(true)
 	cinder_info.incantation = "cinder field"
@@ -287,7 +244,7 @@ func run():
 		for p in c.parts:
 			shown = shown or vfx.presents(p)
 		if spell == "slash":
-			shown = shown or get_nodes_in_group("painted_spells").any(func(child): return child.slash and not child.is_queued_for_deletion())
+			shown = shown or not vfx.elements.slashes.is_empty()
 		check(shown, "Bare %s is presented (arcane look), no placeholder art" % spell)
 
 	clear()
