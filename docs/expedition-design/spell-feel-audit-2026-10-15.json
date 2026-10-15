@@ -1,0 +1,546 @@
+{
+  "source_revision": "a96ddd56c42e8759371ef7918dc564d016cbdbf0",
+  "date": "2026-10-15",
+  "status": "PROVISIONAL VISUAL AUDIT; full experiential gate INCOMPLETE",
+  "columns": [
+    "fantasy",
+    "visuals",
+    "motion_behavior",
+    "casting_impact",
+    "sound_camera",
+    "readability"
+  ],
+  "evidence_directory": "/Users/ljeytl/.codex/visualizations/2026/10/15/spell-feel-audit-a96ddd5",
+  "rows": [
+    {
+      "id": "bolt",
+      "name": "Bolt",
+      "grades": [
+        "B-",
+        "B-",
+        "B",
+        "C+",
+        "U",
+        "B"
+      ],
+      "observed": "A compact white-purple head and short trail communicate a quick directed shot. The contact is much less memorable than the launch; the staff does not visibly author a distinct flick.",
+      "idea": "Preserve the fast minimal projectile. Tighten the staff-tip release and give the real contact one clean directional spark rather than a larger explosion.",
+      "partial_mean": 2.74,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "life",
+      "name": "Life",
+      "grades": [
+        "C+",
+        "C+",
+        "C+",
+        "C",
+        "U",
+        "B-"
+      ],
+      "observed": "The green-gold cross ring clearly signals healing, but floats around the caster like a buff badge rather than a decisive breath of recovery.",
+      "idea": "Pull a compact pulse into the body on the actual heal, then let a few warm motes rise. Keep it instant and distinguish it from the sustained Regeneration ring.",
+      "partial_mean": 2.32,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "regeneration",
+      "name": "Regeneration",
+      "grades": [
+        "C",
+        "C+",
+        "C",
+        "C",
+        "U",
+        "C+"
+      ],
+      "observed": "The sustained yellow-green crosses and ring remain visible, but look very similar to Life. Continuous decoration communicates an active buff more than living repair.",
+      "idea": "Make a quiet breathing rhythm with sparse leaves gathering inward on recovery. Preserve a low steady aura and avoid repeated full Life bursts.",
+      "partial_mean": 2.12,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "ice_blast",
+      "name": "Ice Blast",
+      "grades": [
+        "B-",
+        "C+",
+        "B-",
+        "C+",
+        "U",
+        "B-"
+      ],
+      "observed": "The cold fan, scattered chips and icy contact read as frost. Large outlined shards and scattered white marks dominate the release without a particularly brittle material transition.",
+      "idea": "Preserve the fan. Give the advancing shards a crisp edge and make contacts fracture into smaller directional chips, with fewer persistent white marks around the caster.",
+      "partial_mean": 2.54,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "earth_shield",
+      "name": "Earth Shield",
+      "grades": [
+        "B-",
+        "B-",
+        "B-",
+        "B",
+        "U",
+        "C+"
+      ],
+      "observed": "The triggered eruption has recognizable stone chunks and a convincing outward breakup. The brief protection and its consumption are less explicit than the eruption itself; this fixture triggers the block directly.",
+      "idea": "Make one protective stone shell assemble, visibly take the incoming hit, then break into the existing eruption. The single charge should look spent afterward.",
+      "partial_mean": 2.68,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "lightning",
+      "name": "Lightning",
+      "grades": [
+        "B",
+        "B-",
+        "B-",
+        "B",
+        "U",
+        "B"
+      ],
+      "observed": "A blue warning ring, descending white bolt, bright impact and dark residue form a recognizable strike. The caster stays visually detached and the aftermath is mostly a ring/scorch rather than branching charge.",
+      "idea": "Build the staff gather/slam connection, then let a few ground arcs spread from the actual strike and die away. Preserve the strong bolt; do not add new damage or casting delay by implication.",
+      "partial_mean": 2.88,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "meteor_shower",
+      "name": "Meteor Shower",
+      "grades": [
+        "B+",
+        "B",
+        "B+",
+        "B+",
+        "U",
+        "B-"
+      ],
+      "observed": "Separate hot arrivals, bright contacts and cooling patches give this a strong repeated-impact identity. The fire has weight and color; the coarse dark residue is less convincing than the arrivals.",
+      "idea": "Keep the stagger and repeated impacts. Refine descending trails and crater cooling so each arrival becomes hot debris and spent ground without synchronizing the shower.",
+      "partial_mean": 3.12,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "ember_spear",
+      "name": "Ember Spear",
+      "grades": [
+        "B+",
+        "B-",
+        "B",
+        "B",
+        "U",
+        "C+"
+      ],
+      "observed": "The long hot lance and persistent fiery route strongly communicate burning penetration. The straight black strip with orange outline looks mechanically drawn compared with the lively flames above it.",
+      "idea": "Preserve heat, reach and force. Break up the strip into an irregular scorched path with moving low flame, keeping the spear head distinct from its damaging wake.",
+      "partial_mean": 2.86,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "infestation",
+      "name": "Infestation",
+      "grades": [
+        "C+",
+        "C",
+        "C+",
+        "C",
+        "U",
+        "C+"
+      ],
+      "observed": "Green black-outlined blobs travel and collect around enemies. They suggest poison, but host infection and transmission look like similar loose particles rather than a sickness taking hold.",
+      "idea": "Anchor a compact crawling/pulsing growth to the infected host, then let a visibly released spore travel to the next host. Give application and spread different motion.",
+      "partial_mean": 2.18,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "cinder_field",
+      "name": "Cinder Field",
+      "grades": [
+        "B-",
+        "B-",
+        "C+",
+        "C+",
+        "U",
+        "B-"
+      ],
+      "observed": "Orange fire over dark ground convincingly occupies an area. A hard circular border and repeated tall flames read more as a generic fire patch than a bed of cinders.",
+      "idea": "Keep the heat and saturated color. Emphasize glowing coal pockets, low licking flame and hot ash stirred at real damage contacts; let the edge cool unevenly.",
+      "partial_mean": 2.54,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "arcane_orbit",
+      "name": "Arcane Orbit",
+      "grades": [
+        "C+",
+        "C",
+        "B-",
+        "C+",
+        "U",
+        "B"
+      ],
+      "observed": "Two large purple-white bodies visibly orbit and touch enemies, but their solid outlined, simply shaded surfaces resemble physical balls more than controlled magical energy.",
+      "idea": "Keep two clear bodies and their orbit. Let light circulate within each shell and leave a short curved particle wake; concentrate the contact accent on the leading edge.",
+      "partial_mean": 2.46,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "focus_ray",
+      "name": "Focus Ray",
+      "grades": [
+        "B-",
+        "C+",
+        "B-",
+        "C+",
+        "U",
+        "B"
+      ],
+      "observed": "A clear white-purple beam connects caster and target, tracks and stops. Its uniform striped body and modest endpoint response communicate a line better than sustained pressure.",
+      "idea": "Keep the clean beam. Add subtle forward flow and a concentrated contact point that responds to real ticks, plus a brief narrowing shutdown rather than extra screen effects.",
+      "partial_mean": 2.6,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "rune_trap",
+      "name": "Rune Trap",
+      "grades": [
+        "B",
+        "B-",
+        "B-",
+        "B",
+        "U",
+        "C+"
+      ],
+      "observed": "The glyph circle and triggered burst communicate authored magic. Similar rings in the armed, warning and aftermath phases make the state transition less distinct than it could be.",
+      "idea": "Keep the runic geometry. Draw the inscription once, wait quietly, then snap its symbols inward during the actual trigger warning before the blast opens outward.",
+      "partial_mean": 2.74,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "seeker",
+      "name": "Seeker",
+      "grades": [
+        "B-",
+        "B",
+        "C+",
+        "C",
+        "U",
+        "C+"
+      ],
+      "observed": "The painted ghost is a clear centerpiece and turns while pursuing. Close pursuit tends to stack bodies over the victim, with weak separation between gliding, touching and dealing damage.",
+      "idea": "Preserve the body. Add a genuinely lagging trail and a distinct real-contact contraction/release. Compare deliberate passing attacks only as a separately approved behavior prototype.",
+      "partial_mean": 2.46,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "firewalk",
+      "name": "Fire Walk",
+      "grades": [
+        "B-",
+        "C+",
+        "B-",
+        "C",
+        "U",
+        "C+"
+      ],
+      "observed": "A low fiery wake visibly follows the caster path. Small isolated flame clumps and checker-like scorch make the trail feel intermittent rather than a continuous hot wake.",
+      "idea": "Keep the ground-hugging scale. Connect neighboring flames through short-lived heat and embers, show ignition directly behind each step, and let older patches cool in path order.",
+      "partial_mean": 2.4,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "cross_blade",
+      "name": "Cross Blade",
+      "grades": [
+        "C-",
+        "D+",
+        "C+",
+        "D+",
+        "U",
+        "C-"
+      ],
+      "observed": "At gameplay scale the blade is a thin dark rotating cross accompanied by white flecks. Its body and contacts have too little presence for a substantial spinning cutter, and the stronger return is not visually obvious.",
+      "idea": "Give the existing blade a solid readable edge and short curved cutting wake without expanding its hitbox. Accent the reversal and actual return contacts; keep the three-phase behavior.",
+      "partial_mean": 1.66,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "BELOW C BAND"
+    },
+    {
+      "id": "lightning_bolt",
+      "name": "Lightning Bolt",
+      "grades": [
+        "B",
+        "C+",
+        "B",
+        "B",
+        "U",
+        "C+"
+      ],
+      "observed": "Repeated local lightning impacts and expanding rings give a strong electrical payoff. The traveling cause is easily lost among the later bright blasts and dark residue.",
+      "idea": "Make each projectile contact leave a compact electrical mark that visibly becomes its delayed sky strike. Preserve the cascade while shortening distracting spent-ring emphasis.",
+      "partial_mean": 2.72,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "life_bolt",
+      "name": "Life Bolt",
+      "grades": [
+        "C+",
+        "C+",
+        "B-",
+        "C",
+        "U",
+        "C-"
+      ],
+      "observed": "A shot is followed by green-gold rings and crosses among enemies and around the wizard. The shared healing motif makes the enemy hit, available recovery and received healing difficult to distinguish.",
+      "idea": "Use a small planted sprout for available recovery and reserve the inward warm pulse for actual healing. Preserve the offensive projectile; do not make damaging contact look like healing the enemy.",
+      "partial_mean": 2.2,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "meteor_spear",
+      "name": "Meteor Spear",
+      "grades": [
+        "B+",
+        "B-",
+        "B",
+        "B+",
+        "U",
+        "C"
+      ],
+      "observed": "The burning line followed by separate falling fireballs gives the combination a substantial escalating payoff. Hard trail rectangles and overlapping contact bursts make its causal sequence less elegant than its force.",
+      "idea": "Keep penetration and staggered follow-up impacts. Mark the pierced contacts briefly, then make each descending meteor visibly answer a mark; refine the same artificial trail edge as Ember Spear.",
+      "partial_mean": 2.86,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "soul_bloom",
+      "name": "Soul Bloom",
+      "grades": [
+        "C+",
+        "B-",
+        "C",
+        "C",
+        "U",
+        "C-"
+      ],
+      "observed": "The slow-motion wisp comparison reveals an appealing luminous soul traveling toward the wizard. At normal speed, infection particles and arrival flashes dominate; short nearby deliveries do not consistently establish the spirit as the centerpiece. The full-health ghost delivery is especially brief.",
+      "idea": "Keep the approved spirit body and immediate gameplay delivery. Let a visible emergence and absorption remnant complete independently, and render an actual path-following trail. Do not slow healing or add orbit behavior without a separate decision.",
+      "partial_mean": 2.14,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "steam_field",
+      "name": "Steam Field",
+      "grades": [
+        "B+",
+        "B+",
+        "B",
+        "C+",
+        "U",
+        "C+"
+      ],
+      "observed": "Soft blue-white connected vapor has volume and shifting lobes; it is unmistakably different from Cinder Field. It convincingly obscures the occupied area, but local scalding consequences are less tangible than the cloud itself.",
+      "idea": "Preserve the obscuring cloud and color depth. Give its base a few directional vent streams and let genuine scald contacts briefly disturb the vapor locally; do not replace it with a transparent circle.",
+      "partial_mean": 2.84,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "prism_ray",
+      "name": "Prism Ray",
+      "grades": [
+        "B",
+        "C+",
+        "B-",
+        "C+",
+        "U",
+        "C-"
+      ],
+      "observed": "A broad central ray fans into many colored beams, strongly communicating a combination spectacle. Similar-strength branches and a busy intersection weaken the sense of one ray being refracted at a deliberate focal point.",
+      "idea": "Make a bright compact refraction knot at the real split, maintain a confident primary ray and give branches lighter material tails. Keep the rainbow fan rather than sanitizing away the fantasy.",
+      "partial_mean": 2.4,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "frost_sigil",
+      "name": "Frost Sigil",
+      "grades": [
+        "C+",
+        "C+",
+        "B-",
+        "B",
+        "U",
+        "C+"
+      ],
+      "observed": "The cold glyph distinguishes the waiting trap, but its large white detonation and dark checker-like aftermath resemble the generic explosion family more than a cold fracture.",
+      "idea": "Preserve the forceful trigger. Make frost race along the inscription and burst into brittle fragments; fade into cold rime rather than a burnt-looking patch.",
+      "partial_mean": 2.52,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "mana_bolt",
+      "name": "Magic Missile",
+      "grades": [
+        "B",
+        "B",
+        "B",
+        "C+",
+        "U",
+        "B"
+      ],
+      "observed": "Dense opening frames show a small guided dart, sparse wake and compact contact. It stays subordinate to the fight, as a passive cast should; its endpoint could be a little more tactile.",
+      "idea": "Keep the current scale and simplicity. Refine the tiny contact accent and evaluate repeated sound fatigue at the real automatic cadence; do not add a charge sequence.",
+      "partial_mean": 2.86,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "spear",
+      "name": "Bare Spear",
+      "grades": [
+        "B-",
+        "B-",
+        "B",
+        "C+",
+        "U",
+        "B-"
+      ],
+      "observed": "A narrow pointed white-purple body establishes a direct thrust and piercing line. The general casting ring is more conspicuous than the spear in some frames.",
+      "idea": "Keep one sharp point, short wake and local puncture. Reduce competing generic cast decoration before adding anything to the projectile.",
+      "partial_mean": 2.68,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "slash",
+      "name": "Bare Slash",
+      "grades": [
+        "C+",
+        "C",
+        "C+",
+        "C+",
+        "U",
+        "C+"
+      ],
+      "observed": "A short white-purple filled sector appears at the caster. It conveys affected direction but reads more as a flashing wedge than an edge carving through space.",
+      "idea": "Keep the quick cone. Concentrate light at an advancing curved edge and taper the tail, with clipped contact particles; do not reintroduce the rejected painted treatment.",
+      "partial_mean": 2.24,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "nova",
+      "name": "Bare Nova",
+      "grades": [
+        "B-",
+        "B-",
+        "B",
+        "C+",
+        "U",
+        "B"
+      ],
+      "observed": "An expanding bright rim and sparse runes communicate outward force with a clear ending. The generic cast ring overlaps its identity and weakens the sense of one meaningful front.",
+      "idea": "Let the damaging front own the release, with a compact central compression and localized edge contacts. Keep the inside quiet after the wave passes.",
+      "partial_mean": 2.74,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "field",
+      "name": "Bare Field",
+      "grades": [
+        "C+",
+        "C+",
+        "C+",
+        "C",
+        "U",
+        "C+"
+      ],
+      "observed": "A dark purple disk filled with bright moving glyphs clearly marks active magic, but resembles a decorated bubble more than a low persistent influence on the ground.",
+      "idea": "Preserve the compact rune field. Ground the glyphs and let real ticks produce a restrained outward pulse instead of constant equally bright decoration.",
+      "partial_mean": 2.24,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "orbit",
+      "name": "Bare Orbit",
+      "grades": [
+        "B-",
+        "B-",
+        "B",
+        "C+",
+        "U",
+        "B"
+      ],
+      "observed": "Small white-purple moving bodies and curved wakes make the orbit legible with less bulk than Arcane Orbit. Contacts are light and the pattern does not demand the whole screen.",
+      "idea": "Keep this restrained scale and readable orbit. Give actual contacts a tiny leading-edge spark and retire each wake naturally when its body expires.",
+      "partial_mean": 2.74,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "trap",
+      "name": "Bare Trap",
+      "grades": [
+        "C+",
+        "C+",
+        "C+",
+        "C+",
+        "U",
+        "C+"
+      ],
+      "observed": "A quiet broken ring waits, then becomes a compact runic burst. It is serviceable but the arming and waiting distinction is subtle, and nearby cast-circle decoration competes with the trap.",
+      "idea": "Use one short closing inscription to signal armed, a quiet waiting state, and one snap on trigger. Empty expiry should erase it without a blast.",
+      "partial_mean": 2.3,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "C BAND OR HIGHER"
+    },
+    {
+      "id": "atomic",
+      "name": "Atomic",
+      "grades": [
+        "D+",
+        "C-",
+        "C",
+        "C+",
+        "U",
+        "B-"
+      ],
+      "observed": "The effect clears enemies after expanding gold lines and a screen tint, but the thin rectangular frame and pale overlay feel like a screen treatment rather than an overwhelming magical release. The fixture directly triggers the blast, not its earning/input flow.",
+      "idea": "Give the release one strong central collapse-and-expansion and a coherent dissipating shock front. Preserve a brief readable recovery; build exceptional weight through contrast instead of a longer opaque flash.",
+      "partial_mean": 2.0,
+      "verdict": "INCOMPLETE",
+      "observed_floor": "BELOW C BAND"
+    }
+  ],
+  "evidence_manifest_sha256": "08453c0b60205badfb520c95fec0398b96c7e87feddc059faa55229c638dfa73",
+  "evidence_case_count": 46,
+  "evidence_console_error_count": 0
+}

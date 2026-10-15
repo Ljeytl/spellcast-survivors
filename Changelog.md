@@ -1,3 +1,9 @@
+# Design audit — Spell feel baseline (15 October 2026)
+
+- Record provisional visual scorecards and fantasy-led improvement ideas for all 31 current player spell/form/special sequences in doc 18, with a machine-readable snapshot. Preserve simple Magic Missile and the stronger meteor, steam and burning-spear identities.
+- Apply the agreed C-band minimum in every column and B arithmetic average; keep untested sound/camera and full experiential verdicts incomplete. Add grading controls and scorecard consistency checks.
+- Record observed Cross Blade and Atomic weaknesses, Soul Bloom emergence/trail issues, selective staff-gesture opportunities, and remaining audio/input/crowd/accessibility evidence. No runtime or art changes.
+
 # Design clarification — Spell simplicity (15 October 2026)
 
 - Make simple, complete spell presentation an explicit quality target: passive Magic Missile stays light, Bolt stays quick and deliberate, and Lightning and Meteor Shower earn larger sequences. Cast phases are optional design considerations, not required effects layers.

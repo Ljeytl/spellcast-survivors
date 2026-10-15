@@ -48,7 +48,44 @@ def validate_feel_sequences(text):
         raise ValueError('Missing spell sequences: ' + ', '.join(sorted(missing)))
 
 
+FEEL_POINTS = {'A+': 4.3, 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0,
+               'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+               'D+': 1.3, 'D': 1.0, 'D-': 0.7, 'F': 0.0}
+
+
+def feel_gate(grades):
+    if len(grades) != 6 or any(grade == 'U' for grade in grades):
+        return 'INCOMPLETE'
+    values = [FEEL_POINTS[grade] for grade in grades]
+    return 'PASS' if min(values) >= 1.7 and sum(values) / 6 >= 3.0 else 'BELOW TARGET'
+
+
 class DocumentationChecks(unittest.TestCase):
+    def test_audit_scorecard(self):
+        audit = json.loads(content('spell-feel-audit-2026-10-15.json'))
+        rows = audit['rows']
+        self.assertEqual(len(rows), 31)
+        self.assertEqual(len({row['id'] for row in rows}), len(rows))
+        sequence_text = '\n'.join('**Runtime:** `' + row['id'] + '`' for row in rows)
+        validate_feel_sequences(sequence_text)
+        document = content('18-spell-system-rewrite.md')
+        for row in rows:
+            self.assertEqual(len(row['grades']), 6)
+            self.assertTrue(all(grade in FEEL_POINTS or grade == 'U' for grade in row['grades']))
+            values = [FEEL_POINTS[grade] for grade in row['grades'] if grade != 'U']
+            self.assertAlmostEqual(row['partial_mean'], round(sum(values) / len(values), 2))
+            self.assertEqual(row['verdict'], feel_gate(row['grades']))
+            expected = '| `' + row['id'] + '` | ' + row['name'] + ' | ' + ' | '.join(row['grades']) + ' | ' + format(row['partial_mean'], '.2f') + ' |'
+            self.assertIn(expected, document)
+
+    def test_feel_grade_controls(self):
+        self.assertEqual(feel_gate(['B'] * 6), 'PASS')
+        self.assertEqual(feel_gate(['A+', 'A', 'A', 'A', 'A', 'C-']), 'PASS')
+        self.assertEqual(feel_gate(['A+'] * 5 + ['D+']), 'BELOW TARGET')
+        self.assertEqual(feel_gate(['B-'] * 6), 'BELOW TARGET')
+        self.assertEqual(feel_gate(['A+'] * 5 + ['U']), 'INCOMPLETE')
+        self.assertEqual(feel_gate(['A+'] * 5), 'INCOMPLETE')
+
     def test_runtime_feel_coverage(self):
         validate_feel_sequences(content('18-spell-system-rewrite.md'))
 
