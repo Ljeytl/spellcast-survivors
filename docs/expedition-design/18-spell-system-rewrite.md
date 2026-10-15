@@ -44,6 +44,17 @@ Read the full sequence aloud before choosing an emitter, sprite or shader. Proto
 
 Each current-spell script covers intention, caster/staff, release and motion, contact, sound/camera, ending/readability, and any gameplay decision. Future scripts inherit the shared rules below and explicitly leave unresolved mechanics open. No phase has to be lengthy: a quick bolt can gather, release and recover in one compact gesture. A lasting field needs a sustained phase; an instant slash does not need a forced travel phase.
 
+### Simplicity and contrast
+
+**Simple can be the finished design.** Every spell needs a clear identity; it does not need equal ceremony or complexity. The phases below are questions to consider, not a mandatory effects checklist. Combine them into an instant or omit them when they do not serve the spell. A B-quality spell feels complete, not crowded with particles, gestures, sounds or shake.
+
+- **Magic Missile:** a small automatic release, clean seeking trail and satisfying little contact. Quiet and unobtrusive enough to repeat constantly; no elaborate charge or camera shake.
+- **Bolt:** a quick deliberate staff flick and crisp projectile impact. More presence than the passive attack because the player chose to cast it, while staying immediate.
+- **Lightning:** gather, slam, warning, strike and aftershock. Its larger sequence earns its place through the spell's fantasy and impact.
+- **Meteor Shower:** separate heavy arrivals, preserving the enjoyed stagger and repeated impacts.
+
+Keep this contrast across the roster. Light, frequent spells give heavier casts room to feel powerful. Improve a weak spell by clarifying its essential gesture, motion or contact before adding more layers. Simplicity is not an unfinished state or a lower quality grade.
+
 ### Shared casting sequence
 
 1. **Preparing the word:** the staff gathers the spell's material while the player types or uses an existing preparation window. A small responsive cue starts immediately. A recognizable head of fire, rising stone chips or snapping arcs identifies the coming spell without becoming a second UI. Preparation strength follows real readiness, not keystroke count alone.

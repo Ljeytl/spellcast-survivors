@@ -1,3 +1,7 @@
+# Design clarification — Spell simplicity (15 October 2026)
+
+- Make simple, complete spell presentation an explicit quality target: passive Magic Missile stays light, Bolt stays quick and deliberate, and Lightning and Meteor Shower earn larger sequences. Cast phases are optional design considerations, not required effects layers.
+
 # Design update — Spell feel specification (15 October 2026)
 
 - Expand canonical doc 18 with complete spell sequences for the current roster, combinations, automatic and bare attacks, future catalog, signature concepts and enemy casts. Describe staff gestures, material motion, contact, sound, camera and aftermath together.
