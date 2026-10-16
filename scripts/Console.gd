@@ -1260,8 +1260,8 @@ func vfx_debug(args: Array):
 			vfx.clear()
 			add_output("VFX cleared.")
 		"spirit":
-			if args.size() != 2 or args[1].to_lower() not in ["auto", "ghost", "wisp"]:
-				add_output("Usage: vfx spirit auto | ghost | wisp")
+			if args.size() != 2 or args[1].to_lower() not in ["auto", "ghost", "wisp", "hybrid"]:
+				add_output("Usage: vfx spirit auto | hybrid | ghost | wisp")
 				return
 			vfx.spirit_form_override = args[1].to_lower()
 			add_output("Spirit comparison: " + vfx.spirit_form_override + " (Seeker and Soul Bloom)")

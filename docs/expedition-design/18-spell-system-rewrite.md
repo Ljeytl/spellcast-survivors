@@ -1065,3 +1065,14 @@ Combat information prioritizes health/protection, available spells, activation p
 ### Sound and production
 
 Use material-specific release/contact sounds and bounded voice priorities, not a loud sound for every particle. Align audio with authoritative contact, distinguish friendly healing from hostile effects, and keep important information visible. Historical millisecond timelines, voice counts and palette recipes are starting experiments, not accepted quality measurements. Record source/license provenance and preserve supplied art; this plan does not authorize paid commissions or mandate replacing assets.
+
+
+### Accepted spirit model — 16 October 2026
+
+The ghost/wisp hybrid at browser commit `2b0bee3` is accepted at **B-**. Preserve its rounded expressive center, tracking eyes, 1.65-width advected trail and broad soft rear transition. The solid sculpted ghost and separate fabric/strap variants were rejected. Acceptance is for the browser model, not automatic approval of every engine rendering or spell behavior.
+
+Seeker and Soul Bloom now share `scripts/vfx/SpiritVisual.gd`, with native advection and hybrid material shaders. Their gameplay hosts retain targeting, hits, healing, lifetime, caps and arrival events. Auto selects the hybrid for both; Soul Bloom retains its healing/hunting tint. The runtime fields remain in world space while the source moves. No illustration is used as the complete spirit.
+
+Translation gates: actual GPU history (including a deliberately reset-history failure), pause/resume, hide/show reset, form and size changes, host cleanup, native-game captures and the existing spell regressions. Use `tools/capture_hybrid_spirit.gd` for the controlled motion fixture and `tools/capture_hybrid_gameplay.gd` for actual spell hosts, with isolated test saves. Both hide the window and capture offscreen SubViewports. The normal headless renderer cannot establish visual quality. The native capture uses Forward+/Metal and HDR fields; Compatibility/Web does not provide equivalent HDR 2D storage in Godot 4.4.
+
+Each spirit has roughly 4 MiB of HDR color-field storage before other renderer overhead. Eight spirits held an approximately 16.7 ms median and 16.9 ms p95 frame interval in the isolated M4 Pro capture; this is not a full-game performance guarantee. Further work should preserve this accepted identity, measure heavier gameplay combinations and test additional GPUs before changing precision/resolution or appearance.
