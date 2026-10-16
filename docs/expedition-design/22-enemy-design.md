@@ -58,7 +58,7 @@ Each row is one archetype. "Answer" is the best response; everything else still 
 | **Skirmisher** | **Hit and run**: winds up, darts in, strikes, retreats out of range | Punish the commit: QUICK, traps where it retreats, chill stops the dart | Caught mid-retreat it is stunned briefly | Crouch before the dart; retreats along a readable arc |
 | **Charger** | Telegraphed dash | Sidestep; chill or shock during windup cancels it | Cancelled charge leaves it dazed and open | Existing windup line |
 | **Slammer** | Ground slam near you | Keep distance; PULLING into its own slam | Pulled into its slam, it takes its own hit | Existing slam circle |
-| **Shieldbearer** | **Immune from the front** (not 35%) | HOMING around the shield, areas, traps, flanking | Shield-side hits are wasted; the right answer bypasses it fully | Big shield facing you |
+| **Shieldbearer** | Heavy damage reduction from the front (stronger than today's 35%, not immunity; tunable) | HOMING around the shield, areas, traps, flanking | The right answer bypasses the shield entirely | Big shield facing you |
 | **Juggernaut** | Armour plates: heavy damage reduction until broken | BIG/MASSIVE or Earth-beating hits strip plates | Stripped, it is an ordinary big target | Plates visibly crack and fall off |
 | **Reflector** | Sends your projectiles back | Beams, areas, traps (non-projectiles) | Avoids feeding it; areas break its mirror | Shimmering mirror face |
 | **Burrower** | Untargetable underground, surfaces under you | Ground traps and fields (Rune Trap, Cinder Field), PULLING | Trap pops it out stunned | Moving dirt trail; surfacing ring |
@@ -74,9 +74,21 @@ Elites remain a layer on top: any archetype plus one word.
 
 A good fight mixes three layers: **fodder** (feeds you), **specialists** (each asks its question) and occasionally **one priority target**. Tension comes from conflicting answers: a Shieldbearer wall (wants HOMING) guarding a Mender (wants PIERCING) while Flankers pincer you (want an area). The director's attack-slot limit (doc 20 §3.3) and the three-questions rule keep it readable.
 
-Set pieces from the same vocabulary: the **stampede** (swarmers crossing the screen in a band, dodge or blast) and the **ring** (slow enemies closing in around you, answered by RINGED, REPULSING or a breakout).
+Set pieces keep the run moving between questions:
 
-## 7. Open questions for Aditya
+- **Stampede**: a band of swarmers crosses the screen through the centre, ignoring you; dodge it or blast it for free XP. Early (around 1:00) and repeated later.
+- **Flood**: Aditya's favourite Vampire Survivors moment, around ten minutes into the first level, when enemies pour in from every edge of the screen at once, far more than you can imagine. Weak fodder in overwhelming numbers; the answer is areas, rings and orbits, and surviving it feels like power.
+- **Ring**: slow enemies spawning in a circle around you and closing in, answered by RINGED, REPULSING or a breakout.
+
+**The flood needs the enemy runtime work first.** Measured 16 October 2026 on Aditya's M4 Pro (headless, swarmers, physics time per frame): 100 enemies 2.6 ms, 200 enemies 11.9 ms, 400 enemies 21.6 ms, 800 enemies 39.1 ms. The frame budget at 60 fps is 16.7 ms, so today's enemies top out around 250 on screen, and the run caps them at 160 (`maximum_enemies`). A real flood is several hundred, which is the batched enemy runtime in [doc 20](20-game-systems-architecture.md) §3.4. The stampede fits within today's limits.
+
+## 7. Decisions so far
+
+- 16 October 2026: the Shieldbearer is not immune from the front; its front reduction becomes stronger than 35% and stays a soft counter.
+- 16 October 2026: Flanker (pincer pairs) and Skirmisher (hit and run) are separate archetypes from the Pursuer, each with its own answer.
+- 16 October 2026: set pieces are wanted to keep the run moving: the stampede, and a Vampire Survivors–style flood around ten minutes in.
+
+## 8. Open questions for Aditya
 
 1. Soft counters (right answer about three times faster, recommended) or some hard counters (only the answer works)?
 2. Should the HUD ever name the answer (a hint on first meeting, bestiary entry), or is discovery the point?

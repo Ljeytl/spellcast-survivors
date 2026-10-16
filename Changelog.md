@@ -1,3 +1,7 @@
+# Design update — Enemy design decisions (16 October 2026)
+
+- Doc 22: Shieldbearer gets a stronger front reduction, not immunity; Flanker and Skirmisher confirmed as distinct archetypes; stampede and a ten-minute flood added as set pieces. Measured enemy cost on an M4 Pro: about 200 enemies fit a 60 fps frame today, so the flood waits on the batched enemy runtime (doc 20 §3.4).
+
 # Design draft — Enemy design (16 October 2026)
 
 - New doc 22 (draft for review): every enemy is a question and every answer is a word, modelled on Doom's combat chess. Rules for the roster (soft counters, answers from the player's elements, shapes, keywords and statuses, telegraphs, typing-time budget, fodder that gives back, priority targets), an assessment of the current twelve enemies, and a proposed core roster for 0.5 with open questions. No runtime changes.
