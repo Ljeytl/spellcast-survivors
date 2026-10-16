@@ -62,10 +62,10 @@ func advance(dt: float, origin: Vector2, velocity: Vector2) -> void:
 			var distance := maxf(offset.length(), 1.0)
 			var tangent := Vector2(-offset.y, offset.x) / distance
 			var curl := Vector2(sin(p.position.y * 0.05 + phase * 2.0), cos(p.position.x * 0.04 - phase * 1.6))
-			var flow := tangent * 82.0 * exp(-distance / 70.0) + curl * (9.0 if reduced else 19.0) - heading * 22.0
+			var flow := tangent * 62.0 * exp(-distance / 70.0) + curl * (7.0 if reduced else 13.0) - heading * 22.0
 			if arrival_age >= 0.0:
 				flow += -offset * 7.0
-			p.velocity = p.velocity.lerp(flow, 1.0 - exp(-step * 3.0))
+			p.velocity = p.velocity.lerp(flow, 1.0 - exp(-step * 5.0))
 			p.position += p.velocity * step
 		particles = particles.filter(func(p): return p.age < p.life)
 	previous_origin = origin
@@ -75,7 +75,7 @@ func _emit(center: Vector2, velocity: Vector2) -> void:
 	var seed := emission_index * 2.399963
 	var angle := heading.angle() + PI + sin(phase * 2.1) * 0.55
 	var radial := Vector2.from_angle(angle)
-	particles.append({"position": center + radial * 7.0, "velocity": radial * 18.0 + velocity * 0.18, "age": 0.0, "life": 1.4, "seed": seed})
+	particles.append({"position": center + radial * 7.0, "velocity": radial * 18.0 + velocity * 0.18, "age": 0.0, "life": 0.9, "seed": seed})
 	emission_index += 1
 	if particles.size() > LIMIT:
 		particles.pop_front()
@@ -94,7 +94,7 @@ func _upload(velocity: Vector2) -> void:
 	for p in particles:
 		var t: float = p.age / p.life
 		var local: Vector2 = to_local(p.position)
-		var density := (1.0 - smoothstep(0.55, 1.0, t)) * 0.30
+		var density := pow(1.0 - t, 1.6) * 0.30
 		cells.append(Vector4(local.x, local.y, lerpf(22.0, 2.0, t) * (1.0 + sin(phase * 2.0 - t * 5.0) * 0.14), density))
 	var count := cells.size()
 	while cells.size() < 80:

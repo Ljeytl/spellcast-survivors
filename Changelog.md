@@ -1,3 +1,7 @@
+# Wisp study refinement (16 October 2026)
+
+- Shorten the isolated wisp wake from 1.4 to 0.9 seconds, fade material from birth, reduce drifting circulation and tighten its response. Preserve the approved connected body while concentrating brightness near the core. Gameplay remains unchanged.
+
 # Spell-feel prototype — Animated core and material flow (15 October 2026)
 
 - Record the roster-wide rule: spell references depict outcomes; build the moving material system. Even the concentrated core must animate. Textures may provide material detail, but a moving or morphing full-spell illustration is not the implementation.
