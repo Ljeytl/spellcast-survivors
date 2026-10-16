@@ -1,9 +1,18 @@
-# 0.3.4-dev.3 — The threat director (16 October 2026)
+# 0.3.4-dev.8 — The threat director (16 October 2026)
 
 - **Monsters are now spawned by a Risk of Rain–style director.** It earns credits every second and spends them in bursts on monster "cards", so pressure comes in waves instead of a steady drip. Income grows with a difficulty clock that never resets across days; day phases shape it, **nightfall is the teleporter event** (the director earns about 2.4x, and more the longer the boss lives), and camp earns nothing. When the night boss dies everything still runs away.
 - **Every monster has a cost and a group size** (swarmers are cheap and come in mobs, juggernauts are expensive and come alone). **Elite words are cost multipliers**: a SHOCKING Charger costs a Charger x4. Realms will be able to ban cards and change costs and weights.
 - **Unnamed bosses (champions):** from about minute 8 the director sets aside a share of its income and buys a boss-sized Juggernaut, Shieldbearer, Slammer or Charger. They get a small arrow (no named bar), drop a potion, and flee with everyone else at the end of the night. Named bosses keep the big bar, arrow and chest.
 - All numbers live in `data/director.json`; `tools/simulate_director.gd` prints a whole expedition minute by minute next to the old spawner. The old timer spawner stays as a fallback (`encounters.json` `pacing: interval_phases`). Design: doc 23.
+# 0.3.4-dev.7 — Slower healing homecoming (16 October 2026)
+
+- Set Seeker healing-return speed to 80% of outbound speed (176 versus 220 at base), preserving speed modifiers and the quick red finishing dive. Give the player longer to see the healing spirit approach.
+
+# 0.3.4-dev.6 — Restorative Seeker return (16 October 2026)
+
+- Replace Seeker’s aggressive yellow/gold healing return with luminous mint-green material and a soft pale-green core; match the healing arrival ring and flash. Preserve the approved red finish, hunt palette and damage/healing rules.
+- Match healing-return travel speed to the outbound motion (including speed modifiers), removing the 320-versus-220 speed jump. Keep the red attack dive quick.
+- Verify the palette in a native gameplay capture against grass. Continue judging healing readability in crowded fights.
 
 # 0.3.4-dev.5 — Seeker hunts before coming home (16 October 2026)
 

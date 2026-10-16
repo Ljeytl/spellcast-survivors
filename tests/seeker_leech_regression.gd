@@ -63,7 +63,9 @@ func run():
 	spirit.step(0.001)
 	check(spirit.returning_life and spirit.target_ref == null, "Duration ends hunt and releases target for return")
 	after = enemy.current_health
+	var return_start = spirit.global_position
 	spirit.step(0.01)
+	check(absf(return_start.distance_to(spirit.global_position) - float(spirit.def.motion[0].speed) * 0.8 * 0.01) < 0.01, "Healing return travels twenty percent slower than outbound")
 	check(enemy.current_health == after, "Return does no contact damage")
 	spirit.global_position = player.global_position
 	spirit.step(0.01)
