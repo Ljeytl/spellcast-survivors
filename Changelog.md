@@ -1,3 +1,9 @@
+# 0.3.4-dev.9 — Lightning gathers, strikes and discharges (16 October 2026)
+
+- Give Lightning a staff gather and slam, blue target circle, sharp sky bolt, camera kick, and branching ground discharge that fades after impact. Increase its warning from 0.32 to 0.55 seconds; preserve damage, radius, rank scaling and damage linger. The lingering discharge is visual only.
+- Add original procedural electrical gathering and thunder audio; the lightning impact sound also serves other electrical impacts. Preserve elemental keyword accents, force cues and hostile warning colors. Reduced effects removes the local flash and calms branching/flicker.
+- Add native capture and regression coverage for timing, damage isolation, radius scaling, cancellation and cleanup. Future tuning: crowded combat readability and player assessment of the complete sound/motion sequence.
+
 # 0.3.4-dev.8 — The threat director (16 October 2026)
 
 - **Monsters are now spawned by a Risk of Rain–style director.** It earns credits every second and spends them in bursts on monster "cards", so pressure comes in waves instead of a steady drip. Income grows with a difficulty clock that never resets across days; day phases shape it, **nightfall is the teleporter event** (the director earns about 2.4x, and more the longer the boss lives), and camp earns nothing. When the night boss dies everything still runs away.

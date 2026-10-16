@@ -242,6 +242,8 @@ func cast_started(cast) -> void:
 		_blink_fx(from, cast.caster.global_position / WPS, key)
 	if flags.has("sanguine"):
 		_blood_fx(cast.caster.global_position / WPS + Vector2(0.0, -5.0))
+	if str(cast.plan.get("id", "")) == "lightning" and str(cast.get("target_group")) != "player":
+		return
 	# Cast flash at the staff (2-4 steps), principle 7: anticipation before release.
 	var at := _staff_su(cast.caster)
 	vfx.star(at.x, at.y, 3.2, 0.1, 4, BODY[key][0])
@@ -252,6 +254,32 @@ func cast_started(cast) -> void:
 
 func part_spawned(part) -> void:
 	if not enabled:
+		return
+	if str(part.cast.plan.get("id", "")) == "lightning" and part.part_name in ["mark", "strike"] and not is_hostile(part):
+		var visual = null
+		var studies: Array = part.cast.get_meta("lightning_visuals", [])
+		if part.part_name == "strike":
+			for reference in studies:
+				var candidate = reference.get_ref()
+				if is_instance_valid(candidate) and not candidate.struck and candidate.global_position.distance_to(part.global_position) < 1.0:
+					visual = candidate
+					break
+		if visual == null:
+			visual = preload("res://scripts/vfx/LightningStrikeVisual.gd").new()
+			visual.setup(part, vfx)
+			vfx.add_child(visual)
+			studies.append(weakref(visual))
+			part.cast.set_meta("lightning_visuals", studies)
+		if part.part_name == "strike":
+			visual.impact(part)
+			var strike_look := look_of(part.cast.plan)
+			var strike_pos: Vector2 = part.global_position / WPS
+			var strike_radius: float = part.geo("radius", 100.0) / WPS
+			if strike_look.accent != "":
+				_burst(strike_look.accent, strike_pos, strike_radius, _power(part))
+				_react(strike_look.native, strike_look.accent, strike_pos, clampf(strike_radius / 11.0, 0.6, 2.5))
+			_force_fx(part.cast.plan, strike_pos, strike_look.accent if strike_look.accent != "" else strike_look.native)
+		_presented[part.get_instance_id()] = weakref(part)
 		return
 	var vfam0 := str(part.def.get("vfx", {}).get("family", ""))
 	if vfam0 == "none":
