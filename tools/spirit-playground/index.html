@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spirit studies</title>
+<style>
+:root{color-scheme:dark;--ink:#e8ecdb;--quiet:#b0c4b9;--field:#263b34;--line:#50675a}
+*{box-sizing:border-box}body{margin:0;background:var(--field);color:var(--ink);font:15px/1.5 system-ui,sans-serif}main{min-height:100svh;display:flex;flex-direction:column}header{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:25px 34px 14px}h1{font:32px/1.2 Georgia,serif;font-weight:400;margin:0}header p{color:var(--quiet);margin:7px 0 0;font-size:13px}nav{display:flex;gap:5px;flex-wrap:wrap}button{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:24px;padding:8px 18px;cursor:pointer}button[aria-pressed=true]{background:#d6e2cb;color:#24382f;border-color:#d6e2cb}button:hover{border-color:#bacdbb}button:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid #eee7ba;outline-offset:4px}.stage{position:relative;flex:1;min-height:400px;overflow:hidden}canvas{display:block;width:100%;height:100%;position:absolute;inset:0;touch-action:none}.hint{position:absolute;bottom:18px;left:34px;color:var(--quiet);font-size:13px;pointer-events:none}.status{position:absolute;right:34px;bottom:18px;color:var(--quiet);font:18px Georgia,serif;pointer-events:none}footer{display:flex;gap:22px;align-items:center;justify-content:space-between;padding:15px 34px 24px;flex-wrap:wrap}.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}label{display:flex;gap:10px;align-items:center;color:var(--quiet);font-size:13px}input{accent-color:#b7d6c2;width:100px}.note{color:var(--quiet);font-size:12px}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}@media(max-width:600px){header{padding:20px;align-items:flex-start;flex-direction:column;gap:16px}h1{font-size:28px}.stage{min-height:430px}footer{padding:14px 20px 22px;gap:14px}.hint{left:20px;max-width:230px}.status{right:20px;top:16px;bottom:auto}button{min-height:44px;padding:8px 15px}.note{max-width:260px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>Spirit studies</h1><p>A little soul. A little mischief.</p></div><nav aria-label="Spirit form"><button data-mode="ghost" aria-pressed="false">Ghost</button><button data-mode="wisp" aria-pressed="false">Wisp</button><button data-mode="both" aria-pressed="false">Both</button><button data-mode="hybrid" aria-pressed="true">Hybrid</button></nav></header>
+<section class="stage" aria-label="Interactive spirit playground"><canvas id="scene" tabindex="0" aria-label="Ghost and wisp follow your pointer. Arrow keys move their target. Space pauses the animation.">Your browser needs Canvas support to display the spirits.</canvas><div class="hint">Move slowly. Sweep quickly. Stop.<br>Touch or use arrow keys, too.</div><div class="status" id="state">Gathering</div></section>
+<footer><div class="controls"><button id="demo" aria-pressed="false">Demo path</button><button id="pause" aria-pressed="false">Pause</button><label>Size <input id="size" type="range" min="0.65" max="1.65" step="0.05" value="1.15" aria-label="Spirit size"></label><label>Tail reach <input id="reach" type="range" min="0.5" max="1.5" step="0.05" value="1" aria-label="Tail reach"></label><label>Follow speed <input id="follow" type="range" min="0.6" max="1.6" step="0.05" value="1" aria-label="Follow speed"></label><label><input id="gentle" type="checkbox" style="width:auto">Gentle motion</label></div><span class="note">Move, turn, stop. Let the material catch up.</span></footer>
+<span class="sr" id="announcement" aria-live="polite"></span>
+</main>
+<script src="study.js"></script>
+</body>
+</html>
