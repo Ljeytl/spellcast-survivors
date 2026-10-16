@@ -8,7 +8,7 @@ Move the pointer over the field. Touch works too; focus the field and use arrow 
 
 The original ghost and soul-wisp concept images are the target, not the earlier Godot light-and-wake study. Preserve broad overlapping folds, cream/aqua color depth, an expressive ghost face and a warm light nested inside the wisp. This is an exploratory translation and tuning surface, not an accepted spell replacement.
 
-The ghost is one smoothly joined implicit volume: rounded head, shared shoulder and three curling folds. Fold positions lag movement, and the visible overlap changes with pose. Flattened folds, softened color bands and translucent edges reduce the sculpted appearance. Surface lighting remains in world space; eyes project onto the rounded head, track the target and blink. This is a stylized deformation model, not cloth simulation.
+The ghost now uses three overlapping translucent sheets with moving centerlines, broad color bands and tapering curls. The rounded facial area fades into the sheet roots; eyes track over an implied curved surface. The solid ray-marched shoulder and body have been removed after continued C- feedback. This is a stylized sheet model, not cloth simulation. It remains a visual candidate awaiting review.
 
 The wisp emits density, warmth and inner material into a 512-square field. Material advects through a curling velocity field, stays behind the moving source and dissipates. Half-float textures avoid visible quantization where supported; an 8-bit fallback has lower material quality. This is an advected field, not a pressure-solved fluid simulation. Tail reach controls dissipation; the ghost uses it for fold length. Press S while the field is focused to inspect silhouettes.
 
@@ -16,7 +16,7 @@ Research informed the separation of emitted material and retained folds: [Flurry
 
 ## Carrying the result into the engine
 
-Preserve the selected form and numeric response. The current candidate is not visually approved. Port pursuit, gaze projection, fold lag and joined volume independently from the wisp's source, field transport and material shading. WebGL shaders require an engine-specific implementation and comparative captures; identical appearance is not automatic.
+Preserve the selected form and numeric response. The current candidate is not visually approved. Port pursuit, gaze projection, fold lag and sheet compositing independently from the wisp's source, field transport and material shading. WebGL shaders require an engine-specific implementation and comparative captures; identical appearance is not automatic.
 
 Before integration, record the same hover, slow drift, fast pursuit, abrupt turn and stop paths in both implementations at the same apparent scale and timestep. Compare reference silhouette/material fidelity separately from motion matching. This playground does not establish game-scale readability, combat behavior, sound, camera or performance grades.
 

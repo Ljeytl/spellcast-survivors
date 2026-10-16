@@ -13,25 +13,23 @@ canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();paused=true;di
 function program(v,f){const p=gl.createProgram();for(const [type,src] of [[gl.VERTEX_SHADER,v],[gl.FRAGMENT_SHADER,f]]){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));gl.attachShader(p,s);}gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;}
 const quadVertex=`attribute vec2 position;uniform vec2 viewport;varying vec2 point;void main(){point=position;gl_Position=vec4(position.x/viewport.x*2.-1.,1.-position.y/viewport.y*2.,0.,1.);}`;
 const ghostProgram=program(quadVertex,`precision highp float;
-varying vec2 point;uniform vec4 nodes[30];uniform vec3 head;uniform vec2 axis;uniform float radius;uniform vec3 gaze;uniform float clock;uniform float blink;uniform float silhouette;
-float join(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
-float field(vec3 p){vec3 q=(p-head)/vec3(1.,.96,1.);float d=length(q)-radius;vec3 a=head-vec3(axis,0.)*radius*.2,b=head-vec3(axis,0.)*radius*1.15;vec3 ab=b-a,ap=p-a;ap.z*=2.0;float h=clamp(dot(ap,ab)/dot(ab,ab),0.,1.);d=join(d,length(ap-ab*h)-radius*mix(.75,.43,h),radius*.42);
-for(int j=0;j<3;j++){for(int i=0;i<9;i++){vec3 a=nodes[j*10+i].xyz,b=nodes[j*10+i+1].xyz;vec3 ab=(b-a)*vec3(1.,1.,2.8),ap=(p-a)*vec3(1.,1.,2.8);float h=clamp(dot(ap,ab)/max(dot(ab,ab),.01),0.,1.);float tail=length(ap-ab*h)-mix(nodes[j*10+i].w,nodes[j*10+i+1].w,h);tail+=radius*.035*sin((p.x-head.x)*.11+(p.y-head.y)*.07+sin(p.z*.09))*smoothstep(radius*.5,radius*1.3,length(p-head));d=join(d,tail,radius*.30);}}
-return d*.30;}
-void main(){vec3 p=vec3(point,head.z+radius*1.5);float depth=0.;bool hit=false;
-for(int i=0;i<112;i++){float d=field(p);if(d<.32){hit=true;break;}depth+=max(d,.2);p.z-=max(d,.2);if(depth>radius*3.5)break;}
-if(!hit)discard;vec2 e=vec2(.65,0.);vec3 n=normalize(vec3(field(p+e.xyy)-field(p-e.xyy),field(p+e.yxy)-field(p-e.yxy),field(p+e.yyx)-field(p-e.yyx)));
-vec3 local=(p-head)/radius;float light=dot(n,normalize(vec3(-.35,-.65,.9)))*.5+.5;
-float paint=sin(local.x*8.+sin(local.y*5.))*sin(local.y*7.+local.z*3.)*.018;
-float shade=clamp(light+paint,0.,1.);float bands=.30+.30*smoothstep(.35,.54,shade)+.22*smoothstep(.63,.81,shade)+.12*smoothstep(.83,.97,shade);vec3 color=mix(vec3(.42,.61,.65),vec3(.96,.965,.86),bands);
-vec3 f=normalize(gaze),right=normalize(cross(vec3(0.,1.,0.),f)),up=normalize(cross(f,right));vec3 radial=normalize(local);vec2 uv=vec2(dot(radial,right),dot(radial,up));float front=dot(radial,f);float eyes=0.,glint=0.;
+varying vec2 point;uniform vec4 nodes[60];uniform vec3 head;uniform vec2 axis;uniform float radius;uniform vec3 gaze;uniform float clock;uniform float blink;uniform float silhouette;
+vec4 over(vec4 a,vec4 b){float alpha=b.a+a.a*(1.-b.a);return vec4((b.rgb*b.a+a.rgb*a.a*(1.-b.a))/max(alpha,.001),alpha);}
+void main(){vec4 body=vec4(0.);vec2 local=(point-head.xy)/radius;
+for(int j=0;j<3;j++){
+float best=1000.,across=0.,along=0.;
+for(int i=0;i<19;i++){vec2 a=nodes[j*20+i].xy,b=nodes[j*20+i+1].xy,ab=b-a;float t=clamp(dot(point-a,ab)/max(dot(ab,ab),.01),0.,1.);vec2 delta=point-mix(a,b,t);float width=mix(nodes[j*20+i].w,nodes[j*20+i+1].w,t);float metric=length(delta)/max(width,.3);if(metric<best){best=metric;across=dot(delta,(vec2(-ab.y,ab.x)/max(length(ab),.001)))/max(width,.3);along=(float(i)+t)/19.;}}
+float cover=1.-smoothstep(.94,1.03,best);float fold=across+.24*sin(along*7.+float(j)*1.7+clock*.7);float crest=smoothstep(-.8,-.3,fold)*(1.-smoothstep(.15,.7,fold));float stripe=smoothstep(.30,.44,fold)*(1.-smoothstep(.60,.76,fold));
+vec3 shade=mix(vec3(.35,.55,.61),vec3(.70,.83,.80),crest);shade=mix(shade,vec3(.83,.91,.83),stripe*.48);float root=1.-smoothstep(.03,.38,along);shade=mix(shade,vec3(.90,.93,.82),root*.85);
+float opacity=cover*mix(.90,.38,smoothstep(.15,1.,along))*mix(.55,1.,1.-pow(abs(across),3.));body=over(body,vec4(shade,clamp(opacity,0.,1.)));
+}
+float rr=dot(local,local);float headCover=1.-smoothstep(.96,1.015,sqrt(rr));float rear=dot(local,axis);headCover*=mix(.1,1.,smoothstep(-.95,-.12,rear));
+float wash=smoothstep(-.65,.4,-local.y-local.x*.25);vec3 color=mix(vec3(.71,.83,.78),vec3(.97,.96,.83),wash);
+float stroke=sin(local.x*4.+local.y*6.+sin(local.y*3.));color=mix(color,vec3(.86,.91,.81),smoothstep(.35,.65,stroke)*.20);
+vec3 radial=normalize(vec3(local,sqrt(max(.001,1.-rr)))),f=normalize(gaze),right=normalize(cross(vec3(0.,1.,0.),f)),up=normalize(cross(f,right));vec2 uv=vec2(dot(radial,right),dot(radial,up));float front=dot(radial,f),eyes=0.,glint=0.;
 for(int i=0;i<2;i++){float side=float(i)*2.-1.;vec2 q=(uv-vec2(side*.27,.04))/vec2(.145+side*.009,(.245+side*.015)*max(.08,1.-blink));eyes=max(eyes,1.-smoothstep(.93,1.07,dot(q,q)));vec2 h=(uv-vec2(side*.27-.025,-.025))/vec2(.022,.038);glint=max(glint,1.-smoothstep(.75,1.1,dot(h,h)));}
-eyes*=smoothstep(.72,.80,front)*(1.-smoothstep(1.10,1.3,length(local)));color=mix(color,vec3(.045,.15,.20),eyes);color+=vec3(.25,.39,.40)*glint*eyes*(1.-blink);
-float trailing=smoothstep(.10,2.15,dot(local.xy,-axis));
-color=mix(color,color*vec3(.65,.86,.96),trailing*.72);
-float stroke=sin(local.x*5.+local.y*3.+sin(local.y*4.+local.z*3.));color=mix(color,color*vec3(.68,.84,.90),smoothstep(.15,.75,stroke)*.22*(.25+trailing));
-float edge=smoothstep(.04,.50,abs(n.z));float opacity=mix(.96,.28,trailing)*mix(.55,1.,edge);
-if(silhouette>.5){color=vec3(.025,.045,.035);opacity=1.;}gl_FragColor=vec4(color,opacity);
+eyes*=smoothstep(.72,.80,front);color=mix(color,vec3(.045,.15,.20),eyes);color+=vec3(.25,.39,.40)*glint*eyes*(1.-blink);body=over(body,vec4(color,headCover));
+if(body.a<.005)discard;if(silhouette>.5)body=vec4(.025,.045,.035,1.);gl_FragColor=body;
 }`);
 const fluidProgram=program(quadVertex,`precision highp float;
 uniform sampler2D previous;uniform vec2 origin;uniform vec2 oldOrigin;uniform float span;uniform float oldSpan;uniform vec2 source;uniform vec2 oldSource;uniform vec2 heading;uniform float radius;uniform float dt;uniform float reach;uniform float clock;
@@ -92,17 +90,17 @@ s.gx=mix(s.gx,gx,1-Math.exp(-dt*13));s.gy=mix(s.gy,gy,1-Math.exp(-dt*13));
 
 }
 function drawGhost(s,dt){
-const r=s.radius,nodes=new Float32Array(120),ca=Math.cos(s.angle),sa=Math.sin(s.angle),bob=Math.sin(time*1.7)*r*.045;
+const r=s.radius,nodes=new Float32Array(240),ca=Math.cos(s.angle),sa=Math.sin(s.angle),bob=Math.sin(time*1.7)*r*.045;
 let minX=s.x-r*1.5,maxX=s.x+r*1.5,minY=s.y-r*1.5,maxY=s.y+r*1.5;
-for(let j=0;j<3;j++)for(let i=0;i<10;i++){
-const u=i/9,phi=j*TAU/3+time*.22,turn=s.turn*u*.45;
+for(let j=0;j<3;j++)for(let i=0;i<20;i++){
+const u=i/19,phi=j*TAU/3+time*.22,turn=s.turn*u*.45;
 const length=[3.0,2.65,3.3][j]*r*reach*(1+clamp(s.speed/700,0,1)*.30);
-const hook=smooth(.60,1,u);const back=r*.35+length*u-(1-Math.cos(hook*Math.PI))*r*.30;
+const hook=smooth(.60,1,u);const back=-r*.20+length*u-(1-Math.cos(hook*Math.PI))*r*.30;
 const side=Math.cos(phi)*r*(.40+Math.sin(u*Math.PI)*.50)+Math.sin(time*1.2-u*4+j)*r*.30*u+Math.sin(hook*Math.PI)*r*.65*(j===1?-1:1)+s.turn*r*u*.7;
 const a=s.angle-turn,x=s.x-Math.cos(a)*back-Math.sin(a)*side,y=s.y-Math.sin(a)*back+Math.cos(a)*side+bob,z=Math.sin(phi)*r*.28*(1-u)+Math.sin(u*5-time*.7+j)*r*.23*Math.sin(u*Math.PI);
-const width=r*[.46,.48,.40][j]*Math.pow(1-u,1.6)+.4;
-if(!s.nodes)s.nodes=[];const index=j*10+i;let node=s.nodes[index];
-if(!node||i===0){node={x,y,z};s.nodes[index]=node;}else{const response=1-Math.exp(-dt*(22-14*u));node.x=mix(node.x,x,response);node.y=mix(node.y,y,response);node.z=mix(node.z,z,response);const prev=s.nodes[index-1],dx=node.x-prev.x,dy=node.y-prev.y,dz=node.z-prev.z,dist=Math.hypot(dx,dy,dz),limit=length/9*1.8;if(dist>limit){node.x=prev.x+dx/dist*limit;node.y=prev.y+dy/dist*limit;node.z=prev.z+dz/dist*limit;}}
+const width=r*[.72,.66,.60][j]*Math.pow(1-u,1.05)+.4;
+if(!s.nodes)s.nodes=[];const index=j*20+i;let node=s.nodes[index];
+if(!node||i===0){node={x,y,z};s.nodes[index]=node;}else{const response=1-Math.exp(-dt*(22-14*u));node.x=mix(node.x,x,response);node.y=mix(node.y,y,response);node.z=mix(node.z,z,response);const prev=s.nodes[index-1],dx=node.x-prev.x,dy=node.y-prev.y,dz=node.z-prev.z,dist=Math.hypot(dx,dy,dz),limit=length/19*1.8;if(dist>limit){node.x=prev.x+dx/dist*limit;node.y=prev.y+dy/dist*limit;node.z=prev.z+dz/dist*limit;}}
 nodes.set([node.x,node.y,node.z,width],index*4);minX=Math.min(minX,node.x-width*1.4);maxX=Math.max(maxX,node.x+width*1.4);minY=Math.min(minY,node.y-width*1.4);maxY=Math.max(maxY,node.y+width*1.4);
 }
 gl.useProgram(ghostProgram);gl.uniform2f(GU.viewport,W,H);gl.uniform3f(GU.head,s.x,s.y+bob,0);gl.uniform2f(GU.axis,ca,sa);gl.uniform1f(GU.radius,r);gl.uniform4fv(GU.nodes,nodes);gl.uniform3f(GU.gaze,s.gx,s.gy,Math.sqrt(Math.max(.12,1-s.gx*s.gx-s.gy*s.gy)));gl.uniform1f(GU.clock,time);gl.uniform1f(GU.blink,Math.pow(Math.max(0,Math.cos(time*1.1+1.5)),70));gl.uniform1f(GU.silhouette,silhouette?1:0);drawQuad(ghostProgram,minX,minY,maxX,maxY);

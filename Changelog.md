@@ -1,5 +1,7 @@
 # Spirit browser playground (16 October 2026)
 
+- Replace the rejected solid ghost renderer with overlapping translucent sheets and a blended facial area. Retain gaze, pursuit and fold lag; preserve the wisp. This is a new visual candidate, not an accepted quality grade.
+
 - Refine the ghost after feedback that it feels chunky: flatten the shoulder and folds, lengthen the lighter curls, soften painted shading bands, and fade thin edges. Preserve the wisp unchanged.
 
 - Add a standalone mouse/touch/keyboard playground for the ghost and soul wisp, with layered moving folds, speed-responsive pursuit, turn lag, curling tips and gathering behavior. No Godot runtime or spell changes.
