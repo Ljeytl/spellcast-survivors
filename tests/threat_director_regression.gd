@@ -39,8 +39,11 @@ class Host:
 		bought.append({"id": definition.id, "count": count, "words": words, "champion": champion})
 	func champions_alive() -> int:
 		return champions
+	var cap := 999
 	func room() -> int:
 		return space
+	func capacity() -> int:
+		return cap
 
 func run():
 	var data = Director.data()
@@ -94,7 +97,22 @@ func run():
 	host.space = 0
 	d.credits = 100.0
 	check(not d.spend(), "at the monster cap the director keeps its money")
+	# Crowded: near the cap only elites are bought, and overflow feeds the champion fund.
+	host.cap = 100
+	host.space = 10
+	host.game_time = float(data.elites.from_minute) * 60.0 + 1.0
+	host.bought.clear()
+	for i in 40:
+		d.credits = 1000.0
+		d.spend()
+	check(not host.bought.is_empty() and host.bought.all(func(b): return not b.words.is_empty() or b.champion), "near the cap the director buys only elites (%d purchases)" % host.bought.size())
+	host.cap = 999
 	host.space = 999
+	host.game_time = float(data.champions.from_minute) * 60.0 + 1.0
+	d.champion_fund = 0.0
+	d.credits = d.bank_cap()
+	d.update(5.0)
+	check(d.champion_fund > 0.0, "money that overflows a full bank goes to the champion fund")
 	# Champions: a separate fund, then an unnamed boss.
 	host.variants = [{"id": "juggernaut", "weight": 1.0}]
 	host.game_time = float(data.champions.from_minute) * 60.0 + 1.0

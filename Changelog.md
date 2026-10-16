@@ -1,3 +1,9 @@
+# 0.3.4-dev.13 — More monsters, and the cap never protects you (16 October 2026)
+
+- **Up to 350 monsters at once** (was 160). Measured on an M4 Pro in a real window: 300 enemies ~89 fps and 400 ~62 fps with the change below; 600 drops to ~24, so 350 leaves headroom.
+- **The cap limits bodies, not danger.** In the last 15% of the cap the director only buys elites, and money that would overflow its bank goes to the champion fund, so a long night keeps getting nastier instead of stalling (`data/director.json` `crowd`).
+- **Ordinary monsters show their health bar only once hurt.** Bosses, elites and training dummies always show it. Fewer bars to draw in a crowd (300 enemies: 62 → 89 fps).
+
 # 0.3.4-dev.12 — Shared impact shake and local light (16 October 2026)
 
 - Scale small VFX camera kicks by their requested strength and ignore nonpositive requests. A weak hit no longer erases a stronger active kick. Preserve the established heavy-impact parameters used by Lightning and Meteor.

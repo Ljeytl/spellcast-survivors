@@ -170,6 +170,24 @@
         },
         "additionalProperties": false
       }
+    },
+    "crowd": {
+      "type": "object",
+      "properties": {
+        "_doc": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "number"
+        },
+        "elite_chance": {
+          "type": "number"
+        },
+        "overflow_to_champions": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "required": [

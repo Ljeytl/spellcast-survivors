@@ -9,7 +9,7 @@
     "health_growth_per_120_seconds": 1.16,
     "damage_growth_per_second": 0.0004,
     "minimum_spawn_interval": 0.1,
-    "maximum_enemies": 160,
+    "maximum_enemies": 350,
     "opening_spawn_interval": 3.0,
     "spawn_growth_start_seconds": 180.0,
     "spawn_phases": [{"start": 0, "pressure": "light", "interval": 4}, {"start": 25, "pressure": "heavy", "interval": 1}, {"start": 50, "pressure": "medium", "interval": 2}, {"start": 65, "pressure": "light", "interval": 4}, {"start": 85, "pressure": "heavy", "interval": 1}, {"start": 105, "pressure": "medium", "interval": 2}],
