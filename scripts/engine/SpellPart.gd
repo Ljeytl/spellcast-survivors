@@ -856,7 +856,7 @@ func _step_spirit_ending(delta: float) -> void:
 	if returning_life:
 		for motion in def.get("motion", []):
 			if str(motion.get("type", "")) in ["chase", "straight", "guided"]:
-				travel_speed = float(motion.get("speed", 220.0))
+				travel_speed = float(motion.get("speed", 220.0)) * 0.8
 				break
 	global_position = global_position.move_toward(dest, travel_speed * delta)
 	if global_position != prev_pos:
