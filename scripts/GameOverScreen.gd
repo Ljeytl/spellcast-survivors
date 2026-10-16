@@ -159,6 +159,8 @@ func setup_run_summary():
 	summary.add_child(damage_chart)
 	summary.move_child(damage_chart, style_label.get_index() + 1)
 	scroll.follow_focus = true
+	# A wheel notch moves about two chart rows (it moved a few pixels; playtest 0.3.4).
+	scroll.scroll_vertical_custom_step = 80.0
 	content.add_theme_constant_override("separation", 12)
 
 ## "DAMAGE BY SPELL" block, largest first, with share of total damage dealt.

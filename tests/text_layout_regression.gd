@@ -71,7 +71,7 @@ func run():
 	check(not area.get_v_scroll_bar().visible, "Long typing needs no vertical scroll")
 	var newest = keys.key_position(keys.letters.length() - 1)
 	check(keys.letters.length() > 100 and newest.x >= 0 and newest.x + keys.fitted_key_size() <= keys.size.x, "Newest key of long typing stays visible")
-	check(newest.y == keys.key_position(keys.visible_start()).y, "Long typing stays on one line")
+	check(keys.visible_lines() <= keys.MAX_LINES and newest.y + keys.fitted_key_size() <= game.typing_label.custom_minimum_size.y, "Long typing wraps into a bounded number of rows with the newest key shown")
 	var long_size = box.size
 	manager.current_typing_text = "bolt"
 	manager.update_freeform_typing_display()

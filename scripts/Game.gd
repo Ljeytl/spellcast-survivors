@@ -1147,8 +1147,12 @@ func celebrate_spell(slot: int, title: String, line: String):
 	banner.text = title.to_upper() + "\n" + line
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	banner.custom_minimum_size = Vector2(720, 140)
+	# Top-left anchors: a centre-anchored label positioned before it is in the tree took its
+	# position as an offset from the HUD centre and landed bottom right, over the minimap (playtest).
+	banner.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	banner.custom_minimum_size = Vector2(minf(720, hud.size.x - 24), 140)
+	banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	banner.size = banner.custom_minimum_size
 	banner.position = (hud.size - banner.custom_minimum_size) * 0.5 - Vector2(0, 150)
 	banner.add_theme_font_size_override("font_size", 44)
 	banner.add_theme_color_override("font_color", Color("ffe49b"))
@@ -1337,8 +1341,22 @@ func update_typing_slowdown(remaining: float, _capacity: float):
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	var letter_count = typing_keycaps.letters.length() if is_instance_valid(typing_keycaps) else 4
-	box.size = Vector2(minf(maxf(280.0, letter_count * 50.0 + 48.0), $UI/HUD.size.x - 36.0), 120.0 if not typing_keycaps.error_caption().is_empty() else 102.0)
+	# Long incantations wrap (TypingKeycaps): the box is as wide as the longest line, at most about
+	# sixteen full-size keys, and grows a row per wrapped line.
+	var max_width := minf($UI/HUD.size.x - 36.0, 16 * 50.0 + 48.0)
+	if is_instance_valid(typing_keycaps):
+		# As many wrapped rows as fit between the wizard and the casting reference below.
+		var screen_h: float = $UI/HUD.size.y
+		var floor_y := screen_h - 130.0
+		var reference = $UI/HUD.get_node_or_null("CastingReference")
+		if reference and reference.size.y > 0:
+			floor_y = minf(floor_y, reference.position.y - 10.0)
+		var room := floor_y - (screen_h / 2.0 + 58.0) - 102.0
+		typing_keycaps.max_lines = clampi(1 + floori(room / 54.0), 1, typing_keycaps.MAX_LINES)
+		typing_keycaps.max_inner_width = max_width - 24.0
+	var width: float = typing_keycaps.preferred_width(max_width, 24.0) if is_instance_valid(typing_keycaps) else 280.0
+	var extra_rows := maxf(0.0, typing_label.custom_minimum_size.y - (80.0 if not typing_keycaps.error_caption().is_empty() else 62.0))
+	box.size = Vector2(width, (120.0 if not typing_keycaps.error_caption().is_empty() else 102.0) + extra_rows)
 	area.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	area.offset_top = 30.0
 	area.offset_bottom = -8.0

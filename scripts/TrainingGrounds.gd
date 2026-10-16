@@ -9,6 +9,11 @@ const READABILITY = preload("res://scripts/GameplayReadability.gd")
 const DUMMY_HEALTH = 1.0e12
 const MAX_RANK = 8
 const CLUSTER_SIZE = 10
+## Dummies "die" (playtest 0.3.4: unkillable slimes looked broken): after POP_DAMAGE damage a dummy
+## bursts like a real kill and pops back at its spot a moment later. Their health is still huge
+## underneath, so damage readouts, statuses and knockback are measured exactly as before.
+const POP_DAMAGE = 300.0
+const POP_RESPAWN = 0.6
 
 var game: Node
 var equipped: Array[String] = []
@@ -72,11 +77,44 @@ func make_dummy(at: Vector2):
 	dummy.max_health = DUMMY_HEALTH
 	dummy.current_health = DUMMY_HEALTH
 	dummy.base_damage = 0.0
+	dummy.collision_mask = 2   # dummies keep apart instead of stacking into one magnified blob
+	dummy.normal_collision_mask = 2
 	dummy.set_meta("training_dummy", true)
 	dummy.add_to_group("training_dummies")
-	if dummy.has_node("HealthBar"):
-		dummy.get_node("HealthBar").hide()
 	return dummy
+
+## Health bar shows progress toward the next pop; a popped dummy bursts, hides, then returns.
+func update_pops(delta: float) -> void:
+	for dummy in static_dummies + cluster:
+		if not is_instance_valid(dummy) or dummy.dying:
+			continue
+		var hidden_for = float(dummy.get_meta("pop_hidden", 0.0))
+		if hidden_for > 0.0:
+			hidden_for -= delta
+			dummy.set_meta("pop_hidden", hidden_for)
+			if hidden_for <= 0.0:
+				dummy.global_position = dummy.training_anchor
+				dummy.current_health = DUMMY_HEALTH
+				dummy.visible = true
+				dummy.get_node("HurtBox").set_deferred("monitorable", true)
+				dummy.remove_from_group("training_popped")
+				dummy.add_to_group("enemies")
+			continue
+		var taken = DUMMY_HEALTH - dummy.current_health
+		var fill = dummy.get_node_or_null("HealthBar/Fill")
+		if fill:
+			fill.scale.x = clampf(1.0 - taken / POP_DAMAGE, 0.0, 1.0)
+		if taken >= POP_DAMAGE:
+			if game.has_method("create_enemy_death_effect"):
+				game.create_enemy_death_effect(dummy.global_position, false)
+			if AudioManager:
+				AudioManager.on_enemy_death()
+			dummy.visible = false
+			dummy.remove_from_group("enemies")   # spells stop targeting it while it is gone
+			dummy.add_to_group("training_popped")
+			dummy.get_node("HurtBox").set_deferred("monitorable", false)
+			dummy.set_meta("pop_hidden", POP_RESPAWN)
+			dummy.current_health = DUMMY_HEALTH
 
 func spawn_dummies():
 	for dummy in static_dummies + cluster:
@@ -86,7 +124,7 @@ func spawn_dummies():
 	cluster.clear()
 	cluster_offsets.clear()
 	# One single target and a tight trio for area spells.
-	for offset in [Vector2(230, 0), Vector2(-230, -45), Vector2(-265, 0), Vector2(-230, 45)]:
+	for offset in [Vector2(230, 0), Vector2(-230, -60), Vector2(-290, 0), Vector2(-230, 60)]:
 		var dummy = make_dummy(center + offset)
 		if dummy:
 			static_dummies.append(dummy)
@@ -94,7 +132,7 @@ func spawn_dummies():
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 7
 	for i in CLUSTER_SIZE:
-		cluster_offsets.append(Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * 70.0)
+		cluster_offsets.append(Vector2.from_angle(rng.randf() * TAU) * sqrt(rng.randf()) * 110.0)
 		var dummy = make_dummy(cluster_point(0.0) + cluster_offsets[i])
 		cluster.append(dummy)
 
@@ -112,6 +150,7 @@ func _process(delta):
 		if is_instance_valid(dummy):
 			var wobble = Vector2(sin(path_time * 1.7 + i), cos(path_time * 1.3 + i * 0.7)) * 10.0
 			dummy.training_anchor = anchor + cluster_offsets[i] + wobble
+	update_pops(delta)
 	for dummy in static_dummies + cluster:
 		if is_instance_valid(dummy) and dummy.current_health < DUMMY_HEALTH * 0.5:
 			dummy.current_health = DUMMY_HEALTH

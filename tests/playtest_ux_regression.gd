@@ -164,6 +164,7 @@ func run():
 	await settle()
 	var arrow = game.hud.get_node("BossDirection")
 	check(arrow.has_target, "Offscreen boss receives edge arrow")
+	check(arrow.shown_boss == boss, "A living boss is named on the boss bar (playtest 0.3.4)")
 	await capture("inventory-desktop")
 	boss.global_position = game.player.global_position
 	await settle()
@@ -172,6 +173,7 @@ func run():
 	boss.dying = true
 	await settle()
 	check(not arrow.has_target, "Defeated boss has no arrow")
+	check(arrow.shown_boss == null, "A defeated boss leaves the boss bar")
 	manager.spells.clear()
 	manager.bonus_spells.clear()
 	manager.acquired_spells.clear()

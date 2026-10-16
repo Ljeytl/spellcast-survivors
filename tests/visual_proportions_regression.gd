@@ -61,7 +61,7 @@ func run():
 	check(xp.radius == 12 and xp.duration == 0.25, "XP sparkle remains restrained")
 	check(hit.get_child_count() == 0 and death.get_child_count() == 0, "Cosmetic bursts have no collision nodes")
 	check(game.camera.zoom == Vector2.ONE * preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM and is_equal_approx(preload("res://scripts/VisualDefaults.gd").CAMERA_ZOOM, 1.5) and game.player.get_node("Sprite2D").scale == Vector2.ONE * 2, "Reviewed camera and wizard proportions")
-	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(64,64), "Player navigation shape preserved")
+	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(28, 14), "Player navigation shape is the feet footprint")
 	game.queue_free()
 	await process_frame
 	print("Visual proportions: %d checks, %d failures" % [checks, failures])

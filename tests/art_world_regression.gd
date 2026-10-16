@@ -29,7 +29,8 @@ func run():
 	var trunk = get_nodes_in_group("tree_obstacles")[0].global_position
 	var saved = player.global_position
 	for direction in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
-		player.global_position = trunk + direction * 130
+		# The navigation footprint is the wizard's feet (playtest 0.3.4): line the feet up with the trunk.
+		player.global_position = trunk + direction * 130 - player.get_node("CollisionShape2D").position
 		check(player.test_move(player.global_transform, -direction * 200), "Player collides with trunk from every side")
 	player.collision_mask = 0
 	check(not player.test_move(player.global_transform, -Vector2.DOWN * 200), "Known-bad missing collision mask is detected")
