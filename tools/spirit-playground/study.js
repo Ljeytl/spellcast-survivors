@@ -30,14 +30,14 @@ eyes*=smoothstep(.72,.80,front)*(1.-smoothstep(.95,1.05,rr));color=mix(color,vec
 if(silhouette>.5){color=vec3(.025,.045,.035);alpha=1.;}gl_FragColor=vec4(color,alpha);
 }`);
 const fluidProgram=program(quadVertex,`precision highp float;
-uniform sampler2D previous;uniform vec2 origin;uniform vec2 oldOrigin;uniform float span;uniform float oldSpan;uniform vec2 source;uniform vec2 oldSource;uniform vec2 heading;uniform float radius;uniform float dt;uniform float reach;uniform float clock;
+uniform sampler2D previous;uniform vec2 origin;uniform vec2 oldOrigin;uniform float span;uniform float oldSpan;uniform vec2 source;uniform vec2 oldSource;uniform vec2 heading;uniform float radius;uniform float dt;uniform float trailWidth;uniform float reach;uniform float clock;
 void main(){vec2 uv=gl_FragCoord.xy/512.;vec2 world=origin+vec2(uv.x,1.-uv.y)*span;vec2 q=world-source;float d=length(q);vec2 tangent=vec2(-q.y,q.x)/max(d,1.);
 float freq=.055;vec2 curl=vec2(-sin(world.x*freq+clock*.8)*sin(world.y*freq-clock*.6),-cos(world.x*freq+clock*.8)*cos(world.y*freq-clock*.6));
 vec2 velocity=tangent*radius*2.8*exp(-d/(radius*1.5))+curl*radius*1.2-heading*radius*1.15+vec2(0.,-radius*.75);
 vec2 previousPoint=world-velocity*dt;vec2 sampleUV=(previousPoint-oldOrigin)/oldSpan;sampleUV.y=1.-sampleUV.y;
 vec4 value=texture2D(previous,sampleUV);if(any(lessThan(sampleUV,vec2(0.)))||any(greaterThan(sampleUV,vec2(1.))))value=vec4(0.);
 value.r*=exp(-dt*(2.0/reach+smoothstep(radius*2.*reach,radius*4.*reach,d)*5.));value.g*=exp(-dt*8.);value.b*=exp(-dt*2.8);
-vec2 ab=source-oldSource;float h=clamp(dot(world-oldSource,ab)/max(dot(ab,ab),.01),0.,1.);vec2 center=mix(oldSource,source,h);vec2 local=(world-center)/radius;
+vec2 ab=source-oldSource;float h=clamp(dot(world-oldSource,ab)/max(dot(ab,ab),.01),0.,1.);vec2 center=mix(oldSource,source,h);vec2 local=(world-center)/radius;vec2 across=vec2(-heading.y,heading.x);local-=across*dot(local,across)*(1.-1./trailWidth);
 local.x+=.13*sin(local.y*2.+clock*.8);local.y*=1.15;float body=exp(-dot(local,local)*3.1);
 value.r+=body*dt*4.2;vec2 core=(world-source)/radius;float sourceHeat=exp(-dot(core,core)*3.8)*(1.+.12*sin(core.x*6.+clock)*sin(core.y*5.-clock));value.g=max(value.g,sourceHeat*.9);vec2 veil=local-vec2(.22*sin(clock*.8),-.22);value.b+=exp(-dot(veil*vec2(1.4,.85),veil*vec2(1.4,.85))*7.)*dt*3.4;gl_FragColor=vec4(clamp(value.rgb,0.,1.),1.);
 }`);
@@ -67,7 +67,7 @@ function drawQuad(p,x0,y0,x1,y1){gl.bindBuffer(gl.ARRAY_BUFFER,quadBuffer);gl.bu
 const loc=(p,n)=>gl.getUniformLocation(p,n);
 const GU=Object.fromEntries(['viewport','gaze','clock','blink','silhouette','head','axis','radius','nodes'].map(n=>[n,loc(ghostProgram,n)]));
 const WU=Object.fromEntries(['viewport','field','origin','span','silhouette','hybrid','faceCenter','faceRadius','faceGaze','faceBlink'].map(n=>[n,loc(wispProgram,n)]));
-const FU=Object.fromEntries(['viewport','previous','origin','oldOrigin','span','oldSpan','source','oldSource','heading','radius','dt','reach','clock'].map(n=>[n,loc(fluidProgram,n)]));
+const FU=Object.fromEntries(['viewport','previous','origin','oldOrigin','span','oldSpan','source','oldSource','heading','radius','dt','trailWidth','reach','clock'].map(n=>[n,loc(fluidProgram,n)]));
 function create(kind){return{kind,x:0,y:0,vx:0,vy:0,angle:-.2,speed:0,turn:0,gx:.25,gy:.05,ready:false};}
 const spirits=[create('ghost'),create('wisp'),create('hybrid')];let silhouette=false;
 function resize(){const b=stage.getBoundingClientRect();W=b.width;H=b.height;const dpr=Math.min(devicePixelRatio||1,1.5);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);gl.viewport(0,0,canvas.width,canvas.height);pointer.x=clamp(pointer.x,40,W-40);pointer.y=clamp(pointer.y,40,H-90);for(const s of spirits)s.ready=false;dirty=true;}
@@ -114,7 +114,7 @@ function drawWisp(s,dt){
 const span=s.radius*12,origin=[s.x-span/2,s.y-span/2];
 if(!fieldReady){for(const f of fields){gl.bindFramebuffer(gl.FRAMEBUFFER,f.framebuffer);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);}fieldOrigin=origin.slice();fieldSpan=span;oldSource=[s.x,s.y];fieldReady=true;dt=Math.max(dt,.15);}
 if(dt>0){
-gl.disable(gl.BLEND);gl.bindFramebuffer(gl.FRAMEBUFFER,fields[1].framebuffer);gl.viewport(0,0,512,512);gl.useProgram(fluidProgram);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fields[0].texture);gl.uniform1i(FU.previous,0);gl.uniform2f(FU.viewport,512,512);gl.uniform2fv(FU.origin,origin);gl.uniform2fv(FU.oldOrigin,fieldOrigin);gl.uniform1f(FU.span,span);gl.uniform1f(FU.oldSpan,fieldSpan);gl.uniform2f(FU.source,s.x,s.y);gl.uniform2fv(FU.oldSource,oldSource);gl.uniform2f(FU.heading,Math.cos(s.angle),Math.sin(s.angle));gl.uniform1f(FU.radius,s.radius);gl.uniform1f(FU.dt,dt*(gentle?.55:1));gl.uniform1f(FU.reach,reach);gl.uniform1f(FU.clock,time);drawQuad(fluidProgram,0,0,512,512);fields.reverse();fieldOrigin=origin.slice();fieldSpan=span;oldSource=[s.x,s.y];
+gl.disable(gl.BLEND);gl.bindFramebuffer(gl.FRAMEBUFFER,fields[1].framebuffer);gl.viewport(0,0,512,512);gl.useProgram(fluidProgram);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fields[0].texture);gl.uniform1i(FU.previous,0);gl.uniform2f(FU.viewport,512,512);gl.uniform2fv(FU.origin,origin);gl.uniform2fv(FU.oldOrigin,fieldOrigin);gl.uniform1f(FU.span,span);gl.uniform1f(FU.oldSpan,fieldSpan);gl.uniform2f(FU.source,s.x,s.y);gl.uniform2fv(FU.oldSource,oldSource);gl.uniform2f(FU.heading,Math.cos(s.angle),Math.sin(s.angle));gl.uniform1f(FU.radius,s.radius);gl.uniform1f(FU.dt,dt*(gentle?.55:1));gl.uniform1f(FU.trailWidth,s.kind==='hybrid'?1.65:1.);gl.uniform1f(FU.reach,reach);gl.uniform1f(FU.clock,time);drawQuad(fluidProgram,0,0,512,512);fields.reverse();fieldOrigin=origin.slice();fieldSpan=span;oldSource=[s.x,s.y];
 }
 gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.enable(gl.BLEND);gl.useProgram(wispProgram);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fields[0].texture);gl.uniform1i(WU.field,0);gl.uniform1f(WU.hybrid,s.kind==='hybrid'?1:0);gl.uniform2f(WU.faceCenter,s.x,s.y);gl.uniform1f(WU.faceRadius,s.radius*.85);gl.uniform3f(WU.faceGaze,s.gx,s.gy,Math.sqrt(Math.max(.12,1-s.gx*s.gx-s.gy*s.gy)));gl.uniform1f(WU.faceBlink,Math.pow(Math.max(0,Math.cos(time*1.1+1.5)),70));gl.uniform2f(WU.viewport,W,H);gl.uniform2fv(WU.origin,fieldOrigin);gl.uniform1f(WU.span,fieldSpan);gl.uniform1f(WU.silhouette,silhouette?1:0);drawQuad(wispProgram,fieldOrigin[0],fieldOrigin[1],fieldOrigin[0]+fieldSpan,fieldOrigin[1]+fieldSpan);
 }
