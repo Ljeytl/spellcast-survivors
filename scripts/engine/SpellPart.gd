@@ -24,6 +24,9 @@ var assigned = null
 var parent_hit = null
 var age := 0.0
 var done := false
+var returning_life := false
+var stolen_life := 0.0
+var return_age := 0.0
 var visual_remaining := 0.0
 var hits: Dictionary = {}     # instance id -> age of last hit
 var hit_count := 0
@@ -207,13 +210,36 @@ func step(delta: float) -> void:
 			finish(false)
 	if not done:
 		if delivery == "projectile":
-			if age + 0.000001 >= total_life():
+			if not returning_life and age + 0.000001 >= total_life():
 				finish(true)
 		elif float(def.get("limits", {}).get("lifetime", 0.0)) > 0.0 and age >= float(def.limits.lifetime):
 			finish(true)
 	queue_redraw()
 
 func _step_projectile(delta: float) -> void:
+	if returning_life:
+		return_age += delta
+		if return_age >= 4.0:
+			finish(false)
+			return
+		if not is_instance_valid(cast.caster) or float(cast.caster.get("health")) <= 0.0:
+			finish(false)
+			return
+		if float(cast.caster.health) >= float(cast.caster.max_health):
+			returning_life = false
+			stolen_life = 0.0
+			life_total = maxf(total_life(), age + 4.0)
+		else:
+			var home: Vector2 = cast.caster_position()
+			prev_pos = global_position
+			global_position = global_position.move_toward(home, float(def.leech_return.get("return_speed", 320.0)) * delta)
+			if global_position != prev_pos:
+				direction = prev_pos.direction_to(global_position)
+			if global_position.distance_to(home) <= 18.0:
+				cast.heal_caster(minf(stolen_life, float(cast.caster.max_health) - float(cast.caster.health)))
+				_spirit_arrival(true)
+				finish(false)
+			return
 	var phases: Array = def.get("motion", [])
 	if phase >= phases.size():
 		if phases.is_empty():
@@ -338,7 +364,7 @@ func _collide() -> void:
 	var contact_all = bool(limits.get("contact_all", false)) and pierce == 0
 	var touching: Array = []
 	for enemy in cast.enemies():
-		if done:
+		if done or returning_life:
 			return
 		if exclude.has(enemy.get_instance_id()) or not _swept_contains(enemy):
 			continue
@@ -350,7 +376,7 @@ func _collide() -> void:
 			touching.append(enemy)
 			continue
 		hit(enemy)
-		if pierce >= 0 and hit_count > pierce:
+		if not returning_life and pierce >= 0 and hit_count > pierce:
 			finish(false)
 			return
 	if not touching.is_empty():
@@ -418,7 +444,7 @@ func _step_volume(delta: float) -> void:
 
 func _hit_all_inside(rehit: float) -> void:
 	for enemy in cast.enemies():
-		if done:
+		if done or returning_life:
 			return
 		if exclude.has(enemy.get_instance_id()) or not contains(enemy.global_position, pad_for(enemy)):
 			continue
@@ -667,13 +693,14 @@ func _apply_self() -> void:
 
 # --- hits and events ------------------------------------------------------------------
 func hit(enemy) -> void:
-	if not _alive(enemy):
+	if done or returning_life or not _alive(enemy):
 		return
 	hits[enemy.get_instance_id()] = age
 	cast.shared_hits[enemy.get_instance_id()] = cast.clock
 	hit_count += 1
 	var at = enemy.global_position
 	var dealt := 0.0
+	var health_before = enemy.get("current_health")
 	for idx in def.get("payload", []).size():
 		var item: Dictionary = def.payload[idx]
 		if bool(item.get("once_per_cast", false)):
@@ -764,7 +791,9 @@ func hit(enemy) -> void:
 					var k = clampf(phase_travel / maxf(reach, 1.0), 0.0, 1.0)
 					force *= lerpf(float(item.falloff[0]), float(item.falloff[1]), k)
 				Effects.apply(enemy, {"type": "impulse", "direction": dir, "force": force}, cast.source, global_position)
-	cast.leech(dealt)
+	var health_after = enemy.get("current_health") if is_instance_valid(enemy) else 0.0
+	if not def.has("leech_return"):
+		cast.leech(dealt)
 	cast.record_hit(self, enemy)
 	if _vfx:
 		_vfx.part_hit(self, enemy, at)
@@ -774,6 +803,27 @@ func hit(enemy) -> void:
 	fire("on_hit", at, enemy)
 	if killed:
 		fire("on_kill", at, enemy)
+	if def.has("leech_return"):
+		var player = cast.caster
+		var actual := minf(dealt, maxf(0.0, float(health_before) - maxf(0.0, float(health_after)))) if health_before != null else 0.0
+		var available := maxf(0.0, float(def.leech_return.get("cap", 2.0)) - cast.spirit_heal_reserved)
+		var share := float(def.leech_return.get("share", 0.15)) + float(cast.plan.get("flags", {}).get("leeching", {}).get("share", 0.0))
+		stolen_life = minf(actual * share, available)
+		if is_instance_valid(player) and player.get("health") != null and float(player.health) > 0.0 and float(player.health) < float(player.max_health) and stolen_life > 0.0:
+			cast.spirit_heal_reserved += stolen_life
+			returning_life = true
+			target_ref = null
+		else:
+			_spirit_arrival(false)
+			finish(false)
+
+func _spirit_arrival(healed: bool) -> void:
+	if _vfx == null:
+		return
+	var point := global_position / (1280.0 / 192.0)
+	var colors := [Color("#fff5ce"), Color("#a5f5d2"), Color("#4a98a8")] if healed else [Color("#e0f3a3"), Color("#9d80c9"), Color("#51416d")]
+	_vfx.ring(point.x, point.y, 4.2, 0.24, colors)
+	_vfx.star(point.x, point.y, 2.0, 0.14, 4 if healed else 6, colors[0])
 
 func fire(event: String, at: Vector2, victim) -> void:
 	for key in def.get("events", {}):

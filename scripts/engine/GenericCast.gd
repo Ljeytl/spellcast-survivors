@@ -131,8 +131,11 @@ func spend_heal(amount: float) -> float:
 
 ## LEECHING: heal a share of the damage this cast deals, up to a cap per cast (a share of max health,
 ## kept below SANGUINE's cost so blood magic always costs something).
+var spirit_heal_reserved := 0.0
 var leech_taken := 0.0
 func leech(dealt: float) -> void:
+	if plan.get("parts", {}).get(plan.get("root", ""), {}).has("leech_return"):
+		return
 	var flags: Dictionary = plan.get("flags", {})
 	if not flags.has("leeching") or dealt <= 0.0 or not is_instance_valid(caster) or caster.get("max_health") == null:
 		return
