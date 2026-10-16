@@ -1,3 +1,17 @@
+# 0.3.4-dev.2 — Playtest fixes (16 October 2026)
+
+From Frog's playtest of 0.3.3:
+
+- **Trees block your feet, not your hat.** The wizard's collision with trees was a 64 px box around the whole body, so you got stopped well short of a trunk (76 px away coming from below). It is now a small box at the feet: you can walk right up to a trunk and pass in front of it.
+- **Tree shadows sit under bushes.** The plain fir's ground shadow is now drawn with the ground, so a bush in front of a tree is no longer covered by its shadow.
+- **Long incantations wrap.** Typing something like SUPER OMEGA FIERY SHOCKING LIGHTNING BOLT wraps by word onto up to three rows of full-size keys (as many as fit between the wizard and the spell reference) instead of shrinking into one tiny row.
+- **The "New spell" banner shows in the middle of the screen.** It was landing bottom right over the minimap where you could not read it.
+- **Upgrade cards no longer fade away** when you sweep the mouse back and forth over them.
+- **Training dummies die.** Deal enough damage and a dummy bursts like a kill and pops back a moment later; its health bar shows progress. Dummies also stand apart instead of stacking into one big blob. Damage readouts are unchanged.
+- **You can't forget the boss.** While a boss is alive its name and health sit at the top of the screen, and the off-screen arrow is bigger, pulses and shows how far away it is.
+- **The end screen uses the whole screen height** and the mouse wheel scrolls two rows per notch, so damage by spell and the reactions fit with little or no scrolling.
+- Prism Ray's look (too many pixels, should be more translucent) went to the spell-feel work.
+
 # 0.3.4-dev.1 — Bigger crowds (16 October 2026)
 
 - **Crowds cost about half as much.** Measured on an M4 Pro with `tools/probe_enemy_load.gd` (physics time per step, enemies closed in around you): 400 enemies 14.8 ms → 6.4 ms, 500 enemies 21.3 ms → 9.1 ms. A 60 fps frame has 16.7 ms, so roughly twice as many enemies now fit.
