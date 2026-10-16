@@ -1,3 +1,9 @@
+# Spirit browser playground (16 October 2026)
+
+- Add a standalone mouse/touch/keyboard playground for the ghost and soul wisp, with layered moving folds, speed-responsive pursuit, turn lag, curling tips and gathering behavior. No Godot runtime or spell changes.
+- Add Ghost/Wisp/Both views, size/tail-reach/follow-speed controls, a demo path, pause and gentle motion. Keep this exploratory until the original concept art translates convincingly in motion.
+- Next: refine material shading and silhouettes against the original references, then preserve the selected movement parameters and geometry when porting to the engine.
+
 # 0.3.4-dev.1 — Bigger crowds (16 October 2026)
 
 - **Crowds cost about half as much.** Measured on an M4 Pro with `tools/probe_enemy_load.gd` (physics time per step, enemies closed in around you): 400 enemies 14.8 ms → 6.4 ms, 500 enemies 21.3 ms → 9.1 ms. A 60 fps frame has 16.7 ms, so roughly twice as many enemies now fit.
