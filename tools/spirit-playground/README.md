@@ -2,7 +2,7 @@
 
 Open `index.html` directly in a browser. Keep `study.js` beside it. It works offline, requires WebGL, and has no package dependencies. For a served preview, run `python3 -m http.server 8783 --directory tools/spirit-playground` from the repository root.
 
-Move the pointer over the field. Touch works too; focus the field and use arrow keys to move the target, or Space to pause. Choose Ghost, Wisp or Both. Size changes the whole creature; Tail reach changes the fold length; Follow speed changes pursuit response. Demo path supplies continuous motion. Gentle motion defaults to the browser's reduced-motion preference. Settings are temporary and reset on reload.
+Move the pointer over the field. Touch works too; focus the field and use arrow keys to move the target, or Space to pause. Choose Ghost, Wisp, Both or Hybrid. Hybrid is the initial selection and combines a rounded facial center and tracking eyes with the wisp field. Both shows the original Ghost and Wisp, not the hybrid. Size changes the whole creature; Tail reach changes the fold length; Follow speed changes pursuit response. Demo path supplies continuous motion. Gentle motion defaults to the browser's reduced-motion preference. Settings are temporary and reset on reload.
 
 ## Design target and scope
 

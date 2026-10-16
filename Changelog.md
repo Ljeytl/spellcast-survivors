@@ -1,5 +1,7 @@
 # Spirit browser playground (16 October 2026)
 
+- Add a selectable ghost/wisp Hybrid: rounded cream center and tracking eyes share the wisp material renderer and its advected, fading trail. Preserve Ghost, Wisp and Both for comparison; start on Hybrid for this experiment.
+
 - Reject the separate-sheet ghost and replace its outer form with a continuous 2D silhouette. Blend fold colors inside that silhouette, smooth shading between curve segments and reduce bunched tail hooks. Wisp remains unchanged; visual acceptance remains open.
 
 - Replace the rejected solid ghost renderer with overlapping translucent sheets and a blended facial area. Retain gaze, pursuit and fold lag; preserve the wisp. This is a new visual candidate, not an accepted quality grade.
