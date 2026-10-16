@@ -1,3 +1,7 @@
+# Design draft — Enemy design (16 October 2026)
+
+- New doc 22 (draft for review): every enemy is a question and every answer is a word, modelled on Doom's combat chess. Rules for the roster (soft counters, answers from the player's elements, shapes, keywords and statuses, telegraphs, typing-time budget, fodder that gives back, priority targets), an assessment of the current twelve enemies, and a proposed core roster for 0.5 with open questions. No runtime changes.
+
 # 0.3.3 — Elites (15 October 2026)
 
 Ships everything since 0.3.1: elites, the spells-as-data rebuild (0.3.2) and the particle/spirit work (0.3.2-dev.1 to dev.5). Details for each are in the entries below.
