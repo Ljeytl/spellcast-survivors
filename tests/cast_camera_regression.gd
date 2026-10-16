@@ -24,7 +24,7 @@ func shot(label: String):
 	stage.canvas_transform = root.get_canvas_transform()
 	game.get_node("Background").queue_redraw()
 	await RenderingServer.frame_post_draw
-	stage.get_texture().get_image().save_png("res://builds/cast-camera/" + label + ".png")
+	check(stage.get_texture().get_image().save_png("res://builds/cast-camera/" + label + ".png") == OK, "Saved " + label)
 
 func type_word(text: String):
 	var manager = game.spell_manager

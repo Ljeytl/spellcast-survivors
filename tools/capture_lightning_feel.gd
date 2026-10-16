@@ -49,8 +49,13 @@ func run() -> void:
 				saw_strike = saw_strike or part.part_name == "strike"
 		await RenderingServer.frame_post_draw
 		if frame % 2 == 0:
-			stage.get_texture().get_image().save_png("res://builds/lightning-feel/%04d.png" % (frame / 2))
+			if stage.get_texture().get_image().save_png("res://builds/lightning-feel/%04d.png" % (frame / 2)) != OK:
+				quit(2)
+				return
 	var evidence = FileAccess.open("res://builds/lightning-feel/camera.json", FileAccess.WRITE)
+	if evidence == null:
+		quit(2)
+		return
 	evidence.store_string(JSON.stringify({"max_follow_drift": max_follow_drift, "max_shake_offset": max_shake_offset, "final_offset": game.camera.offset.length(), "samples": samples}))
 	print("LIGHTNING_CAPTURE struck=", saw_strike, " drift=", max_follow_drift, " max_shake=", max_shake_offset, " final_offset=", game.camera.offset.length())
 	assert(max_follow_drift < 0.01)
