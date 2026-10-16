@@ -1,3 +1,9 @@
+# 0.3.4-dev.10 — Restore Lightning and retain its blue warning circle (16 October 2026)
+
+- Reject the dev.9 presentation rebuild: restore the original sky bolt, particles, impact, audio, staff behavior and 0.32-second warning. Remove the outlined ground branches and custom gather/slam.
+- Retain a blue target circle at the authoritative spell radius; it disappears at the strike. Enemy warnings and keyword effects continue through the existing presenter.
+- Keep native preview and regression coverage. Further refinements require visual comparison with the original, not replacement of its established effect language.
+
 # 0.3.4-dev.9 — Lightning gathers, strikes and discharges (16 October 2026)
 
 - Give Lightning a staff gather and slam, blue target circle, sharp sky bolt, camera kick, and branching ground discharge that fades after impact. Increase its warning from 0.32 to 0.55 seconds; preserve damage, radius, rank scaling and damage linger. The lingering discharge is visual only.

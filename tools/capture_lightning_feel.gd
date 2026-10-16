@@ -15,6 +15,7 @@ func run() -> void:
 	root.get_node("AudioManager").quitting = true
 	DirAccess.make_dir_recursive_absolute("res://builds/lightning-feel")
 	await setup()
+	await create_timer(1.0).timeout
 	var stage := SubViewport.new()
 	stage.size = Vector2i(1280, 850)
 	stage.disable_3d = true
@@ -26,13 +27,16 @@ func run() -> void:
 	assert(game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("lightning")))
 	var cast = game.spell_manager.last_generic_cast
 	var saw_strike := false
+	print("LIGHTNING_PLAN ", JSON.stringify(cast.plan))
+	print("LIGHTNING_TYPING ", game.spell_manager.current_typing_text)
 	for frame in range(150):
 		await physics_frame
 		await process_frame
 		stage.canvas_transform = root.get_canvas_transform()
 		game.get_node("Background").queue_redraw()
-		for visual in get_nodes_in_group("lightning_visuals"):
-			saw_strike = saw_strike or visual.struck
+		if is_instance_valid(cast):
+			for part in cast.parts:
+				saw_strike = saw_strike or part.part_name == "strike"
 		await RenderingServer.frame_post_draw
 		if frame % 2 == 0:
 			stage.get_texture().get_image().save_png("res://builds/lightning-feel/%04d.png" % (frame / 2))
