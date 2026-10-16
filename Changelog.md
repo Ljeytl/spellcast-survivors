@@ -1,5 +1,7 @@
 # Spirit browser playground (16 October 2026)
 
+- Soften the hybrid center-to-trail transition further: spread the rear blend over a wider area and reduce its cream/opacity override while retaining the face and front edge.
+
 - Blend the hybrid center into its trail with a broader rear transition and more underlying material color, preserving the distinct front edge and eyes.
 
 - Thicken the approved hybrid direction by widening emitted trail material across its movement direction by 65%, retaining its existing fade and flow. Original wisp stays unchanged.

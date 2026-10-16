@@ -52,7 +52,7 @@ float inner=exp(-pow((d.b-.11)/.07,2.))*smoothstep(.04,.15,density);vec3 color=m
 float alpha=clamp(smoothstep(.04,.16,density)*.72+fold*.42,0.,.95);
 if(hybrid>.5){
 alpha*=smoothstep(.001,.025,density);
-vec2 q=(point-faceCenter)/faceRadius;float rr=dot(q,q);float rear=smoothstep(-.10,.85,-dot(q,faceHeading));float face=1.-smoothstep(.58-.18*rear,1.12+.36*rear,sqrt(rr));color=mix(color,vec3(.94,.97,.85),face*.96*(1.-.22*rear));alpha=max(alpha,face*.97);
+vec2 q=(point-faceCenter)/faceRadius;float rr=dot(q,q);float rear=smoothstep(-.25,.70,-dot(q,faceHeading));float face=1.-smoothstep(.58-.34*rear,1.12+.65*rear,sqrt(rr));color=mix(color,vec3(.94,.97,.85),face*.96*(1.-.40*rear));alpha=max(alpha,face*.97*(1.-.12*rear));
 vec3 radial=normalize(vec3(q,sqrt(max(.001,1.-rr)))),f=normalize(faceGaze),right=normalize(cross(vec3(0.,1.,0.),f)),up=normalize(cross(f,right));vec2 eyeUV=vec2(dot(radial,right),dot(radial,up));float eye=0.,shine=0.;
 for(int i=0;i<2;i++){float side=float(i)*2.-1.;vec2 a=(eyeUV-vec2(side*.28,.04))/vec2(.14+side*.01,(.24+side*.015)*max(.08,1.-faceBlink));eye=max(eye,1.-smoothstep(.9,1.1,dot(a,a)));vec2 b=(eyeUV-vec2(side*.28-.025,-.03))/vec2(.025,.04);shine=max(shine,1.-smoothstep(.7,1.1,dot(b,b)));}
 eye*=smoothstep(.72,.82,dot(radial,f))*(1.-smoothstep(.9,1.05,rr));color=mix(color,vec3(.045,.15,.20),eye);color+=vec3(.22,.35,.36)*shine*eye*(1.-faceBlink);
