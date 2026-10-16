@@ -429,7 +429,8 @@ func part_hit(part, enemy, at: Vector2) -> void:
 		return
 	_part_hit_look(part, enemy, at)
 	var p: Vector2 = part.global_position / WPS
-	_contact_punch(part, st, p)
+	if not (_is_ice_blast(part) and st.look.accent == ""):
+		_contact_punch(part, st, p)
 	var light_strength := float(part.def.get("vfx", {}).get("impact_light", 0.0))
 	if light_strength > 0.0 and not is_hostile(part):
 		var light_key: String = st.look.accent if st.look.accent != "" else st.look.native
@@ -442,6 +443,9 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 	var st = _parts.get(part.get_instance_id())
 	var p: Vector2 = part.global_position / WPS
 	var impact_look: String = st.look.accent if st.look.accent != "" else st.look.native
+	if _is_ice_blast(part) and impact_look == "ice":
+		_ice_blast_contact(part, at / WPS)
+		return
 	var spawns_burst := false
 	for key in part.def.get("events", {}):
 		if str(key).begins_with("on_hit"):
@@ -668,7 +672,10 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	elif accent == "fire":
 		_emit_trail(part, st, "acc", ACCENT_TRAIL, pos, vel, dist, dt)
 	if native == "ice" or accent == "ice":
-		_ice_trail(pos, vel, dt, 0.3 if st.family == "shard" else 1.0)
+		if _is_ice_blast(part):
+			_ice_blast_trail(part, st, pos, dist)
+		else:
+			_ice_trail(pos, vel, dt, 0.3 if st.family == "shard" else 1.0)
 	if native == "lightning" or accent == "lightning":
 		_lightning_trail(st, pos, vel, dt)
 	if native == "water" or accent == "water":
@@ -1037,6 +1044,72 @@ func _damage_disk(x: float, y: float, s: float, o: Dictionary) -> void:
 		vfx.hitstop(1)
 
 # ------------------------------------------------------------------ ice (sandbox FX.ice)
+
+static func _is_ice_blast(part) -> bool:
+	return str(part.cast.plan.get("id", "")) == "ice_blast" and not is_hostile(part)
+
+func _draw_ice_blast_shard(buf: PackedByteArray, p: Vector2, direction: Vector2, part, accent: String) -> void:
+	var scale: float = maxf(float(part.size_scale), 0.01) * lerpf(0.55, 1.0, clampf(float(part.age) / 0.07, 0.0, 1.0))
+	var dir := direction.normalized()
+	var perpendicular := dir.orthogonal()
+	var inverse_scale: float = 1.0 / (vfx.K * scale)
+	var base_color := Color("#68bddf")
+	var light_color := Color("#c4f5ff")
+	var shade_color := Color("#367caa")
+	var ridge_color := Color("#ecffff")
+	var extent := ceili(6.0 * scale * vfx.K)
+	var center := Vector2i(roundi(p.x * vfx.K), roundi(p.y * vfx.K))
+	for y in range(-extent, extent + 1):
+		for x in range(-extent, extent + 1):
+			var local: Vector2 = Vector2(x, y) * inverse_scale
+			var u: float = local.dot(dir)
+			var side: float = local.dot(perpendicular) + u * 0.08
+			var width: float = 1.65 * (1.0 - u / 5.8) if u >= 0.0 else 1.65 * (1.0 + u / 3.8)
+			if width <= 0.0 or absf(side) > width:
+				continue
+			var color := base_color
+			if side < -width * 0.45:
+				color = light_color
+			elif side > width * 0.4:
+				color = shade_color
+			elif side < 0.1 and side > -0.25:
+				color = ridge_color
+			if accent != "" and absf(side) > width - 0.3:
+				color = RIM[accent]
+			vfx._put(buf, center.x + x, center.y + y, color)
+
+func _ice_blast_trail(part, st: Dictionary, p: Vector2, distance: float) -> void:
+	st.ice_wake = float(st.get("ice_wake", 0.0)) + distance
+	var spacing := 4.0 if vfx.reduced_effects else 2.0
+	if st.ice_wake < spacing:
+		return
+	st.ice_wake = fmod(st.ice_wake, spacing)
+	var dir := Vector2(part.direction).normalized()
+	var scale := maxf(float(part.size_scale), 0.01) * lerpf(0.55, 1.0, clampf(float(part.age) / 0.07, 0.0, 1.0))
+	var rear := p - dir * 3.8 * scale
+	var tail := rear - dir * 4.0 * scale
+	vfx.elements.streak(rear.x, rear.y, tail.x, tail.y, 0.16, [Color("#91dce9"), Color("#629eae"), Color(0.35, 0.6, 0.65, 0.15)])
+	if not vfx.reduced_effects and randf() < 0.35:
+		var drift := -dir * 9.0 + dir.orthogonal() * randf_range(-4.0, 4.0)
+		vfx.elements.mote(rear.x, rear.y, drift.x, drift.y, ICE.mote, 0.24, 0.0, 0.0)
+
+func _ice_blast_contact(part, p: Vector2) -> void:
+	var dir := Vector2(part.direction).normalized()
+	var el = vfx.elements
+	for i in (2 if vfx.reduced_effects else 4):
+		var heading := dir.rotated(randf_range(-1.2, 1.2))
+		var speed := randf_range(18.0, 34.0)
+		el.shard(p.x, p.y, heading.x * speed, heading.y * speed, randf_range(15.0, 28.0), randf_range(1.2, 2.1), 0.5)
+	for i in (3 if vfx.reduced_effects else 7):
+		var heading := dir.rotated(randf_range(-1.6, 1.6))
+		el.mote(p.x, p.y, heading.x * 24.0, heading.y * 24.0, ICE.mote, randf_range(0.2, 0.4), 0.0, 0.0)
+	vfx.flash(p.x, p.y, 1.5, 0.04, Color("#c8f7ff"))
+	vfx.scorch(p.x, p.y, 3.0, 0.7, "frost")
+	var last: float = part.cast.get_meta("ice_contact_feedback", -100.0)
+	if float(part.cast.clock) - last >= 0.12:
+		part.cast.set_meta("ice_contact_feedback", float(part.cast.clock))
+		vfx.hitstop(1)
+		vfx.shake(0.24)
 
 func _ice_trail(p: Vector2, vel: Vector2, dt: float, k: float = 1.0) -> void:
 	dt *= k   # Ice Blast's many shards trail lighter (playtest: too much noise)
@@ -2361,6 +2434,9 @@ func draw_bodies(buf: PackedByteArray) -> void:
 				vfx.elements.body(buf, pos, dir, {"t": "diamond", "a": 8.0, "b": 1.4}, BODY.water, null, false, sc)
 			continue       # drop body is goo: accumulate_water
 		if st.look.native == "ice":
+			if _is_ice_blast(part):
+				_draw_ice_blast_shard(buf, pos, dir, part, st.look.accent)
+				continue
 			var ib: Dictionary = ICE_BODY[st.family]
 			var rim_c = RIM[st.look.accent] if st.look.accent != "" else null
 			vfx.elements.body(buf, pos, dir, ib, BODY.ice, rim_c, true, sc)

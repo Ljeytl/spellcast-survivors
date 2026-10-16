@@ -1101,3 +1101,20 @@ The dev.9 rebuild is rejected in full except for its blue target circle. Restore
 Lightning's circle, bolt, explosion and effect sequence are accepted at A tier. Preserve them. The main refinement priorities are screen shake and lighting, applied around existing effects rather than replacing them. Small shake requests should differ in strength; a small simultaneous hit should not erase a heavy impact. The first colored local-light samples are Bolt and Ice Blast contacts, with bounded brightness, short fade and overlap suppression. No new lighting is attached to Lightning, Meteor, Seeker or automatic Magic Missile.
 
 Staff work is a smaller later layer: reusable cast time where appropriate and colored particles gathering at the staff, followed by release. Bespoke staff gestures are not required. Spell persistence does not by itself determine cast time. Keep quick spells quick; make explicit timing choices separately from visual polish.
+
+
+### Ice Blast refinement — 16 October 2026
+
+Scope: refine the existing fan, preserving mechanics. Starting effects are deferred. Ice Blast now uses pale blue faceted shards, short directional wakes, forward-flying impact chips, a small frost flash and short-lived residue. Plain contacts avoid the duplicate generic white star. Contact feedback is grouped per cast within 0.12 seconds. Hostile casts and other spells retain their existing presentation; elemental accents retain their contact effects.
+
+The previous C+ assessment remains the baseline. Native low/high-rank captures demonstrate damage and real knockback. Provisional current pass: fantasy B-, visuals B-, motion B, impact B-, readability B-; equal-weight average 2.76 (B-). This is not user acceptance or an audio grade. High-rank readability is a separate C+ concern, not covered by the base-fan average. Dense high-rank spread and crowded-combat readability need further judgment. Audio is unchanged and ungraded in the silent capture. Preserve accepted A-tier Lightning.
+
+### Cast-time proposal — deferred implementation, 16 October 2026
+
+The separate planning agent proposes 25 milliseconds per alphabetic letter of the canonical base incantation, clamped to 0.10–0.35 seconds. Exclude spaces, punctuation and every modifier word. Resolve aliases and quick slots to the canonical base spell first. Examples: Bolt 0.10 s; Seeker 0.15 s; Ice Blast 0.20 s; Lightning 0.225 s; Meteor Shower 0.30 s.
+
+Typing already provides preparation. Resume movement on accepted input rather than extending the typing movement lock. Allow another typed spell while an accepted cast is pending. Existing explicit charge overlaps base delay: use max(base delay, existing charge duration), then add an explicitly delayed keyword duration. Preserve existing tier/charged composition. Automatic Magic Missile, enemy casts, children, repeats and individual projectiles do not each receive a new base delay.
+
+Accepted casts snapshot ranks, stats and modifiers; resolve or revalidate targeting on release. Escape cancels current typing, not an already accepted cast. Death, extraction, restart and scene teardown clear pending casts. Pause freezes the pending timer; subsequent typing slowdown does not stretch it. Separate input acceptance from actual release events. Implement centrally in player submission paths, including legacy Mega, rather than globally delaying all GenericCasts.
+
+Validation before adoption: canonical-name and modifier equivalence; exactly-once release; no early release; pause and teardown; movement and overlapping typing; automatic-cast exclusion; explicit keyword paths. Playtest Bolt, Ice Blast, Lightning and Meteor. Lightning retains its additional 0.32-second warning, making acceptance-to-strike approximately 0.545 seconds under this proposal. Lower the coefficient to 20 ms if release feels disconnected. No cast-time code is part of this Ice Blast refinement.
