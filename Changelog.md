@@ -1,3 +1,9 @@
+# 0.3.4-dev.6 — Restorative Seeker return (16 October 2026)
+
+- Replace Seeker’s aggressive yellow/gold healing return with luminous mint-green material and a soft pale-green core; match the healing arrival ring and flash. Preserve the approved red finish, hunt palette and damage/healing rules.
+- Match healing-return travel speed to the outbound motion (including speed modifiers), removing the 320-versus-220 speed jump. Keep the red attack dive quick.
+- Verify the palette in a native gameplay capture against grass. Continue judging healing readability in crowded fights.
+
 # 0.3.4-dev.5 — Seeker hunts before coming home (16 October 2026)
 
 - Restore Seeker’s sustained chase/contact hunt and existing duration/rank scaling (12 seconds at base, 24 at rank eight), with close movement around its prey. Healing is collected throughout the hunt and delivered afterward; the shared 2 HP cap remains.

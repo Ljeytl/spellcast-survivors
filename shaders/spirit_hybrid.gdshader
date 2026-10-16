@@ -13,10 +13,10 @@ vec3 cool=mix(vec3(.19,.43,.48),vec3(.68,.91,.84),light);float heat=smoothstep(.
 float inner=exp(-pow((d.b-.11)/.07,2.))*smoothstep(.04,.15,density);vec3 color=mix(cool,vec3(1.,.97,.74),heat)+vec3(.18,.24,.20)*fold;color=mix(color,vec3(.76,.94,.85),inner*.25*(1.-heat));
 vec3 faceColor=vec3(.94,.97,.85);
 if(spiritState>.5){
-vec3 dark=spiritState>1.5?vec3(.48,.025,.10):vec3(.65,.16,.04);
-vec3 bright=spiritState>1.5?vec3(1.,.16,.28):vec3(1.,.65,.22);
-faceColor=spiritState>1.5?vec3(1.,.42,.46):vec3(1.,.88,.56);
-color=mix(dark,bright,light);color=mix(color,faceColor,heat*.7)+fold*vec3(.24,.12,.06);
+vec3 dark=spiritState>1.5?vec3(.48,.025,.10):vec3(.025,.38,.18);
+vec3 bright=spiritState>1.5?vec3(1.,.16,.28):vec3(.22,1.,.58);
+faceColor=spiritState>1.5?vec3(1.,.42,.46):vec3(.78,1.,.86);
+color=mix(dark,bright,light);color=mix(color,faceColor,heat*.7)+fold*(spiritState>1.5?vec3(.24,.12,.06):vec3(.10,.24,.17));
 }
 float alpha=clamp(smoothstep(.04,.16,density)*.72+fold*.42,0.,.95);
 if(hybrid>.5){

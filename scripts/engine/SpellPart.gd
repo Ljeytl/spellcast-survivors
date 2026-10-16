@@ -852,7 +852,13 @@ func _step_spirit_ending(delta: float) -> void:
 			return
 		dest = prey.global_position
 	prev_pos = global_position
-	global_position = global_position.move_toward(dest, float(def.leech_return.get("return_speed", 320.0)) * delta)
+	var travel_speed := float(def.leech_return.get("return_speed", 320.0))
+	if returning_life:
+		for motion in def.get("motion", []):
+			if str(motion.get("type", "")) in ["chase", "straight", "guided"]:
+				travel_speed = float(motion.get("speed", 220.0))
+				break
+	global_position = global_position.move_toward(dest, travel_speed * delta)
 	if global_position != prev_pos:
 		direction = prev_pos.direction_to(global_position)
 	if returning_life:
@@ -867,7 +873,7 @@ func _spirit_arrival(healed: bool) -> void:
 	if _vfx == null:
 		return
 	var point := global_position / (1280.0 / 192.0)
-	var colors := [Color("#fff1bd"), Color("#ffad72"), Color("#ed714c")] if healed else [Color("#ffe1c4"), Color("#ff4a61"), Color("#a91b48")]
+	var colors := [Color("#c7ffdc"), Color("#38ff94"), Color("#168b57")] if healed else [Color("#ffe1c4"), Color("#ff4a61"), Color("#a91b48")]
 	_vfx.ring(point.x, point.y, 4.2, 0.24, colors)
 	_vfx.star(point.x, point.y, 2.0, 0.14, 4 if healed else 6, colors[0])
 
