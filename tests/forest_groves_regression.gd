@@ -88,6 +88,7 @@ func run():
 				check(minf(minf(local.x, local.y), minf(terrain.CELL_SIZE - local.x, terrain.CELL_SIZE - local.y)) >= 110, "Cell edges preserve broad connected routes")
 			for bush in layout.bushes:
 				check(bush.distance_to(terrain.clearing_center) > 300, "Bush clusters preserve starting clearing")
+	terrain.forget_cached_trunks()   # the layouts above were written directly
 	check(grove_cells > 50 and lone_cells > 10 and empty_cells > 5, "World mixes groves, isolated trees, and empty ground")
 	check(counts.size() >= 4, "Grove sizes vary within the world")
 	for cell in samples:
@@ -106,11 +107,13 @@ func run():
 	for i in range(12):
 		sealed_trees.append(Vector2(sealed_cell) * terrain.CELL_SIZE + Vector2.ONE * terrain.CELL_SIZE / 2 + Vector2.from_angle(i * TAU / 12) * 110)
 	terrain.layouts[sealed_cell] = {"trees": sealed_trees, "bushes": []}
+	terrain.forget_cached_trunks()
 	check(not connected_sample(terrain, Vector2i(-4, -4)), "Known-bad enclosed ring is rejected by navigation coverage")
 	terrain.layouts[sealed_cell] = saved_layout
 	terrain.layouts.clear()
 	for cell in terrain.decorations:
 		terrain.layouts[cell] = terrain.generate_layout(cell)
+	terrain.forget_cached_trunks()
 	for destination in [original_player + Vector2(5000, -4500), original_player + Vector2(-6000, 5000), original_player]:
 		player.position = destination
 		terrain.refresh_decorations()

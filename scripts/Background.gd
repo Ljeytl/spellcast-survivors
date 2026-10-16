@@ -98,13 +98,28 @@ func tree_position(cell: Vector2i) -> Vector2:
 func has_tree(cell: Vector2i) -> bool:
 	return not layout_for(cell).trees.is_empty()
 
+## Trunks in this cell and its eight neighbours. Every enemy asks every physics step, so the
+## answer is cached per cell (layouts are deterministic per cell, so it never goes stale) instead
+## of rebuilding the array and reordering the layout cache nine times per enemy per step.
+var _near_trunks: Dictionary = {}
+const MAX_NEAR_TRUNKS = 1024
 func nearby_trunks(point: Vector2) -> Array[Vector2]:
-	var result: Array[Vector2] = []
 	var cell = cell_for(point)
+	var cached = _near_trunks.get(cell)
+	if cached != null:
+		return cached
+	var result: Array[Vector2] = []
 	for y in range(cell.y - 1, cell.y + 2):
 		for x in range(cell.x - 1, cell.x + 2):
 			result.append_array(layout_for(Vector2i(x, y)).trees)
+	if _near_trunks.size() >= MAX_NEAR_TRUNKS:
+		_near_trunks.clear()
+	_near_trunks[cell] = result
 	return result
+
+## Call after replacing entries in `layouts` directly (tests do), so neighbours are rebuilt.
+func forget_cached_trunks() -> void:
+	_near_trunks.clear()
 
 func is_clear(point: Vector2, radius: float) -> bool:
 	for trunk in nearby_trunks(point):
