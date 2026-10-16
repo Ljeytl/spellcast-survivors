@@ -54,7 +54,10 @@ func _process(delta):
 
 func shake(intensity: float, duration: float):
 	# Trigger a screen shake with specified intensity and duration
-	shake_intensity = 0.0 if reduced_effects else clampf(intensity, 0.0, 6.0)
+	var requested := 0.0 if reduced_effects else clampf(intensity, 0.0, 6.0)
+	if shake_timer > 0.0 and requested < shake_intensity * shake_timer / maxf(shake_duration, 0.001):
+		return
+	shake_intensity = requested
 	shake_duration = clampf(duration, 0.0, 0.3)
 	shake_timer = shake_duration
 
