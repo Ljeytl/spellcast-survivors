@@ -140,7 +140,7 @@ func director_spawn(definition: Dictionary, count: int, words: Array, champion: 
 		if boss:
 			boss.set_meta("champion", true)
 		return
-	var angle := randf() * TAU
+	var angle := Elites.Rng.stream("director").randf() * TAU
 	var spread := float(threat_director.data().get("spending", {}).get("group_spread_radians", 0.5)) if threat_director else 0.5
 	var leader = null
 	for i in count:

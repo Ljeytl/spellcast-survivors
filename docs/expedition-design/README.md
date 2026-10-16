@@ -13,6 +13,7 @@ Updated 14 October 2026 for **0.3.0**. Start with the complete spell catalog and
 | [Game systems architecture](20-game-systems-architecture.md) | Signed-off actor/enemy/boss, level/objective, save/progression and run-flow design. |
 | [Damage, effects and keywords](21-damage-effects-keywords.md) | Current damage splits, elemental effects, statuses and keyword semantics. |
 | [Enemy design](22-enemy-design.md) | Draft (16 October 2026): what each enemy asks of the player and its answer, the roster rules, assessment of the current roster and the proposed core roster. Architecture stays in doc 20. |
+| [Expedition and director](23-expedition-and-director.md) | Agreed 16 October 2026: expedition shape (days, nightfall as the teleporter event, camp, death) and the Risk of Rain–style threat director (credits, cards, elite cost multipliers, champions, realms). |
 
 ## How to use the plan
 
