@@ -46,30 +46,23 @@ func run():
 	cast.manual = true
 	var mark = cast.parts[0]
 	var visuals = get_nodes_in_group("lightning_visuals")
-	check(visuals.size() == 1, "One presentation owns charge and strike")
+	check(visuals.size() == 1, "One blue warning circle")
 	var visual = visuals[0]
 	visual.set_process(false)
-	check(is_equal_approx(visual.radius, mark.geo("radius")), "Charge circle uses actual damage radius")
-	check(is_equal_approx(mark.total_life(), 0.55), "Charge has intentional 0.55-second buildup")
+	check(is_equal_approx(visual.radius, mark.geo("radius")), "Circle uses actual damage radius")
+	check(is_equal_approx(mark.total_life(), 0.32), "Original warning duration restored")
+	check(cast.plan.get("flags", {}).is_empty(), "Plain Lightning has no keyword flags")
 	var baseline = enemies.map(func(e): return e.current_health)
-	cast.advance(0.18)
+	cast.advance(0.30)
+	check(enemies.map(func(e): return e.current_health) == baseline, "Warning does no damage")
+	cast.advance(0.03)
 	visual._process(0.0)
-	check(not visual.struck and not visual.slam_emitted, "Staff gathers before slam")
-	cast.advance(0.13)
-	visual._process(0.0)
-	check(visual.slam_emitted and not visual.struck, "Staff slam precedes lightning strike")
-	check(enemies.map(func(e): return e.current_health) == baseline, "Charge and slam cause no early damage")
-	cast.advance(0.25)
-	check(visual.struck, "Authoritative strike triggers bolt")
-	check(get_nodes_in_group("lightning_visuals").size() == 1, "Strike reuses charge visual")
+	check(visual.is_queued_for_deletion(), "Circle ends at strike without custom aftershock")
 	var hit_health = enemies.map(func(e): return e.current_health)
-	check(hit_health != baseline, "Strike deals actual damage")
-	visual._process(0.4)
-	check(not visual.is_queued_for_deletion(), "Ground charge persists after bolt")
+	check(hit_health != baseline, "Original strike deals damage")
+	var strike = cast.parts.filter(func(p): return p.part_name == "strike")[0]
+	check(vfx.presenter._parts.has(strike.get_instance_id()), "Strike uses original presenter")
 	cast.advance(0.3)
-	check(enemies.map(func(e): return e.current_health) == hit_health, "Aftershock does not add repeated damage")
-	visual._process(1.0)
-	check(visual.is_queued_for_deletion(), "Aftershock expires")
 	await process_frame
 	vfx.clear()
 	for i in enemies.size():
@@ -81,9 +74,9 @@ func run():
 	spells.cast_spell_by_type(slot)
 	var plain = spells.last_generic_cast
 	plain.manual = true
-	plain.advance(0.56)
-	check(enemies.map(func(e): return e.current_health) == hit_health, "Presentation on/off preserves damage")
-	check(get_nodes_in_group("lightning_visuals").is_empty(), "Disabled presentation spawns no custom effect")
+	plain.advance(0.33)
+	check(enemies.map(func(e): return e.current_health) == hit_health, "Presentation does not change damage")
+	check(get_nodes_in_group("lightning_visuals").is_empty(), "Disabled presentation has no circle")
 	plain.advance(0.3)
 	vfx.presenter.enabled = true
 	spells.cast_spell_by_type(slot)
@@ -92,43 +85,33 @@ func run():
 	visual = get_nodes_in_group("lightning_visuals")[0]
 	visual.set_process(false)
 	canceled.parts[0].finish(false)
-	visual._process(0.01)
-	check(visual.is_queued_for_deletion() and not visual.struck, "Canceled mark never creates a false strike")
+	visual._process(0.0)
+	check(visual.is_queued_for_deletion(), "Canceled mark removes circle")
 	await process_frame
 	spells.get_spell_info(slot).level = 8
 	spells.cast_spell_by_type(slot)
-	spells.last_generic_cast.manual = true
+	var ranked = spells.last_generic_cast
+	ranked.manual = true
 	visual = get_nodes_in_group("lightning_visuals")[0]
-	check(is_equal_approx(visual.radius, 175.0), "Rank-eight telegraph scales to true radius")
+	check(is_equal_approx(visual.radius, 175.0), "Rank eight retains original radius")
 	vfx.clear()
 	await process_frame
-	check(get_nodes_in_group("lightning_visuals").is_empty(), "World reset clears custom lightning")
+	check(get_nodes_in_group("lightning_visuals").is_empty(), "Reset clears circles")
 	spells.cast_spell_by_type(slot)
 	var accented = spells.last_generic_cast
 	accented.manual = true
 	accented.plan["elements"] = [{"element": "fire"}]
 	accented.plan["flags"]["repulsing"] = true
 	vfx.clear()
-	accented.advance(0.56)
-	check(vfx._f_count > 0, "Lightning retains fire accent particles")
-	check(vfx.elements.streaks.size() >= 6, "Lightning retains repulsing impact cues")
+	accented.advance(0.33)
+	check(vfx._f_count > 0, "Original strike retains fire accent")
+	check(vfx.elements.streaks.size() >= 6, "Original strike retains repulsing cues")
 	vfx.clear()
 	await process_frame
-	spells.cast_spell_by_type(slot)
-	var hostile = spells.last_generic_cast
-	hostile.manual = true
-	vfx.clear()
-	await process_frame
-	hostile.target_group = "player"
-	vfx.presenter.part_spawned(hostile.parts[0])
-	check(get_nodes_in_group("lightning_visuals").is_empty(), "Hostile lightning avoids friendly blue visual")
-	check(vfx.presenter._parts.has(hostile.parts[0].get_instance_id()), "Hostile lightning retains warning presenter")
-	var staff = game.player.get_node("OrbitingStaff")
-	staff.set_lightning_pose(0.3)
-	staff.update_orbit(0.01)
-	check(staff.staff.position.y < -10.0, "Staff visibly raises while gathering")
-	staff.update_orbit(0.2)
-	check(absf(staff.staff.position.y) <= 3.0, "Staff pose recovers after cancellation")
+	ranked.target_group = "player"
+	vfx.presenter.part_spawned(ranked.parts[0])
+	check(get_nodes_in_group("lightning_visuals").is_empty(), "Hostile warning retains original presentation")
+	check(vfx.presenter._parts.has(ranked.parts[0].get_instance_id()), "Hostile warning remains visible")
 	game.queue_free()
 	await process_frame
 	print("Lightning feel: %d checks, %d failures" % [checks, failures])

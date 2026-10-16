@@ -11,7 +11,7 @@
       "icon": "lightning",
       "preview": {
         "glyph": "zigzag",
-        "color": "67bfff"
+        "color": "f4ed96"
       }
     },
     "preparable": true,
@@ -127,7 +127,7 @@
           "pad": 0.0
         },
         "timing": {
-          "duration": 0.55,
+          "duration": 0.32,
           "interval": 999.0
         },
         "events": {

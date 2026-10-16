@@ -1091,6 +1091,6 @@ Three visible phases: cool aqua hunting; luminous mint-green material and soft p
 Validate with `tests/seeker_leech_regression.gd` and the full-duration `tools/capture_seeker_leech.gd`. Continue judging hunt pacing, high-rank crowd readability and sustained damage/recovery at real cast cadence. Code tests do not confer an aesthetic grade.
 
 
-### Lightning feel implementation — 0.3.4-dev.9
+### Lightning refinement — 0.3.4-dev.10
 
-Lightning gathers electricity at the staff, raises and slams it, reveals a blue circle at the actual affected radius, then strikes with a sky bolt, thunder and camera kick. Uneven electrical branches spread over the ground and fade over 1.3 seconds; this aftershock adds no damage. The authoritative warning is now 0.55 seconds (previously 0.32); damage, radius scaling and active damage linger remain unchanged. Keyword accents and force cues remain layered on impact; enemies retain hostile warning presentation. Reduced effects calms the discharge and suppresses its local flash. Native capture validates the sequence; the final feel grade remains subject to play feedback.
+The dev.9 rebuild is rejected in full except for its blue target circle. Restore the pre-rebuild bolt, particle effects, impact audio, staff behavior and 0.32-second warning. The circle uses the actual damage radius and ends on impact. There is no custom ground discharge or gather/slam choreography. Future work must refine the original Lightning rather than treat the rejected version as a baseline. Passing tests does not establish aesthetic acceptance.
