@@ -5,6 +5,31 @@
 - Each visual owns two 512-square HDR fields, released with its host. Reduced motion slows material phase as well as transport. Console/showcase support `hybrid`; `auto` selects it and `wisp` remains a faceless comparison.
 - Validate native Metal captures, retained-history negative control, pause/resume, form/size changes, cleanup, actual spell-host captures and an eight-spirit frame-interval probe. The browser B- approval is the design reference; full combat performance and other GPU/renderer combinations remain separate validation.
 
+# Spirit browser playground (16 October 2026)
+
+- Soften the hybrid center-to-trail transition further: spread the rear blend over a wider area and reduce its cream/opacity override while retaining the face and front edge.
+
+- Blend the hybrid center into its trail with a broader rear transition and more underlying material color, preserving the distinct front edge and eyes.
+
+- Thicken the approved hybrid direction by widening emitted trail material across its movement direction by 65%, retaining its existing fade and flow. Original wisp stays unchanged.
+
+- Add a selectable ghost/wisp Hybrid: rounded cream center and tracking eyes share the wisp material renderer and its advected, fading trail. Preserve Ghost, Wisp and Both for comparison; start on Hybrid for this experiment.
+
+- Reject the separate-sheet ghost and replace its outer form with a continuous 2D silhouette. Blend fold colors inside that silhouette, smooth shading between curve segments and reduce bunched tail hooks. Wisp remains unchanged; visual acceptance remains open.
+
+- Replace the rejected solid ghost renderer with overlapping translucent sheets and a blended facial area. Retain gaze, pursuit and fold lag; preserve the wisp. This is a new visual candidate, not an accepted quality grade.
+
+- Refine the ghost after feedback that it feels chunky: flatten the shoulder and folds, lengthen the lighter curls, soften painted shading bands, and fade thin edges. Preserve the wisp unchanged.
+
+- Add a standalone mouse/touch/keyboard playground for the ghost and soul wisp, with layered moving folds, speed-responsive pursuit, turn lag, curling tips and gathering behavior. No Godot runtime or spell changes.
+- Add Ghost/Wisp/Both views, size/tail-reach/follow-speed controls, a demo path, pause and gentle motion. Keep this exploratory until the original concept art translates convincingly in motion.
+- Rebuild the browser study with a joined, shaded ghost volume, spherical eye tracking and lagged curling folds; replace attached wisp ribbons with an advected material field. Fix paused mode/resize initialization and connect tail reach to material lifetime. This remains below the accepted visual target and is not integrated into the game.
+- Next: refine material shading and silhouettes against the original references, then preserve the selected movement parameters and geometry when porting to the engine.
+
+# Spirit model accepted (16 October 2026)
+
+- Accept the Hybrid at B-: rounded expressive center, tracking eyes, thick flowing trail and soft rear transition. Preserve this as the engine translation reference; the separate ghost/fabric variants remain rejected experiments.
+
 # 0.3.4-dev.2 — Playtest fixes (16 October 2026)
 
 From Frog's playtest of 0.3.3:
