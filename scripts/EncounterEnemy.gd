@@ -52,10 +52,19 @@ func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false,
 	scale = Vector2.ONE * definition.get("size", 1.0) * (1.7 if boss else 1.0) * float(elite.get("size_mult", 1.0))
 	enemy_type = {"grunt": EnemyType.CHASER, "runner": EnemyType.SWARM, "brute": EnemyType.TANK, "shooter": EnemyType.SHOOTER}[family]
 
+var terrain: Node = null   # the Background's tree steering, looked up once
+
 func _ready():
 	register_spawn_telemetry()
 	normal_collision_mask = collision_mask
 	update_crowd_collision(false)
+	# Top-down bodies: floating motion (no floor logic) and one slide per step. In a dense crowd the
+	# extra slide iterations were most of the movement cost (measured 16 October 2026: 400 enemies
+	# 14 ms -> 7-8 ms of physics per frame on an M4 Pro); crowds still block each other.
+	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	max_slides = 1
+	var bg = get_parent().get_node_or_null("Background") if get_parent() else null
+	terrain = bg if bg and bg.has_method("steer") else null
 	player = get_tree().get_first_node_in_group("player")
 	health_bar_fill = $HealthBar/Fill
 	$Sprite2D.texture = load(spawn_data.get("boss_sprite", spawn_data.sprite) if boss else spawn_data.sprite)
@@ -144,13 +153,12 @@ func _physics_process(delta):
 	if not elite.is_empty():
 		update_elite_casts(delta, offset.length())
 	update_crowd_collision(charging_this_step)
-	var terrain = get_parent().get_node_or_null("Background")
-	if terrain and terrain.has_method("steer") and not charging_this_step:
+	if terrain and is_instance_valid(terrain) and not charging_this_step:
 		velocity = terrain.steer(global_position, velocity, 29.0 * scale.x)
 	velocity += knockback_velocity
 	move_and_slide()
 	knockback_velocity *= pow(knockback_decay, delta * 60.0)
-	queue_redraw()
+	_redraw_if_needed()
 
 ## Slows cap how fast a dummy can get back home; knockback shoves it off its spot.
 func training_step(delta: float):
@@ -158,7 +166,7 @@ func training_step(delta: float):
 	velocity += knockback_velocity
 	move_and_slide()
 	knockback_velocity *= pow(knockback_decay, delta * 60.0)
-	queue_redraw()
+	_redraw_if_needed()
 
 func update_crowd_collision(charging: bool):
 	collision_mask = normal_collision_mask & ~2 if boss or charging else normal_collision_mask
@@ -241,9 +249,25 @@ func take_damage(damage_amount: float, source_position: Vector2 = Vector2.INF, s
 			amount *= 0.65
 	super.take_damage(amount, source_position, source)
 
+## Only enemies with something on their canvas (a shield arc, an attack warning, debug rings) are
+## redrawn each step; one more redraw clears a warning that just ended. Redrawing every enemy every
+## step was a large share of crowd cost.
+static var _debug_archetypes = null
+var _drew_something := false
+func _redraw_if_needed() -> void:
+	if _debug_archetypes == null:
+		_debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")
+	var wants: bool = _debug_archetypes or variant == "shieldbearer" or warning > 0.0
+	if wants or _drew_something:
+		queue_redraw()
+	_drew_something = wants
+
+const ARCHETYPE_COLORS = {"grunt": Color(0.8, 0.85, 0.65), "runner": Color(1, 0.8, 0.2), "brute": Color(0.9, 0.5, 0.25), "shooter": Color(1, 0.25, 0.3)}
 func _draw():
-	var debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")
-	var colors = {"grunt": Color(0.8, 0.85, 0.65), "runner": Color(1, 0.8, 0.2), "brute": Color(0.9, 0.5, 0.25), "shooter": Color(1, 0.25, 0.3)}
+	if _debug_archetypes == null:
+		_debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")
+	var debug_archetypes: bool = _debug_archetypes
+	var colors = ARCHETYPE_COLORS
 	if debug_archetypes:
 		draw_arc(Vector2.ZERO, 25, 0, TAU, 24, Color("0b1320"), 6.0)
 		draw_arc(Vector2.ZERO, 25, 0, TAU, 24, colors.get(family, Color.WHITE), 2.5)

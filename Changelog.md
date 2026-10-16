@@ -1,3 +1,9 @@
+# 0.3.4-dev.1 — Bigger crowds (16 October 2026)
+
+- **Crowds cost about half as much.** Measured on an M4 Pro with `tools/probe_enemy_load.gd` (physics time per step, enemies closed in around you): 400 enemies 14.8 ms → 6.4 ms, 500 enemies 21.3 ms → 9.1 ms. A 60 fps frame has 16.7 ms, so roughly twice as many enemies now fit.
+- How: enemies use floating (top-down) motion with one slide per step instead of four; tree avoidance reads a per-cell cache instead of rebuilding its trunk list nine times per enemy per step; enemies only redraw their own canvas when they have a shield arc, an attack warning or debug rings to show; the terrain reference is looked up once.
+- Crowds still block each other and bosses and charges still pass through; gameplay numbers are unchanged. Rendering (sprites and per-enemy health bars) is not in these numbers and is the next thing to check in a real build.
+
 # Design update — Enemy design decisions (16 October 2026)
 
 - Doc 22: Shieldbearer gets a stronger front reduction, not immunity; Flanker and Skirmisher confirmed as distinct archetypes; stampede and a ten-minute flood added as set pieces. Measured enemy cost on an M4 Pro: about 200 enemies fit a 60 fps frame today, so the flood waits on the batched enemy runtime (doc 20 §3.4).
