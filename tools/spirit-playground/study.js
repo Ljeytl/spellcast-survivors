@@ -14,22 +14,20 @@ function program(v,f){const p=gl.createProgram();for(const [type,src] of [[gl.VE
 const quadVertex=`attribute vec2 position;uniform vec2 viewport;varying vec2 point;void main(){point=position;gl_Position=vec4(position.x/viewport.x*2.-1.,1.-position.y/viewport.y*2.,0.,1.);}`;
 const ghostProgram=program(quadVertex,`precision highp float;
 varying vec2 point;uniform vec4 nodes[60];uniform vec3 head;uniform vec2 axis;uniform float radius;uniform vec3 gaze;uniform float clock;uniform float blink;uniform float silhouette;
-vec4 over(vec4 a,vec4 b){float alpha=b.a+a.a*(1.-b.a);return vec4((b.rgb*b.a+a.rgb*a.a*(1.-b.a))/max(alpha,.001),alpha);}
-void main(){vec4 body=vec4(0.);vec2 local=(point-head.xy)/radius;
+float merge(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
+void main(){vec2 local=(point-head.xy)/radius;float distance=(length(local)-1.)*radius;float foldLight=0.,foldWeight=0.;
 for(int j=0;j<3;j++){
-float best=1000.,across=0.,along=0.;
-for(int i=0;i<19;i++){vec2 a=nodes[j*20+i].xy,b=nodes[j*20+i+1].xy,ab=b-a;float t=clamp(dot(point-a,ab)/max(dot(ab,ab),.01),0.,1.);vec2 delta=point-mix(a,b,t);float width=mix(nodes[j*20+i].w,nodes[j*20+i+1].w,t);float metric=length(delta)/max(width,.3);if(metric<best){best=metric;across=dot(delta,(vec2(-ab.y,ab.x)/max(length(ab),.001)))/max(width,.3);along=(float(i)+t)/19.;}}
-float cover=1.-smoothstep(.94,1.03,best);float fold=across+.24*sin(along*7.+float(j)*1.7+clock*.7);float crest=smoothstep(-.8,-.3,fold)*(1.-smoothstep(.15,.7,fold));float stripe=smoothstep(.30,.44,fold)*(1.-smoothstep(.60,.76,fold));
-vec3 shade=mix(vec3(.35,.55,.61),vec3(.70,.83,.80),crest);shade=mix(shade,vec3(.83,.91,.83),stripe*.48);float root=1.-smoothstep(.03,.38,along);shade=mix(shade,vec3(.90,.93,.82),root*.85);
-float opacity=cover*mix(.90,.38,smoothstep(.15,1.,along))*mix(.55,1.,1.-pow(abs(across),3.));body=over(body,vec4(shade,clamp(opacity,0.,1.)));
+float best=10000.,across=0.,along=0.,samples=0.;
+for(int i=0;i<19;i++){vec2 a=nodes[j*20+i].xy,b=nodes[j*20+i+1].xy,ab=b-a;float t=clamp(dot(point-a,ab)/max(dot(ab,ab),.01),0.,1.);vec2 delta=point-mix(a,b,t);float width=mix(nodes[j*20+i].w,nodes[j*20+i+1].w,t);float metric=length(delta)-width;best=min(best,metric);float w=exp(-dot(delta,delta)/(radius*radius*.28));across+=dot(delta,vec2(-ab.y,ab.x)/max(length(ab),.001))/max(width,.3)*w;along+=(float(i)+t)/19.*w;samples+=w;}
+across/=max(samples,.00001);along/=max(samples,.00001);distance=merge(distance,best,radius*mix(.34,.10,along));float weight=exp(-max(best,0.)/radius*5.);float fold=across+.20*sin(along*7.+float(j)*1.7+clock*.5);float crest=smoothstep(-.65,-.22,fold)*(1.-smoothstep(.12,.65,fold));float seam=smoothstep(.30,.43,fold)*(1.-smoothstep(.51,.65,fold));foldLight+=(crest*.65-seam*.28)*weight;foldWeight+=weight;
 }
-float rr=dot(local,local);float headCover=1.-smoothstep(.96,1.015,sqrt(rr));float rear=dot(local,axis);headCover*=mix(.1,1.,smoothstep(-.95,-.12,rear));
-float wash=smoothstep(-.65,.4,-local.y-local.x*.25);vec3 color=mix(vec3(.71,.83,.78),vec3(.97,.96,.83),wash);
-float stroke=sin(local.x*4.+local.y*6.+sin(local.y*3.));color=mix(color,vec3(.86,.91,.81),smoothstep(.35,.65,stroke)*.20);
-vec3 radial=normalize(vec3(local,sqrt(max(.001,1.-rr)))),f=normalize(gaze),right=normalize(cross(vec3(0.,1.,0.),f)),up=normalize(cross(f,right));vec2 uv=vec2(dot(radial,right),dot(radial,up));float front=dot(radial,f),eyes=0.,glint=0.;
+float alpha=1.-smoothstep(-.9,.9,distance);if(alpha<.005)discard;
+float rear=-dot(local,axis);float material=smoothstep(-.5,1.6,rear);float fold=foldLight/max(foldWeight,.001);vec3 color=mix(vec3(.43,.61,.65),vec3(.78,.87,.82),clamp(.25+fold,0.,1.));
+float wash=smoothstep(-.7,.65,-local.y-local.x*.2);vec3 face=mix(vec3(.82,.89,.81),vec3(.98,.97,.85),wash);color=mix(face,color,material*.90);alpha*=mix(1.,.52,smoothstep(.8,3.4,rear));
+float rr=dot(local,local);vec3 radial=normalize(vec3(local,sqrt(max(.001,1.-rr)))),f=normalize(gaze),right=normalize(cross(vec3(0.,1.,0.),f)),up=normalize(cross(f,right));vec2 uv=vec2(dot(radial,right),dot(radial,up));float front=dot(radial,f),eyes=0.,glint=0.;
 for(int i=0;i<2;i++){float side=float(i)*2.-1.;vec2 q=(uv-vec2(side*.27,.04))/vec2(.145+side*.009,(.245+side*.015)*max(.08,1.-blink));eyes=max(eyes,1.-smoothstep(.93,1.07,dot(q,q)));vec2 h=(uv-vec2(side*.27-.025,-.025))/vec2(.022,.038);glint=max(glint,1.-smoothstep(.75,1.1,dot(h,h)));}
-eyes*=smoothstep(.72,.80,front);color=mix(color,vec3(.045,.15,.20),eyes);color+=vec3(.25,.39,.40)*glint*eyes*(1.-blink);body=over(body,vec4(color,headCover));
-if(body.a<.005)discard;if(silhouette>.5)body=vec4(.025,.045,.035,1.);gl_FragColor=body;
+eyes*=smoothstep(.72,.80,front)*(1.-smoothstep(.95,1.05,rr));color=mix(color,vec3(.045,.15,.20),eyes);color+=vec3(.25,.39,.40)*glint*eyes*(1.-blink);
+if(silhouette>.5){color=vec3(.025,.045,.035);alpha=1.;}gl_FragColor=vec4(color,alpha);
 }`);
 const fluidProgram=program(quadVertex,`precision highp float;
 uniform sampler2D previous;uniform vec2 origin;uniform vec2 oldOrigin;uniform float span;uniform float oldSpan;uniform vec2 source;uniform vec2 oldSource;uniform vec2 heading;uniform float radius;uniform float dt;uniform float reach;uniform float clock;
@@ -94,11 +92,11 @@ const r=s.radius,nodes=new Float32Array(240),ca=Math.cos(s.angle),sa=Math.sin(s.
 let minX=s.x-r*1.5,maxX=s.x+r*1.5,minY=s.y-r*1.5,maxY=s.y+r*1.5;
 for(let j=0;j<3;j++)for(let i=0;i<20;i++){
 const u=i/19,phi=j*TAU/3+time*.22,turn=s.turn*u*.45;
-const length=[3.0,2.65,3.3][j]*r*reach*(1+clamp(s.speed/700,0,1)*.30);
-const hook=smooth(.60,1,u);const back=-r*.20+length*u-(1-Math.cos(hook*Math.PI))*r*.30;
-const side=Math.cos(phi)*r*(.40+Math.sin(u*Math.PI)*.50)+Math.sin(time*1.2-u*4+j)*r*.30*u+Math.sin(hook*Math.PI)*r*.65*(j===1?-1:1)+s.turn*r*u*.7;
+const length=[2.65,2.25,2.9][j]*r*reach*(1+clamp(s.speed/700,0,1)*.30);
+const hook=smooth(.60,1,u);const back=-r*.20+length*u-(1-Math.cos(hook*Math.PI))*r*.18;
+const side=Math.cos(phi)*r*(.40+Math.sin(u*Math.PI)*.50)+Math.sin(time*1.2-u*4+j)*r*.30*u+Math.sin(hook*Math.PI)*r*.40*(j===1?-1:1)+s.turn*r*u*.7;
 const a=s.angle-turn,x=s.x-Math.cos(a)*back-Math.sin(a)*side,y=s.y-Math.sin(a)*back+Math.cos(a)*side+bob,z=Math.sin(phi)*r*.28*(1-u)+Math.sin(u*5-time*.7+j)*r*.23*Math.sin(u*Math.PI);
-const width=r*[.72,.66,.60][j]*Math.pow(1-u,1.05)+.4;
+const width=r*[.78,.72,.65][j]*Math.pow(1-u,1.5)+.4;
 if(!s.nodes)s.nodes=[];const index=j*20+i;let node=s.nodes[index];
 if(!node||i===0){node={x,y,z};s.nodes[index]=node;}else{const response=1-Math.exp(-dt*(22-14*u));node.x=mix(node.x,x,response);node.y=mix(node.y,y,response);node.z=mix(node.z,z,response);const prev=s.nodes[index-1],dx=node.x-prev.x,dy=node.y-prev.y,dz=node.z-prev.z,dist=Math.hypot(dx,dy,dz),limit=length/19*1.8;if(dist>limit){node.x=prev.x+dx/dist*limit;node.y=prev.y+dy/dist*limit;node.z=prev.z+dz/dist*limit;}}
 nodes.set([node.x,node.y,node.z,width],index*4);minX=Math.min(minX,node.x-width*1.4);maxX=Math.max(maxX,node.x+width*1.4);minY=Math.min(minY,node.y-width*1.4);maxY=Math.max(maxY,node.y+width*1.4);

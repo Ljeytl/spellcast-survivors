@@ -8,7 +8,7 @@ Move the pointer over the field. Touch works too; focus the field and use arrow 
 
 The original ghost and soul-wisp concept images are the target, not the earlier Godot light-and-wake study. Preserve broad overlapping folds, cream/aqua color depth, an expressive ghost face and a warm light nested inside the wisp. This is an exploratory translation and tuning surface, not an accepted spell replacement.
 
-The ghost now uses three overlapping translucent sheets with moving centerlines, broad color bands and tapering curls. The rounded facial area fades into the sheet roots; eyes track over an implied curved surface. The solid ray-marched shoulder and body have been removed after continued C- feedback. This is a stylized sheet model, not cloth simulation. It remains a visual candidate awaiting review.
+The current ghost uses one continuous 2D silhouette formed from the rounded facial area and blended tapering curves. Fold colors are blended inside that outline, with a shared opacity rather than separately composited straps. Eyes track an implied curved facial surface. Both the earlier solid body and separate-sheet versions were rejected; this candidate establishes shape before further motion refinement.
 
 The wisp emits density, warmth and inner material into a 512-square field. Material advects through a curling velocity field, stays behind the moving source and dissipates. Half-float textures avoid visible quantization where supported; an 8-bit fallback has lower material quality. This is an advected field, not a pressure-solved fluid simulation. Tail reach controls dissipation; the ghost uses it for fold length. Press S while the field is focused to inspect silhouettes.
 
