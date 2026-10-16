@@ -1,3 +1,7 @@
+# 0.3.4-dev.7 — Slower healing homecoming (16 October 2026)
+
+- Set Seeker healing-return speed to 80% of outbound speed (176 versus 220 at base), preserving speed modifiers and the quick red finishing dive. Give the player longer to see the healing spirit approach.
+
 # 0.3.4-dev.6 — Restorative Seeker return (16 October 2026)
 
 - Replace Seeker’s aggressive yellow/gold healing return with luminous mint-green material and a soft pale-green core; match the healing arrival ring and flash. Preserve the approved red finish, hunt palette and damage/healing rules.
