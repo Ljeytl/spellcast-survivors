@@ -2,6 +2,7 @@
 
 - Add a standalone mouse/touch/keyboard playground for the ghost and soul wisp, with layered moving folds, speed-responsive pursuit, turn lag, curling tips and gathering behavior. No Godot runtime or spell changes.
 - Add Ghost/Wisp/Both views, size/tail-reach/follow-speed controls, a demo path, pause and gentle motion. Keep this exploratory until the original concept art translates convincingly in motion.
+- Rebuild the browser study with a joined, shaded ghost volume, spherical eye tracking and lagged curling folds; replace attached wisp ribbons with an advected material field. Fix paused mode/resize initialization and connect tail reach to material lifetime. This remains below the accepted visual target and is not integrated into the game.
 - Next: refine material shading and silhouettes against the original references, then preserve the selected movement parameters and geometry when porting to the engine.
 
 # 0.3.4-dev.1 — Bigger crowds (16 October 2026)
