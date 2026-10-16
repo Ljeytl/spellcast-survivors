@@ -140,5 +140,11 @@
       "banned": [],
       "favoured_word": ""
     }
+  },
+  "crowd": {
+    "_doc": "Near the monster cap (the last `zone` share of it) the director buys only elites, at elite_chance; money overflowing a full bank feeds the champion fund. The cap limits bodies, not danger.",
+    "zone": 0.15,
+    "elite_chance": 0.6,
+    "overflow_to_champions": true
   }
 }

@@ -36,6 +36,8 @@ class Host:
 		return 0
 	func room() -> int:
 		return 999
+	func capacity() -> int:
+		return 999
 
 func _initialize():
 	var args = OS.get_cmdline_user_args()

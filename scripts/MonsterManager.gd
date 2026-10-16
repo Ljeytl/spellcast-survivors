@@ -125,6 +125,9 @@ func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1)
 func pacing() -> String:
 	return str(encounter_config.get("pacing", "interval_phases"))
 
+func capacity() -> int:
+	return max_monsters
+
 func room() -> int:
 	return maxi(0, max_monsters - monsters_alive)
 

@@ -81,6 +81,8 @@ func make_dummy(at: Vector2):
 	dummy.normal_collision_mask = 2
 	dummy.set_meta("training_dummy", true)
 	dummy.add_to_group("training_dummies")
+	if dummy.has_node("HealthBar"):
+		dummy.get_node("HealthBar").show()   # the pop-progress bar is always visible
 	return dummy
 
 ## Health bar shows progress toward the next pop; a popped dummy bursts, hides, then returns.

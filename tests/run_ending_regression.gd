@@ -122,7 +122,7 @@ func run():
 				var stats_after = manager.calculate_monster_stats(manager.encounter_config.variants.pursuer)
 				check(stats_after.health > stats_before.health and stats_after.damage > stats_before.damage and manager.spawn_difficulty_multiplier() >= pressure_before and manager.spawn_batch_amount() > batch_before, "Endless stats and group size rise while cadence respects its cap")
 				check(is_equal_approx(manager.spawn_difficulty_multiplier(), minf(float(manager.encounter_config.scaling.get("maximum_spawn_difficulty", INF)), manager.timed_spawn_difficulty_multiplier())), "Endless cadence obeys configured cap")
-				check(manager.calculate_spawn_interval() >= 0.1 and manager.max_monsters == 160, "Existing spawn safeguards preserved")
+				check(manager.calculate_spawn_interval() >= 0.1 and manager.max_monsters == int(manager.encounter_config.scaling.maximum_enemies), "Existing spawn safeguards preserved")
 				check(not game.extraction_screen.visible, "Choice does not reappear")
 				game.toggle_pause()
 				check(paused and game.pause_overlay.visible, "Endless pause menu works")

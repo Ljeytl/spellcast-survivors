@@ -9,7 +9,11 @@ extends RefCounted
 ##
 ## The director only decides; `host` spawns. host provides: game_time, phase_override, ambient_share,
 ## current_spawn_phase(), get_available_variants(t), director_spawn(definition, count, words, champion),
-## champions_alive(), room() (how many more monsters fit under the cap). tools/simulate_director.gd drives it with a stub host to print a run.
+## champions_alive(), room() (how many more monsters fit under the cap), capacity() (the cap).
+##
+## Crowded (doc 23): the cap limits how many monsters exist, never how dangerous they are. In the
+## last `crowd.zone` of the cap the director only buys elites (one body, a lot of threat), and money
+## that would overflow a full bank goes to the champion fund, so a long night keeps getting nastier. tools/simulate_director.gd drives it with a stub host to print a run.
 
 const Elites = preload("res://scripts/Elites.gd")
 const GameData = preload("res://scripts/core/GameData.gd")
@@ -70,7 +74,10 @@ func update(delta: float) -> void:
 		var share := clampf(float(champs.get("income_share", 0.25)), 0.0, 1.0)
 		champion_fund = minf(float(champs.cost), champion_fund + earned * share)
 		earned *= 1.0 - share
-	credits = minf(bank_cap(), credits + earned)
+	var cap := bank_cap()
+	if credits + earned > cap and not champs.is_empty() and minutes() >= float(champs.get("from_minute", INF)) and bool(data().get("crowd", {}).get("overflow_to_champions", true)):
+		champion_fund = minf(float(champs.cost), champion_fund + (credits + earned - cap))
+	credits = minf(cap, credits + earned)
 	champion_wait = maxf(0.0, champion_wait - delta)
 	wait -= delta
 	if wait > 0.0:
@@ -114,6 +121,8 @@ func spend() -> bool:
 		return false   # at the cap: keep the money for when there is room
 	if try_champion():
 		return true
+	var crowd: Dictionary = data().get("crowd", {})
+	var crowded := int(host.room()) <= int(ceil(float(host.capacity()) * float(crowd.get("zone", 0.0))))
 	var pool := available_cards()
 	if pool.is_empty():
 		return false
@@ -132,12 +141,15 @@ func spend() -> bool:
 	var group: Array = data().cards[id].group
 	# Elite upgrade: one monster carrying a word, at the word's cost multiplier.
 	var elites: Dictionary = data().get("elites", {})
-	if minutes() >= float(elites.get("from_minute", INF)) and rng.randf() < float(elites.get("chance", 0.0)):
+	var elite_chance := float(crowd.get("elite_chance", 0.6)) if crowded else float(elites.get("chance", 0.0))
+	if minutes() >= float(elites.get("from_minute", INF)) and rng.randf() < elite_chance:
 		var words := Elites.roll(1, rng)
 		if not words.is_empty():
 			var elite_cost := cost * float(Elites.data().words[words[0]].get("cost_mult", 3.0))
 			if credits >= elite_cost:
 				return buy(pick, 1, words, false, elite_cost)
+	if crowded:
+		return false   # near the cap: save for elites and champions instead of more bodies
 	var count := mini(mini(int(group[1]), int(host.room())), int(floor(credits / cost)))
 	if count < int(group[0]):
 		return false
