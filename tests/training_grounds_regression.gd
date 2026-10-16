@@ -40,6 +40,14 @@ func run():
 	await process_frame
 	check(is_instance_valid(target) and not target.dying, "Dummy survives any hit")
 	check(game.style_session.damage_by_spell.get("bolt", 0.0) >= 1.0e6, "Dummy damage feeds the readout")
+	# Playtest 0.3.4: a dummy "dies" (bursts and hides) and pops back at its spot.
+	training._process(0.0)
+	check(not target.visible and not target.is_in_group("enemies"), "Enough damage pops a dummy like a kill")
+	training._process(training.POP_RESPAWN + 0.05)
+	check(target.visible and target.is_in_group("enemies") and target.current_health == training.DUMMY_HEALTH, "A popped dummy returns, full again")
+	var a = training.static_dummies[1].global_position
+	var b = training.static_dummies[2].global_position
+	check(a.distance_to(b) >= 55.0, "Static dummies stand apart, not stacked (%.0f px)" % a.distance_to(b))
 	var start = training.cluster[0].global_position
 	training._process(1.0)
 	for i in 10:
