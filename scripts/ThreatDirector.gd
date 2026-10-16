@@ -176,3 +176,19 @@ func buy(definition: Dictionary, count: int, words: Array, champion: bool, cost:
 	history.append({"t": float(host.game_time), "card": str(definition.id), "count": count, "word": words[0] if not words.is_empty() else "", "champion": champion, "cost": cost})
 	host.director_spawn(definition, count, words, champion)
 	return true
+
+## Debug readout for the `director` console overlay: the numbers that decide the next purchase.
+func report(recent := 6) -> String:
+	var champs: Dictionary = data().get("champions", {})
+	var alive := int(host.capacity()) - int(host.room())
+	var lines := [
+		"DIRECTOR  t %d:%02d  realm %s" % [int(host.game_time) / 60, int(host.game_time) % 60, str(data().get("realm", "-"))],
+		"credits %.0f / %.0f   income %.1f/s" % [credits, bank_cap(), income_per_second()],
+		"coef %.2f   phase x%.2f%s   ambient %.0f%%" % [coefficient(), phase_multiplier(), "  (night %ds)" % int(night_seconds) if night_seconds > 0.0 else "", clampf(float(host.ambient_share), 0.0, 1.0) * 100.0],
+		"alive %d / %d   next spend %.1fs   spent %.0f" % [alive, int(host.capacity()), maxf(0.0, wait), spent],
+		"champion fund %.0f / %.0f   alive %d / %d   cd %.0fs" % [champion_fund, float(champs.get("cost", 0.0)), int(host.champions_alive()), int(champs.get("max_alive", 0)), maxf(0.0, champion_wait)],
+	]
+	for i in range(history.size() - 1, maxi(-1, history.size() - 1 - recent), -1):
+		var h: Dictionary = history[i]
+		lines.append("  %5.1fs  %s%s x%d  %s(%.0f)" % [float(h.t), "CHAMPION " if h.champion else "", str(h.card), int(h.count), (str(h.word) + " ") if str(h.word) != "" else "", float(h.cost)])
+	return "\n".join(lines)

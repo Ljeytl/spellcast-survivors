@@ -1,3 +1,7 @@
+# 0.3.4-dev.15 — Director overlay (16 October 2026)
+
+- **Console `director [on/off]`** shows the threat director live, top-left: credits against the bank cap, income per second, the difficulty coefficient, the phase multiplier (with night time), ambient share, alive against the cap, time to the next spend, the champion fund and cooldown, and the last six purchases (card, group size, elite word, cost, champions marked). Use it to tune `data/director.json` while playing.
+
 # 0.3.4-dev.14 — Ice Blast crystal and shatter refinement (16 October 2026)
 
 - Replace Ice Blast’s dark outlined spikes with compact blue crystal facets, a short directional cold wake, forward shatter chips and brief frost residue. Group contact shake/hitstop within each cast; suppress the duplicate white contact star for plain Ice Blast.

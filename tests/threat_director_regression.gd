@@ -164,5 +164,18 @@ func run():
 	check(arrow.shown_boss == null, "a champion has no named boss bar")
 	monsters.rout()
 	check(champ_node[0].dying, "champions flee with everyone else when the night boss falls")
+	# Debug overlay (console `director`): the readout names every number the next purchase depends on.
+	var text = monsters.threat_director.report()
+	for needle in ["credits", "income", "coef", "phase", "alive", "champion fund", str(monsters.threat_director.history[-1].card)]:
+		check(needle in text, "director report shows " + needle)
+	game.console_instance.execute_command("director on")
+	var overlay = game.hud.get_node_or_null("DirectorOverlay")
+	check(overlay != null, "console `director on` adds the overlay")
+	if overlay:
+		overlay._process(1.0)
+		check("credits" in overlay.label.text, "the overlay reads the live director")
+	game.console_instance.execute_command("director off")
+	await process_frame
+	check(game.hud.get_node_or_null("DirectorOverlay") == null, "console `director off` removes it")
 	print("threat director: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
