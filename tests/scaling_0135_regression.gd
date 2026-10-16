@@ -109,7 +109,7 @@ func run():
 			effect = ported({"id": "meteor_shower", "type": "multi_aoe", "radius": 80, "meteor_count": 1, "warning_duration": 0.0}, 20, first)
 		var late = host(origin + Vector2(300, 0))   # after the cast: the meteor lands on `first`
 		if kind == "lightning":
-			effect.advance(0.33)   # the warning ring before the strike lands (playtest)
+			effect.advance(float(effect.plan.parts.mark.timing.duration) + 0.01)   # the warning ring before the strike lands (playtest)
 		check(is_equal_approx(first.current_health, 9980), kind + " immediate damage (%s)" % first.current_health)
 		effect.advance(0.21)
 		late.global_position = origin

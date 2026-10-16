@@ -1089,3 +1089,8 @@ Initial recovery balance stays at 15% of health actually removed, with a fixed 2
 Three visible phases: cool aqua hunting; luminous mint-green material and soft pale-green center on healing return; saturated red/coral material and pink-red center on the fresh-target finish. Gold/yellow was rejected as aggressive; the healing palette must feel restorative. These are material palette changes, not a subtle multiply tint. Set healing-return speed to 80% of outbound motion, including speed modifiers; the prior faster return felt aggressive. Keep the red finishing dive quick. Preserve the approved hybrid geometry and trail. Soul Bloom retains its own infection/death-triggered heal-or-hunt release.
 
 Validate with `tests/seeker_leech_regression.gd` and the full-duration `tools/capture_seeker_leech.gd`. Continue judging hunt pacing, high-rank crowd readability and sustained damage/recovery at real cast cadence. Code tests do not confer an aesthetic grade.
+
+
+### Lightning feel implementation — 0.3.4-dev.9
+
+Lightning gathers electricity at the staff, raises and slams it, reveals a blue circle at the actual affected radius, then strikes with a sky bolt, thunder and camera kick. Uneven electrical branches spread over the ground and fade over 1.3 seconds; this aftershock adds no damage. The authoritative warning is now 0.55 seconds (previously 0.32); damage, radius scaling and active damage linger remain unchanged. Keyword accents and force cues remain layered on impact; enemies retain hostile warning presentation. Reduced effects calms the discharge and suppresses its local flash. Native capture validates the sequence; the final feel grade remains subject to play feedback.

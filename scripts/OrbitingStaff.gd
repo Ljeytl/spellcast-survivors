@@ -7,6 +7,13 @@ var orbit_angle = -0.7
 var hover_time = 0.0
 var target: Node2D
 var staff: Sprite2D
+var lightning_pose := -1.0
+var lightning_pose_left := 0.0
+
+func set_lightning_pose(progress: float) -> void:
+	lightning_pose = clampf(progress, 0.0, 1.0)
+	lightning_pose_left = 0.08
+
 
 func _ready():
 	name = "OrbitingStaff"
@@ -53,6 +60,17 @@ func update_orbit(delta: float):
 	position = Vector2.from_angle(orbit_angle) * orbit_radius
 	staff.position.y = sin(hover_time * 2.5) * 3.0
 	staff.rotation = sin(hover_time * 1.7) * 0.06
+	lightning_pose_left = maxf(0.0, lightning_pose_left - delta)
+	if lightning_pose_left > 0.0:
+		var k := lightning_pose
+		if k < 0.35:
+			staff.position.y -= 24.0 * smoothstep(0.0, 0.35, k)
+			staff.rotation -= 0.2 * k / 0.35
+		elif k < 0.48:
+			staff.position.y += lerpf(-24.0, 12.0, pow((k - 0.35) / 0.13, 2.0))
+			staff.rotation = lerpf(-0.2, 0.0, (k - 0.35) / 0.13)
+		else:
+			staff.position.y += 12.0 * (1.0 - smoothstep(0.48, 1.0, k))
 	z_index = -1 if position.y < 0 else 1
 
 func _process(delta):
