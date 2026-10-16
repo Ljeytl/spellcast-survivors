@@ -416,10 +416,22 @@ func _on_upgrade_button_pressed(button_index: int):
 
 # Enhanced hover effects with glow and scale
 # Enhanced hover effects with glow, scale, and tooltip
-func _on_upgrade_button_mouse_entered(button: Button, panel_container: Panel):
+## Hover tweens go to fixed colours and replace each other. They used to multiply and divide the
+## current colour (alpha included), so moving the mouse quickly across the cards faded them out
+## completely (playtest 0.3.4).
+const HOVER_BRIGHT := Color(1.2, 1.2, 1.2, 1.0)
+func _hover_tween(button: Button) -> Tween:
+	var old = button.get_meta("hover_tween") if button.has_meta("hover_tween") else null
+	if old is Tween and old.is_valid():
+		old.kill()
 	var tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(button, "modulate", button.modulate * 1.2, 0.15)
+	button.set_meta("hover_tween", tween)
+	return tween
+
+func _on_upgrade_button_mouse_entered(button: Button, panel_container: Panel):
+	var tween = _hover_tween(button)
+	tween.tween_property(button, "modulate", HOVER_BRIGHT, 0.15)
 	
 	# Add subtle glow effect by brightening the panel
 	if panel_container.has_method("set_self_modulate"):
@@ -431,9 +443,8 @@ func _on_upgrade_button_mouse_entered(button: Button, panel_container: Panel):
 	
 
 func _on_upgrade_button_mouse_exited(button: Button, panel_container: Panel):
-	var tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(button, "modulate", button.modulate / 1.2, 0.15)
+	var tween = _hover_tween(button)
+	tween.tween_property(button, "modulate", Color.WHITE, 0.15)
 	
 	# Remove glow effect
 	if panel_container.has_method("set_self_modulate"):

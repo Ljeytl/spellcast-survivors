@@ -1147,8 +1147,12 @@ func celebrate_spell(slot: int, title: String, line: String):
 	banner.text = title.to_upper() + "\n" + line
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	banner.custom_minimum_size = Vector2(720, 140)
+	# Top-left anchors: a centre-anchored label positioned before it is in the tree took its
+	# position as an offset from the HUD centre and landed bottom right, over the minimap (playtest).
+	banner.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	banner.custom_minimum_size = Vector2(minf(720, hud.size.x - 24), 140)
+	banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	banner.size = banner.custom_minimum_size
 	banner.position = (hud.size - banner.custom_minimum_size) * 0.5 - Vector2(0, 150)
 	banner.add_theme_font_size_override("font_size", 44)
 	banner.add_theme_color_override("font_color", Color("ffe49b"))
