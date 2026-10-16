@@ -1337,8 +1337,22 @@ func update_typing_slowdown(remaining: float, _capacity: float):
 func _fit_typing_content():
 	var area = typing_label.get_parent() as ScrollContainer
 	var box = area.get_parent() as Control
-	var letter_count = typing_keycaps.letters.length() if is_instance_valid(typing_keycaps) else 4
-	box.size = Vector2(minf(maxf(280.0, letter_count * 50.0 + 48.0), $UI/HUD.size.x - 36.0), 120.0 if not typing_keycaps.error_caption().is_empty() else 102.0)
+	# Long incantations wrap (TypingKeycaps): the box is as wide as the longest line, at most about
+	# sixteen full-size keys, and grows a row per wrapped line.
+	var max_width := minf($UI/HUD.size.x - 36.0, 16 * 50.0 + 48.0)
+	if is_instance_valid(typing_keycaps):
+		# As many wrapped rows as fit between the wizard and the casting reference below.
+		var screen_h: float = $UI/HUD.size.y
+		var floor_y := screen_h - 130.0
+		var reference = $UI/HUD.get_node_or_null("CastingReference")
+		if reference and reference.size.y > 0:
+			floor_y = minf(floor_y, reference.position.y - 10.0)
+		var room := floor_y - (screen_h / 2.0 + 58.0) - 102.0
+		typing_keycaps.max_lines = clampi(1 + floori(room / 54.0), 1, typing_keycaps.MAX_LINES)
+		typing_keycaps.max_inner_width = max_width - 24.0
+	var width: float = typing_keycaps.preferred_width(max_width, 24.0) if is_instance_valid(typing_keycaps) else 280.0
+	var extra_rows := maxf(0.0, typing_label.custom_minimum_size.y - (80.0 if not typing_keycaps.error_caption().is_empty() else 62.0))
+	box.size = Vector2(width, (120.0 if not typing_keycaps.error_caption().is_empty() else 102.0) + extra_rows)
 	area.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	area.offset_top = 30.0
 	area.offset_bottom = -8.0

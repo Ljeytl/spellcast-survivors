@@ -83,7 +83,7 @@ func run():
 	manager.current_typing_text = "lightning bolt"
 	manager.update_freeform_typing_display()
 	check(not "Ready to cast" in caps.visible_caption(), "Unowned Lightning Bolt is not a starter alias")
-	manager.current_typing_text = "a".repeat(caps.columns() + 1)
+	manager.current_typing_text = "a".repeat(8)   # one row
 	manager.update_freeform_typing_display()
 	var old_height = game.typing_label.custom_minimum_size.y
 	manager.handle_freeform_typing_input(key(0, KEY_BACKSPACE))
@@ -100,7 +100,7 @@ func run():
 		manager.current_typing_text = "long incantation ".repeat(8)
 		manager.update_freeform_typing_display()
 		await settle()
-		check(caps.key_position(caps.letters.length() - 1).y == caps.key_position(0).y, "Long incantations stay on one line")
+		check(caps.visible_lines() <= caps.max_lines and (caps.max_lines == 1 or caps.visible_lines() > 1), "Long incantations wrap onto as many rows as fit above the reference (playtest 0.3.4): %d of %d" % [caps.visible_lines(), caps.max_lines])
 		check(caps.key_position(caps.letters.length() - 1).x + caps.fitted_key_size() <= caps.size.x and caps.key_position(caps.letters.length() - 1).x >= 0, "Horizontal overflow reveals the newest key")
 		check(game.get_node("UI/HUD").get_global_rect().encloses(game.get_node("UI/HUD/TypingPanel").get_global_rect()), "Typing panel stays in viewport")
 	manager.cancel_typing()

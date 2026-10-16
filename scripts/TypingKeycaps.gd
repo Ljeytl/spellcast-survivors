@@ -37,20 +37,108 @@ func _ready():
 		if ResourceLoader.exists(path):
 			textures[String.chr(code)] = load(path)
 
+# Layout (playtest 0.3.4: long incantations must wrap). Words wrap onto up to MAX_LINES lines at
+# full key size; if that is not enough the keys shrink (down to MIN_KEY) before the oldest lines
+# scroll away, so the newest key is always visible. A word longer than a line breaks mid-word.
+const MAX_LINES = 3
+const MIN_KEY = 20.0
+const LINE_GAP = 6.0
+var _layout_for := ""
+var _key := KEY_SIZE
+var _cols := 1
+var _lines: Array = []   # [start, end) index ranges, one per line
+var _first_line := 0
+var max_lines := MAX_LINES   # the HUD lowers this when there is no room above the casting reference
+var max_inner_width := 0.0   # the widest the prompt may grow (set by the HUD); heights follow it
+
+## Line ranges for `text` when `cols` keys fit on a line.
+static func wrap_lines(text: String, cols: int) -> Array:
+	var lines: Array = []
+	var n := text.length()
+	var line_start := 0
+	var i := 0
+	while i < n:
+		var j := i
+		while j < n and text[j] != " ":
+			j += 1
+		var token_end := j + (1 if j < n else 0)   # a word and the space after it
+		if i > line_start and (j - line_start) > cols:
+			lines.append([line_start, i])
+			line_start = i
+		while (j - line_start) > cols:   # a word longer than a whole line
+			lines.append([line_start, line_start + cols])
+			line_start += cols
+		i = token_end
+	if line_start < n or lines.is_empty():
+		lines.append([line_start, n])
+	return lines
+
+## Key size, columns and lines that fit `width`.
+static func plan(text: String, width: float, line_cap: int = MAX_LINES) -> Dictionary:
+	var key := KEY_SIZE
+	while true:
+		var cols := maxi(1, floori((width - 16.0 + 2.0) / (key + 2.0)))
+		var lines := wrap_lines(text, cols)
+		if lines.size() <= line_cap or key <= MIN_KEY:
+			return {"key": key, "cols": cols, "lines": lines}
+		key = maxf(MIN_KEY, key - 2.0)
+	return {}
+
+func _ensure_layout() -> void:
+	var stamp := "%s|%d|%d" % [letters, int(size.x), max_lines]
+	if stamp == _layout_for:
+		return
+	_layout_for = stamp
+	var p := plan(letters, size.x, max_lines)
+	_key = p.key
+	_cols = p.cols
+	_lines = p.lines
+	_first_line = maxi(0, _lines.size() - max_lines)
+
 func columns() -> int:
-	return maxi(1, floori(maxf(STRIDE, size.x - 16) / STRIDE))
+	_ensure_layout()
+	return _cols
 
 func fitted_key_size() -> float:
-	return minf(KEY_SIZE, maxf(20.0, (size.x - 16.0) / maxf(1, letters.length()) - 2.0))
+	_ensure_layout()
+	return _key
+
+func visible_lines() -> int:
+	_ensure_layout()
+	return mini(_lines.size(), max_lines)
 
 func visible_start() -> int:
-	return maxi(0, letters.length() - maxi(1, int((size.x - 16.0) / 22.0)))
+	_ensure_layout()
+	return int(_lines[_first_line][0]) if not _lines.is_empty() else 0
 
 func key_position(index: int) -> Vector2:
-	var key_size = fitted_key_size()
-	var stride = key_size + 2.0
-	var width = maxf(0, letters.length() - visible_start() - 1) * stride + key_size
-	return Vector2((size.x - width) / 2 + (index-visible_start()) * stride, 6)
+	_ensure_layout()
+	var stride := _key + 2.0
+	for l in range(_lines.size()):
+		var a: int = _lines[l][0]
+		var b: int = _lines[l][1]
+		if index >= a and index < b or (l == _lines.size() - 1 and index >= a):
+			var shown := b - a
+			if b > a and b - 1 < letters.length() and letters[b - 1] == " " and l < _lines.size() - 1:
+				shown -= 1   # a line's trailing space does not count for centring
+			var width := maxf(0, shown - 1) * stride + _key
+			return Vector2((size.x - width) / 2 + (index - a) * stride, 6 + (l - _first_line) * (_key + LINE_GAP))
+	return Vector2(size.x / 2, 6)
+
+func _ends_line(index: int) -> bool:
+	_ensure_layout()
+	for l in range(_lines.size() - 1):
+		if int(_lines[l][1]) - 1 == index:
+			return true
+	return false
+
+## Width the prompt wants for this text, at most `max_width`: the longest wrapped line plus margins.
+func preferred_width(max_width: float, margin: float) -> float:
+	var p := plan(letters, max_width - margin, max_lines)
+	var longest := 0
+	for line in p.lines:
+		longest = maxi(longest, int(line[1]) - int(line[0]))
+	return minf(max_width, maxf(280.0, longest * (p.key + 2.0) + 16.0 + margin))
 
 func sync(text: String, message: String):
 	feedback = message
@@ -81,7 +169,12 @@ func clear_keys():
 	queue_redraw()
 
 func update_height():
-	var height = 80.0 if not error_caption().is_empty() else 62.0
+	# Measured against the width the prompt is about to take, not its current (stale) width, so the
+	# box never flickers a row taller for one frame while it widens.
+	var p := plan(letters, max_inner_width if max_inner_width > 0.0 else size.x, max_lines)
+	var rows := mini(p.lines.size(), max_lines)
+	var extra := (rows - 1) * (float(p.key) + LINE_GAP) - (KEY_SIZE - float(p.key))
+	var height = (80.0 if not error_caption().is_empty() else 62.0) + maxf(0.0, extra)
 	for piece in fragments:
 		height = maxf(height, piece.floor_height)
 	label.custom_minimum_size.y = height
@@ -162,6 +255,8 @@ func _draw():
 	var font = label.get_theme_font("font")
 	for i in range(visible_start(), letters.length()):
 		var key = letters[i].to_upper()
+		if key == " " and _ends_line(i):
+			continue   # a wrapped line's trailing space is not drawn
 		var texture = textures.get(key, BLANK)
 		var pos = key_position(i)
 		var progress = clampf(ages[i] / DROP_SECONDS, 0, 1)
@@ -183,7 +278,7 @@ func _draw():
 
 	var caption_y = float(label.get_parent().scroll_vertical)
 	if not error_caption().is_empty():
-		draw_string(font, Vector2(8, caption_y + 72), error_caption(), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 14, Color("ff8175"))
+		draw_string(font, Vector2(8, caption_y + 72 + maxf(0.0, (visible_lines() - 1) * (fitted_key_size() + LINE_GAP) - (KEY_SIZE - fitted_key_size()))), error_caption(), HORIZONTAL_ALIGNMENT_CENTER, maxf(1, size.x - 16), 14, Color("ff8175"))
 
 func error_caption() -> String:
 	for error in ["No target in range", "Mismatch", "unavailable", "No matching spell"]:

@@ -199,11 +199,23 @@ func create_decoration(cell: Vector2i) -> Node2D:
 		body.add_child(shape)
 		var tree = Sprite2D.new()
 		tree.name = "Canopy"
-		tree.texture = load(ART + ("Level Tiles/Level Deco/Fir Tree 1 shaded.png" if posmod(cell.x + cell.y + i, 2) == 0 else "Level Tiles/Level Deco/Fir Tree 1.png"))
+		var shaded = posmod(cell.x + cell.y + i, 2) == 0
+		# The plain fir's ground shadow and trunk base are split into a ground sprite drawn with the
+		# scenery, so bushes in front of a tree sit on top of its shadow (playtest 0.3.4); the canopy
+		# keeps the same image size, so its trunk pivot is unchanged.
+		tree.texture = load(ART + ("Level Tiles/Level Deco/Fir Tree 1 shaded.png" if shaded else "Level Tiles/Level Deco/Fir Tree 1 canopy.png"))
 		tree.scale = Vector2(2, 2)
 		tree.position = point
 		tree.offset = tree.texture.get_size() / 2 - TREE_TRUNK_PIVOT
 		tree_canopies.add_child(tree)
+		if not shaded:
+			var ground = Sprite2D.new()
+			ground.name = "TreeGround"
+			ground.texture = load(ART + "Level Tiles/Level Deco/Fir Tree 1 ground.png")
+			ground.scale = tree.scale
+			ground.position = point
+			ground.offset = ground.texture.get_size() / 2 - TREE_TRUNK_PIVOT
+			holder.add_child(ground)
 		body.set_meta("canopy", tree)
 		body.tree_exiting.connect(tree.queue_free)
 	for i in range(layout.bushes.size()):
