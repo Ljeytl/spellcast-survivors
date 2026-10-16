@@ -1,5 +1,7 @@
 # Spirit browser playground (16 October 2026)
 
+- Blend the hybrid center into its trail with a broader rear transition and more underlying material color, preserving the distinct front edge and eyes.
+
 - Thicken the approved hybrid direction by widening emitted trail material across its movement direction by 65%, retaining its existing fade and flow. Original wisp stays unchanged.
 
 - Add a selectable ghost/wisp Hybrid: rounded cream center and tracking eyes share the wisp material renderer and its advected, fading trail. Preserve Ghost, Wisp and Both for comparison; start on Hybrid for this experiment.

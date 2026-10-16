@@ -42,7 +42,7 @@ local.x+=.13*sin(local.y*2.+clock*.8);local.y*=1.15;float body=exp(-dot(local,lo
 value.r+=body*dt*4.2;vec2 core=(world-source)/radius;float sourceHeat=exp(-dot(core,core)*3.8)*(1.+.12*sin(core.x*6.+clock)*sin(core.y*5.-clock));value.g=max(value.g,sourceHeat*.9);vec2 veil=local-vec2(.22*sin(clock*.8),-.22);value.b+=exp(-dot(veil*vec2(1.4,.85),veil*vec2(1.4,.85))*7.)*dt*3.4;gl_FragColor=vec4(clamp(value.rgb,0.,1.),1.);
 }`);
 const wispProgram=program(quadVertex,`precision highp float;
-uniform float hybrid;uniform vec2 faceCenter;uniform float faceRadius;uniform vec3 faceGaze;uniform float faceBlink;uniform sampler2D field;uniform vec2 origin;uniform float span;uniform float silhouette;varying vec2 point;
+uniform float hybrid;uniform vec2 faceCenter;uniform vec2 faceHeading;uniform float faceRadius;uniform vec3 faceGaze;uniform float faceBlink;uniform sampler2D field;uniform vec2 origin;uniform float span;uniform float silhouette;varying vec2 point;
 void main(){vec2 uv=(point-origin)/span;uv.y=1.-uv.y;vec3 d=texture2D(field,uv).rgb;
 float density=d.r;vec2 e=vec2(1./512.,0.);vec2 gradient=vec2(texture2D(field,uv+e.xy).r-texture2D(field,uv-e.xy).r,texture2D(field,uv+e.yx).r-texture2D(field,uv-e.yx).r);
 vec3 n=normalize(vec3(-gradient.x*45.,gradient.y*45.,.2));float light=dot(n,normalize(vec3(-.4,-.6,.8)))*.5+.5;
@@ -52,7 +52,7 @@ float inner=exp(-pow((d.b-.11)/.07,2.))*smoothstep(.04,.15,density);vec3 color=m
 float alpha=clamp(smoothstep(.04,.16,density)*.72+fold*.42,0.,.95);
 if(hybrid>.5){
 alpha*=smoothstep(.001,.025,density);
-vec2 q=(point-faceCenter)/faceRadius;float rr=dot(q,q);float face=1.-smoothstep(.58,1.12,sqrt(rr));color=mix(color,vec3(.94,.97,.85),face*.96);alpha=max(alpha,face*.97);
+vec2 q=(point-faceCenter)/faceRadius;float rr=dot(q,q);float rear=smoothstep(-.10,.85,-dot(q,faceHeading));float face=1.-smoothstep(.58-.18*rear,1.12+.36*rear,sqrt(rr));color=mix(color,vec3(.94,.97,.85),face*.96*(1.-.22*rear));alpha=max(alpha,face*.97);
 vec3 radial=normalize(vec3(q,sqrt(max(.001,1.-rr)))),f=normalize(faceGaze),right=normalize(cross(vec3(0.,1.,0.),f)),up=normalize(cross(f,right));vec2 eyeUV=vec2(dot(radial,right),dot(radial,up));float eye=0.,shine=0.;
 for(int i=0;i<2;i++){float side=float(i)*2.-1.;vec2 a=(eyeUV-vec2(side*.28,.04))/vec2(.14+side*.01,(.24+side*.015)*max(.08,1.-faceBlink));eye=max(eye,1.-smoothstep(.9,1.1,dot(a,a)));vec2 b=(eyeUV-vec2(side*.28-.025,-.03))/vec2(.025,.04);shine=max(shine,1.-smoothstep(.7,1.1,dot(b,b)));}
 eye*=smoothstep(.72,.82,dot(radial,f))*(1.-smoothstep(.9,1.05,rr));color=mix(color,vec3(.045,.15,.20),eye);color+=vec3(.22,.35,.36)*shine*eye*(1.-faceBlink);
@@ -66,7 +66,7 @@ const quadBuffer=gl.createBuffer();
 function drawQuad(p,x0,y0,x1,y1){gl.bindBuffer(gl.ARRAY_BUFFER,quadBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([x0,y0,x1,y0,x0,y1,x0,y1,x1,y0,x1,y1]),gl.DYNAMIC_DRAW);const a=gl.getAttribLocation(p,'position');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,8,0);gl.drawArrays(gl.TRIANGLES,0,6);}
 const loc=(p,n)=>gl.getUniformLocation(p,n);
 const GU=Object.fromEntries(['viewport','gaze','clock','blink','silhouette','head','axis','radius','nodes'].map(n=>[n,loc(ghostProgram,n)]));
-const WU=Object.fromEntries(['viewport','field','origin','span','silhouette','hybrid','faceCenter','faceRadius','faceGaze','faceBlink'].map(n=>[n,loc(wispProgram,n)]));
+const WU=Object.fromEntries(['viewport','field','origin','span','silhouette','hybrid','faceCenter','faceHeading','faceRadius','faceGaze','faceBlink'].map(n=>[n,loc(wispProgram,n)]));
 const FU=Object.fromEntries(['viewport','previous','origin','oldOrigin','span','oldSpan','source','oldSource','heading','radius','dt','trailWidth','reach','clock'].map(n=>[n,loc(fluidProgram,n)]));
 function create(kind){return{kind,x:0,y:0,vx:0,vy:0,angle:-.2,speed:0,turn:0,gx:.25,gy:.05,ready:false};}
 const spirits=[create('ghost'),create('wisp'),create('hybrid')];let silhouette=false;
@@ -116,7 +116,7 @@ if(!fieldReady){for(const f of fields){gl.bindFramebuffer(gl.FRAMEBUFFER,f.frame
 if(dt>0){
 gl.disable(gl.BLEND);gl.bindFramebuffer(gl.FRAMEBUFFER,fields[1].framebuffer);gl.viewport(0,0,512,512);gl.useProgram(fluidProgram);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fields[0].texture);gl.uniform1i(FU.previous,0);gl.uniform2f(FU.viewport,512,512);gl.uniform2fv(FU.origin,origin);gl.uniform2fv(FU.oldOrigin,fieldOrigin);gl.uniform1f(FU.span,span);gl.uniform1f(FU.oldSpan,fieldSpan);gl.uniform2f(FU.source,s.x,s.y);gl.uniform2fv(FU.oldSource,oldSource);gl.uniform2f(FU.heading,Math.cos(s.angle),Math.sin(s.angle));gl.uniform1f(FU.radius,s.radius);gl.uniform1f(FU.dt,dt*(gentle?.55:1));gl.uniform1f(FU.trailWidth,s.kind==='hybrid'?1.65:1.);gl.uniform1f(FU.reach,reach);gl.uniform1f(FU.clock,time);drawQuad(fluidProgram,0,0,512,512);fields.reverse();fieldOrigin=origin.slice();fieldSpan=span;oldSource=[s.x,s.y];
 }
-gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.enable(gl.BLEND);gl.useProgram(wispProgram);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fields[0].texture);gl.uniform1i(WU.field,0);gl.uniform1f(WU.hybrid,s.kind==='hybrid'?1:0);gl.uniform2f(WU.faceCenter,s.x,s.y);gl.uniform1f(WU.faceRadius,s.radius*.85);gl.uniform3f(WU.faceGaze,s.gx,s.gy,Math.sqrt(Math.max(.12,1-s.gx*s.gx-s.gy*s.gy)));gl.uniform1f(WU.faceBlink,Math.pow(Math.max(0,Math.cos(time*1.1+1.5)),70));gl.uniform2f(WU.viewport,W,H);gl.uniform2fv(WU.origin,fieldOrigin);gl.uniform1f(WU.span,fieldSpan);gl.uniform1f(WU.silhouette,silhouette?1:0);drawQuad(wispProgram,fieldOrigin[0],fieldOrigin[1],fieldOrigin[0]+fieldSpan,fieldOrigin[1]+fieldSpan);
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.enable(gl.BLEND);gl.useProgram(wispProgram);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fields[0].texture);gl.uniform1i(WU.field,0);gl.uniform1f(WU.hybrid,s.kind==='hybrid'?1:0);gl.uniform2f(WU.faceCenter,s.x,s.y);gl.uniform2f(WU.faceHeading,Math.cos(s.angle),Math.sin(s.angle));gl.uniform1f(WU.faceRadius,s.radius*.85);gl.uniform3f(WU.faceGaze,s.gx,s.gy,Math.sqrt(Math.max(.12,1-s.gx*s.gx-s.gy*s.gy)));gl.uniform1f(WU.faceBlink,Math.pow(Math.max(0,Math.cos(time*1.1+1.5)),70));gl.uniform2f(WU.viewport,W,H);gl.uniform2fv(WU.origin,fieldOrigin);gl.uniform1f(WU.span,fieldSpan);gl.uniform1f(WU.silhouette,silhouette?1:0);drawQuad(wispProgram,fieldOrigin[0],fieldOrigin[1],fieldOrigin[0]+fieldSpan,fieldOrigin[1]+fieldSpan);
 }
 function frame(now){const elapsed=Math.min((now-last)/1000||1/60,.05);last=now;if(!paused||dirty){const dt=paused?0:elapsed;dirty=false;time+=dt*(gentle?.45:1);
 let tx=pointer.x,ty=pointer.y;if(demo){tx=W*.52+Math.cos(time*.65)*W*.24;ty=H*.43+Math.sin(time*.92)*H*.21;}else if(!hasTarget){tx=W*.58;ty=H*.44;}
