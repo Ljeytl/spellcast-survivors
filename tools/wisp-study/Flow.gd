@@ -84,13 +84,14 @@ func _upload(velocity: Vector2) -> void:
 	var cells: Array[Vector4] = []
 	var core_energy := 1.0 if arrival_age < 0.0 else 1.0 - smoothstep(0.0, 0.50, arrival_age)
 	var normal := Vector2(-heading.y, heading.x)
-	var stretch := clampf(velocity.length() / 180.0, 0.0, 0.6)
+	var squash := clampf(velocity.length() / 180.0, 0.0, 1.0) * 0.06
+	var breath := 1.0 + sin(phase * 2.4) * 0.055
 	for i in range(8):
-		var t := float(i) / 7.0
-		var bend := sin(phase * 2.1 - t * 3.5) * (2.0 + t * 5.0)
-		var local := (heading * (5.0 - t * (24.0 + stretch * 9.0)) + normal * bend) * core_energy
-		var radius := (4.0 + sin(t * PI) * 7.0) * (1.0 + sin(phase * 2.5 - t * 4.0) * 0.12)
-		cells.append(Vector4(local.x, local.y, radius * maxf(core_energy, 0.01), (0.32 + sin(t * PI) * 0.20) * core_energy))
+		var angle := i * TAU / 8.0 + phase * 0.7
+		var orbit := 2.8 + sin(phase * 1.8 + i * 0.8) * 0.45
+		var local := (heading * cos(angle) * (1.0 + squash) + normal * sin(angle) * (1.0 - squash)) * orbit * breath * core_energy
+		var radius := (6.5 + sin(phase * 2.0 + i * 0.65) * 0.4) * breath
+		cells.append(Vector4(local.x, local.y, radius * maxf(core_energy, 0.01), 0.22 * core_energy))
 	for p in particles:
 		var t: float = p.age / p.life
 		var local: Vector2 = to_local(p.position)

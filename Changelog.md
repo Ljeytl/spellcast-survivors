@@ -1,5 +1,7 @@
 # Wisp study refinement (16 October 2026)
 
+- Restore a compact orb-like core with restrained breathing and at most 6% axis squash, replacing the elongated bright center. Keep the short early-fading material wake; this remains an isolated visual study.
+
 - Shorten the isolated wisp wake from 1.4 to 0.9 seconds, fade material from birth, reduce drifting circulation and tighten its response. Preserve the approved connected body while concentrating brightness near the core. Gameplay remains unchanged.
 
 # Spell-feel prototype — Animated core and material flow (15 October 2026)
