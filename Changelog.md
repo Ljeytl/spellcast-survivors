@@ -1,3 +1,9 @@
+# 0.3.4-dev.11 — Lightning preview camera audit (16 October 2026)
+
+- Fix the recording fixture: enabling camera shake also enabled following, which pulled the gallery camera 160 world units back toward the player. Align the preview follow offset with its framing. No gameplay camera or spell-effect changes.
+- Record camera telemetry and assert no follow drift and complete shake recovery. Add native checks and screenshots for plain versus Mega casting: plain has no keyword satellite, Mega has one and a separate charge, and both clear afterward.
+- Future refinement: assess the bright, busy shared cast-release runes separately. Per-spell cast times and staff motions remain a later design pass; preserve A-tier Lightning effects.
+
 # 0.3.4-dev.10 — Restore Lightning and retain its blue warning circle (16 October 2026)
 
 - Reject the dev.9 presentation rebuild: restore the original sky bolt, particles, impact, audio, staff behavior and 0.32-second warning. Remove the outlined ground branches and custom gather/slam.
