@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "director.json",
+  "type": "object",
+  "properties": {
+    "_doc": {
+      "type": "string"
+    },
+    "income": {
+      "type": "object",
+      "properties": {
+        "base_per_second": {
+          "type": "number"
+        },
+        "difficulty_growth_per_minute": {
+          "type": "number"
+        },
+        "income_exponent": {
+          "type": "number"
+        },
+        "starting_credits": {
+          "type": "number"
+        },
+        "bank_cap_seconds": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "base_per_second",
+        "difficulty_growth_per_minute"
+      ],
+      "additionalProperties": false
+    },
+    "phases": {
+      "type": "object",
+      "additionalProperties": {}
+    },
+    "spending": {
+      "type": "object",
+      "properties": {
+        "wait_min": {
+          "type": "number"
+        },
+        "wait_max": {
+          "type": "number"
+        },
+        "retry_wait": {
+          "type": "number"
+        },
+        "group_spread_radians": {
+          "type": "number"
+        },
+        "burst_max": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cards": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "cost": {
+            "type": "number"
+          },
+          "group": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "weight": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "cost",
+          "group"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "elites": {
+      "type": "object",
+      "properties": {
+        "_doc": {
+          "type": "string"
+        },
+        "from_minute": {
+          "type": "number"
+        },
+        "chance": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "champions": {
+      "type": "object",
+      "properties": {
+        "_doc": {
+          "type": "string"
+        },
+        "from_minute": {
+          "type": "number"
+        },
+        "cost": {
+          "type": "number"
+        },
+        "cooldown_seconds": {
+          "type": "number"
+        },
+        "max_alive": {
+          "type": "number"
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "health_mult": {
+          "type": "number"
+        },
+        "damage_mult": {
+          "type": "number"
+        },
+        "xp_mult": {
+          "type": "number"
+        },
+        "income_share": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm": {
+      "type": "string"
+    },
+    "realms": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "_doc": {
+            "type": "string"
+          },
+          "cost_mult": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "weight_mult": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "banned": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "favoured_word": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "income",
+    "phases",
+    "cards"
+  ],
+  "additionalProperties": false
+}

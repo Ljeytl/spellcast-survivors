@@ -399,6 +399,10 @@
         ],
         "additionalProperties": false
       }
+    },
+    "pacing": {
+      "type": "string",
+      "$comment": "director (data/director.json, Risk of Rain style credits) or interval_phases (the 0.3 timer spawner, kept as a fallback)"
     }
   },
   "required": [

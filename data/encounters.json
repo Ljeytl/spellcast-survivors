@@ -1,4 +1,5 @@
 {
+  "pacing": "director",
   "run_duration": 1200,
   "tier_duration": 300,
   "ranged_start": 600,

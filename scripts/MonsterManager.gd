@@ -30,6 +30,7 @@ var spawn_attempts = 0
 var actual_spawns = 0
 var cap_rejections = 0
 var encounter_director
+var threat_director   # data/director.json; null when encounters.json pacing is interval_phases
 var spawn_batch_fraction := 0.0
 var spawn_pressure = preload("res://scripts/SpawnPressure.gd").new()
 const Elites = preload("res://scripts/Elites.gd")
@@ -48,6 +49,8 @@ func _ready():
 	encounter_config = JSON.parse_string(FileAccess.get_file_as_string("res://data/encounters.json"))
 	max_monsters = int(encounter_config.scaling.maximum_enemies)
 	encounter_director = preload("res://scripts/EncounterDirector.gd").new(self)
+	if pacing() == "director":
+		threat_director = preload("res://scripts/ThreatDirector.gd").new(self)
 	add_to_group("monster_manager")
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = calculate_spawn_interval()
@@ -117,7 +120,39 @@ func calculate_monster_stats(definition: Dictionary, _difficulty_level: int = 1)
 		"xp": float(definition.xp) * sqrt(health_multiplier) * float(scaling.get("xp_multiplier", 1.0))
 	}
 
+## Which spawner runs the background pressure: "director" (doc 23) or the 0.3 "interval_phases" timer.
+## Either way the spawn timer is the on/off switch: stopping it stops background spawning.
+func pacing() -> String:
+	return str(encounter_config.get("pacing", "interval_phases"))
+
+func room() -> int:
+	return maxi(0, max_monsters - monsters_alive)
+
+func champions_alive() -> int:
+	return get_tree().get_nodes_in_group("bosses").filter(func(b): return is_instance_valid(b) and b.has_meta("champion") and not b.dying).size()
+
+## The director's purchases arrive together from one side of the screen.
+func director_spawn(definition: Dictionary, count: int, words: Array, champion: bool):
+	if champion:
+		var def := definition.duplicate(true)
+		def["champion"] = true
+		var boss = spawn_monster(def, true)
+		if boss:
+			boss.set_meta("champion", true)
+		return
+	var angle := randf() * TAU
+	var spread := float(threat_director.data().get("spending", {}).get("group_spread_radians", 0.5)) if threat_director else 0.5
+	var leader = null
+	for i in count:
+		var offset := (float(i) / maxf(1.0, count - 1) - 0.5) * spread if count > 1 else 0.0
+		var monster = spawn_monster(definition, false, true, angle + offset, -1.0, words)
+		if monster and leader == null:
+			leader = monster
+	return leader
+
 func _on_spawn_timer_timeout():
+	if threat_director:
+		return   # the director spends on its own clock (advance_time)
 	for index in range(consume_spawn_batch_size()):
 		spawn_monster()
 	spawn_timer.wait_time = calculate_spawn_interval()
@@ -142,7 +177,13 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 			break
 		var monster = EnemyScene.instantiate()
 		var stats = calculate_monster_stats(definition)
-		if is_boss:
+		if is_boss and definition.get("champion", false):
+			# Unnamed boss (director champion): boss-sized, tougher, no named bar or boss chest.
+			var champs: Dictionary = threat_director.data().get("champions", {}) if threat_director else {}
+			stats.health *= float(champs.get("health_mult", 6.0))
+			stats.damage *= float(champs.get("damage_mult", 1.3))
+			stats.xp *= float(champs.get("xp_mult", 6.0))
+		elif is_boss:
 			stats.health = float(definition.get("boss_health", stats.health * 12.0))
 			stats.damage *= 1.5
 			stats.xp *= 12.0
@@ -174,7 +215,7 @@ func vacuum_xp():
 ## The boss has fallen: every other monster flees into the dark (no kill, no XP).
 func rout():
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.dying or enemy.boss:
+		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.dying or (enemy.boss and not enemy.has_meta("champion")):
 			continue
 		enemy.dying = true
 		enemy.remove_from_group("enemies")
@@ -202,6 +243,7 @@ func check_boss_milestones():
 			definition["boss_health"] = milestone.health
 		var boss = spawn_monster(definition, true)
 		if boss:
+			boss.set_meta("named_boss", true)
 			spawned_bosses[at_time] = true
 			boss_arrived.emit(milestone.name)
 			print("Boss milestone: %ds, %s" % [at_time, milestone.name])
@@ -354,7 +396,10 @@ func _on_monster_died(monster: CharacterBody2D):
 		spawn_pressure.record_kill()
 	if get_parent().has_method("increment_enemies_killed"):
 		get_parent().increment_enemies_killed()
-	if monster.boss and not run_finished and not monster.has_meta("boss_reward_dropped"):
+	if monster.boss and monster.has_meta("champion") and not monster.has_meta("boss_reward_dropped"):
+		monster.set_meta("boss_reward_dropped", true)
+		preload("res://scripts/HealthPotion.gd").try_drop(get_parent(), monster.global_position, -1.0, true)
+	elif monster.boss and not run_finished and not monster.has_meta("boss_reward_dropped"):
 		monster.set_meta("boss_reward_dropped", true)
 		var reward = preload("res://scripts/BossReward.gd").new()
 		reward.position = monster.global_position
@@ -401,7 +446,10 @@ func advance_time(delta: float):
 	check_elite_patrol()
 	encounter_director.update(delta)
 	if not spawn_timer.is_stopped():
-		replenish_population(delta)
+		if threat_director:
+			threat_director.update(delta)
+		else:
+			replenish_population(delta)
 
 
 ## Elite patrols (data/elites.json "patrols"): from `first`, every `every` seconds until `until`, one

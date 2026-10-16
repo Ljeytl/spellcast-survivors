@@ -15,13 +15,15 @@
   "words": {
     "quick": {
       "word": "QUICK",
-      "speed_mult": 1.5
+      "speed_mult": 1.5,
+      "cost_mult": 2.0
     },
     "massive": {
       "word": "MASSIVE",
       "size_mult": 1.35,
       "health_mult": 2.0,
-      "speed_mult": 0.75
+      "speed_mult": 0.75,
+      "cost_mult": 3.0
     },
     "fiery": {
       "word": "FIERY",
@@ -34,7 +36,8 @@
         "damage_mult": 1.0,
         "windup": 0.6
       },
-      "color": "#ff7a2a"
+      "color": "#ff7a2a",
+      "cost_mult": 4.0
     },
     "icy": {
       "word": "ICY",
@@ -47,7 +50,8 @@
         "damage_mult": 0.8,
         "windup": 0.8
       },
-      "color": "#5fe0ff"
+      "color": "#5fe0ff",
+      "cost_mult": 4.0
     },
     "shocking": {
       "word": "SHOCKING",
@@ -60,17 +64,20 @@
         "damage_mult": 1.5,
         "windup": 0.6
       },
-      "color": "#ffe94a"
+      "color": "#ffe94a",
+      "cost_mult": 4.0
     },
     "iron": {
       "word": "IRON",
       "element": "earth",
       "resist_profile": "elite_armored",
-      "color": "#d9b27a"
+      "color": "#d9b27a",
+      "cost_mult": 3.0
     },
     "leeching": {
       "word": "LEECHING",
-      "heal_per_hit": 0.08
+      "heal_per_hit": 0.08,
+      "cost_mult": 2.0
     }
   },
   "patrols": {
