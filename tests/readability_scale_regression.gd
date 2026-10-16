@@ -36,7 +36,7 @@ func run():
 	check(is_equal_approx(reviewed_zoom, 1.5), "Reviewed camera zoom is 1.5 (integer art scaling)")
 	check(game.get_node("Camera2D").zoom == Vector2.ONE * reviewed_zoom, "Camera uses reviewed zoom")
 	check(game.player.get_node("Sprite2D").scale == Vector2.ONE * 2.0, "Player retains baseline art proportions")
-	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(64, 64), "Trunk navigation footprint remains deliberate baseline")
+	check(game.player.get_node("CollisionShape2D").shape.size == Vector2(28, 14) and game.player.get_node("CollisionShape2D").position == Vector2(1, 28), "Trunk navigation footprint is the wizard's feet (playtest 0.3.4)")
 	if visual:
 		root.size = Vector2i(1280, 720)
 		var monsters = game.get_node("MonsterManager")
@@ -87,10 +87,19 @@ func run():
 			if visual:
 				await RenderingServer.frame_post_draw
 				root.get_texture().get_image().save_png("res://builds/readability-evidence/%s-%s.png" % [geometry.x, name.replace(" ", "-")])
-			check(keys.key_position(0).y == keys.key_position(name.length() - 1).y, "One line at %s for %s" % [geometry, name])
-			check(keys.key_position(name.length() - 1).x + keys.fitted_key_size() <= keys.size.x, "Newest key remains inside prompt")
-			check(keys.key_position(name.length() - 1).x >= 0, "Newest key remains fully visible")
-			check(game.typing_label.custom_minimum_size.y == 62, "Compact typing height is fixed")
+			# Playtest 0.3.4: a name that fits stays on one compact line; a longer one wraps by word.
+			var one_line = keys.key_position(0).y == keys.key_position(name.length() - 1).y
+			if name.length() <= keys.columns():
+				check(one_line, "One line at %s for %s" % [geometry, name])
+				check(game.typing_label.custom_minimum_size.y == 62, "Compact typing height is fixed")
+			else:
+				check(not one_line and keys.visible_lines() <= keys.MAX_LINES, "Long name wraps at %s for %s" % [geometry, name])
+			for i in name.length():
+				if name[i] == " ":
+					continue
+				var at = keys.key_position(i)
+				check(at.x >= 0 and at.x + keys.fitted_key_size() <= keys.size.x, "Key %d inside prompt at %s for %s" % [i, geometry, name])
+				check(at.y + keys.fitted_key_size() <= game.typing_label.custom_minimum_size.y, "Key %d inside prompt height at %s for %s" % [i, geometry, name])
 			manager.current_typing_text = name.left(name.length() - 1)
 			game.update_typing_display(manager.current_typing_text)
 			await settle()

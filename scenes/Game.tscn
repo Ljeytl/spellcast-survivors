@@ -18,7 +18,7 @@
 [ext_resource type="Script" path="res://scripts/PauseInput.gd" id="13_pause_input"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1v8p3"]
-size = Vector2(64, 64)
+size = Vector2(28, 14)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hitbox"]
 size = Vector2(80, 80)
@@ -55,6 +55,7 @@ scale = Vector2(2, 2)
 texture = ExtResource("4_aug50")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+position = Vector2(1, 28)
 shape = SubResource("RectangleShape2D_1v8p3")
 
 [node name="HitBox" type="Area2D" parent="Player"]

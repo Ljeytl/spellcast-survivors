@@ -145,7 +145,7 @@ func run():
 		if terrain.layout_for(cell).trees.size() != 1:
 			continue
 		var trunk = terrain.decorations[cell].get_child(0)
-		player.position = trunk.position + Vector2(48, -130)
+		player.position = trunk.position + Vector2(29, -130)   # feet footprint's near edge 16 px from the trunk centre
 		check(not player.test_move(player.global_transform, Vector2(0, 260)), "Player passes close to narrowed trunk outside11px radius")
 		trunk.get_child(0).shape.radius = 22
 		await physics_frame
@@ -164,11 +164,15 @@ func run():
 			continue
 		tested_variants[variant] = true
 		var art_trunk = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2 + canopy.offset)
+		# The wizard's navigation footprint is the feet (playtest 0.3.4): a 28x14 box 28 px below centre.
+		var foot = player.get_node("CollisionShape2D")
+		var half: Vector2 = foot.shape.size / 2
 		for side in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
-			player.position = art_trunk + side * 130
+			player.position = art_trunk + side * 130 - foot.position
 			var collision = player.move_and_collide(-side * 180)
 			check(collision != null, "All-side approach contacts visible trunk: " + variant)
-			check(absf((player.position - art_trunk).dot(side) - 43.0) < 1.0, "Player reaches visible trunk edge without distant barrier: " + variant)
+			var reach = 11.0 + absf(half.dot(side))
+			check(absf((player.position + foot.position - art_trunk).dot(side) - reach) < 1.0, "Feet reach the visible trunk edge without distant barrier: " + variant)
 		var correct_position = canopy.position
 		canopy.position = Vector2(0, 20 - canopy.texture.get_height())
 		var wrong_anchor = canopy.to_global(Vector2(39, 120) - canopy.texture.get_size() / 2 + canopy.offset)
