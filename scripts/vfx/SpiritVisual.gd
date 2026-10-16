@@ -71,7 +71,7 @@ func _process(dt: float) -> void:
 		return
 	if not soul:
 		radius = maxf(1.0, float(host.geo("radius", 24.0)))
-		healing = false
+		healing = bool(host.get("returning_life"))
 	else:
 		healing = host.healing
 	clock = float(host.age)
@@ -98,7 +98,7 @@ func _process(dt: float) -> void:
 	var span := radius * 12.0
 	sprite.scale = Vector2.ONE * span / FIELD_SIZE
 	var tint := Color.WHITE
-	if soul:
+	if soul or healing:
 		tint = Color(0.87, 1.0, 0.88) if healing else Color(1.0, 0.85, 1.0)
 	var fade := clampf((float(host.LIFE) - clock) / 0.4, 0.0, 1.0) if soul else 1.0
 	sprite.modulate = Color(tint * (1.0 + contact * 0.06), lerpf(0.65, 1.0, emergence) * fade)

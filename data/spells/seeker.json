@@ -5,7 +5,7 @@
     "id": "seeker",
     "presentation": {
       "shows_lasting": true,
-      "summary": "Summon a hunter that pursues nearby enemies.",
+      "summary": "Send a spirit to steal life and bring it home; at full health it bursts on its victim.",
       "sound": "SPELL_LIFE",
       "icon": "spirit",
       "preview": {
@@ -14,7 +14,7 @@
       }
     },
     "preparable": true,
-    "growth_description": "longer-lasting spirits, third spirit at rank 8",
+    "growth_description": "stronger strikes, longer pursuit, third active spirit at rank 8",
     "rank_growth": {
       "active_limit": {
         "per_rank": 0.1429,
@@ -37,7 +37,7 @@
     "move_speed": 220,
     "duration": 12.0,
     "active_limit": 2,
-    "role": "A slow spirit pursues nearby enemies for 8 to 10 seconds, striking each enemy at most once per second. Up to 2 spirits, 3 at rank 8.",
+    "role": "A spirit pursues an enemy, strikes once, then returns stolen health. At full health it bursts on contact. Healing is 15% of health removed, capped at 2 HP per cast, delivered only on return.",
     "unlock_condition": {
       "type": "default"
     },
@@ -82,6 +82,11 @@
             "part": "reap",
             "exclude_hit": true
           }
+        },
+        "leech_return": {
+          "share": 0.15,
+          "cap": 2.0,
+          "return_speed": 320.0
         }
       },
       "reap": {

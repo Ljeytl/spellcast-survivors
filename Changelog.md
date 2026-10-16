@@ -1,3 +1,10 @@
+# 0.3.4-dev.4 — Seeker brings stolen life home (16 October 2026)
+
+- Seeker strikes once, carries stolen life home and disappears on delivery. Full-health spirits burst on contact; a full heal during return redirects them for a final attack.
+- Start at 15% of actual enemy health removed, capped at 2 HP per cast across copies, compared with basic Life’s immediate 4 HP. Overkill and immunity cannot manufacture healing. Leeching increases the drain share within the same cap; incidental explosions cannot bypass return delivery.
+- Preserve the accepted hybrid shape; returning spirits take on the healing tint. Add arrival bursts, a four-second return timeout, and a bounded redirected pursuit. No revival or return-path damage.
+- Add real spell-host and split/chain/explosion regression coverage and a hidden native capture. Soul Bloom’s existing heal-or-hunt behavior remains intact. Future tuning should evaluate cast cadence, ranks and keyword loadouts in combat; the numeric baseline is not a claim of complete balance.
+
 # 0.3.4-dev.3 — Hybrid spirits (16 October 2026)
 
 - Port the accepted B- browser hybrid (model `2b0bee3`) to Seeker and Soul Bloom: a rounded expressive center, tracking/blinking eyes, a thick advected trail and a soft rear transition. The runtime no longer animates a complete ghost/wisp PNG.
