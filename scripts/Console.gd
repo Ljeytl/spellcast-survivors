@@ -55,6 +55,10 @@ var commands: Dictionary = {
 		"description": "Spawn an elite: a monster with words (data/elites.json); 'patrol' spawns a full patrol",
 		"usage": "elite <type|patrol> [word ...]"
 	},
+	"director": {
+		"description": "Toggle the threat director overlay: credits, income, coefficient, cap, champion fund, recent purchases",
+		"usage": "director [on/off]"
+	},
 	"difficulty": {
 		"description": "Advance to minute or add seconds (no rewind)",
 		"usage": "difficulty <minute/+seconds>"
@@ -380,7 +384,7 @@ func execute_command(command_text: String):
 	if command in UNAVAILABLE:
 		add_output("[color=yellow]" + command + " is unavailable in this build; no effect applied.[/color]")
 		return
-	var read_only = command in ["help", "ui_debug", "ui_details", "clear", "spell_list", "progression", "save_slots", "reset_progression", "rickroll"] or (command in ["character", "persistent_xp", "unlock_character"] and args.is_empty())
+	var read_only = command in ["help", "director", "ui_debug", "ui_details", "clear", "spell_list", "progression", "save_slots", "reset_progression", "rickroll"] or (command in ["character", "persistent_xp", "unlock_character"] and args.is_empty())
 	if (commands.has(command) or command == "reset_progression_confirm") and not read_only and is_instance_valid(game_node) and is_instance_valid(game_node.style_session):
 		game_node.style_session.exclude("Console command: " + command)
 	
@@ -409,6 +413,8 @@ func execute_command(command_text: String):
 			spawn_enemy(args)
 		"elite":
 			spawn_elite(args)
+		"director":
+			toggle_director_overlay(args)
 		"difficulty":
 			change_difficulty(args)
 		"day":
@@ -712,6 +718,18 @@ func spawn_enemy(args: Array):
 		if manager.spawn_monster(definition, false, true):
 			spawned += 1
 	add_output("Spawned %d/%d enemies (normal population cap applies)" % [spawned, count])
+
+func toggle_director_overlay(args: Array):
+	var hud = game_node.hud
+	var existing = hud.get_node_or_null("DirectorOverlay")
+	var enabled = toggle_value(args, existing != null)
+	if enabled == null:
+		return
+	if existing and not enabled:
+		existing.queue_free()
+	elif not existing and enabled:
+		hud.add_child(preload("res://scripts/DirectorOverlay.gd").new(game_node.get_node("MonsterManager")))
+	add_output("Director overlay: " + ("on" if enabled else "off"))
 
 func spawn_elite(args: Array):
 	var manager = game_node.get_node("MonsterManager")
