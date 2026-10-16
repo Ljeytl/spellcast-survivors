@@ -321,7 +321,7 @@ The director owns the clock, budget and caps; **how pressure rises is a pacing m
 | Model | Behaviour | Status |
 |---|---|---|
 | `interval_phases` | Today's model: repeating phase table (interval, floor, growth), difficulty points, batch points, max enemies | Port exactly; golden test against current spawn log |
-| `threat_budget` | Doc 07: points/s by minute, costs per family, bank cap 12, build/peak/fade/recover cycle, ambient cap 90 | New module when a level wants it |
+| `threat_budget` | Built 16 October 2026 as the default (`scripts/ThreatDirector.gd`, `data/director.json`, doc 23): Risk of Rain–style credits, cards, elite cost multipliers, champions | Default; `interval_phases` kept as fallback |
 
 Both emit the same `spawn_request {enemy_id, elite_set?, socket, reason}`; the director validates caps, sockets, safety radius and variant gates. Swapping or tuning a model never touches enemies or levels.
 

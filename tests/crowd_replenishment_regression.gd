@@ -47,6 +47,9 @@ func run():
 	current_scene = game
 	await process_frame
 	var manager = game.get_node("MonsterManager")
+	# This test pins the 0.3 timer spawner (interval_phases), kept as the director's fallback (doc 23).
+	manager.encounter_config.pacing = "interval_phases"
+	manager.threat_director = null
 	# This suite covers the classic 20-minute run: the day cycle (experiment) is switched off.
 	manager.day_cycle_driven = false
 	var day_cycle = game.get_node_or_null("DayCycle")

@@ -165,6 +165,8 @@ func nightfall():
 	definition["name"] = entry.name
 	definition["boss_health"] = float(entry.health) * (1.0 + 0.5 * cycle)
 	boss = monsters.spawn_monster(definition, true)
+	if is_instance_valid(boss):
+		boss.set_meta("named_boss", true)
 	# The arrival is a moment: the world dips dark, the ground shakes, the boss is named.
 	nightfall_dip = NIGHTFALL_DIP_SECONDS
 	if game.has_method("shake_heavy"):

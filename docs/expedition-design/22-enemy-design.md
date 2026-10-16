@@ -88,6 +88,8 @@ Set pieces keep the run moving between questions:
 - 16 October 2026: Flanker (pincer pairs) and Skirmisher (hit and run) are separate archetypes from the Pursuer, each with its own answer.
 - 16 October 2026: set pieces are wanted to keep the run moving: the stampede, and a Vampire Survivors–style flood around ten minutes in.
 
+Each archetype becomes a director card (doc 23): a cost, a group size and an unlock time.
+
 ## 8. Open questions for Aditya
 
 1. Soft counters (right answer about three times faster, recommended) or some hard counters (only the answer works)?

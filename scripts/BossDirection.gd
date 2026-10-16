@@ -14,7 +14,9 @@ var arrow_position = Vector2.ZERO
 var angle = 0.0
 var has_target = false
 var target_distance := 0.0
-var shown_boss: Node = null   # the boss named on the bar (nearest alive)
+var shown_boss: Node = null   # the boss named on the bar (nearest named boss alive)
+var arrows: Array = []        # every off-screen boss, nearest first (at most MAX_ARROWS)
+const MAX_ARROWS := 3
 
 func _ready():
 	name = "BossDirection"
@@ -24,6 +26,7 @@ func _ready():
 func _process(_delta):
 	has_target = false
 	shown_boss = null
+	arrows.clear()
 	if game.current_state != game.GameState.PLAYING:
 		queue_redraw()
 		return
@@ -34,7 +37,8 @@ func _process(_delta):
 		if not is_instance_valid(boss) or boss.dying:
 			continue
 		var world_distance: float = boss.global_position.distance_to(game.player.global_position)
-		if world_distance < nearest_world:
+		var champion: bool = boss.has_meta("champion")   # unnamed bosses: small arrow, no bar
+		if not champion and world_distance < nearest_world:
 			nearest_world = world_distance
 			shown_boss = boss
 		var screen = game.hud.get_global_transform_with_canvas().affine_inverse() * (boss.get_global_transform_with_canvas() * Vector2.ZERO)
@@ -47,6 +51,7 @@ func _process(_delta):
 		var direction = screen - rect.get_center()
 		var bounds = rect.size / 2 - Vector2(44, 56)
 		var factor = minf(bounds.x / maxf(absf(direction.x), 0.01), bounds.y / maxf(absf(direction.y), 0.01))
+		arrows.append({"position": rect.get_center() + direction * factor, "angle": direction.angle(), "distance": world_distance, "champion": champion, "order": distance})
 		arrow_position = rect.get_center() + direction * factor
 		angle = direction.angle()
 		target_distance = world_distance
@@ -68,14 +73,21 @@ func _draw():
 		draw_string(font, top + Vector2(0, -7), text, HORIZONTAL_ALIGNMENT_CENTER, BAR_WIDTH, 17, PAPER)
 	if not has_target:
 		return
+	arrows.sort_custom(func(a, b): return a.order < b.order)
 	var pulse := 1.0 + 0.15 * sin(Time.get_ticks_msec() / 150.0)
-	draw_set_transform(arrow_position, angle, Vector2.ONE * 1.8 * pulse)
-	var shape = PackedVector2Array([Vector2(13, 0), Vector2(-8, -9), Vector2(-4, 0), Vector2(-8, 9)])
-	draw_colored_polygon(shape, RED)
-	shape.append(shape[0])
-	draw_polyline(shape, SHADOW, 2)
-	draw_set_transform(Vector2.ZERO)
-	var label := "BOSS · %dm" % int(target_distance / 32.0)
-	var at: Vector2 = arrow_position - Vector2.from_angle(angle) * 34.0 + Vector2(-70, 5)
-	draw_string_outline(font, at, label, HORIZONTAL_ALIGNMENT_CENTER, 140, 14, 5, SHADOW)
-	draw_string(font, at, label, HORIZONTAL_ALIGNMENT_CENTER, 140, 14, PAPER)
+	for i in mini(arrows.size(), MAX_ARROWS):
+		var arrow: Dictionary = arrows[i]
+		# Named bosses: big pulsing arrow with distance. Champions: a small steady arrow.
+		var scale := 1.1 if arrow.champion else 1.8 * pulse
+		draw_set_transform(arrow.position, arrow.angle, Vector2.ONE * scale)
+		var shape = PackedVector2Array([Vector2(13, 0), Vector2(-8, -9), Vector2(-4, 0), Vector2(-8, 9)])
+		draw_colored_polygon(shape, RED)
+		shape.append(shape[0])
+		draw_polyline(shape, SHADOW, 2)
+		draw_set_transform(Vector2.ZERO)
+		if arrow.champion:
+			continue
+		var label := "BOSS · %dm" % int(float(arrow.distance) / 32.0)
+		var at: Vector2 = arrow.position - Vector2.from_angle(arrow.angle) * 34.0 + Vector2(-70, 5)
+		draw_string_outline(font, at, label, HORIZONTAL_ALIGNMENT_CENTER, 140, 14, 5, SHADOW)
+		draw_string(font, at, label, HORIZONTAL_ALIGNMENT_CENTER, 140, 14, PAPER)

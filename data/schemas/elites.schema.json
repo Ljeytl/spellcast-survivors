@@ -182,6 +182,10 @@
         "color": {
           "type": "string",
           "$comment": "element word colour: the elite's name and its spells' telegraphs"
+        },
+        "cost_mult": {
+          "type": "number",
+          "$comment": "threat director: an elite with this word costs its card x this"
         }
       },
       "additionalProperties": false

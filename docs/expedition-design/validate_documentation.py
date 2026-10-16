@@ -11,7 +11,8 @@ import spell_library  # noqa: E402  spell documents come from data/spells/<id>.j
 ARCHIVE = ROOT / 'archive/2026-10-14'
 OWNERS = {'03-spells.md', '15-development-order.md', '18-spell-system-rewrite.md',
           '19-engine-architecture.md', '20-game-systems-architecture.md',
-          '21-damage-effects-keywords.md', '22-enemy-design.md'}
+          '21-damage-effects-keywords.md', '22-enemy-design.md',
+          '23-expedition-and-director.md'}
 
 
 def content(name):
