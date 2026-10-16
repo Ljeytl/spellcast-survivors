@@ -1,3 +1,10 @@
+# 0.3.4-dev.14 — Ice Blast crystal and shatter refinement (16 October 2026)
+
+- Replace Ice Blast’s dark outlined spikes with compact blue crystal facets, a short directional cold wake, forward shatter chips and brief frost residue. Group contact shake/hitstop within each cast; suppress the duplicate white contact star for plain Ice Blast.
+- Preserve damage, chill, push, delivery, rank scaling, hostile presentation and elemental accents. Starting effects and cast-time implementation remain deferred; accepted Lightning visuals are unchanged.
+- Add a native low/high-rank capture with damage and displacement assertions and a presentation/gameplay equivalence regression.
+- Next: review the dense high-rank ring in crowded combat and assess audio separately. Record a proposed 25 ms per base-incantation letter cast-time rule in doc 18, pending feel testing.
+
 # 0.3.4-dev.13 — More monsters, and the cap never protects you (16 October 2026)
 
 - **Up to 350 monsters at once** (was 160). Measured on an M4 Pro in a real window: 300 enemies ~89 fps and 400 ~62 fps with the change below; 600 drops to ~24, so 350 leaves headroom.
