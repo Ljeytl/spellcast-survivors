@@ -20,6 +20,7 @@ extends Node2D
 ## STEP_HZ instead (console "vfx twos"). Ones won the side-by-side comparison. Hit-stop freezes only this simulation.
 
 var spirit_form_override := "auto"
+var impact_light
 
 const CELL := 4.0
 const WPS := 1280.0 / 192.0          # world px per sandbox unit
@@ -183,6 +184,9 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	presenter = PRESENTER.new(self)
 	elements = ELEMENTS.new(self)
+	impact_light = preload("res://scripts/vfx/ImpactLight.gd").new()
+	impact_light.owner_vfx = self
+	add_child(impact_light)
 	var gmat := ShaderMaterial.new()
 	gmat.shader = GROUND_SHADER
 	var fc := PackedColorArray(FIRE_FLOOR)
@@ -234,6 +238,8 @@ func _set_visible(v: bool):
 
 ## Removes every effect. Called when the world changes (scene switch).
 func clear():
+	if impact_light:
+		impact_light.clear()
 	for child in get_children():
 		if child.is_in_group("steam_clouds") or child.is_in_group("lightning_visuals"):
 			child.queue_free()
@@ -546,7 +552,7 @@ func chunk(x: float, y: float, vx: float, vy: float, vz: float, palette: Array, 
 
 ## Camera shake through the game's own shaker (respects its reduced-effects setting).
 func shake(strength: float):
-	if reduced_effects:
+	if reduced_effects or strength <= 0.0:
 		return
 	# The live game camera's shaker registers itself (the game is not always current_scene).
 	var cs = preload("res://scripts/CameraShake.gd").active
@@ -554,8 +560,8 @@ func shake(strength: float):
 		return
 	if strength >= 0.6 and cs.has_method("shake_impact"):
 		cs.shake_impact(6.0 + strength * 5.0, 0.18 + strength * 0.08)
-	elif cs.has_method("shake_light"):
-		cs.shake_light() if strength < 0.5 else cs.shake_medium()
+	elif cs.has_method("shake"):
+		cs.shake(clampf(strength * 10.0, 0.0, 6.0), 0.1 + strength * 0.2)
 
 # ------------------------------------------------------------------ spell-engine events (docs/VFX_EVENTS.md)
 

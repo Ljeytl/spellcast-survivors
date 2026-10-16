@@ -1094,3 +1094,10 @@ Validate with `tests/seeker_leech_regression.gd` and the full-duration `tools/ca
 ### Lightning refinement — 0.3.4-dev.10
 
 The dev.9 rebuild is rejected in full except for its blue target circle. Restore the pre-rebuild bolt, particle effects, impact audio, staff behavior and 0.32-second warning. The circle uses the actual damage radius and ends on impact. There is no custom ground discharge or gather/slam choreography. Future work must refine the original Lightning rather than treat the rejected version as a baseline. Passing tests does not establish aesthetic acceptance.
+
+
+### Shared spell-feel refinement — 0.3.4-dev.12
+
+Lightning's circle, bolt, explosion and effect sequence are accepted at A tier. Preserve them. The main refinement priorities are screen shake and lighting, applied around existing effects rather than replacing them. Small shake requests should differ in strength; a small simultaneous hit should not erase a heavy impact. The first colored local-light samples are Bolt and Ice Blast contacts, with bounded brightness, short fade and overlap suppression. No new lighting is attached to Lightning, Meteor, Seeker or automatic Magic Missile.
+
+Staff work is a smaller later layer: reusable cast time where appropriate and colored particles gathering at the staff, followed by release. Bespoke staff gestures are not required. Spell persistence does not by itself determine cast time. Keep quick spells quick; make explicit timing choices separately from visual polish.

@@ -1,3 +1,9 @@
+# 0.3.4-dev.12 — Shared impact shake and local light (16 October 2026)
+
+- Scale small VFX camera kicks by their requested strength and ignore nonpositive requests. A weak hit no longer erases a stronger active kick. Preserve the established heavy-impact parameters used by Lightning and Meteor.
+- Add bounded, brief colored ground-light pulses, opted into Bolt and Ice Blast contacts only. Nearby simultaneous hits coalesce; reduced effects suppresses them; scene cleanup removes them. Existing projectiles, particles, damage and timing are unchanged.
+- Next: evaluate these small lighting samples in play before extending to other spells. Keep staff work to shared cast timing and elemental particle charging; do not add bespoke choreography or redesign accepted effects.
+
 # 0.3.4-dev.11 — Lightning preview camera audit (16 October 2026)
 
 - Fix the recording fixture: enabling camera shake also enabled following, which pulled the gallery camera 160 world units back toward the player. Align the preview follow offset with its framing. No gameplay camera or spell-effect changes.

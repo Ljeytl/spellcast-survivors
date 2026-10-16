@@ -430,6 +430,10 @@ func part_hit(part, enemy, at: Vector2) -> void:
 	_part_hit_look(part, enemy, at)
 	var p: Vector2 = part.global_position / WPS
 	_contact_punch(part, st, p)
+	var light_strength := float(part.def.get("vfx", {}).get("impact_light", 0.0))
+	if light_strength > 0.0 and not is_hostile(part):
+		var light_key: String = st.look.accent if st.look.accent != "" else st.look.native
+		vfx.impact_light.emit(at, clampf(float(part.geo("radius", 12.0)) * 4.0, 32.0, 80.0), RIM.get(light_key, Color.WHITE), light_strength)
 	_force_fx(part.cast.plan, p, st.look.accent if st.look.accent != "" else st.look.native)
 	if st.look.accent != "" and st.look.native != "arcane":
 		_react(st.look.native, st.look.accent, p, 0.6)

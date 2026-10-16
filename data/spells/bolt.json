@@ -119,7 +119,8 @@
           "contact_all": true
         },
         "vfx": {
-          "family": "bolt"
+          "family": "bolt",
+          "impact_light": 0.16
         }
       }
     },
