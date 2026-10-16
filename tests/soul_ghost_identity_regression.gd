@@ -45,7 +45,7 @@ func run():
 	ghost._physics_process(0.05)
 	var visual = ghost.get_child(0)
 	visual._process(0.05)
-	check(visual.form == "wisp", "Soul defaults to a faceless painted wisp")
+	check(visual.form == "hybrid", "Soul defaults to the accepted hybrid model")
 	vfx.spirit_form_override = "ghost"
 	visual._process(0.0)
 	check(visual.form == "ghost", "Soul can use the painted ghost without recasting")

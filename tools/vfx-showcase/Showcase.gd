@@ -48,7 +48,7 @@ func _ready():
 			order.append(bare)
 	if OS.has_feature("web"):
 		var form = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('form') || 'auto'"))
-		if form in ["auto", "ghost", "wisp"]:
+		if form in ["auto", "ghost", "wisp", "hybrid"]:
 			get_node("/root/Vfx").spirit_form_override = form
 		var wanted = str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('spell') || ''"))
 		if order.has(wanted):
@@ -160,7 +160,7 @@ func _unhandled_input(event):
 		KEY_S:
 			Engine.time_scale = 0.25 if Engine.time_scale > 0.5 else 1.0
 		KEY_G:
-			var forms := ["auto", "ghost", "wisp"]
+			var forms := ["auto", "ghost", "wisp", "hybrid"]
 			var vfx = get_node("/root/Vfx")
 			vfx.spirit_form_override = forms[(forms.find(vfx.spirit_form_override) + 1) % forms.size()]
 		KEY_K:

@@ -1,3 +1,10 @@
+# 0.3.4-dev.3 — Hybrid spirits (16 October 2026)
+
+- Port the accepted B- browser hybrid (model `2b0bee3`) to Seeker and Soul Bloom: a rounded expressive center, tracking/blinking eyes, a thick advected trail and a soft rear transition. The runtime no longer animates a complete ghost/wisp PNG.
+- Preserve damage, targeting, healing, spawn caps, lifetime and arrival effects. Keep Soul Bloom healing/hunting tint and the Seeker contact pulse; presenter disable now also hides Soul Bloom visuals.
+- Each visual owns two 512-square HDR fields, released with its host. Reduced motion slows material phase as well as transport. Console/showcase support `hybrid`; `auto` selects it and `wisp` remains a faceless comparison.
+- Validate native Metal captures, retained-history negative control, pause/resume, form/size changes, cleanup, actual spell-host captures and an eight-spirit frame-interval probe. The browser B- approval is the design reference; full combat performance and other GPU/renderer combinations remain separate validation.
+
 # 0.3.4-dev.2 — Playtest fixes (16 October 2026)
 
 From Frog's playtest of 0.3.3:
