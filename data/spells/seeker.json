@@ -5,7 +5,7 @@
     "id": "seeker",
     "presentation": {
       "shows_lasting": true,
-      "summary": "Send a spirit to steal life and bring it home; at full health it bursts on its victim.",
+      "summary": "Hunt enemies over time, then bring stolen life home or dive into a fresh victim.",
       "sound": "SPELL_LIFE",
       "icon": "spirit",
       "preview": {
@@ -14,7 +14,7 @@
       }
     },
     "preparable": true,
-    "growth_description": "stronger strikes, longer pursuit, third active spirit at rank 8",
+    "growth_description": "stronger hits, longer hunts, third active spirit at rank 8",
     "rank_growth": {
       "active_limit": {
         "per_rank": 0.1429,
@@ -37,7 +37,7 @@
     "move_speed": 220,
     "duration": 12.0,
     "active_limit": 2,
-    "role": "A spirit pursues an enemy, strikes once, then returns stolen health. At full health it bursts on contact. Healing is 15% of health removed, capped at 2 HP per cast, delivered only on return.",
+    "role": "Hunt for 12 seconds, growing to 24 at rank 8, striking each enemy at most once per second. Then return stolen life if hurt, or turn red and burst on an enemy never hunted during this trip. Healing is 15% of actual health removed, capped at 2 HP per cast.",
     "unlock_condition": {
       "type": "default"
     },

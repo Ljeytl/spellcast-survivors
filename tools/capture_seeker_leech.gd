@@ -29,8 +29,8 @@ func run() -> void:
 	var full_spirit = null
 	var result := {"burst": false}
 	var initial_health: float = game.player.health
-	for frame in range(240):
-		if frame == 120:
+	for frame in range(1800):
+		if frame == 900:
 			game.player.health = game.player.max_health
 			assert(manager.cast_spell_by_type(manager.find_spell_slot("seeker")))
 			full_spirit = manager.last_generic_cast.parts[0]
@@ -41,11 +41,16 @@ func run() -> void:
 		game.get_node("Background").queue_redraw()
 		for spirit in get_nodes_in_group("engine_spirits"):
 			saw_return = saw_return or spirit.returning_life
-		if frame < 120:
+		if frame < 900:
 			healed = healed or game.player.health > initial_health
 		await RenderingServer.frame_post_draw
-		if frame % 2 == 0:
-			stage.get_texture().get_image().save_png("res://builds/seeker-leech/%04d.png" % (frame / 2))
+		for spirit in get_nodes_in_group("engine_spirits"):
+			if spirit.returning_life:
+				stage.get_texture().get_image().save_png("res://builds/seeker-leech/return.png")
+			elif spirit.finishing_hunt:
+				stage.get_texture().get_image().save_png("res://builds/seeker-leech/finish.png")
+		if frame % 3 == 0:
+			stage.get_texture().get_image().save_png("res://builds/seeker-leech/%04d.png" % (frame / 3))
 	print("SEEKER_CAPTURE return=", saw_return, " healed=", healed, " full_burst=", result.burst, " health=", game.player.health)
 	stage.queue_free()
 	await teardown()

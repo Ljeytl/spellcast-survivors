@@ -395,6 +395,7 @@ func spawn_event(parent, ev: Dictionary, at: Vector2, victim) -> void:
 		var child = _make_part(child_name, at, d, parent.depth + 1, parent.power_scale, parent.size_scale)
 		if child == null:
 			return
+		child.hunted_targets = parent.hunted_targets.duplicate()
 		child.exclude = exclude.duplicate()
 		child.parent_hit = victim
 		if is_chain:

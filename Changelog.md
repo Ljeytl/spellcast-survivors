@@ -1,3 +1,10 @@
+# 0.3.4-dev.5 — Seeker hunts before coming home (16 October 2026)
+
+- Restore Seeker’s sustained chase/contact hunt and existing duration/rank scaling (12 seconds at base, 24 at rank eight), with close movement around its prey. Healing is collected throughout the hunt and delivered afterward; the shared 2 HP cap remains.
+- At the end, a hurt caster gets a gold/peach returning spirit. A full caster gets a red finishing dive into an enemy this spirit has never pursued or hit, including inherited split/chain history. Filling up during return switches to that fresh-target finish. No fresh enemy means a bounded search and disappearance, never reuse of an old victim.
+- Replace the barely visible green tint with distinct material palettes while preserving the accepted hybrid shape and trail. Keep the four-second ending timeout and full-health attack as one target hit, not area damage.
+- Update gameplay tests and native capture to cover the complete hunt, rank duration, healing return and fresh-target finish. Future tuning: judge long-hunt pacing, crowded-fight readability and sustained damage/healing balance in play.
+
 # 0.3.4-dev.4 — Seeker brings stolen life home (16 October 2026)
 
 - Seeker strikes once, carries stolen life home and disappears on delivery. Full-health spirits burst on contact; a full heal during return redirects them for a final attack.
