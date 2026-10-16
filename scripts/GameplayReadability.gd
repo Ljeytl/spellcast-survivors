@@ -222,7 +222,9 @@ func layout():
 		if is_instance_valid(screen):
 			var panel = screen.panel
 			var compact_ending = screen == game.game_over_screen and not game.interface_debug
-			panel.size = Vector2(minf(560 if compact_ending else 680, width - 36), minf(560 if compact_ending else 650, height - 36))
+			# The run summary uses the whole screen height (playtest 0.3.4: a 560 px window meant
+			# scrolling a lot to reach the reactions and effects).
+			panel.size = Vector2(minf(720 if compact_ending else 680, width - 36), (height - 36) if compact_ending else minf(650, height - 36))
 			panel.position = (Vector2(width, height) - panel.size) / 2
 			panel.add_theme_stylebox_override("panel", panel_style(GOLD))
 
