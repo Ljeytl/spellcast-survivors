@@ -98,7 +98,7 @@ func _process(dt: float) -> void:
 	var span := radius * 12.0
 	sprite.scale = Vector2.ONE * span / FIELD_SIZE
 	var tint := Color.WHITE
-	if soul or healing:
+	if soul:
 		tint = Color(0.87, 1.0, 0.88) if healing else Color(1.0, 0.85, 1.0)
 	var fade := clampf((float(host.LIFE) - clock) / 0.4, 0.0, 1.0) if soul else 1.0
 	sprite.modulate = Color(tint * (1.0 + contact * 0.06), lerpf(0.65, 1.0, emergence) * fade)
@@ -117,6 +117,7 @@ func _process(dt: float) -> void:
 	material.set_shader_parameter("faceRadius", radius * 0.85)
 	material.set_shader_parameter("faceGaze", Vector3(gaze.x, gaze.y, sqrt(maxf(0.12, 1.0 - gaze.length_squared()))))
 	material.set_shader_parameter("faceBlink", pow(maxf(0.0, cos(material_clock * 1.1 + 1.5)), 70.0))
+	material.set_shader_parameter("spiritState", (1.0 if healing else (2.0 if bool(host.get("finishing_hunt")) else 0.0)) if not soul else 0.0)
 	material.set_shader_parameter("silhouette", 0.0)
 	if dt > 0.0 and not pending and DisplayServer.get_name() != "headless":
 		_queue_step(minf(dt, 0.05) * motion_scale, span)

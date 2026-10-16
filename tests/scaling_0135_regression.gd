@@ -218,9 +218,9 @@ func run():
 	var fast_target = host(origin + Vector2(50,0))
 	var seeker = ported({"id": "seeker", "type": "spirit", "duration": 5.0}, 20, slow_target)
 	seeker.advance(0.15)
-	check(slow_target.current_health==9980 and fast_target.current_health==10000, "Seeker drains only its first body contact")
+	check(slow_target.current_health==9980 and fast_target.current_health==9980, "Hunting Seeker damages contacts within body")
 	seeker.advance(0.1)
-	check(slow_target.current_health==9980 and fast_target.current_health==10000, "Spent or returning Seeker does not repeat damage")
+	check(slow_target.current_health==9980 and fast_target.current_health==9980, "Hunting Seeker retains per-enemy hit interval")
 	clear_effects()
 	var walk_data = {"id": "firewalk", "type": "trail", "duration": 11.0, "emission_duration": 5.0, "patch_duration": 6.0, "recast_behavior": "extend"}
 	var trail = ported(walk_data, 20)

@@ -24,6 +24,9 @@ var assigned = null
 var parent_hit = null
 var age := 0.0
 var done := false
+var spirit_ending := false
+var finishing_hunt := false
+var hunted_targets: Dictionary = {}
 var returning_life := false
 var stolen_life := 0.0
 var return_age := 0.0
@@ -210,35 +213,21 @@ func step(delta: float) -> void:
 			finish(false)
 	if not done:
 		if delivery == "projectile":
-			if not returning_life and age + 0.000001 >= total_life():
+			if not def.has("leech_return") and age + 0.000001 >= total_life():
 				finish(true)
 		elif float(def.get("limits", {}).get("lifetime", 0.0)) > 0.0 and age >= float(def.limits.lifetime):
 			finish(true)
 	queue_redraw()
 
 func _step_projectile(delta: float) -> void:
-	if returning_life:
-		return_age += delta
-		if return_age >= 4.0:
+	if def.has("leech_return"):
+		if not is_instance_valid(cast.caster) or (cast.caster.get("health") != null and float(cast.caster.health) <= 0.0):
 			finish(false)
 			return
-		if not is_instance_valid(cast.caster) or float(cast.caster.get("health")) <= 0.0:
-			finish(false)
-			return
-		if float(cast.caster.health) >= float(cast.caster.max_health):
-			returning_life = false
-			stolen_life = 0.0
-			life_total = maxf(total_life(), age + 4.0)
-		else:
-			var home: Vector2 = cast.caster_position()
-			prev_pos = global_position
-			global_position = global_position.move_toward(home, float(def.leech_return.get("return_speed", 320.0)) * delta)
-			if global_position != prev_pos:
-				direction = prev_pos.direction_to(global_position)
-			if global_position.distance_to(home) <= 18.0:
-				cast.heal_caster(minf(stolen_life, float(cast.caster.max_health) - float(cast.caster.health)))
-				_spirit_arrival(true)
-				finish(false)
+		if not spirit_ending and age >= total_life():
+			_begin_spirit_ending()
+		if spirit_ending:
+			_step_spirit_ending(delta)
 			return
 	var phases: Array = def.get("motion", [])
 	if phase >= phases.size():
@@ -269,6 +258,8 @@ func _step_projectile(delta: float) -> void:
 			# Old Seeker: drift toward the enemy it hunts (the caster when there is none).
 			var prey = _spirit_target(float(ph.get("range", 600.0)))
 			var dest: Vector2 = prey.global_position if prey else cast.caster_position()
+			if prey != null and def.has("leech_return") and global_position.distance_to(dest) < geo("radius", 24.0) * 2.0:
+				dest += Vector2.from_angle(age * 3.5) * geo("radius", 24.0) * 0.7
 			prev_pos = global_position
 			global_position = global_position.move_toward(dest, float(ph.get("speed", 220.0)) * delta)
 			if global_position != prev_pos:
@@ -377,7 +368,10 @@ func _collide() -> void:
 			continue
 		hit(enemy)
 		if not returning_life and pierce >= 0 and hit_count > pierce:
-			finish(false)
+			if def.has("leech_return") and not done:
+				_begin_spirit_ending()
+			else:
+				finish(false)
 			return
 	if not touching.is_empty():
 		# Old bolts: one contact hits everything the bolt overlaps at that moment, then it is spent.
@@ -609,6 +603,8 @@ func _spirit_target(reach: float):
 			best = score
 			chosen = enemy
 	target_ref = weakref(chosen) if chosen else null
+	if chosen != null and def.has("leech_return"):
+		hunted_targets[chosen.get_instance_id()] = true
 	return chosen
 
 func is_style_channel_active() -> bool:
@@ -693,8 +689,10 @@ func _apply_self() -> void:
 
 # --- hits and events ------------------------------------------------------------------
 func hit(enemy) -> void:
-	if done or returning_life or not _alive(enemy):
+	if done or returning_life or not _alive(enemy) or (finishing_hunt and hunted_targets.has(enemy.get_instance_id())):
 		return
+	if def.has("leech_return") and not finishing_hunt:
+		hunted_targets[enemy.get_instance_id()] = true
 	hits[enemy.get_instance_id()] = age
 	cast.shared_hits[enemy.get_instance_id()] = cast.clock
 	hit_count += 1
@@ -804,24 +802,72 @@ func hit(enemy) -> void:
 	if killed:
 		fire("on_kill", at, enemy)
 	if def.has("leech_return"):
-		var player = cast.caster
+		if finishing_hunt:
+			_spirit_arrival(false)
+			finish(false)
+			return
 		var actual := minf(dealt, maxf(0.0, float(health_before) - maxf(0.0, float(health_after)))) if health_before != null else 0.0
 		var available := maxf(0.0, float(def.leech_return.get("cap", 2.0)) - cast.spirit_heal_reserved)
 		var share := float(def.leech_return.get("share", 0.15)) + float(cast.plan.get("flags", {}).get("leeching", {}).get("share", 0.0))
-		stolen_life = minf(actual * share, available)
-		if is_instance_valid(player) and player.get("health") != null and float(player.health) > 0.0 and float(player.health) < float(player.max_health) and stolen_life > 0.0:
-			cast.spirit_heal_reserved += stolen_life
-			returning_life = true
-			target_ref = null
-		else:
-			_spirit_arrival(false)
+		var collected := minf(actual * share, available)
+		stolen_life += collected
+		cast.spirit_heal_reserved += collected
+
+func _begin_spirit_ending() -> void:
+	if spirit_ending:
+		return
+	spirit_ending = true
+	return_age = 0.0
+	target_ref = null
+	var player = cast.caster
+	returning_life = is_instance_valid(player) and player.get("health") != null and float(player.health) < float(player.max_health) and stolen_life > 0.0
+	finishing_hunt = not returning_life
+
+func _step_spirit_ending(delta: float) -> void:
+	return_age += delta
+	if return_age >= 4.0:
+		finish(false)
+		return
+	var player = cast.caster
+	if returning_life and float(player.health) >= float(player.max_health):
+		returning_life = false
+		finishing_hunt = true
+		stolen_life = 0.0
+		target_ref = null
+	var prey = null
+	var dest: Vector2 = cast.caster_position()
+	if finishing_hunt:
+		var current = target_ref.get_ref() if target_ref else null
+		var best := INF
+		for candidate in cast.enemies():
+			if hunted_targets.has(candidate.get_instance_id()) or exclude.has(candidate.get_instance_id()) or not _on_screen(candidate):
+				continue
+			var distance := global_position.distance_to(candidate.global_position)
+			var score := 0.0 if candidate == current else distance + 1.0
+			if score < best and distance <= 600.0:
+				best = score
+				prey = candidate
+		target_ref = weakref(prey) if prey else null
+		if prey == null:
+			return
+		dest = prey.global_position
+	prev_pos = global_position
+	global_position = global_position.move_toward(dest, float(def.leech_return.get("return_speed", 320.0)) * delta)
+	if global_position != prev_pos:
+		direction = prev_pos.direction_to(global_position)
+	if returning_life:
+		if global_position.distance_to(dest) <= 18.0:
+			cast.heal_caster(minf(stolen_life, float(player.max_health) - float(player.health)))
+			_spirit_arrival(true)
 			finish(false)
+	elif prey != null and _swept_contains(prey):
+		hit(prey)
 
 func _spirit_arrival(healed: bool) -> void:
 	if _vfx == null:
 		return
 	var point := global_position / (1280.0 / 192.0)
-	var colors := [Color("#fff5ce"), Color("#a5f5d2"), Color("#4a98a8")] if healed else [Color("#e0f3a3"), Color("#9d80c9"), Color("#51416d")]
+	var colors := [Color("#fff1bd"), Color("#ffad72"), Color("#ed714c")] if healed else [Color("#ffe1c4"), Color("#ff4a61"), Color("#a91b48")]
 	_vfx.ring(point.x, point.y, 4.2, 0.24, colors)
 	_vfx.star(point.x, point.y, 2.0, 0.14, 4 if healed else 6, colors[0])
 
