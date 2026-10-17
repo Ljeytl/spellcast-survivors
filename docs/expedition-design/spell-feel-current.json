@@ -269,7 +269,7 @@
       "name": "Focus Ray",
       "baseline": "spell-feel-audit-2026-10-15.json#focus_ray",
       "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "disposition": "refinement_pending_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -282,7 +282,7 @@
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [],
-      "next_review": "Keep the clean beam. Add subtle forward flow and a concentrated contact point that responds to real ticks, plus a brief narrowing shutdown rather than extra screen effects."
+      "next_review": "Assess the small glint and two flecks on real damage ticks, empty-lane silence, retargeting and existing narrowing shutdown at ranks one/eight and in mixed combat. Preserve clean body and geometry; no forward-flow layer added. Sound/camera and artistic fantasy fulfillment remain unassessed."
     },
     {
       "id": "rune_trap",
@@ -402,7 +402,7 @@
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [],
-      "next_review": "Make each projectile contact leave a compact electrical mark that visibly becomes its delayed sky strike. Preserve the cascade while shortening distracting spent-ring emphasis."
+      "next_review": "Fresh native review must follow each travelling contact and the single terminal warning/strike. Earlier per-contact strike prose was stale; doc 21 section 5.6 and current regression gates enforce one strike where the chain ends. Preserve approved Lightning bolt, blue circle and explosion."
     },
     {
       "id": "life_bolt",

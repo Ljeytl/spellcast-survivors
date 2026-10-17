@@ -300,7 +300,7 @@ These seven recipes remain unchanged. Their identity should feel like a specific
 
 **Caster and staff:** compact charge forms at the tip and is thrust outward. This has a directed release, unlike Lightning's grounded call to the sky.
 
-**Motion and contact:** a bright moving head and broken conductive wake reveal the current target. Each real collision gives an immediate projectile contact cue and starts its actual local warning; the delayed sky strike lands after that warning. Meanwhile the next travelling segment commits to the next enemy. Keep contact, warning and area strike as three distinct events rather than collapsing them into an instant splash.
+**Motion and contact:** a bright moving head and broken conductive wake reveal the current target. Each real collision gives an immediate projectile contact cue while the next travelling segment commits to the next enemy. Only the final chain contact starts the local warning, followed by one delayed sky strike. Keep travelling contact, terminal warning and area strike distinct; doc 21 §5.6 and the current recipe define one strike where the chain ends.
 
 **Sound and camera:** short launch crack, separate crisp contact zaps and a thinning electrical tail. Light bounded kicks for meaningful contacts; no full Lightning blast mix at every bounce.
 
@@ -932,7 +932,7 @@ Each proposal below is OPEN. It describes a direction for a prototype, not permi
 
 **Focus Ray — observed:** A clear white-purple beam connects caster and target, tracks and stops. Its uniform striped body and modest endpoint response communicate a line better than sustained pressure.
 
-**Strongest idea:** Keep the clean beam. Add subtle forward flow and a concentrated contact point that responds to real ticks, plus a brief narrowing shutdown rather than extra screen effects.
+**Current refinement direction:** Keep the clean beam and its existing 0.15-second narrowing shutdown. Route a tiny localized glint and two flecks from actual damage ticks, and suppress random endpoint sparks in empty lanes. Preserve geometry, tracking, duration and the Prism sibling. Forward material flow remains a possible later refinement only if current native evidence warrants it; no terminal orb or starting VFX.
 
 **Rune Trap — observed:** The glyph circle and triggered burst communicate authored magic. Similar rings in the armed, warning and aftermath phases make the state transition less distinct than it could be.
 
@@ -952,9 +952,9 @@ Each proposal below is OPEN. It describes a direction for a prototype, not permi
 
 **Cross Blade refinement candidate, 17 October 2026 (dev.22):** Filled swept steel facets replace the hollow line cross. Bright cutting edges and short curved rotational wakes stay inside the authoritative radius. The return phase shifts to brighter icy steel; real contacts throw paired directional sparks and a compact glint. Existing blade audio and all three gameplay phases remain unchanged. Native rank-one and rank-eight captures are available. The earlier row is a historical baseline, not a grade for this candidate; player judgment and a listening review remain open.
 
-**Lightning Bolt — observed:** Repeated local lightning impacts and expanding rings give a strong electrical payoff. The traveling cause is easily lost among the later bright blasts and dark residue.
+**Lightning Bolt — historical observation:** The earlier review described repeated local lightning impacts and expanding rings. That sequence is not the current contract: the current recipe and regression gates produce one delayed strike at the chain endpoint. Current travel/contact readability requires a fresh native review.
 
-**Strongest idea:** Make each projectile contact leave a compact electrical mark that visibly becomes its delayed sky strike. Preserve the cascade while shortening distracting spent-ring emphasis.
+**Current review direction:** Follow the moving electrical head and each real contact through the bounce chain, then assess the single terminal warning and strike. Preserve the approved shared Lightning bolt, blue circle and explosion. Do not add a warning or strike at intermediate contacts.
 
 **Life Bolt — observed:** A shot is followed by green-gold rings and crosses among enemies and around the wizard. The shared healing motif makes the enemy hit, available recovery and received healing difficult to distinguish.
 
