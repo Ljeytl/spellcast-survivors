@@ -110,6 +110,7 @@ const MAX_BURNING := 24          # burning enemies drawn at once (nearest the ca
 
 var vfx                          # the Vfx autoload
 var _missile_ribbons: Array = []
+var _orbit_visuals: Array = []
 var _parts := {}                 # instance id -> state
 var _presented := {}             # instance id -> weakref: parts we draw, kept until freed so
                                  # finished parts (e.g. a blast's 0.12 s tail) never flash placeholder art
@@ -432,7 +433,7 @@ func part_hit(part, enemy, at: Vector2) -> void:
 		return
 	_part_hit_look(part, enemy, at)
 	var p: Vector2 = part.global_position / WPS
-	if not ((_is_ice_blast(part) or _is_magic_missile(part)) and st.look.accent == ""):
+	if not _is_arcane_orbit(part) and not ((_is_ice_blast(part) or _is_magic_missile(part)) and st.look.accent == ""):
 		_contact_punch(part, st, p)
 	var light_strength := float(part.def.get("vfx", {}).get("impact_light", 0.0))
 	if light_strength > 0.0 and not is_hostile(part):
@@ -446,6 +447,17 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 	var st = _parts.get(part.get_instance_id())
 	var p: Vector2 = part.global_position / WPS
 	var impact_look: String = st.look.accent if st.look.accent != "" else st.look.native
+	if _is_arcane_orbit(part):
+		if st.has("orbit_visual"):
+			st.orbit_visual.pulse()
+		if impact_look == "arcane":
+			var direction: Vector2 = st.orbit_visual.direction if st.has("orbit_visual") else Vector2(part.direction).normalized()
+			var tip := p + direction * float(part.geo("radius", 42.0)) / WPS * 0.85
+			vfx.star(tip.x, tip.y, 1.8 * float(part.size_scale), 0.065, 4, Color("#f1eaff"))
+			for side in [-1.0, 1.0]:
+				var velocity := direction.rotated(side * 0.6) * 24.0
+				vfx.spark(tip.x, tip.y, velocity.x, velocity.y, 0.18, SPARK.arcane)
+			return
 	if _is_magic_missile(part) and impact_look == "arcane":
 		var tip := _missile_position(part) + Vector2(part.direction).normalized() * 2.9 * float(part.size_scale)
 		vfx.star(tip.x, tip.y, 1.6, 0.055, 4, Color("#fff4ff"))
@@ -530,6 +542,14 @@ func part_finished(part, natural: bool) -> void:
 	if st == null:
 		return
 	_parts.erase(id)
+	if st.has("orbit_visual"):
+		st.orbit_visual.finished = true
+		if natural:
+			var end: Vector2 = part.global_position / WPS
+			for i in 4:
+				var velocity: Vector2 = st.orbit_visual.direction.rotated((i - 1.5) * 0.18) * (16.0 + i * 4.0)
+				vfx.spark(end.x, end.y, velocity.x, velocity.y, 0.18 + i * 0.04, SPARK.arcane)
+		return
 	if st.has("missile_ribbon"):
 		st.missile_ribbon.finished = true
 	if is_instance_valid(st.get("cloud")):
@@ -556,6 +576,9 @@ func part_finished(part, natural: bool) -> void:
 # ------------------------------------------------------------------ per step
 
 func step(dt: float) -> void:
+	for orbit in _orbit_visuals:
+		orbit.advance(dt / maxf(vfx.fx_speed, 0.001))
+	_orbit_visuals = _orbit_visuals.filter(func(orbit): return not orbit.finished or not orbit.samples.is_empty())
 	for ribbon in _missile_ribbons:
 		ribbon.advance(dt / maxf(vfx.fx_speed, 0.001))
 	_missile_ribbons = _missile_ribbons.filter(func(ribbon): return not ribbon.finished or not ribbon.samples.is_empty())
@@ -567,6 +590,8 @@ func step(dt: float) -> void:
 		var st: Dictionary = _parts[id]
 		var part = st.part.get_ref()
 		if part == null or not is_instance_valid(part):
+			if st.has("orbit_visual"):
+				st.orbit_visual.finished = true
 			if st.has("missile_ribbon"):
 				st.missile_ribbon.finished = true
 			_parts.erase(id)
@@ -705,7 +730,13 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 		_plague_trail(pos, vel, dt)
 	if native == "earth" or accent == "earth":
 		_earth_trail(pos, vel, dt)
-	if native == "arcane" and _is_magic_missile(part):
+	if native == "arcane" and _is_arcane_orbit(part):
+		if not st.has("orbit_visual"):
+			st.orbit_visual = preload("res://scripts/vfx/ArcaneOrbitVisual.gd").new()
+			st.orbit_visual.phase = float(part.get_instance_id() % 100) * 0.37
+			_orbit_visuals.append(st.orbit_visual)
+		st.orbit_visual.sample(pos, float(part.geo("radius", 42.0)) / WPS)
+	elif native == "arcane" and _is_magic_missile(part):
 		if not st.has("missile_ribbon"):
 			st.missile_ribbon = preload("res://scripts/vfx/MissileRibbon.gd").new()
 			_missile_ribbons.append(st.missile_ribbon)
@@ -1071,8 +1102,11 @@ func _damage_disk(x: float, y: float, s: float, o: Dictionary) -> void:
 
 # ------------------------------------------------------------------ ice (sandbox FX.ice)
 
+static func _is_arcane_orbit(part) -> bool:
+	return part.cast != null and str(part.cast.plan.get("id", "")) == "arcane_orbit" and not is_hostile(part)
+
 static func _is_magic_missile(part) -> bool:
-	return str(part.cast.plan.get("id", "")) == "mana_bolt" and not is_hostile(part)
+	return part.cast != null and str(part.cast.plan.get("id", "")) == "mana_bolt" and not is_hostile(part)
 
 func _missile_pixel(buf: PackedByteArray, x: int, y: int, color: Color) -> void:
 	var local := Vector2i(x, y) - Vector2i(vfx._origin)
@@ -1751,6 +1785,7 @@ func _advance_transients(dt: float) -> void:
 	_lasers = _lasers.filter(func(ray): return ray[4] < ray[5])
 
 func clear_transients() -> void:
+	_orbit_visuals.clear()
 	_missile_ribbons.clear()
 	_hit_rings.clear()
 	_lasers.clear()
@@ -2405,6 +2440,8 @@ func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, 
 func draw_bodies(buf: PackedByteArray) -> void:
 	var K: float = vfx.K
 	_draw_props(buf)
+	for orbit in _orbit_visuals:
+		orbit.draw_wake(buf, self)
 	for ribbon in _missile_ribbons:
 		ribbon.draw(buf, self)
 	for st in _parts.values():
@@ -2483,6 +2520,9 @@ func draw_bodies(buf: PackedByteArray) -> void:
 		if st.family == "sphere":
 			sc = float(part.geo("radius", 42.0)) / (WPS * float(b.r))
 		var pal: Array = BODY[st.look.native]
+		if _is_arcane_orbit(part) and st.look.native == "arcane" and st.has("orbit_visual"):
+			st.orbit_visual.draw_body(buf, self, pos, st.look.accent)
+			continue
 		if _is_magic_missile(part) and st.look.native == "arcane":
 			_draw_magic_missile(buf, _missile_position(part), dir, part, st.look.accent)
 			continue
