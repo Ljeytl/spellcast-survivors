@@ -22,6 +22,7 @@ var action_time: float = 2.0
 var warning: float = 0.0
 var action_direction: Vector2 = Vector2.ZERO
 var charge_remaining: float = 0.0
+var retreat_remaining := 0.0   # spear goblin backing off after a lunge
 var recoil_remaining = 0.0
 var recoil_velocity = Vector2.ZERO
 var spawn_data: Dictionary = {}
@@ -156,8 +157,9 @@ func _physics_process(delta):
 			var target_position = player.global_position + toward.orthogonal() * side * minf(160.0, offset.length() * 0.5)
 			velocity = (target_position - global_position).normalized() * speed * slow_multiplier
 		"skirmisher":
-			if offset.length() < 140.0 and fmod(behavior_time, 3.5) > 2.0:
-				velocity = -toward * speed * slow_multiplier
+			update_lunge(delta, toward, offset.length())
+		"imp":
+			update_imp(delta, toward, offset.length())
 		"charger":
 			update_charge(delta, toward, offset.length())
 		"slammer":
@@ -221,6 +223,63 @@ func update_charge(delta: float, toward: Vector2, distance: float):
 		action_direction = toward
 		velocity = Vector2.ZERO
 	elif action_time > 2.8:
+		velocity = Vector2.ZERO
+
+## Spear goblin (harasser, doc 22 §4a): holds mid range so it is rarely the nearest target, strafes,
+## lunges along a telegraphed line, then backs off. encounters.json skirmisher.lunge.
+func update_lunge(delta: float, toward: Vector2, distance: float):
+	var l: Dictionary = spawn_data.get("lunge", {})
+	if retreat_remaining > 0.0:
+		retreat_remaining -= delta
+		velocity = -action_direction * speed * 1.2 * slow_multiplier
+	elif charge_remaining > 0.0:
+		charge_remaining -= delta
+		velocity = action_direction * float(l.get("speed", 700.0)) * slow_multiplier
+		if charge_remaining <= 0.0:
+			retreat_remaining = float(l.get("retreat", 0.7))
+	elif warning > 0.0:
+		warning -= delta
+		velocity = Vector2.ZERO
+		if warning <= 0.0:
+			charge_remaining = float(l.get("duration", 0.3))
+	elif action_time <= 0.0 and distance > float(l.get("trigger_min", 150.0)) and distance < float(l.get("trigger_max", 300.0)):
+		warning = float(l.get("warning", 0.55))
+		action_direction = toward
+		action_time = float(l.get("cooldown", 2.8))
+		velocity = Vector2.ZERO
+	else:
+		var standoff = float(l.get("standoff", 220.0))
+		if distance > standoff + 40.0:
+			velocity = toward * speed * slow_multiplier
+		elif distance < standoff - 40.0:
+			velocity = -toward * speed * slow_multiplier
+		else:
+			var side = 1.0 if get_instance_id() % 2 == 0 else -1.0
+			velocity = toward.orthogonal() * side * speed * 0.7 * slow_multiplier
+
+## Imp (punisher, doc 22 §4a): chases and hits up close like a grunt; when you have distance on it, it
+## stops, winds up and throws a slow orb, so running is never the answer. encounters.json imp.orb.
+func update_imp(delta: float, toward: Vector2, distance: float):
+	var o: Dictionary = spawn_data.get("orb", {})
+	if warning > 0.0:
+		warning -= delta
+		velocity = Vector2.ZERO
+		if warning <= 0.0:
+			var orb = Hazard.new()
+			orb.position = global_position
+			orb.direction = (player.global_position - global_position).normalized()
+			orb.speed = float(o.get("speed", 150.0))
+			orb.orb_radius = float(o.get("radius", 13.0))
+			orb.remaining = 8.0
+			orb.damage = damage
+			orb.damage_source = encounter_name
+			orb.attacker = weakref(self)
+			orb.source_position = global_position
+			get_parent().add_child(orb)
+			action_time = float(o.get("cooldown", 3.2))
+	elif action_time <= 0.0 and distance > float(o.get("min_distance", 230.0)) and distance < float(o.get("max_distance", 620.0)):
+		warning = float(o.get("windup", 0.6))
+		action_direction = toward
 		velocity = Vector2.ZERO
 
 func update_ranged(delta: float, toward: Vector2, distance: float):
@@ -322,9 +381,16 @@ func _draw():
 			draw_arc(Vector2.ZERO, r, a - 0.12, a + 0.12, 4, Color(0.8, 0.9, 1, 1.0 - t), 4.0)
 	if stagger_remaining > 0.0:
 		draw_arc(Vector2(0, -34), 7, behavior_time * 6.0, behavior_time * 6.0 + PI * 1.3, 8, Color(1, 0.95, 0.5, 0.9), 2.0)
-	if warning > 0.0:
+	if warning > 0.0 and variant == "imp":
+		var w = float(spawn_data.get("orb", {}).get("windup", 0.6))
+		var grow = 1.0 - clampf(warning / maxf(0.01, w), 0.0, 1.0)
+		draw_circle(action_direction * 22.0, 4.0 + 9.0 * grow, Color(1.0, 0.45, 0.15, 0.85))
+	elif warning > 0.0:
 		var line_direction = action_direction if variant != "mortar" else (action_direction - global_position).normalized()
 		var reach = 100.0
+		if variant == "skirmisher":
+			var l = spawn_data.get("lunge", {})
+			reach = float(l.get("speed", 700.0)) * float(l.get("duration", 0.3)) / scale.x
 		if variant == "charger" and boss:
 			var settings = spawn_data.get("boss_charge", {})
 			reach = float(settings.get("speed", speed * float(settings.get("speed_multiplier", 2.5)))) * float(settings.get("duration", 0.65)) * slow_multiplier / scale.x

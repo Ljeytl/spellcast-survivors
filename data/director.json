@@ -52,6 +52,10 @@
         3
       ]
     },
+    "imp": {
+      "cost": 2.0,
+      "group": [1, 2]
+    },
     "swarmer": {
       "cost": 0.45,
       "group": [

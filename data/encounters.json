@@ -110,8 +110,23 @@
       "xp": 7,
       "weight": 18,
       "size": 0.85,
+      "lunge": {"standoff": 220, "trigger_min": 150, "trigger_max": 300, "warning": 0.55, "speed": 720, "duration": 0.3, "retreat": 0.7, "cooldown": 2.8},
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1 flower.png",
       "visual_scale": 2.60176
+    },
+    "imp": {
+      "name": "Imp",
+      "family": "grunt",
+      "unlock_time": 150,
+      "health": 26,
+      "speed": 80,
+      "damage": 8,
+      "xp": 7,
+      "weight": 10,
+      "size": 0.8,
+      "orb": {"min_distance": 230, "max_distance": 620, "windup": 0.6, "speed": 150, "cooldown": 3.2, "radius": 13},
+      "sprite": "res://assets/typecast/Slime Enemies/Slime boi 2 happy.png",
+      "visual_scale": 2.211538
     },
     "swarmer": {
       "name": "Swarmer",

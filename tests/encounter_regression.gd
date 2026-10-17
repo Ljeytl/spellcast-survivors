@@ -45,18 +45,18 @@ func run():
 	check(cleanups.size() == 1 and not effect.emitting, "Particle emission stops once after its current lifetime")
 	manager.game_time = 0.0
 	check(manager.get_available_variants(0).size() == 1, "Opening begins with consistent pursuers")
-	check(manager.encounter_config.variants.size() == 12, "Twelve distinct variants exist")
+	check(manager.encounter_config.variants.size() == 13, "Thirteen distinct variants exist")
 	for family in ["grunt", "runner", "brute", "shooter"]:
 		var count = 0
 		for data in manager.encounter_config.variants.values():
 			if data.family == family:
 				count += 1
-		check(count == 3, "%s has three variants" % family)
+		check(count == (4 if family == "grunt" else 3), "%s has its variants (grunts include the Imp)" % family)
 	for second in range(600):
 		for data in manager.get_available_variants(second):
 			check(data.family != "shooter", "No ranged enemy before ten minutes")
 	check(manager.get_available_variants(600).any(func(data): return data.id == "marksman"), "Marksman unlocks at ten minutes")
-	check(manager.get_available_variants(720).size() == 12, "All variants become available by twelve minutes")
+	check(manager.get_available_variants(720).size() == manager.encounter_config.variants.size(), "All variants become available by twelve minutes")
 	var grunt = manager.calculate_monster_stats(definition(manager, "pursuer"))
 	var runner = manager.calculate_monster_stats(definition(manager, "sprinter"))
 	check(ceil(grunt.health / 15.0) in [2.0, 3.0], "Grunts require two to three starting passive hits")
@@ -103,7 +103,7 @@ func run():
 	health = shield.current_health
 	shield.take_damage(10, front)
 	check(is_equal_approx(health - shield.current_health, 10.0), "a broken shield stays broken: front hits land in full")
-	for id in ["pursuer", "flanker", "skirmisher", "sprinter", "charger", "swarmer", "juggernaut", "slammer", "marksman", "fan_caster", "mortar"]:
+	for id in ["pursuer", "flanker", "skirmisher", "imp", "sprinter", "charger", "swarmer", "juggernaut", "slammer", "marksman", "fan_caster", "mortar"]:
 		var enemy = manager.spawn_monster(definition(manager, id))
 		check(enemy != null and enemy.variant == id, "Instantiated behavior %s" % id)
 		enemy.set_physics_process(false)
@@ -114,10 +114,38 @@ func run():
 		if id == "flanker":
 			check(absf(enemy.velocity.y) > 0.1, "Flanker approaches at an angle")
 		if id == "skirmisher":
+			var l = enemy.spawn_data.lunge
 			enemy.position = game.player.position + Vector2(100, 0)
-			enemy.behavior_time = 2.1
+			enemy.action_time = 1.0
 			enemy._physics_process(0.016)
-			check(enemy.velocity.x > 0, "Skirmisher retreats during its disengage phase")
+			check(enemy.velocity.x > 0, "Spear goblin backs off when you are closer than its standoff")
+			enemy.position = game.player.position + Vector2(220, 0)
+			enemy.action_time = 0.0
+			enemy._physics_process(0.016)
+			check(enemy.warning > 0.0 and enemy.velocity == Vector2.ZERO, "Spear goblin stops and telegraphs its lunge at mid range")
+			enemy.update_lunge(enemy.warning + 0.01, Vector2.LEFT, 220.0)
+			enemy.update_lunge(0.016, Vector2.LEFT, 220.0)
+			check(enemy.velocity.x < -float(l.speed) * 0.5, "the lunge drives at you along the telegraphed line")
+			enemy.update_lunge(float(l.duration), Vector2.LEFT, 220.0)
+			enemy.update_lunge(0.016, Vector2.LEFT, 220.0)
+			check(enemy.retreat_remaining > 0.0 and enemy.velocity.x > 0, "after the lunge it backs off")
+		if id == "imp":
+			var o = enemy.spawn_data.orb
+			check(enemy.warning > 0.0, "Special attack has a readable wind-up for imp (at 300 px)")
+			enemy.warning = 0.0
+			enemy.position = game.player.position + Vector2(100, 0)
+			enemy.action_time = 0.0
+			enemy._physics_process(0.016)
+			check(enemy.warning == 0.0 and enemy.velocity.x < 0, "Imp chases you up close instead of throwing")
+			enemy.position = game.player.position + Vector2(400, 0)
+			enemy._physics_process(0.016)
+			check(enemy.warning > 0.0 and enemy.velocity == Vector2.ZERO, "Imp winds up its orb when you get distance on it")
+			var before_orbs = get_nodes_in_group("enemy_projectiles").size()
+			enemy.update_imp(enemy.warning + 0.01, Vector2.LEFT, 400.0)
+			await process_frame
+			var orbs = get_nodes_in_group("enemy_projectiles")
+			check(orbs.size() == before_orbs + 1 and orbs[-1].orb_radius == float(o.radius) and orbs[-1].speed == float(o.speed), "the orb is slow and round (dodgeable)")
+			check(enemy.action_time > 0.0, "the orb has a cooldown")
 		if id == "juggernaut":
 			check(enemy.current_health > grunt.health * 3 and enemy.speed < grunt.speed, "Juggernaut trades speed for durability")
 		if id == "slammer":

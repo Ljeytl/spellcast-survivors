@@ -6,6 +6,7 @@ var damage: float = 7.0
 var remaining: float = 6.0
 var warning_time: float = 0.0
 var blast_radius: float = 0.0
+var orb_radius: float = 0.0   # >0: a slow, round, dodgeable orb (the Imp) instead of a square bolt
 var detonated: bool = false
 var damage_source: String = ""
 var attacker: WeakRef
@@ -34,7 +35,7 @@ func _physics_process(delta):
 		var start = global_position
 		global_position += direction * speed * delta
 		var closest = Geometry2D.get_closest_point_to_segment(player.global_position, start, global_position)
-		if closest.distance_to(player.global_position) <= 24.0:
+		if closest.distance_to(player.global_position) <= 24.0 + maxf(0.0, orb_radius - 9.0):
 			player.take_damage(damage, damage_context("projectile"))
 			queue_free()
 		remaining -= delta
@@ -48,6 +49,10 @@ func _draw():
 		draw_arc(Vector2.ZERO, blast_radius, 0, TAU, 48, Color(1, 0.15, 0.1), 4.0)
 		draw_line(Vector2(-12, 0), Vector2(12, 0), Color.WHITE, 2.0)
 		draw_line(Vector2(0, -12), Vector2(0, 12), Color.WHITE, 2.0)
+	elif orb_radius > 0.0:
+		draw_circle(Vector2.ZERO, orb_radius + 3.0, Color(0.08, 0.02, 0.02))
+		draw_circle(Vector2.ZERO, orb_radius, Color("ff7a2a"))
+		draw_circle(Vector2.ZERO, orb_radius * 0.5, Color("ffe2b0"))
 	else:
 		draw_rect(Rect2(-9, -9, 18, 18), Color(0.08, 0.02, 0.02))
 		draw_rect(Rect2(-7, -7, 14, 14), Color("ff6b62"))
