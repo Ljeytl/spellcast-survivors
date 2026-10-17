@@ -1,3 +1,8 @@
+# Capture tooling — Bolt and Lightning Bolt review (17 October 2026)
+
+- Add controlled base/max and empty-lifetime captures for Bolt and Lightning Bolt using real native casts, twelve reachable targets and terminal-warning telemetry. Mixed hostile capture now prepares eligible rank-eight Lightning Bolt ingredients.
+- Preserve runtime effects and version. Native motion/audio review and stale Lightning Bolt product-text reconciliation remain follow-up obligations.
+
 # Capture tooling — Bare-shape qualification (17 October 2026)
 
 - Extend mixed hostile captures to cast bare Nova, Orbit, Spear, Slash, Field and Trap through real freeform incantations. Preserve learned-slot behavior for named spells; reject fictitious bare ranks and unrecognized keywords.
