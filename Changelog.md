@@ -1,3 +1,10 @@
+# Earth Shield — Protective contact clarity (17 October 2026)
+
+- Preserve orbiting pebble charges and the existing retaliation cone. A consumed charge now resolves into a small shaded stone guard on the actual incoming side, then splits outward into the eruption.
+- Natural charge expiry drops three quiet chips without a block flash or retaliation. Preserve one-hit absorption, grace, combo protection, independent charges, damage, timing and scaling.
+- Verify actual enemy contact, projectile absorption, exhaustion damage, recast, rank-eight expiry and narrow/reduced presentation with native captures. Add focused presentation/lifecycle checks and deliberate missing-fracture and expiry-retaliation controls.
+- Follow-up: review moving mixed-threat combat and audition recorded audio; fixed-camera controlled captures do not establish full sound/camera quality or final spell acceptance.
+
 # 0.3.4-dev.31 — Life Bolt strike and recovery clarity (17 October 2026)
 
 - Keep Life Bolt’s responsive living projectile and crisp contact punch; replace the enemy-contact flower bloom with a short directional strike and three leaf flecks.
