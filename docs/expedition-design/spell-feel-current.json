@@ -268,8 +268,8 @@
       "id": "focus_ray",
       "name": "Focus Ray",
       "baseline": "spell-feel-audit-2026-10-15.json#focus_ray",
-      "latest_reviewed_change": null,
-      "disposition": "refinement_pending_review",
+      "latest_reviewed_change": "ff08eab",
+      "disposition": "refined_pending_artistic_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -281,8 +281,10 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Assess the small glint and two flecks on real damage ticks, empty-lane silence, retargeting and existing narrowing shutdown at ranks one/eight and in mixed combat. Preserve clean body and geometry; no forward-flow layer added. Sound/camera and artistic fantasy fulfillment remain unassessed."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/focus-ray/manifest.json"
+      ],
+      "next_review": "Candidate ff08eab: real-tick terminal glint/two flecks; empty-lane sparks suppressed. Native before/after rank-one hit frames and expiry match, rank-eight/narrow show three beams and cleanup. Moving mixed combat records 24 primary hits, 14 moving enemies, 5 damage events and 3 secondary hits. All footage is silent; sound/camera and full-sequence artistic fantasy judgment remain U. Preserve clean body/geometry; no forward flow added. B-minus mean/C-minus floor not established."
     },
     {
       "id": "rune_trap",

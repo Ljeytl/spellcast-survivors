@@ -3,7 +3,8 @@
 - Preserve the existing clean beam, tracking, hit geometry and narrowing shutdown. Each actual damage tick now produces one compact terminal glint and two short pressure flecks; empty lanes no longer throw false contact sparks.
 - Scope the change to friendly Focus Ray. Preserve Prism Ray, hostile beams, timing, damage, recast limits and starting effects.
 - Correct stale Lightning Bolt review prose: its current recipe has one delayed strike at the final chain contact, not one strike per bounce. Preserve approved shared Lightning effects and gameplay.
-- Add contact-routing, endpoint and empty-lane regressions with a deliberately failing ambient-spark control. Follow-up: native full-sequence and audible artistic assessment remains required; no B-minus mean/C-minus floor or fantasy acceptance is claimed.
+- Add contact-routing, endpoint, hostile-isolation and empty-lane regressions with a deliberately failing ambient-spark control. Native before/after rank-one, rank-eight/narrow lifecycle and moving mixed combat footage is preserved with decoded MP4/GIF counts, raw PNGs, telemetry and candidate source.
+- Follow-up: captures are silent; full-sequence artistic and audible assessment remains open. The baseline banded body is unchanged; no B-minus mean/C-minus floor or fantasy acceptance is claimed.
 
 # 0.3.4-dev.36 — Trap state and cold-material refinement (17 October 2026)
 
