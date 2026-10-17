@@ -1,3 +1,11 @@
+# 0.3.4-dev.30 — Squads: the director sends enemies that pull opposite ways (17 October 2026)
+
+- **The director now sometimes buys an escort with a card**, chosen so the right answer to one is the wrong answer to the other. It comes from the same credits; with no credits there is no escort. Four squads to start:
+  - **Wall and rushers** (from minute 5, 50%): a Juggernaut or Shieldbearer with 3–5 pursuers, sprinters or swarmers. You want the long word for the big one; the rushers won't let you finish it.
+  - **Herd and horns** (from minute 6, 25%): swarmers with a Charger. The area spell is right, but the charge makes you move mid-word.
+  - **Screened harasser** (from minute 7, 40%): a Shieldbearer with a spear goblin or Imp behind it. Your auto-target keeps hitting the shield.
+  - **Crossfire** (from minute 3, 35%): an Imp, with 2–4 rushers from the opposite side, so running from one runs you into the other.
+- Squads live in `data/director.json` `squads` (lead cards, escort cards, escort group size, same or opposite side, chance, from minute). The `director` overlay marks escort purchases with "+ squad name".
 # 0.3.4-dev.29 — Arcane Orbit circulating energy (17 October 2026)
 
 - Preserve the real orbital body radius and movement while replacing static physical-ball shading with asymmetric circulating violet light and a compact sampled curved wake. Bound wakes by both time and distance so fast or enlarged orbs retain gaps.

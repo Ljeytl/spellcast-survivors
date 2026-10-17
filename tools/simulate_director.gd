@@ -25,7 +25,7 @@ class Host:
 	func get_available_variants(t: float) -> Array:
 		old_manager.game_time = t
 		return old_manager.get_available_variants(t)
-	func director_spawn(_definition: Dictionary, count: int, words: Array, champion: bool):
+	func director_spawn(_definition: Dictionary, count: int, words: Array, champion: bool, _at_angle: float = NAN):
 		if champion:
 			spawned.champions += 1
 		elif not words.is_empty():

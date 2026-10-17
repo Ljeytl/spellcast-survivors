@@ -188,6 +188,61 @@
         }
       },
       "additionalProperties": false
+    },
+    "squads": {
+      "type": "array",
+      "$comment": "doc 22 \u00a74a: some cards bring an escort chosen to pull the opposite way",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "lead": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "escort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "escort_group": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "same",
+              "opposite"
+            ]
+          },
+          "chance": {
+            "type": "number"
+          },
+          "from_minute": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "lead",
+          "escort",
+          "escort_group",
+          "side",
+          "chance",
+          "from_minute"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
