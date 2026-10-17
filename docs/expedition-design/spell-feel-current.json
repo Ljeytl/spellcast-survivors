@@ -326,8 +326,8 @@
       "id": "firewalk",
       "name": "Fire Walk",
       "baseline": "spell-feel-audit-2026-10-15.json#firewalk",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "dev.32 \u2014 disk-bounded connected ground, patch-age cooling and preserved low flames",
+      "disposition": "refined",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -339,8 +339,13 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep the ground-hugging scale. Connect neighboring flames through short-lived heat and embers, show ignition directly behind each step, and let older patches cool in path order."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank1.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank8-recast.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank1-narrow-resume.mp4"
+      ],
+      "next_review": "Native baseline confirms intermittent clumps and checker scorch; candidate keeps low flames over connected warm ground and cools old patches in path order. Maximum-rank opacity was reduced after inspection. Complete mixed moving-threat encounter and audible artistic review before current grades or target attainment; captures use scripted movement and static targets."
     },
     {
       "id": "cross_blade",
