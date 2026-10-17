@@ -9,6 +9,7 @@ func _initialize():
 	run.call_deferred()
 
 func run():
+	await process_frame
 	var args = OS.get_cmdline_user_args()
 	if args.size() < 3:
 		quit(2)
