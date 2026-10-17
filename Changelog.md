@@ -1,3 +1,9 @@
+# 0.3.4-dev.44 — Arcane Orbit concentrated material (17 October 2026)
+
+- Preserve Arcane Orbit's live asymmetric whorl, orbital positions, full body bounds, short wake and real contact response. Concentrate saturated violet mass around its bright nucleus while letting terrain show through the tapered outer whorl instead of painting an opaque lavender disk. Bare Orbit and hostile materials remain unchanged.
+- Retain paired native rank-one evidence and rejected faint transparency studies, with same-run PCM and verified MP4/GIF. Add actual raster coverage for dense inner mass, transparent outer material, evolving phase and unchanged bounds; original opaque and rejected faint controls fail their respective invariants. Extend the existing capture fixture with narrow and reduced settings.
+- Sampled material improvement is provisional. Full-speed artistic, audible and mixed-threat assessment remain open; no overall passing grade or user acceptance. Follow-up: assess maximum-rank crowd readability and contact emphasis before further visual changes.
+
 # Capture tooling — Bolt and Lightning Bolt review (17 October 2026)
 
 - Add controlled base/max and empty-lifetime captures for Bolt and Lightning Bolt using real native casts, twelve reachable targets and single terminal-warning/strike telemetry. Mixed hostile capture now prepares eligible rank-eight Lightning Bolt ingredients.

@@ -73,10 +73,12 @@ func draw_body(buf: PackedByteArray, presenter, position: Vector2, accent: Strin
 			var core := pow(maxf(0.0, 1.0 - offset.distance_to(nucleus) / (r * 0.33)), 1.5)
 			var edge := smoothstep(0.82, 0.96, distance)
 			var leading := pow(maxf(0.0, offset.normalized().dot(direction)), 6.0) * edge
-			var color := Color("#6743bb").lerp(Color("#c2b6ff"), band)
-			color = color.lerp(Color("#edf2ff"), maxf(core, band * 0.72))
+			var color := Color("#6530cf").lerp(Color("#ac7bf5"), band)
+			color = color.lerp(Color("#edf2ff"), maxf(core, band * 0.15))
 			color = color.lerp(Color("#e9e4ff"), leading * (0.3 + pulse_strength * 0.7))
-			color.a = clampf(0.68 + band * 0.28 + core * 0.3 + edge * 0.2, 0.0, 0.96)
+			var taper := 1.0 - smoothstep(0.55, 1.0, distance)
+			var body := 1.0 - smoothstep(0.3, 0.75, distance)
+			color.a = clampf(body * 0.72 + band * (0.55 + taper * 0.4) + core * 0.96 + leading * pulse_strength * 0.5, 0.0, 0.96)
 			if accent != "" and edge > 0.5:
 				color = presenter.RIM[accent]
 				color.a = 0.85

@@ -62,7 +62,56 @@ func run():
 	presenter.part_finished(part, true)
 	check(vfx._sparks.back()[6] == presenter.SPARK.fire and vfx._smoke.size() > before_smoke, "Fiery expiry retains keyword palette and puff")
 	check(state.orbit_visual.finished and not presenter._parts.has(part.get_instance_id()), "Natural expiry releases the body and finishes its wake")
+	cast.plan.id = "orbit"
+	check(not Presenter._is_arcane_orbit(part), "Bare Orbit retains its own material")
+	cast.plan.id = "arcane_orbit"
+	cast.target_group = "player"
+	check(not Presenter._is_arcane_orbit(part), "Hostile orbit retains its own material")
+	check_material(vfx, presenter)
 	part.free()
 	cast.free()
 	print("Arcane Orbit visual: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)
+
+func check_material(vfx, presenter) -> void:
+	vfx._size = Vector2i(96, 96)
+	vfx._origin = Vector2i.ZERO
+	var visual = Visual.new()
+	visual.radius = 7.0
+	var previous := PackedByteArray()
+	for phase in [0.0, 0.6]:
+		visual.time = phase
+		var pixels := PackedByteArray()
+		pixels.resize(96 * 96 * 4)
+		visual.draw_body(pixels, presenter, Vector2(48, 48) / vfx.K, "")
+		var outer_alpha := 0.0
+		var outer_count := 0
+		var inner_alpha := 0.0
+		var inner_count := 0
+		var core_peak := 0
+		var outside_pixels := 0
+		var visible_pixels := 0
+		for y in 96:
+			for x in 96:
+				var distance: float = Vector2(x - 48, y - 48).length() / (visual.radius * vfx.K)
+				var alpha: int = pixels[(y * 96 + x) * 4 + 3]
+				if alpha > 0:
+					visible_pixels += 1
+				if distance > 0.65 and distance <= 1.0:
+					outer_alpha += alpha / 255.0
+					outer_count += 1
+				if distance >= 0.3 and distance < 0.55:
+					inner_alpha += alpha / 255.0
+					inner_count += 1
+				if distance < 0.3:
+					core_peak = maxi(core_peak, alpha)
+				if distance > 1.0 and alpha > 0:
+					outside_pixels += 1
+		check(visible_pixels > 0 and outer_count > 0, "Material raster collects real body and outer samples")
+		check(outer_alpha / outer_count < 0.3, "Outer whorl lets terrain dominate between moving arms")
+		check(inner_count > 0 and inner_alpha / inner_count > 0.42, "Inner body retains concentrated magical mass")
+		check(core_peak > 200, "Concentrated core remains legible through translucent whorl")
+		check(outside_pixels == 0, "Material never expands outside gameplay body radius")
+		if not previous.is_empty():
+			check(previous != pixels, "Whorl material evolves in runtime phase")
+		previous = pixels
