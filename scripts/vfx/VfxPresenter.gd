@@ -288,8 +288,11 @@ func part_spawned(part) -> void:
 		var length_su: float = part.geo("length", 250.0) / WPS
 		# A real laser: a thick band in the element's colours that holds a moment and thins out.
 		var hw_su: float = maxf(1.5, part.geo("width", 28.0) * 0.5 / WPS)
-		_lasers.append([pos, dir2, length_su, hw_su, 0.0, 0.32, cols, key2])
-		_ray_flavour(key2, pos, dir2, length_su, hw_su)
+		var prism := str(part.cast.plan.get("id", "")) == "prism_ray"
+		_lasers.append([pos, dir2, length_su, hw_su, 0.0, 0.32, cols, key2, prism])
+		if prism and part.part_name == "ray_fire":
+			vfx.star(pos.x, pos.y, 2.5, 0.12, 4, Color("#ecdeff"))
+		_ray_flavour(key2, pos, dir2, length_su, hw_su, prism)
 		var tip: Vector2 = pos + dir2 * length_su
 		vfx.flash(tip.x, tip.y, 1.5, 0.06, cols[1])
 		for i in 3:
@@ -937,7 +940,7 @@ func _contact_punch(part, st: Dictionary, p: Vector2) -> void:
 		vfx.shake(0.35)
 
 ## Prism Ray: each refracted ray carries its element along it, so the six read apart at a glance.
-func _ray_flavour(look: String, a: Vector2, d: Vector2, L: float, hw: float) -> void:
+func _ray_flavour(look: String, a: Vector2, d: Vector2, L: float, hw: float, prism: bool = false) -> void:
 	var el = vfx.elements
 	var n := Vector2(-d.y, d.x)
 	match look:
@@ -959,7 +962,10 @@ func _ray_flavour(look: String, a: Vector2, d: Vector2, L: float, hw: float) -> 
 		"plague":
 			for i in 4:
 				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
-				el.bubble(q.x, q.y, randf() < 0.3)
+				if prism:
+					vfx.spark(q.x, q.y, d.x * 12.0, d.y * 12.0, 0.18, [BODY.plague[1], BODY.plague[2]])
+				else:
+					el.bubble(q.x, q.y, randf() < 0.3)
 		"life":
 			for i in 3:
 				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
@@ -1834,11 +1840,14 @@ func draw_statuses(buf: PackedByteArray) -> void:
 		var nrm: Vector2 = d0.orthogonal()
 		var hw := maxi(1, roundi(float(L[3]) * (1.0 - lk * 0.5)))
 		var lc: Array = L[6]
+		var prism: bool = L.size() > 8 and bool(L[8])
+		var fade := clampf((1.0 - lk) / 0.65, 0.0, 1.0) if prism else 1.0
 		if str(L[7]) == "lightning":
-			el.line(buf, a0, b0, lc[0])   # the storm ray is its arcs; only a thin white core here
+			el.line(buf, a0, b0, Color(lc[0], lc[0].a * fade))
 			continue
 		for o in range(-hw, hw + 1):
 			var c: Color = lc[0] if o == 0 else (lc[1] if absi(o) < hw else lc[mini(3, lc.size() - 1)])
+			c.a *= fade * (0.7 if prism and o != 0 else 1.0)
 			el.line(buf, a0 + nrm * o, b0 + nrm * o, c)
 	# Stunned: three little stars circling the top of the body.
 	for q in _dazed:
@@ -2681,6 +2690,9 @@ func _draw_beam(buf: PackedByteArray, part, st: Dictionary) -> void:
 			c = Color.WHITE if o == 0 else RAINBOW[posmod(o + 3 + (vfx._steps >> 2), 6)]
 		else:
 			c = pal[0] if o == 0 else (pal[1] if absi(o) < hw else pal[3])
+		if str(part.cast.plan.get("id", "")) == "prism_ray":
+			var edge := float(absi(o)) / float(hw)
+			c.a = 1.0 if o == 0 else (0.65 if absi(o) == hw else lerpf(0.85, 0.24, edge))
 		el.line(buf, a + n * o, b + n * o, c)
 	# (no orb at the tip: playtest called it "the dumb pixel thing"; the tip sparks carry the contact)
 
