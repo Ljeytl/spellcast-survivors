@@ -1161,7 +1161,7 @@ User feedback: motion deserves a higher score than the assistant gave; fantasy, 
 
 ### Atomic pressure refinement — 17 October 2026
 
-Candidate 0.3.4-dev.23 preserves gameplay timing and the locked screen-sized rectangular damage footprint, while gathering violet energy at the caster’s committed position and releasing a rapidly expanding radial pressure wave. The wave is presentation, not staggered damage. Existing charge/release assets now accompany the sequence. Reduced effects retain a quieter wave without shake.
+Candidate 0.3.4-dev.24 preserves gameplay timing and the locked screen-sized rectangular damage footprint, while gathering violet energy at the caster’s committed position and releasing a rapidly expanding radial pressure wave. The wave is presentation, not staggered damage. Existing charge/release assets now accompany the sequence. Reduced effects retain a quieter wave without shake.
 
 Artistic grades remain INCOMPLETE. The first gold radial treatment was rejected in internal review for looking like a generic nova. The user’s reference question suggests “I Am Atomic” from The Eminence in Shadow; this is an inferred cue, not explicit confirmation. The next candidate uses compressed violet energy, momentary scene darkness and a white-hot violet release. No passing grade follows from implementation or test success.
 

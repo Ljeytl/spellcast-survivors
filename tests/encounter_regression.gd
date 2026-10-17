@@ -130,6 +130,8 @@ func run():
 			enemy.update_lunge(0.016, Vector2.LEFT, 220.0)
 			check(enemy.retreat_remaining > 0.0 and enemy.velocity.x > 0, "after the lunge it backs off")
 		if id == "imp":
+			var look = enemy.get_node("Sprite2D").material
+			check(look is ShaderMaterial and is_equal_approx(float(look.get_shader_parameter("hue_shift")), float(enemy.spawn_data.recolor.hue)), "the Imp's placeholder recolour applies (doc 22 §9)")
 			var o = enemy.spawn_data.orb
 			check(enemy.warning > 0.0, "Special attack has a readable wind-up for imp (at 300 px)")
 			enemy.warning = 0.0
@@ -156,6 +158,8 @@ func run():
 
 		if id in ["charger", "marksman", "fan_caster", "mortar"]:
 			check(enemy.warning > 0, "Special attack has a readable wind-up for %s" % id)
+		if id == "mortar":
+			check(enemy.get_node("Sprite2D").self_modulate.is_equal_approx(Color(1.0, 0.62, 0.38)), "the Mortar's placeholder tint sets it apart from the Shieldbearer's identical sprite")
 		if id in ["marksman", "fan_caster", "mortar"]:
 			var before = get_nodes_in_group("enemy_projectiles").size()
 			enemy.update_ranged(1.0, Vector2.LEFT, 300)

@@ -67,6 +67,22 @@ func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false,
 
 var terrain: Node = null   # the Background's tree steering, looked up once
 
+## Placeholder looks until real art (doc 22 §9): encounters.json `recolor` {hue, saturation} rotates the
+## sprite's colours (one shared material per variant), `tint` [r, g, b] multiplies them (for grey bodies).
+static var recolor_materials := {}
+func apply_placeholder_look(sprite: Sprite2D) -> void:
+	var recolor: Dictionary = spawn_data.get("recolor", {})
+	if not recolor.is_empty():
+		if not recolor_materials.has(variant):
+			var m := ShaderMaterial.new()
+			m.shader = preload("res://shaders/enemy_recolor.gdshader")
+			m.set_shader_parameter("hue_shift", float(recolor.get("hue", 0.0)))
+			m.set_shader_parameter("saturation", float(recolor.get("saturation", 1.0)))
+			recolor_materials[variant] = m
+		sprite.material = recolor_materials[variant]
+	var tint: Array = spawn_data.get("tint", [1, 1, 1])
+	sprite.self_modulate = Color(float(tint[0]), float(tint[1]), float(tint[2]))
+
 func _ready():
 	register_spawn_telemetry()
 	normal_collision_mask = collision_mask
@@ -95,10 +111,11 @@ func _ready():
 	bar.offset_top = bar.offset_bottom - 5.0
 	update_health_bar()
 	add_to_group("enemies")
+	apply_placeholder_look(sprite)
 	if not elite.is_empty():
 		add_to_group("elites")
 		var tint: Array = elite.get("tint", [1, 1, 1])
-		sprite.self_modulate = Color(float(tint[0]), float(tint[1]), float(tint[2]))   # darker, never a status colour
+		sprite.self_modulate *= Color(float(tint[0]), float(tint[1]), float(tint[2]))   # darker, never a status colour
 		var words = Label.new()
 		words.name = "EliteWords"
 		words.text = str(elite.get("label", ""))
@@ -352,7 +369,7 @@ var _drew_something := false
 func _redraw_if_needed() -> void:
 	if _debug_archetypes == null:
 		_debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")
-	var wants: bool = _debug_archetypes or shield_hp > 0.0 or shatter_time > 0.0 or stagger_remaining > 0.0 or warning > 0.0
+	var wants: bool = _debug_archetypes or variant == "skirmisher" or shield_hp > 0.0 or shatter_time > 0.0 or stagger_remaining > 0.0 or warning > 0.0
 	if wants or _drew_something:
 		queue_redraw()
 	_drew_something = wants
@@ -368,6 +385,16 @@ func _draw():
 		draw_arc(Vector2.ZERO, 25, 0, TAU, 24, colors.get(family, Color.WHITE), 2.5)
 	if boss and debug_archetypes:
 		draw_arc(Vector2.ZERO, 30, 0, TAU, 32, Color.GOLD, 3.0)
+	if variant == "skirmisher" and warning <= 0.0:
+		# placeholder spear (doc 22 §9): held toward you; the lunge telegraph line extends from it
+		var tip = facing * 54.0
+		draw_line(facing * 14.0, tip, Color("3b2a1a"), 5.0)
+		draw_line(facing * 14.0, tip, Color("c9a26b"), 2.5)
+		draw_colored_polygon(PackedVector2Array([tip + facing * 12.0, tip + facing.orthogonal() * 5.0, tip - facing.orthogonal() * 5.0]), Color("3b2a1a"))
+		draw_colored_polygon(PackedVector2Array([tip + facing * 10.0, tip + facing.orthogonal() * 3.5, tip - facing.orthogonal() * 3.5]), Color("e8eef2"))
+	if variant == "imp" and warning <= 0.0:
+		draw_circle(Vector2(0, -15), 4.0, Color(0.1, 0.02, 0.0, 0.8))
+		draw_circle(Vector2(0, -15), 2.8, Color("ff9a3a"))   # placeholder ember: it throws fire
 	if shield_hp > 0.0:
 		var left = shield_hp / maxf(1.0, shield_max)
 		var col = Color(1.0, 0.55, 0.35).lerp(Color(0.7, 0.85, 1), left)
