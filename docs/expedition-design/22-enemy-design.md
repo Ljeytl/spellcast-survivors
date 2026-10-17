@@ -132,7 +132,7 @@ A good fight mixes three layers: **fodder** (feeds you), **specialists** (each a
 
 Set pieces keep the run moving between questions:
 
-- **Stampede**: a band of swarmers crosses the screen through the centre, ignoring you; dodge it or blast it for free XP. Early (around 1:00) and repeated later.
+- **Stampede**: a band of swarmers crosses the screen through the centre, ignoring you; dodge it or blast it for free XP. Early (around 1:00) and repeated later. **Built 0.3.4-dev.27** (`data/events.json`, `scripts/Stampede.gd`): a telegraphed lane through where you stand, then the herd; times per day on the day clock, herd size per day.
 - **Flood**: Aditya's favourite Vampire Survivors moment, around ten minutes into the first level, when enemies pour in from every edge of the screen at once, far more than you can imagine. Weak fodder in overwhelming numbers; the answer is areas, rings and orbits, and surviving it feels like power.
 - **Ring**: slow enemies spawning in a circle around you and closing in, answered by RINGED, REPULSING or a breakout.
 

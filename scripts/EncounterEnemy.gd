@@ -24,6 +24,8 @@ var action_direction: Vector2 = Vector2.ZERO
 var charge_remaining: float = 0.0
 var retreat_remaining := 0.0   # spear goblin backing off after a lunge
 var partner: WeakRef = null     # Flanker pincer partner
+var stampede_velocity := Vector2.ZERO
+var stampede_left := 0.0        # distance left to run before it leaves the field
 var pincer_closing := 0.0       # >0: the pair is closing in together
 var pincer_wait := 0.0          # time spent getting into position
 var partner_search := 0.0
@@ -155,6 +157,9 @@ func _physics_process(delta):
 	if training_anchor != Vector2.INF:
 		training_step(delta)
 		return
+	if stampede_left > 0.0:
+		run_stampede(delta)
+		return
 	if shatter_time > 0.0:
 		shatter_time = maxf(0.0, shatter_time - delta)
 		queue_redraw()
@@ -248,6 +253,27 @@ func update_charge(delta: float, toward: Vector2, distance: float):
 		velocity = Vector2.ZERO
 	elif action_time > 2.8:
 		velocity = Vector2.ZERO
+
+## Stampede herd member (scripts/Stampede.gd): runs straight down its lane ignoring you and the crowd
+## (a freeze still stops it), and leaves the field at the far side without dying or dropping anything.
+func start_stampede(v: Vector2, distance: float) -> void:
+	stampede_velocity = v
+	stampede_left = distance
+	facing = v.normalized()
+	set_meta("stampede", true)
+	collision_mask = 0
+
+func run_stampede(delta: float) -> void:
+	var step = stampede_velocity * slow_multiplier * delta
+	global_position += step
+	stampede_left -= step.length() if slow_multiplier > 0.0 else 0.0
+	if stampede_left <= 0.0:
+		dying = true
+		remove_from_group("enemies")
+		var manager = get_tree().get_first_node_in_group("monster_manager")
+		if manager:
+			manager.monsters_alive = maxi(0, manager.monsters_alive - 1)
+		queue_free()
 
 ## Flanker pincer pairs (doc 22): two Flankers find each other, split to opposite sides of you (a
 ## tether shows they are a pair), then close in together from both sides. Kill one and the tether drops;

@@ -1,3 +1,9 @@
+# 0.3.4-dev.27 — The stampede (17 October 2026)
+
+- **A herd crosses the screen.** A gold-edged lane with running chevrons marks the path through where you stand, and the screen rumbles. 2.5 s later a herd of swarmers pours down it at full speed. They ignore you and run straight through: step out of the lane, or blast it for a pile of free XP. A freeze stops them in their tracks. The herd leaves at the far side without dying.
+- **When:** about 1:15 into day 1; twice on day 2; three times on days 3 and 4. Herds are 36, 50, 66 and 84 strong by day. Never at night. All of it lives in the new `data/events.json` (`stampede`), with a schema. Without the day cycle it falls back to fixed run times.
+- **Console `stampede [count]`** starts one now.
+
 # Documentation — Current spell-feel evidence (17 October 2026)
 
 - Add a current 31-spell ledger separating user-approved identities, merged candidates and outstanding review from the historical October 15 grades. Keep unknown categories ungraded and record the B-minus/C-minus thresholds plus the independent fantasy requirement.

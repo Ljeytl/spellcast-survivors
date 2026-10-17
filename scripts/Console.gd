@@ -59,6 +59,10 @@ var commands: Dictionary = {
 		"description": "Toggle the threat director overlay: credits, income, coefficient, cap, champion fund, recent purchases",
 		"usage": "director [on/off]"
 	},
+	"stampede": {
+		"description": "Start a stampede now (data/events.json): a herd crosses the screen in a telegraphed lane",
+		"usage": "stampede [count]"
+	},
 	"difficulty": {
 		"description": "Advance to minute or add seconds (no rewind)",
 		"usage": "difficulty <minute/+seconds>"
@@ -415,6 +419,13 @@ func execute_command(command_text: String):
 			spawn_elite(args)
 		"director":
 			toggle_director_overlay(args)
+		"stampede":
+			var herd = game_node.get_node("MonsterManager").stampede
+			if herd.state != "idle":
+				add_output("[color=yellow]A stampede is already running[/color]")
+			else:
+				herd.start(int(args[0]) if not args.is_empty() and str(args[0]).is_valid_int() else herd.herd_size(1))
+				add_output("Stampede incoming")
 		"difficulty":
 			change_difficulty(args)
 		"day":
