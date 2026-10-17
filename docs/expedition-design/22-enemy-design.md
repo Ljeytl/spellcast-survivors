@@ -66,7 +66,7 @@ So every few seconds the player decides: **what to type** (shape and keywords), 
 | **Swarm** | number of casts | one area | Swarmer |
 | **Harasser** | never being nearest | reposition (moving is aiming), or chain, piercing, areas | the **spear goblin** (new: the Skirmisher reworked to sit at mid range and lunge with a telegraph, then back off) |
 
-The best fights put **opposite pulls together**: a heavy with rushers (you want the long word and are not allowed to finish it), a swarm with a telegrapher (the area is right, the charge makes you move mid-word), a harasser behind heavies (auto-target keeps hitting the wall). The director's card pairings (doc 23) are where these combinations come from; pairing cards on purpose is the next director feature worth building.
+The best fights put **opposite pulls together**: a heavy with rushers (you want the long word and are not allowed to finish it), a swarm with a telegrapher (the area is right, the charge makes you move mid-word), a harasser behind heavies (auto-target keeps hitting the wall). The director's squads (`director.json` `squads`, built 0.3.4-dev.30) buy these combinations on purpose: wall and rushers, herd and horns, screened harasser, crossfire.
 
 **Telegraphs are tuned in typing time.** A wind-up about the length of a short word inside the window means "finish a short word or abandon a long one", so every telegraph is a typing decision as well as a dodge.
 

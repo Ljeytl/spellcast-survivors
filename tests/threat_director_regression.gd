@@ -35,8 +35,8 @@ class Host:
 		return {"pressure": pressure}
 	func get_available_variants(_t: float) -> Array:
 		return variants
-	func director_spawn(definition: Dictionary, count: int, words: Array, champion: bool):
-		bought.append({"id": definition.id, "count": count, "words": words, "champion": champion})
+	func director_spawn(definition: Dictionary, count: int, words: Array, champion: bool, at_angle: float = NAN):
+		bought.append({"id": definition.id, "count": count, "words": words, "champion": champion, "angle": at_angle})
 	func champions_alive() -> int:
 		return champions
 	var cap := 999
@@ -136,6 +136,57 @@ func run():
 		runs.append(str(dd.history))
 	check(runs[0] == runs[1], "a seeded director replays the same purchases")
 	# In the game: director pacing by default, the spawn timer is the on/off switch, champions are unnamed.
+	# Squads (director.json "squads"): a lead card can bring an escort that pulls the opposite way,
+	# from the same side (or the opposite side), paid from the same credits.
+	var squads: Array = data.get("squads", [])
+	check(squads.size() >= 3, "squads are defined")
+	var sq_host = Host.new()
+	sq_host.game_time = 900.0
+	sq_host.variants = []
+	for id in ["juggernaut", "shieldbearer", "pursuer", "sprinter", "swarmer", "charger", "skirmisher", "imp"]:
+		sq_host.variants.append({"id": id, "weight": 1.0})
+	var sq_rng = RandomNumberGenerator.new()
+	sq_rng.seed = 11
+	var sq = Director.new(sq_host, sq_rng)
+	var wall = squads.filter(func(q): return q.name == "wall and rushers")[0]
+	var escorted := 0
+	for i in 40:
+		sq.credits = 1000.0
+		sq_host.bought.clear()
+		if sq.try_squad({"id": "juggernaut"}, 1.0):
+			escorted += 1
+			var e = sq_host.bought[-1]
+			check(str(e.id) in wall.escort and e.count >= int(wall.escort_group[0]) and e.count <= int(wall.escort_group[1]), "a Juggernaut's escort is rushers in the squad's group size")
+			check(is_equal_approx(float(e.angle), 1.0), "the escort comes from the same side")
+	check(escorted > 5 and escorted < 35, "the squad is a chance, not a rule (%d / 40)" % escorted)
+	var cross = squads.filter(func(q): return q.name == "crossfire")[0]
+	var crossed := false
+	for i in 40:
+		sq.credits = 1000.0
+		sq_host.bought.clear()
+		if sq.try_squad({"id": "imp"}, 0.5):
+			crossed = true
+			check(is_equal_approx(float(sq_host.bought[-1].angle), 0.5 + PI), "crossfire rushers come from the opposite side")
+			break
+	check(crossed, "an Imp can bring rushers from the other side")
+	sq.credits = 0.5
+	sq_host.bought.clear()
+	for i in 20:
+		sq.try_squad({"id": "juggernaut"}, 0.0)
+	check(sq_host.bought.is_empty(), "no credits, no escort")
+	sq_host.game_time = 60.0
+	sq.credits = 1000.0
+	for i in 20:
+		sq.try_squad({"id": "juggernaut"}, 0.0)
+	check(sq_host.bought.is_empty(), "squads wait for their from_minute")
+	sq.history.clear()
+	sq.credits = 1000.0
+	sq_host.game_time = 900.0
+	for i in 40:
+		if sq.try_squad({"id": "juggernaut"}, 0.0):
+			break
+	check(sq.report().contains("+ wall and rushers"), "the director overlay names the squad")
+
 	var game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game

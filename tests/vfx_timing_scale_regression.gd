@@ -2,6 +2,7 @@ extends SceneTree
 
 const Presenter = preload("res://scripts/vfx/VfxPresenter.gd")
 const Part = preload("res://scripts/engine/SpellPart.gd")
+const Cast = preload("res://scripts/engine/GenericCast.gd")
 var checks := 0
 var failures := 0
 var vfx
@@ -65,10 +66,17 @@ func run():
 	check(vfx.presenter._hit_rings.is_empty() and vfx.presenter._lasers.is_empty(), "Scene effect reset removes landing rings and ray afterimages")
 	var p = Presenter.new(vfx)
 	var part = Part.new()
+	var cast = Cast.new()
+	cast.plan = {"id": "arcane_orbit"}
+	part.cast = cast
 	root.add_child(part)
 	p._parts[part.get_instance_id()] = {"kind": "projectile", "family": "sphere", "look": {"native": "arcane", "accent": ""}, "part": weakref(part), "last": Vector2.ZERO}
 	for scale in [0.75, 1.0, 1.42, 2.4]:
 		part.def = {"geometry": {"type": "body", "radius": 42.0 * scale}}
+		p._trail(part, p._parts[part.get_instance_id()], Vector2.ZERO, 1.0 / 60.0)
+		check(p._parts[part.get_instance_id()].has("orbit_visual"), "Actual Arcane Orbit material is selected")
+		if OS.get_cmdline_user_args().has("known-bad-radius"):
+			p._parts[part.get_instance_id()].orbit_visual.radius *= 0.25
 		var pixels = buffer()
 		p.draw_bodies(pixels)
 		var span = row_span(pixels)
@@ -85,5 +93,6 @@ func run():
 	p._meteor_fall(part, meteor, Vector2.ZERO, 0.0)
 	check(is_equal_approx(p._meteor_k(meteor), 1.0), "Meteor reaches impact when gameplay reaches impact despite skipped VFX time")
 	part.free()
+	cast.free()
 	print("VFX timing/scale: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)

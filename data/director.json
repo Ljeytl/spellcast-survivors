@@ -147,5 +147,11 @@
     "zone": 0.15,
     "elite_chance": 0.6,
     "overflow_to_champions": true
-  }
+  },
+  "squads": [
+    {"name": "wall and rushers", "lead": ["juggernaut", "shieldbearer"], "escort": ["pursuer", "sprinter", "swarmer"], "escort_group": [3, 5], "side": "same", "chance": 0.5, "from_minute": 5},
+    {"name": "herd and horns", "lead": ["swarmer"], "escort": ["charger"], "escort_group": [1, 1], "side": "same", "chance": 0.25, "from_minute": 6},
+    {"name": "screened harasser", "lead": ["shieldbearer"], "escort": ["skirmisher", "imp"], "escort_group": [1, 2], "side": "same", "chance": 0.4, "from_minute": 7},
+    {"name": "crossfire", "lead": ["imp"], "escort": ["pursuer", "sprinter"], "escort_group": [2, 4], "side": "opposite", "chance": 0.35, "from_minute": 3}
+  ]
 }

@@ -3,6 +3,20 @@
 - Add one parameterized spell/rank capture with active native enemy AI, input-driven player movement, unchanged gameplay camera, secondary Magic Missile casts, contact telemetry and native MovieWriter audio alignment. Saves are isolated; the window stays offscreen without focus.
 - Fail captures missing hostile activity, primary contacts, motion or exported frames; include a no-hostiles negative control. This fixture supplies operated evidence, not artistic grades.
 
+# 0.3.4-dev.30 — Squads: the director sends enemies that pull opposite ways (17 October 2026)
+
+- **The director now sometimes buys an escort with a card**, chosen so the right answer to one is the wrong answer to the other. It comes from the same credits; with no credits there is no escort. Four squads to start:
+  - **Wall and rushers** (from minute 5, 50%): a Juggernaut or Shieldbearer with 3–5 pursuers, sprinters or swarmers. You want the long word for the big one; the rushers won't let you finish it.
+  - **Herd and horns** (from minute 6, 25%): swarmers with a Charger. The area spell is right, but the charge makes you move mid-word.
+  - **Screened harasser** (from minute 7, 40%): a Shieldbearer with a spear goblin or Imp behind it. Your auto-target keeps hitting the shield.
+  - **Crossfire** (from minute 3, 35%): an Imp, with 2–4 rushers from the opposite side, so running from one runs you into the other.
+- Squads live in `data/director.json` `squads` (lead cards, escort cards, escort group size, same or opposite side, chance, from minute). The `director` overlay marks escort purchases with "+ squad name".
+# 0.3.4-dev.29 — Arcane Orbit circulating energy (17 October 2026)
+
+- Preserve the real orbital body radius and movement while replacing static physical-ball shading with asymmetric circulating violet light and a compact sampled curved wake. Bound wakes by both time and distance so fast or enlarged orbs retain gaps.
+- Actual contacts brighten the leading edge and release two small directional flecks; remove the generic heavy sphere hitstop for this spell. Expiry sheds motes along the last direction and retires the wake. Element keyword accents remain available.
+- Add native rank-one/rank-eight contact, movement, enlarged recast and fast empty-lane capture fixtures, plus contact-only/lifecycle and actual-material radius regression checks with failing negative controls. Artistic grades remain provisional; listening and mixed hostile-threat crowd review are outstanding.
+
 # 0.3.4-dev.28 — The stampede (17 October 2026)
 
 - **A herd crosses the screen.** A gold-edged lane with running chevrons marks the path through where you stand, and the screen rumbles. 2.5 s later a herd of swarmers pours down it at full speed. They ignore you and run straight through: step out of the lane, or blast it for a pile of free XP. A freeze stops them in their tracks. The herd leaves at the far side without dying.

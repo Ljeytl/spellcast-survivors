@@ -137,7 +137,7 @@ func champions_alive() -> int:
 	return get_tree().get_nodes_in_group("bosses").filter(func(b): return is_instance_valid(b) and b.has_meta("champion") and not b.dying).size()
 
 ## The director's purchases arrive together from one side of the screen.
-func director_spawn(definition: Dictionary, count: int, words: Array, champion: bool):
+func director_spawn(definition: Dictionary, count: int, words: Array, champion: bool, at_angle: float = NAN):
 	if champion:
 		var def := definition.duplicate(true)
 		def["champion"] = true
@@ -145,7 +145,7 @@ func director_spawn(definition: Dictionary, count: int, words: Array, champion: 
 		if boss:
 			boss.set_meta("champion", true)
 		return
-	var angle := Elites.Rng.stream("director").randf() * TAU
+	var angle := Elites.Rng.stream("director").randf() * TAU if is_nan(at_angle) else at_angle
 	var spread := float(threat_director.data().get("spending", {}).get("group_spread_radians", 0.5)) if threat_director else 0.5
 	var leader = null
 	for i in count:

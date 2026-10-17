@@ -238,21 +238,29 @@
       "id": "arcane_orbit",
       "name": "Arcane Orbit",
       "baseline": "spell-feel-audit-2026-10-15.json#arcane_orbit",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "7670116 \u2014 asymmetric circulating energy bodies, bounded sampled wakes and localized real contacts; dev.29 candidate",
+      "disposition": "candidate_needs_crowd_and_audio_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B-",
+        "C+",
+        "B",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
-      "fantasy_fulfilled": null,
+      "fantasy_fulfilled": true,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep two clear bodies and their orbit. Let light circulate within each shell and leave a short curved particle wake; concentrate the contact accent on the leading edge."
+      "evidence": [
+        "Native rank-one stationary contact/gap and expiry: two bodies; central gap enemy remains undamaged. One dominant circulating violet curl and softer secondary light replace the solid outlined ball; defined circular extent remains readable.",
+        "Native rank-eight moving/enlarged recast: four bodies preserve phase and disappear after the extended lifetime. Short wakes are bounded in time and distance; large bodies remain visually bulky.",
+        "Native rank-eight double-speed empty lane: four separately readable moving bodies, no contact cue and only one cast audio event.",
+        "Provisional assistant grades from native sequence frames: fantasy B-, visuals C+, motion B, casting/contact C+, sound/camera U, readability B-. Contact is compact but less emphatic; starting effects remain deferred. No new user acceptance.",
+        "Durable artifacts and manifest: /Users/ljeytl/.codex/visualizations/2026/10/17/arcane-orbit/. Same-run MovieWriter PCM aligned by first PNG movie frame61 (61/60s).",
+        "Final asymmetric material revision7670116; native rank-one/rank-eight captures match this runtime. Prior paired-curl studies remain explicitly preserved for comparison. Seven clean gates:629 checks; radius and retained-wake known-bad controls fail their intended assertions. Tests establish mechanics, not aesthetic grades.",
+        "Independent visual comparison rejected equally bright paired curls as a flat pinwheel. A bounded asymmetric refinement removes the paired-blade reading; visuals remain C+ because the material still reads as a stylized spiral. Useful incremental improvement, not the full bar."
+      ],
+      "next_review": "Audition synchronized contact sound and assess a moving mixed hostile-threat crowd with another spell. Material is still a stylized spiral (C+ visuals); do not claim the goal pass or spend further isolated-material iterations before combat evidence."
     },
     {
       "id": "focus_ray",
