@@ -12,15 +12,15 @@ func _initialize():
 
 func run():
 	var args = OS.get_cmdline_user_args()
-	if args.size() < 3 or args[1] not in ["bolt", "lightning_bolt"] or int(args[2]) not in [1, 8]:
-		printerr("Usage: capture_bolts folder bolt|lightning_bolt 1|8 [empty narrow]")
+	if args.size() < 3 or args[1] not in ["bolt", "lightning_bolt"] or int(args[2]) not in [1, 8] or args.has("narrow"):
+		printerr("Usage: capture_bolts folder bolt|lightning_bolt 1|8 [empty] (desktop only)")
 		quit(2)
 		return
 	var folder = args[0]
 	var spell = args[1]
 	var rank = int(args[2])
 	await setup()
-	root.size = Vector2i(720, 850) if args.has("narrow") else Vector2i(1280, 850)
+	root.size = Vector2i(1280, 850)
 	root.content_scale_size = root.size
 	game.camera.zoom = Vector2.ONE
 	game.camera.position = game.player.position + Vector2(170, 0)
@@ -101,9 +101,18 @@ func run():
 	elif hits.is_empty():
 		failures.append("missing_contacts")
 	var warning_count = seen_parts.values().count("splash_warn")
+	var strike_count = seen_parts.values().count("splash")
+	var strike_hits = hits.filter(func(hit): return hit.part == "splash").size()
+	if spell == "bolt" and seen_parts.values().count("bolt") == 0:
+		failures.append("missing_bolt_launch")
+	if spell == "lightning_bolt":
+		if strike_count != (0 if args.has("empty") else 1):
+			failures.append("incorrect_terminal_strike_count")
+		if not args.has("empty") and strike_hits == 0:
+			failures.append("missing_terminal_strike_contact")
 	if spell == "lightning_bolt" and warning_count != (0 if args.has("empty") else 1):
 		failures.append("incorrect_terminal_warning_count")
-	var result = {"spell":spell,"rank":rank,"options":args,"frames":frames,"events":events,"hits":hits,"seen_parts":seen_parts,"terminal_warnings":warning_count,"final_parts":final_parts,"failures":failures,"sound_grade":"U: not heard"}
+	var result = {"spell":spell,"rank":rank,"options":args,"frames":frames,"events":events,"hits":hits,"seen_parts":seen_parts,"terminal_warnings":warning_count,"terminal_strikes":strike_count,"terminal_strike_hits":strike_hits,"final_parts":final_parts,"failures":failures,"sound_grade":"U: not heard"}
 	FileAccess.open(folder + "/manifest.json", FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
 	print("BOLT_CAPTURE ", JSON.stringify({"spell":spell,"rank":rank,"hits":hits.size(),"warnings":warning_count,"failures":failures}))
 	cast = null
