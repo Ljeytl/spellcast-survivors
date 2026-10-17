@@ -13,6 +13,8 @@ func _initialize():
 
 func run():
 	var args = OS.get_cmdline_user_args()
+	var events: Array = []
+	root.get_node("AudioManager").audio_event_triggered.connect(func(event): events.append({"type": "audio", "movie_frame": Engine.get_frames_drawn(), "event": event}))
 	var label = args[0] if args.size() else "after"
 	var rank = int(args[1]) if args.size() > 1 else 1
 	await setup()
@@ -52,10 +54,17 @@ func run():
 		await RenderingServer.frame_post_draw
 		if frame == 0:
 			print("FIRST_PNG_MOVIE_FRAME=", Engine.get_frames_drawn())
+		if frame % 30 == 0:
+			var bodies: Array = []
+			for cast in game.spell_manager.ported_casts("arcane_orbit"):
+				for part in cast.root_parts():
+					bodies.append({"x": part.global_position.x, "y": part.global_position.y, "radius": part.geo("radius"), "remaining": part.remaining_life()})
+			events.append({"type": "lifecycle", "frame": frame, "bodies": bodies})
 		if frame % 2 == 0:
 			assert(stage.get_texture().get_image().save_png(folder + "/%04d.png" % (frame / 2)) == OK)
 	for i in foes.size():
 		print("ORBIT_ENEMY index=", i, " health=", foes[i].current_health)
+	FileAccess.open(folder + "/events.json", FileAccess.WRITE).store_string(JSON.stringify(events, "\t"))
 	print("ORBIT_CAPTURE rank=", rank, " args=", args)
 	stage.queue_free()
 	await teardown()
