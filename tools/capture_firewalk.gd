@@ -58,6 +58,10 @@ func run():
 				game.player.position = origin + Vector2(cos(float(frame) / 270.0 * TAU), sin(float(frame) / 270.0 * TAU)) * 130.0
 			elif frame < 360 or (frame >= 420 and frame < 570 and args.has("resume")):
 				game.player.position += Vector2(1.5, 0.0)
+		if args.has("narrow") and frame >= 360:
+			game.camera.position = origin + Vector2(maxf(0.0, game.player.position.x - origin.x - 150.0), 0.0)
+			game.camera.reset_smoothing()
+			game.camera.force_update_scroll()
 		await physics_frame
 		await process_frame
 		stage.canvas_transform = root.get_canvas_transform()
