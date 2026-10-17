@@ -278,6 +278,8 @@ func part_spawned(part) -> void:
 		# The telegraph before a landing: the true area as a bright ring, an inner ring closing on it.
 		_parts[part.get_instance_id()] = {"part": weakref(part), "kind": "warn", "look": look_of(part.cast.plan), "last": part.global_position / WPS,
 			"acc": 0.0, "age": 0.0, "life": maxf(0.05, float(part.total_life())), "r": float(part.geo("radius", 60.0)) / WPS}
+		if str(part.cast.plan.get("id", "")) in ["rune_trap", "frost_sigil"] and not is_hostile(part):
+			_parts[part.get_instance_id()].life = maxf(0.01, float(part.def.get("propagation", {}).get("linger", 0.4)))
 		_presented[part.get_instance_id()] = weakref(part)
 		return
 	if vfam0 == "ray":
