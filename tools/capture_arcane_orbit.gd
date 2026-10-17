@@ -18,10 +18,11 @@ func run():
 	var label = args[0] if args.size() else "after"
 	var rank = int(args[1]) if args.size() > 1 else 1
 	await setup()
+	root.get_node("Vfx").reduced_effects = args.has("reduced")
 	await create_timer(1.0).timeout
 	root.mode = Window.MODE_WINDOWED
 	root.position = Vector2i(10000, 10000)
-	root.size = Vector2i(1280, 850)
+	root.size = Vector2i(720, 850) if args.has("narrow") else Vector2i(1280, 850)
 	root.content_scale_size = root.size
 	root.get_node("Vfx").clear()
 	game.camera.zoom = Vector2.ONE
