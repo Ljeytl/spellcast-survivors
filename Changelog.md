@@ -1,3 +1,9 @@
+# Capture tooling — Bare-shape qualification (17 October 2026)
+
+- Extend mixed hostile captures to cast bare Nova, Orbit, Spear, Slash, Field and Trap through real freeform incantations. Preserve learned-slot behavior for named spells; reject fictitious bare ranks and unrecognized keywords.
+- Add controlled Nova/Orbit center, rim, outside, empty-expiry and moving-caster probes with explicit modifier, narrow and reduced-effects options. Keep these controlled cases separate from genuine hostile AI, player damage and secondary casts in the combat fixture.
+- Capture-only work; no runtime version or spell-effect changes. Full native motion and audible judgment remain required before artistic qualification.
+
 # 0.3.4-dev.39 — Active field lifetime truth (17 October 2026)
 
 - Bind shared damaging ground visuals to gameplay age and total lifetime. Cinder Field, bare Field, meteor craters and line fields stay painted through real late damage and recast extensions; geometry follows the active segment. Actual expiry, cancellation and freed owners release a short aftermath. Decorative fields retain their accelerated visual clock.
