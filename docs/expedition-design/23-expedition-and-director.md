@@ -34,4 +34,4 @@ The spawn timer is still the on/off switch (stopping it stops the director). `en
 
 ## 4. Later
 
-Realm card tables beyond the grove; a favoured elite word per realm; the stampede and flood as events; the new archetypes from doc 22 as cards; player-called nightfall if the fixed clock feels flat; endless after the last night; a progression currency.
+Realm card tables beyond the grove; a favoured elite word per realm; the flood as an event (the stampede is built, `data/events.json`); the new archetypes from doc 22 as cards; player-called nightfall if the fixed clock feels flat; endless after the last night; a progression currency.
