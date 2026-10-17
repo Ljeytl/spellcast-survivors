@@ -448,10 +448,11 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 	var p: Vector2 = part.global_position / WPS
 	var impact_look: String = st.look.accent if st.look.accent != "" else st.look.native
 	if _is_magic_missile(part) and impact_look == "arcane":
-		vfx.star(p.x, p.y, 2.5, 0.09, 4, Color("#eee6ff"))
-		for i in 3:
-			var velocity := Vector2(part.direction).rotated((float(i) - 1.0) * 0.6) * (17.0 + i * 5.0)
-			vfx.spark(p.x, p.y, velocity.x, velocity.y, 0.16 + i * 0.025, [Color("#ded3ff"), Color("#a596ef"), Color("#668de4")])
+		var tip := _missile_position(part) + Vector2(part.direction).normalized() * 2.9 * float(part.size_scale)
+		vfx.star(tip.x, tip.y, 1.6, 0.055, 4, Color("#fff4ff"))
+		for i in 2:
+			var velocity := Vector2(part.direction).rotated((float(i) - 0.5) * 1.1) * (18.0 + i * 4.0)
+			vfx.spark(tip.x, tip.y, velocity.x, velocity.y, 0.18 + i * 0.02, [Color("#c8adff"), Color("#a18ae4"), Color("#668de4")])
 		return
 	if _is_ice_blast(part) and impact_look == "ice":
 		_ice_blast_contact(part, at / WPS)
@@ -1113,6 +1114,10 @@ func _draw_magic_missile(buf: PackedByteArray, p: Vector2, direction: Vector2, p
 			else:
 				color = Color("#7b9de4")
 			if absf(v) < 0.27 and u > -1.5:
+				color = Color("#fff4ff")
+			if u > 0.2 and edge > 0.72:
+				color = Color("#a58bdd")
+			if u > 2.0:
 				color = Color("#fff4ff")
 			if accent != "" and edge > 0.68:
 				color = RIM[accent]
