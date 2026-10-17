@@ -69,7 +69,7 @@ func run():
 		quit(2)
 		return
 	var slot = game.spell_manager.find_spell_slot(spell)
-	if slot < 0:
+	if slot <= 0:
 		printerr("No spell slot: ", spell)
 		quit(2)
 		return
