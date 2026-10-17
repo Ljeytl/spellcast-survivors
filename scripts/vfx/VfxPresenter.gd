@@ -560,9 +560,12 @@ func part_finished(part, natural: bool) -> void:
 		st.orbit_visual.finished = true
 		if natural:
 			var end: Vector2 = part.global_position / WPS
+			var key: String = st.look.accent if st.look.accent != "" else st.look.native
 			for i in 4:
 				var velocity: Vector2 = st.orbit_visual.direction.rotated((i - 1.5) * 0.18) * (16.0 + i * 4.0)
-				vfx.spark(end.x, end.y, velocity.x, velocity.y, 0.18 + i * 0.04, SPARK.arcane)
+				vfx.spark(end.x, end.y, velocity.x, velocity.y, 0.18 + i * 0.04, SPARK[key])
+			if key == "fire":
+				vfx.puff(end.x, end.y - 1.0, 2)
 		return
 	if st.has("missile_ribbon"):
 		st.missile_ribbon.finished = true

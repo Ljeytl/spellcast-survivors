@@ -51,7 +51,10 @@ func run():
 	presenter.part_hit(part, null, Vector2.RIGHT)
 	check(state.orbit_visual.contact > 0.0, "Presenter routes real hit callback to orbit pulse")
 	check(vfx._sparks.size() == before_sparks + 2 and vfx._stop == 0, "Orbit contact emits two flecks without sphere hitstop")
+	state.look.accent = "fire"
+	var before_smoke: int = vfx._smoke.size()
 	presenter.part_finished(part, true)
+	check(vfx._sparks.back()[6] == presenter.SPARK.fire and vfx._smoke.size() > before_smoke, "Fiery expiry retains keyword palette and puff")
 	check(state.orbit_visual.finished and not presenter._parts.has(part.get_instance_id()), "Natural expiry releases the body and finishes its wake")
 	part.free()
 	cast.free()
