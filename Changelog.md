@@ -1,3 +1,10 @@
+# Capture tooling — Bare-shape qualification (17 October 2026)
+
+- Extend mixed hostile captures to cast bare Nova, Orbit, Spear, Slash, Field and Trap through real freeform incantations. Preserve learned-slot behavior for named spells; reject fictitious bare ranks and unrecognized keywords.
+- Add controlled Nova/Orbit center, rim, outside, empty-expiry and moving-caster probes with explicit modifier, narrow and reduced-effects options. Keep these controlled cases separate from genuine hostile AI, player damage and secondary casts in the combat fixture.
+- Preserve eight native baseline cases with individual probe reconciliation, actual mixed hostile contacts/damage, verified PNG-based MP4/GIF exports and aligned same-run PCM. Retain raw resized MovieWriter AVI as non-authoritative because its MJPEG stream can be corrupt.
+- Capture-only work; no runtime version or spell-effect changes. Full native motion and audible judgment remain required before artistic qualification. Follow-up: reduce only the demonstrated dense FIERY Nova accent after paired native review; preserve clear bare Nova and Orbit identities.
+
 # 0.3.4-dev.41 — Cinder coal pockets (17 October 2026)
 
 - Give only Cinder Field a quiet bed of red-brown coal clusters, sparse hot flecks and real terrain gaps. Replace its uniformly bright circular rim with a subdued true-radius edge and a few uneven hot points that cool with authoritative field age. Preserve low flames, heat, geometry, damage, lifetime and all other field materials.

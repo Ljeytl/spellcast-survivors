@@ -70,16 +70,15 @@ func run():
 	if spell == "prism_ray":
 		assert(game.spell_manager.learn_spell("focus_ray"))
 		assert(game.spell_manager.learn_spell("ember_spear"))
-	if not game.spell_manager.learn_spell(spell) and spell != "bolt":
-		printerr("Spell not learned: ", spell)
+	var modifiers := ""
+	for argument in args:
+		if argument.begins_with("modifiers="):
+			modifiers = argument.trim_prefix("modifiers=").replace("_", " ")
+	var route := prepare_capture_spell(game.spell_manager, spell, rank, modifiers)
+	if route.has("error"):
+		printerr(route.error)
 		quit(2)
 		return
-	var slot = game.spell_manager.find_spell_slot(spell)
-	if slot <= 0:
-		printerr("No spell slot: ", spell)
-		quit(2)
-		return
-	game.spell_manager.get_spell_info(slot).level = rank
 	var origin: Vector2 = game.player.global_position
 	var travel := 0.0
 	var previous: Vector2 = origin
@@ -96,7 +95,7 @@ func run():
 		if frame % 60 < 25:
 			Input.action_press(["move_right", "move_down", "move_left", "move_up"][frame / 60])
 		if frame in [12, 100, 185]:
-			if game.spell_manager.cast_spell_by_type(slot):
+			if release_capture_spell(game.spell_manager, route):
 				casts.append(game.spell_manager.last_generic_cast)
 				events.append({"type":"primary_cast", "frame":frame, "movie_frame":Engine.get_frames_drawn()})
 		if frame in [22, 110, 195]:
@@ -138,6 +137,8 @@ func run():
 			moved += 1
 	if damage_events == 0 and warnings == 0:
 		failures.append("missing_hostile_activity")
+	if casts.size() != 3:
+		failures.append("missing_primary_casts")
 	if hit_count == 0:
 		failures.append("missing_primary_contacts")
 	if travel < 100 or moved < 5:
@@ -147,7 +148,7 @@ func run():
 		secondary_hits += hits.size()
 	if secondary < 3 or secondary_hits == 0 or frames.size() != 240:
 		failures.append("missing_casts_or_frames")
-	var result = {"spell":spell,"rank":rank,"negative_control":negative,"failures":failures,"damage_events":damage_events,"hostile_warning_samples":warnings,"primary_contacts":contacts,"primary_hit_count":hit_count,"player_travel":travel,"moving_enemies":moved,"secondary_casts":secondary,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
+	var result = {"spell":spell,"rank":rank,"cast_route":route,"negative_control":negative,"failures":failures,"damage_events":damage_events,"hostile_warning_samples":warnings,"primary_contacts":contacts,"primary_hit_count":hit_count,"player_travel":travel,"moving_enemies":moved,"secondary_casts":secondary,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
 	var file = FileAccess.open(folder + "/manifest.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(result,"\t"))
 	print("COMBAT_RESULT ", JSON.stringify({"failures":failures,"damage":damage_events,"warnings":warnings,"hits":hit_count,"travel":travel,"moving_enemies":moved}))
@@ -158,3 +159,27 @@ func run():
 	await process_frame
 	await process_frame
 	quit(0 if failures.is_empty() else 1)
+
+static func prepare_capture_spell(manager, spell: String, rank: int, modifiers: String = "") -> Dictionary:
+	if spell in ["nova", "orbit", "spear", "slash", "field", "trap"] and manager.find_spell_slot(spell) <= 0:
+		if rank != 1:
+			return {"error":"Bare shapes have no learned rank; use rank 1 and explicit modifiers"}
+		var phrase := (modifiers + " " + spell).strip_edges()
+		var parsed: Dictionary = manager.parse_incantation(phrase)
+		if not parsed.ok or not parsed.rejected.is_empty() or not manager.castable_generic_spells().has(parsed.spell):
+			return {"error":"Invalid bare-shape incantation: " + phrase}
+		return {"kind":"bare_freeform", "phrase":phrase, "rank_applicability":"Bare shapes have no learned ranks"}
+	if not modifiers.is_empty():
+		return {"error":"Modifiers are supported only for bare-shape capture"}
+	if not manager.learn_spell(spell) and spell != "bolt":
+		return {"error":"Spell not learned: " + spell}
+	var slot: int = manager.find_spell_slot(spell)
+	if slot <= 0:
+		return {"error":"No spell slot: " + spell}
+	manager.get_spell_info(slot).level = rank
+	return {"kind":"learned_slot", "slot":slot}
+
+static func release_capture_spell(manager, route: Dictionary) -> bool:
+	if route.kind == "bare_freeform":
+		return manager.cast_freeform_spell(route.phrase)
+	return manager.cast_spell_by_type(route.slot)

@@ -671,8 +671,8 @@
       "id": "nova",
       "name": "Bare Nova",
       "baseline": "spell-feel-audit-2026-10-15.json#nova",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "06c60bae36e83674e695e766f202e308d1a61b8f",
+      "disposition": "native_baseline_captured_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -684,8 +684,10 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Let the damaging front own the release, with a compact central compression and localized edge contacts. Keep the inside quiet after the wave passes."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/basic-shapes/manifest.json"
+      ],
+      "next_review": "Capture-only source06c60ba / runtime07fcbdf; no effect change or invented bare rank. Native base, empty-expiry, LARGE FIERY narrow/reduced and real mixed hostile captures with secondary Mana Bolt are preserved as PNG plus aligned same-run PCM and verified MP4/GIF. Nova center/80/160 probes all damaged; outside330 untouched. Base sampled rim is clear. LARGE FIERY peak obscures central threats across sampled frames12\u201320 and has a dense bright annulus through frame32: consider a scoped accent-density refinement, preserving base Nova. Full-sequence artistic motion and audible assessment remain open; six grades stay U and verdict INCOMPLETE."
     },
     {
       "id": "field",
@@ -713,8 +715,8 @@
       "id": "orbit",
       "name": "Bare Orbit",
       "baseline": "spell-feel-audit-2026-10-15.json#orbit",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "06c60bae36e83674e695e766f202e308d1a61b8f",
+      "disposition": "native_baseline_captured_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -726,8 +728,10 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep this restrained scale and readable orbit. Give actual contacts a tiny leading-edge spark and retire each wake naturally when its body expires."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/basic-shapes/manifest.json"
+      ],
+      "next_review": "Capture-only source06c60ba / runtime07fcbdf; no effect change or invented bare rank. Native base, empty-expiry, LARGE FIERY narrow/reduced and real mixed hostile captures with secondary Mana Bolt are preserved as PNG plus aligned same-run PCM and verified MP4/GIF. Both90px rim probes damaged; center/outside330 untouched, including moving LARGE FIERY. Preserve existing crisp bright head and short violet wake; contacts already produce sparks, so no source-driven redesign is justified. Full-sequence artistic motion and audible assessment remain open; six grades stay U and verdict INCOMPLETE."
     },
     {
       "id": "trap",
