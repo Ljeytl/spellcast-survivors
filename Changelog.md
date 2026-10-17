@@ -1,3 +1,9 @@
+# 0.3.4-dev.42 — FIERY Nova flame gaps (17 October 2026)
+
+- Keep friendly bare Nova's thin arcane front and replace only its FIERY accent's oversized flame blocks with smaller, cooler tongues and shorter aftermath. Preserve native fire novas, hostile novas, other spell identities, damage, geometry, timing, embers and sounds.
+- Native desktop and matched LARGE FIERY narrow/reduced sequences show central actor and target visibility through orange flame gaps. Preserve PNG frames, synchronized same-run PCM and decoded MP4/GIF evidence. Routing, native-fire controls and presentation-independent damage checks pass.
+- Full-speed artistic, audible and mixed hostile candidate assessment remain open; no complete passing grade or user acceptance is claimed. Follow-up: qualify motion and crowd readability before expanding this material treatment.
+
 # Capture tooling — Bare-shape qualification (17 October 2026)
 
 - Extend mixed hostile captures to cast bare Nova, Orbit, Spear, Slash, Field and Trap through real freeform incantations. Preserve learned-slot behavior for named spells; reject fictitious bare ranks and unrecognized keywords.
