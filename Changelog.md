@@ -1,3 +1,7 @@
+# Documentation — Current spell-feel evidence (17 October 2026)
+
+- Add a current 31-spell ledger separating user-approved identities, merged candidates and outstanding review from the historical October 15 grades. Keep unknown categories ungraded and record the B-minus/C-minus thresholds plus the independent fantasy requirement.
+
 # 0.3.4-dev.26 — Flankers hunt in pincer pairs; the Juggernaut enrages (17 October 2026)
 
 - **Flankers are pincer pairs.** Two Flankers find each other within 420 px and a gold tether shows they are a pair. They split to opposite sides of you, 210 px out, and once both are in place (or after 3.5 s) they close in together at 1.7× speed. The tether brightens as they commit. Kill one and the tether drops; the survivor hunts alone. Numbers are in `data/encounters.json` `flanker.pincer`.
