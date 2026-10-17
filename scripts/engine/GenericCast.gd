@@ -442,6 +442,7 @@ func spawn_seed(at: Vector2, item: Dictionary) -> void:
 	if not is_instance_valid(caster) or world == null:
 		return
 	var seed = preload("res://scripts/HealingSeed.gd").new()
+	seed.presentation_source = str(plan.get("id", ""))
 	seed.player_ref = weakref(caster)
 	seed.healing_amount = float(item.get("amount", 6.0))
 	seed.healing_duration = float(item.get("duration", 2.0))
