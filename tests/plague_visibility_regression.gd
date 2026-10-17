@@ -49,7 +49,21 @@ func run():
 	plague.cfg.spore_life = 3.0
 	plague.cfg.duration = 5.0
 	part.power_scale = 9.0 / float(part.def.payload[0].hit)
-	part.step(0.25)
+	var presenter = root.get_node("Vfx").presenter
+	var presentation = presenter._parts[part.get_instance_id()]
+	part.step(0.05)
+	presenter._infection_step(part, presentation, 0.05)
+	var link_id = plague.links[0].id
+	var first_sample = presentation.infection_wakes[link_id][0].pos
+	part.step(0.05)
+	presenter._infection_step(part, presentation, 0.05)
+	check(presentation.infection_wakes[link_id].size() == 2, "Transmission stores successive actual travel positions")
+	check(presentation.infection_wakes[link_id][0].pos == first_sample, "Older wake remains at its historical position")
+	part.step(0.15)
+	presenter._infection_step(part, presentation, 0.15)
+	check(presentation.infection_wakes.is_empty(), "Arrival removes the completed transfer wake")
+	check(presentation.infection_hosts.has(targets[0].get_instance_id()), "Only arrived hosts acquire infection growth")
+	check(presentation.infection_pulses.get(targets[0].get_instance_id(), 0.0) > 0.0, "Arrival starts restrained host pulse")
 	targets[0].take_damage(1000, game.player.position)
 	await process_frame
 	await process_frame
@@ -59,11 +73,16 @@ func run():
 	check(plague.hosts_started == 2, "Death transfers only once to a nearby host")
 	check(root.get_node("Vfx")._air_layer.z_index > 2, "Plague feedback draws above tree canopies")
 	var before = targets[1].current_health
+	presenter._infection_step(part, presentation, 0.2)
 	part.step(0.5)
+	check(presentation.infection_pulses.get(targets[1].get_instance_id(), 0.0) > 0.0, "Real damage tick drives infection pulse")
 	check(targets[1].current_health < before, "Surviving host receives repeated damage ticks")
+	var infection_visual = presentation.infection_visual
 	part.finish(true)
 	targets[1].take_damage(1000, game.player.position)
 	await process_frame
+	await process_frame
+	check(not is_instance_valid(infection_visual), "Finished infection frees its material renderer")
 	check(plague.hosts_started == 2, "Expired infection cannot transfer on death")
 	var terrain = game.get_node("Background")
 	var trunk = null

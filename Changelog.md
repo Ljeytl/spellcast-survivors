@@ -1,8 +1,14 @@
-# 0.3.4-dev.27 — The stampede (17 October 2026)
+# 0.3.4-dev.28 — The stampede (17 October 2026)
 
 - **A herd crosses the screen.** A gold-edged lane with running chevrons marks the path through where you stand, and the screen rumbles. 2.5 s later a herd of swarmers pours down it at full speed. They ignore you and run straight through: step out of the lane, or blast it for a pile of free XP. A freeze stops them in their tracks. The herd leaves at the far side without dying.
 - **When:** about 1:15 into day 1; twice on day 2; three times on days 3 and 4. Herds are 36, 50, 66 and 84 strong by day. Never at night. All of it lives in the new `data/events.json` (`stampede`), with a schema. Without the day cycle it falls back to fixed run times.
 - **Console `stampede [count]`** starts one now.
+# 0.3.4-dev.27 — Infection attachment and transmission (17 October 2026)
+
+- Replace infection's oversized pixel bubbles with a small organic travelling seed, a short wake sampled from its actual path, and translucent lesions anchored to the real host sprite. Infection's shared delivery also improves Soul Bloom's infection phase while preserving its approved outgoing ghost.
+- Pulse attached growth on actual damage events, grow it on arrival, and drain it at expiry. Preserve all targeting, spread, damage, duration, death-transfer and healing behavior; no added camera kick or repeated sound.
+- Add moving base/max-rank, death/resting-spore, repeated crowd and Soul Bloom compatibility capture cases with synchronized native MovieWriter audio. The current scorecard remains incomplete pending full audible and mixed-threat artistic assessment.
+- Repair the evolution tradeoff fixture's removed template API: previously 434 assertions masked script-error-skipped cases; the restored run executes 459 assertions. Add six history/arrival/tick checks and a renderer-lifecycle assertion to the plague regression.
 
 # Documentation — Current spell-feel evidence (17 October 2026)
 

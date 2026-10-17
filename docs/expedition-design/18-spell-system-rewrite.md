@@ -914,6 +914,8 @@ Each proposal below is OPEN. It describes a direction for a prototype, not permi
 
 **Strongest idea:** Preserve heat, reach and force. Break up the strip into an irregular scorched path with moving low flame, keeping the spear head distinct from its damaging wake.
 
+**Infestation candidate (17 October, dev.27):** The earlier loose black-outlined bubbles were rejected during self-review. The refined material uses a small coherent seed with an actual-position wake and compact lesions on the host sprite. Arrival, damage ticks and expiry drive its growth/pulses; no mechanics or Soul Bloom ghost changes. Native base/max, death/resting, repeated-crowd and Soul Bloom clips exist under the Infestation evidence folder. This is provisional improvement, not a completed B gate: audible artistic judgment and mixed hostile/spell/modifier evidence remain outstanding.
+
 **Infestation — observed:** Green black-outlined blobs travel and collect around enemies. They suggest poison, but host infection and transmission look like similar loose particles rather than a sickness taking hold.
 
 **Strongest idea:** Anchor a compact crawling/pulsing growth to the infected host, then let a visibly released spore travel to the next host. Give application and spread different motion.

@@ -192,21 +192,27 @@
       "id": "infestation",
       "name": "Infestation",
       "baseline": "spell-feel-audit-2026-10-15.json#infestation",
-      "latest_reviewed_change": null,
-      "disposition": "in_progress",
-      "user_feedback": "Isolated refinement underway; no merged improvement yet.",
+      "latest_reviewed_change": "dev.27 candidate: attached infection lesions and coherent transmission",
+      "disposition": "candidate_review_incomplete",
+      "user_feedback": "No user grade or acceptance of this candidate. Prior floating black block material rejected during internal review.",
       "current_grades": [
+        "B-",
+        "B-",
+        "B-",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Inspect true host attachment, traveling spore, tick, spread, death and expiry."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/smooth-rank-1.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/smooth-rank-8.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/soul-compat-rank-8.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/resting-rank-8.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/crowded-rank-8.mp4"
+      ],
+      "next_review": "Provisional native sequence inspection (frames 28/97/125/270 plus base/max sequence): coherent seed travel, real body-attached lesions and death transfer support fantasy/visuals/motion B-; subtle attachment and tick emphasis C+; preserved host silhouette B. Observed-only mean 2.68, below B- even before sound. Audible artistic judgment U. Finish real hostile/other-spell/modifier coverage and strengthen contact modestly before assigning any passing overall grade."
     },
     {
       "id": "cinder_field",
