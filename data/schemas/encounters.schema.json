@@ -279,6 +279,12 @@
           "boss_visual_scale": {
             "type": "number"
           },
+          "recolor": {
+            "type": "object",
+            "properties": {"hue": {"type": "number"}, "saturation": {"type": "number"}},
+            "additionalProperties": false
+          },
+          "tint": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
           "orb": {
             "type": "object",
             "properties": {

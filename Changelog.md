@@ -1,3 +1,8 @@
+# 0.3.4-dev.23 — Every enemy role reads at a glance (17 October 2026)
+
+- **Placeholder looks until real art.** The Imp is now red-orange with an ember above it. The spear goblin is indigo and holds a spear pointed at you, which becomes the lunge telegraph line. The Mortar is tinted rust so it no longer looks like the Shieldbearer, which shares its sprite. This uses `data/encounters.json` `recolor` (hue and saturation, through `shaders/enemy_recolor.gdshader`, one material per enemy type, so crowds still batch) and `tint` (for grey bodies). Hit flashes and elite tints still apply on top.
+- **Art brief for the artist** in doc 22 §4c: each enemy's role, what it must read as, and the one feature that sells it.
+
 # 0.3.4-dev.22 — Cross Blade cutting-body refinement (17 October 2026)
 
 - Replace the hollow line cross with filled swept steel facets, fine bright cutting edges and a short curved wake inside the existing blade radius.
