@@ -104,7 +104,10 @@ func run():
 				events.append({"type":"primary_cast", "frame":frame, "movie_frame":Engine.get_frames_drawn()})
 		if frame in [22, 110, 195]:
 			game.spell_manager.last_generic_cast = null
-			game.spell_manager.fire_mana_bolt()
+			if spell == "mana_bolt":
+				game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("bolt"))
+			else:
+				game.spell_manager.fire_mana_bolt()
 			var bolt = game.spell_manager.last_generic_cast
 			if is_instance_valid(bolt):
 				secondary_casts.append(bolt)
@@ -152,7 +155,7 @@ func run():
 		secondary_hits += hits.size()
 	if secondary < 3 or secondary_hits == 0 or frames.size() != 240:
 		failures.append("missing_casts_or_frames")
-	var result = {"spell":spell,"rank":rank,"cast_route":route,"negative_control":negative,"failures":failures,"damage_events":damage_events,"hostile_warning_samples":warnings,"primary_contacts":contacts,"primary_hit_count":hit_count,"player_travel":travel,"moving_enemies":moved,"secondary_casts":secondary,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
+	var result = {"spell":spell,"rank":rank,"cast_route":route,"secondary_spell":"bolt" if spell == "mana_bolt" else "mana_bolt","negative_control":negative,"failures":failures,"damage_events":damage_events,"hostile_warning_samples":warnings,"primary_contacts":contacts,"primary_hit_count":hit_count,"player_travel":travel,"moving_enemies":moved,"secondary_casts":secondary,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
 	var file = FileAccess.open(folder + "/manifest.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(result,"\t"))
 	print("COMBAT_RESULT ", JSON.stringify({"failures":failures,"damage":damage_events,"warnings":warnings,"hits":hit_count,"travel":travel,"moving_enemies":moved}))
@@ -165,6 +168,11 @@ func run():
 	quit(0 if failures.is_empty() else 1)
 
 static func prepare_capture_spell(manager, spell: String, rank: int, modifiers: String = "") -> Dictionary:
+	if spell == "mana_bolt":
+		if not modifiers.is_empty():
+			return {"error":"Modifiers are not supported for automatic Magic Missile"}
+		manager.mana_bolt_level = rank
+		return {"kind":"automatic_missile"}
 	if spell in ["nova", "orbit", "spear", "slash", "field", "trap"] and manager.find_spell_slot(spell) <= 0:
 		if rank != 1:
 			return {"error":"Bare shapes have no learned rank; use rank 1 and explicit modifiers"}
@@ -184,6 +192,10 @@ static func prepare_capture_spell(manager, spell: String, rank: int, modifiers: 
 	return {"kind":"learned_slot", "slot":slot}
 
 static func release_capture_spell(manager, route: Dictionary) -> bool:
+	if route.kind == "automatic_missile":
+		manager.last_generic_cast = null
+		manager.fire_mana_bolt()
+		return is_instance_valid(manager.last_generic_cast)
 	if route.kind == "bare_freeform":
 		return manager.cast_freeform_spell(route.phrase)
 	return manager.cast_spell_by_type(route.slot)

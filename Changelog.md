@@ -1,3 +1,8 @@
+# Capture tooling — Magic Missile qualification (17 October 2026)
+
+- Preserve dev.20 diamond, ribbon and contact effects. Extend existing native capture metadata with rank/frame/contact provenance and optional same-run audio; support automatic Magic Missile as the primary spell with Bolt as the distinct secondary in mixed hostile captures.
+- No runtime version or effect change. Qualify current base/max and genuine mixed-hostile evidence without reviving rejected translucent candidates or inheriting their grades.
+
 # Evidence — Infestation moving hostile review (17 October 2026)
 
 - Retain one current native rank-eight mixed encounter with genuine enemy AI, player damage and secondary spell contacts. Existing attached nodules remain visible; actual tick flashes and numbers are readable in sampled combat frames. Preserve Infestation, Soul Bloom and runtime version.
