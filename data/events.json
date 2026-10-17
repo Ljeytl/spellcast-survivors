@@ -1,0 +1,17 @@
+{
+  "_doc": "Set-piece events outside the director (doc 22 §8, doc 23 §1). stampede: a herd crosses the screen in a straight lane through where you stand; it ignores you, so step out of the lane or blast it for free XP. by_day lists the seconds into each day (day clock) a stampede starts; past the last listed day the last list repeats. run_times is the fallback when the day cycle is off. counts are herd sizes per day (last repeats). The lane is telegraphed for warning_seconds before the first monster arrives.",
+  "stampede": {
+    "variant": "swarmer",
+    "by_day": [[75], [60, 200], [45, 150, 235], [40, 140, 230]],
+    "run_times": [75, 400, 700, 1000],
+    "counts": [36, 50, 66, 84],
+    "warning_seconds": 2.5,
+    "spawn_seconds": 2.2,
+    "speed": 330,
+    "lane_width": 260,
+    "lane_offset": 140,
+    "shake_every": 0.6,
+    "title": "Stampede",
+    "line": "Get out of the way"
+  }
+}

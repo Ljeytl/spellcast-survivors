@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Set-piece events (stampede)",
+  "type": "object",
+  "properties": {
+    "_doc": {"type": "string"},
+    "stampede": {
+      "type": "object",
+      "properties": {
+        "variant": {"type": "string"},
+        "by_day": {"type": "array", "items": {"type": "array", "items": {"type": "number"}}},
+        "run_times": {"type": "array", "items": {"type": "number"}},
+        "counts": {"type": "array", "items": {"type": "number"}},
+        "warning_seconds": {"type": "number"},
+        "spawn_seconds": {"type": "number"},
+        "speed": {"type": "number"},
+        "lane_width": {"type": "number"},
+        "lane_offset": {"type": "number"},
+        "shake_every": {"type": "number"},
+        "title": {"type": "string"},
+        "line": {"type": "string"}
+      },
+      "required": ["variant", "by_day", "run_times", "counts", "warning_seconds", "spawn_seconds", "speed", "lane_width", "lane_offset"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["stampede"],
+  "additionalProperties": false
+}

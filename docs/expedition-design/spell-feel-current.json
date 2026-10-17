@@ -238,7 +238,7 @@
       "id": "arcane_orbit",
       "name": "Arcane Orbit",
       "baseline": "spell-feel-audit-2026-10-15.json#arcane_orbit",
-      "latest_reviewed_change": "7670116 \u2014 asymmetric circulating energy bodies, bounded sampled wakes and localized real contacts; dev.28 candidate",
+      "latest_reviewed_change": "7670116 \u2014 asymmetric circulating energy bodies, bounded sampled wakes and localized real contacts; dev.29 candidate",
       "disposition": "candidate_needs_crowd_and_audio_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
