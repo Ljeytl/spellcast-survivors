@@ -153,7 +153,35 @@ func spend() -> bool:
 	var count := mini(mini(int(group[1]), int(host.room())), int(floor(credits / cost)))
 	if count < int(group[0]):
 		return false
-	return buy(pick, count, [], false, cost * count)
+	var angle := rng.randf() * TAU
+	buy(pick, count, [], false, cost * count, angle)
+	try_squad(pick, angle)
+	return true
+
+## Squads (director.json "squads", doc 22 §4a): some cards bring an escort chosen to pull the opposite
+## way, so the right answer to one is the wrong answer to the other: a heavy with rushers (you want the
+## long word and are not allowed to finish it), a herd with a charger, a harasser behind a wall, an Imp
+## with rushers from the other side. The escort is bought from the same credits; no credits, no escort.
+func try_squad(lead: Dictionary, angle: float) -> bool:
+	var squads: Array = data().get("squads", [])
+	for squad in squads:
+		if str(lead.id) not in squad.get("lead", []) or minutes() < float(squad.get("from_minute", 0.0)):
+			continue
+		if rng.randf() >= float(squad.get("chance", 0.0)):
+			continue
+		var pool := available_cards().filter(func(d): return str(d.id) in squad.get("escort", []))
+		if pool.is_empty():
+			continue
+		var escort: Dictionary = pool[rng.randi() % pool.size()]
+		var cost := card_cost(str(escort.id))
+		var size: Array = squad.get("escort_group", [1, 1])
+		var count := mini(mini(rng.randi_range(int(size[0]), int(size[1])), int(host.room())), int(floor(credits / cost)))
+		if count < int(size[0]):
+			return false
+		var side := angle + (PI if str(squad.get("side", "same")) == "opposite" else 0.0)
+		buy(escort, count, [], false, cost * count, side, str(squad.get("name", "squad")))
+		return true
+	return false
 
 func try_champion() -> bool:
 	var champs: Dictionary = data().get("champions", {})
@@ -170,11 +198,11 @@ func try_champion() -> bool:
 	credits += float(champs.cost)   # paid from the fund, not the wave budget
 	return buy(pool[rng.randi() % pool.size()], 1, [], true, float(champs.cost))
 
-func buy(definition: Dictionary, count: int, words: Array, champion: bool, cost: float) -> bool:
+func buy(definition: Dictionary, count: int, words: Array, champion: bool, cost: float, angle: float = NAN, squad: String = "") -> bool:
 	credits -= cost
 	spent += cost
-	history.append({"t": float(host.game_time), "card": str(definition.id), "count": count, "word": words[0] if not words.is_empty() else "", "champion": champion, "cost": cost})
-	host.director_spawn(definition, count, words, champion)
+	history.append({"t": float(host.game_time), "card": str(definition.id), "count": count, "word": words[0] if not words.is_empty() else "", "champion": champion, "cost": cost, "squad": squad})
+	host.director_spawn(definition, count, words, champion, angle)
 	return true
 
 ## Debug readout for the `director` console overlay: the numbers that decide the next purchase.
@@ -190,5 +218,5 @@ func report(recent := 6) -> String:
 	]
 	for i in range(history.size() - 1, maxi(-1, history.size() - 1 - recent), -1):
 		var h: Dictionary = history[i]
-		lines.append("  %5.1fs  %s%s x%d  %s(%.0f)" % [float(h.t), "CHAMPION " if h.champion else "", str(h.card), int(h.count), (str(h.word) + " ") if str(h.word) != "" else "", float(h.cost)])
+		lines.append("  %5.1fs  %s%s x%d  %s(%.0f)%s" % [float(h.t), "CHAMPION " if h.champion else "", str(h.card), int(h.count), (str(h.word) + " ") if str(h.word) != "" else "", float(h.cost), ("  + " + str(h.squad)) if str(h.get("squad", "")) != "" else ""])
 	return "\n".join(lines)
