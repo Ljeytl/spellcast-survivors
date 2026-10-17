@@ -67,6 +67,9 @@ func run():
 	stage.world_2d = root.world_2d
 	stage.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(stage)
+	if spell == "prism_ray":
+		assert(game.spell_manager.learn_spell("focus_ray"))
+		assert(game.spell_manager.learn_spell("ember_spear"))
 	if not game.spell_manager.learn_spell(spell) and spell != "bolt":
 		printerr("Spell not learned: ", spell)
 		quit(2)
