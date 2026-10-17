@@ -1,3 +1,11 @@
+# 0.3.4-dev.38 — Focus Ray truthful contact (17 October 2026)
+
+- Preserve the existing clean beam, tracking, hit geometry and narrowing shutdown. Each actual damage tick now produces one compact terminal glint and two short pressure flecks; empty lanes no longer throw false contact sparks.
+- Scope the change to friendly Focus Ray. Preserve Prism Ray, hostile beams, timing, damage, recast limits and starting effects.
+- Correct stale Lightning Bolt review prose: its current recipe has one delayed strike at the final chain contact, not one strike per bounce. Preserve approved shared Lightning effects and gameplay.
+- Add contact-routing, endpoint, hostile-isolation and empty-lane regressions with a deliberately failing ambient-spark control. Native before/after rank-one, rank-eight/narrow lifecycle and moving mixed combat footage is preserved with decoded MP4/GIF counts, raw PNGs, telemetry and candidate source.
+- Follow-up: captures are silent; full-sequence artistic and audible assessment remains open. The baseline banded body is unchanged; no B-minus mean/C-minus floor or fantasy acceptance is claimed.
+
 # 0.3.4-dev.37 — Burning spear trail lifetime and edge (17 October 2026)
 
 - Keep Ember Spear and Meteor Spear smouldering ground visible through their real damaging lifetime. Synchronize only their smoulder field with its gameplay part age, preserving prompt retirement when capped or expired.
