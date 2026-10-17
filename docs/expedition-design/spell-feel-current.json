@@ -650,12 +650,12 @@
       "disposition": "implemented_pending_full_sequence_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B-",
+        "B-",
         "U",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
@@ -663,7 +663,8 @@
         "Controlled native matched baseline/candidate; source, PNGs, raw AVI with PCM, frame mapping and exports preserved in slash evidence directory.",
         "Mechanics and raster regressions include enlarged-radius, delayed-front and old-filled-wedge negative controls."
       ],
-      "next_review": "Assess thin curved edge and existing contact response at normal speed, then audible/crowded hostile combat. Shared starting effects remain deferred. No artistic grade inferred from technical checks."
+      "next_review": "Assess thin curved edge and existing contact response at normal speed, then audible/crowded hostile combat. Shared starting effects remain deferred. No artistic grade inferred from technical checks.",
+      "grade_scope": "Root provisional frame-based controlled-base assessment: clearer curved cut and reduced wedge; target less obscured. Motion remains U pending full-speed judgment; sound/camera U. Existing red contact modest; shared starting ring competes and is deferred. No user acceptance or overall pass."
     },
     {
       "id": "nova",
