@@ -646,8 +646,8 @@
       "id": "slash",
       "name": "Bare Slash",
       "baseline": "spell-feel-audit-2026-10-15.json#slash",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "0.3.4-dev.40: bare Slash raster edge refinement; final candidate evidence in /Users/ljeytl/.codex/visualizations/2026/10/17/slash",
+      "disposition": "implemented_pending_full_sequence_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -659,8 +659,11 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep the quick cone. Concentrate light at an advancing curved edge and taper the tail, with clipped contact particles; do not reintroduce the rejected painted treatment."
+      "evidence": [
+        "Controlled native matched baseline/candidate; source, PNGs, raw AVI with PCM, frame mapping and exports preserved in slash evidence directory.",
+        "Mechanics and raster regressions include enlarged-radius, delayed-front and old-filled-wedge negative controls."
+      ],
+      "next_review": "Assess thin curved edge and existing contact response at normal speed, then audible/crowded hostile combat. Shared starting effects remain deferred. No artistic grade inferred from technical checks."
     },
     {
       "id": "nova",

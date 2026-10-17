@@ -1,3 +1,10 @@
+# 0.3.4-dev.40 — Bare Slash sharp edge (17 October 2026)
+
+- Preserve the quick cone and its existing instant damage. Bare Slash now keeps light in a thin curved cutting edge, with a narrowing blue tail instead of a broad filled wedge and checkerboard residue. Existing particles follow the outer edge.
+- Keep starting effects, sounds, geometry, damage, timing and all other cone effects unchanged. No new charge, painted stroke or enlarged contact burst.
+- Add controlled native before/after, enlarged/narrow/reduced, elemental-accent and empty-target captures with same-run PCM and damage telemetry. Verify instant hits, misses, linger retirement, friendly scope and rendered interior clearance with discriminating old-fill, enlarged-hitbox and delayed-hit controls.
+- Follow-up: independently assess full motion/audio and crowded hostile combat before assigning current artistic grades; current Slash verdict remains INCOMPLETE.
+
 # 0.3.4-dev.39 — Active field lifetime truth (17 October 2026)
 
 - Bind shared damaging ground visuals to gameplay age and total lifetime. Cinder Field, bare Field, meteor craters and line fields stay painted through real late damage and recast extensions; geometry follows the active segment. Actual expiry, cancellation and freed owners release a short aftermath. Decorative fields retain their accelerated visual clock.
