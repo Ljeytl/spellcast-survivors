@@ -7,9 +7,15 @@ var variant: String = "pursuer"
 var family: String = "grunt"
 var boss: bool = false
 var encounter_name: String = "Pursuer"
-## Shieldbearer shield: turns toward the player at this rate (rad/s) and blocks 35% within this half-angle of its facing.
-const SHIELD_TURN_SPEED = 0.9
-const SHIELD_HALF_ARC = PI / 3.0
+## Shieldbearer shield (encounters.json shieldbearer.shield): a front arc with its own health. Hits from
+## inside the arc go mostly into the shield (bleed_through reaches the body) until it breaks; then a stagger
+## and it is gone for good. Back and side hits, and damage with no origin (burn, bleed, poison), skip it.
+var shield_hp := 0.0
+var shield_max := 0.0
+var shield_half_arc := PI / 3.0
+var shield_turn_speed := 0.9
+var stagger_remaining := 0.0
+var shatter_time := 0.0
 var facing: Vector2 = Vector2.DOWN
 var behavior_time: float = 0.0
 var action_time: float = 2.0
@@ -49,6 +55,12 @@ func configure(definition: Dictionary, stats: Dictionary, is_boss: bool = false,
 		for c in elite.get("casts", []):
 			cast_timers.append(float(c.get("every", 4.0)) * 0.5)   # first cast comes sooner
 	set_monster_stats(stats)
+	var shield: Dictionary = definition.get("shield", {})
+	if not shield.is_empty():
+		shield_max = max_health * float(shield.get("health_share", 0.5))
+		shield_hp = shield_max
+		shield_half_arc = deg_to_rad(float(shield.get("half_arc_degrees", 60.0)))
+		shield_turn_speed = float(shield.get("turn_speed", 0.9))
 	scale = Vector2.ONE * definition.get("size", 1.0) * (1.7 if boss else 1.0) * float(elite.get("size_mult", 1.0))
 	enemy_type = {"grunt": EnemyType.CHASER, "runner": EnemyType.SWARM, "brute": EnemyType.TANK, "shooter": EnemyType.SHOOTER}[family]
 
@@ -118,6 +130,13 @@ func _physics_process(delta):
 	if training_anchor != Vector2.INF:
 		training_step(delta)
 		return
+	if shatter_time > 0.0:
+		shatter_time = maxf(0.0, shatter_time - delta)
+		queue_redraw()
+	if stagger_remaining > 0.0:
+		stagger_remaining = maxf(0.0, stagger_remaining - delta)
+		velocity = Vector2.ZERO
+		return
 	if recoil_remaining > 0.0:
 		recoil_remaining = maxf(0.0, recoil_remaining - delta)
 		velocity = recoil_velocity
@@ -128,7 +147,7 @@ func _physics_process(delta):
 	action_time -= delta
 	var offset = player.global_position - global_position
 	var toward = offset.normalized()
-	facing = facing.rotated(clampf(facing.angle_to(toward), -SHIELD_TURN_SPEED * delta, SHIELD_TURN_SPEED * delta))
+	facing = facing.rotated(clampf(facing.angle_to(toward), -shield_turn_speed * delta, shield_turn_speed * delta))
 	velocity = toward * speed * slow_multiplier
 	var charging_this_step = charge_remaining > 0.0
 	match variant:
@@ -243,11 +262,28 @@ func place_hazard(location: Vector2, radius: float, delay: float, amount: float)
 
 func take_damage(damage_amount: float, source_position: Vector2 = Vector2.INF, source: Dictionary = {}):
 	var amount = damage_amount
-	if variant == "shieldbearer" and source_position != Vector2.INF:
-		var incoming = (source_position - global_position).normalized()
-		if incoming.dot(facing) > cos(SHIELD_HALF_ARC):
-			amount *= 0.65
+	if shield_hp > 0.0 and shields_against(source_position):
+		var into_shield = amount * (1.0 - float(spawn_data.shield.get("bleed_through", 0.2)))
+		amount -= into_shield
+		shield_hp -= into_shield
+		if shield_hp <= 0.0:
+			amount += -shield_hp   # what the shield could not hold goes through
+			break_shield()
+		queue_redraw()
 	super.take_damage(amount, source_position, source)
+
+## True when a hit from source_position lands on the shield's front arc.
+func shields_against(source_position: Vector2) -> bool:
+	if source_position == Vector2.INF or source_position.is_equal_approx(global_position):
+		return false
+	return (source_position - global_position).normalized().dot(facing) > cos(shield_half_arc)
+
+func break_shield():
+	shield_hp = 0.0
+	stagger_remaining = float(spawn_data.shield.get("break_stagger", 1.5))
+	shatter_time = 0.45
+	velocity = Vector2.ZERO
+	queue_redraw()
 
 ## Only enemies with something on their canvas (a shield arc, an attack warning, debug rings) are
 ## redrawn each step; one more redraw clears a warning that just ended. Redrawing every enemy every
@@ -257,7 +293,7 @@ var _drew_something := false
 func _redraw_if_needed() -> void:
 	if _debug_archetypes == null:
 		_debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")
-	var wants: bool = _debug_archetypes or variant == "shieldbearer" or warning > 0.0
+	var wants: bool = _debug_archetypes or shield_hp > 0.0 or shatter_time > 0.0 or stagger_remaining > 0.0 or warning > 0.0
 	if wants or _drew_something:
 		queue_redraw()
 	_drew_something = wants
@@ -273,8 +309,19 @@ func _draw():
 		draw_arc(Vector2.ZERO, 25, 0, TAU, 24, colors.get(family, Color.WHITE), 2.5)
 	if boss and debug_archetypes:
 		draw_arc(Vector2.ZERO, 30, 0, TAU, 32, Color.GOLD, 3.0)
-	if variant == "shieldbearer":
-		draw_arc(Vector2.ZERO, 32, facing.angle() - SHIELD_HALF_ARC, facing.angle() + SHIELD_HALF_ARC, 16, Color(0.7, 0.85, 1), 5.0)
+	if shield_hp > 0.0:
+		var left = shield_hp / maxf(1.0, shield_max)
+		var col = Color(1.0, 0.55, 0.35).lerp(Color(0.7, 0.85, 1), left)
+		draw_arc(Vector2.ZERO, 32, facing.angle() - shield_half_arc, facing.angle() + shield_half_arc, 16, Color("0b1320"), 8.0)
+		draw_arc(Vector2.ZERO, 32, facing.angle() - shield_half_arc, facing.angle() + shield_half_arc, 16, col, 2.0 + 4.0 * left)
+	elif shatter_time > 0.0:
+		var t = 1.0 - shatter_time / 0.45
+		for i in 5:
+			var a = facing.angle() - shield_half_arc + shield_half_arc * 2.0 * (i + 0.5) / 5.0
+			var r = 32.0 + 26.0 * t
+			draw_arc(Vector2.ZERO, r, a - 0.12, a + 0.12, 4, Color(0.8, 0.9, 1, 1.0 - t), 4.0)
+	if stagger_remaining > 0.0:
+		draw_arc(Vector2(0, -34), 7, behavior_time * 6.0, behavior_time * 6.0 + PI * 1.3, 8, Color(1, 0.95, 0.5, 0.9), 2.0)
 	if warning > 0.0:
 		var line_direction = action_direction if variant != "mortar" else (action_direction - global_position).normalized()
 		var reach = 100.0

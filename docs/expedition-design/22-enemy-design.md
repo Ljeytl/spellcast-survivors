@@ -42,7 +42,7 @@ In this game switching weapons is typing a word. So: **an enemy appears → you 
 | Charger | Telegraphed dash | Sidestep, then punish | **Good** |
 | Slammer | Ground slam when you are close | Leave the circle | OK |
 | Juggernaut | 135 health | More damage | Sponge. Rework (§5) |
-| Shieldbearer | 35% less damage from the front | Flank it | Right idea, too weak to be a question |
+| Shieldbearer | 35% less damage from the front | Flank it | Right idea, too weak to be a question (replaced by the shield, §7) |
 | Marksman, Fan Caster, Mortar | Shoot from range | Move, close the distance | **Good** |
 
 About four real asks today (move, dodge, hit a crowd, kite), and every answer is movement or more damage. **No enemy asks for a specific word.** That is the gap this document closes.
@@ -58,12 +58,12 @@ Each row is one archetype. "Answer" is the best response; everything else still 
 | **Skirmisher** | **Hit and run**: winds up, darts in, strikes, retreats out of range | Punish the commit: QUICK, traps where it retreats, chill stops the dart | Caught mid-retreat it is stunned briefly | Crouch before the dart; retreats along a readable arc |
 | **Charger** | Telegraphed dash | Sidestep; chill or shock during windup cancels it | Cancelled charge leaves it dazed and open | Existing windup line |
 | **Slammer** | Ground slam near you | Keep distance; PULLING into its own slam | Pulled into its slam, it takes its own hit | Existing slam circle |
-| **Shieldbearer** | Heavy damage reduction from the front (stronger than today's 35%, not immunity; tunable) | HOMING around the shield, areas, traps, flanking | The right answer bypasses the shield entirely | Big shield facing you |
+| **Shieldbearer** | A front shield with its own health; 20% bleeds through; breaks for good with a stagger (built) | HOMING around the shield, areas, traps, flanking | The right answer bypasses the shield entirely | Big shield facing you |
 | **Juggernaut** | Armour plates: heavy damage reduction until broken | BIG/MASSIVE or Earth-beating hits strip plates | Stripped, it is an ordinary big target | Plates visibly crack and fall off |
 | **Reflector** | Sends your projectiles back | Beams, areas, traps (non-projectiles) | Avoids feeding it; areas break its mirror | Shimmering mirror face |
 | **Burrower** | Untargetable underground, surfaces under you | Ground traps and fields (Rune Trap, Cinder Field), PULLING | Trap pops it out stunned | Moving dirt trail; surfacing ring |
 | **Splitter** | Splits into smaller copies on death | Burn and areas; EXPLODING finishes the pieces | Burning splitters split into nothing | Visible seam down its body |
-| **Mender** (priority) | Heals or shields nearby enemies | PIERCING or HUNTING through the crowd | Killing it drops every shield it made | Glowing tether lines to the enemies it protects |
+| ~~Mender~~ (cut, §7) | Heals or shields nearby enemies | PIERCING or HUNTING through the crowd | Killing it drops every shield it made | Glowing tether lines to the enemies it protects |
 | **Flyer** | Ignores ground fields and traps | Projectiles, HOMING | Shot down, it falls and becomes ground fodder | Shadow on the ground beneath it |
 | **Shooters** (Marksman, Fan, Mortar) | Ranged fire | Close in, LINED or beams down their lane | Interrupted shot (shock) is lost | Existing aim lines and mortar marks |
 | **Element-armoured variants** | Any archetype with an element: takes almost nothing from its own element | Type the element that beats it (type cycle) | Weak element hits double and stagger | Element colour and the word above it, like elites |
@@ -84,7 +84,10 @@ Set pieces keep the run moving between questions:
 
 ## 7. Decisions so far
 
-- 16 October 2026: the Shieldbearer is not immune from the front; its front reduction becomes stronger than 35% and stays a soft counter.
+- 16 October 2026: the Shieldbearer is not immune from the front; its front reduction becomes stronger than 35% and stays a soft counter. **Superseded the same day (built, 0.3.4-dev.16):** the shield is a block with its own health, not a resistance. Hits inside the front arc (120°) put 80% into the shield and 20% into the body; at zero it shatters, the Shieldbearer staggers for 1.5 s, and the shield never comes back (no regeneration). Back and side hits, area blasts centred behind it, and damage over time (burn, bleed, poison: ticks have no origin) skip it. Numbers: `encounters.json` `shieldbearer.shield`.
+- 16 October 2026: element affinity: a monster is immune to its own element's status, not its element (a FIERY elite cannot burn but a fireball still hits it, through the type chart). Built for elites, the only monsters with elements today (`statuses.json` `_rules.own_element_immune`).
+- 16 October 2026: no Mender. A monster that only heals is a dull enemy; healing belongs to the LEECHING word on an elite.
+- 16 October 2026: no element-armoured base variants yet. There is one level; element variants wait for more levels and realms.
 - 16 October 2026: Flanker (pincer pairs) and Skirmisher (hit and run) are separate archetypes from the Pursuer, each with its own answer.
 - 16 October 2026: set pieces are wanted to keep the run moving: the stampede, and a Vampire Survivors–style flood around ten minutes in.
 
@@ -94,5 +97,5 @@ Each archetype becomes a director card (doc 23): a cost, a group size and an unl
 
 1. Soft counters (right answer about three times faster, recommended) or some hard counters (only the answer works)?
 2. Should the HUD ever name the answer (a hint on first meeting, bestiary entry), or is discovery the point?
-3. Which six to eight archetypes come first in 0.5? Proposed: Flanker and Skirmisher reworks, Shieldbearer immune front, Juggernaut plates, Mender, Burrower, element-armoured variants, plus the stampede event.
+3. Which six to eight archetypes come first in 0.5? Proposed: Flanker and Skirmisher reworks, Juggernaut plates, Burrower, plus the stampede event (Shieldbearer shield built; Mender and element variants cut or deferred, §7).
 4. Does fodder giving back (burning kills drop heals) belong in 0.5 or with the pickup work?

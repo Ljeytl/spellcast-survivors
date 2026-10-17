@@ -279,6 +279,18 @@
           "boss_visual_scale": {
             "type": "number"
           },
+          "shield": {
+            "type": "object",
+            "properties": {
+              "health_share": {"type": "number"},
+              "half_arc_degrees": {"type": "number"},
+              "turn_speed": {"type": "number"},
+              "bleed_through": {"type": "number"},
+              "break_stagger": {"type": "number"}
+            },
+            "required": ["health_share", "half_arc_degrees", "turn_speed", "bleed_through", "break_stagger"],
+            "additionalProperties": false
+          },
           "boss_charge": {
             "type": "object",
             "properties": {

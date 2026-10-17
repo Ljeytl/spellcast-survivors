@@ -57,11 +57,20 @@ func is_elite() -> bool:
 	var e = _owner()
 	return e != null and bool(e.get("is_elite")) if e != null and e.get("is_elite") != null else false
 
+## A monster with an element shrugs off that element's own status (a FIERY elite cannot burn); the
+## element's direct damage still lands, through the type chart. statuses.json _rules.own_element_immune.
+func immune_to(id: String) -> bool:
+	var e = _owner()
+	if e == null or not bool(rule("own_element_immune", false)):
+		return false
+	var own = str(e.get("element")) if e.get("element") != null else ""
+	return own != "" and own == str(def(id).get("element", ""))
+
 # ---------------------------------------------------------------- applying
 
 func apply(id: String, params: Dictionary = {}, source: Dictionary = {}) -> void:
 	var d = def(id)
-	if d.is_empty():
+	if d.is_empty() or immune_to(id):
 		return
 	var hit = float(params.get("hit", 0.0))
 	var cast = source.get("cast_id", null)

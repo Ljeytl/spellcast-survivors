@@ -13,5 +13,5 @@
   "weakened":   {"element": "plague", "kind": "modifier", "duration": 4.0, "damage_dealt": 0.5},
   "vulnerable": {"element": "arcane", "kind": "modifier", "duration": 4.0, "per_stack": 0.05, "max_stacks": 5},
   "entangled":  {"element": "life",   "kind": "control",  "duration": 3.0, "slow": 0.5, "root_after": 3, "root_window": 3.0, "root_duration": 1.0},
-  "_rules":     {"slow_cap": 0.7, "secondary_slow_share": 0.1, "hard_cc_window": 4.0, "hard_cc_repeat_multiplier": 0.5, "reaction_cooldown": 1.0}
+  "_rules":     {"slow_cap": 0.7, "secondary_slow_share": 0.1, "hard_cc_window": 4.0, "hard_cc_repeat_multiplier": 0.5, "reaction_cooldown": 1.0, "own_element_immune": true}
 }

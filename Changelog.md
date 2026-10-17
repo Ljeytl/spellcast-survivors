@@ -1,3 +1,9 @@
+# 0.3.4-dev.16 — The Shieldbearer has a real shield; elements resist their own status (16 October 2026)
+
+- **The Shieldbearer's shield has health.** It is no longer a flat 35% reduction you can power through. Hits inside its front arc put 80% into the shield and 20% into the body. When the shield breaks it shatters, the Shieldbearer staggers for 1.5 s, and the shield is gone for good. The arc thins and warms from blue to orange as the shield wears down. Hits from behind or the side, area blasts that land behind it, and damage over time (burn, bleed, poison) all skip the shield. Numbers are in `data/encounters.json` `shieldbearer.shield`. The nightfall boss The Iron Guard gets the same shield.
+- **A monster cannot suffer its own element's status.** A FIERY elite cannot burn, an ICY one cannot be chilled and a SHOCKING one cannot be shocked. Their element's direct damage still lands, through the type chart (`data/statuses.json` `_rules.own_element_immune`).
+- Doc 22 records the decisions: the Mender is cut and element-armoured base variants wait for more levels.
+
 # 0.3.4-dev.15 — Director overlay (16 October 2026)
 
 - **Console `director [on/off]`** shows the threat director live, top-left: credits against the bank cap, income per second, the difficulty coefficient, the phase multiplier (with night time), ambient share, alive against the cap, time to the next spend, the champion fund and cooldown, and the last six purchases (card, group size, elite word, cost, champions marked). Use it to tune `data/director.json` while playing.

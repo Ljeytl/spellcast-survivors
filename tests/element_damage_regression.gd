@@ -89,10 +89,10 @@ func run():
 		frost.element = "water"
 		return hit(frost, 100.0, spell)
 	check(near(frost_hit.call("lightning"), 125.0), "Storm beats Water/Ice")
-	check(near(frost_hit.call("ice_blast"), 75.0 + 4.0 * 0.75), "Same element resists the whole Ice Blast hit (and its frostbite)")
+	check(near(frost_hit.call("ice_blast"), 75.0), "Same element resists the Ice Blast hit, and a water enemy cannot be chilled, so no frostbite")
 	check(near(frost_hit.call("ember_spear"), 100.0), "Fire against Water/Ice is neutral (only Water beats Fire)")
 	check(near(frost_hit.call("bolt"), 100.0), "Arcane is neutral")
-	check(near(frost_hit.call("steam_field"), 60.0 + 45.0 + 4.0 * 0.75), "Steam Field's water share (and its chill's frostbite) is resisted, fire share neutral")
+	check(near(frost_hit.call("steam_field"), 60.0 + 45.0), "Steam Field's water share is resisted, fire share neutral, and its chill does not take")
 	var stormy = fresh()
 	stormy.element = "storm"
 	check(near(hit(stormy, 100.0, "cross_blade"), 125.0), "Earth/Steel raw share still beats Storm (keyed on spell element)")
