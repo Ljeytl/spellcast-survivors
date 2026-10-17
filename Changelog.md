@@ -1,8 +1,13 @@
-# 0.3.4-dev.21 — Cross Blade cutting-body refinement (17 October 2026)
+# 0.3.4-dev.22 — Cross Blade cutting-body refinement (17 October 2026)
 
 - Replace the hollow line cross with filled swept steel facets, fine bright cutting edges and a short curved wake inside the existing blade radius.
 - Give the stronger return phase a colder, brighter edge and firmer paired cutting sparks on real contacts. Keep targeting, outbound/hold/return timing, damage, radius and existing tactile blade audio.
 - Add an offscreen native capture at ranks one and eight. This is a visual candidate awaiting player judgment; passing checks do not establish an accepted grade.
+
+# 0.3.4-dev.21 — The Imp, and the Skirmisher becomes a spear goblin (17 October 2026)
+
+- **New enemy: the Imp** (punisher, doc 22 §4a). It chases you and hits you up close like a grunt. When you get distance on it, it stops, charges a growing orange glow for 0.6 s and throws a slow, round orb you can dodge, so running away is never the answer. Arrives from 2:30. Uses the existing happy slime art for now. Numbers are in `data/encounters.json` `imp.orb`, and it is a director card (cost 2, groups of 1–2).
+- **The Skirmisher is now a spear goblin** (harasser). It holds about 220 px from you, so it is rarely the nearest target, and strafes sideways. When you are 150–300 px away it stops, shows a telegraph line, lunges about 216 px along it, then backs off. The old on-a-timer retreat is gone. Numbers are in `skirmisher.lunge`.
 
 # 0.3.4-dev.20 — Small Magic Missile edge and contact polish (17 October 2026)
 

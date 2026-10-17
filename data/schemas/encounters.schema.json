@@ -279,6 +279,24 @@
           "boss_visual_scale": {
             "type": "number"
           },
+          "orb": {
+            "type": "object",
+            "properties": {
+              "min_distance": {"type": "number"}, "max_distance": {"type": "number"}, "windup": {"type": "number"},
+              "speed": {"type": "number"}, "cooldown": {"type": "number"}, "radius": {"type": "number"}
+            },
+            "required": ["min_distance", "max_distance", "windup", "speed", "cooldown", "radius"],
+            "additionalProperties": false
+          },
+          "lunge": {
+            "type": "object",
+            "properties": {
+              "standoff": {"type": "number"}, "trigger_min": {"type": "number"}, "trigger_max": {"type": "number"}, "warning": {"type": "number"},
+              "speed": {"type": "number"}, "duration": {"type": "number"}, "retreat": {"type": "number"}, "cooldown": {"type": "number"}
+            },
+            "required": ["standoff", "trigger_min", "trigger_max", "warning", "speed", "duration", "retreat", "cooldown"],
+            "additionalProperties": false
+          },
           "shield": {
             "type": "object",
             "properties": {

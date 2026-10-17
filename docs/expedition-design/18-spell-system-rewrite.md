@@ -942,7 +942,7 @@ Each proposal below is OPEN. It describes a direction for a prototype, not permi
 
 **Strongest idea:** Give the existing blade a solid readable edge and short curved cutting wake without expanding its hitbox. Accent the reversal and actual return contacts; keep the three-phase behavior.
 
-**Cross Blade refinement candidate, 17 October 2026 (dev.21):** Filled swept steel facets replace the hollow line cross. Bright cutting edges and short curved rotational wakes stay inside the authoritative radius. The return phase shifts to brighter icy steel; real contacts throw paired directional sparks and a compact glint. Existing blade audio and all three gameplay phases remain unchanged. Native rank-one and rank-eight captures are available. The earlier row is a historical baseline, not a grade for this candidate; player judgment and a listening review remain open.
+**Cross Blade refinement candidate, 17 October 2026 (dev.22):** Filled swept steel facets replace the hollow line cross. Bright cutting edges and short curved rotational wakes stay inside the authoritative radius. The return phase shifts to brighter icy steel; real contacts throw paired directional sparks and a compact glint. Existing blade audio and all three gameplay phases remain unchanged. Native rank-one and rank-eight captures are available. The earlier row is a historical baseline, not a grade for this candidate; player judgment and a listening review remain open.
 
 **Lightning Bolt — observed:** Repeated local lightning impacts and expanding rings give a strong electrical payoff. The traveling cause is easily lost among the later bright blasts and dark residue.
 

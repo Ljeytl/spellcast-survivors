@@ -78,8 +78,8 @@ Doom's push-forward combat hands ammo back for kills. The translation here: a ki
 
 - **Sprinter** is a Pursuer with QUICK, a word that already exists: fold it in.
 - **Flanker** is a director formation (pursuers sent in as a pincer pair), not its own type.
-- **Skirmisher** becomes the spear goblin (harasser).
-- **Imp** is added (punisher that cannot be escaped).
+- **Skirmisher** becomes the spear goblin (harasser). **Built 0.3.4-dev.21** (`encounters.json` `skirmisher.lunge`).
+- **Imp** is added (punisher that cannot be escaped). **Built 0.3.4-dev.21** (`encounters.json` `imp.orb`), on placeholder slime art.
 - **Juggernaut** gets an attack shape (a belly-bounce shockwave) or is cut.
 
 ## 5. Proposed core roster

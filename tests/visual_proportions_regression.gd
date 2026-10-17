@@ -26,7 +26,7 @@ func run():
 	manager.spawn_timer.stop()
 	game.player.set_physics_process(false)
 	game.spell_manager.set_process(false)
-	var widths = {"pursuer":44,"sprinter":32,"flanker":48,"skirmisher":50,"swarmer":24,"juggernaut":78,"charger":40,"shieldbearer":84,"slammer":90,"marksman":26,"fan_caster":30,"mortar":58}
+	var widths = {"pursuer":44,"sprinter":32,"flanker":48,"skirmisher":50,"imp":40,"swarmer":24,"juggernaut":78,"charger":40,"shieldbearer":84,"slammer":90,"marksman":26,"fan_caster":30,"mortar":58}
 	for id in manager.encounter_config.variants:
 		var definition = manager.encounter_config.variants[id].duplicate(true)
 		definition.id = id
