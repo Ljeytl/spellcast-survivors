@@ -214,7 +214,7 @@
       "name": "Infestation",
       "baseline": "spell-feel-audit-2026-10-15.json#infestation",
       "latest_reviewed_change": "dev.27 candidate: attached infection lesions and coherent transmission",
-      "disposition": "candidate_review_incomplete",
+      "disposition": "mixed_hostile_qualified_pending_audio_and_lifecycle_review",
       "user_feedback": "No user grade or acceptance of this candidate. Prior floating black block material rejected during internal review.",
       "current_grades": [
         "B-",
@@ -231,9 +231,10 @@
         "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/smooth-rank-8.mp4",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/soul-compat-rank-8.mp4",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/resting-rank-8.mp4",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/crowded-rank-8.mp4"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/crowded-rank-8.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation-contact/manifest.json"
       ],
-      "next_review": "Provisional native sequence inspection (frames 28/97/125/270 plus base/max sequence): coherent seed travel, real body-attached lesions and death transfer support fantasy/visuals/motion B-; subtle attachment and tick emphasis C+; preserved host silhouette B. Observed-only mean 2.68, below B- even before sound. Audible artistic judgment U. Finish real hostile/other-spell/modifier coverage and strengthen contact modestly before assigning any passing overall grade."
+      "next_review": "Unchanged-effect real mixed rank8 capture at de6e68f: 16 primary ticks, 3 successful releases, 5 player damage events, 14 moving enemies and 3 secondary hits. Native samples 80/132/140 show body-attached nodules remain visible under pressure; actual tick red flash/numbers are readable. Preserve current seed/lesion/contact presentation rather than amplify impact from source inspection alone. Existing provisional B-/B-/B-/C+/U/B grades retained; C+ impact does not justify a blanket increase. Mixed-hostile gap now has evidence; full lifecycle/death-transfer and modifier qualification remain tied to earlier controlled captures, and audible artistic judgment stays U. Overall verdict INCOMPLETE; no passing mean or user acceptance claimed."
     },
     {
       "id": "cinder_field",
