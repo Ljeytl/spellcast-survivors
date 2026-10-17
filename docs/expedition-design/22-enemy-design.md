@@ -47,6 +47,41 @@ In this game switching weapons is typing a word. So: **an enemy appears → you 
 
 About four real asks today (move, dodge, hit a crowd, kite), and every answer is movement or more damage. **No enemy asks for a specific word.** That is the gap this document closes.
 
+## 4a. The three rules that shape every enemy (agreed 17 October 2026)
+
+The reference games' resources (Doom's ammo and weapon swaps, Hades' dash) do not transfer. Ours is **time at the keyboard**, under three rules the code already enforces:
+
+1. **Typing roots you.** Speed is zero while you type (`Player.handle_movement`). Every cast is a commitment to standing still.
+2. **Each word gets a slow-motion window.** Typing runs the world at 0.2× (`SpellManager.TIME_SCALE_DURING_TYPING`) for `typing_slowdown_capacity` real seconds (1.5), and the window **resets to full at the start of every cast**. Short words fit inside it; a long keyworded word runs past it, and you finish it rooted at full speed. Telegraphs therefore read twice: a 0.9 s wind-up seen while typing inside the window lasts about 4.5 real seconds; seen past it, 0.9 s.
+3. **Spells target the nearest enemy.** You do not aim; you move until the thing you want is nearest. **Moving is aiming**, and moving is time not spent typing.
+
+So every few seconds the player decides: **what to type** (shape and keywords), **how long a word to risk** (inside the window or past it) and **where to stand while typing it**. Each archetype pulls hard on one of those, and no two pull the same way.
+
+| Role | Pulls on | The right play | Ours |
+|---|---|---|---|
+| **Punisher** | standing still to type | short words, or kill it first | Marksman; the **Imp** (new: chases and hits close, throws a slow orb when you get distance, so running is never an answer) |
+| **Telegrapher** | how much of the window is left | finish the word in slow motion, or abandon it and move | Charger, Slammer, Mortar |
+| **Rusher** | cast frequency | areas, efficient short words | Pursuer, Sprinter |
+| **Heavy** | nearest-target (it soaks your shots) | the long keyworded word, damage over time, walk around it | Juggernaut, Shieldbearer |
+| **Swarm** | number of casts | one area | Swarmer |
+| **Harasser** | never being nearest | reposition (moving is aiming), or chain, piercing, areas | the **spear goblin** (new: the Skirmisher reworked to sit at mid range and lunge with a telegraph, then back off) |
+
+The best fights put **opposite pulls together**: a heavy with rushers (you want the long word and are not allowed to finish it), a swarm with a telegrapher (the area is right, the charge makes you move mid-word), a harasser behind heavies (auto-target keeps hitting the wall). The director's card pairings (doc 23) are where these combinations come from; pairing cards on purpose is the next director feature worth building.
+
+**Telegraphs are tuned in typing time.** A wind-up about the length of a short word inside the window means "finish a short word or abandon a long one", so every telegraph is a typing decision as well as a dodge.
+
+### Parked idea: kills extend the slow-motion window (documented, not built)
+
+Doom's push-forward combat hands ammo back for kills. The translation here: a kill made while you are typing adds a little to the current word's slow-motion window (fodder a sliver, elites a chunk), so aggression buys time for the long word. Kept because the current rule, a full window on every cast, is what makes casting feel free and is staying. The idea only adds to it and never takes the free window away. Revisit when tuning long keyworded words.
+
+## 4b. Roster consolidation (proposed, not built)
+
+- **Sprinter** is a Pursuer with QUICK, a word that already exists: fold it in.
+- **Flanker** is a director formation (pursuers sent in as a pincer pair), not its own type.
+- **Skirmisher** becomes the spear goblin (harasser).
+- **Imp** is added (punisher that cannot be escaped).
+- **Juggernaut** gets an attack shape (a belly-bounce shockwave) or is cut.
+
 ## 5. Proposed core roster
 
 Each row is one archetype. "Answer" is the best response; everything else still works, slower.
@@ -87,6 +122,7 @@ Set pieces keep the run moving between questions:
 - 16 October 2026: the Shieldbearer is not immune from the front; its front reduction becomes stronger than 35% and stays a soft counter. **Superseded the same day (built, 0.3.4-dev.16):** the shield is a block with its own health, not a resistance. Hits inside the front arc (120°) put 80% into the shield and 20% into the body; at zero it shatters, the Shieldbearer staggers for 1.5 s, and the shield never comes back (no regeneration). Back and side hits, area blasts centred behind it, and damage over time (burn, bleed, poison: ticks have no origin) skip it. Numbers: `encounters.json` `shieldbearer.shield`.
 - 16 October 2026: element affinity: a monster is immune to its own element's status, not its element (a FIERY elite cannot burn but a fireball still hits it, through the type chart). Built for elites, the only monsters with elements today (`statuses.json` `_rules.own_element_immune`).
 - 16 October 2026: no Mender. A monster that only heals is a dull enemy; healing belongs to the LEECHING word on an elite.
+- 17 October 2026: the six archetypes of §4a (punisher, telegrapher, rusher, heavy, swarm, harasser) are the roster's roles, judged against the three rules (typing roots you, a fresh slow-motion window every cast, nearest-target). The per-cast slow-motion window stays as it is.
 - 16 October 2026: no element-armoured base variants yet. There is one level; element variants wait for more levels and realms.
 - 16 October 2026: Flanker (pincer pairs) and Skirmisher (hit and run) are separate archetypes from the Pursuer, each with its own answer.
 - 16 October 2026: set pieces are wanted to keep the run moving: the stampede, and a Vampire Survivors–style flood around ten minutes in.
