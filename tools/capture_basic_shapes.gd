@@ -30,7 +30,17 @@ func run():
 		if args.has(word):
 			words.append(word)
 	var route = Combat.prepare_capture_spell(game.spell_manager, spell, 1, " ".join(words))
+	if route.has("error"):
+		printerr(route.error)
+		await teardown()
+		quit(2)
+		return
 	var enemies = get_nodes_in_group("enemies")
+	if enemies.size() != 4:
+		printerr("Controlled geometry requires exactly four probes, found ", enemies.size())
+		await teardown()
+		quit(2)
+		return
 	if args.has("empty"):
 		for enemy in enemies:
 			enemy.free()
@@ -100,6 +110,9 @@ func run():
 	else:
 		if hits.is_empty():
 			failures.append("missing_contacts")
+		for index in [1, 2]:
+			if enemies[index].current_health >= 10000:
+				failures.append("missing_expected_probe_contact_" + str(index))
 		if enemies.back().current_health < 10000:
 			failures.append("outside_target_damaged")
 		if spell == "orbit" and enemies[0].current_health < 10000:
