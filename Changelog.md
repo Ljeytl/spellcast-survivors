@@ -1,3 +1,9 @@
+# 0.3.4-dev.25 — Life and Regeneration recovery feedback (17 October 2026)
+
+- Move Life's successful bloom from spell creation to actual received healing. Six pale leaf shapes gather into the torso and release a short warm mote lift; full health produces no successful-recovery pulse.
+- Separate Regeneration into a restrained breathing leaf orbit during its real active lifetime and small inward gathers on actual recovery. Preserve healing amounts, continuous rate, duration, refresh rules and the existing feedback throttle.
+- Keep unsourced healing feedback unchanged for spirits, seeds and pickups. Clear transient healing visuals with the VFX lifecycle. Native base/max-rank injured/full-health captures and source-routing/expiry regression evidence accompany this candidate; listening and player aesthetic approval remain outstanding.
+
 # 0.3.4-dev.24 — Atomic pressure release (17 October 2026)
 
 - Atomic gathers violet energy around the committed caster position, then releases a fast radial pressure front with a brief local white-hot core and fading sparks. Removed the persistent rectangular screen border; brief scene dimming and a release flash contrast the compressed charge with detonation.
