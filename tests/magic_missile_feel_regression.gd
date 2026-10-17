@@ -26,11 +26,19 @@ func run():
 	var c = cast("mana missile", 0.0)
 	c.advance(0.01)
 	var part = c.parts[0]
-	check(vfx.presenter._is_magic_missile(part), "Friendly missile uses glass presentation")
+	check(vfx.presenter._is_magic_missile(part), "Friendly missile uses diamond presentation")
 	var st = vfx.presenter._parts[part.get_instance_id()]
 	var sparks_before: int = vfx._sparks.size()
 	vfx.presenter._trail(part, st, Vector2(3, 0), 1.0 / 60.0)
-	check(vfx._sparks.size() > sparks_before, "Arcane sparkle trail remains active behind the head")
+	check(vfx._sparks.size() == sparks_before, "Ribbon replaces scattered flight sparks")
+	check(st.has("missile_ribbon"), "Flight owns a ribbon history")
+	var ribbon = st.missile_ribbon
+	ribbon.advance(0.04)
+	ribbon.sample(Vector2(5, 2), Vector2.RIGHT, 1.0)
+	ribbon.advance(0.04)
+	ribbon.sample(Vector2(10, 4), Vector2.RIGHT, 1.0)
+	check(ribbon.samples.size() == 3, "Ribbon retains multiple flight positions")
+	check(ribbon.samples[1].p == Vector2(5, 2), "Ribbon retains the curved path rather than a fixed tail")
 	vfx._origin = Vector2i.ZERO
 	vfx._size = Vector2i(64, 64)
 	var buf := PackedByteArray()
@@ -43,13 +51,29 @@ func run():
 			transparent_pixels += 1
 		if buf[i] == 255:
 			opaque_pixels += 1
-	check(transparent_pixels > 10, "Body writes actual translucent alpha")
-	check(opaque_pixels == 0, "Body does not become an opaque sprite")
+	check(transparent_pixels > 10, "Diamond writes slightly translucent facets")
+	check(opaque_pixels == 0, "Facets preserve edge translucency")
+	var ribbon_buf := PackedByteArray()
+	ribbon_buf.resize(64 * 64 * 4)
+	ribbon.draw(ribbon_buf, vfx.presenter)
+	check(ribbon_buf.count(0) < ribbon_buf.size(), "Visible curved ribbon rasterizes into the viewport")
+	vfx._origin = Vector2i(1000000, 1000000)
+	ribbon_buf.fill(0)
+	ribbon.draw(ribbon_buf, vfx.presenter)
+	check(ribbon_buf.count(0) == ribbon_buf.size(), "Fully offscreen ribbon leaves the viewport untouched")
+	vfx._origin = Vector2i(10, 0)
+	ribbon.draw(ribbon_buf, vfx.presenter)
+	check(ribbon_buf.count(0) < ribbon_buf.size(), "Ribbon crossing a shifted viewport edge still renders")
+	vfx._origin = Vector2i.ZERO
 	vfx._stop = 0
 	var stars_before: int = vfx._stars.size()
 	vfx.presenter.part_hit(part, null, part.global_position)
-	check(vfx._stars.size() - stars_before == 2, "Original contact sparkle and light punch remain active")
+	check(vfx._stars.size() - stars_before == 1, "One compact glint replaces duplicated contact stars")
 	check(vfx._stop == 0, "Passive missile contact does not stop gameplay")
+	vfx.presenter.part_finished(part, false)
+	check(ribbon.finished and not ribbon.samples.is_empty(), "Contact retains a fading detached ribbon")
+	vfx.presenter.step(0.3 * vfx.fx_speed)
+	check(vfx.presenter._missile_ribbons.is_empty(), "Detached ribbon expires without leaking")
 	c.target_group = "player"
 	check(not vfx.presenter._is_magic_missile(part), "Hostile presentation remains separate")
 	clear()
