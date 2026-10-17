@@ -1,3 +1,9 @@
+# 0.3.4-dev.39 — Active field lifetime truth (17 October 2026)
+
+- Bind shared damaging ground visuals to gameplay age and total lifetime. Cinder Field, bare Field, meteor craters and line fields stay painted through real late damage and recast extensions; geometry follows the active segment. Actual expiry, cancellation and freed owners release a short aftermath. Decorative fields retain their accelerated visual clock.
+- Generalize the prior spear-only lifecycle repair while preserving its irregular trail edge. Steam Cloud and Fire Walk keep their specialized presentations.
+- Add full-step lifecycle and shader-submission checks, an old-clock negative control and native offscreen capture telemetry. This corrects active-area readability; no new artistic grade or user acceptance is implied. Follow-up: assess mixed moving threats and audible material quality separately.
+
 # 0.3.4-dev.38 — Focus Ray truthful contact (17 October 2026)
 
 - Preserve the existing clean beam, tracking, hit geometry and narrowing shutdown. Each actual damage tick now produces one compact terminal glint and two short pressure flecks; empty lanes no longer throw false contact sparks.
