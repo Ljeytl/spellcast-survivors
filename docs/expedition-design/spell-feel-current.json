@@ -485,22 +485,25 @@
       "disposition": "candidate_requires_full_sequence_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B",
+        "C+",
+        "B-",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "C+"
       ],
-      "fantasy_fulfilled": null,
+      "fantasy_fulfilled": true,
       "verdict": "INCOMPLETE",
       "evidence": [
         "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/final-base.mp4",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/final-max.mp4",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/final-reduced.mp4",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/combat.mp4"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/combat.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/base-sequence.jpg",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/max-sequence.jpg",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/combat-sequence.jpg"
       ],
-      "next_review": "Root inspected native early split and settled frames: clearer source and improved primary material. Full-sequence and audible artistic assessment remains outstanding; no new letter grades inferred from regression or capture success. Review crowd overlaps and moving refraction tails before deciding fantasy fulfillment."
+      "next_review": "Provisional assistant review of native base/max/mixed-contact sequence samples: elemental refraction fantasy clear (B), but rigid earth/green bars and crowded crossing fans limit visuals/readability (C+); compact split has modest impact (C+). Slow sweep and decaying tails support B- sampled motion. Observed visual mean 2.56 is below target; sound remains U until listened. No user acceptance. Continue bounded material/contact polish after review."
     },
     {
       "id": "frost_sigil",
