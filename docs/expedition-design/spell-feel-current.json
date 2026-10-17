@@ -112,21 +112,23 @@
       "id": "earth_shield",
       "name": "Earth Shield",
       "baseline": "spell-feel-audit-2026-10-15.json#earth_shield",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "c5b4e0b",
+      "disposition": "refined",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B-",
+        "B-",
+        "B-",
+        "B",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Make one protective stone shell assemble, visibly take the incoming hit, then break into the existing eruption. The single charge should look spent afterward."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/earth-shield/manifest.json"
+      ],
+      "next_review": "Controlled native sequence: compact incoming-side stone fracture improves charge consumption while preserving the existing cone. Provisional effect grades come from native full-scale and chronological contact frames; sound/camera remains U. Review mixed moving hostile threats with another spell, listen to recorded audio, and confirm the protective fantasy in live play before acceptance."
     },
     {
       "id": "lightning",

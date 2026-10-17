@@ -1,4 +1,4 @@
-# Earth Shield — Protective contact clarity (17 October 2026)
+# 0.3.4-dev.35 — Earth Shield protective contact clarity (17 October 2026)
 
 - Preserve orbiting pebble charges and the existing retaliation cone. A consumed charge now resolves into a small shaded stone guard on the actual incoming side, then splits outward into the eruption.
 - Natural charge expiry drops three quiet chips without a block flash or retaliation. Preserve one-hit absorption, grace, combo protection, independent charges, damage, timing and scaling.
