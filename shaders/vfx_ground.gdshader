@@ -13,6 +13,7 @@ uniform int field_count;
 uniform vec4 fields[32];               // center x, y (cells), radius / half-width (cells), fade-in/out vis
 uniform vec2 field_goo[32];            // x: 0 none, 1 water pool, 2 plague pockets; y: field age (s)
 uniform vec4 field_axis[32];           // line fields: half-length axis x, y (cells), zero for disks; z = look index; w = floor style
+uniform float field_cooling[32];
 uniform vec4 floor_cols[24];           // 3 per look
 uniform vec4 rim_cols[16];             // 2 per look
 uniform sampler2D light_tex : filter_nearest;
@@ -97,7 +98,24 @@ void fragment() {
 			continue;
 		}
 		int look = int(field_axis[i].z + 0.5);
-		if (L > 0.0 && field_axis[i].w > 1.5 && abs(d - r) < 0.7 * k) {
+		if (L == 0.0 && field_axis[i].w > 2.5) {
+			vec2 s = vec2(a) / k;
+			float coal = vn(s.x * 0.26, s.y * 0.26) * 0.8 + vn(s.x * 0.7 + 7.0, s.y * 0.7) * 0.2;
+			float breathe = sin(t * 2.3 + vn(s.x * 0.18, s.y * 0.18) * 16.0) * 0.045;
+			float cooling = smoothstep(0.5, 1.0, field_cooling[i]);
+			float heat = coal + breathe - cooling * 0.055;
+			if (coal < 0.40 && d < r - 0.7 * k) {
+				continue;
+			}
+			col = heat > 0.68 ? vec4(0.64, 0.12, 0.025, 1.0) : (heat > 0.53 ? vec4(0.30, 0.045, 0.02, 1.0) : floor_cols[0]);
+			if (heat > 0.74 && hs(a.x, a.y) > 0.72) {
+				col = vec4(0.98, 0.39, 0.07, 1.0);
+			}
+			if (abs(d - r) < 0.7 * k) {
+				float edge = vn(s.x * 0.5 + 3.0, s.y * 0.5) + breathe;
+				col = edge > 0.77 + cooling * 0.12 ? vec4(0.82, 0.22, 0.04, 1.0) : vec4(0.32, 0.07, 0.035, 1.0);
+			}
+		} else if (L > 0.0 && field_axis[i].w > 1.5 && abs(d - r) < 0.7 * k) {
 			vec2 s = vec2(a) / k;
 			float edge_noise = vn(s.x * 0.35, s.y * 0.35 + t * 0.5);
 			if (edge_noise < 0.6) {
