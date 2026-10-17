@@ -1,3 +1,10 @@
+# 0.3.4-dev.23 — Atomic pressure release (17 October 2026)
+
+- Atomic gathers violet energy around the committed caster position, then releases a fast radial pressure front with a brief local white-hot core and fading sparks. Removed the persistent rectangular screen border; brief scene dimming and a release flash contrast the compressed charge with detonation.
+- Preserved 0.65-second warning, locked rectangular damage footprint, pure damage, 60% boss maximum-health hit, projectile clearing, once-only impact, pause behavior and existing single heavy shake. Reduced effects suppress the shake and soften light.
+- Added existing licensed charge/release audio through AudioManager. Actual in-engine audio capture is separate evidence from visual self-assessment.
+- Added centered, off-center and reduced-effects capture cases with real boss and regular-enemy contact. Full artistic gate remains provisional pending audible review and mixed-threat crowd evidence; tests alone do not confer a B.
+
 # 0.3.4-dev.22 — Cross Blade cutting-body refinement (17 October 2026)
 
 - Replace the hollow line cross with filled swept steel facets, fine bright cutting edges and a short curved wake inside the existing blade radius.
