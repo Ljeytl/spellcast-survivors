@@ -23,6 +23,10 @@ var warning: float = 0.0
 var action_direction: Vector2 = Vector2.ZERO
 var charge_remaining: float = 0.0
 var retreat_remaining := 0.0   # spear goblin backing off after a lunge
+var partner: WeakRef = null     # Flanker pincer partner
+var pincer_closing := 0.0       # >0: the pair is closing in together
+var pincer_wait := 0.0          # time spent getting into position
+var partner_search := 0.0
 var recoil_remaining = 0.0
 var recoil_velocity = Vector2.ZERO
 var spawn_data: Dictionary = {}
@@ -70,6 +74,7 @@ var terrain: Node = null   # the Background's tree steering, looked up once
 ## Placeholder looks until real art (doc 22 §9): encounters.json `recolor` {hue, saturation} rotates the
 ## sprite's colours (one shared material per variant), `tint` [r, g, b] multiplies them (for grey bodies).
 static var recolor_materials := {}
+var base_tint := Color.WHITE
 func apply_placeholder_look(sprite: Sprite2D) -> void:
 	var recolor: Dictionary = spawn_data.get("recolor", {})
 	if not recolor.is_empty():
@@ -82,6 +87,7 @@ func apply_placeholder_look(sprite: Sprite2D) -> void:
 		sprite.material = recolor_materials[variant]
 	var tint: Array = spawn_data.get("tint", [1, 1, 1])
 	sprite.self_modulate = Color(float(tint[0]), float(tint[1]), float(tint[2]))
+	base_tint = sprite.self_modulate
 
 func _ready():
 	register_spawn_telemetry()
@@ -116,6 +122,7 @@ func _ready():
 		add_to_group("elites")
 		var tint: Array = elite.get("tint", [1, 1, 1])
 		sprite.self_modulate *= Color(float(tint[0]), float(tint[1]), float(tint[2]))   # darker, never a status colour
+		base_tint = sprite.self_modulate
 		var words = Label.new()
 		words.name = "EliteWords"
 		words.text = str(elite.get("label", ""))
@@ -170,9 +177,9 @@ func _physics_process(delta):
 	var charging_this_step = charge_remaining > 0.0
 	match variant:
 		"flanker":
-			var side = 1.0 if get_instance_id() % 2 == 0 else -1.0
-			var target_position = player.global_position + toward.orthogonal() * side * minf(160.0, offset.length() * 0.5)
-			velocity = (target_position - global_position).normalized() * speed * slow_multiplier
+			update_pincer(delta, toward, offset)
+		"juggernaut":
+			update_enrage(toward)
 		"skirmisher":
 			update_lunge(delta, toward, offset.length())
 		"imp":
@@ -241,6 +248,75 @@ func update_charge(delta: float, toward: Vector2, distance: float):
 		velocity = Vector2.ZERO
 	elif action_time > 2.8:
 		velocity = Vector2.ZERO
+
+## Flanker pincer pairs (doc 22): two Flankers find each other, split to opposite sides of you (a
+## tether shows they are a pair), then close in together from both sides. Kill one and the tether drops;
+## the survivor just hunts you. encounters.json flanker.pincer.
+func get_partner() -> Node2D:
+	var p = partner.get_ref() if partner else null
+	return p if is_instance_valid(p) and not p.dying else null
+
+func update_pincer(delta: float, toward: Vector2, offset: Vector2):
+	var cfg: Dictionary = spawn_data.get("pincer", {})
+	var mate := get_partner()
+	if mate == null:
+		partner = null
+		partner_search -= delta
+		if partner_search <= 0.0:
+			partner_search = 0.5
+			for other in get_tree().get_nodes_in_group("enemies"):
+				if other != self and other.get("variant") == "flanker" and not other.dying and other.get_partner() == null \
+						and other.global_position.distance_to(global_position) < float(cfg.get("pair_range", 420.0)):
+					partner = weakref(other)
+					other.partner = weakref(self)
+					mate = other
+					break
+	if mate == null:
+		var side = 1.0 if get_instance_id() % 2 == 0 else -1.0
+		var lone_target = player.global_position + toward.orthogonal() * side * minf(160.0, offset.length() * 0.5)
+		velocity = (lone_target - global_position).normalized() * speed * slow_multiplier
+		return
+	if pincer_closing > 0.0:
+		pincer_closing -= delta
+		velocity = toward * speed * float(cfg.get("close_speed_mult", 1.7)) * slow_multiplier
+		if pincer_closing <= 0.0:
+			pincer_wait = 0.0
+		return
+	# Opposite sides of you, across the line from the pair's midpoint: the lower id takes the left.
+	var mid = (global_position + mate.global_position) * 0.5
+	var axis = (player.global_position - mid).normalized()
+	if axis.is_zero_approx():
+		axis = Vector2.RIGHT
+	var side = 1.0 if get_instance_id() < mate.get_instance_id() else -1.0
+	var radius = float(cfg.get("radius", 210.0))
+	var target = player.global_position + axis.orthogonal() * side * radius
+	velocity = (target - global_position).limit_length(speed * 1.2) * 4.0
+	velocity = velocity.limit_length(speed * 1.2 * slow_multiplier)
+	pincer_wait += delta
+	var ready_dist = float(cfg.get("ready_distance", 70.0))
+	var both_ready = global_position.distance_to(target) < ready_dist and mate.pincer_wait > 0.0 \
+			and mate.global_position.distance_to(player.global_position + axis.orthogonal() * -side * radius) < ready_dist
+	if both_ready or pincer_wait > float(cfg.get("max_wait", 3.5)):
+		var close = float(cfg.get("close_seconds", 1.6))
+		pincer_closing = close
+		if mate.pincer_closing <= 0.0:
+			mate.pincer_closing = close
+
+## Juggernaut enrage (doc 22): the more you hurt it the faster it comes, up to enrage.max_speed_mult; slows
+## and knockback do not move it, but a full freeze still stops it. Burst it down or leave it alone.
+func enrage_multiplier() -> float:
+	var cfg: Dictionary = spawn_data.get("enrage", {})
+	var hurt = 1.0 - clampf(current_health / maxf(1.0, max_health), 0.0, 1.0)
+	return 1.0 + (float(cfg.get("max_speed_mult", 2.0)) - 1.0) * hurt
+
+func update_enrage(toward: Vector2):
+	var frozen = slow_multiplier <= 0.01
+	velocity = Vector2.ZERO if frozen else toward * speed * enrage_multiplier()
+	knockback_velocity = Vector2.ZERO
+	var hurt = enrage_multiplier()
+	var cfg: Dictionary = spawn_data.get("enrage", {})
+	var heat = (hurt - 1.0) / maxf(0.01, float(cfg.get("max_speed_mult", 2.0)) - 1.0)
+	$Sprite2D.self_modulate = base_tint.lerp(Color(1.5, 0.55, 0.45), heat * 0.8)
 
 ## Spear goblin (harasser, doc 22 §4a): holds mid range so it is rarely the nearest target, strafes,
 ## lunges along a telegraphed line, then backs off. encounters.json skirmisher.lunge.
@@ -369,7 +445,7 @@ var _drew_something := false
 func _redraw_if_needed() -> void:
 	if _debug_archetypes == null:
 		_debug_archetypes = OS.get_cmdline_user_args().has("--debug-enemies")
-	var wants: bool = _debug_archetypes or variant == "skirmisher" or shield_hp > 0.0 or shatter_time > 0.0 or stagger_remaining > 0.0 or warning > 0.0
+	var wants: bool = _debug_archetypes or variant == "skirmisher" or (variant == "flanker" and partner != null) or shield_hp > 0.0 or shatter_time > 0.0 or stagger_remaining > 0.0 or warning > 0.0
 	if wants or _drew_something:
 		queue_redraw()
 	_drew_something = wants
@@ -385,6 +461,13 @@ func _draw():
 		draw_arc(Vector2.ZERO, 25, 0, TAU, 24, colors.get(family, Color.WHITE), 2.5)
 	if boss and debug_archetypes:
 		draw_arc(Vector2.ZERO, 30, 0, TAU, 32, Color.GOLD, 3.0)
+	if variant == "flanker":
+		var mate := get_partner()
+		if mate and get_instance_id() < mate.get_instance_id():
+			var to = (mate.global_position - global_position) / scale.x
+			var a = 0.9 if pincer_closing > 0.0 else 0.45
+			draw_line(Vector2.ZERO, to, Color(0.1, 0.06, 0.0, a * 0.6), 4.0)
+			draw_line(Vector2.ZERO, to, Color(1.0, 0.85, 0.3, a), 2.0 if pincer_closing <= 0.0 else 3.0)   # pair tether: these two close together
 	if variant == "skirmisher" and warning <= 0.0:
 		# placeholder spear (doc 22 §9): held toward you; the lunge telegraph line extends from it
 		var tip = facing * 54.0

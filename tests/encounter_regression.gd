@@ -113,6 +113,22 @@ func run():
 		check(enemy.velocity.is_finite(), "Movement remains finite for %s" % id)
 		if id == "flanker":
 			check(absf(enemy.velocity.y) > 0.1, "Flanker approaches at an angle")
+			var mate = manager.spawn_monster(definition(manager, id))
+			mate.set_physics_process(false)
+			mate.position = game.player.position + Vector2(320, 60)
+			enemy.partner_search = 0.0
+			enemy._physics_process(0.016)
+			check(enemy.get_partner() == mate and mate.get_partner() == enemy, "Flankers pair up")
+			mate._physics_process(0.016)
+			var p0 = game.player.global_position
+			var a = (enemy.velocity.normalized().dot((p0 - enemy.global_position).normalized()))
+			check(enemy.velocity.normalized().dot(mate.velocity.normalized()) < 0.5, "the pair splits to opposite sides of you")
+			enemy.pincer_wait = 10.0
+			enemy._physics_process(0.016)
+			check(enemy.pincer_closing > 0.0 and mate.pincer_closing > 0.0, "the pair closes in together")
+			mate._physics_process(0.016)
+			check(mate.velocity.length() > mate.speed * 1.5, "closing is a burst")
+			mate.queue_free()
 		if id == "skirmisher":
 			var l = enemy.spawn_data.lunge
 			enemy.position = game.player.position + Vector2(100, 0)
@@ -150,6 +166,21 @@ func run():
 			check(enemy.action_time > 0.0, "the orb has a cooldown")
 		if id == "juggernaut":
 			check(enemy.current_health > grunt.health * 3 and enemy.speed < grunt.speed, "Juggernaut trades speed for durability")
+			enemy.position = game.player.position + Vector2(300, 0)
+			enemy._physics_process(0.016)
+			var calm = enemy.velocity.length()
+			enemy.current_health = enemy.max_health * 0.1
+			enemy._physics_process(0.016)
+			check(enemy.velocity.length() > calm * 1.8, "Juggernaut enrages: hurt, it comes much faster (%.0f -> %.0f)" % [calm, enemy.velocity.length()])
+			var jstatus = preload("res://scripts/engine/Effects.gd").ensure_status(enemy)
+			jstatus.apply("chilled", {})
+			enemy.apply_knockback(Vector2.RIGHT, 500.0)
+			enemy._physics_process(0.016)
+			check(enemy.slow_multiplier < 1.0 and enemy.velocity.length() > calm * 1.8 and enemy.knockback_velocity == Vector2.ZERO, "chill and knockback do not hold an enraged Juggernaut")
+			jstatus.apply("frozen", {})
+			enemy._physics_process(0.016)
+			check(enemy.velocity == Vector2.ZERO, "a full freeze still stops it (slow %.2f)" % enemy.slow_multiplier)
+			check(enemy.get_node("Sprite2D").self_modulate.r > 1.1, "an enraged Juggernaut glows hot")
 		if id == "slammer":
 			enemy.position = game.player.position + Vector2(100, 0)
 			var before = get_nodes_in_group("enemy_projectiles").size()
