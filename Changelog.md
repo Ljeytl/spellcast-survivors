@@ -1,3 +1,9 @@
+# 0.3.4-dev.19 — Magic Missile diamond and ribbon (17 October 2026)
+
+- Follow the approved new direction: a crisp lavender/blue diamond head with one attached, tapered ribbon. Set aside the rejected glass capsule and faint dart experiments.
+- Keep damage, targeting and automatic cadence authoritative while refining visual flight and the short contact/ending sequence. Preserve accepted Ice Blast and Lightning effects.
+- Record the design decision and rejection history in the spell-feel sheet. Judge native motion and attachment before assigning grades; tests alone do not establish visual quality.
+
 # 0.3.4-dev.18 — Retry Magic Missile from its original effects (17 October 2026)
 
 - Reject dev.17’s hollow capsule and rigid line wake. Restore the original arcane sparkle style and contact response; place fewer sparks behind the head so its translucent body stays visible; keep gameplay guidance, damage, count and cadence unchanged.

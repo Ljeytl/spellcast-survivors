@@ -386,7 +386,7 @@ These seven recipes remain unchanged. Their identity should feel like a specific
 
 **Caster and staff:** a tiny ready glint at the automatic source, followed by a quick flick or pulse. Do not interrupt a manual casting pose with a competing full-body animation.
 
-**Motion and contact:** clear, translucent missiles give a quick pew: a pale glassy interior, light catching a narrow rim, and a short fading wake following their actual guidance. Contact is a compact flicker rather than an explosion. Keep individual missiles readable without turning them into opaque glowing blobs. This direction was explicitly selected on 17 October 2026.
+**Motion and contact:** the selected direction is a small, crisp lavender diamond with a brighter face and cool blue face. One short tapered violet-to-blue ribbon grows directly from its rear and follows its flight path. A small outward bend settles into purposeful arrival; the head remains stable while the ribbon carries flutter. A compact four-point contact glint and a few forward flecks finish the hit; the remaining ribbon fades instead of disappearing. The glass/prism direction is set aside.
 
 **Sound and camera:** quiet release and soft contact taps with bounded voices. Camera none. Manual casts and threats take audible priority.
 
@@ -1142,3 +1142,12 @@ User assessment: dev.17 is D across all categories, a weird blobby shape with po
 Retry from the older effect's strengths: restore its sparkle style and contact, positioning fewer, shorter-lived sparks behind the head, retain its actual guidance and cadence, and concentrate the change on a compact directional magical dart. Reject the long hollow capsule and line-history wake. Keep a translucent interior and a small leading light without dark outlines. Evaluate at native scale in motion, including a moving target. The new candidate must not inherit the rejected B-minus grade.
 
 Retry evidence: native level-1/8 captures against stationary and scripted moving targets, with real damage asserted. The moving fixture's displacement is scripted and is not knockback evidence. Both exported four-second MP4s decode 120 frames; GIF alternatives are retained. The compact dart removes the capsule silhouette and the contact regains the original response, but the pale material is still a candidate, not a verified B-minus or user-approved effect. Audio is unchanged.
+
+
+### Approved Magic Missile direction — diamond and ribbon, 17 October 2026
+
+The second glassy/faint dart retry was also rejected. Stop mixing a glass material with a tiny energy projectile. The user approved the diamond-and-ribbon proposal: crisp head, one attached tapered ribbon, playful but purposeful flight, small sharp impact. Native motion must establish silhouette, attachment, turn response and ending before assigning a quality grade. The previous grades remain rejected; no passing grade transfers to this implementation.
+
+Implementation: a lavender/blue faceted diamond replaces the faint body; one path-sampled ribbon tapers by age and distance, with flutter confined to older samples. The initial presentation bend is bounded to approximately 7.3 world pixels and ends after 0.28 s; gameplay trajectory and targeting remain unchanged. Contact uses one brief glint and three forward flecks. Detached ribbon samples fade for at most 0.20 s; global clearing removes them. The automatic release flash is reduced so it does not hide the projectile.
+
+Native captures cover close-range shots and a longer scripted moving target at levels 1 and 8. The latter deliberately gives the flight more room; it is not a normal crowd test. Preview output is fixed to 1280×850 after settings load. Current status: implemented candidate awaiting aesthetic judgment, not an inherited B-minus. Audio unchanged and ungraded in silent captures.

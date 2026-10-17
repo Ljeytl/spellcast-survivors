@@ -109,6 +109,7 @@ const BLADE_COL := [Color("#ffffff"), Color("#e8eef6"), Color("#a9b4c2"), Color(
 const MAX_BURNING := 24          # burning enemies drawn at once (nearest the camera)
 
 var vfx                          # the Vfx autoload
+var _missile_ribbons: Array = []
 var _parts := {}                 # instance id -> state
 var _presented := {}             # instance id -> weakref: parts we draw, kept until freed so
                                  # finished parts (e.g. a blast's 0.12 s tail) never flash placeholder art
@@ -244,6 +245,9 @@ func cast_started(cast) -> void:
 		_blood_fx(cast.caster.global_position / WPS + Vector2(0.0, -5.0))
 	# Cast flash at the staff (2-4 steps), principle 7: anticipation before release.
 	var at := _staff_su(cast.caster)
+	if str(cast.plan.get("id", "")) == "mana_bolt" and str(cast.get("target_group")) != "player":
+		vfx.flash(at.x, at.y, 0.7, 0.04, Color("#d9ccff"))
+		return
 	vfx.star(at.x, at.y, 3.2, 0.1, 4, BODY[key][0])
 	vfx.flash(at.x, at.y, 1.4, 0.07, BODY[key][1])
 	for i in 6:
@@ -429,7 +433,7 @@ func part_hit(part, enemy, at: Vector2) -> void:
 		return
 	_part_hit_look(part, enemy, at)
 	var p: Vector2 = part.global_position / WPS
-	if not (_is_ice_blast(part) and st.look.accent == ""):
+	if not ((_is_ice_blast(part) or _is_magic_missile(part)) and st.look.accent == ""):
 		_contact_punch(part, st, p)
 	var light_strength := float(part.def.get("vfx", {}).get("impact_light", 0.0))
 	if light_strength > 0.0 and not is_hostile(part):
@@ -443,6 +447,12 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 	var st = _parts.get(part.get_instance_id())
 	var p: Vector2 = part.global_position / WPS
 	var impact_look: String = st.look.accent if st.look.accent != "" else st.look.native
+	if _is_magic_missile(part) and impact_look == "arcane":
+		vfx.star(p.x, p.y, 2.5, 0.09, 4, Color("#eee6ff"))
+		for i in 3:
+			var velocity := Vector2(part.direction).rotated((float(i) - 1.0) * 0.6) * (17.0 + i * 5.0)
+			vfx.spark(p.x, p.y, velocity.x, velocity.y, 0.16 + i * 0.025, [Color("#ded3ff"), Color("#a596ef"), Color("#668de4")])
+		return
 	if _is_ice_blast(part) and impact_look == "ice":
 		_ice_blast_contact(part, at / WPS)
 		return
@@ -511,6 +521,8 @@ func part_finished(part, natural: bool) -> void:
 	if st == null:
 		return
 	_parts.erase(id)
+	if st.has("missile_ribbon"):
+		st.missile_ribbon.finished = true
 	if is_instance_valid(st.get("cloud")):
 		st.cloud.finish()
 	match st.kind:
@@ -535,6 +547,9 @@ func part_finished(part, natural: bool) -> void:
 # ------------------------------------------------------------------ per step
 
 func step(dt: float) -> void:
+	for ribbon in _missile_ribbons:
+		ribbon.advance(dt / maxf(vfx.fx_speed, 0.001))
+	_missile_ribbons = _missile_ribbons.filter(func(ribbon): return not ribbon.finished or not ribbon.samples.is_empty())
 	_advance_transients(dt / maxf(vfx.fx_speed, 0.001))
 	for id in _presented.keys():
 		if _presented[id].get_ref() == null:
@@ -543,6 +558,8 @@ func step(dt: float) -> void:
 		var st: Dictionary = _parts[id]
 		var part = st.part.get_ref()
 		if part == null or not is_instance_valid(part):
+			if st.has("missile_ribbon"):
+				st.missile_ribbon.finished = true
 			_parts.erase(id)
 			continue
 		var pos: Vector2 = part.global_position / WPS
@@ -687,8 +704,12 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	if native == "earth" or accent == "earth":
 		_earth_trail(pos, vel, dt)
 	if native == "arcane" and _is_magic_missile(part):
-		var rear := pos - Vector2(part.direction).normalized() * 3.0 * float(part.size_scale)
-		vfx.spark(rear.x + (randf() - 0.5) * 0.8, rear.y + (randf() - 0.5) * 0.8, -vel.x * 0.05, -vel.y * 0.05, 0.2 + randf() * 0.1, SPARK.arcane)
+		if not st.has("missile_ribbon"):
+			st.missile_ribbon = preload("res://scripts/vfx/MissileRibbon.gd").new()
+			_missile_ribbons.append(st.missile_ribbon)
+		var shown := _missile_position(part)
+		var direction := Vector2(part.direction).normalized()
+		st.missile_ribbon.sample(shown - direction * 1.8 * float(part.size_scale), direction, float(part.size_scale))
 	elif native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
@@ -1067,32 +1088,35 @@ func _missile_pixel(buf: PackedByteArray, x: int, y: int, color: Color) -> void:
 	buf[index + 2] = mixed.b8
 	buf[index + 3] = roundi(alpha * 255.0)
 
+func _missile_position(part) -> Vector2:
+	var age := float(part.age)
+	var bend := sin(clampf(age / 0.28, 0.0, 1.0) * PI) * 1.1
+	return part.global_position / WPS + Vector2(part.direction).normalized().orthogonal() * bend
+
 func _draw_magic_missile(buf: PackedByteArray, p: Vector2, direction: Vector2, part, accent: String) -> void:
 	var scale := maxf(float(part.size_scale), 0.01)
 	var dir := direction.normalized()
 	var side := dir.orthogonal()
-	var extent := ceili(3.4 * scale * vfx.K)
+	var extent := ceili(3.0 * scale * vfx.K)
 	var center := Vector2i(roundi(p.x * vfx.K), roundi(p.y * vfx.K))
-	var glint := sin(float(part.age) * 28.0) * 0.12
 	for y in range(-extent, extent + 1):
 		for x in range(-extent, extent + 1):
 			var local: Vector2 = Vector2(x, y) / (vfx.K * scale)
 			var u := local.dot(dir)
 			var v := local.dot(side)
-			var width := (3.2 - u) * 0.5 if u > 1.2 else (u + 3.2) / 4.4
-			if width <= 0.0 or absf(v) >= width:
+			var edge := absf(u) / 2.9 + absf(v) / 1.8
+			if edge > 1.0:
 				continue
-			var fullness := 1.0 - absf(v) / width
-			var color := Color(0.64, 0.85, 1.0, 0.24 + fullness * 0.28)
-			if v > 0.0:
-				color = Color(0.75, 0.69, 1.0, color.a)
-			if absf(v + width * 0.3) < 0.16 and u > -0.6:
-				color = Color(0.88, 0.98, 1.0, 0.66 + glint)
-			if u > 1.2 and fullness > 0.45:
-				color = Color(0.91, 1.0, 1.0, 0.88)
-			if accent != "" and fullness < 0.35:
+			var color := Color("#baa5f3")
+			if v < 0.0:
+				color = Color("#eee3ff") if u > -0.5 else Color("#d3bdfa")
+			else:
+				color = Color("#7b9de4")
+			if absf(v) < 0.27 and u > -1.5:
+				color = Color("#fff4ff")
+			if accent != "" and edge > 0.68:
 				color = RIM[accent]
-				color.a = 0.6
+			color.a = 0.95 if edge < 0.75 else 0.84
 			_missile_pixel(buf, center.x + x, center.y + y, color)
 
 static func _is_ice_blast(part) -> bool:
@@ -1737,6 +1761,7 @@ func _advance_transients(dt: float) -> void:
 	_lasers = _lasers.filter(func(ray): return ray[4] < ray[5])
 
 func clear_transients() -> void:
+	_missile_ribbons.clear()
 	_hit_rings.clear()
 	_lasers.clear()
 
@@ -2390,6 +2415,8 @@ func _draw_magma(buf: PackedByteArray, pos: Vector2, dir: Vector2, r_su: float, 
 func draw_bodies(buf: PackedByteArray) -> void:
 	var K: float = vfx.K
 	_draw_props(buf)
+	for ribbon in _missile_ribbons:
+		ribbon.draw(buf, self)
 	for st in _parts.values():
 		if st.kind == "trap":
 			var tp = st.part.get_ref()
@@ -2467,7 +2494,7 @@ func draw_bodies(buf: PackedByteArray) -> void:
 			sc = float(part.geo("radius", 42.0)) / (WPS * float(b.r))
 		var pal: Array = BODY[st.look.native]
 		if _is_magic_missile(part) and st.look.native == "arcane":
-			_draw_magic_missile(buf, pos, dir, part, st.look.accent)
+			_draw_magic_missile(buf, _missile_position(part), dir, part, st.look.accent)
 			continue
 		if st.look.native == "lightning":
 			_draw_lightning_body(buf, pos, dir, st.family, sc, st)
