@@ -64,6 +64,14 @@ func run():
 				foes[0].take_damage(20000, game.player.global_position)
 			await physics_frame
 			await process_frame
+			if frame % 30 == 0:
+				var cast = game.spell_manager.last_generic_cast
+				if is_instance_valid(cast):
+					var parts = cast.root_parts()
+					if not parts.is_empty() and is_instance_valid(parts[0]):
+						var infection = parts[0].infection
+						if infection != null:
+							events.append({"type":"lifecycle", "rank":rank, "frame":frame, "hosts":infection.hosts.size(), "started":infection.hosts_started, "links":infection.links.size(), "resting":infection.spores.size(), "ghosts":get_nodes_in_group("soul_ghosts").size()})
 			stage.canvas_transform = root.get_canvas_transform()
 			game.get_node("Background").queue_redraw()
 			await RenderingServer.frame_post_draw

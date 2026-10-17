@@ -192,21 +192,24 @@
       "id": "infestation",
       "name": "Infestation",
       "baseline": "spell-feel-audit-2026-10-15.json#infestation",
-      "latest_reviewed_change": null,
-      "disposition": "in_progress",
-      "user_feedback": "Isolated refinement underway; no merged improvement yet.",
+      "latest_reviewed_change": "dev.27 candidate: attached infection lesions and coherent transmission",
+      "disposition": "candidate_review_incomplete",
+      "user_feedback": "No user grade or acceptance of this candidate. Prior floating black block material rejected during internal review.",
       "current_grades": [
+        "C+",
+        "B-",
+        "B-",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Inspect true host attachment, traveling spore, tick, spread, death and expiry."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/smooth-rank-1.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/infestation/smooth-rank-8.mp4"
+      ],
+      "next_review": "Provisional native-sequence assessment: attached lesions and real travelling seed improve sickness identity, but attachment/tick emphasis is still understated (fantasy and impact C+); clean material and purposeful travel B-; host preservation B. Sound artistic judgment U. Finish audible assessment and mixed hostile/other-spell/modifier coverage before assigning any passing overall grade."
     },
     {
       "id": "cinder_field",
