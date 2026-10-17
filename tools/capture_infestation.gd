@@ -28,7 +28,9 @@ func run():
 		if args.has("crowded"):
 			var manager = game.get_node("MonsterManager")
 			for i in 8:
-				var enemy = manager.spawn_monster(manager.encounter_config.variants.pursuer.duplicate(true), false, true)
+				var definition = manager.encounter_config.variants.pursuer.duplicate(true)
+				definition.id = "pursuer"
+				var enemy = manager.spawn_monster(definition, false, true)
 				enemy.current_health = 10000
 				enemy.max_health = 10000
 				enemy.set_physics_process(false)
