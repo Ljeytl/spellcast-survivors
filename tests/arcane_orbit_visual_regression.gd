@@ -46,11 +46,17 @@ func run():
 	var state := {"kind": "projectile", "family": "sphere", "look": {"native": "arcane", "accent": ""}, "part": weakref(part), "last": Vector2.ZERO}
 	presenter._parts[part.get_instance_id()] = state
 	presenter._trail(part, state, Vector2.RIGHT, 1.0 / 60.0)
+	presenter.clear_transients()
+	check(not state.has("orbit_visual"), "Clearing live orbit removes stale material reference")
+	presenter._trail(part, state, Vector2.RIGHT * 2.0, 1.0 / 60.0)
+	check(presenter._orbit_visuals.size() == 1, "Live orbit resumes a registered wake after clear")
 	vfx._stop = 0
 	var before_sparks: int = vfx._sparks.size()
 	presenter.part_hit(part, null, Vector2.RIGHT)
 	check(state.orbit_visual.contact > 0.0, "Presenter routes real hit callback to orbit pulse")
 	check(vfx._sparks.size() == before_sparks + 2 and vfx._stop == 0, "Orbit contact emits two flecks without sphere hitstop")
+	presenter.step(0.13 * vfx.fx_speed)
+	check(state.orbit_visual.contact == 0.0, "Contact after live clear still expires")
 	state.look.accent = "fire"
 	var before_smoke: int = vfx._smoke.size()
 	presenter.part_finished(part, true)

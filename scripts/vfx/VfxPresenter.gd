@@ -1803,6 +1803,8 @@ func _advance_transients(dt: float) -> void:
 
 func clear_transients() -> void:
 	_orbit_visuals.clear()
+	for state in _parts.values():
+		state.erase("orbit_visual")
 	_missile_ribbons.clear()
 	_hit_rings.clear()
 	_lasers.clear()
