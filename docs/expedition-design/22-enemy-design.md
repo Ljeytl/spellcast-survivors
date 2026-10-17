@@ -76,11 +76,12 @@ Doom's push-forward combat hands ammo back for kills. The translation here: a ki
 
 ## 4b. Roster consolidation (proposed, not built)
 
-- **Sprinter** is a Pursuer with QUICK, a word that already exists: fold it in.
-- **Flanker** is a director formation (pursuers sent in as a pincer pair), not its own type.
+- ~~Sprinter folded into Pursuer + QUICK~~ and ~~Flanker as a formation~~: dropped 17 October; Aditya likes the current archetypes.
 - **Skirmisher** becomes the spear goblin (harasser). **Built 0.3.4-dev.21** (`encounters.json` `skirmisher.lunge`).
 - **Imp** is added (punisher that cannot be escaped). **Built 0.3.4-dev.21** (`encounters.json` `imp.orb`), on placeholder slime art.
-- **Juggernaut** gets an attack shape (a belly-bounce shockwave) or is cut.
+- **Juggernaut** enrages (built 0.3.4-dev.24): faster as it is hurt, chill and knockback do not hold it, a freeze does.
+- **Flanker** stays a type (17 October: keep the current archetypes) and hunts in pincer pairs (built 0.3.4-dev.24).
+- Sprinter stays as is.
 
 ## 4c. Art brief and placeholder looks (17 October 2026)
 

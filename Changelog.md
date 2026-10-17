@@ -1,3 +1,9 @@
+# 0.3.4-dev.24 — Flankers hunt in pincer pairs; the Juggernaut enrages (17 October 2026)
+
+- **Flankers are pincer pairs.** Two Flankers find each other within 420 px and a gold tether shows they are a pair. They split to opposite sides of you, 210 px out, and once both are in place (or after 3.5 s) they close in together at 1.7× speed. The tether brightens as they commit. Kill one and the tether drops; the survivor hunts alone. Numbers are in `data/encounters.json` `flanker.pincer`.
+- **The Juggernaut enrages.** The more you hurt it, the faster it comes: up to 2.4× at low health, glowing hotter as it goes. Chill and knockback no longer hold it, but a full freeze still stops it, so either burst it down or leave it alone. The day-1 boss, The Gatekeeper, is a Juggernaut, so its fight speeds up as you win it (`juggernaut.enrage`).
+- **Director prices follow the danger:** Flanker 1.5 → 2.0 per monster (always in pairs), Skirmisher 1.5 → 2.0 with groups capped at 2 (a lunge from three at once was a wall), Juggernaut 7 → 8.5.
+
 # 0.3.4-dev.23 — Every enemy role reads at a glance (17 October 2026)
 
 - **Placeholder looks until real art.** The Imp is now red-orange with an ember above it. The spear goblin is indigo and holds a spear pointed at you, which becomes the lunge telegraph line. The Mortar is tinted rust so it no longer looks like the Shieldbearer, which shares its sprite. This uses `data/encounters.json` `recolor` (hue and saturation, through `shaders/enemy_recolor.gdshader`, one material per enemy type, so crowds still batch) and `tint` (for grey bodies). Hit flashes and elite tints still apply on top.
