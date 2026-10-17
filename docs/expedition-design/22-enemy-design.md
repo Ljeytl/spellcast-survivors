@@ -82,6 +82,26 @@ Doom's push-forward combat hands ammo back for kills. The translation here: a ki
 - **Imp** is added (punisher that cannot be escaped). **Built 0.3.4-dev.21** (`encounters.json` `imp.orb`), on placeholder slime art.
 - **Juggernaut** gets an attack shape (a belly-bounce shockwave) or is cut.
 
+## 4c. Art brief and placeholder looks (17 October 2026)
+
+Every role must read at a glance, so each enemy needs its own silhouette and signature feature. Until the artist delivers, placeholders separate the ones that share a body: `encounters.json` `recolor` {hue, saturation} (shader `shaders/enemy_recolor.gdshader`, one material per variant) and `tint` [r, g, b] (for grey bodies), plus small props drawn in `EncounterEnemy._draw`.
+
+| Enemy | Role | Must read as | Signature feature for the artist | Placeholder today |
+|---|---|---|---|---|
+| Pursuer | rusher | plain fodder | the baseline slime | green slime |
+| Sprinter | rusher | small and fast | lean, stretched forward | small teal slime |
+| Flanker | rusher (pincer pairs) | comes in twos | matching pair markings | green slime with a sprout |
+| Skirmisher (spear goblin) | harasser | "stays out of reach and pokes" | a long spear, held toward you | indigo slime, drawn spear |
+| Imp | punisher | "throws fire when you run" | a fire mote or horns; hands that glow before the throw | red-orange slime, ember dot |
+| Swarmer | swarm | tiny, many | tiny | small pink slime |
+| Juggernaut | heavy | big, gets angrier | huge; visibly heats up as it is hurt | big purple slime |
+| Charger | telegrapher | "will dash at you" | lowered head, horns | red slime |
+| Slammer | telegrapher (area) | "don't stand next to me" | fists or a club | big tan slime |
+| Shieldbearer | heavy | "go around me" | a big shield on the front | grey slime, top hat, drawn shield arc |
+| Marksman | punisher | sniper | single-eyed, aiming | cyan wisp |
+| Fan Caster | punisher | spray | three-pronged staff | forest spirit |
+| Mortar | telegrapher (area, ranged) | "lobs at where you stand" | a mortar or a back-mounted launcher | grey top-hat slime, tinted rust (shares the Shieldbearer's sprite) |
+
 ## 5. Proposed core roster
 
 Each row is one archetype. "Answer" is the best response; everything else still works, slower.

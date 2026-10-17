@@ -111,6 +111,7 @@
       "weight": 18,
       "size": 0.85,
       "lunge": {"standoff": 220, "trigger_min": 150, "trigger_max": 300, "warning": 0.55, "speed": 720, "duration": 0.3, "retreat": 0.7, "cooldown": 2.8},
+      "recolor": {"hue": 0.42, "saturation": 1.4},
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1 flower.png",
       "visual_scale": 2.60176
     },
@@ -125,6 +126,7 @@
       "weight": 10,
       "size": 0.8,
       "orb": {"min_distance": 230, "max_distance": 620, "windup": 0.6, "speed": 150, "cooldown": 3.2, "radius": 13},
+      "recolor": {"hue": 0.51, "saturation": 2.2},
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 2 happy.png",
       "visual_scale": 2.211538
     },
@@ -244,6 +246,7 @@
       "xp": 16,
       "weight": 8,
       "size": 0.85,
+      "tint": [1.0, 0.62, 0.38],
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 6 tophat.png",
       "visual_scale": 3.01806
     }
