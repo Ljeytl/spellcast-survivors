@@ -272,7 +272,7 @@ func do_level_up():
 	level_up.emit(level, player_stats)
 
 # Restore health to the player (from Life spell or chest items)
-func heal(amount: float, visual_size: float = 1.0):
+func heal(amount: float, visual_size: float = 1.0, visual_source: String = "heal"):
 	if health <= 0.0 or amount <= 0.0:
 		return
 	var previous_health = health
@@ -281,7 +281,7 @@ func heal(amount: float, visual_size: float = 1.0):
 		next_heal_feedback_msec = Time.get_ticks_msec() + 350
 		var vfx = get_node_or_null("/root/Vfx")
 		var particles = get_parent().get("particle_manager")
-		if vfx and vfx.prop_burst("heal", global_position, visual_size):
+		if vfx and vfx.prop_burst(visual_source, global_position, visual_size):
 			pass   # the VFX layer shows heals (docs/VFX_EVENTS.md)
 		elif is_instance_valid(particles) and particles.has_method("create_heal_effect"):
 			var effect = particles.create_heal_effect(global_position)
