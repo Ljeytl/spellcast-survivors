@@ -283,8 +283,8 @@
       "id": "focus_ray",
       "name": "Focus Ray",
       "baseline": "spell-feel-audit-2026-10-15.json#focus_ray",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "ff08eab",
+      "disposition": "refined_pending_artistic_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -296,8 +296,10 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep the clean beam. Add subtle forward flow and a concentrated contact point that responds to real ticks, plus a brief narrowing shutdown rather than extra screen effects."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/focus-ray/manifest.json"
+      ],
+      "next_review": "Candidate ff08eab: real-tick terminal glint/two flecks; empty-lane sparks suppressed. Native before/after rank-one hit frames and expiry match, rank-eight/narrow show three beams and cleanup. Moving mixed combat records 24 primary hits, 14 moving enemies, 5 damage events and 3 secondary hits. All footage is silent; sound/camera and full-sequence artistic fantasy judgment remain U. Preserve clean body/geometry; no forward flow added. B-minus mean/C-minus floor not established."
     },
     {
       "id": "rune_trap",
@@ -417,7 +419,7 @@
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [],
-      "next_review": "Make each projectile contact leave a compact electrical mark that visibly becomes its delayed sky strike. Preserve the cascade while shortening distracting spent-ring emphasis."
+      "next_review": "Fresh native review must follow each travelling contact and the single terminal warning/strike. Earlier per-contact strike prose was stale; doc 21 section 5.6 and current regression gates enforce one strike where the chain ends. Preserve approved Lightning bolt, blue circle and explosion."
     },
     {
       "id": "life_bolt",

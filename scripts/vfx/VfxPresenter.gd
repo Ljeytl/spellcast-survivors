@@ -455,6 +455,16 @@ var _prism_contact_frame := -1
 var _prism_contacts := {}
 
 func part_hit(part, enemy, at: Vector2) -> void:
+	if str(part.cast.plan.get("id", "")) == "focus_ray" and str(part.def.get("delivery", "")) == "beam" and not is_hostile(part):
+		var state = _parts.get(part.get_instance_id())
+		if state != null and state.kind == "beam":
+			var terminal: Vector2 = (part.global_position + Vector2(part.beam_end)) / WPS
+			var palette: Array = SPARK.get(state.look.native, SPARK.arcane)
+			vfx.star(terminal.x, terminal.y, 1.5, 0.07, 4, palette[0])
+			for side in [-1.0, 1.0]:
+				var velocity := Vector2(part.beam_end).normalized().rotated(side * 0.9) * 18.0
+				vfx.spark(terminal.x, terminal.y, velocity.x, velocity.y, 0.14, palette)
+		return
 	if str(part.cast.plan.get("id", "")) == "prism_ray" and str(part.def.get("vfx", {}).get("family", "")) == "ray" and is_instance_valid(enemy):
 		var frame := Engine.get_physics_frames()
 		if frame != _prism_contact_frame:
@@ -2752,6 +2762,8 @@ func _meteor_k(st: Dictionary) -> float:
 ## Beams (sandbox drawBeams): bands across the true width; arcane is a white core in blue with an
 ## orb where it stops, a piercing (prism) beam is rainbow bands that shift along.
 func _beam_step(part, st: Dictionary, pos: Vector2, dt: float) -> void:
+	if str(part.cast.plan.get("id", "")) == "focus_ray" and not is_hostile(part):
+		return
 	var end: Vector2 = pos + Vector2(part.beam_end) / WPS
 	var pierce: bool = bool(part.def.get("limits", {}).get("beam_piercing", false))
 	if pierce:
