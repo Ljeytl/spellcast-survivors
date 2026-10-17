@@ -323,6 +323,14 @@ func part_spawned(part) -> void:
 		_parts[part.get_instance_id()] = st
 		_presented[part.get_instance_id()] = weakref(part)
 		return
+	if kind == "infection":
+		st.infection_wakes = {}
+		st.infection_pulses = {}
+		st.infection_hosts = {}
+		var infection_visual = preload("res://scripts/vfx/InfectionVisual.gd").new()
+		infection_visual.setup(part, st, vfx)
+		vfx.add_child(infection_visual)
+		st.infection_visual = infection_visual
 	match kind:
 		"projectile":
 			st.family = family_of(part)
@@ -2070,33 +2078,7 @@ func _plague_goo(st: Dictionary, t: float) -> void:
 	var pos: Vector2 = part.global_position / WPS
 	match st.kind:
 		"infection":
-			var inf = part.infection
-			if inf == null:
-				return
-			for l in inf.links:
-				var lp: Vector2 = Vector2(l.position) / WPS + Vector2(0, -3.0)
-				var wake: Array = st.get("infection_wakes", {}).get(l.id, [])
-				for i in wake.size():
-					var sample: Dictionary = wake[i]
-					var fade := clampf(1.0 - float(sample.age) / 0.16, 0.0, 1.0)
-					var point: Vector2 = sample.pos
-					vfx.gsplat(2, point.x, point.y, 0.65 + fade * 0.55, fade * 0.38)
-				vfx.gsplat(2, lp.x, lp.y, 1.8 + sin(t * 11.0 + float(l.id)) * 0.10)
-			for h in inf.hosts:
-				var hp: Vector2 = Vector2(h.pos) / WPS
-				var age := float(inf.elapsed) - float(h.at)
-				var remain := float(h.expires) - float(inf.elapsed)
-				var grow := clampf(age / 0.20, 0.0, 1.0) * clampf(remain / 0.30, 0.0, 1.0)
-				var pulse := float(st.get("infection_pulses", {}).get(h.id, 0.0)) / 0.18
-				for i in 3:
-					var angle := float(i) * TAU / 3.0 + float(int(h.id) % 13) * 0.25
-					var offset := Vector2(cos(angle) * 1.8, sin(angle) * 1.0 - 2.4)
-					vfx.gsplat(2, hp.x + offset.x, hp.y + offset.y, (1.35 + pulse * 0.35 + sin(t * 3.0 + angle) * 0.08) * grow)
-			for sp in inf.spores:
-				var sq: Vector2 = Vector2(sp.position) / WPS
-				var fade := clampf((float(sp.expires) - float(inf.elapsed)) / 0.35, 0.0, 1.0)
-				vfx.gsplat(3, sq.x, sq.y, (2.0 + sin(t * 4.0) * 0.15) * fade)
-
+			return
 		"projectile":
 			var d: Vector2 = pos - st.last
 			var u: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
@@ -2711,22 +2693,14 @@ func _infection_step(part, st: Dictionary, dt: float) -> void:
 	var active_hosts: Dictionary = {}
 	for h in inf.hosts:
 		active_hosts[h.id] = true
-		var hp: Vector2 = Vector2(h.pos) / WPS
 		if not st.infection_hosts.has(h.id):
 			st.infection_pulses[h.id] = 0.18
-			vfx.elements.bubble(hp.x, hp.y - 2.0, false)
-		if randf() < 1.2 * dt:
-			vfx.elements.bubble(hp.x + (randf() - 0.5) * 3.0, hp.y - 2.0, false)
 	for id in st.infection_pulses.keys():
 		if not active_hosts.has(id):
 			st.infection_pulses.erase(id)
 		else:
 			st.infection_pulses[id] = maxf(0.0, float(st.infection_pulses[id]) - dt)
 	st.infection_hosts = active_hosts
-	for sp in inf.spores:
-		if randf() < 0.6 * dt:
-			var sq: Vector2 = Vector2(sp.position) / WPS
-			vfx.elements.bubble(sq.x, sq.y - 1.0, false)
 
 ## Earth Shield eruption: stone spikes burst up along the growing cone front (earth nova kit),
 ## dust thrown outward; other looks spray their sparks along the front.
