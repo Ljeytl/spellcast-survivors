@@ -160,7 +160,10 @@ func spawn_heal_zone(at: Vector2, radius: float, amount: float, duration: float)
 func heal_caster(amount: float, visual_size: float = 1.0) -> void:
 	if is_instance_valid(caster) and caster.has_method("heal"):
 		var heal: Callable = caster.heal
-		if heal.get_argument_count() >= 2:
+		if heal.get_argument_count() >= 3:
+			var source := str(plan.get("id", ""))
+			heal.call(amount, visual_size, source if source in ["life", "regeneration"] else "heal")
+		elif heal.get_argument_count() >= 2:
 			heal.call(amount, visual_size)   # the player shows bigger heals bigger (MEGA)
 		else:
 			heal.call(amount)

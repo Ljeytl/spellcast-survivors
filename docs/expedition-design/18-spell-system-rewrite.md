@@ -794,7 +794,7 @@ This order covers the current roster before promoting the future catalog into im
 
 ### A B requires evidence in play
 
-For each current spell, grade six columns: **fantasy**, **visual quality**, **motion and behavior**, **casting and impact**, **sound and camera**, and **readability**. Ending/cleanup belongs in motion and readability; enemy response belongs in casting/impact. Every column must be in the C band or higher (C− is acceptable), and the arithmetic mean must reach B (3.0). Use A+=4.3, A=4.0, A−=3.7, B+=3.3, B=3.0, B−=2.7, C+=2.3, C=2.0, C−=1.7, D+=1.3, D=1.0, D−=0.7 and F=0. A missing observation is untested, never zero or an invented grade. An incomplete row cannot pass; a mean of observed columns may be shown only as a clearly labeled partial mean. These are working artistic judgments, not objective measurements.
+For each current spell, grade six columns: **fantasy**, **visual quality**, **motion and behavior**, **casting and impact**, **sound and camera**, and **readability**. Ending/cleanup belongs in motion and readability; enemy response belongs in casting/impact. Every column must be in the C band or higher (C− is acceptable), and the arithmetic mean must reach B− (2.7). Use A+=4.3, A=4.0, A−=3.7, B+=3.3, B=3.0, B−=2.7, C+=2.3, C=2.0, C−=1.7, D+=1.3, D=1.0, D−=0.7 and F=0. A missing observation is untested, never zero or an invented grade. An incomplete row cannot pass; a mean of observed columns may be shown only as a clearly labeled partial mean. These are working artistic judgments, not objective measurements.
 
 **Fantasy leads the recommendations.** Preserve an exceptional identity even when its readability is merely C−; improve comprehension around the essential effect instead of stripping away its character. For example, an Ember Spear with A+ fantasy and C− readability is not automatically a redesign candidate. The average remains unweighted as requested; fantasy priority governs what to preserve and which improvements to pursue. Simplicity can earn an A.
 
@@ -802,7 +802,7 @@ Capture the complete candidate in motion with sound and a real moving enemy, the
 
 Keep technical correctness, subjective feel, audio and performance findings separate. Record exact revision, test path, capture conditions, known limitations and the user's acceptance/disposition. Headless validation can establish behavior; sampled screenshots cannot certify motion or sound. Do not open visible Godot windows without an explicit request. A beautiful isolated frame does not certify crowded combat, and a clean test run does not certify a B.
 
-Show each artistic batch for judgment before treating it as accepted or integrating it as the new default. User feedback can reject a treatment without rejecting the spell's fantasy. Iterate the deficient phase, or change the approach when the approach is the problem; do not increase particle count, shake and loudness everywhere to manufacture a higher grade.
+Under the autonomous roster goal, integrate independently reviewed and tested refinements with evidence; show each artistic batch for judgment before treating it as user accepted. User feedback can reject a treatment without rejecting the spell's fantasy. Iterate the deficient phase, or change the approach when the approach is the problem; do not increase particle count, shake and loudness everywhere to manufacture a higher grade.
 
 ### Decisions to settle before behavior changes
 
@@ -885,6 +885,8 @@ Each proposal below is OPEN. It describes a direction for a prototype, not permi
 **Life — observed:** The green-gold cross ring clearly signals healing, but floats around the caster like a buff badge rather than a decisive breath of recovery.
 
 **Strongest idea:** Pull a compact pulse into the body on the actual heal, then let a few warm motes rise. Keep it instant and distinguish it from the sustained Regeneration ring.
+
+**Life / Regeneration refinement candidate (17 October 2026):** Life now draws a compact pale-green leaf gather into the torso only after health increases, followed by warm upward motes. Regeneration retains a quiet four-leaf breathing orbit while its actual aura lives; throttled recovery uses a smaller inward gather. Full HP never generates recovery pulses. Unrelated spirit/seed/pickup healing retains its established effect. Native captures cover moving caster, base/max rank, actual healing, full HP, sustained regeneration and expiry. MovieWriter at fixed 60 fps captures the native view and synchronized actual PCM audio; separate AudioEffectRecord output is also available. Audio quality remains U pending listening. This is a candidate, not user acceptance or a replacement passing score for the audit above. Persistent evidence: `/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/` with `manifest.json` recording capture/integration revisions, checks and PCM alignment (first PNG at movie frame61, offset61/60 seconds); `life-synchronized.mp4` and `regeneration-synchronized.mp4` are the synchronized previews. Reproducible temporary outputs: `builds/healing/{before,after}/`; capture command `Godot --path . --position 10000,10000 --resolution 1280x850 --script tools/capture_healing.gd -- after regeneration 8` (isolated test save required). Crowded rank-eight enlarged captures also preserve the caster silhouette; final moving and listening review remains required before claiming the bar.
 
 **Regeneration — observed:** The sustained yellow-green crosses and ring remain visible, but look very similar to Life. Continuous decoration communicates an active buff more than living repair.
 
@@ -1158,3 +1160,11 @@ Native captures cover close-range shots and a longer scripted moving target at l
 ### Restrained diamond polish — 17 October 2026
 
 User feedback: motion deserves a higher score than the assistant gave; fantasy, visuals and impact deserve lower scores. The color works and the effect is close: only a tiny amount of polish is wanted. Approved changes are a fine lavender edge along the leading sides, a bright tip, and a sharper small contact pinprick followed by two violet flecks. Keep movement, ribbon, scale and palette; no full dark outline, larger explosion, glow cloud or camera shake. Implemented as a narrow leading-edge color band and smaller/shorter tip contact. This is refinement of the selected effect, not a new direction.
+
+### Atomic pressure refinement — 17 October 2026
+
+Candidate 0.3.4-dev.24 preserves gameplay timing and the locked screen-sized rectangular damage footprint, while gathering violet energy at the caster’s committed position and releasing a rapidly expanding radial pressure wave. The wave is presentation, not staggered damage. Existing charge/release assets now accompany the sequence. Reduced effects retain a quieter wave without shake.
+
+Artistic grades remain INCOMPLETE. The first gold radial treatment was rejected in internal review for looking like a generic nova. The user’s reference question suggests “I Am Atomic” from The Eminence in Shadow; this is an inferred cue, not explicit confirmation. The next candidate uses compressed violet energy, momentary scene darkness and a white-hot violet release. No passing grade follows from implementation or test success.
+
+Evidence fixture: `tools/capture_atomic.gd`, centered/off-center/reduced cases, real ordinary and boss contacts. Atomic has one special rank and rejects keywords, so base/max modifiers are not applicable. Remaining evidence: mixed hostile threats/other player spells and audible artistic assessment. Archived clips: `/Users/ljeytl/.codex/visualizations/2026/10/17/atomic/`.

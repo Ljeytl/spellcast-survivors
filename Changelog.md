@@ -1,8 +1,20 @@
-# 0.3.4-dev.24 — Flankers hunt in pincer pairs; the Juggernaut enrages (17 October 2026)
+# 0.3.4-dev.26 — Flankers hunt in pincer pairs; the Juggernaut enrages (17 October 2026)
 
 - **Flankers are pincer pairs.** Two Flankers find each other within 420 px and a gold tether shows they are a pair. They split to opposite sides of you, 210 px out, and once both are in place (or after 3.5 s) they close in together at 1.7× speed. The tether brightens as they commit. Kill one and the tether drops; the survivor hunts alone. Numbers are in `data/encounters.json` `flanker.pincer`.
 - **The Juggernaut enrages.** The more you hurt it, the faster it comes: up to 2.4× at low health, glowing hotter as it goes. Chill and knockback no longer hold it, but a full freeze still stops it, so either burst it down or leave it alone. The day-1 boss, The Gatekeeper, is a Juggernaut, so its fight speeds up as you win it (`juggernaut.enrage`).
 - **Director prices follow the danger:** Flanker 1.5 → 2.0 per monster (always in pairs), Skirmisher 1.5 → 2.0 with groups capped at 2 (a lunge from three at once was a wall), Juggernaut 7 → 8.5.
+# 0.3.4-dev.25 — Life and Regeneration recovery feedback (17 October 2026)
+
+- Move Life's successful bloom from spell creation to actual received healing. Six pale leaf shapes gather into the torso and release a short warm mote lift; full health produces no successful-recovery pulse.
+- Separate Regeneration into a restrained breathing leaf orbit during its real active lifetime and small inward gathers on actual recovery. Preserve healing amounts, continuous rate, duration, refresh rules and the existing feedback throttle.
+- Keep unsourced healing feedback unchanged for spirits, seeds and pickups. Clear transient healing visuals with the VFX lifecycle. Native base/max-rank injured/full-health captures and source-routing/expiry regression evidence accompany this candidate; listening and player aesthetic approval remain outstanding.
+
+# 0.3.4-dev.24 — Atomic pressure release (17 October 2026)
+
+- Atomic gathers violet energy around the committed caster position, then releases a fast radial pressure front with a brief local white-hot core and fading sparks. Removed the persistent rectangular screen border; brief scene dimming and a release flash contrast the compressed charge with detonation.
+- Preserved 0.65-second warning, locked rectangular damage footprint, pure damage, 60% boss maximum-health hit, projectile clearing, once-only impact, pause behavior and existing single heavy shake. Reduced effects suppress the shake and soften light.
+- Added existing licensed charge/release audio through AudioManager. Actual in-engine audio capture is separate evidence from visual self-assessment.
+- Added centered, off-center and reduced-effects capture cases with real boss and regular-enemy contact. Full artistic gate remains provisional pending audible review and mixed-threat crowd evidence; tests alone do not confer a B.
 
 # 0.3.4-dev.23 — Every enemy role reads at a glance (17 October 2026)
 

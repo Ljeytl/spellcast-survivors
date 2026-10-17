@@ -265,9 +265,11 @@ func part_spawned(part) -> void:
 		return
 	var vfam0 := str(part.def.get("vfx", {}).get("family", ""))
 	if vfam0 == "none":
-		# Regeneration's aura: no ring or floor, only leaves and petals rising around the wizard.
-		_parts[part.get_instance_id()] = {"part": weakref(part), "kind": "healaura", "look": look_of(part.cast.plan), "last": part.global_position / WPS, "acc": 0.0,
-			"r": float(part.geo("radius", 34.0)) / WPS}
+		var aura = preload("res://scripts/vfx/RegenerationAura.gd").new()
+		aura.part_ref = weakref(part)
+		aura.visual_size = clampf(float(part.def.get("visual_size", 1.0)), 0.6, 2.0)
+		vfx.add_child(aura)
+		aura.global_position = part.cast.caster.global_position
 		_presented[part.get_instance_id()] = weakref(part)
 		return
 	if bool(part.def.get("vfx", {}).get("warn", false)):
@@ -365,10 +367,7 @@ func part_spawned(part) -> void:
 				return
 			st.acc = 0.0
 		"self":
-			if look.native != "life":
-				return
-			# Centred on the wizard, not the staff (playtest 14 Oct).
-			_life_bloom(part.cast.caster.global_position / WPS if is_instance_valid(part.cast.caster) else pos)
+			pass
 		"charge", "zone":
 			if look.native != "lightning":
 				return
@@ -612,13 +611,6 @@ func step(dt: float) -> void:
 				_meteor_fall(part, st, pos, dt)
 			"warn":
 				st.age = float(st.age) + dt
-			"healaura":
-				if randf() < 0.35 * dt * 60.0:
-					var q := _in_disk(pos.x, pos.y, float(st.r) * 1.6)
-					vfx.elements.leaf(q.x, q.y, (randf() - 0.5) * 4.0, -(5.0 + randf() * 4.0), LIFE.petal if randf() < 0.35 else LIFE.leaf, 1.0)
-				if randf() < 0.15 * dt * 60.0:
-					var q2 := _in_disk(pos.x, pos.y, float(st.r) * 1.2)
-					vfx.spark(q2.x, q2.y, 0.0, -8.0, 0.5, [Color("#ffffff"), Color("#d4f58a"), Color("#7fcf4a")])
 			"patch":
 				if randf() < 0.12 * dt * 60.0:
 					var a := randf() * TAU
@@ -1726,22 +1718,6 @@ func _life_nova(c: Vector2, r: float, dt: float) -> void:
 		var a := randf() * TAU
 		vfx.elements.leaf(c.x + cos(a) * r, c.y + sin(a) * r, cos(a) * 14.0, -8.0, LIFE.petal if randf() < 0.3 else LIFE.leaf, 0.9)
 
-## Self heal (Regrowth): not in the sandbox; built from growth parts. Flowers
-## pop open in a ring at the caster's feet, petals and leaves lift, grass tuft.
-func _life_bloom(at: Vector2) -> void:
-	var el = vfx.elements
-	for i in 10:
-		var a := float(i) / 10.0 * TAU + randf() * 0.3
-		var d := 5.0 + randf() * 2.0
-		el.blade(at.x + cos(a) * d, at.y + sin(a) * d * 0.6, 2 + randi() % 2, 0.03 * i, 1.8, true)
-	for i in 16:
-		var a2 := randf() * TAU
-		el.leaf(at.x + cos(a2) * 4.0, at.y - 2.0, cos(a2) * 10.0, -18.0 - randf() * 14.0, LIFE.petal if randf() < 0.5 else LIFE.leaf, 0.9 + randf() * 0.6)
-	for i in 8:
-		el.mote(at.x + (randf() - 0.5) * 8.0, at.y - 4.0 - randf() * 6.0, 0.0, -10.0 - randf() * 8.0, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]], 0.7, 0.0, 3.0)
-	el.grass_tuft(at.x, at.y, 5.0, 3.0)
-	vfx.ring(at.x, at.y, 9.0, 0.3, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]])
-
 ## Entangled / rooted: a vine wrapped around the enemy, a leaf now and then.
 func _entangled(dt: float) -> void:
 	var tree = vfx.get_tree()
@@ -2750,6 +2726,12 @@ func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> void:
 	var at := world_pos / WPS
 	var el = vfx.elements
 	match kind:
+		"life", "regeneration":
+			var pulse = preload("res://scripts/vfx/HealingPulse.gd").new()
+			pulse.gentle = kind == "regeneration"
+			pulse.visual_size = clampf(size, 0.6, 2.0)
+			vfx.add_child(pulse)
+			pulse.global_position = world_pos
 		"heal":
 			# Small and quick: heals arrive often (Regeneration, seeds), the cast itself blooms bigger.
 			var s := clampf(size, 0.6, 2.0)
