@@ -67,9 +67,10 @@ func draw_body(buf: PackedByteArray, presenter, position: Vector2, accent: Strin
 			if distance > 1.0:
 				continue
 			var angle := offset.angle()
-			var flow := sin(angle * 2.0 - rotation + distance * 5.0)
-			var band := pow(maxf(0.0, flow), 3.0) * smoothstep(0.12, 0.4, distance)
-			var core := pow(maxf(0.0, 1.0 - distance / 0.44), 1.5)
+			var flow := sin(angle - rotation + distance * 5.0)
+			var band := (pow(maxf(0.0, flow), 6.0) + pow(maxf(0.0, -flow), 3.0) * 0.3) * smoothstep(0.12, 0.4, distance)
+			var nucleus := Vector2.from_angle(rotation * 0.7) * r * 0.13
+			var core := pow(maxf(0.0, 1.0 - offset.distance_to(nucleus) / (r * 0.33)), 1.5)
 			var edge := smoothstep(0.82, 0.96, distance)
 			var leading := pow(maxf(0.0, offset.normalized().dot(direction)), 6.0) * edge
 			var color := Color("#6743bb").lerp(Color("#c2b6ff"), band)
