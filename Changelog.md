@@ -1,7 +1,7 @@
 # 0.3.4-dev.33 — Prism Ray refraction clarity (17 October 2026)
 
 - Preserve the six elemental fan lanes and exact primary width/endpoints; give the primary a translucent cross-section around its bright core so the real target and refraction source remain visible.
-- Add one compact pale-violet concentration at each actual split. Fade Prism-only branch afterimages over their existing lifetime and replace the plague branch’s outlined bubbles with small directional flecks. Other rays, status effects, damage, motion and geometry remain unchanged.
+- Add one compact pale-violet concentration at each actual split. Give branches a thin bright core and translucent outer material, fade Prism-only afterimages over their existing lifetime and replace the plague branch’s outlined bubbles with small directional flecks. Tiny element glints mark actual branch contacts, limited to one per target per physics frame. Other rays, status effects, damage, motion and geometry remain unchanged.
 - Add rendered-material/source-isolation checks with a failing full-bright-tail control, native base/max moving/enlarged/reduced/narrow captures, and mixed hostile combat with another spell. Follow-up: complete audible and full-motion artistic assessment; the B-minus mean/C-floor fantasy gate remains incomplete.
 
 # 0.3.4-dev.32 — Fire Walk connected ground and cooling (17 October 2026)

@@ -439,7 +439,21 @@ func part_spawned(part) -> void:
 	_parts[part.get_instance_id()] = st
 	_presented[part.get_instance_id()] = weakref(part)
 
+var _prism_contact_frame := -1
+var _prism_contacts := {}
+
 func part_hit(part, enemy, at: Vector2) -> void:
+	if str(part.cast.plan.get("id", "")) == "prism_ray" and str(part.def.get("vfx", {}).get("family", "")) == "ray" and is_instance_valid(enemy):
+		var frame := Engine.get_physics_frames()
+		if frame != _prism_contact_frame:
+			_prism_contacts.clear()
+			_prism_contact_frame = frame
+		var target: int = enemy.get_instance_id()
+		if not _prism_contacts.has(target):
+			_prism_contacts[target] = true
+			var palette: Array = BODY.get(str(part.def.vfx.get("look", "arcane")), BODY.arcane)
+			vfx.star(at.x / WPS, at.y / WPS, 1.6, 0.07, 4, palette[1])
+		return
 	var st = _parts.get(part.get_instance_id())
 	if st != null and st.kind == "infection":
 		if not st.has("infection_pulses"):
@@ -1838,6 +1852,8 @@ func clear_transients() -> void:
 	_missile_ribbons.clear()
 	_hit_rings.clear()
 	_lasers.clear()
+	_prism_contacts.clear()
+	_prism_contact_frame = -1
 
 func draw_statuses(buf: PackedByteArray) -> void:
 	var el = vfx.elements
@@ -1860,7 +1876,7 @@ func draw_statuses(buf: PackedByteArray) -> void:
 			continue
 		for o in range(-hw, hw + 1):
 			var c: Color = lc[0] if o == 0 else (lc[1] if absi(o) < hw else lc[mini(3, lc.size() - 1)])
-			c.a *= fade * (0.7 if prism and o != 0 else 1.0)
+			c.a *= fade * (lerpf(0.6, 0.2, float(absi(o)) / float(hw)) if prism and o != 0 else 1.0)
 			el.line(buf, a0 + nrm * o, b0 + nrm * o, c)
 	# Stunned: three little stars circling the top of the body.
 	for q in _dazed:

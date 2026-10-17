@@ -13,6 +13,9 @@ class Layer extends RefCounted:
 	var _t := 0.0
 	var _steps := 0
 	var sparks := 0
+	var stars: Array = []
+	func star(x, y, _radius, _life, _points, _color):
+		stars.append(Vector2(x, y))
 	func spark(_x, _y, _vx, _vy, _life, _palette):
 		sparks += 1
 
@@ -78,6 +81,21 @@ func run():
 	presenter._lasers.append([Vector2.ZERO, Vector2.RIGHT, 50.0, 2.0, 0.0, 0.32, palette, "fire", true])
 	presenter.clear_transients()
 	check(presenter._lasers.is_empty(), "Clear retires refraction tails")
+	beam.cast.plan.id = "prism_ray"
+	beam.def = {"vfx":{"family":"ray","look":"fire"}}
+	var enemy = Node2D.new()
+	presenter.part_hit(beam, enemy, Vector2(60, 80))
+	presenter.part_hit(beam, enemy, Vector2(65, 85))
+	check(layer.stars.size() == 1 and layer.stars[0].is_equal_approx(Vector2(60,80) / presenter.WPS), "Real ray hit glints at actual contact, one per target per frame")
+	presenter._prism_contact_frame = -1
+	presenter.part_hit(beam, enemy, Vector2(70, 90))
+	check(layer.stars.size() == 2, "Later contact frame can punctuate again")
+	beam.cast.plan.id = "focus_ray"
+	presenter.part_hit(beam, enemy, Vector2.ZERO)
+	check(layer.stars.size() == 2, "Other spell hits do not add Prism glints")
+	presenter.clear_transients()
+	check(presenter._prism_contacts.is_empty(), "Clear retires contact throttle IDs")
+	enemy.free()
 	beam.free()
 	print("PRISM_RAY_FEEL checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
