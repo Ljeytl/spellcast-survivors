@@ -137,6 +137,8 @@ func run():
 			moved += 1
 	if damage_events == 0 and warnings == 0:
 		failures.append("missing_hostile_activity")
+	if casts.size() != 3:
+		failures.append("missing_primary_casts")
 	if hit_count == 0:
 		failures.append("missing_primary_contacts")
 	if travel < 100 or moved < 5:
