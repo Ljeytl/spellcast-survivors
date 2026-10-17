@@ -115,8 +115,8 @@ func spawn_enemy():
 	
 	# Connect to damage manager if it exists
 	var damage_manager = get_parent().get_node_or_null("DamageManager")
-	if damage_manager and damage_manager.has_method("_on_enemy_damaged"):
-		enemy.enemy_damaged.connect(damage_manager._on_enemy_damaged)
+	if damage_manager and damage_manager.has_method("connect_enemy"):
+		damage_manager.connect_enemy(enemy)
 	
 	# Add to scene
 	get_parent().add_child(enemy)
@@ -275,8 +275,8 @@ func spawn_split_enemy(position: Vector2, enemy_type: int):
 	# Connect signals
 	enemy.enemy_died.connect(_on_enemy_died)
 	var damage_manager = get_parent().get_node_or_null("DamageManager")
-	if damage_manager and damage_manager.has_method("_on_enemy_damaged"):
-		enemy.enemy_damaged.connect(damage_manager._on_enemy_damaged)
+	if damage_manager and damage_manager.has_method("connect_enemy"):
+		damage_manager.connect_enemy(enemy)
 	
 	# Add to scene
 	get_parent().add_child(enemy)

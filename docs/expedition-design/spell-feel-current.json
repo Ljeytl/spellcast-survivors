@@ -541,8 +541,8 @@
       "id": "prism_ray",
       "name": "Prism Ray",
       "baseline": "spell-feel-audit-2026-10-15.json#prism_ray",
-      "latest_reviewed_change": "0.3.4-dev.34 Prism refraction material candidate",
-      "disposition": "candidate_requires_full_sequence_review",
+      "latest_reviewed_change": "dev.45 same-target/cast/tick Prism damage numbers; existing ray material unchanged",
+      "disposition": "crowded_numbers_refined_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "B",
@@ -560,9 +560,10 @@
         "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-reduced.mp4",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-combat.mp4",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-base-sequence.jpg",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-combat-sequence.jpg"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-combat-sequence.jpg",
+        "Dev.45 paired native actual mixed encounter: 540 resolved damage-feedback events and identical per-event target/frame/source/amount/position signatures; raw total 11362.9417724585 preserved. Actual instantiated labels decline 540 to262 by same-target/cast/tick summation. /Users/ljeytl/.codex/visualizations/2026/10/17/prism-numbers/manifest.json"
       ],
-      "next_review": "Provisional assistant assessment of refined native base/max/mixed sequence samples: clear elemental split fantasy (B); translucent primary and branch material reduce opaque fences, supporting B- visuals/readability while rigid lane shape and central number clutter remain. Slow sweep and decaying tails support B- sampled motion. Actual contact glints improve local punctuation but impact remains modest (C+). Observed visual mean 2.68 remains just below 2.7 target; sound U until listened; overall INCOMPLETE, no user acceptance."
+      "next_review": "Assess full-speed mixed-threat readability after same-tick numeric consolidation, and audition retained same-run PCM. Existing rays, damage, statuses and contact glints remain unchanged; remaining congestion includes legitimate separate-target/tick feedback. No overall grade inferred from label counts."
     },
     {
       "id": "frost_sigil",
