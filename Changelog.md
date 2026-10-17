@@ -1,7 +1,12 @@
-# 0.3.4-dev.20 — The Imp, and the Skirmisher becomes a spear goblin (17 October 2026)
+# 0.3.4-dev.21 — The Imp, and the Skirmisher becomes a spear goblin (17 October 2026)
 
 - **New enemy: the Imp** (punisher, doc 22 §4a). It chases you and hits you up close like a grunt. When you get distance on it, it stops, charges a growing orange glow for 0.6 s and throws a slow, round orb you can dodge, so running away is never the answer. Arrives from 2:30. Uses the existing happy slime art for now. Numbers are in `data/encounters.json` `imp.orb`, and it is a director card (cost 2, groups of 1–2).
 - **The Skirmisher is now a spear goblin** (harasser). It holds about 220 px from you, so it is rarely the nearest target, and strafes sideways. When you are 150–300 px away it stops, shows a telegraph line, lunges about 216 px along it, then backs off. The old on-a-timer retreat is gone. Numbers are in `skirmisher.lunge`.
+# 0.3.4-dev.20 — Small Magic Missile edge and contact polish (17 October 2026)
+
+- Add a fine lavender leading edge and brighter tip to preserve the diamond silhouette. Keep its size, faces, movement and ribbon.
+- Tighten contact to a smaller, shorter pinprick at the tip and two violet flecks. No additional glow cloud, shake or gameplay changes.
+- Record the user's assessment: motion is stronger than the prior assistant grade; fantasy, visuals and impact need only restrained polish. Avoid another redesign.
 
 # 0.3.4-dev.19 — Magic Missile diamond and ribbon (17 October 2026)
 

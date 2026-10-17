@@ -1151,3 +1151,8 @@ The second glassy/faint dart retry was also rejected. Stop mixing a glass materi
 Implementation: a lavender/blue faceted diamond replaces the faint body; one path-sampled ribbon tapers by age and distance, with flutter confined to older samples. The initial presentation bend is bounded to approximately 7.3 world pixels and ends after 0.28 s; gameplay trajectory and targeting remain unchanged. Contact uses one brief glint and three forward flecks. Detached ribbon samples fade for at most 0.20 s; global clearing removes them. The automatic release flash is reduced so it does not hide the projectile.
 
 Native captures cover close-range shots and a longer scripted moving target at levels 1 and 8. The latter deliberately gives the flight more room; it is not a normal crowd test. Preview output is fixed to 1280×850 after settings load. Current status: implemented candidate awaiting aesthetic judgment, not an inherited B-minus. Audio unchanged and ungraded in silent captures.
+
+
+### Restrained diamond polish — 17 October 2026
+
+User feedback: motion deserves a higher score than the assistant gave; fantasy, visuals and impact deserve lower scores. The color works and the effect is close: only a tiny amount of polish is wanted. Approved changes are a fine lavender edge along the leading sides, a bright tip, and a sharper small contact pinprick followed by two violet flecks. Keep movement, ribbon, scale and palette; no full dark outline, larger explosion, glow cloud or camera shake. Implemented as a narrow leading-edge color band and smaller/shorter tip contact. This is refinement of the selected effect, not a new direction.

@@ -12,6 +12,7 @@ func run():
 	root.size = Vector2i(1280, 850)
 	root.content_scale_size = root.size
 	root.get_node("AudioManager").quitting = true
+	var frame_stride := 1 if OS.get_cmdline_user_args().has("full-rate") else 2
 	var label := "after" if OS.get_cmdline_user_args().is_empty() else OS.get_cmdline_user_args()[0]
 	for rank in [1, 8]:
 		await setup()
@@ -53,8 +54,8 @@ func run():
 			stage.canvas_transform = root.get_canvas_transform()
 			game.get_node("Background").queue_redraw()
 			await RenderingServer.frame_post_draw
-			if frame % 2 == 0:
-				if stage.get_texture().get_image().save_png(folder + "/%04d.png" % (frame / 2)) != OK:
+			if frame % frame_stride == 0:
+				if stage.get_texture().get_image().save_png(folder + "/%04d.png" % (frame / frame_stride)) != OK:
 					quit(2)
 					return
 		var hits := 0
