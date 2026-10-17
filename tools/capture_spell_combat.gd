@@ -59,6 +59,7 @@ func run():
 		enemy.set_physics_process(not negative)
 		if negative:
 			enemy.damage = 0.0
+			enemy.base_damage = 0.0
 		enemies.append(enemy)
 		initial_positions.append(enemy.global_position)
 	var stage = SubViewport.new()
