@@ -37,11 +37,11 @@ func run():
 			root.add_child(part)
 			presenter.part_spawned(part)
 			var state: Dictionary = presenter._parts[part.get_instance_id()]
-			check(state.get("smoulder", false), "Real smoulder registration selects lifecycle synchronization")
+			check(state.field.get("part") != null, "Real smoulder registration binds gameplay ownership")
 			var field: Dictionary = state.field
 			field.rate = 0.0
 			if OS.get_cmdline_user_args().has("known-bad"):
-				state.smoulder = false
+				field.erase("part")
 			for frame in int(hz * 2.8):
 				part.age += 1.0 / hz
 				presenter.step(speed / hz)
