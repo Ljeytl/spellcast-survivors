@@ -97,6 +97,7 @@
       "xp": 7,
       "weight": 22,
       "size": 0.85,
+      "pincer": {"pair_range": 420, "radius": 210, "ready_distance": 70, "max_wait": 3.5, "close_seconds": 1.6, "close_speed_mult": 1.7},
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 1 sprout.png",
       "visual_scale": 2.497685
     },
@@ -153,6 +154,7 @@
       "xp": 18,
       "weight": 12,
       "size": 1.25,
+      "enrage": {"max_speed_mult": 2.4},
       "sprite": "res://assets/typecast/Slime Enemies/Slime boi 4.png",
       "boss_sprite": "res://assets/typecast/Slime Enemies/King Slime.png",
       "visual_scale": 2.76,

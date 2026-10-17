@@ -2,6 +2,11 @@
 
 - Add a current 31-spell ledger separating user-approved identities, merged candidates and outstanding review from the historical October 15 grades. Keep unknown categories ungraded and record the B-minus/C-minus thresholds plus the independent fantasy requirement.
 
+# 0.3.4-dev.26 — Flankers hunt in pincer pairs; the Juggernaut enrages (17 October 2026)
+
+- **Flankers are pincer pairs.** Two Flankers find each other within 420 px and a gold tether shows they are a pair. They split to opposite sides of you, 210 px out, and once both are in place (or after 3.5 s) they close in together at 1.7× speed. The tether brightens as they commit. Kill one and the tether drops; the survivor hunts alone. Numbers are in `data/encounters.json` `flanker.pincer`.
+- **The Juggernaut enrages.** The more you hurt it, the faster it comes: up to 2.4× at low health, glowing hotter as it goes. Chill and knockback no longer hold it, but a full freeze still stops it, so either burst it down or leave it alone. The day-1 boss, The Gatekeeper, is a Juggernaut, so its fight speeds up as you win it (`juggernaut.enrage`).
+- **Director prices follow the danger:** Flanker 1.5 → 2.0 per monster (always in pairs), Skirmisher 1.5 → 2.0 with groups capped at 2 (a lunge from three at once was a wall), Juggernaut 7 → 8.5.
 # 0.3.4-dev.25 — Life and Regeneration recovery feedback (17 October 2026)
 
 - Move Life's successful bloom from spell creation to actual received healing. Six pale leaf shapes gather into the torso and release a short warm mote lift; full health produces no successful-recovery pulse.
