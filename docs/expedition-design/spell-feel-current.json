@@ -238,21 +238,28 @@
       "id": "arcane_orbit",
       "name": "Arcane Orbit",
       "baseline": "spell-feel-audit-2026-10-15.json#arcane_orbit",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "4ec0e6d \u2014 circulating energy bodies, bounded sampled wakes and localized real contacts; dev.28 candidate",
+      "disposition": "candidate_needs_crowd_and_audio_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B-",
+        "B-",
+        "B",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
-      "fantasy_fulfilled": null,
+      "fantasy_fulfilled": true,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep two clear bodies and their orbit. Let light circulate within each shell and leave a short curved particle wake; concentrate the contact accent on the leading edge."
+      "evidence": [
+        "Native rank-one stationary contact/gap and expiry: two bodies; central gap enemy remains undamaged. Circulating violet bands replace the solid outlined ball; defined circular extent remains readable.",
+        "Native rank-eight moving/enlarged recast: four bodies preserve phase and disappear after the extended lifetime. Short wakes are bounded in time and distance; large bodies remain visually bulky.",
+        "Native rank-eight double-speed empty lane: four separately readable moving bodies, no contact cue and only one cast audio event.",
+        "Provisional assistant grades from native sequence frames: fantasy B-, visuals B-, motion B, casting/contact C+, sound/camera U, readability B-. Contact is compact but less emphatic; starting effects remain deferred. No new user acceptance.",
+        "Durable artifacts and manifest: /Users/ljeytl/.codex/visualizations/2026/10/17/arcane-orbit/. Same-run MovieWriter PCM aligned by first PNG movie frame61 (61/60s).",
+        "Runtime revision4ec0e6d; rank-one capture9cdc6b0 has identical body/wake renderer. Seven clean gates:629 checks; radius and retained-wake known-bad controls fail their intended assertions. Tests establish mechanics, not aesthetic grades."
+      ],
+      "next_review": "Audition synchronized contact sound and assess a moving mixed hostile-threat crowd with another spell before claiming the complete bar. Preserve orbit geometry and the restrained contact; do not add a full orbital disk or starting VFX."
     },
     {
       "id": "focus_ray",
