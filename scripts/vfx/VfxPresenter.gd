@@ -429,7 +429,7 @@ func part_hit(part, enemy, at: Vector2) -> void:
 		return
 	_part_hit_look(part, enemy, at)
 	var p: Vector2 = part.global_position / WPS
-	if not ((_is_ice_blast(part) or _is_magic_missile(part)) and st.look.accent == ""):
+	if not (_is_ice_blast(part) and st.look.accent == ""):
 		_contact_punch(part, st, p)
 	var light_strength := float(part.def.get("vfx", {}).get("impact_light", 0.0))
 	if light_strength > 0.0 and not is_hostile(part):
@@ -443,9 +443,6 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 	var st = _parts.get(part.get_instance_id())
 	var p: Vector2 = part.global_position / WPS
 	var impact_look: String = st.look.accent if st.look.accent != "" else st.look.native
-	if _is_magic_missile(part) and impact_look == "arcane":
-		_magic_missile_contact(part, at / WPS)
-		return
 	if _is_ice_blast(part) and impact_look == "ice":
 		_ice_blast_contact(part, at / WPS)
 		return
@@ -690,7 +687,8 @@ func _trail(part, st: Dictionary, pos: Vector2, dt: float) -> void:
 	if native == "earth" or accent == "earth":
 		_earth_trail(pos, vel, dt)
 	if native == "arcane" and _is_magic_missile(part):
-		_magic_missile_trail(st, pos, dt)
+		var rear := pos - Vector2(part.direction).normalized() * 3.0 * float(part.size_scale)
+		vfx.spark(rear.x + (randf() - 0.5) * 0.8, rear.y + (randf() - 0.5) * 0.8, -vel.x * 0.05, -vel.y * 0.05, 0.2 + randf() * 0.1, SPARK.arcane)
 	elif native == "arcane":
 		for i in 2:
 			vfx.spark(pos.x + (randf() - 0.5) * 3.0, pos.y + (randf() - 0.5) * 3.0, -vel.x * 0.05, -vel.y * 0.05, 0.35 + randf() * 0.25, SPARK.arcane)
@@ -1073,58 +1071,29 @@ func _draw_magic_missile(buf: PackedByteArray, p: Vector2, direction: Vector2, p
 	var scale := maxf(float(part.size_scale), 0.01)
 	var dir := direction.normalized()
 	var side := dir.orthogonal()
-	var extent := ceili(5.2 * scale * vfx.K)
+	var extent := ceili(3.4 * scale * vfx.K)
 	var center := Vector2i(roundi(p.x * vfx.K), roundi(p.y * vfx.K))
+	var glint := sin(float(part.age) * 28.0) * 0.12
 	for y in range(-extent, extent + 1):
 		for x in range(-extent, extent + 1):
 			var local: Vector2 = Vector2(x, y) / (vfx.K * scale)
 			var u := local.dot(dir)
 			var v := local.dot(side)
-			var width := 1.35 * sqrt(maxf(0.0, 1.0 - pow((u - 0.2) / 4.8, 2.0)))
-			if width <= 0.0 or absf(v) > width:
+			var width := (3.2 - u) * 0.5 if u > 1.2 else (u + 3.2) / 4.4
+			if width <= 0.0 or absf(v) >= width:
 				continue
-			var edge := absf(v) / width
-			var color := Color(0.63, 0.85, 0.96, 0.18)
-			if edge > 0.58:
-				color = Color(0.83, 0.97, 1.0, 0.7 if v < 0.0 else 0.36)
-			elif u > 3.1:
-				color = Color(0.92, 1.0, 1.0, 0.82)
-			elif v < -0.1 and v > -0.45 and u > -1.0:
-				color = Color(0.83, 0.96, 1.0, 0.42)
-			if accent != "" and edge > 0.58:
+			var fullness := 1.0 - absf(v) / width
+			var color := Color(0.64, 0.85, 1.0, 0.24 + fullness * 0.28)
+			if v > 0.0:
+				color = Color(0.75, 0.69, 1.0, color.a)
+			if absf(v + width * 0.3) < 0.16 and u > -0.6:
+				color = Color(0.88, 0.98, 1.0, 0.66 + glint)
+			if u > 1.2 and fullness > 0.45:
+				color = Color(0.91, 1.0, 1.0, 0.88)
+			if accent != "" and fullness < 0.35:
 				color = RIM[accent]
-				color.a = 0.7
+				color.a = 0.6
 			_missile_pixel(buf, center.x + x, center.y + y, color)
-
-func _magic_missile_trail(st: Dictionary, pos: Vector2, dt: float) -> void:
-	var wake: Array = st.get("missile_wake", [])
-	for sample in wake:
-		sample.age += dt
-	while not wake.is_empty() and float(wake[0].age) > 0.13:
-		wake.pop_front()
-	if wake.is_empty() or Vector2(wake[-1].pos).distance_to(pos) >= 0.5:
-		wake.append({"pos": pos, "age": 0.0})
-	while wake.size() > 16:
-		wake.pop_front()
-	st.missile_wake = wake
-
-func _draw_magic_missile_wake(buf: PackedByteArray, st: Dictionary) -> void:
-	var wake: Array = st.get("missile_wake", [])
-	for i in range(1, wake.size()):
-		var a: Vector2 = wake[i - 1].pos
-		var b: Vector2 = wake[i].pos
-		var fade := pow(1.0 - clampf(float(wake[i].age) / 0.13, 0.0, 1.0), 2.0)
-		var steps := maxi(1, ceili(a.distance_to(b) * vfx.K))
-		for j in steps:
-			var point: Vector2 = a.lerp(b, float(j) / steps) * vfx.K
-			_missile_pixel(buf, roundi(point.x), roundi(point.y), Color(0.7, 0.88, 1.0, fade * 0.38))
-
-func _magic_missile_contact(part, p: Vector2) -> void:
-	var direction := Vector2(part.direction).normalized()
-	vfx.star(p.x, p.y, 1.3 * maxf(float(part.size_scale), 0.01), 0.04, 4, Color("#d8f7ff"))
-	for i in (2 if vfx.reduced_effects else 3):
-		var drift := direction.rotated(randf_range(-1.2, 1.2)) * randf_range(12.0, 22.0)
-		vfx.elements.mote(p.x, p.y, drift.x, drift.y, [Color("#d8f7ff"), Color("#92b7cb"), Color("#59778c")], 0.12, 0.0, 0.0)
 
 static func _is_ice_blast(part) -> bool:
 	return str(part.cast.plan.get("id", "")) == "ice_blast" and not is_hostile(part)
@@ -2498,7 +2467,6 @@ func draw_bodies(buf: PackedByteArray) -> void:
 			sc = float(part.geo("radius", 42.0)) / (WPS * float(b.r))
 		var pal: Array = BODY[st.look.native]
 		if _is_magic_missile(part) and st.look.native == "arcane":
-			_draw_magic_missile_wake(buf, st)
 			_draw_magic_missile(buf, pos, dir, part, st.look.accent)
 			continue
 		if st.look.native == "lightning":

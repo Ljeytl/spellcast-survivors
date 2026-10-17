@@ -1,3 +1,10 @@
+# 0.3.4-dev.18 — Retry Magic Missile from its original effects (17 October 2026)
+
+- Reject dev.17’s hollow capsule and rigid line wake. Restore the original arcane sparkle style and contact response; place fewer sparks behind the head so its translucent body stays visible; keep gameplay guidance, damage, count and cadence unchanged.
+- Limit the fantasy refinement to a compact directional translucent dart with a brighter leading center, cyan/lilac material and animated glint. Preserve the verified alpha compositor.
+- Add a moving-target option to the native preview fixture. Record the user's D rating for dev.17 and invalidate the previous assistant B-minus grade in the spell-feel sheet.
+- Next: judge this retry in motion against the preferred original. Technical checks do not establish aesthetic acceptance.
+
 # 0.3.4-dev.17 — Translucent Magic Missile (17 October 2026)
 
 - Refine automatic Magic Missile toward the selected clear, translucent missile direction: a glassy interior, highlighted rim, short movement-following wake and compact contact flicker.

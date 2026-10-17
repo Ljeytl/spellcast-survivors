@@ -28,11 +28,9 @@ func run():
 	var part = c.parts[0]
 	check(vfx.presenter._is_magic_missile(part), "Friendly missile uses glass presentation")
 	var st = vfx.presenter._parts[part.get_instance_id()]
+	var sparks_before: int = vfx._sparks.size()
 	vfx.presenter._trail(part, st, Vector2(3, 0), 1.0 / 60.0)
-	vfx.presenter._trail(part, st, Vector2(6, 1), 1.0 / 60.0)
-	check(st.get("missile_wake", []).size() >= 2, "Wake records the curved flight path")
-	vfx.presenter._trail(part, st, Vector2(6, 1), 0.3)
-	check(st.get("missile_wake", []).size() <= 1, "Stationary history expires instead of retaining a fixed tail")
+	check(vfx._sparks.size() > sparks_before, "Arcane sparkle trail remains active behind the head")
 	vfx._origin = Vector2i.ZERO
 	vfx._size = Vector2i(64, 64)
 	var buf := PackedByteArray()
@@ -50,7 +48,7 @@ func run():
 	vfx._stop = 0
 	var stars_before: int = vfx._stars.size()
 	vfx.presenter.part_hit(part, null, part.global_position)
-	check(vfx._stars.size() - stars_before == 1, "Unmodified contact has one compact pop")
+	check(vfx._stars.size() - stars_before == 2, "Original contact sparkle and light punch remain active")
 	check(vfx._stop == 0, "Passive missile contact does not stop gameplay")
 	c.target_group = "player"
 	check(not vfx.presenter._is_magic_missile(part), "Hostile presentation remains separate")
