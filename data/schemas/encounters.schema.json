@@ -285,6 +285,20 @@
             "additionalProperties": false
           },
           "tint": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+          "pincer": {
+            "type": "object",
+            "properties": {
+              "pair_range": {"type": "number"}, "radius": {"type": "number"}, "ready_distance": {"type": "number"},
+              "max_wait": {"type": "number"}, "close_seconds": {"type": "number"}, "close_speed_mult": {"type": "number"}
+            },
+            "additionalProperties": false
+          },
+          "enrage": {
+            "type": "object",
+            "properties": {"max_speed_mult": {"type": "number"}},
+            "required": ["max_speed_mult"],
+            "additionalProperties": false
+          },
           "orb": {
             "type": "object",
             "properties": {
