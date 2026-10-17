@@ -1,3 +1,9 @@
+# 0.3.4-dev.32 — Fire Walk connected ground and cooling (17 October 2026)
+
+- Preserve the low flames and real patch footprint while replacing random checker-like scorch with a restrained continuous warm bed. Each patch cools with its own gameplay age; recasts do not rejuvenate old ground. Larger trails retain visible grass through the bed.
+- Keep every painted cell within its actual patch disk, preserve unburned loop centers, and retire ground at patch expiry. Effect disable/re-enable, clear/resume and runtime texture resizing are covered.
+- Add native base/max-rank, contact, recast and narrow reduced-effects resume captures with same-run PCM audio, plus material/lifecycle regressions and failing oversized/rejuvenation controls. Full artistic audio and mixed moving-threat assessment remain outstanding; no current all-category grade is claimed.
+
 # 0.3.4-dev.31 — Life Bolt strike and recovery clarity (17 October 2026)
 
 - Keep Life Bolt’s responsive living projectile and crisp contact punch; replace the enemy-contact flower bloom with a short directional strike and three leaf flecks.
