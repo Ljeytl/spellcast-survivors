@@ -61,6 +61,8 @@ var camp: Control
 var camp_title: Label
 var camp_body: Label
 var wake_button: Button
+var camp_site: Node2D = null
+const CampScene = preload("res://scripts/Camp.gd")
 
 func _ready():
 	name = "DayCycle"
@@ -191,18 +193,28 @@ func boss_defeated():
 	monsters.vacuum_xp()
 	announce("The night goes quiet", "Everything else fled")
 
+## Camp: the field goes quiet and a fire is pitched where you stand (scripts/Camp.gd). You can walk,
+## rest by the fire to heal and type the wake word to set out. Run time and the combo hold; nothing spawns.
 func open_camp():
 	phase = Phase.CAMP
 	game.spell_manager.cancel_typing()
 	banner.modulate.a = 0.0
+	monsters.held = true
+	camp_site = CampScene.new()
+	camp_site.setup(self, game.player)
+	game.add_child(camp_site)
+	camp_site.global_position = game.player.global_position + Vector2(0, 70)
+	var hint = str(CampScene.config().get("hint", "Type ONWARD when you are ready"))
 	camp_title.text = "NIGHT %d · CAMP" % day
-	camp_body.text = "You made it through day %d.\nRun time %s · Combo kept\n\nTomorrow: day %d" % [day, format_time(monsters.game_time), day + 1]
+	camp_body.text = "You made it through day %d · Run time %s · Combo kept\n%s · Tomorrow: day %d" % [day, format_time(monsters.game_time), hint, day + 1]
 	camp.show()
-	game.change_state(game.GameState.CAMP)
-	wake_button.grab_focus.call_deferred()
 
 func wake():
 	camp.hide()
+	monsters.held = false
+	if is_instance_valid(camp_site):
+		camp_site.queue_free()
+	camp_site = null
 	day += 1
 	day_clock = 0.0
 	monsters.phase_clock = 0.0
@@ -298,32 +310,37 @@ func build_hud():
 	game.hud.add_child(banner)
 	camp = Control.new()
 	camp.name = "CampScreen"
-	camp.process_mode = Node.PROCESS_MODE_ALWAYS
 	camp.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var backdrop = ColorRect.new()
-	backdrop.color = Color(0.03, 0.03, 0.08, 0.82)
-	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	camp.add_child(backdrop)
-	var center = CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	camp.add_child(center)
+	camp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var panel = PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	panel.position = Vector2(-330, 52)
+	panel.custom_minimum_size = Vector2(660, 0)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.04, 0.08, 0.72)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(12)
+	panel.add_theme_stylebox_override("panel", style)
+	camp.add_child(panel)
 	var column = VBoxContainer.new()
-	column.custom_minimum_size.x = 420
-	column.add_theme_constant_override("separation", 18)
-	center.add_child(column)
+	column.add_theme_constant_override("separation", 6)
+	panel.add_child(column)
 	camp_title = Label.new()
 	camp_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	camp_title.add_theme_font_size_override("font_size", 30)
+	camp_title.add_theme_font_size_override("font_size", 24)
 	camp_title.add_theme_color_override("font_color", Color("f7a95a"))
 	column.add_child(camp_title)
 	camp_body = Label.new()
 	camp_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	camp_body.add_theme_font_size_override("font_size", 18)
+	camp_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	camp_body.add_theme_font_size_override("font_size", 15)
 	column.add_child(camp_body)
 	wake_button = Button.new()
 	wake_button.name = "WakeButton"
-	wake_button.text = "WAKE UP"
-	wake_button.custom_minimum_size = Vector2(0, 52)
+	wake_button.text = "SET OUT"
+	wake_button.focus_mode = Control.FOCUS_NONE   # keys stay with typing: SPACE starts a word
+	wake_button.custom_minimum_size = Vector2(160, 34)
+	wake_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	wake_button.pressed.connect(wake)
 	column.add_child(wake_button)
 	camp.hide()
