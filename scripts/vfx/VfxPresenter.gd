@@ -2088,7 +2088,7 @@ func _slash(part, look: Dictionary, pos: Vector2) -> void:
 		_emit_at(key, x, y, fx, fy)
 		if acc != "" and randf() < 0.5:
 			_emit_at(acc, x, y, fx, fy)
-	vfx.elements.slash(pos.x, pos.y, mid - span * 0.5 * _flip, span, _flip, R * 0.3, R, SMEAR[key], emit)
+	vfx.elements.slash(pos.x, pos.y, mid - span * 0.5 * _flip, span, _flip, R * 0.3, R, SMEAR[key], emit, 0.13, str(part.cast.plan.get("id", "")) == "slash" and not is_hostile(part))
 
 ## Per-element emission along a moving edge (sandbox emitAt).
 func _emit_at(el_name: String, x: float, y: float, fx: float, fy: float) -> void:
