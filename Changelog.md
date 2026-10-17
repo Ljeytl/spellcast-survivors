@@ -1,6 +1,6 @@
 # Capture tooling — Moving mixed combat evidence (17 October 2026)
 
-- Add one parameterized spell/rank capture with active native enemy AI, input-driven player movement, unchanged gameplay camera, secondary Magic Missile casts, contact telemetry and native MovieWriter audio alignment. Saves are isolated; the window stays hidden and offscreen.
+- Add one parameterized spell/rank capture with active native enemy AI, input-driven player movement, unchanged gameplay camera, secondary Magic Missile casts, contact telemetry and native MovieWriter audio alignment. Saves are isolated; the window stays offscreen without focus.
 - Fail captures missing hostile activity, primary contacts, motion or exported frames; include a no-hostiles negative control. This fixture supplies operated evidence, not artistic grades.
 
 # 0.3.4-dev.27 — Infection attachment and transmission (17 October 2026)

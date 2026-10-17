@@ -8,7 +8,6 @@ var damage_events := 0
 func _initialize():
 	root.set_flag(Window.FLAG_NO_FOCUS, true)
 	root.position = Vector2i(10000, 10000)
-	root.hide()
 	if not OS.get_user_data_dir().ends_with("SpellCast Survivors Synergy Test"):
 		quit(2)
 		return
@@ -18,6 +17,10 @@ func run():
 	var args = OS.get_cmdline_user_args()
 	var spell = args[0] if args.size() > 0 else "lightning"
 	var rank = int(args[1]) if args.size() > 1 else 1
+	if rank < 1 or rank > 8:
+		printerr("Rank must be 1 through 8")
+		quit(2)
+		return
 	var folder = args[2] if args.size() > 2 else "res://builds/combat"
 	var negative = args.has("no-hostiles")
 	DirAccess.make_dir_recursive_absolute(folder)
@@ -28,6 +31,10 @@ func run():
 	root.add_child(game)
 	current_scene = game
 	await process_frame
+	root.mode = Window.MODE_WINDOWED
+	root.position = Vector2i(10000, 10000)
+	root.size = Vector2i(1280, 850)
+	root.content_scale_size = root.size
 	game.get_node("UI").hide()
 	game.spell_manager.set_process(false)
 	game.player.style_health_damaged.connect(func(amount):
@@ -58,14 +65,22 @@ func run():
 	stage.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(stage)
 	if not game.spell_manager.learn_spell(spell) and spell != "bolt":
-		failures.append("spell_not_learned")
+		printerr("Spell not learned: ", spell)
+		quit(2)
+		return
 	var slot = game.spell_manager.find_spell_slot(spell)
+	if slot < 0:
+		printerr("No spell slot: ", spell)
+		quit(2)
+		return
 	game.spell_manager.get_spell_info(slot).level = rank
 	var origin: Vector2 = game.player.global_position
 	var travel := 0.0
 	var previous: Vector2 = origin
 	var casts: Array = []
 	var contacts: Dictionary = {}
+	var secondary_casts: Array = []
+	var secondary_contacts: Dictionary = {}
 	var warnings := 0
 	var secondary := 0
 	var frames: Array = []
@@ -79,8 +94,12 @@ func run():
 				casts.append(game.spell_manager.last_generic_cast)
 				events.append({"type":"primary_cast", "frame":frame, "movie_frame":Engine.get_frames_drawn()})
 		if frame in [55, 140, 210]:
+			game.spell_manager.last_generic_cast = null
 			game.spell_manager.fire_mana_bolt()
-			secondary += 1
+			var bolt = game.spell_manager.last_generic_cast
+			if is_instance_valid(bolt):
+				secondary_casts.append(bolt)
+				secondary += 1
 			events.append({"type":"secondary_cast", "frame":frame, "movie_frame":Engine.get_frames_drawn()})
 		await physics_frame
 		await process_frame
@@ -89,6 +108,9 @@ func run():
 		for cast in casts:
 			if is_instance_valid(cast):
 				contacts[str(cast.get_instance_id())] = cast.hits_log.duplicate(true)
+		for cast in secondary_casts:
+			if is_instance_valid(cast):
+				secondary_contacts[str(cast.get_instance_id())] = cast.hits_log.duplicate(true)
 		for enemy in enemies:
 			if is_instance_valid(enemy) and enemy.warning > 0.0:
 				warnings += 1
@@ -114,13 +136,17 @@ func run():
 		failures.append("missing_primary_contacts")
 	if travel < 100 or moved < 5:
 		failures.append("missing_motion")
-	if secondary < 3 or frames.size() != 240:
+	var secondary_hits := 0
+	for hits in secondary_contacts.values():
+		secondary_hits += hits.size()
+	if secondary < 3 or secondary_hits == 0 or frames.size() != 240:
 		failures.append("missing_casts_or_frames")
-	var result = {"spell":spell,"rank":rank,"negative_control":negative,"failures":failures,"damage_events":damage_events,"hostile_warning_samples":warnings,"primary_contacts":contacts,"primary_hit_count":hit_count,"player_travel":travel,"moving_enemies":moved,"secondary_casts":secondary,"frames":frames,"events":events,"sound_grade":"U: not heard"}
+	var result = {"spell":spell,"rank":rank,"negative_control":negative,"failures":failures,"damage_events":damage_events,"hostile_warning_samples":warnings,"primary_contacts":contacts,"primary_hit_count":hit_count,"player_travel":travel,"moving_enemies":moved,"secondary_casts":secondary,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
 	var file = FileAccess.open(folder + "/manifest.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(result,"\t"))
 	print("COMBAT_RESULT ", JSON.stringify({"failures":failures,"damage":damage_events,"warnings":warnings,"hits":hit_count,"travel":travel,"moving_enemies":moved}))
 	casts.clear()
+	secondary_casts.clear()
 	stage.queue_free()
 	game.queue_free()
 	await process_frame
