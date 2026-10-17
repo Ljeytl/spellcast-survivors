@@ -232,8 +232,8 @@ func rune(x: float, y: float, r: float, life: float = 4.0):
 ## Crescent smear (sandbox eSlash): sweeps across the swing, thick in the middle,
 ## tapered at the ends; the trailing part dithers out. emit(x, y, fx, fy) is
 ## called along the leading edge while it sweeps.
-func slash(cx: float, cy: float, a0: float, span: float, dir: int, rin: float, rout: float, cols: Array, emit: Callable, dur: float = 0.13):
-	slashes.append({"cx": cx, "cy": cy, "a0": a0, "span": span, "dir": dir, "t": 0.0, "dur": dur, "linger": 0.14, "rin": rin, "rout": rout, "cols": cols, "emit": emit})
+func slash(cx: float, cy: float, a0: float, span: float, dir: int, rin: float, rout: float, cols: Array, emit: Callable, dur: float = 0.13, sharp: bool = false):
+	slashes.append({"cx": cx, "cy": cy, "a0": a0, "span": span, "dir": dir, "t": 0.0, "dur": dur, "linger": 0.14, "rin": rin, "rout": rout, "cols": cols, "emit": emit, "sharp": sharp})
 
 func draw_glyph(buf: PackedByteArray, x: float, y: float, k: int, c: Color):
 	var P: Array = GLYPH[k]
@@ -395,7 +395,8 @@ func step(dt: float):
 		if k < 1.0 and sl.emit.is_valid():
 			var cur: float = sl.a0 + sl.span * k * sl.dir
 			for i in 4:
-				var rr: float = sl.rin + randf() * (sl.rout - sl.rin)
+				var inner: float = lerpf(sl.rin, sl.rout, 0.85) if sl.get("sharp", false) else sl.rin
+				var rr: float = inner + randf() * (sl.rout - inner)
 				sl.emit.call(sl.cx + cos(cur) * rr, sl.cy + sin(cur) * rr, cos(cur), sin(cur))
 	slashes = slashes.filter(func(sl): return sl.t < sl.dur + sl.linger)
 	keep = []
@@ -800,15 +801,21 @@ func _draw_slash(buf: PackedByteArray, sl: Dictionary):
 		var ca := cos(a)
 		var sa := sin(a)
 		var thick: float = (sl.rout - sl.rin) * (0.3 + 0.7 * sin(rel / sl.span * PI))
+		var sharp: bool = sl.get("sharp", false)
+		if sharp:
+			thick *= 0.22 * sqrt(fade)
 		var r: float = sl.rout - thick
 		while r <= sl.rout:
 			var X := roundi(sl.cx + ca * r)
 			var Y := roundi(sl.cy + sa * r)
-			if vfx._bayer(X, Y) <= fade:
+			if sharp or vfx._bayer(X, Y) <= fade:
 				var band: float = (sl.rout - r) / thick
-				spx(buf, X, Y, cols[0] if band < 0.2 else (cols[1] if band < 0.55 else cols[2]))
+				var color: Color = cols[0] if band < 0.2 else (cols[1] if band < 0.55 else cols[2])
+				if sharp and fade < 0.5:
+					color = cols[1] if fade > 0.25 else cols[2]
+				spx(buf, X, Y, color)
 			r += 0.7
-	if k < 1.0:
+	if k < 1.0 and not sl.get("sharp", false):
 		var a3: float = sl.a0 + cur * sl.dir
 		line(buf, Vector2(sl.cx + cos(a3) * sl.rin, sl.cy + sin(a3) * sl.rin), Vector2(sl.cx + cos(a3) * (sl.rout + 1.0), sl.cy + sin(a3) * (sl.rout + 1.0)), cols[0])
 
