@@ -1,0 +1,17 @@
+{
+  "worktree_name": "spellcast-cinder-feel",
+  "branch": "feature/cinder-feel",
+  "focus_areas": [
+    "Cinder-only ground material"
+  ],
+  "owned_files": [
+    "scripts/vfx/Vfx.gd",
+    "shaders/vfx_ground.gdshader",
+    "tests/cinder_material_regression.gd",
+    "Changelog.md",
+    "docs/expedition-design/spell-feel-current.json"
+  ],
+  "coordination_notes": "Separate worktree from Slash. GPU capture waits for Slash. Root owns review and integration.",
+  "merge_ready": true,
+  "last_sync_with_main": "4ce719b"
+}

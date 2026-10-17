@@ -1,5 +1,5 @@
 {
-  "as_of_revision": "b448e7f",
+  "as_of_revision": "86de0b0",
   "updated": "2026-10-17",
   "scope": "31 implemented player spells; data-only, disabled recipes and enemy attacks excluded",
   "columns": [
@@ -237,8 +237,8 @@
       "id": "cinder_field",
       "name": "Cinder Field",
       "baseline": "spell-feel-audit-2026-10-15.json#cinder_field",
-      "latest_reviewed_change": "bbe9518b82d7c552c8fe8f385db6b2a74eb9e9c5",
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "f36702d",
+      "disposition": "candidate_needs_full_sequence_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -251,9 +251,10 @@
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/field-lifetime/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/field-lifetime/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/cinder-field/manifest.json"
       ],
-      "next_review": "Dev.39 shared lifetime repair: actual damaging field footprint follows gameplay lifetime and recast segments rather than the accelerated particle clock. Native controlled late-damage and expiry evidence is in the field-lifetime manifest; preserve existing spell identity. Full-motion artistic, mixed hostile and audible quality review remains incomplete. Keep the heat and saturated color. Emphasize glowing coal pockets, low licking flame and hot ash stirred at real damage contacts; let the edge cool unevenly."
+      "next_review": "Dev.41 candidate: Cinder-only red-brown coal pockets with terrain gaps and sparse warm flecks; low flames remain primary, with a subdued true-radius edge cooling from authoritative age. Fresh native before/after base/max/narrow cover active life and expiry; recast and Ember Spear sibling checks pass. Root sampled-frame judgment is provisionally B- for fantasy/visuals/readability, but the dark circle remains diagrammatic. Current grades remain U because full-sequence motion/contact, audible quality and moving mixed-hostile qualification are unassessed. Preserve the heat and low flames; do not equate technical gates or sampled frames with a passing mean or fantasy acceptance."
     },
     {
       "id": "arcane_orbit",

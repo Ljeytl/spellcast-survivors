@@ -1,3 +1,9 @@
+# 0.3.4-dev.41 — Cinder coal pockets (17 October 2026)
+
+- Give only Cinder Field a quiet bed of red-brown coal clusters, sparse hot flecks and real terrain gaps. Replace its uniformly bright circular rim with a subdued true-radius edge and a few uneven hot points that cool with authoritative field age. Preserve low flames, heat, geometry, damage, lifetime and all other field materials.
+- Add Cinder material isolation and cooling checks, with a deliberately leaking profile as the negative control. Native offscreen before/after base, max and narrow captures cover the whole lifetime; recast and Ember Spear checks preserve the shared field lifecycle and spear shader path. Same-run PCM and decoded MP4/GIF evidence are retained.
+- Full-speed artistic, audible and mixed hostile qualification remain open. Sampled frames show a calmer coal bed, but the circular boundary still reads diagrammatic; no complete passing grade or user acceptance is claimed. Follow-up: review motion/contact and crowded readability before adding any further effects.
+
 # 0.3.4-dev.40 — Bare Slash sharp edge (17 October 2026)
 
 - Preserve the quick cone and its existing instant damage. Bare Slash now keeps light in a thin curved cutting edge, with a narrowing blue tail instead of a broad filled wedge and checkerboard residue. Existing particles follow the outer edge.
