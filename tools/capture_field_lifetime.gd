@@ -30,7 +30,18 @@ func run():
 	if spell != "field":
 		assert(game.spell_manager.learn_spell(spell))
 		game.spell_manager.get_spell_info(game.spell_manager.find_spell_slot(spell)).level = rank
-	var enemies = get_nodes_in_group("enemies")
+	for enemy in get_nodes_in_group("enemies"):
+		enemy.free()
+	var enemies: Array = []
+	var manager = game.get_node("MonsterManager")
+	for i in 4:
+		var definition = manager.encounter_config.variants.pursuer.duplicate(true)
+		definition.id = "pursuer"
+		var enemy = manager.spawn_monster(definition, false, true)
+		enemy.current_health = 10000
+		enemy.max_health = 10000
+		enemy.set_physics_process(false)
+		enemies.append(enemy)
 	for i in enemies.size():
 		enemies[i].global_position = game.player.global_position + Vector2(170 + i * 12, 0)
 	var stage = SubViewport.new()
