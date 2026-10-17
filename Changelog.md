@@ -1,15 +1,29 @@
-## 2026-10-17 — Trap state and cold-material refinement
+# 0.3.4-dev.36 — Trap state and cold-material refinement (17 October 2026)
 
 - Rune Trap, Frost Sigil and bare Trap finish inscription with a brief ready accent, then wait quietly at their actual trigger boundary. Bare Trap erases during its final quarter-second without an expiry explosion.
 - Rune Trap contracts its glyphs through the existing activation delay. Frost Sigil carries a readable six-branched cold glyph through arming and activation, then breaks into ice fragments instead of inherited earth debris and scorch. Geometry, payloads, persistence, recast policy and sounds remain unchanged.
 - Add isolated native lifecycle captures and focused arming, proximity, activation, contact, persistence, expiry, recast and reduced-effects regression coverage, including deliberately incorrect arming/radius/material controls. Native evidence remains provisional: sound/camera judgment and a full crowded hostile encounter are open.
 - Future refinement: qualify sound and camera in live combat and test modifier readability with hostile threats before treating the three spells as release-qualified.
 
+# 0.3.4-dev.35 — Earth Shield protective contact clarity (17 October 2026)
+
+- Preserve orbiting pebble charges and the existing retaliation cone. A consumed charge now resolves into a small shaded stone guard on the actual incoming side, then splits outward into the eruption.
+- Natural charge expiry drops three quiet chips without a block flash or retaliation. Preserve one-hit absorption, grace, combo protection, independent charges, damage, timing and scaling.
+- Verify actual enemy contact, projectile absorption, exhaustion damage, recast, rank-eight expiry and narrow/reduced presentation with native captures. Add focused presentation/lifecycle checks and deliberate missing-fracture and expiry-retaliation controls.
+- Follow-up: review moving mixed-threat combat and audition recorded audio; fixed-camera controlled captures do not establish full sound/camera quality or final spell acceptance.
+
+# 0.3.4-dev.34 — Prism Ray refraction clarity (17 October 2026)
+
+- Preserve the six elemental fan lanes and exact primary width/endpoints; give the primary a translucent cross-section around its bright core so the real target and refraction source remain visible.
+- Add one compact pale-violet concentration at each actual split. Give branches a thin bright core and translucent outer material, fade Prism-only afterimages over their existing lifetime and replace the plague branch’s outlined bubbles with small directional flecks. Tiny element glints mark actual branch contacts, limited to one per target per physics frame. Other rays, status effects, damage, motion and geometry remain unchanged.
+- Add rendered-material/source-isolation checks with a failing full-bright-tail control, native base/max moving/enlarged/reduced/narrow captures, and mixed hostile combat with another spell. Follow-up: complete audible and full-motion artistic assessment; the B-minus mean/C-minus-floor fantasy gate remains incomplete.
+
 # 0.3.4-dev.33 — Camp is a place (17 October 2026)
 
 - **After each night, you camp where you stand.** The field goes quiet and a campfire is pitched next to you, with a tent, a bedroll and a log seat (the camp pixel art). You can walk around. Resting within the fire's light heals you a little at a time (6% of max health per second). The run clock, spawns, patrols and stampedes all hold, and so does your combo.
 - **Type ONWARD to set out** (SPACE, then the word; it binds as soon as it is complete, like a ley word). A small SET OUT button is there for the mouse. Words like this are a new hook: anything in the `world_words` group answers to typed words before spells do.
 - Camp is no longer a pause screen. Its settings are `data/events.json` `camp` (wake word, heal radius, heal rate, hint).
+
 # 0.3.4-dev.32 — Fire Walk connected ground and cooling (17 October 2026)
 
 - Preserve the low flames and real patch footprint while replacing random checker-like scorch with a restrained continuous warm bed. Each patch cools with its own gameplay age; recasts do not rejuvenate old ground. Larger trails retain visible grass through the bed.

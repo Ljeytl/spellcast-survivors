@@ -116,6 +116,7 @@ var _presented := {}             # instance id -> weakref: parts we draw, kept u
                                  # finished parts (e.g. a blast's 0.12 s tail) never flash placeholder art
 var enabled := true              # console "vfx present off" shows the placeholders
 var _props := {}                 # instance id -> {node: WeakRef, kind}: spell objects the engine does not own
+var _shield_fractures: Array = []
 
 func _init(owner):
 	vfx = owner
@@ -288,8 +289,11 @@ func part_spawned(part) -> void:
 		var length_su: float = part.geo("length", 250.0) / WPS
 		# A real laser: a thick band in the element's colours that holds a moment and thins out.
 		var hw_su: float = maxf(1.5, part.geo("width", 28.0) * 0.5 / WPS)
-		_lasers.append([pos, dir2, length_su, hw_su, 0.0, 0.32, cols, key2])
-		_ray_flavour(key2, pos, dir2, length_su, hw_su)
+		var prism := str(part.cast.plan.get("id", "")) == "prism_ray"
+		_lasers.append([pos, dir2, length_su, hw_su, 0.0, 0.32, cols, key2, prism])
+		if prism and part.part_name == "ray_fire":
+			vfx.star(pos.x, pos.y, 2.5, 0.12, 4, Color("#ecdeff"))
+		_ray_flavour(key2, pos, dir2, length_su, hw_su, prism)
 		var tip: Vector2 = pos + dir2 * length_su
 		vfx.flash(tip.x, tip.y, 1.5, 0.06, cols[1])
 		for i in 3:
@@ -444,7 +448,21 @@ func part_spawned(part) -> void:
 	_parts[part.get_instance_id()] = st
 	_presented[part.get_instance_id()] = weakref(part)
 
+var _prism_contact_frame := -1
+var _prism_contacts := {}
+
 func part_hit(part, enemy, at: Vector2) -> void:
+	if str(part.cast.plan.get("id", "")) == "prism_ray" and str(part.def.get("vfx", {}).get("family", "")) == "ray" and is_instance_valid(enemy):
+		var frame := Engine.get_physics_frames()
+		if frame != _prism_contact_frame:
+			_prism_contacts.clear()
+			_prism_contact_frame = frame
+		var target: int = enemy.get_instance_id()
+		if not _prism_contacts.has(target):
+			_prism_contacts[target] = true
+			var palette: Array = BODY.get(str(part.def.vfx.get("look", "arcane")), BODY.arcane)
+			vfx.star(at.x / WPS, at.y / WPS, 1.6, 0.07, 4, palette[1])
+		return
 	var st = _parts.get(part.get_instance_id())
 	if st != null and st.kind == "infection":
 		if not st.has("infection_pulses"):
@@ -959,7 +977,7 @@ func _contact_punch(part, st: Dictionary, p: Vector2) -> void:
 		vfx.shake(0.35)
 
 ## Prism Ray: each refracted ray carries its element along it, so the six read apart at a glance.
-func _ray_flavour(look: String, a: Vector2, d: Vector2, L: float, hw: float) -> void:
+func _ray_flavour(look: String, a: Vector2, d: Vector2, L: float, hw: float, prism: bool = false) -> void:
 	var el = vfx.elements
 	var n := Vector2(-d.y, d.x)
 	match look:
@@ -981,7 +999,10 @@ func _ray_flavour(look: String, a: Vector2, d: Vector2, L: float, hw: float) -> 
 		"plague":
 			for i in 4:
 				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
-				el.bubble(q.x, q.y, randf() < 0.3)
+				if prism:
+					vfx.spark(q.x, q.y, d.x * 12.0, d.y * 12.0, 0.18, [BODY.plague[1], BODY.plague[2]])
+				else:
+					el.bubble(q.x, q.y, randf() < 0.3)
 		"life":
 			for i in 3:
 				var q: Vector2 = a + d * L * randf() + n * (randf() - 0.5) * hw * 2.0
@@ -1838,6 +1859,9 @@ func _entangled(dt: float) -> void:
 var _wrapped: Array = []
 
 func _advance_transients(dt: float) -> void:
+	for fracture in _shield_fractures:
+		fracture.age += dt
+	_shield_fractures = _shield_fractures.filter(func(fracture): return fracture.age < 0.32)
 	for ring in _hit_rings:
 		ring[3] += dt
 	_hit_rings = _hit_rings.filter(func(ring): return ring[3] < ring[4])
@@ -1846,6 +1870,7 @@ func _advance_transients(dt: float) -> void:
 	_lasers = _lasers.filter(func(ray): return ray[4] < ray[5])
 
 func clear_transients() -> void:
+	_shield_fractures.clear()
 	_orbit_visuals.clear()
 	for state in _parts.values():
 		state.erase("orbit_visual")
@@ -1856,6 +1881,8 @@ func clear_transients() -> void:
 	_missile_ribbons.clear()
 	_hit_rings.clear()
 	_lasers.clear()
+	_prism_contacts.clear()
+	_prism_contact_frame = -1
 
 func draw_statuses(buf: PackedByteArray) -> void:
 	var el = vfx.elements
@@ -1871,11 +1898,14 @@ func draw_statuses(buf: PackedByteArray) -> void:
 		var nrm: Vector2 = d0.orthogonal()
 		var hw := maxi(1, roundi(float(L[3]) * (1.0 - lk * 0.5)))
 		var lc: Array = L[6]
+		var prism: bool = L.size() > 8 and bool(L[8])
+		var fade := clampf((1.0 - lk) / 0.65, 0.0, 1.0) if prism else 1.0
 		if str(L[7]) == "lightning":
-			el.line(buf, a0, b0, lc[0])   # the storm ray is its arcs; only a thin white core here
+			el.line(buf, a0, b0, Color(lc[0], lc[0].a * fade))
 			continue
 		for o in range(-hw, hw + 1):
 			var c: Color = lc[0] if o == 0 else (lc[1] if absi(o) < hw else lc[mini(3, lc.size() - 1)])
+			c.a *= fade * (lerpf(0.6, 0.2, float(absi(o)) / float(hw)) if prism and o != 0 else 1.0)
 			el.line(buf, a0 + nrm * o, b0 + nrm * o, c)
 	# Stunned: three little stars circling the top of the body.
 	for q in _dazed:
@@ -2746,6 +2776,9 @@ func _draw_beam(buf: PackedByteArray, part, st: Dictionary) -> void:
 			c = Color.WHITE if o == 0 else RAINBOW[posmod(o + 3 + (vfx._steps >> 2), 6)]
 		else:
 			c = pal[0] if o == 0 else (pal[1] if absi(o) < hw else pal[3])
+		if str(part.cast.plan.get("id", "")) == "prism_ray":
+			var edge := float(absi(o)) / float(hw)
+			c.a = 1.0 if o == 0 else (0.65 if absi(o) == hw else lerpf(0.85, 0.24, edge))
 		el.line(buf, a + n * o, b + n * o, c)
 	# (no orb at the tip: playtest called it "the dumb pixel thing"; the tip sparks carry the contact)
 
@@ -2861,6 +2894,41 @@ const STONE := [
 func prop_added(node, kind: String) -> void:
 	_props[node.get_instance_id()] = {"node": weakref(node), "kind": kind}
 
+func shield_charge_ended(node, index: int, direction: Vector2) -> void:
+	var at: Vector2 = (node.global_position + direction * 30.0) / WPS
+	var origin: Vector2 = _stone_at(node, index, node.global_position / WPS) if index < 12 else at
+	if direction.is_zero_approx():
+		if index < 12:
+			for i in 3:
+				vfx.chunk(origin.x, origin.y, float(i - 1) * 2.0, 2.0, 3.0, EAR.debris, 0.3, 1)
+		return
+	_shield_fractures.append({"origin": origin, "at": at, "direction": direction, "age": 0.0})
+	var count := 2 if vfx.reduced_effects else 4
+	for i in count:
+		var velocity := direction.rotated((float(i) - float(count - 1) * 0.5) * 0.2) * (25.0 + i * 4.0)
+		vfx.chunk(at.x, at.y, velocity.x, velocity.y, 17.0 + i * 3.0, EAR.debris, 0.38, 1)
+
+func _draw_shield_fractures(buf: PackedByteArray) -> void:
+	var el = vfx.elements
+	for fracture in _shield_fractures:
+		var age: float = fracture.age
+		var direction: Vector2 = fracture.direction
+		var tangent := direction.orthogonal()
+		var at: Vector2 = fracture.origin.lerp(fracture.at, minf(age / 0.04, 1.0))
+		var split := maxf(0.0, age - 0.07) / 0.25
+		var alpha := 1.0 - split
+		for side in [-1, 1]:
+			var centre: Vector2 = at + tangent * side * (1.5 + split * 5.0) + direction * split * 11.0
+			for row in 3:
+				var a: Vector2 = centre + tangent * side * row
+				var b: Vector2 = a + direction * (2.0 if row < 2 else 1.0)
+				el.line(buf, a - direction, b, Color(EAR.body[3], alpha))
+				el.line(buf, a, b, Color(EAR.body[1 if row < 2 else 2], alpha))
+			el.line(buf, centre + direction, centre + direction * 2.0 + tangent * side, Color(EAR.body[0], alpha))
+		if age > 0.03 and age < 0.12:
+			el.line(buf, at - tangent * 2.0, at + direction, EAR.debris[0])
+			el.line(buf, at + direction, at + tangent * 2.0, EAR.debris[0])
+
 func presents_prop(node) -> bool:
 	return enabled and _props.has(node.get_instance_id())
 
@@ -2952,6 +3020,7 @@ func _draw_life_bolt_seed(buf: PackedByteArray, at: Vector2, node) -> void:
 func _draw_props(buf: PackedByteArray) -> void:
 	if not enabled:
 		return
+	_draw_shield_fractures(buf)
 	var el = vfx.elements
 	for pr in _props.values():
 		var node = pr.node.get_ref()

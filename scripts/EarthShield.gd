@@ -18,6 +18,10 @@ func advance(delta: float):
 	age += delta
 	for charge in charges:
 		charge.remaining -= delta
+	var vfx = get_node_or_null("/root/Vfx")
+	for index in charges.size():
+		if charges[index].remaining <= 0 and vfx:
+			vfx.shield_charge_ended(self, index)
 	charges = charges.filter(func(charge): return charge.remaining > 0)
 	queue_redraw()
 
@@ -32,7 +36,6 @@ func block(source: Dictionary) -> bool:
 		if charges[index].remaining < charges[earliest].remaining:
 			earliest = index
 	var charge = charges[earliest]
-	charges.remove_at(earliest)
 	var point: Vector2 = source.get("source_position", global_position)
 	var attacker = source.get("attacker")
 	if attacker is WeakRef:
@@ -46,7 +49,8 @@ func block(source: Dictionary) -> bool:
 		aim = Vector2.RIGHT
 	var vfx = get_node_or_null("/root/Vfx")
 	if vfx:
-		vfx.prop_burst("block", global_position + aim.normalized() * 30.0)
+		vfx.shield_charge_ended(self, earliest, aim.normalized())
+	charges.remove_at(earliest)
 	release_eruption.call_deferred(charge, global_position, aim.normalized())
 	queue_redraw()
 	return true

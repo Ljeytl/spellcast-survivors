@@ -599,6 +599,10 @@ func prop_added(node, kind: String) -> void:
 func presents_prop(node) -> bool:
 	return _active and presenter.presents_prop(node)
 
+func shield_charge_ended(node, index: int, direction: Vector2 = Vector2.ZERO) -> void:
+	if _active and presenter.presents_prop(node):
+		presenter.shield_charge_ended(node, index, direction)
+
 ## False when the layer is down: the caller shows its own feedback instead.
 func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> bool:
 	if not _active or not presenter.enabled:
