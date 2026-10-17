@@ -1126,10 +1126,19 @@ Ice Blast level 1 and maximum rank are accepted by the user after moving preview
 
 Magic Missile is the active refinement: clear translucent missiles, a quick pew, short responsive wake and compact contact. Starting effects and cast-time changes remain deferred. The earlier audit score is historical and does not establish acceptance of the new direction. Verify exported video by decoding frames; provide an animated GIF alongside MP4.
 
-Current Magic Missile candidate: pale translucent body with a highlighted edge, a 0.13-second position-history wake, and compact contact without hitstop or camera shake. Actual alpha is composited through the final VFX shader; testing only the intermediate pixel buffer was insufficient because the prior shader discarded alpha below 0.5. Opaque effects retain their existing output.
+Rejected dev.17 Magic Missile candidate: pale translucent body with a highlighted edge, a 0.13-second position-history wake, and compact contact without hitstop or camera shake. Actual alpha is composited through the final VFX shader; testing only the intermediate pixel buffer was insufficient because the prior shader discarded alpha below 0.5. Opaque effects retain their existing output.
 
 | Candidate | Fantasy | Visuals | Motion | Impact | Readability | Equal-weight average |
 |---|---|---|---|---|---|---|
 | Magic Missile, 17 October native preview | B- | B- | B | B- | B | 2.82 / B- |
 
-These are provisional visual/feel grades, not user acceptance. Sound is unchanged and ungraded by the silent preview. Native captures cover repeated level-1 and level-8 firing against a sparse fixture; crowded gameplay remains unreviewed. The existing release glint is unchanged because starting effects remain deferred.
+These assistant grades were rejected by the user and are invalid; retained only as review history. Sound is unchanged and ungraded by the silent preview. Native captures cover repeated level-1 and level-8 firing against a sparse fixture; crowded gameplay remains unreviewed. The existing release glint is unchanged because starting effects remain deferred.
+
+
+### Magic Missile rejection and retry — 17 October 2026
+
+User assessment: dev.17 is D across all categories, a weird blobby shape with poor apparent movement. The older implementation was preferred: overall C, fantasy D, with execution otherwise strong. Do not confuse technical transparency with visual success or average away the missing fantasy.
+
+Retry from the older effect's strengths: restore its sparkle style and contact, positioning fewer, shorter-lived sparks behind the head, retain its actual guidance and cadence, and concentrate the change on a compact directional magical dart. Reject the long hollow capsule and line-history wake. Keep a translucent interior and a small leading light without dark outlines. Evaluate at native scale in motion, including a moving target. The new candidate must not inherit the rejected B-minus grade.
+
+Retry evidence: native level-1/8 captures against stationary and scripted moving targets, with real damage asserted. The moving fixture's displacement is scripted and is not knockback evidence. Both exported four-second MP4s decode 120 frames; GIF alternatives are retained. The compact dart removes the capsule silhouette and the contact regains the original response, but the pale material is still a candidate, not a verified B-minus or user-approved effect. Audio is unchanged.

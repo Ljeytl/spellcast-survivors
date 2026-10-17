@@ -40,6 +40,9 @@ func run():
 		var folder: String = "res://builds/magic-missile/" + label + "/rank-" + str(rank)
 		DirAccess.make_dir_recursive_absolute(folder)
 		for frame in 240:
+			if OS.get_cmdline_user_args().has("moving"):
+				for i in foes.size():
+					foes[i].global_position = positions[i] + Vector2(0, sin(float(frame) / 32.0 + i) * 65.0)
 			if frame in [12, 72, 132]:
 				game.spell_manager.fire_mana_bolt()
 			await physics_frame
@@ -58,7 +61,7 @@ func run():
 				hits += 1
 			if foes[i].global_position.distance_to(positions[i]) > 5:
 				moved += 1
-		print("MISSILE_CAPTURE rank=", rank, " hits=", hits, " pushed=", moved)
+		print("MISSILE_CAPTURE rank=", rank, " hits=", hits, " moved=", moved)
 		if hits == 0:
 			quit(1)
 			return
