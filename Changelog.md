@@ -1,3 +1,10 @@
+# 0.3.4-dev.24 — Atomic pressure release (17 October 2026)
+
+- Atomic gathers violet energy around the committed caster position, then releases a fast radial pressure front with a brief local white-hot core and fading sparks. Removed the persistent rectangular screen border; brief scene dimming and a release flash contrast the compressed charge with detonation.
+- Preserved 0.65-second warning, locked rectangular damage footprint, pure damage, 60% boss maximum-health hit, projectile clearing, once-only impact, pause behavior and existing single heavy shake. Reduced effects suppress the shake and soften light.
+- Added existing licensed charge/release audio through AudioManager. Actual in-engine audio capture is separate evidence from visual self-assessment.
+- Added centered, off-center and reduced-effects capture cases with real boss and regular-enemy contact. Full artistic gate remains provisional pending audible review and mixed-threat crowd evidence; tests alone do not confer a B.
+
 # 0.3.4-dev.23 — Every enemy role reads at a glance (17 October 2026)
 
 - **Placeholder looks until real art.** The Imp is now red-orange with an ember above it. The spear goblin is indigo and holds a spear pointed at you, which becomes the lunge telegraph line. The Mortar is tinted rust so it no longer looks like the Shieldbearer, which shares its sprite. This uses `data/encounters.json` `recolor` (hue and saturation, through `shaders/enemy_recolor.gdshader`, one material per enemy type, so crowds still batch) and `tint` (for grey bodies). Hit flashes and elite tints still apply on top.

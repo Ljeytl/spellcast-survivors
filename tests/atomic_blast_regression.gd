@@ -50,6 +50,11 @@ func run() -> void:
 	var blast = Atomic.new()
 	blast.configure(game)
 	var bounds: Rect2 = blast.footprint
+	var committed_origin: Vector2 = game.player.global_position
+	check(blast.origin == committed_origin, "Warning originates at caster position")
+	game.player.global_position += Vector2(80, 40)
+	check(blast.origin == committed_origin, "Caster movement cannot move committed pressure origin")
+	check(blast.reach >= blast.origin.distance_to(bounds.end), "Pressure reaches far corner of locked footprint")
 	var center := bounds.get_center()
 	game.add_child(blast)
 	var ordinary = spawn("pursuer", center + Vector2(100, 0))
