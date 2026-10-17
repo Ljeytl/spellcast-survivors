@@ -62,6 +62,28 @@ def feel_gate(grades):
 
 
 class DocumentationChecks(unittest.TestCase):
+    def test_current_feel_ledger(self):
+        ledger = json.loads(content('spell-feel-current.json'))
+        historical = json.loads(content('spell-feel-audit-2026-10-15.json'))
+        self.assertEqual(ledger['columns'], historical['columns'])
+        self.assertEqual(ledger['mean_floor'], 2.7)
+        self.assertEqual(ledger['column_floor'], 1.7)
+        rows = ledger['rows']
+        self.assertEqual(len(rows), len({row['id'] for row in rows}))
+        self.assertEqual({row['id'] for row in rows}, {row['id'] for row in historical['rows']})
+        for row in rows:
+            grades = row['current_grades']
+            self.assertEqual(len(grades), 6)
+            self.assertTrue(all(grade in FEEL_POINTS or grade == 'U' for grade in grades))
+            self.assertTrue(row['next_review'])
+            if row['verdict'] == 'PASS':
+                self.assertEqual(feel_gate(grades), 'PASS')
+                self.assertIs(row['fantasy_fulfilled'], True)
+                self.assertTrue(row['evidence'])
+                self.assertTrue(row['latest_reviewed_change'])
+            if 'U' in grades:
+                self.assertEqual(row['verdict'], 'INCOMPLETE')
+
     def test_audit_scorecard(self):
         audit = json.loads(content('spell-feel-audit-2026-10-15.json'))
         rows = audit['rows']

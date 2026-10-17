@@ -794,6 +794,8 @@ This order covers the current roster before promoting the future catalog into im
 
 ### A B requires evidence in play
 
+The [current roster ledger](spell-feel-current.json) tracks all 31 implemented player spells separately from the historical audit below. It records accepted directions, latest refinement evidence and the next unresolved review. Unknown current categories remain U; historical grades and user approval of one phase are not copied into a complete current verdict. Update this ledger when a spell is reassessed. A fantasy failure cannot be averaged away.
+
 For each current spell, grade six columns: **fantasy**, **visual quality**, **motion and behavior**, **casting and impact**, **sound and camera**, and **readability**. Ending/cleanup belongs in motion and readability; enemy response belongs in casting/impact. Every column must be in the C band or higher (C− is acceptable), and the arithmetic mean must reach B− (2.7). Use A+=4.3, A=4.0, A−=3.7, B+=3.3, B=3.0, B−=2.7, C+=2.3, C=2.0, C−=1.7, D+=1.3, D=1.0, D−=0.7 and F=0. A missing observation is untested, never zero or an invented grade. An incomplete row cannot pass; a mean of observed columns may be shown only as a clearly labeled partial mean. These are working artistic judgments, not objective measurements.
 
 **Fantasy leads the recommendations.** Preserve an exceptional identity even when its readability is merely C−; improve comprehension around the essential effect instead of stripping away its character. For example, an Ember Spear with A+ fantasy and C− readability is not automatically a redesign candidate. The average remains unweighted as requested; fantasy priority governs what to preserve and which improvements to pursue. Simplicity can earn an A.
@@ -809,7 +811,7 @@ Under the autonomous roster goal, integrate independently reviewed and tested re
 Keep a short decision record for target ownership/retargeting, damaging geometry versus decorative trails, attack cadence, lifetime, recast/cap rules, rank changes and compatible modifiers. For spirit alternatives, explicitly choose orbit-host damage versus collision damage and one-pass versus persistent attacks. For Lightning, decide whether ground charge is harmless residue or a new payload. For Flame Wall, settle placement/movement and contact cadence. Paused spear families remain paused; undefined catalog cells remain undefined. Sound assets and their licenses must be tracked when assets are selected; no specific external sound or paid acquisition is mandated here.
 
 
-## Current spell audit — 15 October 2026
+## Historical spell audit — 15 October 2026
 
 **Status: provisional visual audit; full spell-feel gate INCOMPLETE.** Candidate `a96ddd56c42e8759371ef7918dc564d016cbdbf0`. All 31 current player spell/form/special sequences were captured in a background Chromium Web build using the real Game scene and spell engine. This is a dated assessment, not an approval of the current effects or a claim that the game meets the target. Future catalog spells have no running implementation to grade here; their design scripts remain proposals.
 

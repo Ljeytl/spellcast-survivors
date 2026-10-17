@@ -1,3 +1,7 @@
+# Documentation — Current spell-feel evidence (17 October 2026)
+
+- Add a current 31-spell ledger separating user-approved identities, merged candidates and outstanding review from the historical October 15 grades. Keep unknown categories ungraded and record the B-minus/C-minus thresholds plus the independent fantasy requirement.
+
 # 0.3.4-dev.25 — Life and Regeneration recovery feedback (17 October 2026)
 
 - Move Life's successful bloom from spell creation to actual received healing. Six pale leaf shapes gather into the torso and release a short warm mote lift; full health produces no successful-recovery pulse.

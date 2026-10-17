@@ -1,0 +1,658 @@
+{
+  "as_of_revision": "3dae4f6c29de0f3c8b629c9e2fb8510b52806c92",
+  "updated": "2026-10-17",
+  "scope": "31 implemented player spells; data-only, disabled recipes and enemy attacks excluded",
+  "columns": [
+    "fantasy",
+    "visuals",
+    "motion_behavior",
+    "casting_impact",
+    "sound_camera",
+    "readability"
+  ],
+  "mean_floor": 2.7,
+  "column_floor": 1.7,
+  "grading_policy": "Current grades require candidate-bound full-sequence assessment. User feedback is calibration, not a substitute for unobserved categories. Historical grades are not copied forward. Fantasy fulfillment must be established separately from the arithmetic mean.",
+  "required_evidence": [
+    "native full-sequence motion and actual contacts",
+    "meaningful base/max rank or explicit non-applicability",
+    "crowded moving encounter with another spell and hostile threat",
+    "applicable modifiers and lifecycle boundaries",
+    "audible artistic assessment",
+    "candidate revision and verified viewable artifacts"
+  ],
+  "rows": [
+    {
+      "id": "bolt",
+      "name": "Bolt",
+      "baseline": "spell-feel-audit-2026-10-15.json#bolt",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Preserve the fast minimal projectile. Tighten the staff-tip release and give the real contact one clean directional spark rather than a larger explosion."
+    },
+    {
+      "id": "life",
+      "name": "Life",
+      "baseline": "spell-feel-audit-2026-10-15.json#life",
+      "latest_reviewed_change": "4f926df9467c1dbc0f782e0f2ab5f649381db917",
+      "disposition": "refined",
+      "user_feedback": "Actual-heal pulse merged; no user acceptance.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json"
+      ],
+      "next_review": "Assess full sequence and audible recovery cue at gameplay scale."
+    },
+    {
+      "id": "regeneration",
+      "name": "Regeneration",
+      "baseline": "spell-feel-audit-2026-10-15.json#regeneration",
+      "latest_reviewed_change": "4f926df9467c1dbc0f782e0f2ab5f649381db917",
+      "disposition": "refined",
+      "user_feedback": "Quiet aura and actual recovery gathers merged; no user acceptance.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json"
+      ],
+      "next_review": "Assess sustained rhythm, crowded visibility and audible cue."
+    },
+    {
+      "id": "ice_blast",
+      "name": "Ice Blast",
+      "baseline": "spell-feel-audit-2026-10-15.json#ice_blast",
+      "latest_reviewed_change": "95ae3e2",
+      "disposition": "preserve",
+      "user_feedback": "User approved base and max-rank visual previews.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/16/ice-blast-refinement/"
+      ],
+      "next_review": "Qualify audio and crowded readability without redesigning accepted fan."
+    },
+    {
+      "id": "earth_shield",
+      "name": "Earth Shield",
+      "baseline": "spell-feel-audit-2026-10-15.json#earth_shield",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Make one protective stone shell assemble, visibly take the incoming hit, then break into the existing eruption. The single charge should look spent afterward."
+    },
+    {
+      "id": "lightning",
+      "name": "Lightning",
+      "baseline": "spell-feel-audit-2026-10-15.json#lightning",
+      "latest_reviewed_change": "b5140c8",
+      "disposition": "preserve",
+      "user_feedback": "User rated restored bolt, circle and explosion effects A; preserve visual identity.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Complete moving/crowded encounter, sound and camera evidence."
+    },
+    {
+      "id": "meteor_shower",
+      "name": "Meteor Shower",
+      "baseline": "spell-feel-audit-2026-10-15.json#meteor_shower",
+      "latest_reviewed_change": null,
+      "disposition": "preserve",
+      "user_feedback": "User explicitly likes staggered falls and repeated impact shakes.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Verify sound and crowded readability while preserving stagger."
+    },
+    {
+      "id": "ember_spear",
+      "name": "Ember Spear",
+      "baseline": "spell-feel-audit-2026-10-15.json#ember_spear",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Preserve heat, reach and force. Break up the strip into an irregular scorched path with moving low flame, keeping the spear head distinct from its damaging wake."
+    },
+    {
+      "id": "infestation",
+      "name": "Infestation",
+      "baseline": "spell-feel-audit-2026-10-15.json#infestation",
+      "latest_reviewed_change": null,
+      "disposition": "in_progress",
+      "user_feedback": "Isolated refinement underway; no merged improvement yet.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Inspect true host attachment, traveling spore, tick, spread, death and expiry."
+    },
+    {
+      "id": "cinder_field",
+      "name": "Cinder Field",
+      "baseline": "spell-feel-audit-2026-10-15.json#cinder_field",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep the heat and saturated color. Emphasize glowing coal pockets, low licking flame and hot ash stirred at real damage contacts; let the edge cool unevenly."
+    },
+    {
+      "id": "arcane_orbit",
+      "name": "Arcane Orbit",
+      "baseline": "spell-feel-audit-2026-10-15.json#arcane_orbit",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep two clear bodies and their orbit. Let light circulate within each shell and leave a short curved particle wake; concentrate the contact accent on the leading edge."
+    },
+    {
+      "id": "focus_ray",
+      "name": "Focus Ray",
+      "baseline": "spell-feel-audit-2026-10-15.json#focus_ray",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep the clean beam. Add subtle forward flow and a concentrated contact point that responds to real ticks, plus a brief narrowing shutdown rather than extra screen effects."
+    },
+    {
+      "id": "rune_trap",
+      "name": "Rune Trap",
+      "baseline": "spell-feel-audit-2026-10-15.json#rune_trap",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep the runic geometry. Draw the inscription once, wait quietly, then snap its symbols inward during the actual trigger warning before the blast opens outward."
+    },
+    {
+      "id": "seeker",
+      "name": "Seeker",
+      "baseline": "spell-feel-audit-2026-10-15.json#seeker",
+      "latest_reviewed_change": "d777641",
+      "disposition": "preserve",
+      "user_feedback": "Hybrid reference accepted B-minus; sustained hunt and gentle healing return approved.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Verify full native hunt, fresh-target finish and healing lifecycle at ranks with audio."
+    },
+    {
+      "id": "firewalk",
+      "name": "Fire Walk",
+      "baseline": "spell-feel-audit-2026-10-15.json#firewalk",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep the ground-hugging scale. Connect neighboring flames through short-lived heat and embers, show ignition directly behind each step, and let older patches cool in path order."
+    },
+    {
+      "id": "cross_blade",
+      "name": "Cross Blade",
+      "baseline": "spell-feel-audit-2026-10-15.json#cross_blade",
+      "latest_reviewed_change": "06c71e6",
+      "disposition": "refined",
+      "user_feedback": "Filled steel candidate merged; no user acceptance.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/cross-blade/"
+      ],
+      "next_review": "Assess motion and real contacts with audio in crowded play."
+    },
+    {
+      "id": "lightning_bolt",
+      "name": "Lightning Bolt",
+      "baseline": "spell-feel-audit-2026-10-15.json#lightning_bolt",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Make each projectile contact leave a compact electrical mark that visibly becomes its delayed sky strike. Preserve the cascade while shortening distracting spent-ring emphasis."
+    },
+    {
+      "id": "life_bolt",
+      "name": "Life Bolt",
+      "baseline": "spell-feel-audit-2026-10-15.json#life_bolt",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Use a small planted sprout for available recovery and reserve the inward warm pulse for actual healing. Preserve the offensive projectile; do not make damaging contact look like healing the enemy."
+    },
+    {
+      "id": "meteor_spear",
+      "name": "Meteor Spear",
+      "baseline": "spell-feel-audit-2026-10-15.json#meteor_spear",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep penetration and staggered follow-up impacts. Mark the pierced contacts briefly, then make each descending meteor visibly answer a mark; refine the same artificial trail edge as Ember Spear."
+    },
+    {
+      "id": "soul_bloom",
+      "name": "Soul Bloom",
+      "baseline": "spell-feel-audit-2026-10-15.json#soul_bloom",
+      "latest_reviewed_change": "b23100f",
+      "disposition": "preserve",
+      "user_feedback": "Approved hybrid port is merged; user explicitly likes Soul Bloom.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Verify native spread, spirit emergence, full-health alternative and audio."
+    },
+    {
+      "id": "steam_field",
+      "name": "Steam Field",
+      "baseline": "spell-feel-audit-2026-10-15.json#steam_field",
+      "latest_reviewed_change": null,
+      "disposition": "preserve",
+      "user_feedback": "User liked steam particle direction; retain cloud identity.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Complete audible/crowded burn feedback assessment."
+    },
+    {
+      "id": "prism_ray",
+      "name": "Prism Ray",
+      "baseline": "spell-feel-audit-2026-10-15.json#prism_ray",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Make a bright compact refraction knot at the real split, maintain a confident primary ray and give branches lighter material tails. Keep the rainbow fan rather than sanitizing away the fantasy."
+    },
+    {
+      "id": "frost_sigil",
+      "name": "Frost Sigil",
+      "baseline": "spell-feel-audit-2026-10-15.json#frost_sigil",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Preserve the forceful trigger. Make frost race along the inscription and burst into brittle fragments; fade into cold rime rather than a burnt-looking patch."
+    },
+    {
+      "id": "mana_bolt",
+      "name": "Magic Missile",
+      "baseline": "spell-feel-audit-2026-10-15.json#mana_bolt",
+      "latest_reviewed_change": "0fcae83",
+      "disposition": "refined",
+      "user_feedback": "Diamond direction selected; tiny edge/contact polish not explicitly graded by user.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/missile-polish/"
+      ],
+      "next_review": "Judge latest polish independently of rejected earlier grades."
+    },
+    {
+      "id": "spear",
+      "name": "Bare Spear",
+      "baseline": "spell-feel-audit-2026-10-15.json#spear",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep one sharp point, short wake and local puncture. Reduce competing generic cast decoration before adding anything to the projectile."
+    },
+    {
+      "id": "slash",
+      "name": "Bare Slash",
+      "baseline": "spell-feel-audit-2026-10-15.json#slash",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep the quick cone. Concentrate light at an advancing curved edge and taper the tail, with clipped contact particles; do not reintroduce the rejected painted treatment."
+    },
+    {
+      "id": "nova",
+      "name": "Bare Nova",
+      "baseline": "spell-feel-audit-2026-10-15.json#nova",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Let the damaging front own the release, with a compact central compression and localized edge contacts. Keep the inside quiet after the wave passes."
+    },
+    {
+      "id": "field",
+      "name": "Bare Field",
+      "baseline": "spell-feel-audit-2026-10-15.json#field",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Preserve the compact rune field. Ground the glyphs and let real ticks produce a restrained outward pulse instead of constant equally bright decoration."
+    },
+    {
+      "id": "orbit",
+      "name": "Bare Orbit",
+      "baseline": "spell-feel-audit-2026-10-15.json#orbit",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Keep this restrained scale and readable orbit. Give actual contacts a tiny leading-edge spark and retire each wake naturally when its body expires."
+    },
+    {
+      "id": "trap",
+      "name": "Bare Trap",
+      "baseline": "spell-feel-audit-2026-10-15.json#trap",
+      "latest_reviewed_change": null,
+      "disposition": "needs_current_review",
+      "user_feedback": "No newer explicit acceptance recorded.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [],
+      "next_review": "Use one short closing inscription to signal armed, a quiet waiting state, and one snap on trigger. Empty expiry should erase it without a blast."
+    },
+    {
+      "id": "atomic",
+      "name": "Atomic",
+      "baseline": "spell-feel-audit-2026-10-15.json#atomic",
+      "latest_reviewed_change": "1eb241e3ffb079e836e9c8715881e84b5dc22b1b",
+      "disposition": "refined",
+      "user_feedback": "Atomic reference inferred as I Am Atomic; violet material candidate merged, no user acceptance.",
+      "current_grades": [
+        "U",
+        "U",
+        "U",
+        "U",
+        "U",
+        "U"
+      ],
+      "fantasy_fulfilled": null,
+      "verdict": "INCOMPLETE",
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic/manifest.json"
+      ],
+      "next_review": "Review audible mix and mixed hostile-threat encounter."
+    }
+  ]
+}
