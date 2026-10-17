@@ -269,6 +269,7 @@ func part_spawned(part) -> void:
 		aura.part_ref = weakref(part)
 		aura.visual_size = clampf(float(part.def.get("visual_size", 1.0)), 0.6, 2.0)
 		vfx.add_child(aura)
+		aura.global_position = part.cast.caster.global_position
 		_presented[part.get_instance_id()] = weakref(part)
 		return
 	if bool(part.def.get("vfx", {}).get("warn", false)):

@@ -96,12 +96,29 @@ func run():
 			check(not node.visible, "aura obeys presentation toggle")
 			vfx.presenter.enabled = true
 	check(aura_count == 1, "real aura part registers persistent visual")
-	await create_timer(6.0).timeout
+	await create_timer(2.0).timeout
+	check(game.spell_manager.cast_spell_by_type(slot), "active regeneration recast accepted")
+	await create_timer(3.5).timeout
+	var surviving_auras := 0
+	for node in get_nodes_in_group("healing_visuals"):
+		if node.get_script() == preload("res://scripts/vfx/RegenerationAura.gd"):
+			surviving_auras += 1
+	check(surviving_auras == 1, "recast extends same aura beyond original expiry")
+	await create_timer(5.5).timeout
 	check(get_nodes_in_group("healing_visuals").is_empty(), "aura and recovery pulses expire with actual spell")
-	game.spell_manager.cast_spell_by_type(slot)
+	check(game.spell_manager.cast_spell_by_type(slot), "death scenario cast accepted")
 	await process_frame
+	var death_auras := 0
+	for node in get_nodes_in_group("healing_visuals"):
+		if node.get_script() == preload("res://scripts/vfx/RegenerationAura.gd"):
+			death_auras += 1
+	check(death_auras == 1, "death scenario starts with active aura")
 	player.health = 0.0
 	await create_timer(0.5).timeout
-	check(get_nodes_in_group("healing_visuals").is_empty(), "aura retires when caster dies")
+	var remaining_auras := 0
+	for node in get_nodes_in_group("healing_visuals"):
+		if node.get_script() == preload("res://scripts/vfx/RegenerationAura.gd"):
+			remaining_auras += 1
+	check(remaining_auras == 0, "aura retires when caster dies")
 	print("HEALING PRESENTATION: ", checks, " checks, ", failures, " failures")
 	quit(1 if failures else 0)

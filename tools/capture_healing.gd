@@ -55,6 +55,8 @@ func run():
 		stage.canvas_transform = root.get_canvas_transform()
 		game.get_node("Background").queue_redraw()
 		await RenderingServer.frame_post_draw
+		if frame == 0:
+			print("FIRST_PNG_MOVIE_FRAME=", Engine.get_frames_drawn())
 		if frame % 2 == 0:
 			assert(stage.get_texture().get_image().save_png(folder + "/%04d.png" % (frame / 2)) == OK)
 	record.set_recording_active(false)
