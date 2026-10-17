@@ -31,6 +31,7 @@ var actual_spawns = 0
 var cap_rejections = 0
 var encounter_director
 var threat_director   # data/director.json; null when encounters.json pacing is interval_phases
+var stampede   # scripts/Stampede.gd, the stampede set piece (data/events.json)
 var spawn_batch_fraction := 0.0
 var spawn_pressure = preload("res://scripts/SpawnPressure.gd").new()
 const Elites = preload("res://scripts/Elites.gd")
@@ -51,6 +52,7 @@ func _ready():
 	encounter_director = preload("res://scripts/EncounterDirector.gd").new(self)
 	if pacing() == "director":
 		threat_director = preload("res://scripts/ThreatDirector.gd").new(self)
+	stampede = preload("res://scripts/Stampede.gd").new(self)
 	add_to_group("monster_manager")
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = calculate_spawn_interval()
@@ -217,6 +219,8 @@ func vacuum_xp():
 
 ## The boss has fallen: every other monster flees into the dark (no kill, no XP).
 func rout():
+	if stampede:
+		stampede.stop()
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.dying or (enemy.boss and not enemy.has_meta("champion")):
 			continue
@@ -449,6 +453,8 @@ func advance_time(delta: float):
 	check_elite_patrol()
 	encounter_director.update(delta)
 	if not spawn_timer.is_stopped():
+		if stampede:
+			stampede.update(delta)
 		if threat_director:
 			threat_director.update(delta)
 		else:

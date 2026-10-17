@@ -84,6 +84,8 @@ func recycle_distant():
 	for enemy in manager.get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or enemy.get_parent() != manager.get_parent():
 			continue
+		if enemy.has_meta("stampede"):
+			continue   # a stampede runs its own lane off the far side
 		if enemy.get("boss") != false or enemy.get("dying") != false or enemy.get("current_health") == null or enemy.current_health <= 0:
 			continue
 		if distant.has_point(enemy.global_position):
