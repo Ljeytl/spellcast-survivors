@@ -1,3 +1,10 @@
+## 2026-10-17 — Trap state and cold-material refinement
+
+- Rune Trap, Frost Sigil and bare Trap finish inscription with a brief ready accent, then wait quietly at their actual trigger boundary. Bare Trap erases during its final quarter-second without an expiry explosion.
+- Rune Trap contracts its glyphs through the existing activation delay. Frost Sigil carries a readable six-branched cold glyph through arming and activation, then breaks into ice fragments instead of inherited earth debris and scorch. Geometry, payloads, persistence, recast policy and sounds remain unchanged.
+- Add isolated native lifecycle captures and focused arming, proximity, activation, contact, persistence, expiry, recast and reduced-effects regression coverage, including deliberately incorrect arming/radius/material controls. Native evidence remains provisional: sound/camera judgment and a full crowded hostile encounter are open.
+- Future refinement: qualify sound and camera in live combat and test modifier readability with hostile threats before treating the three spells as release-qualified.
+
 # 0.3.4-dev.33 — Camp is a place (17 October 2026)
 
 - **After each night, you camp where you stand.** The field goes quiet and a campfire is pitched next to you, with a tent, a bedroll and a log seat (the camp pixel art). You can walk around. Resting within the fire's light heals you a little at a time (6% of max health per second). The run clock, spawns, patrols and stampedes all hold, and so does your combo.
