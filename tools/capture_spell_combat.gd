@@ -57,6 +57,8 @@ func run():
 		enemy.max_health = 10000
 		enemy.current_health = 10000
 		enemy.set_physics_process(not negative)
+		if negative:
+			enemy.damage = 0.0
 		enemies.append(enemy)
 		initial_positions.append(enemy.global_position)
 	var stage = SubViewport.new()
