@@ -481,7 +481,7 @@
       "id": "prism_ray",
       "name": "Prism Ray",
       "baseline": "spell-feel-audit-2026-10-15.json#prism_ray",
-      "latest_reviewed_change": "0.3.4-dev.33 Prism refraction material candidate",
+      "latest_reviewed_change": "0.3.4-dev.34 Prism refraction material candidate",
       "disposition": "candidate_requires_full_sequence_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [

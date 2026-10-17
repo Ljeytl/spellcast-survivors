@@ -86,16 +86,31 @@ func run():
 	check(far_orb.is_moving_to_player, "Every XP orb on the map flies to the player when the boss falls")
 	check(monsters.current_spawn_phase().pressure == "rest" and monsters.refill_population_target() == 0, "Nothing spawns in the quiet after the boss")
 	cycle._process(cycle.AFTERMATH_SECONDS + 0.1)
-	check(cycle.phase == cycle.Phase.CAMP and game.current_state == game.GameState.CAMP and cycle.camp.visible, "Killing the boss opens camp")
-	check(paused, "Camp pauses the game")
+	check(cycle.phase == cycle.Phase.CAMP and cycle.camp.visible, "Killing the boss opens camp")
+	check(game.current_state == game.GameState.PLAYING and not paused, "Camp is a place you walk around, not a pause screen")
+	var site = cycle.camp_site
+	check(is_instance_valid(site) and site.global_position.distance_to(game.player.global_position) < 120.0, "A campfire is pitched where you stand")
+	check(monsters.held, "Run time, spawns and events hold in camp")
+	var held_time = monsters.game_time
+	monsters.advance_time(5.0)
+	check(monsters.game_time == held_time, "The run clock does not move in camp")
 	var camp_combo = style.score.combo
-	style.advance(10.0)
-	check(camp_combo > 0.0 and is_equal_approx(style.score.combo, camp_combo), "Combo is kept in camp")
-	# Waking up starts the next day with a no-decay grace.
-	cycle.wake()
-	check(cycle.day == 2 and cycle.day_clock == 0.0 and game.current_state == game.GameState.PLAYING, "Waking starts day 2")
-	check(style.score.grace_remaining >= cycle.WAKE_GRACE, "Waking gives a no-decay grace")
-	style.advance(cycle.WAKE_GRACE - 1.0)
+	for i in 20:
+		site._process(0.5)
+		style.advance(0.5)
+	check(camp_combo > 0.0 and is_equal_approx(style.score.combo, camp_combo), "Combo is kept in camp (%.1f -> %.1f)" % [camp_combo, style.score.combo])
+	game.player.health = game.player.max_health * 0.5
+	game.player.global_position = site.global_position
+	for i in 40:
+		site._process(0.5)
+	check(game.player.health > game.player.max_health * 0.5, "Resting by the fire heals")
+	check(game.spell_manager.ley_words().has("onward"), "The wake word binds like a ley word (no Enter needed)")
+	game.spell_manager.cast_freeform_spell("onward")
+	check(cycle.day == 2 and not monsters.held and not is_instance_valid(cycle.camp_site) or cycle.camp_site == null, "Typing ONWARD sets out into day 2")
+	await process_frame
+	check(cycle.day == 2 and cycle.day_clock < 1.0 and game.current_state == game.GameState.PLAYING, "Waking starts day 2")
+	check(style.score.grace_remaining >= cycle.WAKE_GRACE - 1.0, "Waking gives a no-decay grace")
+	style.advance(cycle.WAKE_GRACE - 2.0)
 	check(is_equal_approx(style.score.combo, camp_combo), "No decay during the wake grace")
 	# Days 2 to 4; the fourth boss leads to extraction instead of camp.
 	for d in [2, 3]:

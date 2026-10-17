@@ -1,5 +1,5 @@
 {
-  "_doc": "Set-piece events outside the director (doc 22 §8, doc 23 §1). stampede: a herd crosses the screen in a straight lane through where you stand; it ignores you, so step out of the lane or blast it for free XP. by_day lists the seconds into each day (day clock) a stampede starts; past the last listed day the last list repeats. run_times is the fallback when the day cycle is off. counts are herd sizes per day (last repeats). The lane is telegraphed for warning_seconds before the first monster arrives.",
+  "_doc": "Set-piece events outside the director (doc 22 §8, doc 23 §1). camp: the breather after each night (scripts/Camp.gd): walk around, rest within heal_radius of the fire to heal heal_fraction_per_second of max health, type wake_word to set out. stampede: a herd crosses the screen in a straight lane through where you stand; it ignores you, so step out of the lane or blast it for free XP. by_day lists the seconds into each day (day clock) a stampede starts; past the last listed day the last list repeats. run_times is the fallback when the day cycle is off. counts are herd sizes per day (last repeats). The lane is telegraphed for warning_seconds before the first monster arrives.",
   "stampede": {
     "variant": "swarmer",
     "by_day": [[75], [60, 200], [45, 150, 235], [40, 140, 230]],
@@ -13,5 +13,11 @@
     "shake_every": 0.6,
     "title": "Stampede",
     "line": "Get out of the way"
+  },
+  "camp": {
+    "wake_word": "onward",
+    "heal_radius": 150,
+    "heal_fraction_per_second": 0.06,
+    "hint": "Rest by the fire to heal · Type ONWARD when you are ready"
   }
 }

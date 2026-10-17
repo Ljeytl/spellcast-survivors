@@ -1,8 +1,14 @@
-# 0.3.4-dev.33 — Prism Ray refraction clarity (17 October 2026)
+# 0.3.4-dev.34 — Prism Ray refraction clarity (17 October 2026)
 
 - Preserve the six elemental fan lanes and exact primary width/endpoints; give the primary a translucent cross-section around its bright core so the real target and refraction source remain visible.
 - Add one compact pale-violet concentration at each actual split. Give branches a thin bright core and translucent outer material, fade Prism-only afterimages over their existing lifetime and replace the plague branch’s outlined bubbles with small directional flecks. Tiny element glints mark actual branch contacts, limited to one per target per physics frame. Other rays, status effects, damage, motion and geometry remain unchanged.
 - Add rendered-material/source-isolation checks with a failing full-bright-tail control, native base/max moving/enlarged/reduced/narrow captures, and mixed hostile combat with another spell. Follow-up: complete audible and full-motion artistic assessment; the B-minus mean/C-floor fantasy gate remains incomplete.
+
+# 0.3.4-dev.33 — Camp is a place (17 October 2026)
+
+- **After each night, you camp where you stand.** The field goes quiet and a campfire is pitched next to you, with a tent, a bedroll and a log seat (the camp pixel art). You can walk around. Resting within the fire's light heals you a little at a time (6% of max health per second). The run clock, spawns, patrols and stampedes all hold, and so does your combo.
+- **Type ONWARD to set out** (SPACE, then the word; it binds as soon as it is complete, like a ley word). A small SET OUT button is there for the mouse. Words like this are a new hook: anything in the `world_words` group answers to typed words before spells do.
+- Camp is no longer a pause screen. Its settings are `data/events.json` `camp` (wake word, heal radius, heal rate, hint).
 
 # 0.3.4-dev.32 — Fire Walk connected ground and cooling (17 October 2026)
 
