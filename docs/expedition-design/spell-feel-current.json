@@ -1,5 +1,5 @@
 {
-  "as_of_revision": "04d49cd2bea3eb556e448bf849f85ea041e83fbf",
+  "as_of_revision": "b448e7f",
   "updated": "2026-10-17",
   "scope": "31 implemented player spells; data-only, disabled recipes and enemy attacks excluded",
   "columns": [
@@ -154,7 +154,7 @@
       "id": "meteor_shower",
       "name": "Meteor Shower",
       "baseline": "spell-feel-audit-2026-10-15.json#meteor_shower",
-      "latest_reviewed_change": null,
+      "latest_reviewed_change": "bbe9518b82d7c552c8fe8f385db6b2a74eb9e9c5",
       "disposition": "preserve",
       "user_feedback": "User explicitly likes staggered falls and repeated impact shakes.",
       "current_grades": [
@@ -167,8 +167,10 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Verify sound and crowded readability while preserving stagger."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/field-lifetime/manifest.json"
+      ],
+      "next_review": "Dev.39 shared lifetime repair: actual damaging field footprint follows gameplay lifetime and recast segments rather than the accelerated particle clock. Native controlled late-damage and expiry evidence is in the field-lifetime manifest; preserve existing spell identity. Full-motion artistic, mixed hostile and audible quality review remains incomplete. Verify sound and crowded readability while preserving stagger."
     },
     {
       "id": "ember_spear",
@@ -235,7 +237,7 @@
       "id": "cinder_field",
       "name": "Cinder Field",
       "baseline": "spell-feel-audit-2026-10-15.json#cinder_field",
-      "latest_reviewed_change": null,
+      "latest_reviewed_change": "bbe9518b82d7c552c8fe8f385db6b2a74eb9e9c5",
       "disposition": "needs_current_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
@@ -248,8 +250,10 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep the heat and saturated color. Emphasize glowing coal pockets, low licking flame and hot ash stirred at real damage contacts; let the edge cool unevenly."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/field-lifetime/manifest.json"
+      ],
+      "next_review": "Dev.39 shared lifetime repair: actual damaging field footprint follows gameplay lifetime and recast segments rather than the accelerated particle clock. Native controlled late-damage and expiry evidence is in the field-lifetime manifest; preserve existing spell identity. Full-motion artistic, mixed hostile and audible quality review remains incomplete. Keep the heat and saturated color. Emphasize glowing coal pockets, low licking flame and hot ash stirred at real damage contacts; let the edge cool unevenly."
     },
     {
       "id": "arcane_orbit",
@@ -682,7 +686,7 @@
       "id": "field",
       "name": "Bare Field",
       "baseline": "spell-feel-audit-2026-10-15.json#field",
-      "latest_reviewed_change": null,
+      "latest_reviewed_change": "bbe9518b82d7c552c8fe8f385db6b2a74eb9e9c5",
       "disposition": "needs_current_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
@@ -695,8 +699,10 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Preserve the compact rune field. Ground the glyphs and let real ticks produce a restrained outward pulse instead of constant equally bright decoration."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/field-lifetime/manifest.json"
+      ],
+      "next_review": "Dev.39 shared lifetime repair: actual damaging field footprint follows gameplay lifetime and recast segments rather than the accelerated particle clock. Native controlled late-damage and expiry evidence is in the field-lifetime manifest; preserve existing spell identity. Full-motion artistic, mixed hostile and audible quality review remains incomplete. Preserve the compact rune field. Ground the glyphs and let real ticks produce a restrained outward pulse instead of constant equally bright decoration."
     },
     {
       "id": "orbit",
