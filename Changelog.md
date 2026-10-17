@@ -1,3 +1,9 @@
+# 0.3.4-dev.20 — Small Magic Missile edge and contact polish (17 October 2026)
+
+- Add a fine lavender leading edge and brighter tip to preserve the diamond silhouette. Keep its size, faces, movement and ribbon.
+- Tighten contact to a smaller, shorter pinprick at the tip and two violet flecks. No additional glow cloud, shake or gameplay changes.
+- Record the user's assessment: motion is stronger than the prior assistant grade; fantasy, visuals and impact need only restrained polish. Avoid another redesign.
+
 # 0.3.4-dev.19 — Magic Missile diamond and ribbon (17 October 2026)
 
 - Follow the approved new direction: a crisp lavender/blue diamond head with one attached, tapered ribbon. Set aside the rejected glass capsule and faint dart experiments.
