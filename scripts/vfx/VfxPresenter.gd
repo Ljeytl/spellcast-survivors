@@ -2821,6 +2821,11 @@ func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> void:
 			for i in roundi(5 * s):
 				el.mote(at.x + (randf() - 0.5) * 7.0, at.y - 3.0 - randf() * 5.0, 0.0, -9.0 - randf() * 6.0, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]], 0.6, 0.0, 3.0)
 			vfx.ring(at.x, at.y, 6.0 * s, 0.22, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]])
+		"life_bolt_seed":
+			for i in 3:
+				var angle := float(i) / 3.0 * TAU
+				var offset := Vector2.from_angle(angle) * 5.0
+				el.mote(at.x + offset.x, at.y - 2.0 + offset.y * 0.65, -offset.x / 0.24, -offset.y * 0.65 / 0.24, [Color("#eaffdf"), Color("#a4e8b7"), Color("#69b68b")], 0.24, 0.0, 0.0)
 		"seed":
 			_life_contact(at.x, at.y)
 			vfx.ring(at.x, at.y, 5.0, 0.2, [LIFE.petal[2], LIFE.leaf[0]])

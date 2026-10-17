@@ -388,21 +388,28 @@
       "id": "life_bolt",
       "name": "Life Bolt",
       "baseline": "spell-feel-audit-2026-10-15.json#life_bolt",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "dev.31 \u2014 source-isolated Life Bolt contact, growing recovery bud and player-directed collection",
+      "disposition": "candidate_needs_combat_and_audio_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B-",
+        "B-",
+        "B-",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
-      "fantasy_fulfilled": null,
+      "fantasy_fulfilled": true,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Use a small planted sprout for available recovery and reserve the inward warm pulse for actual healing. Preserve the offensive projectile; do not make damaging contact look like healing the enemy."
+      "evidence": [
+        "Native rank-one and rank-eight full sequences: real projectile damage precedes available planted recovery; a wounded player remains at 30 HP outside pickup range, then walks into seeds and receives the unchanged healing budget.",
+        "Rank-eight stationary-target geometry crowd: five seeds at three overlapping locations, readable pale mint buds above enemies and subdued true-radius dotted boundaries. Player moves; enemy AI is disabled. This is not live hostile-combat evidence.",
+        "Full-health player approaches without collecting; seeds expire at their actual lifetime. Narrow/reduced rank-eight captures cover overlap and collection. Dedicated lifecycle assertions execute five checks per wounded case and seven for full-health expiry.",
+        "Only Life Bolt enemy contact loses the restorative flower bloom. Its original projectile motion and contact punch remain. Collection emits three tiny inward mint motes at the player; existing actual-heal feedback and other seed sources remain unchanged.",
+        "Provisional assistant grades: fantasy B-, visuals B-, motion B-, casting/contact C+, sound/camera U, readability B-. Contact remains modest; five observed columns average 2.62, below the 2.7 goal. No new user acceptance or full-roster goal pass.",
+        "Durable source snapshots, SHA-256 manifests, PNGs, lifecycle/audio event logs, same-run native MovieWriter PCM and verified MP4/GIF: /Users/ljeytl/.codex/visualizations/2026/10/17/life-bolt/. Final evidence is final-*; earlier after-1 and candidate-1 directories are explicitly invalid compile-error fallback captures."
+      ],
+      "next_review": "Audition synchronized audio and exercise moving hostile threats with another spell. Preserve the living bud and separated collection; judge whether the modest contact needs a small refinement in combat before claiming the full B-minus mean/C-minus floor gate."
     },
     {
       "id": "meteor_spear",

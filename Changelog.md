@@ -1,3 +1,10 @@
+# 0.3.4-dev.31 — Life Bolt strike and recovery clarity (17 October 2026)
+
+- Keep Life Bolt’s responsive living projectile and crisp contact punch; replace the enemy-contact flower bloom with a short directional strike and three leaf flecks.
+- Give only Life Bolt’s planted recovery a growing pale-mint bud above a quieter dotted boundary at its true collection radius. Collection draws tiny mint motes inward at the wizard, preserving the existing actual-healing feedback. Other seed sources, including Soul Bloom, retain their presentation.
+- Preserve damage, targeting, seed amount/duration/radius/lifetime/cap, collection and full-health behavior. Add source-routing and pickup-location regression controls plus native rank-one/rank-eight, overlapping-seed, narrow/reduced and full-health expiry capture journeys.
+- Follow-up: assess the modest contact against live mixed hostile threats and audition the synchronized recording. Current provisional scores remain incomplete; deterministic stationary-target captures do not prove combat readability or sound quality.
+
 # Capture tooling — Moving mixed combat evidence (17 October 2026)
 
 - Add one parameterized spell/rank capture with active native enemy AI, input-driven player movement, unchanged gameplay camera, secondary Magic Missile casts, contact telemetry and native MovieWriter audio alignment. Saves are isolated; the window stays offscreen without focus.

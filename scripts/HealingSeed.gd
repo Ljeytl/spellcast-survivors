@@ -38,7 +38,7 @@ func _physics_process(delta):
 		player.start_healing_over_time(healing_amount, healing_duration)
 		var vfx = get_node_or_null("/root/Vfx")
 		if vfx:
-			vfx.prop_burst("seed", global_position)
+			vfx.prop_burst("life_bolt_seed", player.global_position) if presentation_source == "life_bolt" else vfx.prop_burst("seed", global_position)
 		queue_free()
 		return
 	queue_redraw()
