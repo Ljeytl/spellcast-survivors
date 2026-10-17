@@ -10,6 +10,10 @@ func _initialize():
 
 func run():
 	var args = OS.get_cmdline_user_args()
+	if args.size() < 2 or not args[1].is_valid_int() or int(args[1]) < 1 or int(args[1]) > 8:
+		printerr("Usage: capture_prism_ray output_directory rank[1..8] [moving large reduced narrow]")
+		quit(2)
+		return
 	var folder = args[0]
 	var rank = int(args[1])
 	await setup()

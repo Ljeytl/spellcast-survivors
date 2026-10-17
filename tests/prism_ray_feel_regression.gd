@@ -68,6 +68,16 @@ func run():
 		check(prism_lines[i][0] == layer.elements.lines[i][0] and prism_lines[i][1] == layer.elements.lines[i][1], "Prism retains primary endpoints")
 	check(prism_lines.any(func(line): return line[2].a < 0.9), "Prism primary material translucent")
 	check(layer.elements.lines.all(func(line): return line[2].a == 1.0), "Focus primary material untouched")
+	layer.elements.lines.clear()
+	presenter._lasers[0][7] = "lightning"
+	presenter._lasers[0][8] = true
+	presenter.draw_statuses(PackedByteArray())
+	check(layer.elements.lines.size() == 1 and layer.elements.lines[0][2].a < 0.5, "Storm ray core follows same afterimage fade")
+	presenter._advance_transients(0.09)
+	check(presenter._lasers.is_empty(), "Ray tail expires at existing lifetime")
+	presenter._lasers.append([Vector2.ZERO, Vector2.RIGHT, 50.0, 2.0, 0.0, 0.32, palette, "fire", true])
+	presenter.clear_transients()
+	check(presenter._lasers.is_empty(), "Clear retires refraction tails")
 	beam.free()
 	print("PRISM_RAY_FEEL checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
