@@ -10,16 +10,23 @@ static var AFTERGLOW_SECONDS: float = float(GameData.file("abilities").abilities
 static var BOSS_HEALTH_FRACTION: float = float(GameData.file("abilities").abilities.atomic.boss_health_fraction)
 
 var footprint := Rect2()
+var origin := Vector2.ZERO
+var reach := 0.0
 var game: Node
 var elapsed := 0.0
 var impacted := false
 var configured := false
 var reduced_effects := false
+var pulse: ColorRect
+var pulse_material: ShaderMaterial
 
 func configure(source_game: Node) -> void:
 	game = source_game
 	var viewport := game.get_viewport()
 	footprint = viewport.get_canvas_transform().affine_inverse() * viewport.get_visible_rect()
+	origin = game.player.global_position
+	for corner in [footprint.position, footprint.end, Vector2(footprint.end.x, footprint.position.y), Vector2(footprint.position.x, footprint.end.y)]:
+		reach = maxf(reach, origin.distance_to(corner))
 	configured = true
 	_read_reduced_effects()
 
@@ -30,6 +37,20 @@ func _ready() -> void:
 	z_index = 90
 	if not configured:
 		queue_free()
+	else:
+		pulse = ColorRect.new()
+		pulse.position = footprint.position
+		pulse.size = footprint.size
+		pulse.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pulse_material = ShaderMaterial.new()
+		pulse_material.shader = preload("res://scripts/vfx/atomic_pulse.gdshader")
+		pulse_material.set_shader_parameter("extent", footprint.size)
+		pulse_material.set_shader_parameter("center", origin - footprint.position)
+		pulse_material.set_shader_parameter("warning", WARNING_SECONDS)
+		pulse_material.set_shader_parameter("reach", reach)
+		pulse.material = pulse_material
+		add_child(pulse)
+		get_node("/root/AudioManager").play_sound(load("res://scripts/AudioManager.gd").SoundType.MEGA_CHARGE, 0.4, 0.75)
 
 func _read_reduced_effects() -> void:
 	if not is_instance_valid(game):
@@ -45,12 +66,16 @@ func _process(delta: float) -> void:
 		_impact()
 	if elapsed >= WARNING_SECONDS + AFTERGLOW_SECONDS:
 		queue_free()
+	if pulse_material:
+		pulse_material.set_shader_parameter("age", elapsed)
+		pulse_material.set_shader_parameter("strength", 0.35 if reduced_effects else 1.0)
 	queue_redraw()
 
 func _impact() -> void:
 	if impacted:
 		return
 	impacted = true
+	get_node("/root/AudioManager").play_sound(load("res://scripts/AudioManager.gd").SoundType.MEGA_RELEASE, 0.85, 0.75)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion() or not enemy is Node2D:
 			continue
@@ -77,37 +102,10 @@ func _impact() -> void:
 func _draw() -> void:
 	if not configured:
 		return
-	var center := footprint.get_center()
-	var radius := minf(footprint.size.x, footprint.size.y) * 0.44
-	var gold := Color(1.0, 0.72, 0.20)
 	if not impacted:
-		var progress := clampf(elapsed / WARNING_SECONDS, 0.0, 1.0)
-		draw_rect(footprint, Color(0.82, 0.40, 0.08, 0.07))
-		draw_rect(footprint, Color(1.0, 0.72, 0.20, 0.5 + progress * 0.4), false, 3.0)
-		_draw_angular_circle(center, radius, gold, 3.0)
-		_draw_angular_circle(center, radius * (0.35 + progress * 0.55), gold, 2.0)
-		for i in 12:
-			var direction := Vector2.from_angle(TAU * i / 12.0)
-			var tangent := direction.orthogonal()
-			var point := center + direction * radius
-			draw_line(point - direction * 17.0, point + direction * 17.0, gold, 3.0)
-			draw_line(point, point + direction * 10.0 + tangent * 9.0, gold, 3.0)
-		return
-	var age := elapsed - WARNING_SECONDS
-	var fade := clampf(1.0 - age / AFTERGLOW_SECONDS, 0.0, 1.0)
-	if not reduced_effects:
-		var flash := maxf(0.0, 1.0 - age / 0.18)
-		draw_rect(footprint, Color(1.0, 0.84, 0.44, flash * 0.55))
+		var t := clampf(elapsed / WARNING_SECONDS, 0.0, 1.0)
+		draw_rect(footprint, Color(0.035, 0.012, 0.065, t * (0.15 if reduced_effects else 0.48)))
 	else:
-		draw_rect(footprint, Color(0.72, 0.42, 0.10, fade * 0.08))
-	draw_rect(footprint, Color(1.0, 0.72, 0.20, fade), false, 4.0)
-	var expansion := clampf(age / 0.45, 0.0, 1.0)
-	var shock := Rect2(center - footprint.size * expansion * 0.5, footprint.size * expansion)
-	draw_rect(shock, Color(1.0, 0.84, 0.40, fade * 0.8), false, 6.0 if not reduced_effects else 2.0)
-	_draw_angular_circle(center, radius, Color(1.0, 0.72, 0.20, fade * 0.5), 2.0)
-
-func _draw_angular_circle(center: Vector2, radius: float, color: Color, width: float) -> void:
-	var points := PackedVector2Array()
-	for i in 17:
-		points.append(center + Vector2.from_angle(TAU * i / 16.0) * radius)
-	draw_polyline(points, color, width)
+		var age := elapsed - WARNING_SECONDS
+		if not reduced_effects and age < 0.065:
+			draw_rect(footprint, Color(0.97, 0.90, 1.0, pow(1.0 - age / 0.065, 2.0) * 0.48))
