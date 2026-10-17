@@ -1,3 +1,9 @@
+# 0.3.4-dev.29 — Arcane Orbit circulating energy (17 October 2026)
+
+- Preserve the real orbital body radius and movement while replacing static physical-ball shading with asymmetric circulating violet light and a compact sampled curved wake. Bound wakes by both time and distance so fast or enlarged orbs retain gaps.
+- Actual contacts brighten the leading edge and release two small directional flecks; remove the generic heavy sphere hitstop for this spell. Expiry sheds motes along the last direction and retires the wake. Element keyword accents remain available.
+- Add native rank-one/rank-eight contact, movement, enlarged recast and fast empty-lane capture fixtures, plus contact-only/lifecycle and actual-material radius regression checks with failing negative controls. Artistic grades remain provisional; listening and mixed hostile-threat crowd review are outstanding.
+
 # 0.3.4-dev.28 — The stampede (17 October 2026)
 
 - **A herd crosses the screen.** A gold-edged lane with running chevrons marks the path through where you stand, and the screen rumbles. 2.5 s later a herd of swarmers pours down it at full speed. They ignore you and run straight through: step out of the lane, or blast it for a pile of free XP. A freeze stops them in their tracks. The herd leaves at the far side without dying.
