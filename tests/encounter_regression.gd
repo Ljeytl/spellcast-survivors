@@ -82,14 +82,27 @@ func run():
 	shield.set_physics_process(false)
 	shield.facing = Vector2.RIGHT
 	var health = shield.current_health
-	shield.take_damage(10, shield.global_position + Vector2(100, 0))
-	check(is_equal_approx(health - shield.current_health, 6.5), "Frontal shield reduces but never blocks damage completely")
+	var front = shield.global_position + Vector2(100, 0)
+	var spec = shield.spawn_data.shield
+	check(is_equal_approx(shield.shield_max, shield.max_health * float(spec.health_share)), "the shield has its own health, a share of the body's")
+	shield.take_damage(10, front)
+	check(is_equal_approx(health - shield.current_health, 10.0 * float(spec.bleed_through)), "a front hit mostly lands on the shield; bleed_through reaches the body")
+	check(is_equal_approx(shield.shield_hp, shield.shield_max - 10.0 * (1.0 - float(spec.bleed_through))), "the shield takes the rest")
 	health = shield.current_health
 	shield.take_damage(10, shield.global_position - Vector2(100, 0))
 	check(is_equal_approx(health - shield.current_health, 10.0), "Flanking bypasses shield")
 	health = shield.current_health
 	shield.take_damage(10)
-	check(is_equal_approx(health - shield.current_health, 10.0), "Area damage works without an elemental key")
+	check(is_equal_approx(health - shield.current_health, 10.0), "damage with no origin (burn, bleed, poison ticks) skips the shield")
+	health = shield.current_health
+	var left = shield.shield_hp
+	var big = left / (1.0 - float(spec.bleed_through)) + 20.0
+	shield.take_damage(big, front)
+	check(shield.shield_hp == 0.0 and shield.stagger_remaining > 0.0, "breaking the shield staggers the Shieldbearer")
+	check(is_equal_approx(health - shield.current_health, big - left), "what the shield could not hold goes through")
+	health = shield.current_health
+	shield.take_damage(10, front)
+	check(is_equal_approx(health - shield.current_health, 10.0), "a broken shield stays broken: front hits land in full")
 	for id in ["pursuer", "flanker", "skirmisher", "sprinter", "charger", "swarmer", "juggernaut", "slammer", "marksman", "fan_caster", "mortar"]:
 		var enemy = manager.spawn_monster(definition(manager, id))
 		check(enemy != null and enemy.variant == id, "Instantiated behavior %s" % id)

@@ -9,6 +9,9 @@
         "slow_cap": {
           "type": "number"
         },
+        "own_element_immune": {
+          "type": "boolean"
+        },
         "secondary_slow_share": {
           "type": "number"
         },

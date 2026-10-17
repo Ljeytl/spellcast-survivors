@@ -189,5 +189,17 @@ func run():
 		check(site.wave_members.all(func(m): return m.has_meta("elite_group")), "an elite-led ley wave is one group (cleared together)")
 	else:
 		check(true, "no ley sites in this scene (skipped)")
+	# Element affinity (statuses.json _rules.own_element_immune): a FIERY elite cannot burn, but still bleeds.
+	var hot = monsters.spawn_monster(def, false, true, NAN, -1.0, ["fiery"])
+	await process_frame
+	if is_instance_valid(hot) and not hot.dying:
+		var Effects = preload("res://scripts/engine/Effects.gd")
+		var comp = Effects.ensure_status(hot)
+		comp.apply("burn", {"hit": 100.0})
+		check(not comp.has("burn"), "a FIERY elite is immune to burn")
+		comp.apply("bleed", {"hit": 100.0})
+		check(comp.has("bleed"), "a FIERY elite still bleeds")
+	else:
+		check(false, "FIERY elite still alive for the affinity check")
 	print("elites: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
