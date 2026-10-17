@@ -3,6 +3,7 @@
 - Rune Trap, Frost Sigil and bare Trap finish inscription with a brief ready accent, then wait quietly at their actual trigger boundary. Bare Trap erases during its final quarter-second without an expiry explosion.
 - Rune Trap contracts its glyphs through the existing activation delay. Frost Sigil carries a readable six-branched cold glyph through arming and activation, then breaks into ice fragments instead of inherited earth debris and scorch. Geometry, payloads, persistence, recast policy and sounds remain unchanged.
 - Add isolated native lifecycle captures and focused arming, proximity, activation, contact, persistence, expiry, recast and reduced-effects regression coverage, including deliberately incorrect arming/radius/material controls. Native evidence remains provisional: sound/camera judgment and a full crowded hostile encounter are open.
+- Bind Rune/Frost warning animation to the real activation duration instead of the volume’s unbounded lifetime metadata; verify before/after activation boundaries and emitted-material cleanup with 41 focused assertions.
 - Future refinement: qualify sound and camera in live combat and test modifier readability with hostile threats before treating the three spells as release-qualified.
 
 # 0.3.4-dev.35 — Earth Shield protective contact clarity (17 October 2026)

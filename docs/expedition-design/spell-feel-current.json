@@ -1,5 +1,5 @@
 {
-  "as_of_revision": "ca423d4e9703e037dd5bcfe76b5ecac97567e151",
+  "as_of_revision": "5cb0cae35029d0b6692f90146a5521d75d9d3752",
   "updated": "2026-10-17",
   "scope": "31 implemented player spells; data-only, disabled recipes and enemy attacks excluded",
   "columns": [
@@ -288,8 +288,8 @@
       "id": "rune_trap",
       "name": "Rune Trap",
       "baseline": "spell-feel-audit-2026-10-15.json#rune_trap",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "5cb0cae35029d0b6692f90146a5521d75d9d3752",
+      "disposition": "refined_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -301,8 +301,20 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep the runic geometry. Draw the inscription once, wait quietly, then snap its symbols inward during the actual trigger warning before the blast opens outward."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/final-rune.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/final-rune.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/final-rune/events.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/manifest.json"
+      ],
+      "next_review": "Assess full native motion and audible/camera quality in moving mixed hostile combat; controlled lifecycle captures do not complete the fantasy and quality gate.",
+      "fixture_observation": "Native controlled frames show a closed quiet armed rune and a distinct four-glyph activation. The activation now contracts across its actual 0.4-second fuse. Existing forceful arcane blast is preserved.",
+      "coverage_limits": [
+        "Controlled stationary player and scripted target motion; no full hostile encounter.",
+        "Camera shake disabled by fixture; recorded PCM not artistically auditioned.",
+        "Base, max/scaled, empty, recast and reduced/narrow overlap matrix captured before final activation-clock correction; final base recaptured afterward.",
+        "Pause, run teardown and elemental keyword combinations lack native visual qualification."
+      ]
     },
     {
       "id": "seeker",
@@ -510,8 +522,8 @@
       "id": "frost_sigil",
       "name": "Frost Sigil",
       "baseline": "spell-feel-audit-2026-10-15.json#frost_sigil",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "5cb0cae35029d0b6692f90146a5521d75d9d3752",
+      "disposition": "refined_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -523,8 +535,20 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Preserve the forceful trigger. Make frost race along the inscription and burst into brittle fragments; fade into cold rime rather than a burnt-looking patch."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/final-frost.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/final-frost.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/final-frost/events.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/manifest.json"
+      ],
+      "next_review": "Assess full native motion and audible/camera quality in moving mixed hostile combat; controlled lifecycle captures do not complete the fantasy and quality gate.",
+      "fixture_observation": "Native controlled frames show a readable six-branched cold glyph, cold activation and fragment burst over visible grass; inherited gray rocks, violet explosion glyphs and scorched ground are removed from this spell.",
+      "coverage_limits": [
+        "Controlled stationary player and scripted target motion; no full hostile encounter.",
+        "Camera shake disabled by fixture; recorded PCM not artistically auditioned.",
+        "Base, max/scaled, empty, recast and reduced/narrow overlap matrix captured before final activation-clock correction; final base recaptured afterward.",
+        "Pause, run teardown and elemental keyword combinations lack native visual qualification."
+      ]
     },
     {
       "id": "mana_bolt",
@@ -652,8 +676,8 @@
       "id": "trap",
       "name": "Bare Trap",
       "baseline": "spell-feel-audit-2026-10-15.json#trap",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "5cb0cae35029d0b6692f90146a5521d75d9d3752",
+      "disposition": "refined_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -665,8 +689,20 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Use one short closing inscription to signal armed, a quiet waiting state, and one snap on trigger. Empty expiry should erase it without a blast."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/dev36-trap.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/dev36-trap.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/dev36-trap/events.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/traps/manifest.json"
+      ],
+      "next_review": "Assess full native motion and audible/camera quality in moving mixed hostile combat; controlled lifecycle captures do not complete the fantasy and quality gate.",
+      "fixture_observation": "Native controlled frames show a compact inscription, brief closure accent and quiet armed glyph. Direct trigger remains distinct from Rune Trap activation; empty eight-second expiry erases harmlessly.",
+      "coverage_limits": [
+        "Controlled stationary player and scripted target motion; no full hostile encounter.",
+        "Camera shake disabled by fixture; recorded PCM not artistically auditioned.",
+        "Base, max/scaled, empty, recast and reduced/narrow overlap matrix captured before final activation-clock correction; final base recaptured afterward.",
+        "Pause, run teardown and elemental keyword combinations lack native visual qualification."
+      ]
     },
     {
       "id": "atomic",
