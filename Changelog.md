@@ -1,3 +1,8 @@
+# 0.3.4-dev.43 — Lightning Bolt description correction (17 October 2026)
+
+- Correct the summary, detailed description and spell card to describe chained travelling impacts followed by one terminal lightning strike. Existing gameplay and effects are unchanged.
+- Native review confirmed five base-rank travelling contacts, one terminal warning and one final area strike; the previous per-hit explosion wording was stale. Follow-up: complete motion, sound and crowded-readability assessment.
+
 # 0.3.4-dev.42 — FIERY Nova flame gaps (17 October 2026)
 
 - Keep friendly bare Nova's thin arcane front and replace only its FIERY accent's oversized flame blocks with smaller, cooler tongues and shorter aftermath. Preserve native fire novas, hostile novas, other spell identities, damage, geometry, timing, embers and sounds.
