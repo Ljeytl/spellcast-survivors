@@ -1,3 +1,10 @@
+# 0.3.4-dev.35 — Earth Shield protective contact clarity (17 October 2026)
+
+- Preserve orbiting pebble charges and the existing retaliation cone. A consumed charge now resolves into a small shaded stone guard on the actual incoming side, then splits outward into the eruption.
+- Natural charge expiry drops three quiet chips without a block flash or retaliation. Preserve one-hit absorption, grace, combo protection, independent charges, damage, timing and scaling.
+- Verify actual enemy contact, projectile absorption, exhaustion damage, recast, rank-eight expiry and narrow/reduced presentation with native captures. Add focused presentation/lifecycle checks and deliberate missing-fracture and expiry-retaliation controls.
+- Follow-up: review moving mixed-threat combat and audition recorded audio; fixed-camera controlled captures do not establish full sound/camera quality or final spell acceptance.
+
 # 0.3.4-dev.34 — Prism Ray refraction clarity (17 October 2026)
 
 - Preserve the six elemental fan lanes and exact primary width/endpoints; give the primary a translucent cross-section around its bright core so the real target and refraction source remain visible.

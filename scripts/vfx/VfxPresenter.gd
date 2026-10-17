@@ -116,6 +116,7 @@ var _presented := {}             # instance id -> weakref: parts we draw, kept u
                                  # finished parts (e.g. a blast's 0.12 s tail) never flash placeholder art
 var enabled := true              # console "vfx present off" shows the placeholders
 var _props := {}                 # instance id -> {node: WeakRef, kind}: spell objects the engine does not own
+var _shield_fractures: Array = []
 
 func _init(owner):
 	vfx = owner
@@ -1834,6 +1835,9 @@ func _entangled(dt: float) -> void:
 var _wrapped: Array = []
 
 func _advance_transients(dt: float) -> void:
+	for fracture in _shield_fractures:
+		fracture.age += dt
+	_shield_fractures = _shield_fractures.filter(func(fracture): return fracture.age < 0.32)
 	for ring in _hit_rings:
 		ring[3] += dt
 	_hit_rings = _hit_rings.filter(func(ring): return ring[3] < ring[4])
@@ -1842,6 +1846,7 @@ func _advance_transients(dt: float) -> void:
 	_lasers = _lasers.filter(func(ray): return ray[4] < ray[5])
 
 func clear_transients() -> void:
+	_shield_fractures.clear()
 	_orbit_visuals.clear()
 	for state in _parts.values():
 		state.erase("orbit_visual")
@@ -2837,6 +2842,41 @@ const STONE := [
 func prop_added(node, kind: String) -> void:
 	_props[node.get_instance_id()] = {"node": weakref(node), "kind": kind}
 
+func shield_charge_ended(node, index: int, direction: Vector2) -> void:
+	var at: Vector2 = (node.global_position + direction * 30.0) / WPS
+	var origin: Vector2 = _stone_at(node, index, node.global_position / WPS) if index < 12 else at
+	if direction.is_zero_approx():
+		if index < 12:
+			for i in 3:
+				vfx.chunk(origin.x, origin.y, float(i - 1) * 2.0, 2.0, 3.0, EAR.debris, 0.3, 1)
+		return
+	_shield_fractures.append({"origin": origin, "at": at, "direction": direction, "age": 0.0})
+	var count := 2 if vfx.reduced_effects else 4
+	for i in count:
+		var velocity := direction.rotated((float(i) - float(count - 1) * 0.5) * 0.2) * (25.0 + i * 4.0)
+		vfx.chunk(at.x, at.y, velocity.x, velocity.y, 17.0 + i * 3.0, EAR.debris, 0.38, 1)
+
+func _draw_shield_fractures(buf: PackedByteArray) -> void:
+	var el = vfx.elements
+	for fracture in _shield_fractures:
+		var age: float = fracture.age
+		var direction: Vector2 = fracture.direction
+		var tangent := direction.orthogonal()
+		var at: Vector2 = fracture.origin.lerp(fracture.at, minf(age / 0.04, 1.0))
+		var split := maxf(0.0, age - 0.07) / 0.25
+		var alpha := 1.0 - split
+		for side in [-1, 1]:
+			var centre: Vector2 = at + tangent * side * (1.5 + split * 5.0) + direction * split * 11.0
+			for row in 3:
+				var a: Vector2 = centre + tangent * side * row
+				var b: Vector2 = a + direction * (2.0 if row < 2 else 1.0)
+				el.line(buf, a - direction, b, Color(EAR.body[3], alpha))
+				el.line(buf, a, b, Color(EAR.body[1 if row < 2 else 2], alpha))
+			el.line(buf, centre + direction, centre + direction * 2.0 + tangent * side, Color(EAR.body[0], alpha))
+		if age > 0.03 and age < 0.12:
+			el.line(buf, at - tangent * 2.0, at + direction, EAR.debris[0])
+			el.line(buf, at + direction, at + tangent * 2.0, EAR.debris[0])
+
 func presents_prop(node) -> bool:
 	return enabled and _props.has(node.get_instance_id())
 
@@ -2928,6 +2968,7 @@ func _draw_life_bolt_seed(buf: PackedByteArray, at: Vector2, node) -> void:
 func _draw_props(buf: PackedByteArray) -> void:
 	if not enabled:
 		return
+	_draw_shield_fractures(buf)
 	var el = vfx.elements
 	for pr in _props.values():
 		var node = pr.node.get_ref()
