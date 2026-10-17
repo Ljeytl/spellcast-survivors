@@ -756,7 +756,10 @@ func step(dt: float) -> void:
 				elif st.look.native == "lightning":
 					_lightning_nova(pos, float(part.front) / WPS, st.seed, dt)
 				if st.look.accent != "":
-					_accent_nova(st.look.accent, pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
+					if st.look.accent == "fire" and str(part.cast.plan.get("id", "")) == "nova" and not is_hostile(part):
+						_fire_nova(pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt * 0.5, true)
+					else:
+						_accent_nova(st.look.accent, pos, float(part.front) / WPS, float(part.front) / maxf(1.0, float(part.geo("radius", 100.0))), dt)
 					var na := randf() * TAU
 					_steam_if(st.look, pos + Vector2(cos(na), sin(na)) * float(part.front) / WPS, dt * 3.0)
 		st.last = pos
@@ -1135,7 +1138,7 @@ func _fire_nova_start(c: Vector2, R: float) -> void:
 	vfx.shake(0.3)
 	vfx.hitstop(2)
 
-func _fire_nova(c: Vector2, r: float, k: float, dt: float) -> void:
+func _fire_nova(c: Vector2, r: float, k: float, dt: float, accent: bool = false) -> void:
 	var n := TAU * r * 0.17 * dt * 60.0
 	var i := 0.0
 	while i < n:
@@ -1144,7 +1147,8 @@ func _fire_nova(c: Vector2, r: float, k: float, dt: float) -> void:
 		var a := randf() * TAU
 		var rr := r - randf() * 2.5
 		vfx.flame(null, Vector2(c.x + cos(a) * rr, c.y + sin(a) * rr), {"vx": cos(a) * 22.0, "vy": sin(a) * 16.0,
-			"heat": 1.5 * (1.0 - k * 0.45), "rise": 16.0 + randf() * 12.0, "life": 0.28 + randf() * 0.25})
+			"heat": (0.95 if accent else 1.5) * (1.0 - k * 0.45), "rise": 16.0 + randf() * 12.0,
+			"life": (0.16 + randf() * 0.12) if accent else (0.28 + randf() * 0.25), "small": 1.0 if accent else 0.0})
 		i += 1.0
 	if randf() < 0.8 * dt * 60.0:
 		var a2 := randf() * TAU
