@@ -1,3 +1,8 @@
+# Evidence — Infestation moving hostile review (17 October 2026)
+
+- Retain one current native rank-eight mixed encounter with genuine enemy AI, player damage and secondary spell contacts. Existing attached nodules remain visible; actual tick flashes and numbers are readable in sampled combat frames. Preserve Infestation, Soul Bloom and runtime version.
+- Close the specific missing mixed-hostile evidence gap without inventing a full quality pass. Existing provisional grades, including C+ impact and U sound/camera, remain unchanged; full lifecycle/modifier and audible assessment remain separate obligations. Source, commands, native PNG/PCM and decoded MP4/GIF are preserved in the Infestation-contact evidence manifest.
+
 # 0.3.4-dev.44 — Arcane Orbit concentrated material (17 October 2026)
 
 - Preserve Arcane Orbit's live asymmetric whorl, orbital positions, full body bounds, short wake and real contact response. Concentrate saturated violet mass around its bright nucleus while letting terrain show through the tapered outer whorl instead of painting an opaque lavender disk. Bare Orbit and hostile materials remain unchanged.
