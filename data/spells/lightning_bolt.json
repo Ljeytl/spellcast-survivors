@@ -3,7 +3,7 @@
   "order": 270,
   "recipe": {
     "presentation": {
-      "summary": "Bounce lightning between enemies with a blast on every hit.",
+      "summary": "Chain lightning between enemies, ending in one lightning blast.",
       "sound": "SPELL_LIGHTNING",
       "icon": "lightning",
       "preview": {
@@ -19,8 +19,8 @@
       "lightning"
     ],
     "requirements": "Reach rank 8 in Bolt and Lightning, then choose Lightning Bolt. Both ingredients stay equipped.",
-    "description": "Bounces between enemies, striking a small lightning area at every impact. Bolt strengthens impact; Lightning strengthens the splash.",
-    "card_description": "A bouncing bolt strikes a lightning area at each hit.",
+    "description": "Bounces between enemies, then calls down one lightning strike where the chain ends. Bolt strengthens impacts; Lightning strengthens the final blast.",
+    "card_description": "A bouncing bolt ends with one lightning blast.",
     "overrides": {
       "damage": 40,
       "bounce_count": 4,
