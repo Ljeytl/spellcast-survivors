@@ -1,3 +1,9 @@
+# 0.3.4-dev.21 — Cross Blade cutting-body refinement (17 October 2026)
+
+- Replace the hollow line cross with filled swept steel facets, fine bright cutting edges and a short curved wake inside the existing blade radius.
+- Give the stronger return phase a colder, brighter edge and firmer paired cutting sparks on real contacts. Keep targeting, outbound/hold/return timing, damage, radius and existing tactile blade audio.
+- Add an offscreen native capture at ranks one and eight. This is a visual candidate awaiting player judgment; passing checks do not establish an accepted grade.
+
 # 0.3.4-dev.20 — Small Magic Missile edge and contact polish (17 October 2026)
 
 - Add a fine lavender leading edge and brighter tip to preserve the diamond silhouette. Keep its size, faces, movement and ribbon.
