@@ -309,8 +309,9 @@ func part_spawned(part) -> void:
 		# Fire Walk patch: low flames and embers while it burns, char on the ground.
 		st.kind = "patch"
 		st.r = float(part.geo("radius", 25.0)) / WPS
-		if randi() % 3 == 0:
-			vfx.scorch(pos.x, pos.y, st.r * 0.9, float(part.total_life()) + 1.0)
+		st.ground = preload("res://scripts/vfx/FirewalkVisual.gd").new()
+		part.add_child(st.ground)
+		st.ground.setup(part)
 		_parts[part.get_instance_id()] = st
 		_presented[part.get_instance_id()] = weakref(part)
 		return
@@ -519,6 +520,9 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 		elif not spawns_burst:
 			_burst(impact_look, p, 11.0)
 		return
+	if impact_look == "life" and str(part.cast.plan.get("id", "")) == "life_bolt":
+		_life_bolt_contact(p, Vector2(part.direction))
+		return
 	if impact_look == "life":
 		if st.family == "spear" or st.look.native != "life":
 			_life_contact(p.x, p.y)
@@ -556,6 +560,9 @@ func part_finished(part, natural: bool) -> void:
 	if st == null:
 		return
 	_parts.erase(id)
+	if is_instance_valid(st.get("ground")):
+		st.ground.hide()
+		st.ground.queue_free()
 	if st.has("orbit_visual"):
 		st.orbit_visual.finished = true
 		if natural:
@@ -654,7 +661,12 @@ func step(dt: float) -> void:
 			"warn":
 				st.age = float(st.age) + dt
 			"patch":
-				if randf() < 0.12 * dt * 60.0:
+				if not is_instance_valid(st.get("ground")):
+					st.ground = preload("res://scripts/vfx/FirewalkVisual.gd").new()
+					part.add_child(st.ground)
+					st.ground.setup(part)
+				var warmth := preload("res://scripts/vfx/FirewalkVisual.gd").heat(float(part.age), float(part.total_life()))
+				if randf() < 0.12 * dt * 60.0 * warmth:
 					var a := randf() * TAU
 					var d := sqrt(randf()) * float(st.r) * 0.8
 					var fp: Vector2 = pos + Vector2(cos(a), sin(a) * 0.7) * d
@@ -664,7 +676,7 @@ func step(dt: float) -> void:
 					if walker == null or not is_instance_valid(walker) or fp.distance_to(walker.global_position / WPS) > 7.0:
 						# low ground fire: short tongues that stay under head height
 						vfx.flame(null, fp, {"heat": 0.6, "rise": 4.0 + randf() * 4.0, "life": 0.25 + randf() * 0.25, "small": 1.0})
-				if randf() < 0.02 * dt * 60.0:
+				if randf() < 0.02 * dt * 60.0 * warmth:
 					vfx.ember(pos.x + (randf() - 0.5) * float(st.r), pos.y, (randf() - 0.5) * 8.0, -(14.0 + randf() * 10.0), 0.8 + randf())
 			"beam":
 				_beam_step(part, st, pos, dt)
@@ -1745,6 +1757,14 @@ func _life_impact(x: float, y: float, s: float) -> void:
 	vfx.ring(x, y, 10.0 * s, 0.25, LIFE.petal)
 	vfx.hitstop(2)
 
+func _life_bolt_contact(at: Vector2, direction: Vector2) -> void:
+	var tangent := direction.normalized().orthogonal()
+	for sign_value in [-1.0, 1.0]:
+		var velocity: Vector2 = tangent * sign_value * 30.0
+		vfx.spark(at.x, at.y, velocity.x, velocity.y, 0.12, [Color("#eaffdc"), Color("#a1df86"), Color("#53915c")])
+	for i in 3:
+		vfx.elements.leaf(at.x, at.y, direction.x * 16.0 + tangent.x * (i - 1) * 12.0, direction.y * 16.0 + tangent.y * (i - 1) * 12.0 - 5.0, LIFE.leaf, 0.35)
+
 func _life_contact(x: float, y: float) -> void:
 	for i in 7:
 		var a := randf() * TAU
@@ -1805,6 +1825,10 @@ func clear_transients() -> void:
 	_orbit_visuals.clear()
 	for state in _parts.values():
 		state.erase("orbit_visual")
+		if is_instance_valid(state.get("ground")):
+			state.ground.hide()
+			state.ground.queue_free()
+			state.erase("ground")
 	_missile_ribbons.clear()
 	_hit_rings.clear()
 	_lasers.clear()
@@ -2810,6 +2834,11 @@ func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> void:
 			for i in roundi(5 * s):
 				el.mote(at.x + (randf() - 0.5) * 7.0, at.y - 3.0 - randf() * 5.0, 0.0, -9.0 - randf() * 6.0, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]], 0.6, 0.0, 3.0)
 			vfx.ring(at.x, at.y, 6.0 * s, 0.22, [LIFE.petal[2], LIFE.leaf[0], LIFE.leaf[1]])
+		"life_bolt_seed":
+			for i in 3:
+				var angle := float(i) / 3.0 * TAU
+				var offset := Vector2.from_angle(angle) * 5.0
+				el.mote(at.x + offset.x, at.y - 2.0 + offset.y * 0.65, -offset.x / 0.24, -offset.y * 0.65 / 0.24, [Color("#eaffdf"), Color("#a4e8b7"), Color("#69b68b")], 0.24, 0.0, 0.0)
 		"seed":
 			_life_contact(at.x, at.y)
 			vfx.ring(at.x, at.y, 5.0, 0.2, [LIFE.petal[2], LIFE.leaf[0]])
@@ -2829,7 +2858,7 @@ func _step_props(dt: float) -> void:
 			continue
 		var at: Vector2 = node.global_position / WPS
 		match pr.kind:
-			"seed":
+			"seed", "life_bolt_seed":
 				if randf() < 0.06 * dt * 60.0:
 					vfx.elements.mote(at.x + (randf() - 0.5) * 4.0, at.y - 3.0, 0.0, -6.0, [LIFE.petal[2], LIFE.leaf[0]], 0.6, 0.0, 2.0)
 			"shield":
@@ -2846,6 +2875,28 @@ func _stone_at(node, index: int, centre: Vector2) -> Vector2:
 	var r := 42.0 + 2.0 * sin(age * 2.0 + index)
 	return centre + Vector2(cos(angle) * r, sin(angle) * r * 0.55 + 4.0) / WPS
 
+func _draw_life_bolt_seed(buf: PackedByteArray, at: Vector2, node) -> void:
+	var el = vfx.elements
+	var radius := float(node.radius) / WPS
+	var count := maxi(12, roundi(radius * 2.5))
+	for i in count:
+		var angle := float(i) / count * TAU
+		el.spx(buf, roundi(at.x + cos(angle) * radius), roundi(at.y + sin(angle) * radius), Color("#87aa78"))
+	var x := roundi(at.x)
+	var y := roundi(at.y)
+	var grow := clampf(float(node.presentation_age) / 0.24, 0.0, 1.0)
+	var height := 2 + roundi(grow * 4.0)
+	for j in height:
+		el.spx(buf, x, y - j, Color("#77bc82"))
+	for sign_value in [-1, 1]:
+		el.spx(buf, x + sign_value, y - height + 2, Color("#b4e7a7"))
+		el.spx(buf, x + sign_value * 2, y - height + 3, Color("#7eca8e"))
+		el.spx(buf, x + sign_value, y - height + 3, Color("#8dd79b"))
+	el.spx(buf, x, y - height, Color("#edffd0"))
+	el.spx(buf, x - 1, y - height + 1, Color("#b3efbc"))
+	el.spx(buf, x, y - height + 1, Color("#e7ffdc"))
+	el.spx(buf, x + 1, y - height + 1, Color("#b3efbc"))
+
 func _draw_props(buf: PackedByteArray) -> void:
 	if not enabled:
 		return
@@ -2856,10 +2907,13 @@ func _draw_props(buf: PackedByteArray) -> void:
 			continue
 		var at: Vector2 = node.global_position / WPS
 		match pr.kind:
-			"seed":
+			"seed", "life_bolt_seed":
 				var left: float = float(node.remaining)
 				if left < 1.5 and (vfx._steps >> 2) % 2 == 0:
 					continue          # blinking out
+				if pr.kind == "life_bolt_seed":
+					_draw_life_bolt_seed(buf, at, node)
+					continue
 				# pickup range: a quiet dashed ring at the real radius
 				el.draw_nova(buf, at.x, at.y, float(node.radius) / WPS, LIFE.rim)
 				# sprout: stem, two leaves, a bud that opens and closes

@@ -20,7 +20,7 @@ Agreed with Aditya on 16 October 2026. Owns the shape of an expedition (days, ni
 | Death | Ends the expedition. Unlocks are kept. |
 | Rewards | No gold. Ley lines are the opt-in fights; unlocks are the loop. A progression currency can be added later (a pickup, a saved number, a tower screen). |
 
-**Camp (built 0.3.4-dev.31, decided 17 October 2026):** camp is a place, not a pause screen. After the night's boss and the aftermath, a campfire is pitched where you stand; you walk around, rest by the fire to heal, and type ONWARD to start the next day. Run time, spawns and events hold; the combo is kept (`data/events.json` `camp`, `scripts/Camp.gd`). Camp content (a shop, learning a word, choices) comes later.
+**Camp (built 0.3.4-dev.33, decided 17 October 2026):** camp is a place, not a pause screen. After the night's boss and the aftermath, a campfire is pitched where you stand; you walk around, rest by the fire to heal, and type ONWARD to start the next day. Run time, spawns and events hold; the combo is kept (`data/events.json` `camp`, `scripts/Camp.gd`). Camp content (a shop, learning a word, choices) comes later.
 
 ## 2. The director
 

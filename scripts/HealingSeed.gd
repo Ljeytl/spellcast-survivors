@@ -1,5 +1,7 @@
 extends Node2D
 
+var presentation_source := ""
+var presentation_age := 0.0
 var remaining = 10.0
 var player_ref: WeakRef
 var collected = false
@@ -13,7 +15,7 @@ func _ready():
 	z_index = 4
 	var vfx = get_node_or_null("/root/Vfx")
 	if vfx:
-		vfx.prop_added(self, "seed")   # the VFX layer draws the sprout (docs/VFX_EVENTS.md)
+		vfx.prop_added(self, "life_bolt_seed" if presentation_source == "life_bolt" else "seed")   # the VFX layer draws the sprout (docs/VFX_EVENTS.md)
 	var seeds = get_tree().get_nodes_in_group("healing_seeds").filter(func(seed): return not seed.is_queued_for_deletion() and seed.player_ref and seed.player_ref.get_ref() == player_ref.get_ref())
 	while seeds.size() > cap:
 		var oldest = seeds.pop_front()
@@ -26,6 +28,7 @@ func _physics_process(delta):
 		return
 	if collected:
 		return
+	presentation_age += delta
 	remaining -= delta
 	if remaining <= 0:
 		queue_free()
@@ -35,7 +38,7 @@ func _physics_process(delta):
 		player.start_healing_over_time(healing_amount, healing_duration)
 		var vfx = get_node_or_null("/root/Vfx")
 		if vfx:
-			vfx.prop_burst("seed", global_position)
+			vfx.prop_burst("life_bolt_seed", player.global_position) if presentation_source == "life_bolt" else vfx.prop_burst("seed", global_position)
 		queue_free()
 		return
 	queue_redraw()

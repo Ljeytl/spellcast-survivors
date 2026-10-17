@@ -1,8 +1,20 @@
-# 0.3.4-dev.31 — Camp is a place (17 October 2026)
+# 0.3.4-dev.33 — Camp is a place (17 October 2026)
 
 - **After each night, you camp where you stand.** The field goes quiet and a campfire is pitched next to you, with a tent, a bedroll and a log seat (the camp pixel art). You can walk around. Resting within the fire's light heals you a little at a time (6% of max health per second). The run clock, spawns, patrols and stampedes all hold, and so does your combo.
 - **Type ONWARD to set out** (SPACE, then the word; it binds as soon as it is complete, like a ley word). A small SET OUT button is there for the mouse. Words like this are a new hook: anything in the `world_words` group answers to typed words before spells do.
 - Camp is no longer a pause screen. Its settings are `data/events.json` `camp` (wake word, heal radius, heal rate, hint).
+# 0.3.4-dev.32 — Fire Walk connected ground and cooling (17 October 2026)
+
+- Preserve the low flames and real patch footprint while replacing random checker-like scorch with a restrained continuous warm bed. Each patch cools with its own gameplay age; recasts do not rejuvenate old ground. Larger trails retain visible grass through the bed.
+- Keep every painted cell within its actual patch disk, preserve unburned loop centers, and retire ground at patch expiry. Effect disable/re-enable, clear/resume and runtime texture resizing are covered.
+- Add native base/max-rank, contact, recast and narrow reduced-effects resume captures with same-run PCM audio, plus material/lifecycle regressions and failing oversized/rejuvenation controls. Full artistic audio and mixed moving-threat assessment remain outstanding; no current all-category grade is claimed.
+
+# 0.3.4-dev.31 — Life Bolt strike and recovery clarity (17 October 2026)
+
+- Keep Life Bolt’s responsive living projectile and crisp contact punch; replace the enemy-contact flower bloom with a short directional strike and three leaf flecks.
+- Give only Life Bolt’s planted recovery a growing pale-mint bud above a quieter dotted boundary at its true collection radius. Collection draws tiny mint motes inward at the wizard, preserving the existing actual-healing feedback. Other seed sources, including Soul Bloom, retain their presentation.
+- Preserve damage, targeting, seed amount/duration/radius/lifetime/cap, collection and full-health behavior. Add source-routing and pickup-location regression controls plus native rank-one/rank-eight, overlapping-seed, narrow/reduced and full-health expiry capture journeys.
+- Follow-up: assess the modest contact against live mixed hostile threats and audition the synchronized recording. Current provisional scores remain incomplete; deterministic stationary-target captures do not prove combat readability or sound quality.
 
 # Capture tooling — Moving mixed combat evidence (17 October 2026)
 
