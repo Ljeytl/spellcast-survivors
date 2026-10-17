@@ -9,6 +9,8 @@ func _initialize():
 	run.call_deferred()
 
 func run():
+	if not root.is_node_ready():
+		await root.ready
 	await process_frame
 	var args = OS.get_cmdline_user_args()
 	if args.size() < 3:
