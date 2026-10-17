@@ -93,7 +93,7 @@ func run():
 			if game.spell_manager.cast_spell_by_type(slot):
 				casts.append(game.spell_manager.last_generic_cast)
 				events.append({"type":"primary_cast", "frame":frame, "movie_frame":Engine.get_frames_drawn()})
-		if frame in [55, 140, 210]:
+		if frame in [22, 110, 195]:
 			game.spell_manager.last_generic_cast = null
 			game.spell_manager.fire_mana_bolt()
 			var bolt = game.spell_manager.last_generic_cast
