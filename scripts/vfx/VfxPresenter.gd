@@ -407,6 +407,7 @@ func part_spawned(part) -> void:
 				if part.def.get("timing", {}).get("duration") == null:
 					life2 = 4.0
 				st.field = vfx.field(pos.x, pos.y, r_su2, life2 + 0.5, {"look": vfx.field_look(look.native), "goo": {"water": 1, "plague": 2}.get(look.native, 0)})
+				st.field.part = weakref(part)
 				if look.native == "life":
 					_life_field_start(st.field)
 				elif look.native == "earth":
@@ -447,6 +448,8 @@ func part_spawned(part) -> void:
 				vfx.scorch(pos.x, pos.y, cr * 0.8, life + 1.0)
 			else:
 				st.field = vfx.field(pos.x, pos.y, part.geo("radius", 60.0) / WPS, life + 0.5, {"profile": "cinder" if str(part.cast.plan.get("id", "")) == "cinder_field" else "default"})
+	if st.has("field") and not st.get("steam", false):
+		st.field.part = weakref(part)
 	_parts[part.get_instance_id()] = st
 	_presented[part.get_instance_id()] = weakref(part)
 
@@ -623,7 +626,8 @@ func part_finished(part, natural: bool) -> void:
 		"field":
 			# Break up, don't fade: the field erodes over its last half second.
 			var f: Dictionary = st.field
-			f.life = minf(f.life, f.age + 0.5)
+			f.erase("part")
+			f.life = f.age + 0.5
 
 # ------------------------------------------------------------------ per step
 
@@ -655,6 +659,7 @@ func step(dt: float) -> void:
 			"field":
 				st.field.x = pos.x
 				st.field.y = pos.y
+				st.field.r = part.geo("width", 30.0) * 0.5 / WPS if part.geo_type() == "line" else part.geo("radius", 60.0) / WPS
 				if is_instance_valid(st.get("cloud")):
 					st.cloud.global_position = part.global_position + Vector2(0, -float(st.field.r) * WPS * 0.25)
 				if part.geo_type() == "line":

@@ -693,7 +693,16 @@ func _bench_frame(delta: float):
 func _update_fields(dt: float):
 	var keep: Array = []
 	for A in _fields:
-		A.age += dt
+		var owner = A.get("part")
+		var part = owner.get_ref() if owner != null else null
+		if is_instance_valid(part) and not part.done:
+			A.age = float(part.age)
+			A.life = float(part.total_life()) + 0.5
+		else:
+			if owner != null:
+				A.erase("part")
+				A.life = A.age + 0.5
+			A.age += dt
 		if A.age > A.life:
 			continue
 		keep.append(A)
