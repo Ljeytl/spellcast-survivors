@@ -1,3 +1,10 @@
+# 0.3.4-dev.17 — Translucent Magic Missile (17 October 2026)
+
+- Refine automatic Magic Missile toward the selected clear, translucent missile direction: a glassy interior, highlighted rim, short movement-following wake and compact contact flicker.
+- Preserve targeting, damage, cadence and rank counts. Starting effects and cast timing remain deferred. Ice Blast at both reviewed ranks and Lightning are accepted; preserve their effects.
+- Add native repeated-cast captures and focused rendering/gameplay checks. Export previews with decoded frame verification; retain GIF playback alongside MP4.
+- Next: judge transparency and contact clarity in crowded gameplay. Audio remains unchanged and requires separate listening assessment.
+
 # 0.3.4-dev.16 — The Shieldbearer has a real shield; elements resist their own status (16 October 2026)
 
 - **The Shieldbearer's shield has health.** It is no longer a flat 35% reduction you can power through. Hits inside its front arc put 80% into the shield and 20% into the body. When the shield breaks it shatters, the Shieldbearer staggers for 1.5 s, and the shield is gone for good. The arc thins and warms from blue to orange as the shield wears down. Hits from behind or the side, area blasts that land behind it, and damage over time (burn, bleed, poison) all skip the shield. Numbers are in `data/encounters.json` `shieldbearer.shield`. The nightfall boss The Iron Guard gets the same shield.
