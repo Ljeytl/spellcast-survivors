@@ -1,3 +1,8 @@
+# 0.3.4-dev.33 — Camp is a place (17 October 2026)
+
+- **After each night, you camp where you stand.** The field goes quiet and a campfire is pitched next to you, with a tent, a bedroll and a log seat (the camp pixel art). You can walk around. Resting within the fire's light heals you a little at a time (6% of max health per second). The run clock, spawns, patrols and stampedes all hold, and so does your combo.
+- **Type ONWARD to set out** (SPACE, then the word; it binds as soon as it is complete, like a ley word). A small SET OUT button is there for the mouse. Words like this are a new hook: anything in the `world_words` group answers to typed words before spells do.
+- Camp is no longer a pause screen. Its settings are `data/events.json` `camp` (wake word, heal radius, heal rate, hint).
 # 0.3.4-dev.32 — Fire Walk connected ground and cooling (17 October 2026)
 
 - Preserve the low flames and real patch footprint while replacing random checker-like scorch with a restrained continuous warm bed. Each patch cools with its own gameplay age; recasts do not rejuvenate old ground. Larger trails retain visible grass through the bed.

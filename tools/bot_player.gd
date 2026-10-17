@@ -215,14 +215,15 @@ func _process(delta):
 				button.pressed.emit()
 				choice_wait = 1.0
 		return false
-	if game.current_state == game.GameState.CAMP:
+	var cycle_node = get_first_node_in_group("day_cycle")
+	if cycle_node and cycle_node.phase == cycle_node.Phase.CAMP:
 		# The bot rests a moment, then wakes; camps are logged so pacing reports can see them.
 		release_movement()
 		camp_wait -= input_delta
 		if camp_wait <= 0.0:
 			camp_wait = 1.0
 			camps.append(time)
-			get_first_node_in_group("day_cycle").wake()
+			cycle_node.wake()
 		return false
 	if paused:
 		release_movement()
