@@ -278,6 +278,8 @@ func part_spawned(part) -> void:
 		# The telegraph before a landing: the true area as a bright ring, an inner ring closing on it.
 		_parts[part.get_instance_id()] = {"part": weakref(part), "kind": "warn", "look": look_of(part.cast.plan), "last": part.global_position / WPS,
 			"acc": 0.0, "age": 0.0, "life": maxf(0.05, float(part.total_life())), "r": float(part.geo("radius", 60.0)) / WPS}
+		if str(part.cast.plan.get("id", "")) in ["rune_trap", "frost_sigil"] and not is_hostile(part):
+			_parts[part.get_instance_id()].life = maxf(0.01, float(part.def.get("propagation", {}).get("linger", 0.4)))
 		_presented[part.get_instance_id()] = weakref(part)
 		return
 	if vfam0 == "ray":
@@ -348,6 +350,14 @@ func part_spawned(part) -> void:
 			var r_su: float = part.geo("radius", 90.0) / WPS
 			# the accent owns the impact (plan 5.1); an arcane base adds its glyph flourish
 			var pw := _power(part)
+			if str(part.cast.plan.get("id", "")) == "frost_sigil" and not is_hostile(part):
+				_frost_trap_burst(part, pos, r_su)
+				if look.accent != "" and look.accent not in ["ice", "water"]:
+					_burst(look.accent, pos, r_su * 0.4, pw)
+				_force_fx(part.cast.plan, pos, look.accent if look.accent != "" else "ice")
+				_parts[part.get_instance_id()] = st
+				_presented[part.get_instance_id()] = weakref(part)
+				return
 			_burst(look.accent if look.accent != "" else look.native, pos, r_su, pw)
 			if look.accent != "" and look.native == "arcane":
 				_arcane_impact(pos.x, pos.y, 0.5)
@@ -917,6 +927,11 @@ func hostile_cols(plan: Dictionary) -> Array:
 ## else its element and any keyword accent. Both the same for a one-element spell.
 func _area_cols(part) -> Array:
 	var plan: Dictionary = part.cast.plan if part != null and part.cast != null else {}
+	if str(plan.get("id", "")) == "frost_sigil" and not is_hostile(part):
+		var cold: Array = AREA_COL.ice
+		var look := look_of(plan)
+		var accent: Array = AREA_COL.get(look.accent, cold) if look.accent not in ["", "water", "ice"] else cold
+		return [cold, accent]
 	if is_hostile(part):
 		var pair := hostile_cols(plan)
 		return [pair, pair]
@@ -1007,6 +1022,17 @@ func _draw_warn(buf: PackedByteArray, c: Vector2, st: Dictionary) -> void:
 	var cols: Array = st.cols
 	if is_hostile(wp):
 		_hostile_ring(buf, c, r, cols, k)
+		return
+	var trap_id := str(wp.cast.plan.get("id", "")) if wp != null else ""
+	if trap_id in ["rune_trap", "frost_sigil"]:
+		_split_ring(buf, c, r, cols, k >= 0.6)
+		if trap_id == "frost_sigil":
+			_frost_glyph(buf, c, minf(r * 0.65, 22.0) * (0.55 + k * 0.45), AREA_COL.ice[0], k)
+		else:
+			for i in 4:
+				var a := float(i) * TAU / 4.0
+				var at := c + Vector2.from_angle(a) * r * (0.65 - 0.5 * k)
+				el.draw_glyph(buf, at.x, at.y, i, cols[0][0])
 		return
 	_split_ring(buf, c, r, cols, k >= 0.6)
 	var inner := r * k
@@ -2098,29 +2124,57 @@ func _draw_trap(buf: PackedByteArray, part, st: Dictionary) -> void:
 	var arming := float(part.def.get("timing", {}).get("arming", 0.4))
 	var k := clampf(float(part.age) / maxf(0.01, arming), 0.0, 1.0)
 	var armed: bool = part.armed
-	var frame: int = vfx._steps
 	if not st.has("cols"):
 		st.cols = _area_cols(part)
 	var cols: Array = st.cols
+	var ready := armed and float(part.age) - arming < 0.18
+	var expiry := clampf(float(part.remaining_life()) / 0.25, 0.0, 1.0)
 	var steps := ceili(TAU * r * 1.3)
 	for i in steps:
 		if not armed and float(i) / steps > k:
 			continue
-		var a := TAU * i / steps
+		var a := TAU * i / steps - PI / 2.0
 		var pair: Array = cols[0] if cos(a) <= 0.0 else cols[1]
-		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), pair[0] if armed and ((i + (frame >> 2)) % 4 != 0) else pair[1])
+		var color: Color = pair[0] if ready or (not armed and absf(float(i) / steps - k) < 0.05) else pair[1]
+		color.a *= expiry
+		el.spx(buf, roundi(c.x + cos(a) * r), roundi(c.y + sin(a) * r), color)
 	if str(part.cast.plan.get("id", "")) == "frost_sigil":
-		var frost_color: Color = AREA_COL.ice[0] if armed else AREA_COL.ice[1]
-		var spoke_radius := minf(r * 0.55, 5.0) * k
-		for i in 6:
-			var axis := Vector2.from_angle(float(i) * TAU / 6.0 - PI / 2.0)
-			var tip := c + axis * spoke_radius
-			el.line(buf, c, tip, frost_color)
-			for side in [-1.0, 1.0]:
-				var fork := c + axis * spoke_radius * 0.55
-				el.line(buf, fork, fork + axis.rotated(side * PI / 3.0) * spoke_radius * 0.4, frost_color)
+		_frost_glyph(buf, c, minf(r * 0.65, 9.0) * k, Color(AREA_COL.ice[0] if armed else AREA_COL.ice[1], expiry))
 	else:
-		el.draw_glyph(buf, c.x, c.y, 3, (cols[0][0] if (frame >> 2) & 1 else cols[1][1]) if armed else cols[0][1])
+		el.draw_glyph(buf, c.x, c.y, 3, Color(cols[0][0] if armed else cols[0][1], expiry))
+	if ready:
+		for i in 4:
+			var at := c + Vector2.from_angle(float(i) * PI / 2.0) * r
+			el.line(buf, at - Vector2.ONE, at + Vector2.ONE, cols[0][0])
+
+func _frost_glyph(buf: PackedByteArray, c: Vector2, radius: float, color: Color, growth: float = 1.0) -> void:
+	if radius < 1.5:
+		return
+	var el = vfx.elements
+	for i in 6:
+		var axis := Vector2.from_angle(float(i) * TAU / 6.0 - PI / 2.0)
+		el.line(buf, c + axis * 1.5, c + axis * radius, color)
+		if growth > 0.25:
+			for side in [-1.0, 1.0]:
+				var fork := c + axis * radius * 0.58
+				el.line(buf, fork, fork + axis.rotated(side * PI / 3.0) * radius * 0.32, color)
+
+func _frost_trap_burst(part, pos: Vector2, radius: float) -> void:
+	var el = vfx.elements
+	var count := 12 if vfx.reduced_effects else 24
+	for i in count:
+		var a := float(i) / count * TAU
+		var axis := Vector2.from_angle(a)
+		var start := pos + axis * radius * 0.3
+		el.shard(start.x, start.y, axis.x * radius * 2.0, axis.y * radius * 1.4, 18.0 + randf() * 12.0, 2.0 + randf() * 2.0, 0.4 + randf() * 0.2)
+		el.flake(start.x, start.y, axis.x * 5.0, axis.y * 4.0, 0.8, 0, 0.0)
+	vfx.star(pos.x, pos.y, minf(radius * 0.3, 5.0), 0.08, 6, AREA_COL.ice[0])
+	_hit_rings.append([pos.x, pos.y, radius, 0.0, 0.35, _area_cols(part)])
+	vfx.hitstop(4)
+	vfx.shake(0.92)
+	var audio = vfx.get_node_or_null("/root/AudioManager")
+	if audio != null:
+		audio.play_sound(audio.SoundType.get(LANDING_SOUND.get("arcane", "SPELL_IMPACT_FIRE"), audio.SoundType.SPELL_IMPACT_FIRE))
 
 ## Vulnerable (arcane status): rising sparks and a blinking glyph overhead.
 func _vulnerable(dt: float) -> void:
