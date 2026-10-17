@@ -312,8 +312,9 @@ func part_spawned(part) -> void:
 		# Fire Walk patch: low flames and embers while it burns, char on the ground.
 		st.kind = "patch"
 		st.r = float(part.geo("radius", 25.0)) / WPS
-		if randi() % 3 == 0:
-			vfx.scorch(pos.x, pos.y, st.r * 0.9, float(part.total_life()) + 1.0)
+		st.ground = preload("res://scripts/vfx/FirewalkVisual.gd").new()
+		part.add_child(st.ground)
+		st.ground.setup(part)
 		_parts[part.get_instance_id()] = st
 		_presented[part.get_instance_id()] = weakref(part)
 		return
@@ -562,6 +563,9 @@ func part_finished(part, natural: bool) -> void:
 	if st == null:
 		return
 	_parts.erase(id)
+	if is_instance_valid(st.get("ground")):
+		st.ground.hide()
+		st.ground.queue_free()
 	if st.has("orbit_visual"):
 		st.orbit_visual.finished = true
 		if natural:
@@ -660,7 +664,12 @@ func step(dt: float) -> void:
 			"warn":
 				st.age = float(st.age) + dt
 			"patch":
-				if randf() < 0.12 * dt * 60.0:
+				if not is_instance_valid(st.get("ground")):
+					st.ground = preload("res://scripts/vfx/FirewalkVisual.gd").new()
+					part.add_child(st.ground)
+					st.ground.setup(part)
+				var warmth := preload("res://scripts/vfx/FirewalkVisual.gd").heat(float(part.age), float(part.total_life()))
+				if randf() < 0.12 * dt * 60.0 * warmth:
 					var a := randf() * TAU
 					var d := sqrt(randf()) * float(st.r) * 0.8
 					var fp: Vector2 = pos + Vector2(cos(a), sin(a) * 0.7) * d
@@ -670,7 +679,7 @@ func step(dt: float) -> void:
 					if walker == null or not is_instance_valid(walker) or fp.distance_to(walker.global_position / WPS) > 7.0:
 						# low ground fire: short tongues that stay under head height
 						vfx.flame(null, fp, {"heat": 0.6, "rise": 4.0 + randf() * 4.0, "life": 0.25 + randf() * 0.25, "small": 1.0})
-				if randf() < 0.02 * dt * 60.0:
+				if randf() < 0.02 * dt * 60.0 * warmth:
 					vfx.ember(pos.x + (randf() - 0.5) * float(st.r), pos.y, (randf() - 0.5) * 8.0, -(14.0 + randf() * 10.0), 0.8 + randf())
 			"beam":
 				_beam_step(part, st, pos, dt)
@@ -1822,6 +1831,10 @@ func clear_transients() -> void:
 	_orbit_visuals.clear()
 	for state in _parts.values():
 		state.erase("orbit_visual")
+		if is_instance_valid(state.get("ground")):
+			state.ground.hide()
+			state.ground.queue_free()
+			state.erase("ground")
 	_missile_ribbons.clear()
 	_hit_rings.clear()
 	_lasers.clear()

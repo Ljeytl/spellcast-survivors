@@ -326,21 +326,27 @@
       "id": "firewalk",
       "name": "Fire Walk",
       "baseline": "spell-feel-audit-2026-10-15.json#firewalk",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "dev.32 \u2014 disk-bounded connected ground, patch-age cooling and preserved low flames",
+      "disposition": "refined",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B",
+        "B-",
+        "B",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep the ground-hugging scale. Connect neighboring flames through short-lived heat and embers, show ignition directly behind each step, and let older patches cool in path order."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank1.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank8-recast.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank1-narrow-resume.mp4"
+      ],
+      "next_review": "Complete mixed moving-threat encounter and audible artistic assessment. Native full sequences show connected warm ground, retained low flames, empty loop center, actual contacts and age-ordered cooling. Maximum-rank opacity was reduced after inspection; these controlled fixtures do not establish full goal attainment.",
+      "grade_scope": "Provisional controlled native fixture: scripted caster movement, static targets, base/max rank and lifecycle. Observed five-column mean 2.8, floor C+. Full mixed moving-threat and audible artistic gate remains INCOMPLETE."
     },
     {
       "id": "cross_blade",
