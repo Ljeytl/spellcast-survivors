@@ -1,3 +1,9 @@
+# Capture tooling — Bolt and Lightning Bolt review (17 October 2026)
+
+- Add controlled base/max and empty-lifetime captures for Bolt and Lightning Bolt using real native casts, twelve reachable targets and single terminal-warning/strike telemetry. Mixed hostile capture now prepares eligible rank-eight Lightning Bolt ingredients.
+- Preserve eight reviewable native cases with PNG, same-run PCM and decoded exports. Retain two cropped narrow attempts as invalid visual evidence; recapture maxima at desktop and reject unsupported narrow capture requests. Distinguish Bolt empty projectile expiry from Lightning Bolt no-target suppression.
+- Preserve runtime effects and version. Full native motion/audio review remains open; sampled Bolt maximum impact is already substantial. Lightning Bolt product-text correction landed separately in dev.43.
+
 # 0.3.4-dev.43 — Lightning Bolt description correction (17 October 2026)
 
 - Correct the summary, detailed description and spell card to describe chained travelling impacts followed by one terminal lightning strike. Existing gameplay and effects are unchanged.

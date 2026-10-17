@@ -67,6 +67,10 @@ func run():
 	stage.world_2d = root.world_2d
 	stage.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(stage)
+	if spell == "lightning_bolt":
+		game.spell_manager.learn_spell("lightning")
+		for ingredient in ["bolt", "lightning"]:
+			game.spell_manager.get_spell_info(game.spell_manager.find_spell_slot(ingredient)).level = 8
 	if spell == "prism_ray":
 		assert(game.spell_manager.learn_spell("focus_ray"))
 		assert(game.spell_manager.learn_spell("ember_spear"))

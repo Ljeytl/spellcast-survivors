@@ -26,21 +26,23 @@
       "id": "bolt",
       "name": "Bolt",
       "baseline": "spell-feel-audit-2026-10-15.json#bolt",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "8a6fd8e",
+      "disposition": "native_baseline_captured_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
+        "B-",
         "U",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Preserve the fast minimal projectile. Tighten the staff-tip release and give the real contact one clean directional spark rather than a larger explosion."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/bolt-review/manifest.json"
+      ],
+      "next_review": "Capture-only source8a6fd8e at runtime dev41: base/max desktop and real mixed hostile casts captured with PNG plus aligned same-run PCM; cropped narrow max attempts explicitly excluded and replaced by desktop captures. Bolt empty launch/expiry established. Sampled base head is crisp (visual/readability B-/B-), contact modest (C+); maximum-rank contact substantially stronger. Preserve scaling and identity; no blanket impact increase. These are scoped sample judgments only; full native motion/audio assessment remains open, fantasy, motion and sound/camera remain U; populated visual/impact/readability columns are provisional sampled judgments and overall verdict remains INCOMPLETE."
     },
     {
       "id": "life",
@@ -410,21 +412,23 @@
       "id": "lightning_bolt",
       "name": "Lightning Bolt",
       "baseline": "spell-feel-audit-2026-10-15.json#lightning_bolt",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "8a6fd8e",
+      "disposition": "native_baseline_captured_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
+        "C+",
         "U",
+        "B",
         "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Fresh native review must follow each travelling contact and the single terminal warning/strike. Earlier per-contact strike prose was stale; doc 21 section 5.6 and current regression gates enforce one strike where the chain ends. Preserve approved Lightning bolt, blue circle and explosion."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/bolt-review/manifest.json"
+      ],
+      "next_review": "Capture-only source8a6fd8e at runtime dev41: base/max desktop and real mixed hostile casts captured with PNG plus aligned same-run PCM; cropped narrow max attempts explicitly excluded and replaced by desktop captures. Base/max show5/12 travelling contacts followed by exactly1 terminal warning and1 actual area strike; empty case is a no-target no-op, not projectile expiry. Sampled travelling visual C+/readability B-, terminal visual B. Product descriptions claiming per-hit blasts were corrected separately in dev43 b517403. Preserve approved Lightning terminal effect. These are scoped sample judgments only; full native motion/audio assessment remains open, fantasy, motion and sound/camera remain U; populated visual/impact/readability columns are provisional sampled judgments and overall verdict remains INCOMPLETE."
     },
     {
       "id": "life_bolt",
