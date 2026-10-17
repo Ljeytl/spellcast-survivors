@@ -762,6 +762,10 @@ func attempt_freeform_cast():
 
 func cast_freeform_spell(spell_name: String) -> bool:
 	last_cast_failure = ""
+	for world in get_tree().get_nodes_in_group("world_words"):
+		if world.try_word(spell_name):
+			end_typing()
+			return true
 	var ley = get_tree().get_first_node_in_group("ley_lines")
 	if ley and ley.try_word(spell_name):
 		end_typing()
@@ -986,7 +990,10 @@ func cast_freeform_spell_by_type(spell_name: String, _spell_data: Dictionary):
 ## Ley words typable here, from the ley site the player is standing in.
 func ley_words() -> Array:
 	var ley = get_tree().get_first_node_in_group("ley_lines")
-	return ley.available_words() if ley and ley.has_method("available_words") else []
+	var words: Array = ley.available_words() if ley and ley.has_method("available_words") else []
+	for world in get_tree().get_nodes_in_group("world_words"):
+		words.append_array(world.available_words())   # e.g. camp's "onward": binds without Enter
+	return words
 
 func update_freeform_typing_display():
 	if game_manager and game_manager.has_method("update_typing_display"):

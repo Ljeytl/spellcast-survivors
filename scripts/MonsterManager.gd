@@ -32,6 +32,7 @@ var cap_rejections = 0
 var encounter_director
 var threat_director   # data/director.json; null when encounters.json pacing is interval_phases
 var stampede   # scripts/Stampede.gd, the stampede set piece (data/events.json)
+var held := false   # camp: run time, spawns, patrols and events all stop (scripts/Camp.gd)
 var spawn_batch_fraction := 0.0
 var spawn_pressure = preload("res://scripts/SpawnPressure.gd").new()
 const Elites = preload("res://scripts/Elites.gd")
@@ -435,7 +436,7 @@ func continue_endless():
 	spawn_timer.start(calculate_spawn_interval())
 
 func advance_time(delta: float):
-	if run_finished or awaiting_extraction:
+	if run_finished or awaiting_extraction or held:
 		return
 	game_time = maxf(0.0, game_time + delta)
 	if not endless_mode and not day_cycle_driven and game_time >= float(encounter_config.run_duration):

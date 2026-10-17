@@ -5,6 +5,24 @@
 - Verify actual enemy contact, projectile absorption, exhaustion damage, recast, rank-eight expiry and narrow/reduced presentation with native captures. Add focused presentation/lifecycle checks and deliberate missing-fracture and expiry-retaliation controls.
 - Follow-up: review moving mixed-threat combat and audition recorded audio; fixed-camera controlled captures do not establish full sound/camera quality or final spell acceptance.
 
+# 0.3.4-dev.34 — Prism Ray refraction clarity (17 October 2026)
+
+- Preserve the six elemental fan lanes and exact primary width/endpoints; give the primary a translucent cross-section around its bright core so the real target and refraction source remain visible.
+- Add one compact pale-violet concentration at each actual split. Give branches a thin bright core and translucent outer material, fade Prism-only afterimages over their existing lifetime and replace the plague branch’s outlined bubbles with small directional flecks. Tiny element glints mark actual branch contacts, limited to one per target per physics frame. Other rays, status effects, damage, motion and geometry remain unchanged.
+- Add rendered-material/source-isolation checks with a failing full-bright-tail control, native base/max moving/enlarged/reduced/narrow captures, and mixed hostile combat with another spell. Follow-up: complete audible and full-motion artistic assessment; the B-minus mean/C-minus-floor fantasy gate remains incomplete.
+
+# 0.3.4-dev.33 — Camp is a place (17 October 2026)
+
+- **After each night, you camp where you stand.** The field goes quiet and a campfire is pitched next to you, with a tent, a bedroll and a log seat (the camp pixel art). You can walk around. Resting within the fire's light heals you a little at a time (6% of max health per second). The run clock, spawns, patrols and stampedes all hold, and so does your combo.
+- **Type ONWARD to set out** (SPACE, then the word; it binds as soon as it is complete, like a ley word). A small SET OUT button is there for the mouse. Words like this are a new hook: anything in the `world_words` group answers to typed words before spells do.
+- Camp is no longer a pause screen. Its settings are `data/events.json` `camp` (wake word, heal radius, heal rate, hint).
+
+# 0.3.4-dev.32 — Fire Walk connected ground and cooling (17 October 2026)
+
+- Preserve the low flames and real patch footprint while replacing random checker-like scorch with a restrained continuous warm bed. Each patch cools with its own gameplay age; recasts do not rejuvenate old ground. Larger trails retain visible grass through the bed.
+- Keep every painted cell within its actual patch disk, preserve unburned loop centers, and retire ground at patch expiry. Effect disable/re-enable, clear/resume and runtime texture resizing are covered.
+- Add native base/max-rank, contact, recast and narrow reduced-effects resume captures with same-run PCM audio, plus material/lifecycle regressions and failing oversized/rejuvenation controls. Full artistic audio and mixed moving-threat assessment remain outstanding; no current all-category grade is claimed.
+
 # 0.3.4-dev.31 — Life Bolt strike and recovery clarity (17 October 2026)
 
 - Keep Life Bolt’s responsive living projectile and crisp contact punch; replace the enemy-contact flower bloom with a short directional strike and three leaf flecks.

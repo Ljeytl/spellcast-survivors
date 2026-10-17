@@ -326,21 +326,27 @@
       "id": "firewalk",
       "name": "Fire Walk",
       "baseline": "spell-feel-audit-2026-10-15.json#firewalk",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "dev.32 \u2014 disk-bounded connected ground, patch-age cooling and preserved low flames",
+      "disposition": "refined",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B",
+        "B-",
+        "B",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep the ground-hugging scale. Connect neighboring flames through short-lived heat and embers, show ignition directly behind each step, and let older patches cool in path order."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank1.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank8-recast.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/firewalk/candidate-rank1-narrow-resume.mp4"
+      ],
+      "next_review": "Complete mixed moving-threat encounter and audible artistic assessment. Native full sequences show connected warm ground, retained low flames, empty loop center, actual contacts and age-ordered cooling. Maximum-rank opacity was reduced after inspection; these controlled fixtures do not establish full goal attainment.",
+      "grade_scope": "Provisional controlled native fixture: scripted caster movement, static targets, base/max rank and lifecycle. Observed five-column mean 2.8, floor C+. Full mixed moving-threat and audible artistic gate remains INCOMPLETE."
     },
     {
       "id": "cross_blade",
@@ -475,21 +481,28 @@
       "id": "prism_ray",
       "name": "Prism Ray",
       "baseline": "spell-feel-audit-2026-10-15.json#prism_ray",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "0.3.4-dev.34 Prism refraction material candidate",
+      "disposition": "candidate_requires_full_sequence_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
+        "B",
+        "B-",
+        "B-",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
-      "fantasy_fulfilled": null,
+      "fantasy_fulfilled": true,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Make a bright compact refraction knot at the real split, maintain a confident primary ray and give branches lighter material tails. Keep the rainbow fan rather than sanitizing away the fantasy."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-base.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-max.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-reduced.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-combat.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-base-sequence.jpg",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/prism-ray/refined-combat-sequence.jpg"
+      ],
+      "next_review": "Provisional assistant assessment of refined native base/max/mixed sequence samples: clear elemental split fantasy (B); translucent primary and branch material reduce opaque fences, supporting B- visuals/readability while rigid lane shape and central number clutter remain. Slow sweep and decaying tails support B- sampled motion. Actual contact glints improve local punctuation but impact remains modest (C+). Observed visual mean 2.68 remains just below 2.7 target; sound U until listened; overall INCOMPLETE, no user acceptance."
     },
     {
       "id": "frost_sigil",
