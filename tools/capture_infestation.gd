@@ -82,5 +82,8 @@ func run():
 			assert(stage.get_texture().get_image().save_png(folder + "/%04d.png" % frame) == OK)
 		stage.queue_free()
 		await teardown()
+		root.get_node("Vfx").clear()
+		await process_frame
+		await process_frame
 	FileAccess.open("res://builds/infestation/" + label + "/events.json", FileAccess.WRITE).store_string(JSON.stringify(events))
 	quit()
