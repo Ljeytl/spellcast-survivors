@@ -1,3 +1,9 @@
+# Pending — Life and Regeneration recovery feedback (17 October 2026)
+
+- Move Life's successful bloom from spell creation to actual received healing. Six pale leaf shapes gather into the torso and release a short warm mote lift; full health produces no successful-recovery pulse.
+- Separate Regeneration into a restrained breathing leaf orbit during its real active lifetime and small inward gathers on actual recovery. Preserve healing amounts, continuous rate, duration, refresh rules and the existing feedback throttle.
+- Keep unsourced healing feedback unchanged for spirits, seeds and pickups. Clear transient healing visuals with the VFX lifecycle. Native base/max-rank injured/full-health captures and source-routing/expiry regression evidence accompany this candidate; listening and player aesthetic approval remain outstanding.
+
 # 0.3.4-dev.22 — Cross Blade cutting-body refinement (17 October 2026)
 
 - Replace the hollow line cross with filled swept steel facets, fine bright cutting edges and a short curved wake inside the existing blade radius.
