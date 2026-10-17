@@ -323,6 +323,14 @@ func part_spawned(part) -> void:
 		_parts[part.get_instance_id()] = st
 		_presented[part.get_instance_id()] = weakref(part)
 		return
+	if kind == "infection":
+		st.infection_wakes = {}
+		st.infection_pulses = {}
+		st.infection_hosts = {}
+		var infection_visual = preload("res://scripts/vfx/InfectionVisual.gd").new()
+		infection_visual.setup(part, st, vfx)
+		vfx.add_child(infection_visual)
+		st.infection_visual = infection_visual
 	match kind:
 		"projectile":
 			st.family = family_of(part)
@@ -428,6 +436,12 @@ func part_spawned(part) -> void:
 
 func part_hit(part, enemy, at: Vector2) -> void:
 	var st = _parts.get(part.get_instance_id())
+	if st != null and st.kind == "infection":
+		if not st.has("infection_pulses"):
+			st.infection_pulses = {}
+		if is_instance_valid(enemy):
+			st.infection_pulses[enemy.get_instance_id()] = 0.18
+		return
 	if st == null or st.kind != "projectile":
 		return
 	_part_hit_look(part, enemy, at)
@@ -627,7 +641,7 @@ func step(dt: float) -> void:
 			"beam":
 				_beam_step(part, st, pos, dt)
 			"infection":
-				_infection_step(part, dt)
+				_infection_step(part, st, dt)
 			"eruption":
 				_eruption_step(part, st, pos, dt)
 			"charge":
@@ -2064,19 +2078,7 @@ func _plague_goo(st: Dictionary, t: float) -> void:
 	var pos: Vector2 = part.global_position / WPS
 	match st.kind:
 		"infection":
-			var inf = part.infection
-			if inf == null:
-				return
-			# spores in flight: a goo droplet with a short tail toward where it came from
-			for l in inf.links:
-				var lp: Vector2 = Vector2(l.position) / WPS
-				var back: Vector2 = (Vector2(l.from) / WPS - lp).normalized()
-				vfx.gsplat(2, lp.x, lp.y - 3.0, 2.4 + sin(t * 13.0) * 0.2)
-				vfx.gsplat(2, lp.x + back.x * 2.5, lp.y - 3.0 + back.y * 2.5, 1.5)
-			# resting spores: a pulsing pocket on the ground
-			for sp in inf.spores:
-				var sq: Vector2 = Vector2(sp.position) / WPS
-				vfx.gsplat(3, sq.x, sq.y, 2.8 + sin(t * 5.0) * 0.35)
+			return
 		"projectile":
 			var d: Vector2 = pos - st.last
 			var u: Vector2 = d.normalized() if d.length() > 0.01 else Vector2(part.direction).normalized()
@@ -2664,19 +2666,41 @@ func _draw_blade(buf: PackedByteArray, pos: Vector2, part) -> void:
 
 ## Infestation: infected hosts bubble on their bodies (see-through, so the host stays readable);
 ## resting spores pop now and then.
-func _infection_step(part, dt: float) -> void:
+func _infection_step(part, st: Dictionary, dt: float) -> void:
 	var inf = part.infection
 	if inf == null:
 		return
+	if not st.has("infection_wakes"):
+		st.infection_wakes = {}
+		st.infection_pulses = {}
+		st.infection_hosts = {}
+	var active_links: Dictionary = {}
+	for l in inf.links:
+		active_links[l.id] = true
+		var wake: Array = st.infection_wakes.get(l.id, [])
+		for sample in wake:
+			sample.age += dt
+		wake = wake.filter(func(sample): return sample.age < 0.16)
+		var point: Vector2 = Vector2(l.position) / WPS + Vector2(0, -3.0)
+		if wake.is_empty() or Vector2(wake.back().pos).distance_to(point) >= 0.45:
+			wake.append({"pos": point, "age": 0.0})
+		while wake.size() > 12:
+			wake.pop_front()
+		st.infection_wakes[l.id] = wake
+	for id in st.infection_wakes.keys():
+		if not active_links.has(id):
+			st.infection_wakes.erase(id)
+	var active_hosts: Dictionary = {}
 	for h in inf.hosts:
-		if randf() < 0.14 * dt * 60.0:
-			# Infected: solid green bubbles rising off the host (playtest: keep the old look, from the body).
-			var hp: Vector2 = Vector2(h.pos) / WPS
-			vfx.elements.bubble(hp.x + (randf() - 0.5) * 4.0, hp.y - randf() * 2.0, randf() < 0.3)
-	for sp in inf.spores:
-		if randf() < 0.05 * dt * 60.0:
-			var sq: Vector2 = Vector2(sp.position) / WPS
-			vfx.elements.bubble(sq.x + (randf() - 0.5) * 3.0, sq.y - 1.0, false)
+		active_hosts[h.id] = true
+		if not st.infection_hosts.has(h.id):
+			st.infection_pulses[h.id] = 0.18
+	for id in st.infection_pulses.keys():
+		if not active_hosts.has(id):
+			st.infection_pulses.erase(id)
+		else:
+			st.infection_pulses[id] = maxf(0.0, float(st.infection_pulses[id]) - dt)
+	st.infection_hosts = active_hosts
 
 ## Earth Shield eruption: stone spikes burst up along the growing cone front (earth nova kit),
 ## dust thrown outward; other looks spray their sparks along the front.

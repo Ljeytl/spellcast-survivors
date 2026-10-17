@@ -1,3 +1,10 @@
+# 0.3.4-dev.27 — Infection attachment and transmission (17 October 2026)
+
+- Replace infection's oversized pixel bubbles with a small organic travelling seed, a short wake sampled from its actual path, and translucent lesions anchored to the real host sprite. Infection's shared delivery also improves Soul Bloom's infection phase while preserving its approved outgoing ghost.
+- Pulse attached growth on actual damage events, grow it on arrival, and drain it at expiry. Preserve all targeting, spread, damage, duration, death-transfer and healing behavior; no added camera kick or repeated sound.
+- Add moving base/max-rank, death/resting-spore, repeated crowd and Soul Bloom compatibility capture cases with synchronized native MovieWriter audio. The current scorecard remains incomplete pending full audible and mixed-threat artistic assessment.
+- Repair the evolution tradeoff fixture's removed template API: previously 434 assertions masked script-error-skipped cases; the restored run executes 459 assertions. Add six history/arrival/tick checks and a renderer-lifecycle assertion to the plague regression.
+
 # Documentation — Current spell-feel evidence (17 October 2026)
 
 - Add a current 31-spell ledger separating user-approved identities, merged candidates and outstanding review from the historical October 15 grades. Keep unknown categories ungraded and record the B-minus/C-minus thresholds plus the independent fantasy requirement.

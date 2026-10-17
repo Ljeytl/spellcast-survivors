@@ -241,7 +241,7 @@ func clear():
 	if impact_light:
 		impact_light.clear()
 	for child in get_children():
-		if child.is_in_group("steam_clouds") or child.is_in_group("lightning_visuals") or child.is_in_group("healing_visuals"):
+		if child.is_in_group("steam_clouds") or child.is_in_group("lightning_visuals") or child.is_in_group("healing_visuals") or child.is_in_group("infection_visuals"):
 			child.queue_free()
 	if presenter:
 		presenter.clear_transients()
