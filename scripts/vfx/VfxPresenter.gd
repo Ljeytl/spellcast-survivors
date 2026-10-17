@@ -457,6 +457,15 @@ func _part_hit_look(part, _enemy, at: Vector2) -> void:
 	if _is_ice_blast(part) and impact_look == "ice":
 		_ice_blast_contact(part, at / WPS)
 		return
+	if st.family == "blade" and st.look.accent == "":
+		var hit := at / WPS
+		var returning: bool = int(part.phase) >= 2
+		var direction := Vector2(part.direction).normalized().rotated(-0.65)
+		for sign_value in [-1.0, 1.0]:
+			var velocity: Vector2 = direction * sign_value * (38.0 if returning else 25.0)
+			vfx.spark(hit.x, hit.y, velocity.x, velocity.y, 0.13 if returning else 0.10, [Color("#f1ffff"), Color("#a5d6e8"), Color("#627c9a")])
+		vfx.star(hit.x, hit.y, 2.4 if returning else 1.7, 0.065, 4, Color("#e0f7ff"))
+		return
 	var spawns_burst := false
 	for key in part.def.get("events", {}):
 		if str(key).begins_with("on_hit"):
@@ -2643,17 +2652,39 @@ func _draw_beam(buf: PackedByteArray, part, st: Dictionary) -> void:
 
 ## Cross Blade: a four-armed blade spinning at the true radius, steel with a bright edge.
 func _draw_blade(buf: PackedByteArray, pos: Vector2, part) -> void:
-	var el = vfx.elements
-	var r: float = float(part.geo("radius", 33.6)) / WPS
+	var k: float = vfx.K
+	var radius: float = float(part.geo("radius", 33.6)) / WPS * k
+	var center := pos * k
+	var returning: bool = int(part.phase) >= 2
 	var spin: float = float(part.age) * 16.0
-	for arm in 4:
-		var a := spin + arm * PI * 0.5
-		var tip := pos + Vector2(cos(a), sin(a)) * r
-		var side := pos + Vector2(cos(a + 0.5), sin(a + 0.5)) * r * 0.45
-		el.line(buf, pos, tip, BLADE_COL[1])
-		el.line(buf, side, tip, BLADE_COL[0])
-		el.line(buf, pos, side, BLADE_COL[3])
-	el.spx(buf, roundi(pos.x), roundi(pos.y), BLADE_COL[3])
+	var polygon := PackedVector2Array([Vector2(0.05, -0.12), Vector2(0.42, -0.30), Vector2(0.96, -0.12), Vector2(0.72, 0.20), Vector2(0.30, 0.27), Vector2(0.08, 0.13)])
+	var bounds := Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0).intersection(Rect2(Vector2(vfx._origin), Vector2(vfx._size)))
+	for y in range(floori(bounds.position.y), ceili(bounds.end.y)):
+		for x in range(floori(bounds.position.x), ceili(bounds.end.x)):
+			var local := (Vector2(x, y) + Vector2.ONE * 0.5 - center) / radius
+			var distance := local.length()
+			if distance > 1.0:
+				continue
+			var angle := fposmod(local.angle() - spin + PI * 0.25, PI * 0.5) - PI * 0.25
+			var q := Vector2(cos(angle), sin(angle)) * distance
+			var color := Color.TRANSPARENT
+			if distance < 0.19:
+				color = Color("#ccebf1") if distance < 0.10 else Color("#40546d")
+			elif Geometry2D.is_point_in_polygon(q, polygon):
+				color = Color("#718ca9") if q.y > 0.01 else Color("#c4d7e4")
+				var edge := Geometry2D.get_closest_point_to_segment(q, polygon[1], polygon[2])
+				if q.distance_to(edge) * radius < 0.85:
+					color = Color("#eeffff") if returning else Color("#e2f4ff")
+				elif q.y > 0.10:
+					color = Color("#4d6484")
+			elif distance > 0.71 and distance < 0.96 and angle < -0.14:
+				var strength := clampf((angle + PI * 0.25) / 0.62, 0.0, 1.0)
+				color = Color("#9bd8ee") if returning else Color("#89abc6")
+				color.a = strength * (0.43 if returning else 0.22)
+			if returning and color.a > 0.8:
+				color = color.lerp(Color("#c3f3ff"), 0.19)
+			if color.a > 0.001:
+				_missile_pixel(buf, x, y, color)
 
 ## Infestation: infected hosts bubble on their bodies (see-through, so the host stays readable);
 ## resting spores pop now and then.
