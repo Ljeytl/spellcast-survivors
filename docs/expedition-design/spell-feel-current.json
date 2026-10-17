@@ -1,5 +1,5 @@
 {
-  "as_of_revision": "5cb0cae35029d0b6692f90146a5521d75d9d3752",
+  "as_of_revision": "04d49cd2bea3eb556e448bf849f85ea041e83fbf",
   "updated": "2026-10-17",
   "scope": "31 implemented player spells; data-only, disabled recipes and enemy attacks excluded",
   "columns": [
@@ -174,8 +174,8 @@
       "id": "ember_spear",
       "name": "Ember Spear",
       "baseline": "spell-feel-audit-2026-10-15.json#ember_spear",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "04d49cd2bea3eb556e448bf849f85ea041e83fbf",
+      "disposition": "refined_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -187,8 +187,23 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Preserve heat, reach and force. Break up the strip into an irregular scorched path with moving low flame, keeping the spear head distinct from its damaging wake."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/candidate-ember-base.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/candidate-ember-base.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/candidate-ember-base/events.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-ember-reduced.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-ember-reduced.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-ember-reduced/events.json"
+      ],
+      "next_review": "Assess full-speed native motion, audible/camera quality and real mixed moving threats; fill the listed case gaps before assigning current grades or claiming the B-minus mean/C-minus floor.",
+      "coverage_limits": [
+        "Native frame sequences inspected; full-speed motion and PCM have not been artistically assessed.",
+        "Controlled targets and invincible player with fixed camera; real mixed hostile qualification remains open.",
+        "Candidate source retained before independent shield/trap integration; exact spear delta preserved on main sync and integrated regression gates rerun.",
+        "Initial narrow attempt stalled and is retained as failed evidence; final integrated-head reduced/narrow retry completed with165cleanframes and contact/expiry telemetry."
+      ],
+      "fixture_observation": "Hot pointed body and existing flames preserved. Mottled warm rim replaces continuous orange rails. Visible ground persists through final damaging tick, then erodes; an off-path target enters after the throw and receives trail damage. Maximum-rank repeated casts respect three-trail cap and retire."
     },
     {
       "id": "infestation",
@@ -437,8 +452,8 @@
       "id": "meteor_spear",
       "name": "Meteor Spear",
       "baseline": "spell-feel-audit-2026-10-15.json#meteor_spear",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "04d49cd2bea3eb556e448bf849f85ea041e83fbf",
+      "disposition": "refined_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -450,8 +465,25 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep penetration and staggered follow-up impacts. Mark the pierced contacts briefly, then make each descending meteor visibly answer a mark; refine the same artificial trail edge as Ember Spear."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/candidate-meteor-max.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/candidate-meteor-max.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/candidate-meteor-max/events.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-meteor-base.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-meteor-base.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-meteor-base/events.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-meteor-reduced.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/final-meteor-reduced/events.json"
+      ],
+      "next_review": "Assess full-speed native motion, audible/camera quality and real mixed moving threats; fill the listed case gaps before assigning current grades or claiming the B-minus mean/C-minus floor.",
+      "coverage_limits": [
+        "Native frame sequences inspected; full-speed motion and PCM have not been artistically assessed.",
+        "Controlled targets and invincible player with fixed camera; real mixed hostile qualification remains open.",
+        "Candidate source retained before independent shield/trap integration; exact spear delta preserved on main sync and integrated regression gates rerun.",
+        "Earlier base fixture reset ingredients below acquisition rank8 and remains excluded. Final integrated-head minimum-combination capture keeps ingredients8; reduced/narrow also completed with165cleanframes each."
+      ],
+      "fixture_observation": "Maximum-rank candidate preserves separate contact-triggered meteors with one-second delays and moving-target contacts. Inherited burning route now outlasts its final damaging tick and retires; patchy ground edge preserves strong fire identity."
     },
     {
       "id": "soul_bloom",
@@ -578,8 +610,8 @@
       "id": "spear",
       "name": "Bare Spear",
       "baseline": "spell-feel-audit-2026-10-15.json#spear",
-      "latest_reviewed_change": null,
-      "disposition": "needs_current_review",
+      "latest_reviewed_change": "04d49cd2bea3eb556e448bf849f85ea041e83fbf",
+      "disposition": "baseline_captured_pending_full_review",
       "user_feedback": "No newer explicit acceptance recorded.",
       "current_grades": [
         "U",
@@ -591,8 +623,20 @@
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
-      "evidence": [],
-      "next_review": "Keep one sharp point, short wake and local puncture. Reduce competing generic cast decoration before adding anything to the projectile."
+      "evidence": [
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/bare-line.mp4",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/bare-line.gif",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/bare-line/events.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/spears/manifest.json"
+      ],
+      "next_review": "Assess full-speed native motion, audible/camera quality and real mixed moving threats; fill the listed case gaps before assigning current grades or claiming the B-minus mean/C-minus floor.",
+      "coverage_limits": [
+        "Native frame sequences inspected; full-speed motion and PCM have not been artistically assessed.",
+        "Controlled targets and invincible player with fixed camera; real mixed hostile qualification remains open.",
+        "Candidate source retained before independent shield/trap integration; exact spear delta preserved on main sync and integrated regression gates rerun.",
+        "Bare narrow/reduced and real mixed hostile cases remain unqualified. Shared starting effects stay deferred."
+      ],
+      "fixture_observation": "Unchanged native bare spear remains a compact pointed white-purple projectile with local contact. Baseline line hits four enemies, empty cast produces no contacts, and fiery keyword adds elemental presentation. Bare generic form has no rank progression."
     },
     {
       "id": "slash",

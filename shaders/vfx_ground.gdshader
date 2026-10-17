@@ -97,7 +97,14 @@ void fragment() {
 			continue;
 		}
 		int look = int(field_axis[i].z + 0.5);
-		if (abs(d - r) < 0.7 * k) {
+		if (L > 0.0 && field_axis[i].w > 1.5 && abs(d - r) < 0.7 * k) {
+			vec2 s = vec2(a) / k;
+			float edge_noise = vn(s.x * 0.35, s.y * 0.35 + t * 0.5);
+			if (edge_noise < 0.6) {
+				continue;
+			}
+			col = edge_noise > 0.72 ? rim_cols[look * 2] : floor_cols[1];
+		} else if (abs(d - r) < 0.7 * k) {
 			bool flick = look == 2 ? hs(a.x + tick * 8, a.y) > 0.6 : ((a.x + a.y + tick) & 3) == 0;
 			col = rim_cols[look * 2 + (flick ? 1 : 0)];
 		} else if (field_axis[i].w > 0.5 && field_axis[i].w < 1.5) {
