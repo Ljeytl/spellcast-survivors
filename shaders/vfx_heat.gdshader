@@ -115,8 +115,9 @@ void fragment() {
 		}
 	}
 	vec4 over = texelFetch(TEXTURE, p, 0);
-	if (over.a > 0.5) {
-		col = over;
+	if (over.a > 0.0) {
+		float alpha = over.a + col.a * (1.0 - over.a);
+		col = vec4((over.rgb * over.a + col.rgb * col.a * (1.0 - over.a)) / alpha, alpha);
 	}
 	COLOR = col;
 }

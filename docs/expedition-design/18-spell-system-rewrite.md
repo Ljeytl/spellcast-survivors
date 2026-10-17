@@ -386,7 +386,7 @@ These seven recipes remain unchanged. Their identity should feel like a specific
 
 **Caster and staff:** a tiny ready glint at the automatic source, followed by a quick flick or pulse. Do not interrupt a manual casting pose with a competing full-body animation.
 
-**Motion and contact:** a small directed dart leaves a short sparse wake, turns according to real guidance, and breaks into a compact contact spark. Multiple missiles remain individually readable.
+**Motion and contact:** clear, translucent missiles give a quick pew: a pale glassy interior, light catching a narrow rim, and a short fading wake following their actual guidance. Contact is a compact flicker rather than an explosion. Keep individual missiles readable without turning them into opaque glowing blobs. This direction was explicitly selected on 17 October 2026.
 
 **Sound and camera:** quiet release and soft contact taps with bounded voices. Camera none. Manual casts and threats take audible priority.
 
@@ -1118,3 +1118,18 @@ Typing already provides preparation. Resume movement on accepted input rather th
 Accepted casts snapshot ranks, stats and modifiers; resolve or revalidate targeting on release. Escape cancels current typing, not an already accepted cast. Death, extraction, restart and scene teardown clear pending casts. Pause freezes the pending timer; subsequent typing slowdown does not stretch it. Separate input acceptance from actual release events. Implement centrally in player submission paths, including legacy Mega, rather than globally delaying all GenericCasts.
 
 Validation before adoption: canonical-name and modifier equivalence; exactly-once release; no early release; pause and teardown; movement and overlapping typing; automatic-cast exclusion; explicit keyword paths. Playtest Bolt, Ice Blast, Lightning and Meteor. Lightning retains its additional 0.32-second warning, making acceptance-to-strike approximately 0.545 seconds under this proposal. Lower the coefficient to 20 ms if release feels disconnected. No cast-time code is part of this Ice Blast refinement.
+
+
+### Accepted effects and current work — 17 October 2026
+
+Ice Blast level 1 and maximum rank are accepted by the user after moving previews. Preserve both. The earlier high-rank density concern is superseded by the user's positive assessment of its feel. Lightning remains accepted.
+
+Magic Missile is the active refinement: clear translucent missiles, a quick pew, short responsive wake and compact contact. Starting effects and cast-time changes remain deferred. The earlier audit score is historical and does not establish acceptance of the new direction. Verify exported video by decoding frames; provide an animated GIF alongside MP4.
+
+Current Magic Missile candidate: pale translucent body with a highlighted edge, a 0.13-second position-history wake, and compact contact without hitstop or camera shake. Actual alpha is composited through the final VFX shader; testing only the intermediate pixel buffer was insufficient because the prior shader discarded alpha below 0.5. Opaque effects retain their existing output.
+
+| Candidate | Fantasy | Visuals | Motion | Impact | Readability | Equal-weight average |
+|---|---|---|---|---|---|---|
+| Magic Missile, 17 October native preview | B- | B- | B | B- | B | 2.82 / B- |
+
+These are provisional visual/feel grades, not user acceptance. Sound is unchanged and ungraded by the silent preview. Native captures cover repeated level-1 and level-8 firing against a sparse fixture; crowded gameplay remains unreviewed. The existing release glint is unchanged because starting effects remain deferred.
