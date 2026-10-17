@@ -429,6 +429,7 @@ func part_spawned(part) -> void:
 					line_o.rate = 0.1
 					line_o.heat_k = 0.5
 					line_o.style = 2
+					st.smoulder = true
 				st.field = vfx.field(pos.x, pos.y, hw / WPS, life + 0.5, line_o)
 			elif str(part.def.get("vfx", {}).get("style", "")) == "steam":
 				# Steam Field: connected rolling vapor above the active area.
@@ -657,6 +658,9 @@ func step(dt: float) -> void:
 			"projectile":
 				_trail(part, st, pos, dt)
 			"field":
+				if st.get("smoulder", false):
+					st.field.age = part.age
+					st.field.life = part.total_life() + 0.5
 				st.field.x = pos.x
 				st.field.y = pos.y
 				st.field.r = part.geo("width", 30.0) * 0.5 / WPS if part.geo_type() == "line" else part.geo("radius", 60.0) / WPS

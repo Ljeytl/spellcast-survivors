@@ -1,3 +1,9 @@
+# 0.3.4-dev.37 — Burning spear trail lifetime and edge (17 October 2026)
+
+- Keep Ember Spear and Meteor Spear smouldering ground visible through their real damaging lifetime. Synchronize only their smoulder field with its gameplay part age, preserving prompt retirement when capped or expired.
+- Break the continuous orange rectangular border into short warm patches while preserving the hot spear, flames, damage, targeting and delayed meteor sequence. Bare Spear stays unchanged.
+- Add a lifecycle regression across three frame rates and visual speeds, with a failing old-clock control, plus offscreen native capture tooling and retained same-run PCM/PNG evidence. Current review remains incomplete: full-speed motion/audio judgment and real mixed hostile qualification remain open. Minimum-rank Meteor with eligible rank-eight ingredients and reduced/narrow cases completed on the integrated candidate. The first narrow attempt stalled and its partial movie is retained only as failed evidence.
+
 # 0.3.4-dev.36 — Trap state and cold-material refinement (17 October 2026)
 
 - Rune Trap, Frost Sigil and bare Trap finish inscription with a brief ready accent, then wait quietly at their actual trigger boundary. Bare Trap erases during its final quarter-second without an expiry explosion.
