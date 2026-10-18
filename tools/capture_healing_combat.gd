@@ -77,6 +77,8 @@ func run():
 	var secondary: Array = []
 	var contacts := {}
 	var frames: Array = []
+	var visual_emissions: Array = []
+	var seen_visuals := {}
 	var release_frame := -1
 	var travel := 0.0
 	var previous: Vector2 = game.player.global_position
@@ -119,6 +121,13 @@ func run():
 			bolt.tree_exiting.connect(func(): contacts[key] = bolt.hits_log.duplicate(true))
 		await physics_frame
 		await process_frame
+		for visual in get_nodes_in_group("healing_visuals"):
+			var visual_id := str(visual.get_instance_id())
+			if not seen_visuals.has(visual_id):
+				seen_visuals[visual_id] = true
+				var emission := stamp()
+				emission.merge({"id":visual_id,"script":visual.get_script().resource_path})
+				visual_emissions.append(emission)
 		travel += game.player.global_position.distance_to(previous)
 		previous = game.player.global_position
 		for bolt in secondary:
@@ -163,7 +172,7 @@ func run():
 			failures.append("healing_visuals_not_retired")
 	if frames.any(func(state): return state.invincible or state.paused or state.time_scale != 1.0):
 		failures.append("invalid_runtime_state")
-	var result := {"spell":spell,"rank":8,"fps":30,"fixture":"Four genuine hostile AI enemies,10000HP/XP0; actual damage before release, ordinary movement input, no health writes/invincibility/direct healing. Unique primary healing source; Magic Missile secondary cannot heal. UI hidden. Visual throttle uses wall-clock350ms; record wall and physics timestamps separately.","failures":failures,"primary":primary_record,"heals":healing_events,"damage_events":damage_events,"events":events,"secondary_contacts":contacts,"player_travel":travel,"moving_enemies":moved,"warnings":warnings,"frames":frames,"sound_grade":"U: not heard"}
+	var result := {"spell":spell,"rank":8,"fps":30,"fixture":"Four genuine hostile AI enemies,10000HP/XP0; actual damage before release, ordinary movement input, no health writes/invincibility/direct healing. Unique primary healing source; Magic Missile secondary cannot heal. UI hidden. Visual throttle uses wall-clock350ms; record wall and physics timestamps separately.","failures":failures,"primary":primary_record,"heals":healing_events,"visual_emissions":visual_emissions,"damage_events":damage_events,"events":events,"secondary_contacts":contacts,"player_travel":travel,"moving_enemies":moved,"warnings":warnings,"frames":frames,"sound_grade":"U: not heard"}
 	FileAccess.open(folder+"/manifest.json",FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
 	print("HEALING_COMBAT ",JSON.stringify({"failures":failures,"heals":healing_events.size(),"frames":frames.size()}))
 	stage.queue_free()
