@@ -697,8 +697,8 @@ func _draw_poison_status_bubble(buf: PackedByteArray, q: Array) -> void:
 			if coverage <= 0.0:
 				continue
 			var highlight := maxf(0.0, 1.0 - (offset - Vector2(-0.3, -0.4)).length() * 1.4)
-			var color: Color = PLAGUE.light.lerp(PLAGUE.hi, highlight * 0.7)
-			color.a = float(q[6]) * coverage * fade * (0.55 + 0.45 * smoothstep(0.2, 0.7, distance))
+			var color: Color = Color("#70bd38").lerp(PLAGUE.hi, highlight * 0.7)
+			color.a = float(q[6]) * 1.2 * coverage * fade * (0.55 + 0.45 * smoothstep(0.2, 0.7, distance))
 			_rect(buf, x, y, x + 1, y + 1, color)
 
 var _bubble_cache := {}
