@@ -1,3 +1,9 @@
+# Capture tooling — Soul Bloom lifecycle qualification (17 October 2026)
+
+- Preserve the approved hybrid spirit and all runtime behavior. Extend the existing infection capture with separate Soul Bloom own-rank-one/eight wounded/full-health episodes, each using the required rank-eight Plague Seed and Regeneration ingredients.
+- Require an actual infection tick to kill a controlled 1HP real monster, one source-bound spirit emerging and travelling, then capped healing or a tagged positive enemy arrival hit before spirit retirement. Keep the surviving recipient outside infection spread/resting reach; record continuing spores separately from spirit completion.
+- Preserve native PNG sequences and aligned same-run PCM for review. These XP0 stationary-target cases establish controlled lifecycle evidence, not mixed hostile combat or artistic acceptance. Full motion/audio, hostile pressure, recasts, spirit cap and alternate expiry remain follow-up work; runtime version is unchanged.
+
 # Capture tooling — Seeker mixed encounter (17 October 2026)
 
 - Extend the existing combat recorder with a rank-eight encounter long enough for three concurrent spirits to complete their natural hunts and returns. Keep genuine enemy movement/attacks, ordinary player vulnerability and a distinct secondary spell; explicitly use high-health, zero-XP targets to avoid progression interruptions. No runtime or version change.
