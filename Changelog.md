@@ -4,6 +4,12 @@
 - Preserve paired native normal/reduced mixed-hostile PNG and same-run PCM evidence against dev.45. Add focused visual-support/world-coordinate isolation checks to the existing real enemy damage regression; the legacy clipped drawing bounds fail the injected control.
 - Follow-up: assess full-motion fantasy and audible mix. Removing this observed hard rectangular cutoff does not establish overall artistic acceptance; warning/flash edge behavior remains unchanged.
 
+# Capture tooling — Seeker lifecycle qualification (17 October 2026)
+
+- Preserve the approved hybrid body, independent trail and aqua/mint/red phase palettes. Replace the fixed two-cast capture with separate rank and ending episodes, source-bound full native frames and optional same-run audio. No runtime or version change.
+- Require sustained actual hunt damage, a living previously hunted target, capped healing with measured slower return, and one actual finishing hit on a fresh target outside all hunted/excluded IDs before timeout. The fresh target is explicitly staged after the hunt; this is controlled lifecycle evidence, not a natural hostile encounter.
+- Preserve single-spirit base/max wounded and full-health sequences with native PNGs, aligned PCM and verified MP4/GIF exports. Sampled appearance/readability and arrival judgments remain scoped; full motion/fantasy/audio, mixed hostile pressure, recasts/modifiers and alternate ending branches remain follow-up work.
+
 # Capture tooling — Atomic mixed-hostile evidence (17 October 2026)
 
 - Capture normal and reduced Atomic releases against fourteen moving hostiles with a distinct Mana Bolt cast, actual pre-blast player damage, twelve Atomic recipients and full impact-to-retirement telemetry. Preserve native PNG sequences, aligned same-run PCM, camera transforms and verified exports; runtime effects and version remain unchanged.
