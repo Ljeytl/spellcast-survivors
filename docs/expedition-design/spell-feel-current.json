@@ -48,7 +48,7 @@
       "id": "life",
       "name": "Life",
       "baseline": "spell-feel-audit-2026-10-15.json#life",
-      "latest_reviewed_change": "4f926df9467c1dbc0f782e0f2ab5f649381db917",
+      "latest_reviewed_change": "629a886 \u2014 explicit recipient follows actual recovery pulse; dev.49",
       "disposition": "refined",
       "user_feedback": "Actual-heal pulse merged; no user acceptance.",
       "current_grades": [
@@ -63,15 +63,16 @@
       "verdict": "INCOMPLETE",
       "evidence": [
         "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-combat/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-combat/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-follow/manifest.json"
       ],
-      "next_review": "Assess full sequence and audible recovery cue at gameplay scale. Rank-eight mixed capture adds four genuine moving/attacking enemies with 10000 HP/zero XP, one actual 8 HP injury, ordinary player movement, two distinct Magic Missile contacts and survival. No invincibility or direct health/healing writes. Life restores the capped 8 missing HP immediately. Its brief mint recovery pulse remains at the release world position as the player moves away; faint green finish on grass is a scoped visibility/attachment concern, not permission for a redesign. Red outlined squares are damage feedback, not the healing pulse. Existing controlled base/max evidence remains valid within its scope. No artistic grade upgrade; sound U and full-motion review remain open."
+      "next_review": "Assess full sequence and audible recovery cue at gameplay scale. Rank-eight mixed capture adds four genuine moving/attacking enemies with 10000 HP/zero XP, one actual 8 HP injury, ordinary player movement, two distinct Magic Missile contacts and survival. No invincibility or direct health/healing writes. Life restores the capped 8 missing HP immediately. The prior world-fixed pulse attachment defect is corrected by explicit recipient following; faint green finish on grass remains a scoped visibility concern, not permission for a redesign. Red outlined squares are damage feedback, not the healing pulse. Existing controlled base/max evidence remains valid within its scope. No artistic grade upgrade; sound U and full-motion review remain open. Paired source 629a886 native captures retain identical frame-by-frame health and heal amounts, with 213 Life/303 Regeneration frames and both secondary contacts. Sampled pulses now stay on the moving recipient. Weak references preserve safe last-position expiry if the recipient disappears; default prop calls remain static. No full artistic or audible certification."
     },
     {
       "id": "regeneration",
       "name": "Regeneration",
       "baseline": "spell-feel-audit-2026-10-15.json#regeneration",
-      "latest_reviewed_change": "4f926df9467c1dbc0f782e0f2ab5f649381db917",
+      "latest_reviewed_change": "629a886 \u2014 explicit recipient follows actual recovery pulse; dev.49",
       "disposition": "refined",
       "user_feedback": "Quiet aura and actual recovery gathers merged; no user acceptance.",
       "current_grades": [
@@ -86,9 +87,10 @@
       "verdict": "INCOMPLETE",
       "evidence": [
         "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-combat/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-combat/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-follow/manifest.json"
       ],
-      "next_review": "Assess sustained rhythm, crowded visibility and audible cue. Rank-eight mixed capture adds four genuine moving/attacking enemies with 10000 HP/zero XP, one actual 8 HP injury, ordinary player movement, two distinct Magic Missile contacts and survival. No invincibility or direct health/healing writes. Regeneration restores 8 HP over 79 positive physics increments; five sampled recovery gathers have wall-clock intervals 351\u2013385 ms. Health reaches full after about 1.3 simulation seconds; the aura continues and retires at five seconds. This does not qualify sustained missing-health feedback for the full duration. Older world-fixed gathers fall behind movement; preserve the following quiet aura and assess the small recovery cues separately. Existing controlled base/max evidence remains valid within its scope. No artistic grade upgrade; sound U and full-motion review remain open."
+      "next_review": "Assess sustained rhythm, crowded visibility and audible cue. Rank-eight mixed capture adds four genuine moving/attacking enemies with 10000 HP/zero XP, one actual 8 HP injury, ordinary player movement, two distinct Magic Missile contacts and survival. No invincibility or direct health/healing writes. Regeneration restores 8 HP over 79 positive physics increments; five sampled recovery gathers have wall-clock intervals 351\u2013385 ms. Health reaches full after about 1.3 simulation seconds; the aura continues and retires at five seconds. This does not qualify sustained missing-health feedback for the full duration. Older world-fixed gathers fell behind movement; explicit recipient following now corrects their attachment while preserving the quiet aura and small recovery geometry. Existing controlled base/max evidence remains valid within its scope. No artistic grade upgrade; sound U and full-motion review remain open. Paired source 629a886 native captures retain identical frame-by-frame health and heal amounts, with 213 Life/303 Regeneration frames and both secondary contacts. Sampled pulses now stay on the moving recipient. Weak references preserve safe last-position expiry if the recipient disappears; default prop calls remain static. No full artistic or audible certification."
     },
     {
       "id": "ice_blast",
