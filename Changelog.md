@@ -1,3 +1,9 @@
+# Capture tooling — Seeker lifecycle qualification (17 October 2026)
+
+- Preserve the approved hybrid body, independent trail and aqua/mint/red phase palettes. Replace the fixed two-cast capture with separate rank and ending episodes, source-bound full native frames and optional same-run audio. No runtime or version change.
+- Require sustained actual hunt damage, a living previously hunted target, capped healing with measured slower return, and one actual finishing hit on a fresh target outside all hunted/excluded IDs before timeout. The fresh target is explicitly staged after the hunt; this is controlled lifecycle evidence, not a natural hostile encounter.
+- Preserve single-spirit base/max wounded and full-health sequences with native PNGs, aligned PCM and verified MP4/GIF exports. Sampled appearance/readability and arrival judgments remain scoped; full motion/fantasy/audio, mixed hostile pressure, recasts/modifiers and alternate ending branches remain follow-up work.
+
 # Capture tooling — Magic Missile qualification (17 October 2026)
 
 - Preserve dev.20 diamond, ribbon and contact effects. Extend existing native capture metadata with rank/frame/contact provenance and optional same-run audio; support automatic Magic Missile as the primary spell with Bolt as the distinct secondary in mixed hostile captures.
