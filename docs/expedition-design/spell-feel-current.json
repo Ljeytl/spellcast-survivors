@@ -160,7 +160,7 @@
       "id": "meteor_shower",
       "name": "Meteor Shower",
       "baseline": "spell-feel-audit-2026-10-15.json#meteor_shower",
-      "latest_reviewed_change": "bbe9518b82d7c552c8fe8f385db6b2a74eb9e9c5",
+      "latest_reviewed_change": "c2ea78b",
       "disposition": "preserve",
       "user_feedback": "User explicitly likes staggered falls and repeated impact shakes.",
       "current_grades": [
@@ -174,9 +174,10 @@
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/field-lifetime/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/field-lifetime/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/meteor-combat/manifest.json"
       ],
-      "next_review": "Dev.39 shared lifetime repair: actual damaging field footprint follows gameplay lifetime and recast segments rather than the accelerated particle clock. Native controlled late-damage and expiry evidence is in the field-lifetime manifest; preserve existing spell identity. Full-motion artistic, mixed hostile and audible quality review remains incomplete. Verify sound and crowded readability while preserving stagger."
+      "next_review": "Dev.49 capture-only mixed-hostile qualification preserves the user-approved staggered falls and repeated shakes. Two native four-second normal/reduced encounters retain 14 configured-health AI enemies, actual player damage/movement, a Magic Missile contact, six matching warning\u2192impact\u2192crater lifecycles and source-bound positive Meteor damage. All warnings begin together; their lifetimes grow from 0.65 to 2.15 seconds, producing 0.3-second impact spacing. Two impacts genuinely miss moving targets. Normal has a stronger camera response at each landing; reduced has zero shake with identical gameplay plan and observed damage totals. Large white impact flashes and lingering fire can cover local enemies/player in sampled frames; preserve accepted identity while evaluating crowded readability in motion. Aligned PCM is retained but not heard; no overall artistic grade is assigned. XP is disabled only to avoid modal progression. Recasts, other ranks/modifiers and full audible quality remain open."
     },
     {
       "id": "ember_spear",
