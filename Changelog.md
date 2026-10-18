@@ -1,3 +1,9 @@
+# Capture tooling — Earth Shield moving hostile encounter (17 October 2026)
+
+- Add one rank-eight encounter with two genuine pursuers and one imp, ordinary player movement/vulnerability, explicit high-health zero-XP targets and two independently contacting Magic Missiles. No runtime or version change; preserve the recent shield fracture and retaliation material.
+- Bind each consumed charge to its unique eruption source and actual resolved retaliation. Two natural contact blocks preserve health and each cause a direct 123-damage eruption; later bleed remains separately identified. Exhaustion permits 16 actual health damage, then a third cast restores protection; the player survives.
+- Preserve 211 native frames, aligned same-run PCM and decoded exports. A focused validator rejects damaging blocks, unrelated eruptions, bleed-only evidence, missing exhaustion damage and missing secondary contact. Existing controlled base/max, projectile and quiet-expiry evidence remains scoped separately; this encounter establishes natural contact attacks, not another projectile-block or full-expiry qualification. Full artistic/audio acceptance remains open.
+
 # Capture tooling — Meteor Shower mixed encounter (17 October 2026)
 
 - Preserve the user-approved Meteor Shower runtime, staggered falls and repeated impact shakes. Add a separate combat recorder for rank-eight normal/reduced encounters with 14 native-health hostile enemies, actual player damage and movement, a Magic Missile contact, and an active following camera. XP0 prevents unrelated progression pauses; no health, damage or spell geometry overrides.
