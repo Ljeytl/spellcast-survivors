@@ -616,7 +616,9 @@ func draw_over(buf: PackedByteArray):
 			spx(buf, roundi(q[0] + cos(a) * r), roundi(q[1] + sin(a) * r), cols[mini(cols.size() - 1, int(kp * cols.size()))])
 	# bubbles: dark rim, light body, one specular pixel; swell before popping
 	for q in bubbles:
-		if q.size() > 7 and q[7] and not poison_status_visible:
+		if q.size() > 7 and q[7]:
+			if poison_status_visible:
+				_draw_poison_status_bubble(buf, q)
 			continue
 		var kb: float = q[4] / q[5]
 		var r: float = q[3] + (0.6 if kb > 0.75 else 0.0)
@@ -680,6 +682,24 @@ func draw_over(buf: PackedByteArray):
 		_block(buf, X, Y, c)
 		if k < 0.2 and m[8] > 5.0:
 			_block(buf, X + 2, Y, c); _block(buf, X - 2, Y, c); _block(buf, X, Y + 2, c); _block(buf, X, Y - 2, c)
+
+func _draw_poison_status_bubble(buf: PackedByteArray, q: Array) -> void:
+	var phase: float = clampf(q[4] / q[5], 0.0, 1.0)
+	var radius: float = q[3] * (0.72 + sin(phase * PI) * 0.10) * vfx.K
+	var center := Vector2(q[0], q[1]) * vfx.K
+	var extent := ceili(radius + 1.0)
+	var fade := smoothstep(0.0, 0.16, phase) * (1.0 - smoothstep(0.72, 1.0, phase))
+	for y in range(floori(center.y) - extent, floori(center.y) + extent + 1):
+		for x in range(floori(center.x) - extent, floori(center.x) + extent + 1):
+			var offset := (Vector2(x + 0.5, y + 0.5) - center) / radius
+			var distance := offset.length()
+			var coverage := 1.0 - smoothstep(0.65, 1.15, distance)
+			if coverage <= 0.0:
+				continue
+			var highlight := maxf(0.0, 1.0 - (offset - Vector2(-0.3, -0.4)).length() * 1.4)
+			var color: Color = PLAGUE.light.lerp(PLAGUE.hi, highlight * 0.7)
+			color.a = float(q[6]) * coverage * fade * (0.55 + 0.45 * smoothstep(0.2, 0.7, distance))
+			_rect(buf, x, y, x + 1, y + 1, color)
 
 var _bubble_cache := {}
 ## Sandbox-pixel offsets of a bubble of radius r: [ox, oy, is_rim], cached.
