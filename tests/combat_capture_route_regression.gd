@@ -43,6 +43,16 @@ func run():
 	check(named.get("kind") == "learned_slot", "Named spell retains learned-slot route")
 	check(manager.get_spell_info(manager.find_spell_slot("lightning")).level == 8, "Named rank remains applied")
 	check(Capture.prepare_capture_spell(manager, "lightning", 1, "large").has("error"), "Bare modifier option does not alter named semantics")
+	var atomic = Capture.prepare_capture_spell(manager, "atomic", 1)
+	check(atomic.get("kind") == "style_atomic", "Atomic uses the actual style ability route")
+	check(Capture.prepare_capture_spell(manager, "atomic", 8).has("error"), "Atomic rejects a fictitious learned rank")
+	check(Capture.prepare_capture_spell(manager, "atomic", 1, "large").has("error"), "Atomic rejects unsupported keywords")
+	game.style_session.score.atomic_charges = 0
+	game.style_session.score.combo = 3700.0
+	check(not Capture.release_capture_spell(manager, atomic), "Atomic without a charge fails closed")
+	game.style_session.score.atomic_charges = 1
+	check(Capture.release_capture_spell(manager, atomic) and game.style_session.score.atomic_charges == 0, "Atomic releases once through charge spending")
+	check(not Capture.release_capture_spell(manager, atomic), "Spent Atomic charge cannot release again")
 	game.queue_free()
 	await process_frame
 	await process_frame
