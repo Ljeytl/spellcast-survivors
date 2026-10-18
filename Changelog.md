@@ -1,3 +1,9 @@
+# Capture tooling — Meteor Shower mixed encounter (17 October 2026)
+
+- Preserve the user-approved Meteor Shower runtime, staggered falls and repeated impact shakes. Add a separate combat recorder for rank-eight normal/reduced encounters with 14 native-health hostile enemies, actual player damage and movement, a Magic Missile contact, and an active following camera. XP0 prevents unrelated progression pauses; no health, damage or spell geometry overrides.
+- Bind all six warning/impact/crater lifecycles to the actual cast source. All warnings start together with staggered lifetimes; landings remain 0.3 seconds apart and each crater expires after one second. Retain actual hits and two legitimate misses. Both modes produced 12 positive resolved Meteor events totaling 1080.003375 before health/overkill clamping, with equal gameplay plans.
+- Validate per-landing strong camera response, reduced shake suppression, actual mode flags, source binding, lifecycle timing and secondary contact. Known-bad evidence mutations fail the relevant checks. Preserve native PNG sequences, aligned same-run PCM and decoded exports; large local flashes/fire overlap remain visible review considerations, not a reason to redesign the accepted effect. Full-motion artistic and audible assessment remain open; no version bump.
+
 # Test maintenance — Healing feedback interface (17 October 2026)
 
 - Update the Life Bolt presenter test double to accept the optional recipient argument introduced by dev.49. Audit all `prop_burst` declarations; this was the only stale override. No runtime or version change.
