@@ -440,7 +440,7 @@ func capture_soul_combat(stage, route: Dictionary, enemies: Array, initial_posit
 		secondary_hits += hits.size()
 	if int(primary_source.get("cast_id",0)) <= 0 or hosts_started < 2 or infection_deaths.size() < 2 or bound_births < 2 or outcomes.is_empty():
 		failures.append("missing_actual_spread_deaths_spirits_or_delivery")
-	if damage_events == 0 or moved.size() < 5 or travel < 500 or secondary_hits == 0 or secondary_casts.size() != 2 or secondary_contacts.size() != 2:
+	if damage_events == 0 or moved.size() < 5 or travel < 500 or secondary_hits == 0 or secondary_casts.size() != 2 or secondary_contacts.size() != 2 or secondary_contacts.values().any(func(hits): return hits.is_empty()):
 		failures.append("missing_actual_mixed_combat")
 	if frames.any(func(frame): return frame.invincible or frame.typing or frame.paused or not is_equal_approx(frame.time_scale,1.0)):
 		failures.append("invalid_encounter_state")
