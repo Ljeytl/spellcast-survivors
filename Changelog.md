@@ -1,3 +1,9 @@
+# 0.3.4-dev.48 — Soul Bloom healing arrival
+
+- Route successful Soul Bloom healing through its existing compact mint/cream ring and star, without the duplicate generic leaf/mote burst. Keep each clustered arrival visible outside the generic throttle while preserving health changes, signal order, throttle state and other healing sources.
+- Return explicit feedback handling to the spirit; use its existing compact fallback when the dedicated presenter is unavailable and the particle fallback when VFX is inactive. Failed or zero healing does not produce a healing arrival cue. Preserve spirit body, motion, damage arrival and audio.
+- Validate actual healing, clustered/capped arrivals, generic isolation and inactive presentation. Paired native mixed-combat comparison remains the artistic gate; full-motion fantasy/audio and other healing spells remain separate follow-up work.
+
 # Capture tooling — Life and Regeneration hostile recovery (17 October 2026)
 
 - Add separate rank-eight Life and Regeneration encounters using genuine hostile AI, actual damage-created missing HP, ordinary movement and two independently contacting Magic Missiles. Preserve runtime healing and effects; no version change. High-health, zero-XP enemies keep progression interruptions out of this scoped capture.

@@ -2962,6 +2962,10 @@ func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> void:
 	var at := world_pos / WPS
 	var el = vfx.elements
 	match kind:
+		"soul_bloom":
+			var colors := [Color("#fff5ce"), Color("#a5f5d2"), Color("#4a98a8")]
+			vfx.ring(at.x, at.y, 4.2, 0.24, colors)
+			vfx.star(at.x, at.y, 2.0, 0.14, 4, colors[0])
 		"life", "regeneration":
 			var pulse = preload("res://scripts/vfx/HealingPulse.gd").new()
 			pulse.gentle = kind == "regeneration"
