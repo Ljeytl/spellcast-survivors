@@ -1,12 +1,15 @@
 extends "res://tests/vfx_presenter_regression.gd"
 
-func raster(tagged: bool, visible: bool) -> PackedByteArray:
+func raster(tagged: bool, visible: bool, status_layer: bool = true) -> PackedByteArray:
 	var elements = preload("res://scripts/vfx/VfxElements.gd").new(vfx)
 	elements.poison_status_visible = visible
 	elements.bubbles = [[12.17,12.31,-2.0,1.2,0.1,0.3,0.42,tagged]]
 	var buffer := PackedByteArray()
 	buffer.resize(vfx._size.x * vfx._size.y * 4)
-	elements.draw_over(buffer)
+	if tagged and status_layer:
+		elements.draw_poison_status(buffer)
+	else:
+		elements.draw_over(buffer)
 	return buffer
 
 func profile(buffer: PackedByteArray) -> Dictionary:
@@ -41,6 +44,10 @@ func run():
 	vfx._origin = Vector2i.ZERO
 	var ordinary := raster(false,true)
 	check(ordinary == raster(false,false), "Poison-only drawing suppression preserves ordinary bubbles byte-for-byte")
+	check(profile(raster(true,true,false)).visible == 0, "Poison never paints the air layer above spirits")
+	check(vfx._poison_status_layer.z_index == 5 and not vfx._poison_status_layer.z_as_relative, "Poison layer sits above enemies and below spirit z6")
+	check(vfx._poison_status_layer.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR, "Poison layer smooths its own raster only")
+	check(vfx._air_layer.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "Generic air retains nearest filtering")
 	var candidate := profile(raster(true,true))
 	check(candidate.visible > 0, "Poison status remains visible")
 	check(candidate.dark_outline == 0, "Poison status removes dark checker rim")
@@ -54,5 +61,6 @@ func run():
 	check(visible_damage.size() == 3 and visible_damage.all(func(amount): return amount > 0), "Poison delivers three actual positive ticks")
 	check(visible_damage == hidden_damage, "Status presentation does not alter actual poison damage")
 	clear()
+	check(vfx._poison_status_layer.texture == null, "Clear removes poison texture immediately")
 	print("Poison status readability: %d checks, %d failures" % [checks,failures])
 	quit(1 if failures else 0)

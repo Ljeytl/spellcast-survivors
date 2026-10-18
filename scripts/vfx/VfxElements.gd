@@ -617,8 +617,6 @@ func draw_over(buf: PackedByteArray):
 	# bubbles: dark rim, light body, one specular pixel; swell before popping
 	for q in bubbles:
 		if q.size() > 7 and q[7]:
-			if poison_status_visible:
-				_draw_poison_status_bubble(buf, q)
 			continue
 		var kb: float = q[4] / q[5]
 		var r: float = q[3] + (0.6 if kb > 0.75 else 0.0)
@@ -682,6 +680,13 @@ func draw_over(buf: PackedByteArray):
 		_block(buf, X, Y, c)
 		if k < 0.2 and m[8] > 5.0:
 			_block(buf, X + 2, Y, c); _block(buf, X - 2, Y, c); _block(buf, X, Y + 2, c); _block(buf, X, Y - 2, c)
+
+func draw_poison_status(buf: PackedByteArray):
+	if not poison_status_visible:
+		return
+	for q in bubbles:
+		if q.size() > 7 and q[7]:
+			_draw_poison_status_bubble(buf, q)
 
 func _draw_poison_status_bubble(buf: PackedByteArray, q: Array) -> void:
 	var phase: float = clampf(q[4] / q[5], 0.0, 1.0)
