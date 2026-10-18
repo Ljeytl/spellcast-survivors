@@ -47,12 +47,20 @@ func _physics_process(delta):
 		trail.pop_back()
 	global_position = global_position.move_toward(target.global_position, SPEED * delta)
 	if global_position.distance_to(target.global_position) <= 24.0:
+		var arrival_handled := false
+		var healed := false
 		if hurt:
 			if player.has_method("heal"):
-				player.heal(amount)
+				var before: float = player.health
+				arrival_handled = player.heal(amount, 1.0, "soul_bloom") == true
+				healed = player.health > before
 		else:
 			preload("res://scripts/engine/Effects.gd").apply(target, {"type": "damage", "entries": [{"amount": amount, "damage_type": "plague"}], "element": "plague"}, source, global_position)
-		_arrival(target.global_position)
+		if not hurt or (healed and not arrival_handled):
+			if not _arrival(target.global_position) and healed:
+				var particles = player.get_parent().get("particle_manager")
+				if is_instance_valid(particles) and particles.has_method("create_heal_effect"):
+					particles.create_heal_effect(target.global_position)
 		queue_free()
 		return
 	queue_redraw()
@@ -69,11 +77,12 @@ func _nearest_enemy():
 			best = e
 	return best
 
-func _arrival(at: Vector2) -> void:
+func _arrival(at: Vector2) -> bool:
 	var vfx = get_node_or_null("/root/Vfx")
-	if vfx == null:
-		return
+	if vfx == null or not vfx._active:
+		return false
 	var point := at / (1280.0 / 192.0)
 	var colors := [Color("#fff5ce"), Color("#a5f5d2"), Color("#4a98a8")] if healing else [Color("#e0f3a3"), Color("#9d80c9"), Color("#51416d")]
 	vfx.ring(point.x, point.y, 4.2, 0.24, colors)
 	vfx.star(point.x, point.y, 2.0, 0.14, 4 if healing else 6, colors[0])
+	return true

@@ -6,7 +6,7 @@ var failures := 0
 class Player extends Node2D:
 	var health := 50.0
 	var max_health := 100.0
-	func heal(amount):
+	func heal(amount, _size = 1.0, _source = "heal"):
 		health = minf(max_health, health + amount)
 class Enemy extends Node2D:
 	var dying := false
@@ -30,6 +30,7 @@ func run():
 	await process_frame
 	var vfx = root.get_node("Vfx")
 	vfx.set_process(false)
+	vfx._active = true
 	vfx.clear()
 	var player := Player.new()
 	root.add_child(player)
