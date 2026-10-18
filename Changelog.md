@@ -1,3 +1,9 @@
+# Capture tooling — Soul Bloom lifecycle qualification (17 October 2026)
+
+- Preserve the approved hybrid spirit and all runtime behavior. Extend the existing infection capture with separate Soul Bloom own-rank-one/eight wounded/full-health episodes, each using the required rank-eight Plague Seed and Regeneration ingredients.
+- Require an actual infection tick to kill a controlled 1HP real monster, one source-bound spirit emerging and travelling, then capped healing or a tagged positive enemy arrival hit before spirit retirement. Keep the surviving recipient outside infection spread/resting reach; record continuing spores separately from spirit completion.
+- Preserve native PNG sequences and aligned same-run PCM for review. These XP0 stationary-target cases establish controlled lifecycle evidence, not mixed hostile combat or artistic acceptance. Full motion/audio, hostile pressure, recasts, spirit cap and alternate expiry remain follow-up work; runtime version is unchanged.
+
 # 0.3.4-dev.46 — Atomic pressure-front boundary (17 October 2026)
 
 - Extend Atomic's shader drawing bounds around its committed origin so the existing violet radial pressure front and Gaussian falloff remain continuous when camera movement exposes the original viewport edge. Keep damage/projectile-clear footprint, reach, charge, timing, dim/flash, palette and audio unchanged.
