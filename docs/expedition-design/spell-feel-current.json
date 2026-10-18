@@ -62,9 +62,10 @@
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-combat/manifest.json"
       ],
-      "next_review": "Assess full sequence and audible recovery cue at gameplay scale."
+      "next_review": "Assess full sequence and audible recovery cue at gameplay scale. Rank-eight mixed capture adds four genuine moving/attacking enemies with 10000 HP/zero XP, one actual 8 HP injury, ordinary player movement, two distinct Magic Missile contacts and survival. No invincibility or direct health/healing writes. Life restores the capped 8 missing HP immediately. Its brief mint recovery pulse remains at the release world position as the player moves away; faint green finish on grass is a scoped visibility/attachment concern, not permission for a redesign. Red outlined squares are damage feedback, not the healing pulse. Existing controlled base/max evidence remains valid within its scope. No artistic grade upgrade; sound U and full-motion review remain open."
     },
     {
       "id": "regeneration",
@@ -84,9 +85,10 @@
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-feel/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/healing-combat/manifest.json"
       ],
-      "next_review": "Assess sustained rhythm, crowded visibility and audible cue."
+      "next_review": "Assess sustained rhythm, crowded visibility and audible cue. Rank-eight mixed capture adds four genuine moving/attacking enemies with 10000 HP/zero XP, one actual 8 HP injury, ordinary player movement, two distinct Magic Missile contacts and survival. No invincibility or direct health/healing writes. Regeneration restores 8 HP over 79 positive physics increments; five sampled recovery gathers have wall-clock intervals 351\u2013385 ms. Health reaches full after about 1.3 simulation seconds; the aura continues and retires at five seconds. This does not qualify sustained missing-health feedback for the full duration. Older world-fixed gathers fall behind movement; preserve the following quiet aura and assess the small recovery cues separately. Existing controlled base/max evidence remains valid within its scope. No artistic grade upgrade; sound U and full-motion review remain open."
     },
     {
       "id": "ice_blast",
