@@ -48,6 +48,16 @@ def validate(data):
     return errors
 
 
+def corrupt_one_landing(data):
+    if data['reduced_effects']:
+        data['frames'][-1]['camera_offset'] = [1, 1]
+        return
+    impact = next(p for p in data['parts'] if p['part'] == 'impact')
+    for frame in data['frames']:
+        if 0 <= frame['movie_frame'] - impact['birth']['movie_frame'] <= 4:
+            frame.update(camera_offset=[0, 0], shake_intensity=0)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('manifest', type=Path)
@@ -60,9 +70,10 @@ def main():
     if args.known_bad:
         for label, mutation in [
             ('disabled-camera', lambda d: d['frames'][0].update(camera_processing=False)),
-            (('forbidden-reduced-shake' if data['reduced_effects'] else 'missing-meteor-shake'), lambda d: [f.update(camera_offset=[1, 1] if d['reduced_effects'] else [0, 0], shake_intensity=0) for f in d['frames']]),
+            (('forbidden-reduced-shake' if data['reduced_effects'] else 'missing-meteor-shake'), corrupt_one_landing),
             ('wrong-reduced-label', lambda d: d.update(reduced_effects=not d['reduced_effects'])),
             ('missing-impact', lambda d: d.update(parts=[p for p in d['parts'] if p['part'] != 'impact'])),
+            ('wrong-warning-lifetime', lambda d: d['parts'][0]['definition']['timing'].update(duration=0.01)),
             ('unbound-damage', lambda d: d.update(resolved=[])),
             ('missing-secondary-contact', lambda d: d['secondary'].update(hits=[])),
         ]:
