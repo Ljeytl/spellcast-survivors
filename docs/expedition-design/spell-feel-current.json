@@ -348,7 +348,7 @@
       "name": "Seeker",
       "baseline": "spell-feel-audit-2026-10-15.json#seeker",
       "latest_reviewed_change": "d777641",
-      "disposition": "preserve_controlled_lifecycle_captured_pending_mixed_review",
+      "disposition": "preserve_lifecycle_and_mixed_captured_pending_full_review",
       "user_feedback": "Hybrid reference accepted B-minus; sustained hunt and gentle healing return approved.",
       "current_grades": [
         "U",
@@ -362,9 +362,10 @@
       "verdict": "INCOMPLETE",
       "evidence": [
         "/Users/ljeytl/.codex/visualizations/2026/10/16/seeker-mint-bb4233b/validation.json",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/seeker-qualification/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/seeker-qualification/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/seeker-combat/manifest.json"
       ],
-      "next_review": "Preserve approved hybrid geometry, trails and aqua/mint/red phase palettes. Source c761f6f captures separate rank-one/rank-eight wounded-heal and full-health fresh-target endings at native 30 fps with same-run PCM. One spirit per cast at each rank; the rank-eight three-active-spirit cap is not exercised. Controlled stationary targets establish sustained 12/24-second hunts, actual 2 HP delivery at 80% outbound speed, and one damaging finish on a staged fresh target while the previously hunted target remains alive and visible. Sampled visual/readability B- and compact arrival impact C+ are provisional; full-sequence fantasy/motion and sound/camera remain U. No runtime change or overall pass. Real mixed hostile/recast/modifier readability, full-heal-during-return switching, no-fresh-target expiry and audible assessment remain open."
+      "next_review": "Preserve approved hybrid geometry, trails and aqua/mint/red palettes. Controlled source c761f6f establishes separate rank-one/rank-eight hunts, 2 HP returns at 80% outbound speed, and staged fresh-target endings. Mixed source e55ca79 adds three concurrent rank-eight spirits against six genuine moving/attacking enemies: 37/43/61 hunt contacts over full 24-second hunts, three uniquely attributed 2 HP arrivals, seven player-damage events and three secondary Magic Missile contacts. Fixture enemies have 10000 HP and zero XP; no invincibility or health writes. Retain failed first encounter with late player death and a proximity return too brief for a sampled phase. Sampled faces and mint returns stay clear, but overlapping bodies/numbers partly obscure clustered enemies; prior visual/readability B- remains scoped, not a full crowded-readability pass. Impact C+ stays provisional; fantasy/full-motion/sound-camera U. Four-cast eviction, modifiers, full-heal-mid-return, no-fresh-target expiry, full-speed artistic and audible assessment remain open."
     },
     {
       "id": "firewalk",
