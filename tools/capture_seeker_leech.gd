@@ -113,7 +113,7 @@ func run() -> void:
 	if absf(lifetime - expected_lifetime) > 0.02 or ending_state.is_empty() or float(ending_state.get("age", 0)) < expected_lifetime:
 		failures.append("missing_full_hunt")
 	var hunt_hits: Array = ending_state.get("hits", [])
-	if hunt_hits.size() < 3 or float(hunt_hits[-1].t) - float(hunt_hits[0].t) < expected_lifetime - 3.0 or hunt_enemy.current_health >= 10000:
+	if hunt_hits.size() < 3 or float(hunt_hits[-1].t) - float(hunt_hits[0].t) < expected_lifetime - 3.0 or hunt_enemy.current_health >= 10000 or hunt_enemy.current_health <= 0 or not ending_state.get("hunted", []).has(hunt_enemy.get_instance_id()):
 		failures.append("missing_sustained_actual_damage")
 	if final_state.is_empty() or not final_state.get("done", false) or float(final_state.get("return_age", 4.0)) >= 4.0:
 		failures.append("missing_completion_or_timeout")
