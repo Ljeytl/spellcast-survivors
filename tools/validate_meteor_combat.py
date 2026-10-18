@@ -16,9 +16,11 @@ def validate(data):
     require(len({tuple(f['camera']) for f in frames}) > 30, 'camera did not follow')
     reduced = data.get('reduced_effects')
     require(all(v == reduced for v in data.get('actual_reduced', {}).values()) and len(data.get('actual_reduced', {})) == 3, 'mode mismatch')
-    offsets = [abs(f['camera_offset'][0]) + abs(f['camera_offset'][1]) for f in frames]
+    release_frame = data.get('primary', {}).get('release', {}).get('frame', 999999)
+    offsets = [abs(f['camera_offset'][0]) + abs(f['camera_offset'][1]) for f in frames if f['frame'] >= release_frame]
     require(bool(offsets) and (max(offsets) < 0.001 if reduced else max(offsets) > 1), 'shake mode not observed')
     require(data.get('damage_events', 0) > 0 and data.get('warnings', 0) > 0 and data.get('moving_enemies', 0) >= 6 and data.get('player_travel', 0) > 100, 'missing live combat')
+    require(len(data.get('configured_enemies', [])) == 14 and all(e['physics'] and e['health'] == e['expected_health'] > 0 for e in data.get('configured_enemies', [])), 'invalid native-health AI')
     primary = data.get('primary', {})
     source = primary.get('source', {})
     require(source.get('spell') == 'meteor_shower' and bool(source.get('cast_id')), 'missing explicit primary source')

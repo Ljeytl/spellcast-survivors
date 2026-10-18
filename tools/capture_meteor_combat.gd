@@ -88,7 +88,7 @@ func run():
 		enemy.damage_feedback.connect(record_damage.bind(enemy.get_instance_id()))
 		enemies.append(enemy)
 		initial.append(enemy.global_position)
-		configured.append({"id":enemy.get_instance_id(),"kind":kind,"health":enemy.current_health,"physics":enemy.is_physics_processing()})
+		configured.append({"id":enemy.get_instance_id(),"kind":kind,"health":enemy.current_health,"expected_health":manager.calculate_monster_stats(definition).health,"physics":enemy.is_physics_processing()})
 	var route := prepare_capture_spell(game.spell_manager,"meteor_shower",8)
 	if route.has("error"):
 		printerr(route.error)
