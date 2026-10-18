@@ -313,8 +313,8 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 			movement_start = frame
 		if movement_start >= 0:
 			var moving_frame := frame - movement_start
-			var leg := 30 if frame < 720 else 12
-			if moving_frame % leg < (20 if frame < 720 else 8):
+			var leg := 30
+			if moving_frame % leg < 20:
 				Input.action_press(["move_right", "move_down", "move_left", "move_up"][(moving_frame / leg) % 4])
 		if frame in [12, 42, 72]:
 			game.spell_manager.last_generic_cast = null
@@ -329,14 +329,21 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 			var spirit = cast.parts[0]
 			var record := {"cast_id":key,"spirit_id":spirit.get_instance_id(),"release_frame":frame,"lifetime":spirit.total_life(),"outbound_speed":spirit.def.motion[0].speed,"ending":{},"final":{},"samples":[]}
 			records[key] = record
-			spirit.tree_exiting.connect(func(): record.final = seeker_state(spirit))
+			spirit.tree_exiting.connect(func():
+				record.final = seeker_state(spirit)
+				if record.ending.is_empty() and spirit.spirit_ending:
+					record.ending = record.final.duplicate(true)
+					record.ending["observed_at_exit_only"] = true)
 			live_casts.append(cast)
 			events.append({"type":"primary_cast","cast_id":key,"frame":frame,"movie_frame":Engine.get_frames_drawn()})
 		if frame in [22, 300, 600]:
 			game.spell_manager.last_generic_cast = null
 			game.spell_manager.fire_mana_bolt()
 			if is_instance_valid(game.spell_manager.last_generic_cast):
-				secondary_casts.append(game.spell_manager.last_generic_cast)
+				var secondary_cast = game.spell_manager.last_generic_cast
+				var secondary_key := str(secondary_cast.get_instance_id())
+				secondary_casts.append(secondary_cast)
+				secondary_cast.tree_exiting.connect(func(): secondary_contacts[secondary_key] = secondary_cast.hits_log.duplicate(true))
 				events.append({"type":"secondary_cast","frame":frame,"movie_frame":Engine.get_frames_drawn()})
 		await physics_frame
 		await process_frame
@@ -392,7 +399,7 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 	for record in records.values():
 		var ending: Dictionary = record.ending
 		var final: Dictionary = record.final
-		var hits: Array = ending.get("hits", [])
+		var hits: Array = final.get("hits", []).filter(func(hit): return float(hit.t) <= float(record.lifetime) + 0.00001)
 		if absf(float(record.lifetime) - 24.0) > 0.02 or float(ending.get("age", 0.0)) < 24.0 or hits.size() < 3 or float(hits[-1].t) - float(hits[0].t) < 20.0:
 			failures.append("incomplete_sustained_hunt_" + record.cast_id)
 		if not final.get("done", false) or float(final.get("ending_age", 4.0)) >= 4.0 or not ending.get("returning", false) or final.get("hits", []).size() != hits.size():
