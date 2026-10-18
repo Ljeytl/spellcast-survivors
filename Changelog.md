@@ -4,6 +4,13 @@
 - Preserve source-bound rank-one/rank-eight sequences and one genuine rank-eight mixed encounter, each with three distinct primary casts and real contacts. Native PNGs, aligned same-run PCM and verified MP4/GIF exports remain separate from the unbound earlier polish preview.
 - No runtime version or effect change. Record only provisional sampled visual/readability B- and impact C+; full motion/fantasy/audio remain open, with no rejected-candidate grades inherited.
 
+# 0.3.4-dev.45 — Prism contact numbers (17 October 2026)
+
+- Sum resolved Prism Ray damage contributions only when target, cast and physics tick match. Show the first number immediately; update subsequent amounts and existing color thresholds without moving the label or restarting its one-second animation. Preserve other targets, casts, ticks, spells and source-less hits as separate feedback.
+- Add explicit current-source feedback alongside the unchanged legacy enemy damage signal. Guard existing and spawned enemy connections against duplicate label paths; preserve all health, statuses and contact effects.
+- Paired native mixed encounters emit identical 540 resolved events and 11362.9417724585 raw damage total, while actual instantiated numbers fall from 540 to 262. PNG sequences, aligned same-run PCM and verified MP4/GIF retain the before/after. Boundary, immediate feedback, source isolation, death and lifecycle checks pass.
+- Follow-up: assess remaining multi-target crowd congestion at full speed and audition preserved audio. This removes redundant same-tick text; it does not establish an overall Prism artistic grade or user acceptance.
+
 # Evidence — Infestation moving hostile review (17 October 2026)
 
 - Retain one current native rank-eight mixed encounter with genuine enemy AI, player damage and secondary spell contacts. Existing attached nodules remain visible; actual tick flashes and numbers are readable in sampled combat frames. Preserve Infestation, Soul Bloom and runtime version.

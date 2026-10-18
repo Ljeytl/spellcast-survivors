@@ -1,22 +1,32 @@
 extends Control
 
 @onready var label = $Label
+var damage_total := 0.0
 
 func setup(damage_amount: float, pos: Vector2):
+	damage_total = damage_amount
 	global_position = pos
 	
+	_refresh_label()
+	animate_damage_number()
+
+func add_damage(amount: float):
+	damage_total += amount
+	_refresh_label()
+
+func _refresh_label():
 	# Get label reference if not already set
 	if not label:
 		label = get_node_or_null("Label")
 	
 	# Set damage text with null check
 	if label:
-		label.text = str(int(damage_amount))
+		label.text = str(int(damage_total))
 		
 		# Different colors for different damage amounts
-		if damage_amount >= 50:
+		if damage_total >= 50:
 			label.add_theme_color_override("font_color", Color.RED)
-		elif damage_amount >= 25:
+		elif damage_total >= 25:
 			label.add_theme_color_override("font_color", Color.ORANGE)
 		else:
 			label.add_theme_color_override("font_color", Color.WHITE)
@@ -24,8 +34,6 @@ func setup(damage_amount: float, pos: Vector2):
 		print("ERROR: label is null in DamageNumber.setup() - Label node not found!")
 		print("Available children: ", get_children())
 	
-	# Animate the damage number
-	animate_damage_number()
 
 func animate_damage_number():
 	var tween = create_tween()
