@@ -602,22 +602,23 @@
       "name": "Magic Missile",
       "baseline": "spell-feel-audit-2026-10-15.json#mana_bolt",
       "latest_reviewed_change": "0fcae83",
-      "disposition": "refined",
+      "disposition": "native_ranks_and_mixed_captured_pending_full_review",
       "user_feedback": "Diamond direction selected; tiny edge/contact polish not explicitly graded by user.",
       "current_grades": [
         "U",
+        "B-",
         "U",
+        "C+",
         "U",
-        "U",
-        "U",
-        "U"
+        "B-"
       ],
       "fantasy_fulfilled": null,
       "verdict": "INCOMPLETE",
       "evidence": [
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/missile-polish/"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/missile-polish/",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/missile-qualification/manifest.json"
       ],
-      "next_review": "Judge latest polish independently of rejected earlier grades."
+      "next_review": "Preserve selected dev.20 diamond/ribbon and tiny edge/contact polish. Source-bound captures at 1679318 establish rank 1 and rank 8 actual contacts plus real rank-8 mixed hostile combat with distinct Bolt secondary: 3 releases, 11 primary contacts, 5 player damage events and 14 moving enemies. Sampled visual/readability B- and compact impact C+ are provisional; three rank-8 heads briefly overlap early in flight. No effect change or inherited rejected-candidate grade. Full-sequence fantasy/motion and audible artistic assessment remain open; sound/camera U and overall verdict INCOMPLETE."
     },
     {
       "id": "spear",
