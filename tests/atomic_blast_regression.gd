@@ -58,6 +58,7 @@ func run() -> void:
 	game.camera_shake.shake_intensity = 0.0
 	var blast = LockedOverlay.new() if "--known-bad-locked-overlay" in OS.get_cmdline_user_args() else Atomic.new()
 	if "--known-bad-unpadded-overlay" in OS.get_cmdline_user_args():
+		blast.free()
 		blast = UnpaddedOverlay.new()
 	blast.configure(game)
 	var bounds: Rect2 = blast.footprint
