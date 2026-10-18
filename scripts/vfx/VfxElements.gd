@@ -686,13 +686,13 @@ func draw_over(buf: PackedByteArray):
 func _draw_poison_status_bubble(buf: PackedByteArray, q: Array) -> void:
 	var phase: float = clampf(q[4] / q[5], 0.0, 1.0)
 	var radius: float = q[3] * (0.72 + sin(phase * PI) * 0.10) * vfx.K
-	var center := Vector2(q[0], q[1]) * vfx.K
+	var center: Vector2 = Vector2(q[0], q[1]) * vfx.K
 	var extent := ceili(radius + 1.0)
 	var fade := smoothstep(0.0, 0.16, phase) * (1.0 - smoothstep(0.72, 1.0, phase))
 	for y in range(floori(center.y) - extent, floori(center.y) + extent + 1):
 		for x in range(floori(center.x) - extent, floori(center.x) + extent + 1):
-			var offset := (Vector2(x + 0.5, y + 0.5) - center) / radius
-			var distance := offset.length()
+			var offset: Vector2 = (Vector2(x + 0.5, y + 0.5) - center) / radius
+			var distance: float = offset.length()
 			var coverage := 1.0 - smoothstep(0.65, 1.15, distance)
 			if coverage <= 0.0:
 				continue
