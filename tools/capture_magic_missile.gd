@@ -51,7 +51,12 @@ func run():
 				for i in foes.size():
 					foes[i].global_position = positions[i] + Vector2(0, sin(float(frame) / 32.0 + i) * 65.0)
 			if frame in [12, 72, 132]:
+				game.spell_manager.last_generic_cast = null
 				game.spell_manager.fire_mana_bolt()
+				if not is_instance_valid(game.spell_manager.last_generic_cast):
+					printerr("Magic Missile release failed")
+					quit(2)
+					return
 				casts.append(game.spell_manager.last_generic_cast)
 			await physics_frame
 			await process_frame
@@ -74,6 +79,10 @@ func run():
 			if foes[i].global_position.distance_to(positions[i]) > 5:
 				moved += 1
 		print("MISSILE_CAPTURE rank=", rank, " hits=", hits, " moved=", moved)
+		if casts.size() != 3 or contacts.size() != 3 or contacts.values().any(func(cast_hits): return cast_hits.is_empty()):
+			printerr("Expected three distinct Magic Missile releases with actual contacts")
+			quit(1)
+			return
 		if hits == 0:
 			quit(1)
 			return
