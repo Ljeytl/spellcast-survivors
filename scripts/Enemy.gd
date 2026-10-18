@@ -5,6 +5,7 @@ extends CharacterBody2D
 # Signals sent when enemy takes damage or dies
 signal enemy_died(enemy: CharacterBody2D)              # Tells EnemyManager to remove from tracking
 signal enemy_damaged(damage: float, position: Vector2) # Triggers floating damage number
+signal damage_feedback(damage: float, position: Vector2, source: Dictionary)
 
 # Enemy type enumeration
 enum EnemyType {
@@ -465,6 +466,7 @@ func take_damage(damage_amount: float, _source_position: Vector2 = Vector2.INF, 
 	
 	# Show floating damage number
 	enemy_damaged.emit(final_damage, global_position)  # after resistances and the type chart
+	damage_feedback.emit(final_damage, global_position, source)
 	
 	# Update visual health bar
 	update_health_bar()

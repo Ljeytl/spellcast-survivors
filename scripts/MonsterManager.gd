@@ -202,7 +202,7 @@ func spawn_monster(definition: Dictionary = {}, is_boss: bool = false, single: b
 		monster.enemy_died.connect(_on_monster_died)
 		var damage_manager = get_parent().get_node_or_null("DamageManager")
 		if damage_manager:
-			monster.enemy_damaged.connect(damage_manager._on_enemy_damaged)
+			damage_manager.connect_enemy(monster)
 		get_parent().add_child(monster)
 		monsters_alive += 1
 		actual_spawns += 1
