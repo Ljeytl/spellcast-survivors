@@ -1,3 +1,8 @@
+# Capture tooling — Soul Bloom mixed encounter (17 October 2026)
+
+- Add a twelve-second rank-eight Soul Bloom encounter using configured enemy health and genuine AI. Preserve actual infection-caused deaths, directly observed spirit births/exits, unique healing or damage arrival attribution, and distinct secondary spell contacts. Enemy XP is zero to avoid progression modal pauses; no runtime effect or version change.
+- Require spread, multiple source-bound death/birth events, actual spirit delivery, player damage, movement and survival. Record unclassified early exits separately from deliveries. Native evidence and artistic assessment remain pending until the operated capture completes.
+
 # Capture tooling — Soul Bloom lifecycle qualification (17 October 2026)
 
 - Preserve the approved hybrid spirit and all runtime behavior. Extend the existing infection capture with separate Soul Bloom own-rank-one/eight wounded/full-health episodes, each using the required rank-eight Plague Seed and Regeneration ingredients.
