@@ -2331,7 +2331,7 @@ func _poisoned(dt: float) -> void:
 			var h: float = b[1]
 			# Small bubbles popping on the body, short-lived so they never float off above it.
 			if randf() < 0.28 * dt * 60.0:
-				vfx.elements.bubble(p.x + (randf() - 0.5) * h * 1.4, p.y + (randf() - 0.3) * h, false, 0.35, 0.42)
+				vfx.elements.bubble(p.x + (randf() - 0.5) * h * 1.4, p.y + (randf() - 0.3) * h, false, 0.35, 0.42, true)
 		elif s.has_method("has") and s.has("bleed") and randf() < 0.15 * dt * 60.0:
 			var p2: Vector2 = _body(e)[0]
 			# Bleed is blood, not earth: dark red drops falling off the body.

@@ -102,6 +102,7 @@ var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch,
 var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
 var flakes: Array = []      # [x, y, vx, vy, age, life, size, spin, ph, g]
 var blobs: Array = []       # [x, y, vx, vy, r, age, life, g, stick, layer]   goo blobs; layer 0 water, 2 plague
+var poison_status_visible := true
 var bubbles: Array = []     # [x, y, vy, r, age, life]                 plague bubbles
 var mists: Array = []       # [x, y, vx, vy, r, grow, age, life]       steam puffs (sandbox mist)
 var pulls: Array = []       # [x, y, r0, age, life, cols]              rings closing in (pulling keyword)
@@ -151,9 +152,9 @@ func gblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stic
 		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick, 2])
 
 ## Bubble: rises and wobbles, swells, pops into a few motes (sandbox bubble).
-func bubble(x: float, y: float, big: bool, life_scale: float = 1.0, alpha: float = 1.0):
+func bubble(x: float, y: float, big: bool, life_scale: float = 1.0, alpha: float = 1.0, poison_status: bool = false):
 	if bubbles.size() < (80 if vfx.reduced_effects else 240):
-		bubbles.append([x, y, -(5.0 + randf() * 7.0) * life_scale, 2.0 if big else 1.2, 0.0, (0.5 + randf() * 0.7) * life_scale, alpha])
+		bubbles.append([x, y, -(5.0 + randf() * 7.0) * life_scale, 2.0 if big else 1.2, 0.0, (0.5 + randf() * 0.7) * life_scale, alpha, poison_status])
 
 ## Steam puff (sandbox mist): grows and drifts with the wind, dithered.
 func mist(x: float, y: float, vx: float, vy: float, r: float, grow: float, life: float, cols: Array = STEAM):
@@ -615,6 +616,8 @@ func draw_over(buf: PackedByteArray):
 			spx(buf, roundi(q[0] + cos(a) * r), roundi(q[1] + sin(a) * r), cols[mini(cols.size() - 1, int(kp * cols.size()))])
 	# bubbles: dark rim, light body, one specular pixel; swell before popping
 	for q in bubbles:
+		if q.size() > 7 and q[7]:
+			continue
 		var kb: float = q[4] / q[5]
 		var r: float = q[3] + (0.6 if kb > 0.75 else 0.0)
 		var X0 := roundi(q[0])
@@ -677,6 +680,31 @@ func draw_over(buf: PackedByteArray):
 		_block(buf, X, Y, c)
 		if k < 0.2 and m[8] > 5.0:
 			_block(buf, X + 2, Y, c); _block(buf, X - 2, Y, c); _block(buf, X, Y + 2, c); _block(buf, X, Y - 2, c)
+
+func draw_poison_status(buf: PackedByteArray):
+	if not poison_status_visible:
+		return
+	for q in bubbles:
+		if q.size() > 7 and q[7]:
+			_draw_poison_status_bubble(buf, q)
+
+func _draw_poison_status_bubble(buf: PackedByteArray, q: Array) -> void:
+	var phase: float = clampf(q[4] / q[5], 0.0, 1.0)
+	var radius: float = q[3] * (0.72 + sin(phase * PI) * 0.10) * vfx.K
+	var center: Vector2 = Vector2(q[0], q[1]) * vfx.K
+	var extent := ceili(radius + 1.0)
+	var fade := smoothstep(0.0, 0.16, phase) * (1.0 - smoothstep(0.72, 1.0, phase))
+	for y in range(floori(center.y) - extent, floori(center.y) + extent + 1):
+		for x in range(floori(center.x) - extent, floori(center.x) + extent + 1):
+			var offset: Vector2 = (Vector2(x + 0.5, y + 0.5) - center) / radius
+			var distance: float = offset.length()
+			var coverage := 1.0 - smoothstep(0.65, 1.15, distance)
+			if coverage <= 0.0:
+				continue
+			var highlight := maxf(0.0, 1.0 - (offset - Vector2(-0.3, -0.4)).length() * 1.4)
+			var color: Color = Color("#164b20").lerp(PLAGUE.hi, highlight * 0.25)
+			color.a = minf(float(q[6]) * 1.55, 0.7) * coverage * fade
+			_rect(buf, x, y, x + 1, y + 1, color)
 
 var _bubble_cache := {}
 ## Sandbox-pixel offsets of a bubble of radius r: [ox, oy, is_rim], cached.

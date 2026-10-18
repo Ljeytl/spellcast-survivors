@@ -123,6 +123,7 @@ var _water_used := false
 var _wave = null                       # [origin, dir, front, half, hw, fade] su, set by the presenter each frame
 var _under := PackedByteArray()
 var _over := PackedByteArray()
+var _poison_status := PackedByteArray()
 var _ground := PackedByteArray()
 var _light := PackedFloat32Array()
 var _light_origin := Vector2i.ZERO
@@ -131,6 +132,7 @@ var _light_size := Vector2i.ZERO
 var _ground_layer: Sprite2D
 var _decal_root: Node2D
 var _air_layer: Sprite2D
+var _poison_status_layer: Sprite2D
 var _tex := {}
 
 
@@ -217,6 +219,8 @@ func _ready():
 	mat.set_shader_parameter("colors", cols)
 	mat.set_shader_parameter("glow", FIRE_GLOW)
 	_air_layer = _make_layer(AIR_Z, mat)
+	_poison_status_layer = _make_layer(5, null)
+	_poison_status_layer.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_set_visible(false)
 
 func _make_layer(z: int, mat: ShaderMaterial) -> Sprite2D:
@@ -235,9 +239,14 @@ func _set_visible(v: bool):
 	_decal_root.visible = v
 	_ground_layer.visible = v
 	_air_layer.visible = v
+	_poison_status_layer.visible = v
 
 ## Removes every effect. Called when the world changes (scene switch).
 func clear():
+	_poison_status.fill(0)
+	_tex.erase("poison_status")
+	if _poison_status_layer:
+		_poison_status_layer.texture = null
 	if impact_light:
 		impact_light.clear()
 	for child in get_children():
@@ -924,6 +933,7 @@ func _place_grid() -> bool:
 		_water.fill(0.0)
 		_under.resize(n * 4)
 		_over.resize(n * 4)
+		_poison_status.resize(n * 4)
 		_ground.resize(n * 4)
 		_ground.fill(0)
 		_upload("ground", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _ground))
@@ -940,6 +950,8 @@ func _render(stepped: bool):
 	_ground_layer.position = world_origin
 	_air_layer.texture = _tex.over
 	_air_layer.position = world_origin
+	_poison_status_layer.texture = _tex.get("poison_status")
+	_poison_status_layer.position = world_origin
 	var mat: ShaderMaterial = _air_layer.material
 	mat.set_shader_parameter("heat_tex", _tex.heat)
 	mat.set_shader_parameter("under_tex", _tex.under)
@@ -1036,6 +1048,7 @@ func _draw_air():
 	_heat.fill(0.0)
 	_under.fill(0)
 	_over.fill(0)
+	_poison_status.fill(0)
 	var w := _size.x
 	var hgt := _size.y
 	if _disk_w != w:
@@ -1108,6 +1121,7 @@ func _draw_air():
 	_upload("heat", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RF, _heat.to_byte_array()))
 	_upload("under", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _under))
 	_upload("over", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _over))
+	_upload("poison_status", Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_RGBA8, _poison_status))
 	var p5 := Time.get_ticks_usec()
 	prof.water = (p1 - p0) / 1000.0
 	prof.flames = (p2 - p1) / 1000.0
@@ -1188,6 +1202,7 @@ func _draw_impacts():
 	presenter.draw_charges(_over)
 	var q2 := Time.get_ticks_usec()
 	elements.draw_over(_over)
+	elements.draw_poison_status(_poison_status)
 	var q3 := Time.get_ticks_usec()
 	prof.el_ground = (q1 - q0) / 1000.0
 	prof.bodies = (q2 - q1) / 1000.0
