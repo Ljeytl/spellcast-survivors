@@ -100,13 +100,17 @@ func _impact() -> void:
 	if not reduced_effects and is_instance_valid(game) and game.has_method("shake_heavy"):
 		game.shake_heavy()
 
+func overlay_bounds() -> Rect2:
+	var viewport := get_viewport()
+	return viewport.get_canvas_transform().affine_inverse() * viewport.get_visible_rect().grow(32.0)
+
 func _draw() -> void:
 	if not configured:
 		return
 	if not impacted:
 		var t := clampf(elapsed / WARNING_SECONDS, 0.0, 1.0)
-		draw_rect(footprint, Color(0.035, 0.012, 0.065, t * (0.15 if reduced_effects else 0.48)))
+		draw_rect(overlay_bounds(), Color(0.035, 0.012, 0.065, t * (0.15 if reduced_effects else 0.48)))
 	else:
 		var age := elapsed - WARNING_SECONDS
 		if not reduced_effects and age < 0.065:
-			draw_rect(footprint, Color(0.97, 0.90, 1.0, pow(1.0 - age / 0.065, 2.0) * 0.48))
+			draw_rect(overlay_bounds(), Color(0.97, 0.90, 1.0, pow(1.0 - age / 0.065, 2.0) * 0.48))

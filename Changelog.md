@@ -1,3 +1,7 @@
+# 0.3.4-dev.50 — Atomic screen overlay coverage
+
+- Keep Atomic’s warning dim and brief release flash covering the current viewport as the camera follows or shakes. Previously these screen effects reused the cast-time damage rectangle, exposing hard rectangular edges during movement.
+- Preserve committed damage/projectile-clear bounds, violet pressure-wave material, timing and reduced-effects behavior. Add translated/shaken camera coverage checks and a legacy locked-overlay negative control. Native normal/reduced captures preserve 12 contacts and 119997 resolved damage each; warning/flash edges now cover the moving view. Use 32 screen pixels of visual overscan for bounded late view displacement (tested to 30 pixels); the excluded unpadded capture showed a narrow strip that may arise from the secondary capture viewport. No claim of arbitrary camera teleport coverage.
 # Capture tooling — Earth Shield moving hostile encounter (17 October 2026)
 
 - Add one rank-eight encounter with two genuine pursuers and one imp, ordinary player movement/vulnerability, explicit high-health zero-XP targets and two independently contacting Magic Missiles. No runtime or version change; preserve the recent shield fracture and retaliation material.

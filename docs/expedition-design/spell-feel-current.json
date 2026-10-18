@@ -794,7 +794,7 @@
       "id": "atomic",
       "name": "Atomic",
       "baseline": "spell-feel-audit-2026-10-15.json#atomic",
-      "latest_reviewed_change": "1eb241e3ffb079e836e9c8715881e84b5dc22b1b",
+      "latest_reviewed_change": "a4832b5",
       "disposition": "refined",
       "user_feedback": "Atomic reference inferred as I Am Atomic; violet material candidate merged, no user acceptance.",
       "current_grades": [
@@ -810,9 +810,10 @@
       "evidence": [
         "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic/manifest.json",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic-combat/manifest.json",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic-boundary/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic-boundary/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic-flash/manifest.json"
       ],
-      "next_review": "Dev.46 pulse drawing support removes the observed rectangular pressure-front cutoff during camera movement; paired normal/reduced native mixed encounters retain actual damage and full retirement with XP0. Damage footprint and warning/flash remain unchanged. Assess full-motion fantasy and audible mix; all artistic grades remain U."
+      "next_review": "Dev.50 fixes the warning dim and brief white release overlay: both follow the current viewport with 32 screen pixels of visual overscan. Committed damage/projectile-clear footprint and violet pressure wave remain unchanged. Native moving normal/reduced cases each retain 12 contacts and 119997 resolved damage, full retirement and 240 frames. The former large rectangular cutoff is absent; the excluded unpadded candidate had a narrow edge possibly caused by secondary-viewport transform timing. Coverage is tested for bounded 30-pixel late displacement, not arbitrary camera teleports. Full-motion artistic and audible sound assessment remain incomplete; no overall grade raised."
     }
   ]
 }
