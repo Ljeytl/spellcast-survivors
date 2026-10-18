@@ -508,7 +508,7 @@
       "id": "soul_bloom",
       "name": "Soul Bloom",
       "baseline": "spell-feel-audit-2026-10-15.json#soul_bloom",
-      "latest_reviewed_change": "b23100f",
+      "latest_reviewed_change": "5cff7120b85b41b751c89469fda1f9959daff831",
       "disposition": "preserve",
       "user_feedback": "Approved hybrid port is merged; user explicitly likes Soul Bloom.",
       "current_grades": [
@@ -526,7 +526,7 @@
         "/Users/ljeytl/.codex/visualizations/2026/10/17/soul-bloom-combat/manifest.json",
         "/Users/ljeytl/.codex/visualizations/2026/10/17/soul-healing-arrival/manifest.json"
       ],
-      "next_review": "Dev.48 routes Soul healing to its existing compact arrival ring/star, omitting duplicate generic leaves/motes while preserving body/motion and fallback. Verify paired native mixed arrivals, full-motion fantasy/audio, cap eviction and modifiers. All artistic grades remain U."
+      "next_review": "Dev.48 paired native mixed frames confirm duplicate generic healing leaves/motes removed, while the existing compact ring/star and accepted ghost remain. Four heal amounts/times and five damage arrivals match the baseline. Full-motion fantasy/audio, cap eviction and modifiers remain open; all artistic grades remain U."
     },
     {
       "id": "steam_field",

@@ -2,7 +2,7 @@
 
 - Route successful Soul Bloom healing through its existing compact mint/cream ring and star, without the duplicate generic leaf/mote burst. Keep each clustered arrival visible outside the generic throttle while preserving health changes, signal order, throttle state and other healing sources.
 - Return explicit feedback handling to the spirit; use its existing compact fallback when the dedicated presenter is unavailable and the particle fallback when VFX is inactive. Failed or zero healing does not produce a healing arrival cue. Preserve spirit body, motion, damage arrival and audio.
-- Validate actual healing, clustered/capped arrivals, generic isolation and inactive presentation. Paired native mixed-combat comparison remains the artistic gate; full-motion fantasy/audio and other healing spells remain separate follow-up work.
+- Validate actual healing, clustered/capped arrivals, generic isolation and inactive presentation. Paired native mixed-combat frames preserve the ghost and compact arrival cue while removing the long rectangular healing particles. All four heals and five damage arrivals retain exact amounts/timing; full-motion fantasy/audio and other healing spells remain separate follow-up work.
 
 # Capture tooling — Life and Regeneration hostile recovery (17 October 2026)
 
