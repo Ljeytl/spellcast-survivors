@@ -283,7 +283,7 @@ func heal(amount: float, visual_size: float = 1.0, visual_source: String = "heal
 		var particles = get_parent().get("particle_manager")
 		if visual_source == "soul_bloom":
 			pass
-		elif vfx and vfx.prop_burst(visual_source, global_position, visual_size):
+		elif vfx and vfx.prop_burst(visual_source, global_position, visual_size, self if visual_source in ["life", "regeneration"] else null):
 			pass   # the VFX layer shows heals (docs/VFX_EVENTS.md)
 		elif is_instance_valid(particles) and particles.has_method("create_heal_effect"):
 			var effect = particles.create_heal_effect(global_position)

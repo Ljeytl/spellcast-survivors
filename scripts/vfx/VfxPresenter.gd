@@ -2956,7 +2956,7 @@ func presents_prop(node) -> bool:
 	return enabled and _props.has(node.get_instance_id())
 
 ## One-off moments on props and the player: a heal, a seed picked up, a charge spent on a block.
-func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> void:
+func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0, recipient: Node2D = null) -> void:
 	if not enabled:
 		return
 	var at := world_pos / WPS
@@ -2968,6 +2968,7 @@ func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> void:
 			vfx.star(at.x, at.y, 2.0, 0.14, 4, colors[0])
 		"life", "regeneration":
 			var pulse = preload("res://scripts/vfx/HealingPulse.gd").new()
+			pulse.recipient_ref = weakref(recipient) if is_instance_valid(recipient) else null
 			pulse.gentle = kind == "regeneration"
 			pulse.visual_size = clampf(size, 0.6, 2.0)
 			vfx.add_child(pulse)

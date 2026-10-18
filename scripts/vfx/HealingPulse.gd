@@ -1,5 +1,6 @@
 extends Node2D
 
+var recipient_ref: WeakRef
 var age := 0.0
 var gentle := false
 var visual_size := 1.0
@@ -12,6 +13,9 @@ func _ready():
 	phase = randf() * TAU
 
 func _process(delta):
+	var recipient = recipient_ref.get_ref() if recipient_ref else null
+	if is_instance_valid(recipient):
+		global_position = recipient.global_position
 	visible = get_parent()._active and get_parent().presenter.enabled
 	age += delta
 	if age >= life:
