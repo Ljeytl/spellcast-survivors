@@ -1,3 +1,8 @@
+# Capture tooling — Soul Bloom mixed encounter (17 October 2026)
+
+- Add a twelve-second rank-eight Soul Bloom encounter using configured enemy health and genuine AI. Preserve actual infection-caused deaths, directly observed spirit births/exits, unique healing or damage arrival attribution, and distinct secondary spell contacts. Enemy XP is zero to avoid progression modal pauses; no runtime effect or version change.
+- Require spread, multiple source-bound death/birth events, actual spirit delivery, player damage, movement and survival. Record unclassified early exits separately from deliveries. The twelve-second native encounter records six infection-caused death/birth pairs, ten total spirits, nine uniquely attributed deliveries, two hostile damage events and contacts from both secondary casts. Preserve the failed attribution attempt separately; excluding already queued spirits corrects its recorder ambiguity without weakening the unique-arrival gate. PNG/PCM and verified exports retain the evidence; artistic/audio assessment remains open.
+
 # 0.3.4-dev.47 — Poison status particle contrast (17 October 2026)
 
 - Replace poison status bubbles’ coarse dark checker rims with small rounded, translucent dark-green droplets and restrained lime highlights on a dedicated smooth layer above enemies and below spirits. Invalidate its cached texture at scene clear so non-stepped rendering cannot revive old particles. Keep emission, lifetime, poison damage and all ordinary bubble callers unchanged; preserve Seeker’s accepted spirit geometry and palettes.
