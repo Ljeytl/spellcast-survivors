@@ -1,3 +1,9 @@
+# 0.3.4-dev.46 — Atomic pressure-front boundary (17 October 2026)
+
+- Extend Atomic's shader drawing bounds around its committed origin so the existing violet radial pressure front and Gaussian falloff remain continuous when camera movement exposes the original viewport edge. Keep damage/projectile-clear footprint, reach, charge, timing, dim/flash, palette and audio unchanged.
+- Preserve paired native normal/reduced mixed-hostile PNG and same-run PCM evidence against dev.45. Add focused visual-support/world-coordinate isolation checks to the existing real enemy damage regression; the legacy clipped drawing bounds fail the injected control.
+- Follow-up: assess full-motion fantasy and audible mix. Removing this observed hard rectangular cutoff does not establish overall artistic acceptance; warning/flash edge behavior remains unchanged.
+
 # Capture tooling — Seeker lifecycle qualification (17 October 2026)
 
 - Preserve the approved hybrid body, independent trail and aqua/mint/red phase palettes. Replace the fixed two-cast capture with separate rank and ending episodes, source-bound full native frames and optional same-run audio. No runtime or version change.
