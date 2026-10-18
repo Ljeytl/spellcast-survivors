@@ -1,3 +1,8 @@
+# Test maintenance — Healing feedback interface (17 October 2026)
+
+- Update the Life Bolt presenter test double to accept the optional recipient argument introduced by dev.49. Audit all `prop_burst` declarations; this was the only stale override. No runtime or version change.
+- Validate a fresh full editor import and the actual Life Bolt, healing presentation and Soul Bloom arrival regressions. This repairs an integrated test dependency missed by the earlier focused healing checks.
+
 # 0.3.4-dev.49 — Healing pulses follow their recipient (17 October 2026)
 
 - Pass an explicit recipient through the Life/Regeneration feedback route so their brief recovery pulse follows the healed player throughout its existing lifetime. Keep geometry, palette, gentle mode, timing, health recovery, throttle and the already-following Regeneration aura unchanged. Preserve Soul Bloom’s separate handled-feedback route.

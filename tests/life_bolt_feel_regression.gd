@@ -4,7 +4,7 @@ class Probe extends "res://scripts/vfx/VfxPresenter.gd":
 	var damage_contacts := 0
 	var blooms := 0
 	var bursts: Array = []
-	func prop_burst(kind: String, at: Vector2, _size: float = 1.0) -> void:
+	func prop_burst(kind: String, at: Vector2, _size: float = 1.0, _recipient: Node2D = null) -> void:
 		bursts.append({"kind": kind, "at": at})
 	func _life_bolt_contact(_at: Vector2, _direction: Vector2) -> void:
 		damage_contacts += 1
