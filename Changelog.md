@@ -1,3 +1,8 @@
+# 0.3.4-dev.50 — Atomic screen overlay coverage
+
+- Keep Atomic’s warning dim and brief release flash covering the current viewport as the camera follows or shakes. Previously these screen effects reused the cast-time damage rectangle, exposing hard rectangular edges during movement.
+- Preserve committed damage/projectile-clear bounds, violet pressure-wave material, timing and reduced-effects behavior. Add translated/shaken camera coverage checks and a legacy locked-overlay negative control. Native comparison pending.
+
 # Capture tooling — Meteor Shower mixed encounter (17 October 2026)
 
 - Preserve the user-approved Meteor Shower runtime, staggered falls and repeated impact shakes. Add a separate combat recorder for rank-eight normal/reduced encounters with 14 native-health hostile enemies, actual player damage and movement, a Magic Missile contact, and an active following camera. XP0 prevents unrelated progression pauses; no health, damage or spell geometry overrides.
