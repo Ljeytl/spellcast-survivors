@@ -34,7 +34,7 @@ func run():
 	enemy.global_position = game.player.global_position + Vector2(160, 0)
 	var damage: Array = []
 	enemy.damage_feedback.connect(func(amount, _position, source): damage.append({"amount":amount,"source":source.duplicate(true),"movie_frame":Engine.get_frames_drawn()}))
-	enemy.status.apply("poison", {"hit":40.0,"duration":4.0}, {"spell":"poison_status_fixture","cast_id":77})
+	preload("res://scripts/engine/Effects.gd").apply(enemy, {"type":"status","status":"poison","hit":40.0,"duration":4.0}, {"spell":"poison_status_fixture","cast_id":77})
 	var stage := SubViewport.new()
 	stage.size = root.size
 	stage.world_2d = root.world_2d
@@ -44,6 +44,7 @@ func run():
 	var max_bubbles := 0
 	for frame in 120:
 		await physics_frame
+		enemy.status.tick(1.0 / 30.0)
 		await process_frame
 		max_bubbles = maxi(max_bubbles, root.get_node("Vfx").elements.bubbles.size())
 		stage.canvas_transform = root.get_canvas_transform()
@@ -56,7 +57,7 @@ func run():
 	var failures: Array = []
 	if damage.is_empty() or enemy.current_health >= 10000 or max_bubbles == 0:
 		failures.append("missing_actual_poison_or_feedback")
-	FileAccess.open(folder + "/manifest.json",FileAccess.WRITE).store_string(JSON.stringify({"fixture":"Standalone stationary real enemy with directly applied poison; actual damage ticks, no Seeker body and no hostile-AI claim","fps":30,"frames":frames,"damage":damage,"final_health":enemy.current_health,"max_bubbles":max_bubbles,"failures":failures,"sound_grade":"U: not heard"},"\t"))
+	FileAccess.open(folder + "/manifest.json",FileAccess.WRITE).store_string(JSON.stringify({"fixture":"Standalone stationary real enemy with poison applied through Effects and explicitly stepped at30Hz; actual damage ticks, no Seeker body and no hostile-AI claim","fps":30,"frames":frames,"damage":damage,"final_health":enemy.current_health,"max_bubbles":max_bubbles,"failures":failures,"sound_grade":"U: not heard"},"\t"))
 	print("POISON_STATUS ",JSON.stringify({"damage_events":damage.size(),"max_bubbles":max_bubbles,"failures":failures}))
 	stage.queue_free()
 	await teardown()

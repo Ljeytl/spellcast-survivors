@@ -423,7 +423,7 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 	if poison_review:
 		result.fixture = "Six-second poison-status visual diagnostic with three real Seeker casts and actual hostile attacks; no full hunt/ending qualification. HP10000/XP0 enemies."
 		result.poison_status_visible = root.get_node("Vfx").elements.poison_status_visible
-		result.poisoned_enemies = enemies.filter(func(enemy): return is_instance_valid(enemy) and enemy.status.has("poison")).size()
+		result.poisoned_enemies = enemies.filter(func(enemy): return is_instance_valid(enemy) and enemy.status != null and enemy.status.has("poison")).size()
 	FileAccess.open(folder + "/manifest.json", FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
 	print("SEEKER_COMBAT ",JSON.stringify({"failures":failures,"max_active":max_active,"healed":healed,"damage_events":damage_events,"moving":moved,"frames":frames.size()}))
 	live_casts.clear()
