@@ -1,6 +1,6 @@
 # 0.3.4-dev.47 — Poison status particle contrast (17 October 2026)
 
-- Replace poison status bubbles’ coarse dark checker rims with small rounded, translucent dark-green droplets and restrained lime highlights. Keep emission, lifetime, poison damage and all ordinary bubble callers unchanged; preserve Seeker’s accepted spirit geometry and palettes.
+- Replace poison status bubbles’ coarse dark checker rims with small rounded, translucent dark-green droplets and restrained lime highlights on a dedicated smooth layer above enemies and below spirits. Invalidate its cached texture at scene clear so non-stepped rendering cannot revive old particles. Keep emission, lifetime, poison damage and all ordinary bubble callers unchanged; preserve Seeker’s accepted spirit geometry and palettes.
 - Confirm attribution with matched native draw-only suppression, then retain standalone actual poison ticks and a six-second crowded Seeker comparison. Preserve rejected faint candidates and failed diagnostic logs separately. The standalone fixture directly advances status ticks on a stationary enemy; the crowded fixture retains genuine hostile movement and attacks but does not repeat the full Seeker lifecycle.
 - Add focused raster isolation and actual poison damage checks. Follow-up: full-speed artistic and audible assessment, and remaining crowd overlap. This local material correction does not upgrade any overall spell grade.
 

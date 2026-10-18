@@ -244,6 +244,7 @@ func _set_visible(v: bool):
 ## Removes every effect. Called when the world changes (scene switch).
 func clear():
 	_poison_status.fill(0)
+	_tex.erase("poison_status")
 	if _poison_status_layer:
 		_poison_status_layer.texture = null
 	if impact_light:
@@ -949,7 +950,7 @@ func _render(stepped: bool):
 	_ground_layer.position = world_origin
 	_air_layer.texture = _tex.over
 	_air_layer.position = world_origin
-	_poison_status_layer.texture = _tex.poison_status
+	_poison_status_layer.texture = _tex.get("poison_status")
 	_poison_status_layer.position = world_origin
 	var mat: ShaderMaterial = _air_layer.material
 	mat.set_shader_parameter("heat_tex", _tex.heat)
