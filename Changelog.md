@@ -2,6 +2,11 @@
 
 - Keep Atomic’s warning dim and brief release flash covering the current viewport as the camera follows or shakes. Previously these screen effects reused the cast-time damage rectangle, exposing hard rectangular edges during movement.
 - Preserve committed damage/projectile-clear bounds, violet pressure-wave material, timing and reduced-effects behavior. Add translated/shaken camera coverage checks and a legacy locked-overlay negative control. Native comparison pending.
+# Capture tooling — Earth Shield moving hostile encounter (17 October 2026)
+
+- Add one rank-eight encounter with two genuine pursuers and one imp, ordinary player movement/vulnerability, explicit high-health zero-XP targets and two independently contacting Magic Missiles. No runtime or version change; preserve the recent shield fracture and retaliation material.
+- Bind each consumed charge to its unique eruption source and actual resolved retaliation. Two natural contact blocks preserve health and each cause a direct 123-damage eruption; later bleed remains separately identified. Exhaustion permits 16 actual health damage, then a third cast restores protection; the player survives.
+- Preserve 211 native frames, aligned same-run PCM and decoded exports. A focused validator rejects damaging blocks, unrelated eruptions, bleed-only evidence, missing exhaustion damage and missing secondary contact. Existing controlled base/max, projectile and quiet-expiry evidence remains scoped separately; this encounter establishes natural contact attacks, not another projectile-block or full-expiry qualification. Full artistic/audio acceptance remains open.
 
 # Capture tooling — Meteor Shower mixed encounter (17 October 2026)
 
