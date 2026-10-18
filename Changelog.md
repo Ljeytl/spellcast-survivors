@@ -1,3 +1,9 @@
+# Capture tooling — Seeker mixed encounter (17 October 2026)
+
+- Extend the existing combat recorder with a rank-eight encounter long enough for three concurrent spirits to complete their natural hunts and returns. Keep genuine enemy movement/attacks, ordinary player vulnerability and a distinct secondary spell; explicitly use high-health, zero-XP targets to avoid progression interruptions. No runtime or version change.
+- Record each spirit through exit, including arrivals shorter than one sampled frame, and attribute actual healing to a unique arriving cast. Preserve the failed first encounter with late player death and missing polled secondary contacts; the retry keeps a wider movement circuit and captures brief secondary contact logs before object retirement.
+- The successful 27.6-second native encounter records three full hunts, six total HP delivered, seven player-damage events and three secondary contacts. Preserve full PNG/PCM and decoded exports. Heads and mint returns remain legible in sampled frames; clustered bodies and contact numbers can obscure enemies. Fourth-cast eviction, modifiers, alternate endings and full artistic/audio assessment remain open.
+
 # 0.3.4-dev.46 — Atomic pressure-front boundary (17 October 2026)
 
 - Extend Atomic's shader drawing bounds around its committed origin so the existing violet radial pressure front and Gaussian falloff remain continuous when camera movement exposes the original viewport edge. Keep damage/projectile-clear footprint, reach, charge, timing, dim/flash, palette and audio unchanged.
