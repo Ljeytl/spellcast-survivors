@@ -102,6 +102,7 @@ var arcs: Array = []        # [x0, y0, x1, y1, amp, age, life, c, thick, branch,
 var hops: Array = []        # [x, y, vx, vy, age, life, next]  hopping spark
 var flakes: Array = []      # [x, y, vx, vy, age, life, size, spin, ph, g]
 var blobs: Array = []       # [x, y, vx, vy, r, age, life, g, stick, layer]   goo blobs; layer 0 water, 2 plague
+var poison_status_visible := true
 var bubbles: Array = []     # [x, y, vy, r, age, life]                 plague bubbles
 var mists: Array = []       # [x, y, vx, vy, r, grow, age, life]       steam puffs (sandbox mist)
 var pulls: Array = []       # [x, y, r0, age, life, cols]              rings closing in (pulling keyword)
@@ -151,9 +152,9 @@ func gblob(x: float, y: float, vx: float, vy: float, r: float, life: float, stic
 		blobs.append([x, y, vx, vy, r, 0.0, life, g, stick, 2])
 
 ## Bubble: rises and wobbles, swells, pops into a few motes (sandbox bubble).
-func bubble(x: float, y: float, big: bool, life_scale: float = 1.0, alpha: float = 1.0):
+func bubble(x: float, y: float, big: bool, life_scale: float = 1.0, alpha: float = 1.0, poison_status: bool = false):
 	if bubbles.size() < (80 if vfx.reduced_effects else 240):
-		bubbles.append([x, y, -(5.0 + randf() * 7.0) * life_scale, 2.0 if big else 1.2, 0.0, (0.5 + randf() * 0.7) * life_scale, alpha])
+		bubbles.append([x, y, -(5.0 + randf() * 7.0) * life_scale, 2.0 if big else 1.2, 0.0, (0.5 + randf() * 0.7) * life_scale, alpha, poison_status])
 
 ## Steam puff (sandbox mist): grows and drifts with the wind, dithered.
 func mist(x: float, y: float, vx: float, vy: float, r: float, grow: float, life: float, cols: Array = STEAM):
@@ -615,6 +616,8 @@ func draw_over(buf: PackedByteArray):
 			spx(buf, roundi(q[0] + cos(a) * r), roundi(q[1] + sin(a) * r), cols[mini(cols.size() - 1, int(kp * cols.size()))])
 	# bubbles: dark rim, light body, one specular pixel; swell before popping
 	for q in bubbles:
+		if q.size() > 7 and q[7] and not poison_status_visible:
+			continue
 		var kb: float = q[4] / q[5]
 		var r: float = q[3] + (0.6 if kb > 0.75 else 0.0)
 		var X0 := roundi(q[0])

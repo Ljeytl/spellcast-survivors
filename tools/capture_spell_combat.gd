@@ -283,6 +283,8 @@ func seeker_state(spirit) -> Dictionary:
 	return {"age":spirit.age,"ending":spirit.spirit_ending,"returning":spirit.returning_life,"finishing":spirit.finishing_hunt,"ending_age":spirit.return_age,"done":spirit.done,"stolen_life":spirit.stolen_life,"hunted":spirit.hunted_targets.keys(),"hits":spirit.cast.hits_log.duplicate(true),"position":[spirit.global_position.x,spirit.global_position.y],"player_health":game.player.health,"movie_frame":Engine.get_frames_drawn()}
 
 func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_positions: Array, folder: String) -> void:
+	var poison_review := OS.get_cmdline_user_args().has("poison-review")
+	root.get_node("Vfx").elements.poison_status_visible = not OS.get_cmdline_user_args().has("poison-status-off")
 	var health_state := {"previous":float(game.player.health)}
 	var heals: Array = []
 	game.player.health_changed.connect(func(health, _maximum, _overheal):
@@ -306,7 +308,7 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 	var previous: Vector2 = game.player.global_position
 	var movement_start := -1
 	var tail := 0
-	for frame in 990:
+	for frame in (180 if poison_review else 990):
 		for action in ["move_right", "move_down", "move_left", "move_up"]:
 			Input.action_release(action)
 		if damage_events > 0 and movement_start < 0:
@@ -336,7 +338,7 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 					record.ending["observed_at_exit_only"] = true)
 			live_casts.append(cast)
 			events.append({"type":"primary_cast","cast_id":key,"frame":frame,"movie_frame":Engine.get_frames_drawn()})
-		if frame in [22, 300, 600]:
+		if frame in ([22, 110, 160] if poison_review else [22, 300, 600]):
 			game.spell_manager.last_generic_cast = null
 			game.spell_manager.fire_mana_bolt()
 			if is_instance_valid(game.spell_manager.last_generic_cast):
@@ -397,6 +399,10 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 			var key: String = heal.arrival_casts[0]
 			healed[key] = float(healed.get(key, 0.0)) + float(heal.amount)
 	for record in records.values():
+		if poison_review:
+			if record.samples.is_empty() or record.samples[-1].hits.is_empty():
+				failures.append("missing_diagnostic_contacts_" + record.cast_id)
+			continue
 		var ending: Dictionary = record.ending
 		var final: Dictionary = record.final
 		var hits: Array = final.get("hits", []).filter(func(hit): return float(hit.t) <= float(record.lifetime) + 0.00001)
@@ -414,6 +420,10 @@ func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_pos
 	if frames.any(func(frame): return frame.invincible or frame.typing or frame.paused or not is_equal_approx(frame.time_scale, 1.0)):
 		failures.append("invalid_encounter_state")
 	var result := {"spell":"seeker","rank":8,"fps":30,"fixture":"Six genuine moving/attacking AI enemies with 10000 HP and zero XP; bounded movement input after actual damage; no health writes, invincibility or healing calls. Three real learned releases; no fourth-cast eviction claim.","failures":failures,"records":records,"max_active":max_active,"triple_samples":triple_samples,"damage_events":damage_events,"heals":heals,"healed_by_cast":healed,"moving_enemies":moved,"player_travel":travel,"hostile_warning_samples":warnings,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
+	if poison_review:
+		result.fixture = "Six-second poison-status visual diagnostic with three real Seeker casts and actual hostile attacks; no full hunt/ending qualification. HP10000/XP0 enemies."
+		result.poison_status_visible = root.get_node("Vfx").elements.poison_status_visible
+		result.poisoned_enemies = enemies.filter(func(enemy): return is_instance_valid(enemy) and enemy.status.has("poison")).size()
 	FileAccess.open(folder + "/manifest.json", FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
 	print("SEEKER_COMBAT ",JSON.stringify({"failures":failures,"max_active":max_active,"healed":healed,"damage_events":damage_events,"moving":moved,"frames":frames.size()}))
 	live_casts.clear()
