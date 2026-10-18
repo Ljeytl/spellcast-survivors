@@ -315,7 +315,7 @@ func capture_soul_combat(stage, route: Dictionary, enemies: Array, initial_posit
 			if source.get("via", "") == "ghost":
 				hit["arrival_ghosts"] = []
 				for spirit in get_nodes_in_group("soul_ghosts"):
-					if not spirit.healing and spirit.source.get("cast_id") == source.get("cast_id") and spirit.global_position.distance_to(at) <= 24.01:
+					if not spirit.is_queued_for_deletion() and not spirit.healing and spirit.source.get("cast_id") == source.get("cast_id") and spirit.global_position.distance_to(at) <= 24.01:
 						hit.arrival_ghosts.append(str(spirit.get_instance_id()))
 			damage.append(hit)
 			if foe.current_health <= 0.0 and amount > 0.0:
@@ -325,7 +325,7 @@ func capture_soul_combat(stage, route: Dictionary, enemies: Array, initial_posit
 		if delta > 0:
 			var arrivals: Array = []
 			for spirit in get_nodes_in_group("soul_ghosts"):
-				if spirit.healing and spirit.global_position.distance_to(game.player.global_position) <= 24.01:
+				if not spirit.is_queued_for_deletion() and spirit.healing and spirit.global_position.distance_to(game.player.global_position) <= 24.01:
 					arrivals.append(str(spirit.get_instance_id()))
 			heals.append({"amount":delta,"arrival_ghosts":arrivals,"movie_frame":Engine.get_frames_drawn()})
 		health_state.previous = health)
