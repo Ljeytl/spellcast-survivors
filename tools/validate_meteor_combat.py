@@ -38,6 +38,9 @@ def validate(data):
             require(abs(impact['birth']['clock'] - mark['birth']['clock'] - 0.65) < 0.04, 'warning timing')
             require(abs(crater['birth']['clock'] - impact['birth']['clock']) < 0.02, 'impact/crater timing')
             require(mark['position'] == impact['position'] == crater['position'], 'landing position changed')
+            if not reduced:
+                window = [f for f in frames if 0 <= f['movie_frame'] - impact['birth']['movie_frame'] <= 10]
+                require(any(f['shake_intensity'] > 6 and sum(abs(x) for x in f['camera_offset']) > 0.001 for f in window), 'missing Meteor-strength shake at impact')
             require(0.98 <= crater.get('exit', {}).get('age', 0) <= 1.04, 'crater lifetime')
             if index:
                 require(abs(mark['birth']['clock'] - grouped['mark'][index - 1]['birth']['clock'] - 0.3) < 0.04, 'stagger timing')
@@ -56,6 +59,7 @@ def main():
     if args.known_bad:
         for label, mutation in [
             ('disabled-camera', lambda d: d['frames'][0].update(camera_processing=False)),
+            ('missing-meteor-shake', lambda d: [f.update(camera_offset=[0, 0], shake_intensity=0) for f in d['frames']] if not d['reduced_effects'] else d['frames'][0].update(camera_processing=False)),
             ('wrong-reduced-label', lambda d: d.update(reduced_effects=not d['reduced_effects'])),
             ('missing-impact', lambda d: d.update(parts=[p for p in d['parts'] if p['part'] != 'impact'])),
             ('unbound-damage', lambda d: d.update(resolved=[])),
