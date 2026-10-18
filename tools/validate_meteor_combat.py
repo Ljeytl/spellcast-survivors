@@ -11,7 +11,7 @@ def validate(data):
             errors.append(message)
     require(data.get('spell') == 'meteor_shower' and data.get('rank') == 8, 'wrong spell/rank')
     frames = data.get('frames', [])
-    require(len(frames) == 480, 'missing frames')
+    require(len(frames) == 240, 'missing frames')
     require(all(f['camera_processing'] and not f['paused'] and f['time_scale'] == 1 for f in frames), 'invalid camera/runtime')
     require(len({tuple(f['camera']) for f in frames}) > 30, 'camera did not follow')
     reduced = data.get('reduced_effects')

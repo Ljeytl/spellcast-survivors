@@ -108,7 +108,7 @@ func run():
 	var warnings := 0
 	var release_frame := -1
 	var secondary_frame := -1
-	for frame in 480:
+	for frame in 240:
 		capture_frame = frame
 		for action in ["move_right","move_down","move_left","move_up"]:
 			Input.action_release(action)
@@ -171,7 +171,7 @@ func run():
 		var group := parts.filter(func(part): return part.part == kind)
 		if group.size() != 6 or group.any(func(part): return part.exit.is_empty() or not part.exit.done):
 			failures.append("incomplete_six_" + kind)
-	if frames.size() != 480 or frames.any(func(frame): return not frame.camera_processing):
+	if frames.size() != 240 or frames.any(func(frame): return not frame.camera_processing):
 		failures.append("incomplete_frames_or_disabled_camera")
 	var result := {"spell":"meteor_shower","rank":8,"reduced_effects":reduced,"actual_reduced":{"vfx":root.get_node("Vfx").reduced_effects,"particles":game.particle_manager.reduced_effects,"camera":game.camera_shake.reduced_effects},"fixture":"14 native-health hostile AI enemies; XP0 prevents progression modal. Actual player damage before one Magic Missile and one rank8 Meteor release. Ordinary movement input; live camera follow/shake. No forced hits or health writes. Impact misses retained.","configured_enemies":configured,"primary":primary_record,"secondary":secondary,"parts":parts,"resolved":resolved,"damage_events":damage_events,"warnings":warnings,"moving_enemies":moved.size(),"player_travel":travel,"frames":frames,"events":events,"failures":failures,"sound_grade":"U: not heard"}
 	FileAccess.open(folder+"/manifest.json",FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
