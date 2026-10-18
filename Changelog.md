@@ -1,3 +1,9 @@
+# Capture tooling — Life and Regeneration hostile recovery (17 October 2026)
+
+- Add separate rank-eight Life and Regeneration encounters using genuine hostile AI, actual damage-created missing HP, ordinary movement and two independently contacting Magic Missiles. Preserve runtime healing and effects; no version change. High-health, zero-XP enemies keep progression interruptions out of this scoped capture.
+- Bind positive recovery to the sole healing cast, record physics and wall-clock timestamps separately, and observe distinct recovery visuals. Life restores 8 missing HP immediately; Regeneration restores the same 8 HP over 79 increments, then its aura completes the five-second lifetime. Both encounters survive with no invincibility or direct healing calls.
+- Preserve native PNGs, aligned same-run PCM and decoded exports. This is modest hostile pressure with one actual damage event per case, not sustained injury throughout Regeneration. Follow-up: assess the world-fixed recovery pulses left behind by movement and faint green finish against grass; red outlined damage particles are a separate source. Full artistic/audio assessment remains open.
+
 # Capture tooling — Soul Bloom mixed encounter (17 October 2026)
 
 - Add a twelve-second rank-eight Soul Bloom encounter using configured enemy health and genuine AI. Preserve actual infection-caused deaths, directly observed spirit births/exits, unique healing or damage arrival attribution, and distinct secondary spell contacts. Enemy XP is zero to avoid progression modal pauses; no runtime effect or version change.
