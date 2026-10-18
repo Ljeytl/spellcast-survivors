@@ -797,9 +797,10 @@
       "verdict": "INCOMPLETE",
       "evidence": [
         "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic/manifest.json",
-        "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic-combat/manifest.json"
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic-combat/manifest.json",
+        "/Users/ljeytl/.codex/visualizations/2026/10/17/atomic-boundary/manifest.json"
       ],
-      "next_review": "Native normal/reduced mixed-hostile evidence now records actual damage and full retirement with XP0 to avoid the observed intentional LEVEL_UP modal pause. Review exposed rectangular visual boundary during camera movement (normal frame 0152; precise cause unproven), full-motion fantasy and audible mix. All artistic grades remain U."
+      "next_review": "Dev.46 pulse drawing support removes the observed rectangular pressure-front cutoff during camera movement; paired normal/reduced native mixed encounters retain actual damage and full retirement with XP0. Damage footprint and warning/flash remain unchanged. Assess full-motion fantasy and audible mix; all artistic grades remain U."
     }
   ]
 }

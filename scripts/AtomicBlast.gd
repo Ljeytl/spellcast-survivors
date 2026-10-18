@@ -39,13 +39,14 @@ func _ready() -> void:
 		queue_free()
 	else:
 		pulse = ColorRect.new()
-		pulse.position = footprint.position
-		pulse.size = footprint.size
+		var visual_radius := reach + 160.0
+		pulse.position = origin - Vector2.ONE * visual_radius
+		pulse.size = Vector2.ONE * visual_radius * 2.0
 		pulse.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		pulse_material = ShaderMaterial.new()
 		pulse_material.shader = preload("res://scripts/vfx/atomic_pulse.gdshader")
-		pulse_material.set_shader_parameter("extent", footprint.size)
-		pulse_material.set_shader_parameter("center", origin - footprint.position)
+		pulse_material.set_shader_parameter("extent", pulse.size)
+		pulse_material.set_shader_parameter("center", origin - pulse.position)
 		pulse_material.set_shader_parameter("warning", WARNING_SECONDS)
 		pulse_material.set_shader_parameter("reach", reach)
 		pulse.material = pulse_material
