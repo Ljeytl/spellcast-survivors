@@ -57,6 +57,17 @@ func run() -> void:
 	check(blast.reach >= blast.origin.distance_to(bounds.end), "Pressure reaches far corner of locked footprint")
 	var center := bounds.get_center()
 	game.add_child(blast)
+	if "--known-bad-clipped-pulse" in OS.get_cmdline_user_args():
+		blast.pulse.position = bounds.position
+		blast.pulse.size = bounds.size
+		blast.pulse_material.set_shader_parameter("extent", bounds.size)
+		blast.pulse_material.set_shader_parameter("center", committed_origin - bounds.position)
+	var render_bounds := Rect2(blast.pulse.position, blast.pulse.size)
+	check(render_bounds.has_point(committed_origin + Vector2(blast.reach + 150.0, 0.0)) and render_bounds.has_point(committed_origin - Vector2(blast.reach + 150.0, 0.0)), "Pulse retains Gaussian falloff beyond radial reach on both sides")
+	var shader_center: Vector2 = blast.pulse_material.get_shader_parameter("center")
+	check(blast.pulse.position + shader_center == committed_origin, "Expanded shader bounds preserve committed world origin")
+	check(blast.pulse_material.get_shader_parameter("extent") == blast.pulse.size and blast.pulse_material.get_shader_parameter("reach") == blast.reach, "Expanded UV extent preserves radial reach")
+	check(blast.footprint == bounds, "Visual support does not expand committed damage footprint")
 	var ordinary = spawn("pursuer", center + Vector2(100, 0))
 	var armored = spawn("pursuer", center + Vector2(120, 0))
 	armored.is_elite = true
@@ -66,6 +77,7 @@ func run() -> void:
 	shield.facing = Vector2.LEFT
 	var boss = spawn("pursuer", center + Vector2(160, 0), true)
 	var outside = spawn("pursuer", bounds.end + Vector2(100, 100))
+	check(render_bounds.has_point(outside.global_position), "Outside damage probe remains inside visual support")
 	var projectile = Hazard.new()
 	game.add_child(projectile)
 	projectile.set_physics_process(false)

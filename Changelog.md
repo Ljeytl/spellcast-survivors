@@ -1,3 +1,9 @@
+# 0.3.4-dev.46 — Atomic pressure-front boundary (17 October 2026)
+
+- Extend Atomic's shader drawing bounds around its committed origin so the existing violet radial pressure front and Gaussian falloff remain continuous when camera movement exposes the original viewport edge. Keep damage/projectile-clear footprint, reach, charge, timing, dim/flash, palette and audio unchanged.
+- Preserve paired native normal/reduced mixed-hostile PNG and same-run PCM evidence against dev.45. Add focused visual-support/world-coordinate isolation checks to the existing real enemy damage regression; the legacy clipped drawing bounds fail the injected control.
+- Follow-up: assess full-motion fantasy and audible mix. Removing this observed hard rectangular cutoff does not establish overall artistic acceptance; warning/flash edge behavior remains unchanged.
+
 # Capture tooling — Atomic mixed-hostile evidence (17 October 2026)
 
 - Capture normal and reduced Atomic releases against fourteen moving hostiles with a distinct Mana Bolt cast, actual pre-blast player damage, twelve Atomic recipients and full impact-to-retirement telemetry. Preserve native PNG sequences, aligned same-run PCM, camera transforms and verified exports; runtime effects and version remain unchanged.
