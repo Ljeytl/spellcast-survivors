@@ -107,6 +107,7 @@ func run():
 			secondary.append(bolt)
 			contacts[key] = []
 			bolt.tree_exiting.connect(func(): contacts[key] = bolt.hits_log.duplicate(true))
+		var charges_before: Array = game.player.earth_shield.charges.duplicate(true)
 		var health_before: float = game.player.health
 		await physics_frame
 		await process_frame
@@ -114,6 +115,9 @@ func run():
 		if charges < previous_charges:
 			var block := stamp()
 			block.merge({"before":previous_charges,"after":charges,"health_before":health_before,"health_after":game.player.health,"context":game.player.last_damage_context.duplicate(true)})
+			var remaining_ids: Array = game.player.earth_shield.charges.map(func(charge): return charge.damage_source.cast_id)
+			var consumed: Array = charges_before.filter(func(charge): return charge.damage_source.cast_id not in remaining_ids)
+			block["consumed_sources"] = consumed.map(func(charge): return charge.damage_source.duplicate(true))
 			blocks.append(block)
 			if previous_charges - charges != 1 or not block.context.get("blocked",false) or health_before != game.player.health:
 				failures.append("charge_consumption_not_bound_to_absorbed_attack")
@@ -152,6 +156,20 @@ func run():
 			moved += 1
 	if casts != 3 or not restored or blocks.size() < 2 or eruptions.size() < 2 or retaliation.filter(func(hit): return hit.amount > 0).is_empty():
 		failures.append("missing_stack_blocks_retaliation_or_recast")
+	var bound_hits := 0
+	for block in blocks:
+		if block.consumed_sources.size() != 1:
+			failures.append("block_missing_unique_consumed_charge")
+			continue
+		var source_id = block.consumed_sources[0].cast_id
+		var matched: Array = eruptions.values().filter(func(eruption): return eruption.source.get("cast_id") == source_id and absi(int(eruption.spawn.frame)-int(block.frame)) <= 1)
+		if matched.size() != 1:
+			failures.append("block_missing_unique_causal_eruption")
+		var hits: Array = retaliation.filter(func(hit): return hit.source.get("cast_id") == source_id and hit.amount > 0 and int(hit.frame) >= int(block.frame)-1)
+		block["retaliation_hits"] = hits
+		bound_hits += hits.size()
+	if bound_hits == 0:
+		failures.append("missing_block_bound_positive_retaliation")
 	if events.is_empty() or not events.any(func(event): return event.charges == 0 and event.amount > 0):
 		failures.append("missing_post_exhaustion_health_damage")
 	if contacts.size() != 2 or contacts.values().any(func(hits): return hits.is_empty()):
