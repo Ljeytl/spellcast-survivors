@@ -44,7 +44,7 @@ func run():
 	var candidate := profile(raster(true,true))
 	check(candidate.visible > 0, "Poison status remains visible")
 	check(candidate.dark_outline == 0, "Poison status removes dark checker rim")
-	check(candidate.alpha_levels.size() > 2 and candidate.max_alpha < 128, "Poison coverage has soft translucent edge")
+	check(candidate.alpha_levels.size() > 2 and candidate.max_alpha >= 140 and candidate.max_alpha <= 180, "Poison coverage has soft translucent edge")
 	check(profile(raster(true,false)).visible == 0, "Diagnostic disables only tagged status raster")
 	var rejected := profile(ordinary)
 	check(rejected.dark_outline > 0, "CONTROL old bubble raster fails dark-outline invariant")
