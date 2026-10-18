@@ -1,3 +1,9 @@
+# 0.3.4-dev.49 — Healing pulses follow their recipient (17 October 2026)
+
+- Pass an explicit recipient through the Life/Regeneration feedback route so their brief recovery pulse follows the healed player throughout its existing lifetime. Keep geometry, palette, gentle mode, timing, health recovery, throttle and the already-following Regeneration aura unchanged. Preserve Soul Bloom’s separate handled-feedback route.
+- Use a weak reference: a freed recipient leaves the pulse at its last valid position until normal expiry. Calls without a recipient remain world-fixed.
+- Extend healing checks with real-player recipient forwarding, independent recipients, default static calls, freed-recipient safety and unchanged expiry. Preserve paired native hostile Life/Regeneration captures with aligned PCM; scoped attachment correction does not certify full artistic or audible quality. Follow-up: assess the unchanged faint finish against grass and broader crowded recovery visibility.
+
 # 0.3.4-dev.48 — Soul Bloom healing arrival
 
 - Route successful Soul Bloom healing through its existing compact mint/cream ring and star, without the duplicate generic leaf/mote burst. Keep each clustered arrival visible outside the generic throttle while preserving health changes, signal order, throttle state and other healing sources.

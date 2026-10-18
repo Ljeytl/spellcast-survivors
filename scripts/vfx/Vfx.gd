@@ -613,10 +613,10 @@ func shield_charge_ended(node, index: int, direction: Vector2 = Vector2.ZERO) ->
 		presenter.shield_charge_ended(node, index, direction)
 
 ## False when the layer is down: the caller shows its own feedback instead.
-func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0) -> bool:
+func prop_burst(kind: String, world_pos: Vector2, size: float = 1.0, recipient: Node2D = null) -> bool:
 	if not _active or not presenter.enabled:
 		return false
-	presenter.prop_burst(kind, world_pos, size)
+	presenter.prop_burst(kind, world_pos, size, recipient)
 	return true
 
 ## True when the VFX layer draws this part, so SpellPart skips its placeholder.

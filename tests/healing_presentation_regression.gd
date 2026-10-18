@@ -55,6 +55,7 @@ func run():
 	player.heal(4.0, 1.0, "life")
 	check(player.health == 5.0, "Life preserves actual heal amount")
 	check(pulse_count() == 1, "actual Life recovery emits pulse")
+	check(get_nodes_in_group("healing_visuals")[0].recipient_ref.get_ref() == player, "Real Life healing forwards its recipient")
 	await create_timer(0.8).timeout
 	check(pulse_count() == 0, "Life pulse expires")
 	player.next_heal_feedback_msec = 0
@@ -62,6 +63,7 @@ func run():
 	check(is_equal_approx(player.health, 5.1), "fractional regeneration unchanged")
 	check(pulse_count() == 1, "actual regeneration recovery emits pulse")
 	var pulse = get_nodes_in_group("healing_visuals")[0]
+	check(pulse.recipient_ref.get_ref() == player, "Real Regeneration healing forwards its recipient")
 	vfx.presenter.enabled = false
 	await process_frame
 	await process_frame
@@ -120,5 +122,37 @@ func run():
 		if node.get_script() == preload("res://scripts/vfx/RegenerationAura.gd"):
 			remaining_auras += 1
 	check(remaining_auras == 0, "aura retires when caster dies")
+	var recipient_a := Node2D.new()
+	var recipient_b := Node2D.new()
+	root.add_child(recipient_a)
+	root.add_child(recipient_b)
+	recipient_a.position = Vector2(100,100)
+	recipient_b.position = Vector2(200,200)
+	vfx.prop_burst("life",recipient_a.global_position,1.0,recipient_a)
+	var pulse_a = vfx.get_child(vfx.get_child_count()-1)
+	vfx.prop_burst("regeneration",recipient_b.global_position,1.0,recipient_b)
+	var pulse_b = vfx.get_child(vfx.get_child_count()-1)
+	vfx.prop_burst("life",Vector2(300,300))
+	var static_pulse = vfx.get_child(vfx.get_child_count()-1)
+	for pulse_node in [pulse_a,pulse_b,static_pulse]:
+		pulse_node.set_process(false)
+	recipient_a.position += Vector2(70,10)
+	recipient_b.position += Vector2(-30,40)
+	pulse_a._process(0.1)
+	pulse_b._process(0.1)
+	static_pulse._process(0.1)
+	check(pulse_a.global_position == recipient_a.global_position, "Life pulse follows explicit recipient")
+	check(pulse_b.global_position == recipient_b.global_position and pulse_b.global_position != pulse_a.global_position, "Regeneration pulse follows independent recipient")
+	check(static_pulse.global_position == Vector2(300,300), "Default prop call remains world fixed")
+	check(pulse_a.life == 0.68 and pulse_b.life == 0.68 and not pulse_a.gentle and pulse_b.gentle, "Follow preserves lifetime and gentle mode")
+	var last_position: Vector2 = pulse_a.global_position
+	recipient_a.free()
+	pulse_a._process(0.1)
+	check(pulse_a.global_position == last_position and not pulse_a.is_queued_for_deletion(), "Freed recipient keeps last position without premature expiry")
+	pulse_a._process(0.49)
+	check(pulse_a.is_queued_for_deletion(), "Freed recipient pulse expires at original lifetime")
+	pulse_b._process(0.59)
+	check(pulse_b.is_queued_for_deletion(), "Following pulse expires at original lifetime")
+	recipient_b.free()
 	print("HEALING PRESENTATION: ", checks, " checks, ", failures, " failures")
 	quit(1 if failures else 0)
