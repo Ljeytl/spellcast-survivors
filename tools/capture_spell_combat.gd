@@ -4,6 +4,7 @@ var game
 var events: Array = []
 var failures: Array = []
 var damage_events := 0
+var atomic_hits: Array = []
 
 func _initialize():
 	root.set_flag(Window.FLAG_NO_FOCUS, true)
@@ -36,7 +37,13 @@ func run():
 	root.size = Vector2i(1280, 850)
 	root.content_scale_size = root.size
 	game.get_node("UI").hide()
+	var initial_input_state := {"typing":game.spell_manager.is_typing, "time_scale":Engine.time_scale}
 	game.spell_manager.set_process(false)
+	game.spell_manager.set_process_input(false)
+	game.spell_manager.cancel_typing()
+	if spell == "atomic":
+		game.particle_manager.reduced_effects = args.has("reduced")
+		root.get_node("Vfx").reduced_effects = args.has("reduced")
 	game.player.style_health_damaged.connect(func(amount):
 		damage_events += 1
 		events.append({"type":"player_damage", "amount":amount, "context":game.player.last_damage_context.duplicate(true), "movie_frame":Engine.get_frames_drawn()}))
@@ -56,12 +63,16 @@ func run():
 		enemy.global_position = game.player.global_position + Vector2.from_angle(float(i) * TAU / 14.0) * (130.0 if i < 10 else 340.0)
 		enemy.max_health = 10000
 		enemy.current_health = 10000
+		if spell == "atomic":
+			enemy.xp_value = 0.0
 		enemy.set_physics_process(not negative)
 		if negative:
 			enemy.damage = 0.0
 			enemy.base_damage = 0.0
 		enemies.append(enemy)
 		initial_positions.append(enemy.global_position)
+		if spell == "atomic":
+			enemy.damage_feedback.connect(_record_atomic_damage.bind(enemy.get_instance_id()))
 	var stage = SubViewport.new()
 	stage.size = root.size
 	stage.world_2d = root.world_2d
@@ -93,16 +104,30 @@ func run():
 	var warnings := 0
 	var secondary := 0
 	var frames: Array = []
+	var moved_before_wipe: Dictionary = {}
+	var atomic_state := {"releases":0, "before_release":{}, "charge_after_release":-1, "special_casts_before":game.style_session.special_casts, "live_samples":0, "impact_samples":0}
+	var atomic_blast
 	for frame in 240:
 		for action in ["move_right", "move_down", "move_left", "move_up"]:
 			Input.action_release(action)
 		if frame % 60 < 25:
 			Input.action_press(["move_right", "move_down", "move_left", "move_up"][frame / 60])
-		if frame in [12, 100, 185]:
+		if frame in ([100] if spell == "atomic" else [12, 100, 185]):
+			if spell == "atomic":
+				atomic_state.before_release = {"damage_events":damage_events, "warnings":warnings, "moving_enemies":moved_before_wipe.size(), "alive_enemies":get_nodes_in_group("enemies").size()}
+				game.style_session.score.atomic_charges = 1
+				game.style_session.score.combo = 3700.0
 			if release_capture_spell(game.spell_manager, route):
-				casts.append(game.spell_manager.last_generic_cast)
+				if spell == "atomic":
+					atomic_state.releases += 1
+					atomic_state.charge_after_release = game.style_session.score.atomic_charges
+					for child in game.get_children():
+						if child.get_script() == preload("res://scripts/AtomicBlast.gd"):
+							atomic_blast = child
+				else:
+					casts.append(game.spell_manager.last_generic_cast)
 				events.append({"type":"primary_cast", "frame":frame, "movie_frame":Engine.get_frames_drawn()})
-		if frame in [22, 110, 195]:
+		if frame in ([22] if spell == "atomic" else [22, 110, 195]):
 			game.spell_manager.last_generic_cast = null
 			if spell == "mana_bolt":
 				game.spell_manager.cast_spell_by_type(game.spell_manager.find_spell_slot("bolt"))
@@ -126,13 +151,23 @@ func run():
 		for enemy in enemies:
 			if is_instance_valid(enemy) and enemy.warning > 0.0:
 				warnings += 1
+		if spell == "atomic":
+			for index in enemies.size():
+				if is_instance_valid(enemies[index]) and enemies[index].global_position.distance_to(initial_positions[index]) > 10.0:
+					moved_before_wipe[index] = true
 		stage.canvas_transform = root.get_canvas_transform()
 		game.get_node("Background").queue_redraw()
 		await RenderingServer.frame_post_draw
 		var output = "%s/%04d.png" % [folder, frame]
 		if stage.get_texture().get_image().save_png(output) != OK:
 			failures.append("frame_write_failed")
-		frames.append({"png":frame,"movie_frame":Engine.get_frames_drawn(),"player":[previous.x,previous.y],"camera":[game.camera.global_position.x,game.camera.global_position.y]})
+		frames.append({"png":frame,"movie_frame":Engine.get_frames_drawn(),"player":[previous.x,previous.y],"camera":[game.camera.global_position.x,game.camera.global_position.y], "canvas_origin":[stage.canvas_transform.origin.x,stage.canvas_transform.origin.y], "camera_offset":[game.camera.offset.x,game.camera.offset.y], "time_scale":Engine.time_scale, "typing":game.spell_manager.is_typing, "tree_paused":paused, "game_state":game.current_state, "pending_level_ups":game.pending_level_ups.size()})
+		if spell == "atomic":
+			if is_instance_valid(atomic_blast):
+				atomic_state.live_samples += 1
+				if atomic_blast.impacted:
+					atomic_state.impact_samples += 1
+			frames[-1].atomic = {"live":is_instance_valid(atomic_blast), "age":atomic_blast.elapsed if is_instance_valid(atomic_blast) else -1.0, "impacted":atomic_blast.impacted if is_instance_valid(atomic_blast) else false, "alive_enemies":get_nodes_in_group("enemies").size(), "enemy_projectiles":get_nodes_in_group("enemy_projectiles").size()}
 	for action in ["move_right", "move_down", "move_left", "move_up"]:
 		Input.action_release(action)
 	var hit_count := 0
@@ -142,9 +177,30 @@ func run():
 	for i in enemies.size():
 		if is_instance_valid(enemies[i]) and enemies[i].global_position.distance_to(initial_positions[i]) > 10:
 			moved += 1
+	if spell == "atomic":
+		moved = moved_before_wipe.size()
+		hit_count = atomic_hits.size()
+		if atomic_state.releases != 1 or atomic_state.charge_after_release != 0 or game.style_session.special_casts != atomic_state.special_casts_before + 1:
+			failures.append("atomic_release_or_charge_spend")
+		if atomic_state.before_release.is_empty() or (atomic_state.before_release.get("damage_events", 0) == 0 and atomic_state.before_release.get("warnings", 0) == 0) or atomic_state.before_release.get("moving_enemies", 0) < 5:
+			failures.append("missing_pre_atomic_hostile_activity")
+		var atomic_damage := 0.0
+		for hit in atomic_hits:
+			atomic_damage += maxf(float(hit.amount), 0.0)
+		atomic_state.resolved_damage = atomic_damage
+		if atomic_damage <= 0.0:
+			failures.append("atomic_no_resolved_damage")
+		for sample in frames:
+			if sample.typing or sample.tree_paused or sample.game_state != game.GameState.PLAYING or not is_equal_approx(float(sample.time_scale), 1.0):
+				failures.append("atomic_capture_time_or_input_changed")
+				break
+		if atomic_state.live_samples == 0 or atomic_state.impact_samples == 0:
+			failures.append("atomic_lifecycle_not_observed")
+		if is_instance_valid(atomic_blast):
+			failures.append("atomic_aftermath_not_retired")
 	if damage_events == 0 and warnings == 0:
 		failures.append("missing_hostile_activity")
-	if casts.size() != 3:
+	if spell != "atomic" and casts.size() != 3:
 		failures.append("missing_primary_casts")
 	if hit_count == 0:
 		failures.append("missing_primary_contacts")
@@ -153,9 +209,16 @@ func run():
 	var secondary_hits := 0
 	for hits in secondary_contacts.values():
 		secondary_hits += hits.size()
-	if secondary < 3 or secondary_hits == 0 or frames.size() != 240:
+	if secondary < (1 if spell == "atomic" else 3) or secondary_hits == 0 or frames.size() != 240:
 		failures.append("missing_casts_or_frames")
 	var result = {"spell":spell,"rank":rank,"cast_route":route,"secondary_spell":"bolt" if spell == "mana_bolt" else "mana_bolt","negative_control":negative,"failures":failures,"damage_events":damage_events,"hostile_warning_samples":warnings,"primary_contacts":contacts,"primary_hit_count":hit_count,"player_travel":travel,"moving_enemies":moved,"secondary_casts":secondary,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
+	if spell == "atomic":
+		result.fixture_enemy_xp = 0.0
+		result.initial_input_state = initial_input_state
+		result.atomic = atomic_state
+		result.atomic_hits = atomic_hits
+		result.reduced_effects = args.has("reduced")
+		result.rank_applicability = "Atomic is a charge-gated ability; rank does not apply"
 	var file = FileAccess.open(folder + "/manifest.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(result,"\t"))
 	print("COMBAT_RESULT ", JSON.stringify({"failures":failures,"damage":damage_events,"warnings":warnings,"hits":hit_count,"travel":travel,"moving_enemies":moved}))
@@ -167,7 +230,15 @@ func run():
 	await process_frame
 	quit(0 if failures.is_empty() else 1)
 
+func _record_atomic_damage(amount: float, position: Vector2, source: Dictionary, target_id: int):
+	if str(source.get("spell", "")) == "atomic":
+		atomic_hits.append({"target":target_id, "amount":amount, "position":[position.x, position.y], "source":source.duplicate(true), "movie_frame":Engine.get_frames_drawn()})
+
 static func prepare_capture_spell(manager, spell: String, rank: int, modifiers: String = "") -> Dictionary:
+	if spell == "atomic":
+		if rank != 1 or not modifiers.is_empty():
+			return {"error":"Atomic has no learned rank or keyword modifiers"}
+		return {"kind":"style_atomic"}
 	if spell == "mana_bolt":
 		if not modifiers.is_empty():
 			return {"error":"Modifiers are not supported for automatic Magic Missile"}
@@ -192,6 +263,8 @@ static func prepare_capture_spell(manager, spell: String, rank: int, modifiers: 
 	return {"kind":"learned_slot", "slot":slot}
 
 static func release_capture_spell(manager, route: Dictionary) -> bool:
+	if route.kind == "style_atomic":
+		return manager.get_parent().style_session.cast_atomic()
 	if route.kind == "automatic_missile":
 		manager.last_generic_cast = null
 		manager.fire_mana_bolt()

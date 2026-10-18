@@ -4,6 +4,12 @@
 - Require sustained actual hunt damage, a living previously hunted target, capped healing with measured slower return, and one actual finishing hit on a fresh target outside all hunted/excluded IDs before timeout. The fresh target is explicitly staged after the hunt; this is controlled lifecycle evidence, not a natural hostile encounter.
 - Preserve single-spirit base/max wounded and full-health sequences with native PNGs, aligned PCM and verified MP4/GIF exports. Sampled appearance/readability and arrival judgments remain scoped; full motion/fantasy/audio, mixed hostile pressure, recasts/modifiers and alternate ending branches remain follow-up work.
 
+# Capture tooling — Atomic mixed-hostile evidence (17 October 2026)
+
+- Capture normal and reduced Atomic releases against fourteen moving hostiles with a distinct Mana Bolt cast, actual pre-blast player damage, twelve Atomic recipients and full impact-to-retirement telemetry. Preserve native PNG sequences, aligned same-run PCM, camera transforms and verified exports; runtime effects and version remain unchanged.
+- Keep charge eligibility/spend checks and positive resolved-damage/lifecycle guards. Disable typing through the existing cancellation API and set encounter enemy XP to zero for uninterrupted effect review. A retained diagnostic confirms ordinary LEVEL_UP pauses the aftermath after the mass kill; this fixture does not assess unrestricted progression.
+- Record an exposed rectangular visual boundary during camera movement as an open refinement obligation. All Atomic artistic grades remain unassessed; follow up on the boundary, full-motion fantasy and audible mix without replacing its violet identity.
+
 # Capture tooling — Magic Missile qualification (17 October 2026)
 
 - Preserve dev.20 diamond, ribbon and contact effects. Extend existing native capture metadata with rank/frame/contact provenance and optional same-run audio; support automatic Magic Missile as the primary spell with Bolt as the distinct secondary in mixed hostile captures.
