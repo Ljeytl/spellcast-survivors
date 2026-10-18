@@ -55,18 +55,21 @@ func run():
 		enemy.free()
 	var enemies: Array = []
 	var initial_positions: Array = []
-	var enemy_count := 6 if spell == "seeker" else 14
+	var enemy_count := 10 if spell == "soul_bloom" else (6 if spell == "seeker" else 14)
 	for i in enemy_count:
-		var kind = "pursuer" if i < (5 if spell == "seeker" else 10) else "imp"
+		var kind = "pursuer" if i < (8 if spell == "soul_bloom" else (5 if spell == "seeker" else 10)) else "imp"
 		var definition = manager.encounter_config.variants[kind].duplicate(true)
 		definition.id = kind
 		var enemy = manager.spawn_monster(definition, false, true)
 		enemy.global_position = game.player.global_position + Vector2.from_angle(float(i) * TAU / 14.0) * (130.0 if i < 10 else 340.0)
 		if spell == "seeker":
 			enemy.global_position = game.player.global_position + (Vector2(-55, 0) if i == 0 else Vector2.from_angle(float(i) * TAU / 6.0) * (180.0 if i < 5 else 340.0))
-		enemy.max_health = 10000
-		enemy.current_health = 10000
-		if spell in ["atomic", "seeker"]:
+		if spell == "soul_bloom":
+			enemy.global_position = game.player.global_position + Vector2.from_angle(float(i) * TAU / 10.0) * (130.0 if i < 8 else 340.0)
+		else:
+			enemy.max_health = 10000
+			enemy.current_health = 10000
+		if spell in ["atomic", "seeker", "soul_bloom"]:
 			enemy.xp_value = 0.0
 		enemy.set_physics_process(not negative)
 		if negative:
@@ -88,6 +91,10 @@ func run():
 	if spell == "prism_ray":
 		assert(game.spell_manager.learn_spell("focus_ray"))
 		assert(game.spell_manager.learn_spell("ember_spear"))
+	if spell == "soul_bloom":
+		for ingredient in ["infestation", "regeneration"]:
+			game.spell_manager.learn_spell(ingredient)
+			game.spell_manager.get_spell_info(game.spell_manager.find_spell_slot(ingredient)).level = 8
 	var modifiers := ""
 	for argument in args:
 		if argument.begins_with("modifiers="):
@@ -99,6 +106,9 @@ func run():
 		return
 	if spell == "seeker":
 		await capture_seeker_combat(stage, route, enemies, initial_positions, folder)
+		return
+	if spell == "soul_bloom":
+		await capture_soul_combat(stage, route, enemies, initial_positions, folder)
 		return
 	var origin: Vector2 = game.player.global_position
 	var travel := 0.0
@@ -281,6 +291,169 @@ static func release_capture_spell(manager, route: Dictionary) -> bool:
 
 func seeker_state(spirit) -> Dictionary:
 	return {"age":spirit.age,"ending":spirit.spirit_ending,"returning":spirit.returning_life,"finishing":spirit.finishing_hunt,"ending_age":spirit.return_age,"done":spirit.done,"stolen_life":spirit.stolen_life,"hunted":spirit.hunted_targets.keys(),"hits":spirit.cast.hits_log.duplicate(true),"position":[spirit.global_position.x,spirit.global_position.y],"player_health":game.player.health,"movie_frame":Engine.get_frames_drawn()}
+
+func soul_state(spirit) -> Dictionary:
+	return {"age":spirit.age,"healing":spirit.healing,"amount":spirit.amount,"source":spirit.source.duplicate(true),"position":[spirit.global_position.x,spirit.global_position.y],"movie_frame":Engine.get_frames_drawn()}
+
+func capture_soul_combat(stage, route: Dictionary, enemies: Array, initial_positions: Array, folder: String) -> void:
+	if int(game.spell_manager.get_spell_info(route.slot).level) != 8:
+		printerr("Soul Bloom mixed capture requires own rank 8")
+		quit(2)
+		return
+	var records := {}
+	var deaths: Array = []
+	var damage: Array = []
+	var heals: Array = []
+	var spawned: Array = []
+	var health_state := {"previous":float(game.player.health)}
+	for enemy in enemies:
+		var foe = enemy
+		var id: int = enemy.get_instance_id()
+		spawned.append({"id":id,"health":enemy.current_health,"max_health":enemy.max_health,"xp":enemy.xp_value})
+		foe.damage_feedback.connect(func(amount, at, source):
+			var hit := {"enemy":id,"amount":amount,"health_after":foe.current_health,"position":[at.x,at.y],"source":source.duplicate(true),"movie_frame":Engine.get_frames_drawn()}
+			if source.get("via", "") == "ghost":
+				hit["arrival_ghosts"] = []
+				for spirit in get_nodes_in_group("soul_ghosts"):
+					if not spirit.is_queued_for_deletion() and not spirit.healing and spirit.source.get("cast_id") == source.get("cast_id") and spirit.global_position.distance_to(at) <= 24.01:
+						hit.arrival_ghosts.append(str(spirit.get_instance_id()))
+			damage.append(hit)
+			if foe.current_health <= 0.0 and amount > 0.0:
+				deaths.append(hit.duplicate(true)))
+	game.player.health_changed.connect(func(health, _maximum, _overheal):
+		var delta: float = health-health_state.previous
+		if delta > 0:
+			var arrivals: Array = []
+			for spirit in get_nodes_in_group("soul_ghosts"):
+				if not spirit.is_queued_for_deletion() and spirit.healing and spirit.global_position.distance_to(game.player.global_position) <= 24.01:
+					arrivals.append(str(spirit.get_instance_id()))
+			heals.append({"amount":delta,"arrival_ghosts":arrivals,"movie_frame":Engine.get_frames_drawn()})
+		health_state.previous = health)
+	var on_added := func(node):
+		if node.get_script() != preload("res://scripts/SoulGhost.gd"):
+			return
+		var spirit = node
+		var key := str(spirit.get_instance_id())
+		var matching_death := {}
+		if not deaths.is_empty() and deaths[-1].movie_frame == Engine.get_frames_drawn():
+			matching_death = deaths[-1].duplicate(true)
+		var record := {"id":key,"source":spirit.source.duplicate(true),"amount":spirit.amount,"born_frame":Engine.get_frames_drawn(),"preceding_death":matching_death,"samples":[],"final":{}}
+		records[key] = record
+		spirit.tree_exiting.connect(func(): record.final = soul_state(spirit))
+	node_added.connect(on_added)
+	var frames: Array = []
+	var moved := {}
+	var travel := 0.0
+	var previous: Vector2 = game.player.global_position
+	var movement_start := -1
+	var primary = null
+	var primary_source := {}
+	var hosts_started := 0
+	var max_active := 0
+	var concurrent_samples := 0
+	var warnings := 0
+	var secondary_casts: Array = []
+	var secondary_contacts := {}
+	for frame in 720:
+		for action in ["move_right", "move_down", "move_left", "move_up"]:
+			Input.action_release(action)
+		if damage_events > 0 and movement_start < 0:
+			movement_start = frame
+		if movement_start >= 0:
+			Input.action_press(["move_right", "move_down", "move_left", "move_up"][((frame-movement_start)/60)%4])
+		if frame == 12:
+			game.spell_manager.last_generic_cast = null
+			if not release_capture_spell(game.spell_manager,route) or not is_instance_valid(game.spell_manager.last_generic_cast):
+				failures.append("soul_release_failed")
+				break
+			primary = game.spell_manager.last_generic_cast
+			primary_source = primary.source.duplicate(true)
+		if frame in [180,360]:
+			game.spell_manager.last_generic_cast = null
+			game.spell_manager.fire_mana_bolt()
+			if is_instance_valid(game.spell_manager.last_generic_cast):
+				var cast = game.spell_manager.last_generic_cast
+				var key := str(cast.get_instance_id())
+				secondary_casts.append(cast)
+				cast.tree_exiting.connect(func(): secondary_contacts[key] = cast.hits_log.duplicate(true))
+		await physics_frame
+		await process_frame
+		travel += game.player.global_position.distance_to(previous)
+		previous = game.player.global_position
+		for i in enemies.size():
+			if is_instance_valid(enemies[i]):
+				if enemies[i].global_position.distance_to(initial_positions[i]) > 10.0:
+					moved[enemies[i].get_instance_id()] = true
+				if enemies[i].warning > 0.0:
+					warnings += 1
+		if is_instance_valid(primary):
+			for part in primary.root_parts():
+				if part.infection != null:
+					hosts_started = maxi(hosts_started,part.infection.hosts_started)
+		var active := 0
+		for spirit in get_nodes_in_group("soul_ghosts"):
+			active += 1
+			records[str(spirit.get_instance_id())].samples.append(soul_state(spirit))
+		max_active = maxi(max_active,active)
+		if active >= 2:
+			concurrent_samples += 1
+		for cast in secondary_casts:
+			if is_instance_valid(cast):
+				secondary_contacts[str(cast.get_instance_id())] = cast.hits_log.duplicate(true)
+		stage.canvas_transform = root.get_canvas_transform()
+		game.get_node("Background").queue_redraw()
+		await RenderingServer.frame_post_draw
+		if stage.get_texture().get_image().save_png("%s/%04d.png" % [folder,frame]) != OK:
+			failures.append("frame_write_failed")
+		frames.append({"png":frame,"movie_frame":Engine.get_frames_drawn(),"health":game.player.health,"active_ghosts":active,"player":[previous.x,previous.y],"invincible":game.player.is_invincible,"typing":game.spell_manager.is_typing,"time_scale":Engine.time_scale,"paused":paused,"game_state":game.current_state})
+		if game.player.health <= 0 or game.current_state != game.GameState.PLAYING:
+			failures.append("encounter_interrupted")
+			break
+	for action in ["move_right", "move_down", "move_left", "move_up"]:
+		Input.action_release(action)
+	var infection_deaths := deaths.filter(func(hit): return hit.source.get("spell") == "soul_bloom" and hit.source.get("via") == "infection" and hit.source.get("cast_id") == primary_source.get("cast_id"))
+	var bound_births := 0
+	var outcomes := {}
+	for record in records.values():
+		var death: Dictionary = record.preceding_death
+		if record.source.get("cast_id") == primary_source.get("cast_id") and death.get("source",{}).get("cast_id") == primary_source.get("cast_id") and death.get("source",{}).get("via") == "infection":
+			bound_births += 1
+	for heal in heals:
+		if heal.arrival_ghosts.size() != 1:
+			failures.append("ambiguous_heal_arrival")
+		else:
+			outcomes[heal.arrival_ghosts[0]] = "heal"
+	for hit in damage:
+		if hit.source.get("via","") == "ghost" and hit.amount > 0:
+			if hit.arrival_ghosts.size() != 1:
+				failures.append("ambiguous_damage_arrival")
+			else:
+				outcomes[hit.arrival_ghosts[0]] = "damage"
+	for key in outcomes:
+		if not records.has(key) or records[key].final.is_empty() or float(records[key].final.age) >= 4.0 or records[key].source.get("cast_id") != primary_source.get("cast_id"):
+			failures.append("arrival_not_bound_to_retired_primary_spirit")
+	for key in records:
+		var record: Dictionary = records[key]
+		record["exit_classification"] = outcomes.get(key,"still_live" if record.final.is_empty() else ("natural_expiry" if float(record.final.age) >= 4.0 else "unattributed_early_exit"))
+	var secondary_hits := 0
+	for hits in secondary_contacts.values():
+		secondary_hits += hits.size()
+	if int(primary_source.get("cast_id",0)) <= 0 or hosts_started < 2 or infection_deaths.size() < 2 or bound_births < 2 or outcomes.is_empty():
+		failures.append("missing_actual_spread_deaths_spirits_or_delivery")
+	if damage_events == 0 or moved.size() < 5 or travel < 500 or secondary_hits == 0 or secondary_casts.size() != 2 or secondary_contacts.size() != 2 or secondary_contacts.values().any(func(hits): return hits.is_empty()):
+		failures.append("missing_actual_mixed_combat")
+	if frames.any(func(frame): return frame.invincible or frame.typing or frame.paused or not is_equal_approx(frame.time_scale,1.0)):
+		failures.append("invalid_encounter_state")
+	var result := {"spell":"soul_bloom","rank":8,"ingredient_ranks":{"infestation":8,"regeneration":8},"fixture":"Ten genuine AI enemies with configured health; XP0 prevents progression pauses. One Soul Bloom and two Mana Bolt releases, real player movement/damage, no health writes or invincibility.","spawned":spawned,"primary_source":primary_source,"hosts_started":hosts_started,"infection_deaths":infection_deaths,"bound_births":bound_births,"records":records,"outcomes":outcomes,"heals":heals,"damage":damage,"max_active":max_active,"concurrent_samples":concurrent_samples,"damage_events":damage_events,"moving_enemies":moved.size(),"player_travel":travel,"hostile_warning_samples":warnings,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"failures":failures,"sound_grade":"U: not heard"}
+	FileAccess.open(folder+"/manifest.json",FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
+	print("SOUL_COMBAT ",JSON.stringify({"failures":failures,"births":records.size(),"bound_births":bound_births,"deliveries":outcomes.size(),"damage_events":damage_events,"secondary_hits":secondary_hits}))
+	node_added.disconnect(on_added)
+	secondary_casts.clear()
+	stage.queue_free()
+	game.queue_free()
+	await process_frame
+	await process_frame
+	quit(0 if failures.is_empty() else 1)
 
 func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_positions: Array, folder: String) -> void:
 	var poison_review := OS.get_cmdline_user_args().has("poison-review")
