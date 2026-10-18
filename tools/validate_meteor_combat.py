@@ -35,15 +35,16 @@ def validate(data):
         require(bool(part.get('exit')) and part.get('exit', {}).get('done') is True, 'unfinished part')
     if all(len(v) == 6 for v in grouped.values()):
         for index, (mark, impact, crater) in enumerate(zip(grouped['mark'], grouped['impact'], grouped['crater'])):
-            require(abs(impact['birth']['clock'] - mark['birth']['clock'] - 0.65) < 0.04, 'warning timing')
+            warning_life = mark['definition']['timing']['duration'] + index * primary['plan']['arrangement']['stagger_life']
+            require(abs(impact['birth']['clock'] - mark['birth']['clock'] - warning_life) < 0.04, 'warning timing')
             require(abs(crater['birth']['clock'] - impact['birth']['clock']) < 0.02, 'impact/crater timing')
             require(mark['position'] == impact['position'] == crater['position'], 'landing position changed')
             if not reduced:
-                window = [f for f in frames if 0 <= f['movie_frame'] - impact['birth']['movie_frame'] <= 10]
-                require(any(f['shake_intensity'] > 6 and sum(abs(x) for x in f['camera_offset']) > 0.001 for f in window), 'missing Meteor-strength shake at impact')
+                window = [f for f in frames if 0 <= f['movie_frame'] - impact['birth']['movie_frame'] <= 4]
+                require(any(f['shake_timer'] > 0 and f['shake_intensity'] > 6 and sum(abs(x) for x in f['camera_offset']) > 0.001 for f in window), 'missing Meteor-strength shake at impact')
             require(0.98 <= crater.get('exit', {}).get('age', 0) <= 1.04, 'crater lifetime')
             if index:
-                require(abs(mark['birth']['clock'] - grouped['mark'][index - 1]['birth']['clock'] - 0.3) < 0.04, 'stagger timing')
+                require(abs(impact['birth']['clock'] - grouped['impact'][index - 1]['birth']['clock'] - 0.3) < 0.04, 'stagger timing')
     return errors
 
 
@@ -59,7 +60,7 @@ def main():
     if args.known_bad:
         for label, mutation in [
             ('disabled-camera', lambda d: d['frames'][0].update(camera_processing=False)),
-            ('missing-meteor-shake', lambda d: [f.update(camera_offset=[0, 0], shake_intensity=0) for f in d['frames']] if not d['reduced_effects'] else d['frames'][0].update(camera_processing=False)),
+            (('forbidden-reduced-shake' if data['reduced_effects'] else 'missing-meteor-shake'), lambda d: [f.update(camera_offset=[1, 1] if d['reduced_effects'] else [0, 0], shake_intensity=0) for f in d['frames']]),
             ('wrong-reduced-label', lambda d: d.update(reduced_effects=not d['reduced_effects'])),
             ('missing-impact', lambda d: d.update(parts=[p for p in d['parts'] if p['part'] != 'impact'])),
             ('unbound-damage', lambda d: d.update(resolved=[])),
