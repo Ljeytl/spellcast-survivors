@@ -18,7 +18,7 @@ func run():
 	var args = OS.get_cmdline_user_args()
 	var spell = args[0] if args.size() > 0 else "lightning"
 	var rank = int(args[1]) if args.size() > 1 else 1
-	if rank < 1 or rank > 8:
+	if rank < 1 or rank > 8 or (spell == "seeker" and rank != 8):
 		printerr("Rank must be 1 through 8")
 		quit(2)
 		return
@@ -55,15 +55,18 @@ func run():
 		enemy.free()
 	var enemies: Array = []
 	var initial_positions: Array = []
-	for i in 14:
-		var kind = "pursuer" if i < 10 else "imp"
+	var enemy_count := 6 if spell == "seeker" else 14
+	for i in enemy_count:
+		var kind = "pursuer" if i < (5 if spell == "seeker" else 10) else "imp"
 		var definition = manager.encounter_config.variants[kind].duplicate(true)
 		definition.id = kind
 		var enemy = manager.spawn_monster(definition, false, true)
 		enemy.global_position = game.player.global_position + Vector2.from_angle(float(i) * TAU / 14.0) * (130.0 if i < 10 else 340.0)
+		if spell == "seeker":
+			enemy.global_position = game.player.global_position + (Vector2(-55, 0) if i == 0 else Vector2.from_angle(float(i) * TAU / 6.0) * (180.0 if i < 5 else 340.0))
 		enemy.max_health = 10000
 		enemy.current_health = 10000
-		if spell == "atomic":
+		if spell in ["atomic", "seeker"]:
 			enemy.xp_value = 0.0
 		enemy.set_physics_process(not negative)
 		if negative:
@@ -93,6 +96,9 @@ func run():
 	if route.has("error"):
 		printerr(route.error)
 		quit(2)
+		return
+	if spell == "seeker":
+		await capture_seeker_combat(stage, route, enemies, initial_positions, folder)
 		return
 	var origin: Vector2 = game.player.global_position
 	var travel := 0.0
@@ -272,3 +278,141 @@ static func release_capture_spell(manager, route: Dictionary) -> bool:
 	if route.kind == "bare_freeform":
 		return manager.cast_freeform_spell(route.phrase)
 	return manager.cast_spell_by_type(route.slot)
+
+func seeker_state(spirit) -> Dictionary:
+	return {"age":spirit.age,"ending":spirit.spirit_ending,"returning":spirit.returning_life,"finishing":spirit.finishing_hunt,"ending_age":spirit.return_age,"done":spirit.done,"stolen_life":spirit.stolen_life,"hunted":spirit.hunted_targets.keys(),"hits":spirit.cast.hits_log.duplicate(true),"position":[spirit.global_position.x,spirit.global_position.y],"player_health":game.player.health,"movie_frame":Engine.get_frames_drawn()}
+
+func capture_seeker_combat(stage, route: Dictionary, enemies: Array, initial_positions: Array, folder: String) -> void:
+	var health_state := {"previous":float(game.player.health)}
+	var heals: Array = []
+	game.player.health_changed.connect(func(health, _maximum, _overheal):
+		var delta: float = health - health_state.previous
+		if delta > 0.0:
+			var arrivals: Array = []
+			for live in get_nodes_in_group("engine_spirits"):
+				if live.returning_life and live.global_position.distance_to(game.player.global_position) <= 18.01:
+					arrivals.append(str(live.cast.get_instance_id()))
+			heals.append({"amount":delta,"arrival_casts":arrivals,"movie_frame":Engine.get_frames_drawn()})
+		health_state.previous = health)
+	var records := {}
+	var live_casts: Array = []
+	var secondary_casts: Array = []
+	var secondary_contacts := {}
+	var frames: Array = []
+	var max_active := 0
+	var triple_samples := 0
+	var warnings := 0
+	var travel := 0.0
+	var previous: Vector2 = game.player.global_position
+	var movement_start := -1
+	var tail := 0
+	for frame in 990:
+		for action in ["move_right", "move_down", "move_left", "move_up"]:
+			Input.action_release(action)
+		if damage_events > 0 and movement_start < 0:
+			movement_start = frame
+		if movement_start >= 0:
+			var moving_frame := frame - movement_start
+			var leg := 30 if frame < 720 else 12
+			if moving_frame % leg < (20 if frame < 720 else 8):
+				Input.action_press(["move_right", "move_down", "move_left", "move_up"][(moving_frame / leg) % 4])
+		if frame in [12, 42, 72]:
+			game.spell_manager.last_generic_cast = null
+			if not release_capture_spell(game.spell_manager, route) or not is_instance_valid(game.spell_manager.last_generic_cast):
+				failures.append("seeker_release_failed")
+				break
+			var cast = game.spell_manager.last_generic_cast
+			if cast.parts.size() != 1:
+				failures.append("seeker_root_count")
+				break
+			var key := str(cast.get_instance_id())
+			var spirit = cast.parts[0]
+			var record := {"cast_id":key,"spirit_id":spirit.get_instance_id(),"release_frame":frame,"lifetime":spirit.total_life(),"outbound_speed":spirit.def.motion[0].speed,"ending":{},"final":{},"samples":[]}
+			records[key] = record
+			spirit.tree_exiting.connect(func(): record.final = seeker_state(spirit))
+			live_casts.append(cast)
+			events.append({"type":"primary_cast","cast_id":key,"frame":frame,"movie_frame":Engine.get_frames_drawn()})
+		if frame in [22, 300, 600]:
+			game.spell_manager.last_generic_cast = null
+			game.spell_manager.fire_mana_bolt()
+			if is_instance_valid(game.spell_manager.last_generic_cast):
+				secondary_casts.append(game.spell_manager.last_generic_cast)
+				events.append({"type":"secondary_cast","frame":frame,"movie_frame":Engine.get_frames_drawn()})
+		await physics_frame
+		await process_frame
+		travel += game.player.global_position.distance_to(previous)
+		previous = game.player.global_position
+		var active := 0
+		for cast in live_casts:
+			if is_instance_valid(cast):
+				for spirit in cast.root_parts():
+					active += 1
+					var record: Dictionary = records[str(cast.get_instance_id())]
+					var state := seeker_state(spirit)
+					if state.ending and record.ending.is_empty():
+						record.ending = state.duplicate(true)
+					record.samples.append(state)
+		max_active = maxi(max_active, active)
+		if active == 3:
+			triple_samples += 1
+		for cast in secondary_casts:
+			if is_instance_valid(cast):
+				secondary_contacts[str(cast.get_instance_id())] = cast.hits_log.duplicate(true)
+		for enemy in enemies:
+			if is_instance_valid(enemy) and enemy.warning > 0.0:
+				warnings += 1
+		stage.canvas_transform = root.get_canvas_transform()
+		game.get_node("Background").queue_redraw()
+		await RenderingServer.frame_post_draw
+		if stage.get_texture().get_image().save_png("%s/%04d.png" % [folder, frame]) != OK:
+			failures.append("frame_write_failed")
+		frames.append({"png":frame,"movie_frame":Engine.get_frames_drawn(),"active_spirits":active,"health":game.player.health,"invincible":game.player.is_invincible,"player":[previous.x,previous.y],"camera":[game.camera.global_position.x,game.camera.global_position.y],"typing":game.spell_manager.is_typing,"time_scale":Engine.time_scale,"paused":paused,"game_state":game.current_state})
+		if records.size() == 3 and records.values().all(func(record): return not record.final.is_empty()):
+			tail += 1
+		if tail >= 15:
+			break
+		if game.player.health <= 0 or game.current_state != game.GameState.PLAYING:
+			failures.append("encounter_interrupted")
+			break
+	for action in ["move_right", "move_down", "move_left", "move_up"]:
+		Input.action_release(action)
+	var moved := 0
+	for i in enemies.size():
+		if is_instance_valid(enemies[i]) and enemies[i].global_position.distance_to(initial_positions[i]) > 10.0:
+			moved += 1
+	if records.size() != 3 or max_active != 3 or triple_samples < 30:
+		failures.append("missing_three_distinct_concurrent_spirits")
+	var healed := {}
+	for heal in heals:
+		if heal.arrival_casts.size() != 1:
+			failures.append("heal_not_bound_to_unique_arrival")
+		else:
+			var key: String = heal.arrival_casts[0]
+			healed[key] = float(healed.get(key, 0.0)) + float(heal.amount)
+	for record in records.values():
+		var ending: Dictionary = record.ending
+		var final: Dictionary = record.final
+		var hits: Array = ending.get("hits", [])
+		if absf(float(record.lifetime) - 24.0) > 0.02 or float(ending.get("age", 0.0)) < 24.0 or hits.size() < 3 or float(hits[-1].t) - float(hits[0].t) < 20.0:
+			failures.append("incomplete_sustained_hunt_" + record.cast_id)
+		if not final.get("done", false) or float(final.get("ending_age", 4.0)) >= 4.0 or not ending.get("returning", false) or final.get("hits", []).size() != hits.size():
+			failures.append("missing_natural_return_" + record.cast_id)
+		if float(healed.get(record.cast_id, 0.0)) <= 0.0 or float(healed.get(record.cast_id, 0.0)) > 2.001:
+			failures.append("missing_capped_arrival_heal_" + record.cast_id)
+	var secondary_hits := 0
+	for hits in secondary_contacts.values():
+		secondary_hits += hits.size()
+	if damage_events == 0 or moved < 5 or travel < 500 or secondary_casts.size() != 3 or secondary_hits == 0:
+		failures.append("missing_actual_mixed_combat")
+	if frames.any(func(frame): return frame.invincible or frame.typing or frame.paused or not is_equal_approx(frame.time_scale, 1.0)):
+		failures.append("invalid_encounter_state")
+	var result := {"spell":"seeker","rank":8,"fps":30,"fixture":"Six genuine moving/attacking AI enemies with 10000 HP and zero XP; bounded movement input after actual damage; no health writes, invincibility or healing calls. Three real learned releases; no fourth-cast eviction claim.","failures":failures,"records":records,"max_active":max_active,"triple_samples":triple_samples,"damage_events":damage_events,"heals":heals,"healed_by_cast":healed,"moving_enemies":moved,"player_travel":travel,"hostile_warning_samples":warnings,"secondary_contacts":secondary_contacts,"secondary_hits":secondary_hits,"frames":frames,"events":events,"sound_grade":"U: not heard"}
+	FileAccess.open(folder + "/manifest.json", FileAccess.WRITE).store_string(JSON.stringify(result,"\t"))
+	print("SEEKER_COMBAT ",JSON.stringify({"failures":failures,"max_active":max_active,"healed":healed,"damage_events":damage_events,"moving":moved,"frames":frames.size()}))
+	live_casts.clear()
+	secondary_casts.clear()
+	stage.queue_free()
+	game.queue_free()
+	await process_frame
+	await process_frame
+	quit(0 if failures.is_empty() else 1)
