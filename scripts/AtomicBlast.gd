@@ -102,7 +102,7 @@ func _impact() -> void:
 
 func overlay_bounds() -> Rect2:
 	var viewport := get_viewport()
-	return viewport.get_canvas_transform().affine_inverse() * viewport.get_visible_rect()
+	return viewport.get_canvas_transform().affine_inverse() * viewport.get_visible_rect().grow(32.0)
 
 func _draw() -> void:
 	if not configured:

@@ -5,6 +5,11 @@ class LockedOverlay extends Atomic:
 	func overlay_bounds() -> Rect2:
 		return footprint
 
+class UnpaddedOverlay extends Atomic:
+	func overlay_bounds() -> Rect2:
+		var viewport := get_viewport()
+		return viewport.get_canvas_transform().affine_inverse() * viewport.get_visible_rect()
+
 const Hazard = preload("res://scripts/EnemyProjectile.gd")
 var checks := 0
 var failures := 0
@@ -52,6 +57,8 @@ func run() -> void:
 	game.camera_shake.shake_timer = 0.0
 	game.camera_shake.shake_intensity = 0.0
 	var blast = LockedOverlay.new() if "--known-bad-locked-overlay" in OS.get_cmdline_user_args() else Atomic.new()
+	if "--known-bad-unpadded-overlay" in OS.get_cmdline_user_args():
+		blast = UnpaddedOverlay.new()
 	blast.configure(game)
 	var bounds: Rect2 = blast.footprint
 	var committed_origin: Vector2 = game.player.global_position
@@ -102,9 +109,13 @@ func run() -> void:
 	check(blast.footprint == bounds, "Release footprint remains locked after camera change")
 	for displacement in [Vector2(400, 400), Vector2(-173, 92), Vector2(8, -6)]:
 		root.canvas_transform.origin = displacement
-		var visible: Rect2 = root.get_visible_rect()
+		var visible: Rect2 = root.get_visible_rect().grow(32.0)
 		var rendered: Rect2 = root.canvas_transform * blast.overlay_bounds()
 		check(rendered.position.distance_to(visible.position) < 0.01 and rendered.end.distance_to(visible.end) < 0.01, "Overlay covers current viewport under translated and shaken camera")
+	var before_render: Rect2 = root.canvas_transform * blast.overlay_bounds()
+	for late_delta in [Vector2(30, 0), Vector2(-30, 0), Vector2(0, 30), Vector2(0, -30)]:
+		var shifted := Rect2(before_render.position + late_delta, before_render.size)
+		check(shifted.encloses(root.get_visible_rect()), "Visual overscan covers late camera and shake displacement")
 	check(blast.footprint == bounds and blast.origin == committed_origin, "Overlay tracking leaves committed damage and pressure origin unchanged")
 	blast._process(0.02)
 	check(ordinary.current_health == 0.0 and ordinary.dying, "Real regular enemy dies through damage API")
